@@ -11,3 +11,5 @@ The whole project is built with **Next.js**.
 - Follow the same technology stack consistently
 - Use **shadcn/ui** for the frontend components
 - Install the shadcn/ui package if not already installed
+- whole app is in /web file
+- using cleark for authentication and billing
