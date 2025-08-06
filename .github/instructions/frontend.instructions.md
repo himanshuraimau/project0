@@ -1,3 +1,7 @@
+---
+applyTo: '**'
+---
+Provide project context and coding guidelines that AI should follow when generating code, answering questions, or reviewing changes.
 # Frontend Instructions
 
 Use **bun** for the whole project, including the frontend and backend. This ensures a consistent and efficient development environment.
@@ -13,3 +17,4 @@ The whole project is built with **Next.js**.
 - Install the shadcn/ui package if not already installed
 - whole app is in /web file
 - using cleark for authentication and billing
+- Ensure all components are responsive and accessible
