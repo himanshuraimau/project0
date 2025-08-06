@@ -12,6 +12,7 @@ const Page = () => {
             <section className="space-y-6 pt-[16vh] 2xl:pt-32">
                 <div className="flex flex-col items-center">
                     <SignIn 
+                        redirectUrl="/dashboard"
                         appearance={{
                             baseTheme: currentTheme === "dark" ? dark : undefined,
                             elements: {
