@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Moon, Sun, Menu, X } from "lucide-react"
+import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs"
+import { UserControl } from "../user-control"
 
 export function Header() {
   const [mounted, setMounted] = useState(false)
@@ -68,9 +70,25 @@ export function Header() {
             </Button>
 
             {/* CTA Button */}
-            <Button className="hidden sm:flex bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-6 py-2 font-medium shadow-lg hover:shadow-xl transition-all duration-300">
-              Get Started
-            </Button>
+            <SignedOut>
+                    <div className="flex gap-2">
+                        <SignUpButton>
+                            <Button variant="outline" size="sm">
+                                Sign Up
+                            </Button>
+                        </SignUpButton>
+
+                         <SignInButton>
+                            <Button size="sm">
+                                Sign In
+                            </Button>
+                        </SignInButton>
+                    </div>
+                </SignedOut>
+
+                <SignedIn>
+                    <UserControl showName />
+                </SignedIn>
 
             {/* Mobile menu button */}
             <Button
