@@ -225,3 +225,72 @@ Located at the bottom of the note detail page:
   - Title: “Chat with this note”
   - Chat display area showing conversation history
   - Text input field with “Send” button
+
+
+## How to Use Page
+
+This page guides users through getting started with the platform.
+
+---
+
+### 🚀 Getting Started Section
+
+- **Main Title**: "Get started in 20 seconds"
+- **Instructional Video**:  
+  - Embedded YouTube iframe  
+  - Provides a quick overview of the platform and its core features
+
+---
+
+## Support Page
+
+The Support page provides users with helpful FAQs, categorized support topics, and a way to contact the support team.
+
+---
+
+### 🆘 Help Centre Section
+
+- **Main Title**: "Help Centre"
+- **Short Description**: Brief sentence explaining the purpose of the support page
+
+---
+
+### ⭐ Most Popular FAQs
+
+- **Subtitle**: "Most Popular"
+- **UI Component**: Horizontal accordion-style collapsible blocks
+- **FAQ Entries**:
+  - **Family plan?**: Details about multi-user access or family sharing
+  - **Gift coconote?**: Information on gifting subscriptions
+  - **Do you support my language?**: List of supported languages or request process
+  - **Feature request/improvement!**: How to suggest features or report ideas
+
+---
+
+### 📁 Other FAQ Categories
+
+Each section uses the same horizontal collapsible block style as "Most Popular":
+
+- **Recording & Notes**
+- **Subscription & Payments**
+
+Each contains relevant questions with expand/collapse support for viewing answers.
+
+---
+
+### 📧 Support Email Section
+
+- **Subtitle**: "Support Email"
+- **Description Box**:  
+  - Provides official support email  
+  - Brief explanation on expected response times or usage guidelines
+
+---
+
+### 📞 Contact Us Section
+
+- **Title**: "Contact Us"
+- **Message Box**:  
+  - Text input area for users to type their concerns or questions  
+- **Send Button**:  
+  - Submits the user's message to support team
