@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useNotes, Note } from '@/hooks/use-notes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ interface NotesViewerProps {
 }
 
 export function NotesViewer({ transcriptId, noteId }: NotesViewerProps) {
+  const router = useRouter();
   const { getNotes, getNote, generateNotesFromTranscript, generateFocusedNotes, deleteNote, loading, error } = useNotes();
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
@@ -89,6 +91,10 @@ export function NotesViewer({ transcriptId, noteId }: NotesViewerProps) {
   const handleViewNote = (note: Note) => {
     setSelectedNote(note);
     setView('detail');
+  };
+
+  const handleViewFullNote = (noteId: string) => {
+    router.push(`/dashboard/notes/${noteId}`);
   };
 
   const handleBackToList = () => {
@@ -269,7 +275,7 @@ export function NotesViewer({ transcriptId, noteId }: NotesViewerProps) {
                     <Button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleViewNote(note);
+                        handleViewFullNote(note.id);
                       }}
                       variant="outline"
                       size="sm"
