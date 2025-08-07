@@ -41,5 +41,22 @@ model Note {
   // Relationship to transcript
   transcript  Transcript @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
   
+  // Relationship to flashcard (one-to-one)
+  flashcard   Flashcard?
+  
   @@map("notes")
+}
+
+model Flashcard {
+  id        String   @id @default(cuid())
+  noteId    String   @unique // One flashcard record per note
+  content   Json     // JSON array of {id, question, answer} objects
+  userId    String?  // Optional user association
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relationship to note
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  
+  @@map("flashcards")
 }

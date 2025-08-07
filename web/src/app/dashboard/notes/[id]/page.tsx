@@ -3,19 +3,31 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useNotes, Note } from '@/hooks/use-notes';
+import { useFlashcards } from '@/hooks/use-flashcards';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardLayout } from '@/components/dashboard';
-import { ArrowLeft, Copy, Download, Edit, Share, FileText, HelpCircle, Layers, X } from 'lucide-react';
+import { FlashcardViewer, useFlashcardKeyboard } from '@/components/flashcards';
+import { ArrowLeft, Copy, Download, Edit, Share, FileText, HelpCircle, Layers, X, Trash2 } from 'lucide-react';
 
 export default function NoteViewPage() {
   const params = useParams();
   const router = useRouter();
   const noteId = params.id as string;
   const { getNote, loading, error } = useNotes();
+  const { 
+    flashcards, 
+    loading: flashcardsLoading, 
+    error: flashcardsError, 
+    generateFlashcards, 
+    getFlashcards,
+    deleteFlashcards 
+  } = useFlashcards();
+  
   const [note, setNote] = useState<Note | null>(null);
   const [transcript, setTranscript] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [showFlashcards, setShowFlashcards] = useState(false);
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
 
@@ -115,10 +127,57 @@ export default function NoteViewPage() {
     console.log('Generate quiz functionality to be implemented');
   };
 
-  const handleGenerateFlashcard = () => {
-    // Placeholder for generate flashcard functionality
-    console.log('Generate flashcard functionality to be implemented');
+  const handleGenerateFlashcard = async () => {
+    if (!noteId) return;
+    
+    // If flashcards are already shown, hide them and show note
+    if (showFlashcards) {
+      setShowFlashcards(false);
+      return;
+    }
+    
+    try {
+      setShowFlashcards(true);
+      
+      // Check if flashcards already exist
+      const existingFlashcards = await getFlashcards(noteId);
+      
+      if (existingFlashcards.length === 0) {
+        // Generate new flashcards if none exist
+        await generateFlashcards(noteId);
+      }
+    } catch (error) {
+      console.error('Error with flashcards:', error);
+      setShowFlashcards(false);
+      // You could add a toast notification here
+    }
   };
+
+  const handleCloseFlashcards = () => {
+    setShowFlashcards(false);
+  };
+
+  const handleDeleteFlashcards = async () => {
+    if (!noteId) return;
+    
+    try {
+      await deleteFlashcards(noteId);
+      setShowFlashcards(false);
+      // You could add a toast notification here
+    } catch (error) {
+      console.error('Error deleting flashcards:', error);
+      // You could add a toast notification here
+    }
+  };
+
+  // Keyboard navigation for flashcards
+  useFlashcardKeyboard(
+    () => {}, // Will be handled by FlashcardViewer
+    () => {}, // Will be handled by FlashcardViewer  
+    () => {}, // Will be handled by FlashcardViewer
+    () => {}, // Will be handled by FlashcardViewer
+    handleCloseFlashcards
+  );
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -238,14 +297,26 @@ export default function NoteViewPage() {
             onClick={handleGenerateFlashcard}
             variant="secondary"
             className="flex items-center gap-2"
+            disabled={flashcardsLoading}
           >
             <Layers className="h-4 w-4" />
-            Generate Flashcard
+            {flashcardsLoading ? 'Generating...' : showFlashcards ? 'Show Note' : 'Generate Flashcards'}
           </Button>
+          {flashcards.length > 0 && showFlashcards && (
+            <Button
+              onClick={handleDeleteFlashcards}
+              variant="destructive"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Flashcards
+            </Button>
+          )}
         </div>
 
-        {/* Note Content */}
-        {!showTranscript && (
+        {/* Note Content or Flashcards */}
+        {!showTranscript && !showFlashcards && (
           <Card>
             <CardHeader>
               <CardTitle className="text-xl">{note.title}</CardTitle>
@@ -265,6 +336,50 @@ export default function NoteViewPage() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Flashcards Section - Replaces Note Content */}
+        {!showTranscript && showFlashcards && (
+          <div className="space-y-4">
+            {flashcardsLoading && (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                      <p className="text-sm text-gray-600">Generating flashcards...</p>
+                      <p className="text-xs text-gray-500 mt-1">This may take a few moments</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {flashcardsError && !flashcardsLoading && (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center text-red-600">
+                    <p className="font-medium">Error generating flashcards</p>
+                    <p className="text-sm mt-1">{flashcardsError}</p>
+                    <Button 
+                      onClick={() => handleGenerateFlashcard()} 
+                      className="mt-3" 
+                      size="sm"
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {flashcards.length > 0 && !flashcardsLoading && (
+              <FlashcardViewer 
+                flashcards={flashcards}
+                onClose={handleCloseFlashcards}
+              />
+            )}
+          </div>
         )}
 
         {/* Transcript Section */}
