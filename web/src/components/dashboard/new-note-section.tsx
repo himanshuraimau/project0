@@ -29,12 +29,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { PDFUploader } from "@/components/pdf"
+import { PDFUploader, SimplePDFProcessor } from "@/components/pdf"
 
 export function NewNoteSection() {
   const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'stopped'>('idle')
   const [recordingTime, setRecordingTime] = useState(0)
   const [webLink, setWebLink] = useState("")
+  const [showPDFDialog, setShowPDFDialog] = useState(false)
 
   const handleStartRecording = () => {
     setRecordingState('recording')
@@ -72,6 +73,16 @@ export function NewNoteSection() {
   const handleSelectAudioFile = () => {
     // TODO: Implement audio file selection
     console.log("Selecting audio file")
+  }
+
+  const handlePDFProcessComplete = (result: any) => {
+    // PDF processed successfully, close dialog and potentially refresh notes
+    setShowPDFDialog(false)
+    // You could add a callback here to refresh the notes section
+  }
+
+  const handleClosePDFDialog = () => {
+    setShowPDFDialog(false)
   }
 
   return (
@@ -210,22 +221,26 @@ export function NewNoteSection() {
         </Dialog>
 
         {/* Upload PDF/Text Modal */}
-        <Dialog>
+        <Dialog open={showPDFDialog} onOpenChange={setShowPDFDialog}>
           <DialogTrigger asChild>
             <Button 
               variant="outline" 
               className="h-20 flex-col gap-2 border-2 border-accent/20 hover:border-accent hover:bg-accent/5 rounded-2xl transition-all duration-300"
+              onClick={() => setShowPDFDialog(true)}
             >
               <FileText className="h-6 w-6 text-accent-foreground" />
-              <span className="text-sm font-medium">Upload PDF/Text</span>
+              <span className="text-sm font-medium">Upload PDF</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-left">Upload PDF</DialogTitle>
+              <DialogTitle className="text-left">Upload PDF & Generate Notes</DialogTitle>
             </DialogHeader>
             <div className="mt-4">
-              <PDFUploader />
+              <SimplePDFProcessor 
+                onProcessComplete={handlePDFProcessComplete}
+                onClose={handleClosePDFDialog}
+              />
             </div>
           </DialogContent>
         </Dialog>

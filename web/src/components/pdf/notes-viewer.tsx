@@ -181,62 +181,50 @@ export function NotesViewer({ transcriptId, noteId }: NotesViewerProps) {
   // List view
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>AI-Generated Notes</CardTitle>
-            <CardDescription>
-              {transcriptId 
-                ? 'Notes for this transcript' 
-                : `All your notes (${notes.length})`
-              }
-            </CardDescription>
-          </div>
-          {transcriptId && (
-            <div className="flex space-x-2">
+      <CardContent className="p-6">
+        {transcriptId && (
+          <div className="flex space-x-2 mb-6">
+            <Button 
+              onClick={handleGenerateNotes}
+              disabled={loading}
+              size="sm"
+            >
+              Generate Standard Notes
+            </Button>
+            <div className="relative">
               <Button 
-                onClick={handleGenerateNotes}
+                onClick={() => setShowNoteTypeOptions(!showNoteTypeOptions)}
                 disabled={loading}
+                variant="outline"
                 size="sm"
               >
-                Generate Standard Notes
+                Generate Focused Notes ▼
               </Button>
-              <div className="relative">
-                <Button 
-                  onClick={() => setShowNoteTypeOptions(!showNoteTypeOptions)}
-                  disabled={loading}
-                  variant="outline"
-                  size="sm"
-                >
-                  Generate Focused Notes ▼
-                </Button>
-                {showNoteTypeOptions && (
-                  <div className="absolute top-full left-0 mt-1 bg-white border rounded-md shadow-lg z-10 min-w-48">
-                    {[
-                      { type: 'summary' as const, label: 'Executive Summary', desc: 'Key points & conclusions' },
-                      { type: 'detailed' as const, label: 'Detailed Analysis', desc: 'Comprehensive breakdown' },
-                      { type: 'action-items' as const, label: 'Action Items', desc: 'Tasks & next steps' },
-                      { type: 'technical' as const, label: 'Technical Focus', desc: 'Technical details' },
-                      { type: 'executive' as const, label: 'Executive Brief', desc: 'Decision-maker summary' }
-                    ].map(({ type, label, desc }) => (
-                      <button
-                        key={type}
-                        onClick={() => handleGenerateFocusedNotes(type)}
-                        className="w-full text-left px-3 py-2 hover:bg-gray-100 border-b last:border-b-0"
-                        disabled={loading}
-                      >
-                        <div className="font-medium text-sm">{label}</div>
-                        <div className="text-xs text-gray-500">{desc}</div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {showNoteTypeOptions && (
+                <div className="absolute top-full left-0 mt-1 w-64 bg-white border rounded-md shadow-lg z-10">
+                  {[
+                    { type: 'summary' as const, label: 'Summary', desc: 'Key points overview' },
+                    { type: 'detailed' as const, label: 'Detailed Notes', desc: 'Comprehensive breakdown' },
+                    { type: 'action-items' as const, label: 'Action Items', desc: 'Tasks and next steps' },
+                    { type: 'technical' as const, label: 'Technical Focus', desc: 'Technical details' },
+                    { type: 'executive' as const, label: 'Executive Brief', desc: 'Decision-maker summary' }
+                  ].map(({ type, label, desc }) => (
+                    <button
+                      key={type}
+                      onClick={() => handleGenerateFocusedNotes(type)}
+                      className="w-full text-left px-3 py-2 hover:bg-gray-100 border-b last:border-b-0"
+                      disabled={loading}
+                    >
+                      <div className="font-medium text-sm">{label}</div>
+                      <div className="text-xs text-gray-500">{desc}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
+          </div>
+        )}
+        
         {notes.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-600 mb-4">No notes found</p>
