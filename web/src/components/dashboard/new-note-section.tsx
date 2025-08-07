@@ -29,12 +29,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { PDFUploader } from "@/components/pdf"
 
 export function NewNoteSection() {
   const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'stopped'>('idle')
   const [recordingTime, setRecordingTime] = useState(0)
   const [webLink, setWebLink] = useState("")
-  const [textContent, setTextContent] = useState("")
 
   const handleStartRecording = () => {
     setRecordingState('recording')
@@ -67,17 +67,6 @@ export function NewNoteSection() {
     // TODO: Implement link summarization
     console.log("Summarizing link:", webLink)
     setWebLink("")
-  }
-
-  const handleSubmitText = () => {
-    // TODO: Implement text summarization
-    console.log("Submitting text:", textContent)
-    setTextContent("")
-  }
-
-  const handleImportPDF = () => {
-    // TODO: Implement PDF import
-    console.log("Importing PDF")
   }
 
   const handleSelectAudioFile = () => {
@@ -231,32 +220,12 @@ export function NewNoteSection() {
               <span className="text-sm font-medium">Upload PDF/Text</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-left">Upload text</DialogTitle>
+              <DialogTitle className="text-left">Upload PDF</DialogTitle>
             </DialogHeader>
-            <div className="space-y-6">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Text Content</label>
-                <textarea 
-                  className="w-full h-32 p-3 border border-border rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="Paste your text here..."
-                  value={textContent}
-                  onChange={(e) => setTextContent(e.target.value)}
-                />
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Button onClick={handleSubmitText} className="w-full" disabled={!textContent}>
-                  Submit Text
-                </Button>
-                <Button onClick={handleImportPDF} variant="outline" className="w-full">
-                  Import PDF
-                </Button>
-                <Button variant="outline" className="w-full">
-                  More Note Options
-                </Button>
-              </div>
+            <div className="mt-4">
+              <PDFUploader />
             </div>
           </DialogContent>
         </Dialog>

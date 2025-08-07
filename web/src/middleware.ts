@@ -5,7 +5,8 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/pricing',
   '/sign-in(.*)', 
-  '/sign-up(.*)'
+  '/sign-up(.*)',
+  '/api/(.*)'  // Allow all API routes to be public for now
 ])
 
 const isAuthRoute = createRouteMatcher([
