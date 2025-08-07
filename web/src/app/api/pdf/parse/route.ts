@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PDFParser } from '@/lib/pdf-parser';
 import { join } from 'path';
+import { auth } from '@clerk/nextjs/server';
 
 const uploadDir = join(process.cwd(), 'storage', 'uploads');
 const parser = new PDFParser(uploadDir);
@@ -24,24 +25,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get user ID from authentication
+    const { userId } = await auth();
+
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
     
     // Parse options from form data
     const extractImages = formData.get('extractImages') === 'true';
     const maxPages = formData.get('maxPages') ? parseInt(formData.get('maxPages') as string) : undefined;
+    const saveToDatabase = formData.get('saveToDatabase') !== 'false'; // Default to true
     const saveToFiles = formData.get('saveToFiles') === 'true';
 
     let result;
     
-    if (saveToFiles) {
-      // Use comprehensive extraction that saves to files
+    if (saveToDatabase) {
+      // Use database storage (default behavior)
+      result = await parser.extractToDatabase(buffer, file.name, {
+        extractImages,
+        maxPages,
+      }, userId || undefined);
+    } else if (saveToFiles) {
+      // Use file system storage (legacy behavior)
       result = await parser.extractToFiles(buffer, file.name, {
         extractImages,
         maxPages,
       });
     } else {
-      // Use in-memory parsing
+      // Use in-memory parsing only
       result = await parser.parseFromBuffer(buffer, {
         extractImages,
         maxPages,
@@ -51,6 +62,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
+        documentId: result.documentId,
         text: result.text,
         cleanText: result.cleanText,
         pages: result.pages,
@@ -83,6 +95,7 @@ export async function GET() {
       file: 'PDF file to parse (required)',
       extractImages: 'Extract images from PDF (optional, default: false)',
       maxPages: 'Maximum number of pages to parse (optional)',
+      saveToDatabase: 'Save extracted content to database (optional, default: true)',
       saveToFiles: 'Save extracted content to files (optional, default: false)',
     },
   });

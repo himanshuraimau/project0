@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ParseResult {
+  documentId?: string;
   text: string;
   cleanText: string;
   pages: number;
@@ -22,10 +23,11 @@ export function PDFUploader() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ParseResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // Always use these default options - no user configuration needed
+  // Always use these default options - save to database by default
   const options = {
     extractImages: false,
-    saveToFiles: true,
+    saveToDatabase: true,
+    saveToFiles: false,
     maxPages: 0,
   };
 
@@ -52,6 +54,7 @@ export function PDFUploader() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('extractImages', options.extractImages.toString());
+      formData.append('saveToDatabase', options.saveToDatabase.toString());
       formData.append('saveToFiles', options.saveToFiles.toString());
       if (options.maxPages > 0) {
         formData.append('maxPages', options.maxPages.toString());
@@ -112,16 +115,48 @@ export function PDFUploader() {
       </Card>
 
       {result && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Converted Text</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-y-auto whitespace-pre-wrap">
-              {result.cleanText}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          {result.documentId && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-green-600">✓ Successfully Saved</CardTitle>
+                <CardDescription>
+                  Your PDF has been processed and saved to the database
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">
+                  <strong>Document ID:</strong> {result.documentId}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Pages:</strong> {result.pages}
+                </p>
+                {result.metadata?.title && (
+                  <p className="text-sm text-gray-600">
+                    <strong>Title:</strong> {String(result.metadata.title)}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Extracted Text Preview</CardTitle>
+              <CardDescription>
+                First 1000 characters of the extracted content
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-y-auto whitespace-pre-wrap">
+                {result.cleanText.length > 1000 
+                  ? result.cleanText.substring(0, 1000) + '...'
+                  : result.cleanText
+                }
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

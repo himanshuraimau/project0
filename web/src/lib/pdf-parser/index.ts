@@ -1,6 +1,7 @@
 import { writeFile, readFile, unlink, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { DocumentService } from '../document-service';
 
 export interface PDFParseResult {
   text: string;
@@ -12,6 +13,7 @@ export interface PDFParseResult {
     textFile?: string;
     imagesDir?: string;
   };
+  documentId?: string; // Add database document ID
 }
 
 export interface ParseOptions {
@@ -21,9 +23,11 @@ export interface ParseOptions {
 
 export class PDFParser {
   private readonly uploadDir: string;
+  private readonly documentService: DocumentService;
 
   constructor(uploadDir: string = './storage/uploads') {
     this.uploadDir = uploadDir;
+    this.documentService = new DocumentService();
   }
 
   /**
@@ -32,7 +36,7 @@ export class PDFParser {
   async parseFromBuffer(buffer: Buffer, options: ParseOptions = {}): Promise<PDFParseResult> {
     try {
       // Dynamic import to avoid test file dependency issues
-      let pdf: any;
+      let pdf: typeof import('pdf-parse');
       try {
         pdf = (await import('pdf-parse')).default;
       } catch (importError) {
@@ -123,7 +127,7 @@ export class PDFParser {
   /**
    * Extract images from PDF buffer using pdfjs-dist (advanced version)
    */
-  private async extractImagesFromBuffer(buffer: Buffer): Promise<string[]> {
+  private async extractImagesFromBuffer(_buffer: Buffer): Promise<string[]> {
     try {
       console.log('⚠️ Image extraction is currently disabled due to server-side DOM limitations');
       console.log('💡 To enable image extraction, please implement server-side PDF image processing');
@@ -146,6 +150,39 @@ export class PDFParser {
    */
   private async extractImages(buffer: Buffer): Promise<string[]> {
     return this.extractImagesFromBuffer(buffer);
+  }
+
+  /**
+   * Save PDF content to database instead of files
+   */
+  async extractToDatabase(buffer: Buffer, originalName: string, options: ParseOptions = {}, userId?: string): Promise<PDFParseResult> {
+    try {
+      // Parse the PDF
+      const parseResult = await this.parseFromBuffer(buffer, options);
+      
+      // Generate filename
+      const timestamp = Date.now();
+      const fileName = `${timestamp}_${originalName}`;
+      
+      // Save to database
+      const document = await this.documentService.saveDocument({
+        fileName,
+        originalName,
+        content: parseResult.text,
+        cleanContent: parseResult.cleanText,
+        pages: parseResult.pages,
+        metadata: parseResult.metadata,
+        userId,
+      });
+
+      return {
+        ...parseResult,
+        documentId: document.id,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(`PDF extraction to database failed: ${message}`);
+    }
   }
 
   /**
