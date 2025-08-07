@@ -6,7 +6,7 @@ import { useNotes, Note } from '@/hooks/use-notes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardLayout } from '@/components/dashboard';
-import { ArrowLeft, Copy, Download, Edit, Share } from 'lucide-react';
+import { ArrowLeft, Copy, Download, Edit, Share, FileText, HelpCircle, Layers, X } from 'lucide-react';
 
 export default function NoteViewPage() {
   const params = useParams();
@@ -14,6 +14,10 @@ export default function NoteViewPage() {
   const noteId = params.id as string;
   const { getNote, loading, error } = useNotes();
   const [note, setNote] = useState<Note | null>(null);
+  const [transcript, setTranscript] = useState<string | null>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
+  const [transcriptLoading, setTranscriptLoading] = useState(false);
+  const [transcriptError, setTranscriptError] = useState<string | null>(null);
 
   useEffect(() => {
     if (noteId) {
@@ -59,6 +63,61 @@ export default function NoteViewPage() {
   const handleShare = () => {
     // Placeholder for share functionality
     console.log('Share functionality to be implemented');
+  };
+
+  const handleShowTranscript = async () => {
+    if (!note?.transcriptId) {
+      setTranscriptError('No transcript available for this note');
+      return;
+    }
+
+    if (showTranscript) {
+      // If transcript is already shown, hide it
+      setShowTranscript(false);
+      setTranscript(null);
+      setTranscriptError(null);
+      return;
+    }
+
+    setShowTranscript(true);
+    setTranscriptLoading(true);
+    setTranscriptError(null);
+
+    try {
+      // Fetch transcript from API
+      const response = await fetch(`/api/transcripts/${note.transcriptId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch transcript');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        setTranscript(data.data.content);
+      } else {
+        throw new Error(data.error || 'Failed to load transcript');
+      }
+    } catch (error) {
+      console.error('Error fetching transcript:', error);
+      setTranscriptError(error instanceof Error ? error.message : 'Failed to load transcript');
+    } finally {
+      setTranscriptLoading(false);
+    }
+  };
+
+  const handleCloseTranscript = () => {
+    setShowTranscript(false);
+    setTranscript(null);
+    setTranscriptError(null);
+  };
+
+  const handleGenerateQuiz = () => {
+    // Placeholder for generate quiz functionality
+    console.log('Generate quiz functionality to be implemented');
+  };
+
+  const handleGenerateFlashcard = () => {
+    // Placeholder for generate flashcard functionality
+    console.log('Generate flashcard functionality to be implemented');
   };
 
   const formatDate = (dateString: string) => {
@@ -157,26 +216,97 @@ export default function NoteViewPage() {
           </div>
         </div>
 
+        {/* Action Buttons Section */}
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <Button
+            onClick={handleShowTranscript}
+            variant="secondary"
+            className="flex items-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            {showTranscript ? 'Hide Transcript' : 'Show Transcript'}
+          </Button>
+          <Button
+            onClick={handleGenerateQuiz}
+            variant="secondary"
+            className="flex items-center gap-2"
+          >
+            <HelpCircle className="h-4 w-4" />
+            Generate Quiz
+          </Button>
+          <Button
+            onClick={handleGenerateFlashcard}
+            variant="secondary"
+            className="flex items-center gap-2"
+          >
+            <Layers className="h-4 w-4" />
+            Generate Flashcard
+          </Button>
+        </div>
+
         {/* Note Content */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">{note.title}</CardTitle>
-            <div className="text-sm text-gray-600 space-y-1">
-              {note.transcript && (
-                <p>Source: {note.transcript.originalName}</p>
-              )}
-              <p>Created: {formatDate(note.createdAt)}</p>
-              <p>Last updated: {formatDate(note.updatedAt)}</p>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="prose max-w-none">
-              <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                {note.content || 'No content available'}
+        {!showTranscript && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">{note.title}</CardTitle>
+              <div className="text-sm text-gray-600 space-y-1">
+                {note.transcript && (
+                  <p>Source: {note.transcript.originalName}</p>
+                )}
+                <p>Created: {formatDate(note.createdAt)}</p>
+                <p>Last updated: {formatDate(note.updatedAt)}</p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <div className="prose max-w-none">
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {note.content || 'No content available'}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Transcript Section */}
+        {showTranscript && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Transcript - {note.title}</CardTitle>
+              <div className="text-sm text-gray-600 space-y-1">
+                {note.transcript && (
+                  <p>Source: {note.transcript.originalName}</p>
+                )}
+                <p>Created: {formatDate(note.createdAt)}</p>
+                <p>Last updated: {formatDate(note.updatedAt)}</p>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {transcriptLoading && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-600">Loading transcript...</p>
+                  </div>
+                </div>
+              )}
+              
+              {transcriptError && (
+                <div className="text-center text-red-600 py-8">
+                  <p className="font-medium">Error loading transcript</p>
+                  <p className="text-sm mt-1">{transcriptError}</p>
+                </div>
+              )}
+              
+              {transcript && !transcriptLoading && (
+                <div className="prose max-w-none">
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                    {transcript}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );
