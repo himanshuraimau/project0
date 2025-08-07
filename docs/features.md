@@ -294,3 +294,65 @@ Each contains relevant questions with expand/collapse support for viewing answer
   - Text input area for users to type their concerns or questions  
 - **Send Button**:  
   - Submits the user's message to support team
+
+
+## Settings Page
+
+The Settings page provides user options related to account management, sharing, and legal actions.
+
+---
+
+### ⚙️ Settings Menu
+
+- **Main Title**: "Settings" (top-left of the page)
+- **Buttons** (stacked vertically, each with an icon):
+  - **Gift**: Send a subscription gift
+  - **Share with a Friend**: Referral or invite system
+  - **Redeem Code**: Apply a promo or gift code
+  - **Privacy Policy**: View legal terms and privacy details
+  - **Sign Out**: Log out of current session
+  - **Delete Account**: Permanently remove the user account
+
+---
+
+## Subscription Modal / Free Trial UI
+
+This modal opens when the **Subscribe** button is clicked and allows users to start a free trial and view subscription benefits.
+
+---
+
+### 🟣 Trial Offer Section
+
+- **Title**: “Try Coconote **free for 7 days**”
+- **Features Highlighted**:
+  - ✅ Unlimited AI notes, recordings, uploads
+  - ✅ Quizzes, videos, podcasts, & more
+  - ✅ YouTube, PDF, audio, files, websites
+  - ✅ Chat with your notes
+  - ✅ Private and secure usage
+
+- **Plan Options**:
+  - **Yearly**: $129 (46% savings badge)
+  - **Monthly**: $19 (grayed out, non-selectable in free trial modal)
+
+- **Call-to-Action Button**:  
+  - Text: “Try Coconote for $0”
+  - Subtext: “No risk, no payment today”
+
+- **Live Join Counter**: Shows how many users have started today (e.g., *2,246 others started today*)
+
+---
+
+### 🧠 Trial Timeline (Right Section)
+
+- Cartoon mascot illustration beside plan details
+- **Reminder Message**: “psst.. we’ll remind you before your trial ends!”
+- **Timeline Info**:
+  - **Today**: Unlimited Pass unlocked, instantly
+  - **August 12**: Reminder will be sent before the trial ends
+  - **August 14**: Trial ends and subscription starts
+
+- **Free Trial Countdown Timer**:
+  - Top-right badge showing time left to reserve free trial (e.g., `00:00`)
+
+- **Close Button**: Top-right of modal to exit the offer view
