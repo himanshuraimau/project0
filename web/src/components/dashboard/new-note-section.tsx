@@ -30,12 +30,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { PDFUploader, SimplePDFProcessor } from "@/components/pdf"
+import { AudioRecorder } from "@/components/audio"
 
 export function NewNoteSection() {
   const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'stopped'>('idle')
   const [recordingTime, setRecordingTime] = useState(0)
   const [webLink, setWebLink] = useState("")
   const [showPDFDialog, setShowPDFDialog] = useState(false)
+  const [showAudioDialog, setShowAudioDialog] = useState(false)
 
   const handleStartRecording = () => {
     setRecordingState('recording')
@@ -70,9 +72,13 @@ export function NewNoteSection() {
     setWebLink("")
   }
 
-  const handleSelectAudioFile = () => {
-    // TODO: Implement audio file selection
-    console.log("Selecting audio file")
+  const handleAudioTranscriptionComplete = (result: {
+    transcript: { id: string; content: string };
+    note: { id: string; title: string; content: string };
+  }) => {
+    console.log('Audio transcription completed:', result)
+    setShowAudioDialog(false)
+    // You could add a callback here to refresh the notes section or show a success message
   }
 
   const handlePDFProcessComplete = (result: any) => {
@@ -83,6 +89,10 @@ export function NewNoteSection() {
 
   const handleClosePDFDialog = () => {
     setShowPDFDialog(false)
+  }
+
+  const handleCloseAudioDialog = () => {
+    setShowAudioDialog(false)
   }
 
   return (
@@ -245,48 +255,26 @@ export function NewNoteSection() {
           </DialogContent>
         </Dialog>
 
-        {/* Upload Audio Modal */}
-        <Dialog>
+        {/* Audio Transcription Modal */}
+        <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>
           <DialogTrigger asChild>
             <Button 
               variant="outline" 
               className="h-20 flex-col gap-2 border-2 border-primary/20 hover:border-primary hover:bg-primary/5 rounded-2xl transition-all duration-300"
+              onClick={() => setShowAudioDialog(true)}
             >
               <Upload className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium">Upload Audio</span>
+              <span className="text-sm font-medium">Audio Transcription</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-left">Upload an audio file</DialogTitle>
+              <DialogTitle className="text-left">Audio Transcription & Summary</DialogTitle>
             </DialogHeader>
-            <div className="space-y-6">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Audio Language</label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between">
-                      English
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem>English</DropdownMenuItem>
-                    <DropdownMenuItem>Spanish</DropdownMenuItem>
-                    <DropdownMenuItem>French</DropdownMenuItem>
-                    <DropdownMenuItem>German</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              <div className="flex gap-3">
-                <Button onClick={handleSelectAudioFile} className="flex-1">
-                  Select Audio File
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  More Note Options
-                </Button>
-              </div>
+            <div className="mt-4">
+              <AudioRecorder
+                onTranscriptionComplete={handleAudioTranscriptionComplete}
+              />
             </div>
           </DialogContent>
         </Dialog>

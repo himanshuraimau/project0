@@ -16,8 +16,9 @@ model Transcript {
   originalName String
   content     String
   cleanContent String
-  pages       Int
+  pages       Int?     // Optional for audio transcripts
   metadata    Json?
+  type        String   @default("pdf") // "pdf" or "audio"
   userId      String?  // Optional user association
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
