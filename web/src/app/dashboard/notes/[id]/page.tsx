@@ -4,10 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useNotes, Note } from '@/hooks/use-notes';
 import { useFlashcards } from '@/hooks/use-flashcards';
+import { useQuiz } from '@/hooks/use-quiz';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardLayout } from '@/components/dashboard';
 import { FlashcardViewer, useFlashcardKeyboard } from '@/components/flashcards';
+import { QuizViewer } from '@/components/quiz';
 import { ArrowLeft, Copy, Download, Edit, Share, FileText, HelpCircle, Layers, X, Trash2 } from 'lucide-react';
 
 export default function NoteViewPage() {
@@ -23,11 +25,20 @@ export default function NoteViewPage() {
     getFlashcards,
     deleteFlashcards 
   } = useFlashcards();
+  const { 
+    quiz, 
+    loading: quizLoading, 
+    error: quizError, 
+    generateQuiz, 
+    getQuiz,
+    deleteQuiz 
+  } = useQuiz();
   
   const [note, setNote] = useState<Note | null>(null);
   const [transcript, setTranscript] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
   const [showFlashcards, setShowFlashcards] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
 
@@ -122,9 +133,33 @@ export default function NoteViewPage() {
     setTranscriptError(null);
   };
 
-  const handleGenerateQuiz = () => {
-    // Placeholder for generate quiz functionality
-    console.log('Generate quiz functionality to be implemented');
+  const handleGenerateQuiz = async () => {
+    if (!noteId) return;
+    
+    // If quiz is already shown, hide it and show note
+    if (showQuiz) {
+      setShowQuiz(false);
+      return;
+    }
+    
+    try {
+      // Hide other views first
+      setShowFlashcards(false);
+      setShowTranscript(false);
+      setShowQuiz(true);
+      
+      // Check if quiz already exists
+      const existingQuiz = await getQuiz(noteId);
+      
+      if (existingQuiz.length === 0) {
+        // Generate new quiz if none exists
+        await generateQuiz(noteId);
+      }
+    } catch (error) {
+      console.error('Error with quiz:', error);
+      setShowQuiz(false);
+      // You could add a toast notification here
+    }
   };
 
   const handleGenerateFlashcard = async () => {
@@ -166,6 +201,23 @@ export default function NoteViewPage() {
       // You could add a toast notification here
     } catch (error) {
       console.error('Error deleting flashcards:', error);
+      // You could add a toast notification here
+    }
+  };
+
+  const handleCloseQuiz = () => {
+    setShowQuiz(false);
+  };
+
+  const handleDeleteQuiz = async () => {
+    if (!noteId) return;
+    
+    try {
+      await deleteQuiz(noteId);
+      setShowQuiz(false);
+      // You could add a toast notification here
+    } catch (error) {
+      console.error('Error deleting quiz:', error);
       // You could add a toast notification here
     }
   };
@@ -289,9 +341,10 @@ export default function NoteViewPage() {
             onClick={handleGenerateQuiz}
             variant="secondary"
             className="flex items-center gap-2"
+            disabled={quizLoading}
           >
             <HelpCircle className="h-4 w-4" />
-            Generate Quiz
+            {quizLoading ? 'Generating...' : showQuiz ? 'Show Note' : 'Generate Quiz'}
           </Button>
           <Button
             onClick={handleGenerateFlashcard}
@@ -313,10 +366,21 @@ export default function NoteViewPage() {
               Delete Flashcards
             </Button>
           )}
+          {quiz.length > 0 && showQuiz && (
+            <Button
+              onClick={handleDeleteQuiz}
+              variant="destructive"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Quiz
+            </Button>
+          )}
         </div>
 
-        {/* Note Content or Flashcards */}
-        {!showTranscript && !showFlashcards && (
+        {/* Note Content, Flashcards, or Quiz */}
+        {!showTranscript && !showFlashcards && !showQuiz && (
           <Card>
             <CardHeader>
               <CardTitle className="text-xl">{note.title}</CardTitle>
@@ -377,6 +441,50 @@ export default function NoteViewPage() {
               <FlashcardViewer 
                 flashcards={flashcards}
                 onClose={handleCloseFlashcards}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Quiz Section - Replaces Note Content */}
+        {!showTranscript && showQuiz && (
+          <div className="space-y-4">
+            {quizLoading && (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                      <p className="text-sm text-gray-600">Generating quiz...</p>
+                      <p className="text-xs text-gray-500 mt-1">This may take a few moments</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {quizError && !quizLoading && (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center text-red-600">
+                    <p className="font-medium">Error generating quiz</p>
+                    <p className="text-sm mt-1">{quizError}</p>
+                    <Button 
+                      onClick={() => handleGenerateQuiz()} 
+                      className="mt-3" 
+                      size="sm"
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {quiz.length > 0 && !quizLoading && (
+              <QuizViewer 
+                quiz={quiz}
+                onClose={handleCloseQuiz}
               />
             )}
           </div>

@@ -44,6 +44,9 @@ model Note {
   // Relationship to flashcard (one-to-one)
   flashcard   Flashcard?
   
+  // Relationship to quiz (one-to-one)
+  quiz        Quiz?
+  
   @@map("notes")
 }
 
@@ -59,4 +62,18 @@ model Flashcard {
   note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
   
   @@map("flashcards")
+}
+
+model Quiz {
+  id        String   @id @default(cuid())
+  noteId    String   @unique // One quiz record per note
+  content   Json     // JSON object containing quiz questions array
+  userId    String?  // Optional user association
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relationship to note
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  
+  @@map("quizzes")
 }
