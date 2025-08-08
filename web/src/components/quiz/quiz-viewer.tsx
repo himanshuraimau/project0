@@ -79,12 +79,25 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({
 
   const calculateScore = () => {
     let correct = 0;
+    let totalPoints = 0;
+    const maxPointsPerQuestion = 5; // 5 points per correct answer
+    const maxTotalPoints = quiz.length * maxPointsPerQuestion;
+    
     quiz.forEach((question, index) => {
       if (selectedAnswers[index] === question.correct_answer) {
         correct++;
+        totalPoints += maxPointsPerQuestion;
       }
     });
-    return { correct, total: quiz.length, percentage: Math.round((correct / quiz.length) * 100) };
+    
+    return { 
+      correct, 
+      total: quiz.length, 
+      percentage: Math.round((correct / quiz.length) * 100),
+      totalPoints,
+      maxTotalPoints,
+      pointsPerQuestion: maxPointsPerQuestion
+    };
   };
 
   const score = calculateScore();
@@ -102,12 +115,54 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({
               </Button>
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <div className="text-4xl font-bold text-blue-600">
-              {score.percentage}%
+          <CardContent className="text-center space-y-6">
+            <div className="space-y-4">
+              <div className="text-6xl font-bold text-blue-600">
+                {score.totalPoints}
+              </div>
+              <div className="text-lg text-gray-600">
+                out of {score.maxTotalPoints} points
+              </div>
+              <div className="text-3xl font-semibold text-green-600">
+                {score.percentage}%
+              </div>
             </div>
-            <div className="text-lg">
-              You scored {score.correct} out of {score.total} questions correctly
+            
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div className="text-lg font-medium">Quiz Summary</div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Correct Answers:</span>
+                    <span className="font-semibold text-green-600">{score.correct}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Incorrect Answers:</span>
+                    <span className="font-semibold text-red-600">{score.total - score.correct}</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Points per Question:</span>
+                    <span className="font-semibold">{score.pointsPerQuestion}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Total Questions:</span>
+                    <span className="font-semibold">{score.total}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-lg font-medium">Performance Rating</div>
+              <div className="text-lg">
+                {score.percentage >= 90 ? "🏆 Excellent!" : 
+                 score.percentage >= 80 ? "🎉 Great Job!" : 
+                 score.percentage >= 70 ? "👍 Good Work!" : 
+                 score.percentage >= 60 ? "📚 Keep Studying!" : 
+                 "💪 Try Again!"}
+              </div>
             </div>
             <div className="flex justify-center gap-4">
               <Button onClick={handleReset}>
@@ -132,6 +187,9 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({
           <h2 className="text-2xl font-bold">Quiz</h2>
           <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
             Question {currentIndex + 1} of {quiz.length}
+          </span>
+          <span className="text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded font-medium">
+            Score: {score.totalPoints}/{score.maxTotalPoints} pts
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -161,7 +219,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({
             {isAnswered && (
               <span className={`flex items-center gap-1 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
                 {isCorrect ? <Check className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-                {isCorrect ? 'Correct' : 'Incorrect'}
+                {isCorrect ? `Correct (+${score.pointsPerQuestion} pts)` : 'Incorrect (+0 pts)'}
               </span>
             )}
           </CardTitle>
@@ -290,12 +348,15 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({
         </Button>
 
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">
-            {Object.keys(selectedAnswers).length} of {quiz.length} answered
-          </span>
+          <div className="text-sm text-gray-600 space-y-1">
+            <div>{Object.keys(selectedAnswers).length} of {quiz.length} answered</div>
+            <div className="text-xs text-blue-600 font-medium">
+              Current: {score.correct} correct • {score.totalPoints} points
+            </div>
+          </div>
           {allAnswered && (
             <Button onClick={handleFinishQuiz} className="bg-green-600 hover:bg-green-700">
-              Finish Quiz
+              View Final Score
             </Button>
           )}
         </div>
