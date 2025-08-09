@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardLayout } from '@/components/dashboard';
 import { FlashcardViewer, useFlashcardKeyboard } from '@/components/flashcards';
 import { QuizViewer } from '@/components/quiz';
-import { ArrowLeft, Copy, Download, Edit, Share, FileText, HelpCircle, Layers, X, Trash2 } from 'lucide-react';
+import { ArrowLeft, Copy, Download, Edit, Share, FileText, HelpCircle, Layers, X, Trash2, MessageCircle } from 'lucide-react';
 
 export default function NoteViewPage() {
   const params = useParams();
@@ -39,6 +39,7 @@ export default function NoteViewPage() {
   const [showTranscript, setShowTranscript] = useState(false);
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
 
@@ -222,6 +223,28 @@ export default function NoteViewPage() {
     }
   };
 
+  const handleChatWithNote = () => {
+    if (!noteId) return;
+    
+    // If chat is already shown, hide it and show note
+    if (showChat) {
+      setShowChat(false);
+      return;
+    }
+    
+    try {
+      // Hide other views but keep the note visible for chat
+      setShowFlashcards(false);
+      setShowTranscript(false);
+      setShowQuiz(false);
+      setShowChat(true);
+    } catch (error) {
+      console.error('Error with chat:', error);
+      setShowChat(false);
+      // You could add a toast notification here
+    }
+  };
+
   // Keyboard navigation for flashcards
   useFlashcardKeyboard(
     () => {}, // Will be handled by FlashcardViewer
@@ -274,9 +297,9 @@ export default function NoteViewPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto">
+      <div className={showChat ? "w-full px-2" : "max-w-4xl mx-auto"}>
         {/* Header with 4 options */}
-        <div className="flex items-center justify-between mb-6">
+        <div className={`flex items-center justify-between ${showChat ? 'mb-3' : 'mb-6'}`}>
           <Button
             onClick={handleBack}
             variant="outline"
@@ -328,7 +351,7 @@ export default function NoteViewPage() {
         </div>
 
         {/* Action Buttons Section */}
-        <div className="flex items-center justify-center gap-4 mb-6">
+        <div className={`flex items-center justify-center gap-4 ${showChat ? 'mb-3' : 'mb-6'}`}>
           <Button
             onClick={handleShowTranscript}
             variant="secondary"
@@ -345,6 +368,14 @@ export default function NoteViewPage() {
           >
             <HelpCircle className="h-4 w-4" />
             {quizLoading ? 'Generating...' : showQuiz ? 'Show Note' : 'Generate Quiz'}
+          </Button>
+          <Button
+            onClick={handleChatWithNote}
+            variant="secondary"
+            className="flex items-center gap-2"
+          >
+            <MessageCircle className="h-4 w-4" />
+            {showChat ? 'Show Note' : 'Chat with note'}
           </Button>
           <Button
             onClick={handleGenerateFlashcard}
@@ -380,7 +411,7 @@ export default function NoteViewPage() {
         </div>
 
         {/* Note Content, Flashcards, or Quiz */}
-        {!showTranscript && !showFlashcards && !showQuiz && (
+        {!showTranscript && !showFlashcards && !showQuiz && !showChat && (
           <Card>
             <CardHeader>
               <CardTitle className="text-xl">{note.title}</CardTitle>
@@ -403,7 +434,7 @@ export default function NoteViewPage() {
         )}
 
         {/* Flashcards Section - Replaces Note Content */}
-        {!showTranscript && showFlashcards && (
+        {!showTranscript && showFlashcards && !showChat && (
           <div className="space-y-4">
             {flashcardsLoading && (
               <Card>
@@ -447,7 +478,7 @@ export default function NoteViewPage() {
         )}
 
         {/* Quiz Section - Replaces Note Content */}
-        {!showTranscript && showQuiz && (
+        {!showTranscript && showQuiz && !showChat && (
           <div className="space-y-4">
             {quizLoading && (
               <Card>
@@ -487,6 +518,53 @@ export default function NoteViewPage() {
                 onClose={handleCloseQuiz}
               />
             )}
+          </div>
+        )}
+
+        {/* Chat Section - Two Column Layout */}
+        {!showTranscript && showChat && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+            {/* Note Content - Left Side (2/3 width) */}
+            <Card className="h-fit lg:col-span-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">{note.title}</CardTitle>
+                <div className="text-xs text-gray-600 space-y-1">
+                  {note.transcript && (
+                    <p>Source: {note.transcript.originalName}</p>
+                  )}
+                  <p>Created: {formatDate(note.createdAt)}</p>
+                  <p>Last updated: {formatDate(note.updatedAt)}</p>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="prose max-w-none">
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed max-h-[70vh] overflow-y-auto">
+                    {note.content || 'No content available'}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Chat Interface - Right Side (1/3 width) */}
+            <Card className="h-fit lg:col-span-1">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Chat with Note</CardTitle>
+                <div className="text-xs text-gray-600">
+                  <p>Ask questions about your note content</p>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-4">
+                  <div className="text-center py-6">
+                    <MessageCircle className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+                    <p className="text-base font-medium text-gray-600">Chat Feature Coming Soon</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      This feature will allow you to have conversations about your note content.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
