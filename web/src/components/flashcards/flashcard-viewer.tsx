@@ -157,6 +157,16 @@ export const useFlashcardKeyboard = (
 ) => {
   React.useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
+      // Don't capture keyboard events when an input, textarea or contentEditable element is focused
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' || 
+        target.tagName === 'TEXTAREA' || 
+        target.isContentEditable
+      ) {
+        return;
+      }
+
       switch (event.key) {
         case 'ArrowRight':
         case 'j':
