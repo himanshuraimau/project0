@@ -4,6 +4,7 @@ import { tokenCache } from '@clerk/clerk-expo/token-cache'
 import { Slot } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 function ThemedRoot() {
   const { theme, mode } = useTheme()
@@ -19,7 +20,9 @@ export default function RootLayout() {
   return (
     <ClerkProvider tokenCache={tokenCache}>
       <ThemeProvider>
-        <ThemedRoot />
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <ThemedRoot />
+        </GestureHandlerRootView>
       </ThemeProvider>
     </ClerkProvider>
   )
