@@ -8,6 +8,8 @@ Strictly use **bun** for the whole project, including the frontend and backend. 
 
 The whole project is built with **Next.js**.
 
+Strictly use "cd web/" before every command
+
 ## Guidelines
 
 - Use the `style.md` for frontend styling

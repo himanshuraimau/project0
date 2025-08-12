@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { NoteService } from '@/lib/note-service';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
@@ -90,14 +91,15 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // Create the note
-    const note = await prisma.note.create({
-      data: {
-        title: `Audio Summary: ${fileName}`,
-        content: summarySection,
-        transcriptId: transcript.id,
-        userId: userId || undefined
-      }
+    // Create an instance of NoteService to use its saveNote method which handles indexing
+    const noteService = new NoteService();
+    
+    // Create the note using the service to ensure it gets indexed
+    const note = await noteService.saveNote({
+      title: `Audio Summary: ${fileName}`,
+      content: summarySection,
+      transcriptId: transcript.id,
+      userId: userId || undefined
     });
 
     return NextResponse.json({

@@ -1,6 +1,7 @@
 import { prisma } from './prisma';
 import { google } from '@ai-sdk/google';
 import { generateText } from 'ai';
+import { indexNoteContent } from './embedding-service';
 
 export interface NoteData {
   title: string;
@@ -346,6 +347,13 @@ export class NoteService {
           userId: data.userId,
         },
       });
+      
+      // Index the note content for vector search (non-blocking)
+      setTimeout(() => {
+        indexNoteContent(note.id, note.content)
+          .then(() => console.log(`Successfully indexed note: ${note.id}`))
+          .catch(error => console.error(`Error indexing note ${note.id}:`, error));
+      }, 0);
 
       return note;
     } catch (error) {

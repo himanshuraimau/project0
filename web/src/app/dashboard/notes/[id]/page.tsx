@@ -11,6 +11,13 @@ import { DashboardLayout } from '@/components/dashboard';
 import { FlashcardViewer, useFlashcardKeyboard } from '@/components/flashcards';
 import { QuizViewer } from '@/components/quiz';
 import { ArrowLeft, Copy, Download, Edit, Share, FileText, HelpCircle, Layers, X, Trash2, MessageCircle } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+// Lazy load the chatbot component
+const DynamicChatbot = dynamic(
+  () => import('@/components/chatbot/chatbot'),
+  { ssr: false }
+);
 
 export default function NoteViewPage() {
   const params = useParams();
@@ -192,6 +199,8 @@ export default function NoteViewPage() {
   const handleCloseFlashcards = () => {
     setShowFlashcards(false);
   };
+  
+
 
   const handleDeleteFlashcards = async () => {
     if (!noteId) return;
@@ -232,17 +241,11 @@ export default function NoteViewPage() {
       return;
     }
     
-    try {
-      // Hide other views but keep the note visible for chat
-      setShowFlashcards(false);
-      setShowTranscript(false);
-      setShowQuiz(false);
-      setShowChat(true);
-    } catch (error) {
-      console.error('Error with chat:', error);
-      setShowChat(false);
-      // You could add a toast notification here
-    }
+    // Hide other views but keep the note visible for chat
+    setShowFlashcards(false);
+    setShowTranscript(false);
+    setShowQuiz(false);
+    setShowChat(true);
   };
 
   // Keyboard navigation for flashcards
@@ -371,11 +374,13 @@ export default function NoteViewPage() {
           </Button>
           <Button
             onClick={handleChatWithNote}
-            variant="secondary"
-            className="flex items-center gap-2"
+            variant="outline"
+            className="flex items-center gap-4 border-2 border-primary hover:bg-primary/5 text-primary rounded-2xl px-6 py-3 transition-all duration-300 shadow-lg hover:shadow-xl"
           >
-            <MessageCircle className="h-4 w-4" />
-            {showChat ? 'Show Note' : 'Chat with note'}
+            <div className="p-1 bg-primary/10 rounded-full">
+              <MessageCircle className="h-4 w-4 text-primary" />
+            </div>
+            {showChat ? 'Show Note' : 'Chat with Note'}
           </Button>
           <Button
             onClick={handleGenerateFlashcard}
@@ -546,23 +551,24 @@ export default function NoteViewPage() {
             </Card>
 
             {/* Chat Interface - Right Side (1/3 width) */}
-            <Card className="h-fit lg:col-span-1">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Chat with Note</CardTitle>
-                <div className="text-xs text-gray-600">
+            <Card className="h-fit lg:col-span-1 rounded-3xl border-0 shadow-xl p-0 overflow-hidden">
+              <CardHeader className="pb-3 bg-muted/5 border-b border-border">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <MessageCircle className="h-5 w-5 text-primary" />
+                  </div>
+                  <CardTitle className="text-lg">Chat with Note</CardTitle>
+                </div>
+                <div className="text-sm text-muted-foreground">
                   <p>Ask questions about your note content</p>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-4">
-                  <div className="text-center py-6">
-                    <MessageCircle className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-                    <p className="text-base font-medium text-gray-600">Chat Feature Coming Soon</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      This feature will allow you to have conversations about your note content.
-                    </p>
-                  </div>
-                </div>
+              <CardContent className="pt-0 min-h-[500px] p-0">
+                {/* Render Chatbot component */}
+                <DynamicChatbot 
+                  noteId={noteId}
+                  onClose={() => setShowChat(false)}
+                />
               </CardContent>
             </Card>
           </div>

@@ -1,79 +1,80 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 model Transcript {
-  id          String   @id @default(cuid())
-  fileName    String
+  id           String   @id @default(cuid())
+  fileName     String
   originalName String
-  content     String
+  content      String
   cleanContent String
-  pages       Int?     // Optional for audio transcripts
-  metadata    Json?
-  type        String   @default("pdf") // "pdf" or "audio"
-  userId      String?  // Optional user association
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relationship to notes
-  notes       Note[]
+  pages        Int?
+  metadata     Json?
+  userId       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  type         String   @default("pdf")
+  notes        Note[]
 
   @@map("transcripts")
 }
 
 model Note {
-  id          String   @id @default(cuid())
-  title       String
-  content     String   @db.Text
+  id           String      @id @default(cuid())
+  title        String
+  content      String
   transcriptId String
-  userId      String?  // Optional user association
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relationship to transcript
-  transcript  Transcript @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
-  
-  // Relationship to flashcard (one-to-one)
-  flashcard   Flashcard?
-  
-  // Relationship to quiz (one-to-one)
-  quiz        Quiz?
-  
+  userId       String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  flashcard    Flashcard?
+  transcript   Transcript  @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+  quiz         Quiz?
+  chunks       NoteChunk[] @relation("NoteToChunks")
+
   @@map("notes")
 }
 
 model Flashcard {
   id        String   @id @default(cuid())
-  noteId    String   @unique // One flashcard record per note
-  content   Json     // JSON array of {id, question, answer} objects
-  userId    String?  // Optional user association
+  noteId    String   @unique
+  userId    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  // Relationship to note
+  content   Json
   note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  
+
   @@map("flashcards")
 }
 
 model Quiz {
   id        String   @id @default(cuid())
-  noteId    String   @unique // One quiz record per note
-  content   Json     // JSON object containing quiz questions array
-  userId    String?  // Optional user association
+  noteId    String   @unique
+  content   Json
+  userId    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  // Relationship to note
   note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  
+
   @@map("quizzes")
+}
+
+model NoteChunk {
+  id          Int      @id @default(autoincrement())
+  note_id     String
+  chunk_text  String   @db.Text
+  embedding   Unsupported("vector(768)")
+  
+  note        Note     @relation("NoteToChunks", fields: [note_id], references: [id], onDelete: Cascade)
+
+  @@index([note_id])
+  // Removed the Gist index since we created it manually
+  @@map("note_chunks")
 }
