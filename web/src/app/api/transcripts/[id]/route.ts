@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { TranscriptService } from '@/lib/transcript-service';
 import { auth } from '@clerk/nextjs/server';
+
+const transcriptService = new TranscriptService();
 
 export async function GET(
   request: NextRequest,
@@ -25,25 +27,8 @@ export async function GET(
       );
     }
 
-    // Fetch transcript from database
-    const transcript = await prisma.transcript.findUnique({
-      where: {
-        id: transcriptId,
-      },
-      select: {
-        id: true,
-        fileName: true,
-        originalName: true,
-        content: true,
-        cleanContent: true,
-        pages: true,
-        metadata: true,
-        type: true,
-        userId: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    // Fetch transcript from database using service
+    const transcript = await transcriptService.getTranscript(transcriptId);
 
     if (!transcript) {
       return NextResponse.json(
