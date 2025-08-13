@@ -6,11 +6,11 @@ const transcriptService = new TranscriptService();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -18,7 +18,7 @@ export async function GET(
       );
     }
 
-    const transcriptId = params.id;
+    const { id: transcriptId } = await params;
 
     if (!transcriptId) {
       return NextResponse.json(
@@ -52,9 +52,9 @@ export async function GET(
 
   } catch (error) {
     console.error('Error fetching transcript:', error);
-    
+
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch transcript',
         message: error instanceof Error ? error.message : 'Unknown error'
       },

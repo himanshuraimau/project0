@@ -27,7 +27,7 @@ export class TranscriptService {
   async getYoutubeTranscript(videoUrl: string): Promise<TranscriptResponse> {
     try {
       const apiKey = process.env.SCRAPPER_API_KEY;
-      
+
       if (!apiKey) {
         throw new Error('SCRAPPER_API_KEY environment variable is not configured');
       }
@@ -48,7 +48,7 @@ export class TranscriptService {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
-        
+
         if (axiosError.response) {
           console.error('API Error:', axiosError.response.status, axiosError.response.data);
           throw new Error(`API Error: ${axiosError.response.status} - ${JSON.stringify(axiosError.response.data)}`);
@@ -70,6 +70,12 @@ export class TranscriptService {
    * Wrap text for better readability
    */
   private wrapText(text: string, lineLength: number = 80): string {
+    // Validate input
+    if (!text || typeof text !== 'string') {
+      console.warn('Invalid text provided to wrapText:', text);
+      return '';
+    }
+
     const words = text.split(' ');
     let wrappedText = '';
     let currentLine = '';
@@ -125,13 +131,22 @@ export class TranscriptService {
     try {
       // Get transcript from external API
       const transcriptData = await this.getYoutubeTranscript(videoUrl);
-      
+
+      // Validate transcript data
+      if (!transcriptData.transcript_only_text) {
+        throw new Error('No transcript text received from the API. The video might not have captions available.');
+      }
+
+      if (!transcriptData.videoId) {
+        throw new Error('No video ID received from the API. Please check the YouTube URL.');
+      }
+
       // Wrap text for better readability
       const wrappedText = this.wrapText(transcriptData.transcript_only_text);
-      
+
       // Generate filename
       const fileName = `transcript_${transcriptData.videoId}.txt`;
-      
+
       // Prepare data for database
       const dbData: TranscriptData = {
         fileName,
@@ -152,7 +167,7 @@ export class TranscriptService {
 
       // Save to database
       const savedTranscript = await this.saveTranscript(dbData);
-      
+
       return savedTranscript;
     } catch (error) {
       console.error('Error processing YouTube transcript:', error);
