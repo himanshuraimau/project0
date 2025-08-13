@@ -7,19 +7,25 @@ import {
   HelpCircle, 
   HeadphonesIcon, 
   Settings,
-  ChevronRight,
-  PanelLeftClose,
-  PanelLeft
+  ChevronRight
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { CreditStatus } from "@/components/ui/credit-status"
 
-interface SidebarProps {
-  className?: string
-  collapsed?: boolean
-  onToggle?: () => void
-}
+import {
+  Sidebar as UISidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarCollapseTrigger,
+  useSidebar
+} from "@/components/ui/sidebar"
 
 const sidebarItems = [
   {
@@ -44,64 +50,56 @@ const sidebarItems = [
   },
 ]
 
-export function Sidebar({ className, collapsed = false, onToggle }: SidebarProps) {
+interface AppSidebarProps {
+  className?: string
+}
+
+export function Sidebar({ className }: AppSidebarProps) {
   const pathname = usePathname()
+  const { open } = useSidebar()
 
   return (
-    <div className={cn(
-      "flex h-full flex-col bg-card border-r border-border transition-all duration-300",
-      collapsed ? "w-16" : "w-64",
-      className
-    )}>
-      <div className="flex justify-end p-2">
-        <button 
-          onClick={onToggle}
-          className="p-2 rounded-full hover:bg-primary/10 transition-colors"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? (
-            <PanelLeft className="h-5 w-5 text-muted-foreground" />
-          ) : (
-            <PanelLeftClose className="h-5 w-5 text-muted-foreground" />
-          )}
-        </button>
-      </div>
-      <nav className="flex-1 p-2 space-y-2">
-        {sidebarItems.map((item) => {
-          const isActive = pathname === item.href
-          const Icon = item.icon
-          
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-300 hover:bg-primary/5 hover:text-primary group",
-                isActive && "bg-primary/10 text-primary shadow-sm"
-              )}
-              title={collapsed ? item.title : undefined}
-            >
-              <Icon className={cn(
-                "h-5 w-5 transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary"
-              )} />
-              {!collapsed && (
-                <span className="flex-1">{item.title}</span>
-              )}
-              {!collapsed && isActive && (
-                <ChevronRight className="h-4 w-4 text-primary" />
-              )}
-            </Link>
-          )
-        })}
-      </nav>
-      
-      {/* Credits status at the bottom of the sidebar - only shown when expanded */}
-      {!collapsed && (
-        <div className="mt-auto border-t border-border px-2">
-          <CreditStatus />
+    <UISidebar className={cn("z-10", className)}>
+      <SidebarHeader className="flex justify-between items-center">
+        <div className="flex items-center">
+          {open && <span className="font-semibold">Dashboard</span>}
         </div>
-      )}
-    </div>
+        <SidebarCollapseTrigger />
+      </SidebarHeader>
+      
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {sidebarItems.map((item) => {
+                const isActive = pathname === item.href
+                const Icon = item.icon
+                
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton 
+                      asChild
+                      active={isActive}
+                    >
+                      <Link href={item.href}>
+                        <Icon className="h-5 w-5" />
+                        <span>{item.title}</span>
+                        {isActive && open && (
+                          <ChevronRight className="ml-auto h-4 w-4" />
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      
+      <SidebarFooter>
+        {open && <CreditStatus />}
+      </SidebarFooter>
+    </UISidebar>
   )
 }

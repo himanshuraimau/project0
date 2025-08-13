@@ -7,15 +7,20 @@ import { useFlashcards } from '@/hooks/use-flashcards';
 import { useQuiz } from '@/hooks/use-quiz';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DashboardLayout } from '@/components/dashboard';
 import { FlashcardViewer, useFlashcardKeyboard } from '@/components/flashcards';
 import { QuizViewer } from '@/components/quiz';
 import { ArrowLeft, Copy, Download, Edit, Share, FileText, HelpCircle, Layers, X, Trash2, MessageCircle } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { DashboardLayout } from '@/components/dashboard';
 
-// Lazy load the chatbot component
+// Lazy load the chatbot components
 const DynamicChatbot = dynamic(
   () => import('@/components/chatbot/chatbot'),
+  { ssr: false }
+);
+
+const DynamicInlineChatbot = dynamic(
+  () => import('@/components/chatbot/inline-chatbot'),
   { ssr: false }
 );
 
@@ -235,7 +240,7 @@ export default function NoteViewPage() {
   const handleChatWithNote = () => {
     if (!noteId) return;
     
-    // If chat is already shown, hide it and show note
+    // Toggle chat view
     if (showChat) {
       setShowChat(false);
       return;
@@ -270,7 +275,7 @@ export default function NoteViewPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
             <p className="text-sm text-gray-600">Loading note...</p>
@@ -300,7 +305,7 @@ export default function NoteViewPage() {
 
   return (
     <DashboardLayout>
-      <div className={showChat ? "w-full px-2" : "max-w-4xl mx-auto"}>
+      <div className={showChat ? "w-full px-0" : "w-full"}>
         {/* Header with 4 options */}
         <div className={`flex items-center justify-between ${showChat ? 'mb-3' : 'mb-6'}`}>
           <Button
@@ -528,9 +533,9 @@ export default function NoteViewPage() {
 
         {/* Chat Section - Two Column Layout */}
         {!showTranscript && showChat && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[600px]">
             {/* Note Content - Left Side (2/3 width) */}
-            <Card className="h-fit lg:col-span-2">
+            <Card className="lg:col-span-2 h-full flex flex-col">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">{note.title}</CardTitle>
                 <div className="text-xs text-gray-600 space-y-1">
@@ -541,9 +546,9 @@ export default function NoteViewPage() {
                   <p>Last updated: {formatDate(note.updatedAt)}</p>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="prose max-w-none">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed max-h-[70vh] overflow-y-auto">
+              <CardContent className="pt-0 flex-grow">
+                <div className="prose max-w-none h-full">
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed h-full overflow-y-auto pr-2">
                     {note.content || 'No content available'}
                   </div>
                 </div>
@@ -551,7 +556,7 @@ export default function NoteViewPage() {
             </Card>
 
             {/* Chat Interface - Right Side (1/3 width) */}
-            <Card className="h-fit lg:col-span-1 rounded-3xl border-0 shadow-xl p-0 overflow-hidden">
+            <Card className="lg:col-span-1 rounded-3xl border-0 shadow-xl p-0 overflow-hidden h-[78vh] flex flex-col">
               <CardHeader className="pb-3 bg-muted/5 border-b border-border">
                 <div className="flex items-center gap-4">
                   <div className="p-2 bg-primary/10 rounded-full">
@@ -563,12 +568,9 @@ export default function NoteViewPage() {
                   <p>Ask questions about your note content</p>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0 min-h-[500px] p-0">
-                {/* Render Chatbot component */}
-                <DynamicChatbot 
-                  noteId={noteId}
-                  onClose={() => setShowChat(false)}
-                />
+              <CardContent className="pt-0 p-0 flex-1 overflow-y-auto">
+                {/* Render inline chatbot component */}
+                <DynamicInlineChatbot noteId={noteId} />
               </CardContent>
             </Card>
           </div>

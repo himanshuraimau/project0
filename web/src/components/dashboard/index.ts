@@ -1,4 +1,4 @@
-export { DashboardLayout } from "./layout"
+export { DashboardLayout } from "./layout" // Re-added for backward compatibility
 export { Sidebar } from "./sidebar"
 export { Navbar } from "./navbar"
 export { NewNoteSection } from "./new-note-section"

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
+// Note: The DashboardLayout is now handled by app/dashboard/layout.tsx
 import { DashboardLayout } from "@/components/dashboard"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
