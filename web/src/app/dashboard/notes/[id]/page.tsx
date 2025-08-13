@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { FlashcardViewer, useFlashcardKeyboard } from '@/components/flashcards';
 import { QuizViewer } from '@/components/quiz';
-import { ArrowLeft, Copy, Download, Edit, Share, FileText, HelpCircle, Layers, X, Trash2, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Copy, Download, Edit, FileText, HelpCircle, Layers, X, Trash2, MessageCircle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { DashboardLayout } from '@/components/dashboard';
 
@@ -431,15 +431,6 @@ export default function NoteViewPage() {
                 Edit
               </Button>
             )}
-            <Button
-              onClick={handleShare}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Share className="h-4 w-4" />
-              Share
-            </Button>
           </div>
         </div>
 
