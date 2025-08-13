@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNotes, ProcessPDFResult } from '@/hooks/use-notes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FileText, Upload, CheckCircle, AlertCircle } from 'lucide-react';
+import { checkCreditsAndRedirect } from '@/lib/client/credits-api';
 
 interface SimplePDFProcessorProps {
   onProcessComplete?: (result: ProcessPDFResult) => void;
@@ -16,6 +17,8 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [processResult, setProcessResult] = useState<ProcessPDFResult | null>(null);
+  
+  // We don't need to check credits on mount since the parent component already checks
 
   const handleFileSelect = (file: File) => {
     if (file.type === 'application/pdf') {
@@ -55,6 +58,15 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
 
   const handleProcess = async () => {
     if (!selectedFile) return;
+    
+    // Check credits before processing
+    const hasCredits = await checkCreditsAndRedirect();
+    if (!hasCredits) {
+      if (onClose) {
+        onClose();
+      }
+      return;
+    }
 
     // Use simplified options - always generate notes, no images
     const options = {

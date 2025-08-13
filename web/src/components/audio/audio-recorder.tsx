@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Mic, MicOff, Upload, Loader2, Play, Square } from 'lucide-react';
+import { checkCreditsAndRedirect } from '@/lib/client/credits-api';
 
 interface AudioRecorderProps {
   onTranscriptionComplete: (result: {
@@ -32,8 +33,11 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // We don't need to check credits on mount since the parent component already checks
 
   const startRecording = async () => {
+    // Credits are already checked by the parent component before opening the dialog
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -65,7 +69,8 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Credits are already checked by the parent component before opening the dialog
     const file = event.target.files?.[0];
     if (file) {
       setAudioBlob(file);
@@ -99,6 +104,12 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
 
   const transcribeAudio = async () => {
     if (!audioBlob) return;
+
+    // Check credits before processing
+    const hasCredits = await checkCreditsAndRedirect();
+    if (!hasCredits) {
+      return;
+    }
 
     setIsProcessing(true);
     try {
