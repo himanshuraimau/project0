@@ -2,6 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNotes, ProcessPDFResult } from '@/hooks/use-notes';
+
+// Extended interface to include model overload case
+interface NoteWithModelOverload {
+  error: string;
+  message: string;
+  modelOverloaded: boolean;
+  retryAfter?: number;
+  retryable?: boolean;
+}
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FileText, Upload, CheckCircle, AlertCircle } from 'lucide-react';
@@ -176,8 +185,17 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
             <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-4">
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-destructive" />
-                <p className="text-sm text-destructive font-medium">Error: {error}</p>
+                <p className="text-sm text-destructive font-medium">
+                  {error.includes('overloaded') ? 
+                    'AI service is currently at capacity. Your PDF was processed, but AI notes could not be generated. Please try again in a few minutes.' : 
+                    `Error: ${error}`}
+                </p>
               </div>
+              {error.includes('overloaded') && (
+                <p className="text-xs text-muted-foreground mt-2 ml-7">
+                  The document was successfully processed and saved. You can view it in your notes or try generating AI notes later.
+                </p>
+              )}
             </div>
           )}
         </>
@@ -191,11 +209,25 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
           <div>
             <h3 className="text-xl font-semibold mb-2">PDF Processed Successfully!</h3>
             <p className="text-muted-foreground">
-              Your PDF has been processed and AI-powered notes have been generated.
+              {processResult.note && processResult.note.hasOwnProperty('modelOverloaded')
+                ? 'Your PDF has been processed, but AI notes could not be generated due to high demand.' 
+                : 'Your PDF has been processed and AI-powered notes have been generated.'}
             </p>
           </div>
 
-          {processResult.note && !('error' in processResult.note) && (
+          {processResult.note && processResult.note.hasOwnProperty('modelOverloaded') ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-left">
+              <h4 className="font-semibold text-sm mb-2 text-amber-800">AI Service Busy</h4>
+              <p className="text-sm text-amber-700">
+                {processResult.note.hasOwnProperty('message') 
+                  ? (processResult.note as any).message 
+                  : 'The AI service is currently overloaded. Your document was processed and saved successfully.'}
+              </p>
+              <p className="text-xs text-amber-600 mt-2">
+                You can try generating AI notes for this document again later when the service is less busy.
+              </p>
+            </div>
+          ) : processResult.note && !('error' in processResult.note) && (
             <div className="bg-muted/50 rounded-2xl p-4 text-left">
               <h4 className="font-semibold text-sm mb-2">Generated Note:</h4>
               <p className="text-sm text-muted-foreground mb-2">{processResult.note.title}</p>

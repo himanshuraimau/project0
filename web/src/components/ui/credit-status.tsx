@@ -98,7 +98,7 @@ export function CreditStatus({ className, variant = 'default' }: CreditStatusPro
         <div className="flex items-center justify-between mb-1.5">
           <div className="text-xs font-medium">Credits</div>
           <div className="text-xs">
-            {Number.isFinite(credits.used) ? Math.max(0, credits.used) : '∞'}/{Number.isFinite(credits.total) ? credits.total : '∞'}
+            {Number.isFinite(credits.remaining) ? Math.max(0, credits.remaining) : '∞'}/{Number.isFinite(credits.total) ? credits.total : '∞'}
           </div>
         </div>
         <Progress value={percentRemaining} className="h-1.5" />
@@ -118,7 +118,6 @@ export function CreditStatus({ className, variant = 'default' }: CreditStatusPro
         </div>
         <div className="text-sm">
           {Number.isFinite(credits.used) ? Math.max(0, credits.used) : '∞'}/{Number.isFinite(credits.total) ? credits.total : '∞'}
-          &nbsp;used
         </div>
       </div>
       <Progress value={percentRemaining} className="h-2" />
