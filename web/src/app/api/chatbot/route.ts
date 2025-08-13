@@ -20,10 +20,8 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
 /**
  * Maps our embedding service results to the format expected by createContextString
  */
-function mapChunkResults(results: any[]): Array<{ noteId: string; chunkIndex: number; chunkText: string; }> {
-  return results.map((result, index) => ({
-    noteId: result.note_id,
-    chunkIndex: index, // Use the array index as the chunkIndex for citations
+function mapChunkResults(results: any[]): Array<{ chunkText: string }> {
+  return results.map((result) => ({
     chunkText: result.chunk_text
   }));
 }
@@ -31,19 +29,16 @@ function mapChunkResults(results: any[]): Array<{ noteId: string; chunkIndex: nu
 /**
  * Creates a context string from retrieved chunks
  */
-function createContextString(chunks: Array<{ noteId: string; chunkIndex: number; chunkText: string; }>): string {
+function createContextString(chunks: Array<{ chunkText: string }>): string {
   // If no chunks were found, return a message
   if (chunks.length === 0) {
     return "No relevant information found in this note.";
   }
 
-  // Create a context string from the chunks, with citations
+  // Create a context string from the chunks, without citations
   let context = '';
-  let index = 0;
   for (const chunk of chunks) {
-    // Use the loop index since we don't have real chunk indices in the database
-    context += `[[source ${chunk.noteId}:${index}]]\n${chunk.chunkText}\n\n`;
-    index++;
+    context += `${chunk.chunkText}\n\n`;
   }
   
   // Truncate if too long (around 15k chars to be safe)
@@ -66,7 +61,7 @@ async function generateResponse(context: string, question: string) {
     You must ONLY use information from the provided context. If the context doesn't contain 
     the information needed to answer the question, say "I don't know — check the note." 
     
-    When referencing information, cite the source chunk number using the format (noteId:chunkIndex). 
+    Provide clear, concise answers based on the context without including any source references or citations.
     
     DO NOT make up information or hallucinate facts not present in the context.`;
 
