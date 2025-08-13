@@ -267,9 +267,8 @@ export function PDFProcessor({ onProcessComplete }: PDFProcessorProps) {
                     </div>
                     <div>
                       <span className="font-medium text-sm">Content Preview:</span>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-3">
-                        {result.note.content ? result.note.content.substring(0, 200) + '...' : 'No content available'}
-                      </p>
+                      <div className="text-sm text-gray-600 mt-1 line-clamp-3 [&>h2]:text-base [&>h2]:font-bold [&>h2]:text-foreground [&>h2]:mt-2 [&>h2]:mb-1 [&>h2]:border-b [&>h2]:border-border [&>h2]:pb-1 [&>h3]:text-sm [&>h3]:font-semibold [&>h2]:text-foreground [&>h3]:mt-1 [&>h3]:mb-1 [&>p]:mb-1 [&>p]:leading-relaxed [&>ul]:list-disc [&>ul]:ml-3 [&>ul]:mb-1 [&>li]:mb-1 [&>div]:mb-1 [&>strong]:text-foreground [&>div]:p-2 [&>div]:bg-muted/30 [&>div]:rounded [&>div]:border [&>div]:border-border [&>em]:italic [&>code]:bg-muted [&>code]:px-1 [&>code]:py-0.5 [&>code]:rounded [&>code]:text-xs [&>code]:font-mono [&>del]:line-through [&>del]:text-muted-foreground [&>a]:text-primary [&>a]:hover:underline [&>a]:transition-colors" 
+                           dangerouslySetInnerHTML={{ __html: formatNoteContent(result.note.content ? result.note.content.substring(0, 300) + '...' : 'No content available') }} />
                     </div>
                     <div>
                       <span className="font-medium text-sm">Note ID:</span> {result.note.id}
