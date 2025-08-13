@@ -33,7 +33,7 @@ The Home Page serves as the central hub for note creation and management, featur
   3. Upload PDF/Text  
   4. Upload Audio  
 
-#### 🔹 My Notes Section
+#### 🔹 s Section
 - **Dropdown**: "All Notes"
   - Options:
     - Create New Folder

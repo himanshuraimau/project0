@@ -2,30 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNotes, Note } from '@/hooks/use-notes';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 interface NotesViewerProps {
   transcriptId?: string;
-  noteId?: string;
 }
 
-export function NotesViewer({ transcriptId, noteId }: NotesViewerProps) {
+export function NotesViewer({ transcriptId }: NotesViewerProps) {
   const router = useRouter();
-  const { getNotes, getNote, generateNotesFromTranscript, generateFocusedNotes, deleteNote, loading, error } = useNotes();
+  const { getNotes, generateNotesFromTranscript, generateFocusedNotes, deleteNote, loading, error } = useNotes();
   const [notes, setNotes] = useState<Note[]>([]);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [view, setView] = useState<'list' | 'detail'>('list');
   const [showNoteTypeOptions, setShowNoteTypeOptions] = useState(false);
 
   // Load notes on component mount
   useEffect(() => {
-    if (noteId) {
-      loadSingleNote(noteId);
-    } else {
-      loadNotes();
-    }
-  }, [transcriptId, noteId]);
+    loadNotes();
+  }, [transcriptId]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -48,13 +41,7 @@ export function NotesViewer({ transcriptId, noteId }: NotesViewerProps) {
     }
   };
 
-  const loadSingleNote = async (id: string) => {
-    const result = await getNote(id);
-    if (result) {
-      setSelectedNote(result);
-      setView('detail');
-    }
-  };
+
 
   const handleGenerateNotes = async () => {
     if (!transcriptId) return;
@@ -80,26 +67,12 @@ export function NotesViewer({ transcriptId, noteId }: NotesViewerProps) {
       const success = await deleteNote(id);
       if (success) {
         await loadNotes();
-        if (selectedNote?.id === id) {
-          setSelectedNote(null);
-          setView('list');
-        }
       }
     }
   };
 
-  const handleViewNote = (note: Note) => {
-    setSelectedNote(note);
-    setView('detail');
-  };
-
   const handleViewFullNote = (noteId: string) => {
     router.push(`/dashboard/notes/${noteId}`);
-  };
-
-  const handleBackToList = () => {
-    setView('list');
-    setSelectedNote(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -141,53 +114,12 @@ export function NotesViewer({ transcriptId, noteId }: NotesViewerProps) {
     );
   }
 
-  // Detail view for a single note
-  if (view === 'detail' && selectedNote) {
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <CardTitle className="text-lg">{selectedNote.title}</CardTitle>
-              <CardDescription>
-                {selectedNote.transcript && (
-                  <span>From: {selectedNote.transcript.originalName}</span>
-                )}
-                <span className="ml-2">
-                  Created: {formatDate(selectedNote.createdAt)}
-                </span>
-              </CardDescription>
-            </div>
-            <div className="flex space-x-2">
-              <Button onClick={handleBackToList} variant="outline" size="sm">
-                Back to List
-              </Button>
-              <Button 
-                onClick={() => handleDeleteNote(selectedNote.id)} 
-                variant="destructive" 
-                size="sm"
-                disabled={loading}
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="prose max-w-none">
-            <div className="whitespace-pre-wrap text-sm leading-relaxed">
-              {selectedNote.content || 'No content available'}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+
 
   // List view
   return (
-    <Card>
-      <CardContent className="p-6">
+    <Card className="border-0">
+      <CardContent className="p-0">
         {transcriptId && (
           <div className="flex space-x-2 mb-6">
             <Button 
@@ -245,8 +177,7 @@ export function NotesViewer({ transcriptId, noteId }: NotesViewerProps) {
             {notes.map((note) => (
               <div
                 key={note.id}
-                className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => handleViewNote(note)}
+                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-medium text-sm line-clamp-2 flex-1 mr-4">

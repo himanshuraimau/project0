@@ -67,7 +67,7 @@ export function MyNotesSection() {
       </div>
 
       {/* Notes Display */}
-      <div className="rounded-2xl border border-border overflow-hidden">
+      <div className="rounded-2xl overflow-hidden">
         <NotesViewer />
       </div>
     </Card>
