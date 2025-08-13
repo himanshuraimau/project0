@@ -102,9 +102,11 @@ export function CreditStatus({ className, variant = 'default' }: CreditStatusPro
           </div>
         </div>
         <Progress value={percentRemaining} className="h-1.5" />
-        <div className="mt-2">
-          <UpgradeCreditButton compact />
-        </div>
+        {!credits.isPro && (
+          <div className="mt-2">
+            <UpgradeCreditButton compact />
+          </div>
+        )}
       </div>
     )
   }
@@ -126,7 +128,7 @@ export function CreditStatus({ className, variant = 'default' }: CreditStatusPro
           ? `${Number.isFinite(credits.remaining) ? Math.max(0, credits.remaining) : 'Unlimited'} credits remaining` 
           : "No credits remaining"}
       </div>
-      <UpgradeCreditButton />
+      {!credits.isPro && <UpgradeCreditButton />}
     </div>
   )
 }
