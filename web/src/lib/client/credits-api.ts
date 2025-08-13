@@ -10,6 +10,19 @@
  */
 export async function checkUserCredits(): Promise<boolean> {
   try {
+    // First check if the user is on Pro plan
+    const proResponse = await fetch('/api/subscription/check');
+    
+    if (proResponse.ok) {
+      const proData = await proResponse.json();
+      
+      // Pro users always have credits
+      if (proData.success && proData.isPro) {
+        return true;
+      }
+    }
+    
+    // If not a Pro user, check regular credits
     const response = await fetch('/api/credits/check');
     
     if (!response.ok) {

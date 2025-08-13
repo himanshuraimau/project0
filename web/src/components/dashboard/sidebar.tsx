@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { CreditStatus } from "@/components/ui/credit-status"
 
 interface SidebarProps {
   className?: string
@@ -94,6 +95,13 @@ export function Sidebar({ className, collapsed = false, onToggle }: SidebarProps
           )
         })}
       </nav>
+      
+      {/* Credits status at the bottom of the sidebar - only shown when expanded */}
+      {!collapsed && (
+        <div className="mt-auto border-t border-border px-2">
+          <CreditStatus />
+        </div>
+      )}
     </div>
   )
 }
