@@ -12,7 +12,7 @@ interface Params {
 export async function GET(request: NextRequest, { params }: { params: Params }) {
   try {
     const { userId } = await auth();
-    const { id } = params;
+    const { id } = await params;
 
     if (!userId) {
       return NextResponse.json(
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest, { params }: { params: Params }) 
 export async function PUT(request: NextRequest, { params }: { params: Params }) {
   try {
     const { userId } = await auth();
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { title, content } = body;
 
@@ -113,7 +113,7 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
 export async function DELETE(request: NextRequest, { params }: { params: Params }) {
   try {
     const { userId } = await auth();
-    const { id } = params;
+    const { id } = await params;
 
     if (!userId) {
       return NextResponse.json(

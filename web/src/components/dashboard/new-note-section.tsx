@@ -13,17 +13,19 @@ import {
 import { 
   Link2, 
   FileText, 
-  Upload
+  Upload,
+  Mic
 } from "lucide-react"
 import { SimplePDFProcessor, PDFUploader } from "@/components/pdf"
 import { checkCreditsAndRedirect } from "@/lib/client/credits-api"
 import { cn } from "@/lib/utils"
-import { AudioRecorder } from "@/components/audio"
+import { AudioRecorder, RecordAudio } from "@/components/audio"
 import { YouTubeProcessor } from "@/components/transcript"
 
 export function NewNoteSection() {
   const [showPDFDialog, setShowPDFDialog] = useState(false)
   const [showAudioDialog, setShowAudioDialog] = useState(false)
+  const [showRecordAudioDialog, setShowRecordAudioDialog] = useState(false)
   const [showYouTubeDialog, setShowYouTubeDialog] = useState(false)
   const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'stopped'>('idle')
   const [recordingTime, setRecordingTime] = useState(0)
@@ -105,6 +107,38 @@ export function NewNoteSection() {
     }
   }
 
+  const handleRecordAudioComplete = (result: {
+    transcript: { id: string; content: string };
+    note: { 
+      id?: string; 
+      title?: string; 
+      content?: string;
+      error?: string;
+      message?: string;
+      insufficientCredits?: boolean;
+      redirectToPricing?: boolean;
+      redirectUrl?: string;
+    };
+  }) => {
+    console.log('Record audio completed:', result)
+    setShowRecordAudioDialog(false)
+    
+    // Handle insufficient credits case
+    if (result.note?.insufficientCredits && result.note?.redirectToPricing) {
+      // Show an alert
+      alert('Audio recorded and transcribed successfully, but note creation requires more credits. Redirecting to pricing page...');
+      
+      // Redirect to pricing page
+      if (typeof window !== 'undefined' && result.note.redirectUrl) {
+        setTimeout(() => {
+          window.location.href = result.note.redirectUrl || '/pricing';
+        }, 1500);
+      }
+    } else {
+      // Regular success case - you could add a callback here to refresh the notes section or show a success message
+    }
+  }
+
   const handlePDFProcessComplete = (result: any) => {
     // PDF processed successfully, close dialog and potentially refresh notes
     setShowPDFDialog(false)
@@ -117,6 +151,10 @@ export function NewNoteSection() {
 
   const handleCloseAudioDialog = () => {
     setShowAudioDialog(false)
+  }
+
+  const handleCloseRecordAudioDialog = () => {
+    setShowRecordAudioDialog(false)
   }
 
   const handleYouTubeTranscriptComplete = (result: {
@@ -201,6 +239,35 @@ export function NewNoteSection() {
           </DialogContent>
         </Dialog>
 
+        {/* Record Audio Modal */}
+        <Dialog open={showRecordAudioDialog} onOpenChange={setShowRecordAudioDialog}>
+          <DialogTrigger asChild>
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-2 border-2 border-destructive/20 hover:border-destructive hover:bg-destructive/5 rounded-2xl transition-all duration-300"
+              onClick={async () => {
+                const hasCredits = await checkCreditsAndRedirect();
+                if (hasCredits) {
+                  setShowRecordAudioDialog(true);
+                }
+              }}
+            >
+              <Mic className="h-6 w-6 text-destructive" />
+              <span className="text-sm font-medium">Record Audio</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-left">Record Audio & Generate Notes</DialogTitle>
+            </DialogHeader>
+            <div className="mt-4">
+              <RecordAudio
+                onTranscriptionComplete={handleRecordAudioComplete}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Audio Transcription Modal */}
         <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>
           <DialogTrigger asChild>
@@ -220,7 +287,7 @@ export function NewNoteSection() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-left">Audio Transcription & Summary</DialogTitle>
+              <DialogTitle className="text-left">Upload Audio File & Generate Notes</DialogTitle>
             </DialogHeader>
             <div className="mt-4">
               <AudioRecorder
