@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { ChevronLeft, ChevronRight, Menu } from "lucide-react"
+import { PanelRight, Menu } from "lucide-react"
 import { Slot } from "@radix-ui/react-slot"
 import { useMediaQuery } from "@/hooks/use-media-query"
 
@@ -193,7 +193,7 @@ export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 flex h-14 items-center border-b border-border px-4 py-2",
+        "sticky top-0 flex h-14 items-center border-none border-border px-4 py-2",
         className
       )}
       {...props}
@@ -366,9 +366,9 @@ export function SidebarCollapseTrigger({
       {...props}
     >
       {open ? (
-        <ChevronLeft className="h-5 w-5 text-muted-foreground" />
+        <PanelRight className="h-5 w-5 text-muted-foreground" />
       ) : (
-        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        <PanelRight className="h-5 w-5 text-muted-foreground" />
       )}
     </button>
   )

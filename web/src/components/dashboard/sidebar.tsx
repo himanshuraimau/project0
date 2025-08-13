@@ -80,10 +80,11 @@ export function Sidebar({ className }: AppSidebarProps) {
                     <SidebarMenuButton 
                       asChild
                       active={isActive}
+                      className={!open ? "justify-center !px-2" : ""}
                     >
-                      <Link href={item.href}>
-                        <Icon className="h-5 w-5" />
-                        <span>{item.title}</span>
+                      <Link href={item.href} className="flex items-center w-full">
+                        <Icon className="h-4 w-4" />
+                        {open && <span className="ml-3">{item.title}</span>}
                         {isActive && open && (
                           <ChevronRight className="ml-auto h-4 w-4" />
                         )}
@@ -97,9 +98,11 @@ export function Sidebar({ className }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter>
-        {open && <CreditStatus />}
-      </SidebarFooter>
+      {open && 
+        <SidebarFooter>
+          {open && <CreditStatus />}
+        </SidebarFooter>
+      }
     </UISidebar>
   )
 }
