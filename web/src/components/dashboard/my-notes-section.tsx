@@ -4,15 +4,15 @@ import React, { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { 
-  ChevronDown, 
-  Search, 
+import {
+  ChevronDown,
+  Search,
   FolderPlus,
   Edit3
 } from "lucide-react"
@@ -68,7 +68,7 @@ export function MyNotesSection() {
 
       {/* Notes Display */}
       <div className="rounded-2xl overflow-hidden">
-        <NotesViewer />
+        <NotesViewer searchQuery={searchQuery} />
       </div>
     </Card>
   )

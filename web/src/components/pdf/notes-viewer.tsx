@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge';
 
 interface NotesViewerProps {
   transcriptId?: string;
+  searchQuery?: string;
 }
 
-export function NotesViewer({ transcriptId }: NotesViewerProps) {
+export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
   const router = useRouter();
   const { getNotes, generateNotesFromTranscript, generateFocusedNotes, deleteNote, loading, error } = useNotes();
   const [notes, setNotes] = useState<Note[]>([]);
@@ -82,6 +83,28 @@ export function NotesViewer({ transcriptId }: NotesViewerProps) {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+    });
+  };
+
+  // Filter notes based on search query
+  const filterNotes = (notes: Note[], query: string): Note[] => {
+    if (!query || query.trim() === '') {
+      return notes;
+    }
+
+    const searchTerm = query.toLowerCase().trim();
+    
+    return notes.filter((note) => {
+      // Search in note title
+      const titleMatch = note.title.toLowerCase().includes(searchTerm);
+      
+      // Search in note content
+      const contentMatch = note.content?.toLowerCase().includes(searchTerm) || false;
+      
+      // Search in transcript original name
+      const transcriptMatch = note.transcript?.originalName.toLowerCase().includes(searchTerm) || false;
+      
+      return titleMatch || contentMatch || transcriptMatch;
     });
   };
 
@@ -235,18 +258,39 @@ export function NotesViewer({ transcriptId }: NotesViewerProps) {
           </div>
         )}
         
-        {notes.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600 mb-4">No notes found</p>
-            {transcriptId && (
-              <Button onClick={handleGenerateNotes} disabled={loading}>
-                Generate AI Notes
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {notes.map((note) => (
+        {(() => {
+          const filteredNotes = filterNotes(notes, searchQuery || '');
+          
+          if (notes.length === 0) {
+            return (
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-4">No notes found</p>
+                {transcriptId && (
+                  <Button onClick={handleGenerateNotes} disabled={loading}>
+                    Generate AI Notes
+                  </Button>
+                )}
+              </div>
+            );
+          }
+          
+          if (filteredNotes.length === 0 && searchQuery) {
+            return (
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-2">No notes match your search</p>
+                <p className="text-sm text-gray-500">Try adjusting your search terms</p>
+              </div>
+            );
+          }
+          
+          return (
+            <div className="space-y-4">
+              {searchQuery && (
+                <div className="text-sm text-gray-600 mb-4">
+                  Showing {filteredNotes.length} of {notes.length} notes
+                </div>
+              )}
+              {filteredNotes.map((note) => (
               <div
                 key={note.id}
                 className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
@@ -301,8 +345,9 @@ export function NotesViewer({ transcriptId }: NotesViewerProps) {
                 </div>
               </div>
             ))}
-          </div>
-        )}
+            </div>
+          );
+        })()}
       </CardContent>
     </Card>
   );
