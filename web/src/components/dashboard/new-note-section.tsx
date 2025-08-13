@@ -15,34 +15,20 @@ import {
   FileText, 
   Upload
 } from "lucide-react"
-<<<<<<< HEAD
-import { SimplePDFProcessor } from "@/components/pdf"
-=======
+import { SimplePDFProcessor, PDFUploader } from "@/components/pdf"
 import { checkCreditsAndRedirect } from "@/lib/client/credits-api"
 import { cn } from "@/lib/utils"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { PDFUploader, SimplePDFProcessor } from "@/components/pdf"
->>>>>>> 0a4ad53 (feat credit-exhaustion-v2)
 import { AudioRecorder } from "@/components/audio"
 import { YouTubeProcessor } from "@/components/transcript"
 
 export function NewNoteSection() {
-<<<<<<< HEAD
   const [showPDFDialog, setShowPDFDialog] = useState(false)
   const [showAudioDialog, setShowAudioDialog] = useState(false)
   const [showYouTubeDialog, setShowYouTubeDialog] = useState(false)
-=======
   const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'stopped'>('idle')
   const [recordingTime, setRecordingTime] = useState(0)
   const [webLink, setWebLink] = useState("")
   const [showWebLinkDialog, setShowWebLinkDialog] = useState(false)
-  const [showPDFDialog, setShowPDFDialog] = useState(false)
-  const [showAudioDialog, setShowAudioDialog] = useState(false)
 
   const handleStartRecording = () => {
     setRecordingState('recording')
@@ -83,7 +69,9 @@ export function NewNoteSection() {
     setWebLink("")
     setShowWebLinkDialog(false)
   }
->>>>>>> 0a4ad53 (feat credit-exhaustion-v2)
+  const handleWebLinkDialogClose = () => {
+    setShowWebLinkDialog(false)
+  }
 
   const handleAudioTranscriptionComplete = (result: {
     transcript: { id: string; content: string };
@@ -152,27 +140,19 @@ export function NewNoteSection() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-<<<<<<< HEAD
+
         {/* YouTube Transcript Modal */}
         <Dialog open={showYouTubeDialog} onOpenChange={setShowYouTubeDialog}>
-=======
-        {/* Web Link Modal */}
-        <Dialog open={showWebLinkDialog} onOpenChange={setShowWebLinkDialog}>
->>>>>>> 0a4ad53 (feat credit-exhaustion-v2)
           <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="h-20 flex-col gap-2 border-2 border-secondary/20 hover:border-secondary hover:bg-secondary/5 rounded-2xl transition-all duration-300"
-<<<<<<< HEAD
-              onClick={() => setShowYouTubeDialog(true)}
-=======
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
-                  setShowWebLinkDialog(true);
+                  setShowYouTubeDialog(true);
                 }
               }}
->>>>>>> 0a4ad53 (feat credit-exhaustion-v2)
             >
               <Link2 className="h-6 w-6 text-secondary" />
               <span className="text-sm font-medium">YouTube Video</span>
