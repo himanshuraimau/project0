@@ -28,6 +28,20 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('AI note generation error:', error);
     
+    // Check if error is related to insufficient credits
+    if (error instanceof Error && error.message.includes('Insufficient credits')) {
+      return NextResponse.json(
+        { 
+          error: 'Insufficient credits',
+          message: error.message,
+          // Add redirection information
+          redirectToPricing: true,
+          redirectUrl: '/pricing'
+        },
+        { status: 403 }
+      );
+    }
+    
     return NextResponse.json(
       { 
         error: 'Failed to generate AI note',

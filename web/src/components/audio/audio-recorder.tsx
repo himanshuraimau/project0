@@ -9,7 +9,16 @@ import { Mic, MicOff, Upload, Loader2, Play, Square } from 'lucide-react';
 interface AudioRecorderProps {
   onTranscriptionComplete: (result: {
     transcript: { id: string; content: string };
-    note: { id: string; title: string; content: string };
+    note: { 
+      id?: string; 
+      title?: string; 
+      content?: string;
+      error?: string;
+      message?: string;
+      insufficientCredits?: boolean;
+      redirectToPricing?: boolean;
+      redirectUrl?: string;
+    };
   }) => void;
 }
 
@@ -104,7 +113,23 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
 
       if (response.ok) {
         const result = await response.json();
-        onTranscriptionComplete(result);
+        
+        // Handle case where transcript was created but note creation failed due to insufficient credits
+        if (result.note?.insufficientCredits && result.note?.redirectToPricing) {
+          // Pass the result to the callback so the parent can handle the redirect
+          onTranscriptionComplete(result);
+          
+          // Optionally, also redirect automatically after a delay
+          if (typeof window !== 'undefined' && result.note.redirectUrl) {
+            setTimeout(() => {
+              window.location.href = result.note.redirectUrl || '/pricing';
+            }, 3000); // Give the user a moment to see the result before redirecting
+          }
+          
+          alert('Transcript created, but note generation requires more credits. Redirecting to pricing page...');
+        } else {
+          onTranscriptionComplete(result);
+        }
         
         // Reset form
         setAudioBlob(null);
@@ -112,7 +137,18 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
         setIsPlaying(false);
       } else {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to transcribe audio');
+        
+        // Handle insufficient credits error specifically
+        if (error.redirectToPricing) {
+          alert('Insufficient credits. You will be redirected to the pricing page.');
+          if (typeof window !== 'undefined' && error.redirectUrl) {
+            setTimeout(() => {
+              window.location.href = error.redirectUrl || '/pricing';
+            }, 1500);
+          }
+        } else {
+          throw new Error(error.error || 'Failed to transcribe audio');
+        }
       }
     } catch (error) {
       console.error('Transcription error:', error);

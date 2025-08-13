@@ -78,3 +78,10 @@ model NoteChunk {
   // Removed the Gist index since we created it manually
   @@map("note_chunks")
 }
+
+
+model Usage {
+  key String  @id
+  points Int
+  expire DateTime?
+}

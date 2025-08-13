@@ -26,11 +26,34 @@ export function NewNoteSection() {
 
   const handleAudioTranscriptionComplete = (result: {
     transcript: { id: string; content: string };
-    note: { id: string; title: string; content: string };
+    note: { 
+      id?: string; 
+      title?: string; 
+      content?: string;
+      error?: string;
+      message?: string;
+      insufficientCredits?: boolean;
+      redirectToPricing?: boolean;
+      redirectUrl?: string;
+    };
   }) => {
     console.log('Audio transcription completed:', result)
     setShowAudioDialog(false)
-    // You could add a callback here to refresh the notes section or show a success message
+    
+    // Handle insufficient credits case
+    if (result.note?.insufficientCredits && result.note?.redirectToPricing) {
+      // Show an alert
+      alert('Audio transcribed successfully, but note creation requires more credits. Redirecting to pricing page...');
+      
+      // Redirect to pricing page
+      if (typeof window !== 'undefined' && result.note.redirectUrl) {
+        setTimeout(() => {
+          window.location.href = result.note.redirectUrl || '/pricing';
+        }, 1500);
+      }
+    } else {
+      // Regular success case - you could add a callback here to refresh the notes section or show a success message
+    }
   }
 
   const handlePDFProcessComplete = (result: any) => {

@@ -2,12 +2,14 @@ import { prisma } from './prisma';
 import { google } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { indexNoteContent } from './embedding-service';
+import { consumeCredits, checkUserHasCredits } from './usage';
 
 export interface NoteData {
   title: string;
   content: string;
   transcriptId: string;
   userId?: string;
+  consumeCredits?: boolean; // Flag to control whether credits should be consumed
 }
 
 export class NoteService {
@@ -18,6 +20,26 @@ export class NoteService {
    */
   async generateAINote(transcriptId: string, userId?: string): Promise<{ id: string; title: string; content: string }> {
     try {
+      // Check if user has credits before attempting to consume
+      if (userId) {
+        const hasCredits = await checkUserHasCredits();
+        if (!hasCredits) {
+          const error = new Error('Insufficient credits to generate AI note. Please purchase more credits.');
+          // Add a custom property to the error for redirection
+          (error as any).redirectToPricing = true;
+          throw error;
+        }
+        
+        try {
+          // This will throw an error if user has no more credits
+          await consumeCredits();
+        } catch (error) {
+          const insufficientCreditsError = new Error('Insufficient credits to generate AI note. Please purchase more credits.');
+          (insufficientCreditsError as any).redirectToPricing = true;
+          throw insufficientCreditsError;
+        }
+      }
+
       // Get the transcript data
       const transcript = await prisma.transcript.findUnique({
         where: { id: transcriptId },
@@ -239,11 +261,18 @@ export class NoteService {
         content: result.text,
         transcriptId,
         userId,
+        consumeCredits: false, // Don't consume credits again since we already did
       });
 
       return note;
     } catch (error) {
       console.error('Error generating AI note:', error);
+      
+      // If it's our custom error with redirection flag, pass it through
+      if (error instanceof Error && (error as any).redirectToPricing) {
+        throw error;
+      }
+      
       throw new Error('Failed to generate AI note');
     }
   }
@@ -257,6 +286,26 @@ export class NoteService {
     userId?: string
   ): Promise<{ id: string; title: string; content: string }> {
     try {
+      // Check if user has credits before attempting to consume
+      if (userId) {
+        const hasCredits = await checkUserHasCredits();
+        if (!hasCredits) {
+          const error = new Error('Insufficient credits to generate AI note. Please purchase more credits.');
+          // Add a custom property to the error for redirection
+          (error as any).redirectToPricing = true;
+          throw error;
+        }
+        
+        try {
+          // This will throw an error if user has no more credits
+          await consumeCredits();
+        } catch (error) {
+          const insufficientCreditsError = new Error('Insufficient credits to generate AI note. Please purchase more credits.');
+          (insufficientCreditsError as any).redirectToPricing = true;
+          throw insufficientCreditsError;
+        }
+      }
+      
       const transcript = await prisma.transcript.findUnique({
         where: { id: transcriptId },
         select: {
@@ -320,6 +369,7 @@ export class NoteService {
         content: result.text,
         transcriptId,
         userId,
+        consumeCredits: false, // Don't consume credits again since we already did
       });
 
       return note;
@@ -337,6 +387,29 @@ export class NoteService {
       // Validate required fields
       if (!data.title || !data.content || !data.transcriptId) {
         throw new Error('Title, content, and transcriptId are required');
+      }
+      
+      // Consume credits if this is a user-initiated note creation
+      // and not part of another credit-consuming operation
+      if (data.userId && data.consumeCredits !== false) {
+        try {
+          const hasCredits = await checkUserHasCredits();
+          if (!hasCredits) {
+            const error = new Error('Insufficient credits to create note. Please purchase more credits.');
+            (error as any).redirectToPricing = true;
+            throw error;
+          }
+          
+          await consumeCredits();
+        } catch (error) {
+          // If the error is not our custom insufficient credits error, rethrow
+          if (!(error instanceof Error && (error as any).redirectToPricing)) {
+            const insufficientCreditsError = new Error('Insufficient credits to create note. Please purchase more credits.');
+            (insufficientCreditsError as any).redirectToPricing = true;
+            throw insufficientCreditsError;
+          }
+          throw error;
+        }
       }
 
       const note = await prisma.note.create({

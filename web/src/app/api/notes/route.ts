@@ -74,6 +74,17 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating note:', error);
     
+    // If insufficient credits, return the appropriate response
+    if (error instanceof Error && (error as any).redirectToPricing) {
+      return NextResponse.json({
+        success: false,
+        error: 'Insufficient credits',
+        message: error.message,
+        redirectToPricing: true,
+        redirectUrl: '/pricing'
+      }, { status: 403 });
+    }
+    
     return NextResponse.json(
       { 
         error: 'Failed to create note',

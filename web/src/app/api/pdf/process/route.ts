@@ -53,10 +53,23 @@ export async function POST(request: NextRequest) {
       } catch (noteError) {
         console.error('Failed to generate AI notes:', noteError);
         // Don't fail the entire request if note generation fails
-        noteResult = {
-          error: 'Failed to generate AI notes',
-          message: noteError instanceof Error ? noteError.message : 'Unknown error'
-        };
+        
+        // Check if error is related to insufficient credits
+        if (noteError instanceof Error && noteError.message.includes('Insufficient credits')) {
+          noteResult = {
+            error: 'Insufficient credits',
+            message: noteError.message,
+            insufficientCredits: true,
+            // Add redirection information
+            redirectToPricing: true,
+            redirectUrl: '/pricing'
+          };
+        } else {
+          noteResult = {
+            error: 'Failed to generate AI notes',
+            message: noteError instanceof Error ? noteError.message : 'Unknown error'
+          };
+        }
       }
     }
 
