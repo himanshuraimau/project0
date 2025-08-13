@@ -10,67 +10,19 @@ import {
   DialogTitle,
   DialogTrigger 
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import { 
-  Mic, 
   Link2, 
   FileText, 
-  Upload,
-  Play,
-  Square,
-  Trash2,
-  Save,
-  ChevronDown
+  Upload
 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { PDFUploader, SimplePDFProcessor } from "@/components/pdf"
+import { SimplePDFProcessor } from "@/components/pdf"
 import { AudioRecorder } from "@/components/audio"
+import { YouTubeProcessor } from "@/components/transcript"
 
 export function NewNoteSection() {
-  const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'stopped'>('idle')
-  const [recordingTime, setRecordingTime] = useState(0)
-  const [webLink, setWebLink] = useState("")
   const [showPDFDialog, setShowPDFDialog] = useState(false)
   const [showAudioDialog, setShowAudioDialog] = useState(false)
-
-  const handleStartRecording = () => {
-    setRecordingState('recording')
-    // TODO: Implement actual recording logic
-  }
-
-  const handleStopRecording = () => {
-    setRecordingState('stopped')
-    // TODO: Stop recording
-  }
-
-  const handleResumeRecording = () => {
-    setRecordingState('recording')
-    // TODO: Resume recording
-  }
-
-  const handleDeleteRecording = () => {
-    setRecordingState('idle')
-    setRecordingTime(0)
-    // TODO: Delete recording
-  }
-
-  const handleSaveRecording = () => {
-    // TODO: Save recording and create note
-    setRecordingState('idle')
-    setRecordingTime(0)
-  }
-
-  const handleSummarizeLink = () => {
-    // TODO: Implement link summarization
-    console.log("Summarizing link:", webLink)
-    setWebLink("")
-  }
+  const [showYouTubeDialog, setShowYouTubeDialog] = useState(false)
 
   const handleAudioTranscriptionComplete = (result: {
     transcript: { id: string; content: string };
@@ -95,6 +47,19 @@ export function NewNoteSection() {
     setShowAudioDialog(false)
   }
 
+  const handleYouTubeTranscriptComplete = (result: {
+    transcript: { id: string; content: string; originalName: string };
+    note?: { id: string; title: string; content: string };
+  }) => {
+    console.log('YouTube transcript completed:', result)
+    setShowYouTubeDialog(false)
+    // You could add a callback here to refresh the notes section or show a success message
+  }
+
+  const handleCloseYouTubeDialog = () => {
+    setShowYouTubeDialog(false)
+  }
+
   return (
     <Card className="rounded-3xl border-0 p-8 shadow-xl bg-card">
       <div className="mb-6">
@@ -103,42 +68,27 @@ export function NewNoteSection() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Web Link Modal */}
-        <Dialog>
+        {/* YouTube Transcript Modal */}
+        <Dialog open={showYouTubeDialog} onOpenChange={setShowYouTubeDialog}>
           <DialogTrigger asChild>
             <Button 
               variant="outline" 
               className="h-20 flex-col gap-2 border-2 border-secondary/20 hover:border-secondary hover:bg-secondary/5 rounded-2xl transition-all duration-300"
+              onClick={() => setShowYouTubeDialog(true)}
             >
               <Link2 className="h-6 w-6 text-secondary" />
-              <span className="text-sm font-medium">Web Link</span>
+              <span className="text-sm font-medium">YouTube Video</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-left">Web link</DialogTitle>
+              <DialogTitle className="text-left">YouTube Transcript & Notes</DialogTitle>
             </DialogHeader>
-            <div className="space-y-6">
-              <div>
-                <label className="text-sm font-medium mb-2 block">URL</label>
-                <Input 
-                  placeholder="Paste your URL here"
-                  value={webLink}
-                  onChange={(e) => setWebLink(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Supports YouTube, articles, and most web pages
-                </p>
-              </div>
-
-              <div className="flex gap-3">
-                <Button onClick={handleSummarizeLink} className="flex-1" disabled={!webLink}>
-                  Summarize Link
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  More Note Options
-                </Button>
-              </div>
+            <div className="mt-4">
+              <YouTubeProcessor
+                onProcessComplete={handleYouTubeTranscriptComplete}
+                onClose={handleCloseYouTubeDialog}
+              />
             </div>
           </DialogContent>
         </Dialog>
