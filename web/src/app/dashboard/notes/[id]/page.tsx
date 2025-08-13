@@ -7,6 +7,7 @@ import { useFlashcards } from '@/hooks/use-flashcards';
 import { useQuiz } from '@/hooks/use-quiz';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { FlashcardViewer, useFlashcardKeyboard } from '@/components/flashcards';
 import { QuizViewer } from '@/components/quiz';
 import { ArrowLeft, Copy, Download, Edit, Share, FileText, HelpCircle, Layers, X, Trash2, MessageCircle } from 'lucide-react';
@@ -54,12 +55,23 @@ export default function NoteViewPage() {
   const [showChat, setShowChat] = useState(false);
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (noteId) {
       loadNote(noteId);
     }
   }, [noteId]);
+
+  useEffect(() => {
+    if (note) {
+      setEditTitle(note.title || '');
+      setEditContent(note.content || '');
+    }
+  }, [note]);
 
   const loadNote = async (id: string) => {
     const result = await getNote(id);
@@ -92,8 +104,58 @@ export default function NoteViewPage() {
   };
 
   const handleEdit = () => {
-    // Placeholder for edit functionality
-    console.log('Edit functionality to be implemented');
+    if (note) {
+      setIsEditing(true);
+      setEditTitle(note.title || '');
+      setEditContent(note.content || '');
+    }
+  };
+
+  const handleSave = async () => {
+    if (!note || !editTitle.trim()) {
+      alert('Please enter a title for your note');
+      return;
+    }
+    
+    if (editTitle.trim() === note.title && editContent.trim() === note.content) {
+      setIsEditing(false);
+      return;
+    }
+    
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/notes/${note.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: editTitle.trim(),
+          content: editContent.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        const updatedNote = await response.json();
+        if (updatedNote.success) {
+          setNote(updatedNote.data);
+          setIsEditing(false);
+        }
+      } else {
+        throw new Error('Failed to update note');
+      }
+    } catch (error) {
+      console.error('Error updating note:', error);
+      alert('Failed to save note. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditTitle('');
+    setEditContent('');
   };
 
   const handleShare = () => {
@@ -337,15 +399,38 @@ export default function NoteViewPage() {
               <Download className="h-4 w-4" />
               Download
             </Button>
-            <Button
-              onClick={handleEdit}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              Edit
-            </Button>
+            {isEditing ? (
+              <>
+                <Button
+                  onClick={handleSave}
+                  variant="default"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  disabled={isSaving}
+                >
+                  {isSaving ? 'Saving...' : 'Save'}
+                </Button>
+                <Button
+                  onClick={handleCancelEdit}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  disabled={isSaving}
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={handleEdit}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Edit
+              </Button>
+            )}
             <Button
               onClick={handleShare}
               variant="outline"
@@ -422,23 +507,54 @@ export default function NoteViewPage() {
 
         {/* Note Content, Flashcards, or Quiz */}
         {!showTranscript && !showFlashcards && !showQuiz && !showChat && (
-          <Card>
+          <Card className={isEditing ? 'ring-2 ring-primary/20' : ''}>
             <CardHeader>
-              <CardTitle className="text-xl">{note.title}</CardTitle>
-              <div className="text-sm text-gray-600 space-y-1">
-                {note.transcript && (
-                  <p>Source: {note.transcript.originalName}</p>
-                )}
-                <p>Created: {formatDate(note.createdAt)}</p>
-                <p>Last updated: {formatDate(note.updatedAt)}</p>
-              </div>
+              {isEditing ? (
+                <div className="space-y-4">
+                  <Input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    placeholder="Note title"
+                    className="text-xl font-semibold border-0 p-0 h-auto text-foreground bg-transparent"
+                  />
+                  <div className="text-sm text-gray-600 space-y-1">
+                    {note.transcript && (
+                      <p>Source: {note.transcript.originalName}</p>
+                    )}
+                    <p>Created: {formatDate(note.createdAt)}</p>
+                    <p>Last updated: {formatDate(note.updatedAt)}</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <CardTitle className="text-xl">{note.title}</CardTitle>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    {note.transcript && (
+                      <p>Source: {note.transcript.originalName}</p>
+                    )}
+                    <p>Created: {formatDate(note.createdAt)}</p>
+                    <p>Last updated: {formatDate(note.updatedAt)}</p>
+                  </div>
+                </>
+              )}
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none">
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                  {note.content || 'No content available'}
+              {isEditing ? (
+                <div className="space-y-4">
+                  <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    placeholder="Note content"
+                    className="w-full min-h-[400px] p-4 border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm leading-relaxed bg-background text-foreground"
+                  />
                 </div>
-              </div>
+              ) : (
+                <div className="prose max-w-none">
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                    {note.content || 'No content available'}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -535,23 +651,54 @@ export default function NoteViewPage() {
         {!showTranscript && showChat && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[600px]">
             {/* Note Content - Left Side (2/3 width) */}
-            <Card className="lg:col-span-2 h-full flex flex-col">
+            <Card className={`lg:col-span-2 h-full flex flex-col ${isEditing ? 'ring-2 ring-primary/20' : ''}`}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{note.title}</CardTitle>
-                <div className="text-xs text-gray-600 space-y-1">
-                  {note.transcript && (
-                    <p>Source: {note.transcript.originalName}</p>
-                  )}
-                  <p>Created: {formatDate(note.createdAt)}</p>
-                  <p>Last updated: {formatDate(note.updatedAt)}</p>
-                </div>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <Input
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      placeholder="Note title"
+                      className="text-lg font-semibold border-0 p-0 h-auto text-foreground bg-transparent"
+                    />
+                    <div className="text-xs text-gray-600 space-y-1">
+                      {note.transcript && (
+                        <p>Source: {note.transcript.originalName}</p>
+                      )}
+                      <p>Created: {formatDate(note.createdAt)}</p>
+                      <p>Last updated: {formatDate(note.updatedAt)}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <CardTitle className="text-lg">{note.title}</CardTitle>
+                    <div className="text-xs text-gray-600 space-y-1">
+                      {note.transcript && (
+                        <p>Source: {note.transcript.originalName}</p>
+                      )}
+                      <p>Created: {formatDate(note.createdAt)}</p>
+                      <p>Last updated: {formatDate(note.updatedAt)}</p>
+                    </div>
+                  </>
+                )}
               </CardHeader>
               <CardContent className="pt-0 flex-grow">
-                <div className="prose max-w-none h-full">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed h-full overflow-y-auto pr-2">
-                    {note.content || 'No content available'}
+                {isEditing ? (
+                  <div className="h-full">
+                    <textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      placeholder="Note content"
+                      className="w-full h-full p-4 border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm leading-relaxed bg-background text-foreground"
+                    />
                   </div>
-                </div>
+                ) : (
+                  <div className="prose max-w-none h-full">
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed h-full overflow-y-auto pr-2">
+                      {note.content || 'No content available'}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
