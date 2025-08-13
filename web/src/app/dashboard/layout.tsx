@@ -12,12 +12,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   
   return (
     <div 
-      className="min-h-screen transition-all duration-300" 
+      className="flex-1 transition-all duration-300" 
       style={{ 
         marginLeft: open ? sidebarWidth : collapsedWidth
       }}
     >
-      <Navbar />
       <main className="p-6">
         {children}
       </main>
@@ -31,11 +30,17 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <SidebarProvider defaultOpen={true}>
-      <Sidebar />
-      <DashboardContent>
-        {children}
-      </DashboardContent>
-    </SidebarProvider>
+    <div className="min-h-screen">
+      {/* Navbar at the top, full width */}
+      <Navbar className="w-full sticky top-0 z-40" />
+      
+      {/* Sidebar and content below navbar */}
+      <SidebarProvider defaultOpen={true}>
+        <Sidebar />
+        <DashboardContent>
+          {children}
+        </DashboardContent>
+      </SidebarProvider>
+    </div>
   )
 }
