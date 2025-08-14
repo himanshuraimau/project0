@@ -3,33 +3,22 @@ import { google } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { ApiSuccessResponse, ApiErrorResponse, QuizQuestion, QuizData, CreateQuizRequest } from '@/lib/types';
 
 const model = google('models/gemini-1.5-flash-latest');
-
-interface QuizQuestion {
-  id: number;
-  type: 'multiple_choice' | 'true_false';
-  question: string;
-  options?: string[];
-  correct_answer: string | boolean;
-  explanation: string;
-}
-
-interface QuizData {
-  quiz: QuizQuestion[];
-}
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
-    const body = await request.json();
+    const body: CreateQuizRequest = await request.json();
     const { noteId } = body;
 
     if (!noteId) {
-      return NextResponse.json(
-        { error: 'Note ID is required' },
-        { status: 400 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Note ID is required'
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Check if quiz already exists for this note
@@ -38,11 +27,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingQuiz) {
-      return NextResponse.json({
+      const response: ApiSuccessResponse = {
         success: true,
         data: existingQuiz,
         message: 'Quiz already exists for this note'
-      });
+      };
+      return NextResponse.json(response);
     }
 
     // Get the note and its content
@@ -54,10 +44,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (!note) {
-      return NextResponse.json(
-        { error: 'Note not found' },
-        { status: 404 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Note not found'
+      };
+      return NextResponse.json(errorResponse, { status: 404 });
     }
 
     // Generate quiz using AI
@@ -205,22 +196,22 @@ ${note.content}
       }
     });
 
-    return NextResponse.json({
+    const response: ApiSuccessResponse = {
       success: true,
       data: createdQuiz,
       message: `Successfully generated ${quizData.quiz.length} quiz questions`
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Quiz generation error:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to generate quiz',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to generate quiz',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 

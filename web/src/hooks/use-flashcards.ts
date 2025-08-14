@@ -1,19 +1,5 @@
 import { useState, useCallback } from 'react';
-
-export interface FlashcardItem {
-  id: number;
-  question: string;
-  answer: string;
-}
-
-export interface Flashcard {
-  id: string;
-  noteId: string;
-  content: FlashcardItem[];
-  userId?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { FlashcardItem } from '@/lib/types';
 
 export const useFlashcards = () => {
   const [flashcards, setFlashcards] = useState<FlashcardItem[]>([]);

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useNotes, Note } from '@/hooks/use-notes';
+import { useNotes } from '@/hooks/use-notes';
+import { Note } from '@/lib/types';
 import { useFlashcards } from '@/hooks/use-flashcards';
 import { useQuiz } from '@/hooks/use-quiz';
 import { Button } from '@/components/ui/button';

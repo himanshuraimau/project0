@@ -98,8 +98,8 @@ export function PDFUploader() {
             />
           </div>
 
-          <Button 
-            onClick={handleUpload} 
+          <Button
+            onClick={handleUpload}
             disabled={!file || loading}
             className="w-full"
           >
@@ -131,11 +131,11 @@ export function PDFUploader() {
                 <p className="text-sm text-gray-600">
                   <strong>Pages:</strong> {result.pages}
                 </p>
-                {result.metadata?.title && (
+                {result.metadata?.title && typeof result.metadata.title === 'string' ? (
                   <p className="text-sm text-gray-600">
-                    <strong>Title:</strong> {String(result.metadata.title)}
+                    <strong>Title:</strong> {result.metadata.title}
                   </p>
-                )}
+                ) : null}
               </CardContent>
             </Card>
           )}
@@ -149,7 +149,7 @@ export function PDFUploader() {
             </CardHeader>
             <CardContent>
               <div className="p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-y-auto whitespace-pre-wrap">
-                {result.cleanText.length > 1000 
+                {result.cleanText.length > 1000
                   ? result.cleanText.substring(0, 1000) + '...'
                   : result.cleanText
                 }

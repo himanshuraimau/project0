@@ -1,21 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useNotes, Note } from '@/hooks/use-notes';
+import { useNotes } from '@/hooks/use-notes';
+import { Note } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Trash2, AlertTriangle } from 'lucide-react';
 
 import { MarkdownRenderer } from '@/components/mdx-renderer';
-
-interface NotesViewerProps {
-  transcriptId?: string;
-  searchQuery?: string;
-}
+import { NotesViewerProps } from '@/lib/types';
 
 export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
   const router = useRouter();
   const { getNotes, generateNotesFromTranscript, generateFocusedNotes, deleteNote, loading, error } = useNotes();
   const [notes, setNotes] = useState<Note[]>([]);
   const [showNoteTypeOptions, setShowNoteTypeOptions] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load notes on component mount
   useEffect(() => {
@@ -64,13 +73,32 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
     }
   };
 
-  const handleDeleteNote = async (id: string) => {
-    if (confirm('Are you sure you want to delete this note?')) {
-      const success = await deleteNote(id);
+  const handleDeleteNote = (id: string) => {
+    setNoteToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteNote = async () => {
+    if (!noteToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const success = await deleteNote(noteToDelete);
       if (success) {
         await loadNotes();
+        setDeleteDialogOpen(false);
+        setNoteToDelete(null);
       }
+    } catch (error) {
+      console.error('Error deleting note:', error);
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const cancelDeleteNote = () => {
+    setDeleteDialogOpen(false);
+    setNoteToDelete(null);
   };
 
   const handleViewFullNote = (noteId: string) => {
@@ -236,7 +264,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
 
                   <div className="flex justify-between items-center mt-3 pt-3 border-t">
                     <span className="text-xs text-gray-500">
-                      Updated: {formatDate(note.updatedAt)}
+                      Updated: {formatDate(note.updatedAt instanceof Date ? note.updatedAt.toISOString() : note.updatedAt)}
                     </span>
                     <div className="flex space-x-2">
                       <Button
@@ -270,6 +298,48 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
           );
         })()}
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete Note
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this note? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={cancelDeleteNote}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteNote}
+              disabled={isDeleting}
+              className="flex items-center gap-2"
+            >
+              {isDeleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Delete Note
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

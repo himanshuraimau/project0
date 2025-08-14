@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNotes, ProcessPDFResult } from '@/hooks/use-notes';
+import { useNotes } from '@/hooks/use-notes';
+import { ProcessPDFResult } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

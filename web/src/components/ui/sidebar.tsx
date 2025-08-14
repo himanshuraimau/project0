@@ -49,26 +49,34 @@ export function SidebarProvider({
   style,
   ...props
 }: SidebarProviderProps) {
+  const [isMounted, setIsMounted] = React.useState(false)
   const isMobile = useMediaQuery("(max-width: 768px)")
 
   // Handle controlled or uncontrolled open state
-  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(() => {
-    // Try to read the cookie value first for persisted state
-    if (typeof document !== 'undefined') {
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen)
+  const [isResizing, setIsResizing] = React.useState(false)
+
+  // Handle hydration and cookie reading after mount
+  React.useEffect(() => {
+    setIsMounted(true)
+    
+    // Only read cookies after hydration
+    if (controlledOpen === undefined) {
       const match = document.cookie.match(new RegExp(`(^| )${SIDEBAR_COOKIE_NAME}=([^;]+)`))
       if (match) {
-        return match[2] === 'open'
+        const cookieValue = match[2] === 'open'
+        setUncontrolledOpen(cookieValue)
       }
     }
-    return defaultOpen
-  })
-  const [isResizing, setIsResizing] = React.useState(false)
+  }, [controlledOpen])
 
   const open = controlledOpen !== undefined ? controlledOpen : uncontrolledOpen
   const setOpen = React.useCallback(
     (open: boolean) => {
-      // Set cookie to persist state
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${open ? "open" : "closed"}; path=/; max-age=31536000; SameSite=Lax`
+      // Set cookie to persist state only after mount
+      if (isMounted) {
+        document.cookie = `${SIDEBAR_COOKIE_NAME}=${open ? "open" : "closed"}; path=/; max-age=31536000; SameSite=Lax`
+      }
       
       if (onOpenChange) {
         onOpenChange(open)
@@ -76,7 +84,7 @@ export function SidebarProvider({
         setUncontrolledOpen(open)
       }
     },
-    [onOpenChange]
+    [onOpenChange, isMounted]
   )
 
   const toggle = React.useCallback(() => {
@@ -143,7 +151,7 @@ export function useSidebar() {
 }
 
 // Sidebar Trigger
-interface SidebarTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+type SidebarTriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export function SidebarTrigger({ className, ...props }: SidebarTriggerProps) {
   const { toggle } = useSidebar()

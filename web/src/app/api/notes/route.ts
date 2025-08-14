@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NoteService } from '@/lib/note-service';
 import { auth } from '@clerk/nextjs/server';
+import { ApiSuccessResponse, ApiErrorResponse, CreateNoteRequest } from '@/lib/types';
 
 const noteService = new NoteService();
 
@@ -12,10 +13,11 @@ export async function GET(request: NextRequest) {
     const transcriptId = searchParams.get('transcriptId');
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Authentication required'
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     let notes;
@@ -27,21 +29,21 @@ export async function GET(request: NextRequest) {
       notes = await noteService.getNotesByUser(userId);
     }
 
-    return NextResponse.json({
+    const response: ApiSuccessResponse = {
       success: true,
       data: notes,
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error retrieving notes:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to retrieve notes',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to retrieve notes',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
@@ -49,14 +51,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
-    const body = await request.json();
+    const body: CreateNoteRequest = await request.json();
     const { title, content, transcriptId } = body;
 
     if (!title || !content || !transcriptId) {
-      return NextResponse.json(
-        { error: 'Title, content, and transcriptId are required' },
-        { status: 400 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Title, content, and transcriptId are required'
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     const note = await noteService.saveNote({
@@ -66,31 +69,32 @@ export async function POST(request: NextRequest) {
       userId: userId || undefined,
     });
 
-    return NextResponse.json({
+    const response: ApiSuccessResponse = {
       success: true,
       data: note,
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error creating note:', error);
     
     // If insufficient credits, return the appropriate response
     if (error instanceof Error && (error as any).redirectToPricing) {
-      return NextResponse.json({
+      const creditErrorResponse: ApiErrorResponse = {
         success: false,
         error: 'Insufficient credits',
         message: error.message,
         redirectToPricing: true,
         redirectUrl: '/pricing'
-      }, { status: 403 });
+      };
+      return NextResponse.json(creditErrorResponse, { status: 403 });
     }
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to create note',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to create note',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

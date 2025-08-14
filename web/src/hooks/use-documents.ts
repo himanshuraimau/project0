@@ -1,22 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-interface Document {
-  id: string;
-  fileName: string;
-  originalName: string;
-  pages: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface DocumentWithContent extends Document {
-  content: string;
-  cleanContent: string;
-  metadata: Record<string, unknown> | null;
-  userId: string | null;
-}
+import type { Document, DocumentWithContent } from '@/lib/types';
 
 export function useDocuments() {
   const [documents, setDocuments] = useState<Document[]>([]);

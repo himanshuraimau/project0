@@ -1,39 +1,12 @@
 import { useState } from 'react';
-
-export interface Note {
-  id: string;
-  title: string;
-  content: string | null;
-  transcriptId: string;
-  userId?: string;
-  createdAt: string;
-  updatedAt: string;
-  transcript?: {
-    id: string;
-    originalName: string;
-    createdAt: string;
-  };
-}
-
-export interface ProcessPDFResult {
-  transcript: {
-    id: string;
-    text: string;
-    cleanText: string;
-    pages: number;
-    metadata?: any;
-    imageCount: number;
-    extractedFiles?: any;
-  };
-  note?: Note | { 
-    error: string; 
-    message: string;
-    redirectToPricing?: boolean;
-    redirectUrl?: string;
-  };
-  insufficientCredits?: boolean;
-  redirectUrl?: string;
-}
+import type { 
+  Note, 
+  ProcessPDFResult, 
+  ProcessPDFOptions, 
+  NoteType, 
+  CreateNoteRequest, 
+  UpdateNoteRequest 
+} from '@/lib/types';
 
 export function useNotes() {
   const [loading, setLoading] = useState(false);
@@ -42,10 +15,7 @@ export function useNotes() {
   // Process PDF and generate notes
   const processPDFWithNotes = async (
     file: File,
-    options: {
-      extractImages?: boolean;
-      maxPages?: number;
-      generateNotes?: boolean;
+    options: ProcessPDFOptions & {
       redirectOnInsufficientCredits?: boolean;
     } = {}
   ): Promise<ProcessPDFResult | null> => {
@@ -164,7 +134,7 @@ export function useNotes() {
   // Generate focused AI notes from existing transcript
   const generateFocusedNotes = async (
     transcriptId: string,
-    noteType: 'summary' | 'detailed' | 'action-items' | 'technical' | 'executive' = 'summary'
+    noteType: NoteType = 'summary'
   ): Promise<Note | null> => {
     setLoading(true);
     setError(null);
@@ -319,11 +289,7 @@ export function useNotes() {
   };
 
   // Create a new note
-  const createNote = async (noteData: {
-    title: string;
-    content: string;
-    transcriptId: string;
-  }): Promise<Note | null> => {
+  const createNote = async (noteData: CreateNoteRequest): Promise<Note | null> => {
     setLoading(true);
     setError(null);
 
@@ -353,10 +319,7 @@ export function useNotes() {
   };
 
   // Update an existing note
-  const updateNote = async (id: string, updates: {
-    title?: string;
-    content?: string;
-  }): Promise<Note | null> => {
+  const updateNote = async (id: string, updates: UpdateNoteRequest): Promise<Note | null> => {
     setLoading(true);
     setError(null);
 

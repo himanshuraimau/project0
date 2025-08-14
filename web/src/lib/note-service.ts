@@ -3,14 +3,13 @@ import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
 import { indexNoteContent } from "./embedding-service";
 import { consumeCredits, checkUserHasCredits } from "./usage";
-
-export interface NoteData {
-  title: string;
-  content: string;
-  transcriptId: string;
-  userId?: string;
-  consumeCredits?: boolean; // Flag to control whether credits should be consumed
-}
+import {
+  NoteData,
+  NoteType,
+  GeneratedNoteResult,
+  NotesFromContentResult
+} from "./types/notes.types";
+import { CreditError } from "./types/common.types";
 
 export class NoteService {
   private model = google("models/gemini-1.5-flash-latest");
@@ -21,7 +20,7 @@ export class NoteService {
   async generateAINote(
     transcriptId: string,
     userId?: string
-  ): Promise<{ id: string; title: string; content: string }> {
+  ): Promise<GeneratedNoteResult> {
     try {
       // Check if user has credits before attempting to consume
       if (userId) {
@@ -332,14 +331,9 @@ Transform the provided document into comprehensive educational notes that serve 
    */
   async generateFocusedNote(
     transcriptId: string,
-    noteType:
-      | "summary"
-      | "detailed"
-      | "action-items"
-      | "technical"
-      | "executive" = "summary",
+    noteType: NoteType = "summary",
     userId?: string
-  ): Promise<{ id: string; title: string; content: string }> {
+  ): Promise<GeneratedNoteResult> {
     try {
       // Check if user has credits before attempting to consume
       if (userId) {
@@ -423,9 +417,8 @@ Transform the provided document into comprehensive educational notes that serve 
         throw new Error("AI failed to generate meaningful content");
       }
 
-      const title = `${
-        noteType.charAt(0).toUpperCase() + noteType.slice(1)
-      } - ${transcript.originalName} - ${new Date().toLocaleDateString()}`;
+      const title = `${noteType.charAt(0).toUpperCase() + noteType.slice(1)
+        } - ${transcript.originalName} - ${new Date().toLocaleDateString()}`;
 
       const note = await this.saveNote({
         title,
@@ -613,7 +606,7 @@ Transform the provided document into comprehensive educational notes that serve 
   async generateNotesFromContent(
     content: string,
     title: string = 'Text Note'
-  ): Promise<{ title: string; content: string }> {
+  ): Promise<NotesFromContentResult> {
     try {
       if (!content || content.trim().length === 0) {
         throw new Error('Content is required to generate notes');
@@ -669,7 +662,7 @@ Transform the provided document into comprehensive educational notes that serve 
 export async function generateNotesFromContent(
   content: string,
   title: string = 'Text Note'
-): Promise<{ title: string; content: string }> {
+): Promise<NotesFromContentResult> {
   const noteService = new NoteService();
   return noteService.generateNotesFromContent(content, title);
 }

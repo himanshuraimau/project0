@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DocumentService } from '@/lib/document-service';
 import { auth } from '@clerk/nextjs/server';
+import { ApiResponse, ApiSuccessResponse, ApiErrorResponse } from '@/lib/types';
 
 const documentService = new DocumentService();
 
@@ -10,29 +11,30 @@ export async function GET() {
     const { userId } = await auth();
     
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Unauthorized'
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     const documents = await documentService.getDocumentsByUser(userId);
 
-    return NextResponse.json({
+    const response: ApiSuccessResponse = {
       success: true,
       data: documents,
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error fetching documents:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to fetch documents',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to fetch documents',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
@@ -42,55 +44,59 @@ export async function DELETE(request: NextRequest) {
     const { userId } = await auth();
     
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Unauthorized'
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     const url = new URL(request.url);
     const documentId = url.searchParams.get('id');
 
     if (!documentId) {
-      return NextResponse.json(
-        { error: 'Document ID is required' },
-        { status: 400 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Document ID is required'
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // First check if document belongs to user
     const document = await documentService.getDocument(documentId);
     
     if (!document) {
-      return NextResponse.json(
-        { error: 'Document not found' },
-        { status: 404 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Document not found'
+      };
+      return NextResponse.json(errorResponse, { status: 404 });
     }
 
     if (document.userId !== userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized to delete this document' },
-        { status: 403 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Unauthorized to delete this document'
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     await documentService.deleteDocument(documentId);
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       message: 'Document deleted successfully',
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error deleting document:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to delete document',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to delete document',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

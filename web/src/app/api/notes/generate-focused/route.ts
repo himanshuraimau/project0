@@ -1,48 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NoteService } from '@/lib/note-service';
 import { auth } from '@clerk/nextjs/server';
+import { ApiSuccessResponse, ApiErrorResponse, NoteType } from '@/lib/types';
 
 const noteService = new NoteService();
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
-    const body = await request.json();
+    const body: { transcriptId: string; noteType?: NoteType } = await request.json();
     const { transcriptId, noteType = 'summary' } = body;
 
     if (!transcriptId) {
-      return NextResponse.json(
-        { error: 'Transcript ID is required' },
-        { status: 400 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Transcript ID is required'
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    const validNoteTypes = ['summary', 'detailed', 'action-items', 'technical', 'executive'];
+    const validNoteTypes: NoteType[] = ['summary', 'detailed', 'action-items', 'technical', 'executive'];
     if (!validNoteTypes.includes(noteType)) {
-      return NextResponse.json(
-        { error: `Invalid note type. Must be one of: ${validNoteTypes.join(', ')}` },
-        { status: 400 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: `Invalid note type. Must be one of: ${validNoteTypes.join(', ')}`
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Generate focused AI note from the transcript
     const note = await noteService.generateFocusedNote(transcriptId, noteType, userId || undefined);
 
-    return NextResponse.json({
+    const response: ApiSuccessResponse = {
       success: true,
       data: note,
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Focused AI note generation error:', error);
-    
-    return NextResponse.json(
-      { 
-        error: 'Failed to generate focused AI note',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to generate focused AI note',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
