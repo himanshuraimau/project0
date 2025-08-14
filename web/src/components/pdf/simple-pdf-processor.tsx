@@ -13,7 +13,8 @@ interface NoteWithModelOverload {
 }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FileText, Upload, CheckCircle, AlertCircle } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { FileText, Upload, CheckCircle, AlertCircle, Type } from 'lucide-react';
 import { checkCreditsAndRedirect } from '@/lib/client/credits-api';
 import { MarkdownRenderer } from '@/components/mdx-renderer';
 
@@ -23,11 +24,14 @@ interface SimplePDFProcessorProps {
 }
 
 export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProcessorProps) {
-  const { processPDFWithNotes, loading, error } = useNotes();
+  const { processPDFWithNotes, generateNotesFromText, loading, error } = useNotes();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [processResult, setProcessResult] = useState<ProcessPDFResult | null>(null);
-  
+  const [mode, setMode] = useState<'pdf' | 'text'>('pdf');
+  const [textInput, setTextInput] = useState('');
+  const [noteTitle, setNoteTitle] = useState('');
+
   // We don't need to check credits on mount since the parent component already checks
 
 
@@ -62,15 +66,16 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileSelect(e.dataTransfer.files[0]);
     }
   };
 
   const handleProcess = async () => {
-    if (!selectedFile) return;
-    
+    if (mode === 'pdf' && !selectedFile) return;
+    if (mode === 'text' && !textInput.trim()) return;
+
     // Check credits before processing
     const hasCredits = await checkCreditsAndRedirect();
     if (!hasCredits) {
@@ -80,14 +85,40 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
       return;
     }
 
-    // Use simplified options - always generate notes, no images
-    const options = {
-      extractImages: false,
-      generateNotes: true,
-    };
+    let result;
 
-    const result = await processPDFWithNotes(selectedFile, options);
-    
+    if (mode === 'pdf') {
+      // Use simplified options - always generate notes, no images
+      const options = {
+        extractImages: false,
+        generateNotes: true,
+      };
+      result = await processPDFWithNotes(selectedFile!, options);
+    } else {
+      // Generate notes from text
+      result = await generateNotesFromText(textInput, noteTitle || 'Text Note');
+    }
+
+    if (result) {
+      setProcessResult(result);
+      onProcessComplete?.(result);
+    }
+  };
+
+  const handleProcessText = async () => {
+    if (!textInput.trim()) return;
+
+    // Check credits before processing
+    const hasCredits = await checkCreditsAndRedirect();
+    if (!hasCredits) {
+      if (onClose) {
+        onClose();
+      }
+      return;
+    }
+
+    const result = await generateNotesFromText(textInput, noteTitle || 'Text Note');
+
     if (result) {
       setProcessResult(result);
       onProcessComplete?.(result);
@@ -97,90 +128,174 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
   const resetForm = () => {
     setSelectedFile(null);
     setProcessResult(null);
+    setTextInput('');
+    setNoteTitle('');
   };
 
   return (
     <div className="space-y-6">
       {!processResult ? (
         <>
-          {/* File Upload Area */}
-          <div
-            className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors ${
-              dragActive 
-                ? 'border-primary bg-primary/5' 
-                : 'border-muted-foreground/25 hover:border-primary/50'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <div className="space-y-4">
-              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <FileText className="h-6 w-6 text-primary" />
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Upload PDF Document</h3>
-                <p className="text-muted-foreground text-sm">
-                  Drag and drop your PDF file here, or click to browse
-                </p>
-              </div>
-
-              <Input
-                type="file"
-                accept=".pdf"
-                onChange={handleInputChange}
-                className="hidden"
-                id="pdf-upload"
-                disabled={loading}
-              />
-              
-              <label 
-                htmlFor="pdf-upload"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors cursor-pointer"
-              >
-                <Upload className="h-4 w-4" />
-                Choose PDF File
-              </label>
-            </div>
+          {/* Mode Toggle */}
+          <div className="flex gap-2 p-1 bg-muted rounded-xl">
+            <Button
+              variant={mode === 'pdf' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setMode('pdf')}
+              className="flex-1 rounded-lg"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Upload PDF
+            </Button>
+            <Button
+              variant={mode === 'text' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setMode('text')}
+              className="flex-1 rounded-lg"
+            >
+              <Type className="h-4 w-4 mr-2" />
+              Create from Text
+            </Button>
           </div>
 
-          {/* Selected File Info */}
-          {selectedFile && (
-            <div className="bg-muted/50 rounded-2xl p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <FileText className="h-5 w-5 text-primary" />
+          {mode === 'pdf' ? (
+            <>
+              {/* File Upload Area */}
+              <div
+                className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors ${dragActive
+                  ? 'border-primary bg-primary/5'
+                  : 'border-muted-foreground/25 hover:border-primary/50'
+                  }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <div className="space-y-4">
+                  <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <FileText className="h-6 w-6 text-primary" />
                   </div>
+
                   <div>
-                    <p className="font-medium text-sm">{selectedFile.name}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    <h3 className="text-lg font-semibold mb-2">Upload PDF Document</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Drag and drop your PDF file here, or click to browse
                     </p>
                   </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={handleProcess}
+
+                  <Input
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleInputChange}
+                    className="hidden"
+                    id="pdf-upload"
                     disabled={loading}
-                    className="rounded-xl"
+                  />
+
+                  <label
+                    htmlFor="pdf-upload"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors cursor-pointer"
                   >
-                    {loading ? 'Processing...' : 'Generate Notes'}
-                  </Button>
-                  <Button 
-                    onClick={resetForm}
-                    variant="outline"
-                    disabled={loading}
-                    className="rounded-xl"
-                  >
-                    Remove
-                  </Button>
+                    <Upload className="h-4 w-4" />
+                    Choose PDF File
+                  </label>
                 </div>
               </div>
-            </div>
+
+              {/* Selected File Info */}
+              {selectedFile && (
+                <div className="bg-muted/50 rounded-2xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{selectedFile.name}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleProcess}
+                        disabled={loading}
+                        className="rounded-xl"
+                      >
+                        {loading ? 'Processing...' : 'Generate Notes'}
+                      </Button>
+                      <Button
+                        onClick={resetForm}
+                        variant="outline"
+                        disabled={loading}
+                        className="rounded-xl"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Text Input Area */}
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="note-title" className="block text-sm font-medium mb-2">
+                    Note Title (Optional)
+                  </label>
+                  <Input
+                    id="note-title"
+                    type="text"
+                    placeholder="Enter a title for your note..."
+                    value={noteTitle}
+                    onChange={(e) => setNoteTitle(e.target.value)}
+                    disabled={loading}
+                    className="rounded-xl"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="text-content" className="block text-sm font-medium mb-2">
+                    Text Content
+                  </label>
+                  <Textarea
+                    id="text-content"
+                    placeholder="Paste or type your text content here. AI will generate structured notes from this content..."
+                    value={textInput}
+                    onChange={(e) => setTextInput(e.target.value)}
+                    disabled={loading}
+                    className="min-h-[200px] rounded-xl resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {textInput.length} characters
+                  </p>
+                </div>
+
+                {textInput.trim() && (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleProcess}
+                      disabled={loading || !textInput.trim()}
+                      className="rounded-xl"
+                    >
+                      {loading ? 'Generating Notes...' : 'Generate AI Notes'}
+                    </Button>
+                    <Button
+                      onClick={resetForm}
+                      variant="outline"
+                      disabled={loading}
+                      className="rounded-xl"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </>
           )}
 
           {/* Error Display */}
@@ -189,8 +304,8 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-destructive" />
                 <p className="text-sm text-destructive font-medium">
-                  {error.includes('overloaded') ? 
-                    'AI service is currently at capacity. Your PDF was processed, but AI notes could not be generated. Please try again in a few minutes.' : 
+                  {error.includes('overloaded') ?
+                    'AI service is currently at capacity. Your PDF was processed, but AI notes could not be generated. Please try again in a few minutes.' :
                     `Error: ${error}`}
                 </p>
               </div>
@@ -208,13 +323,15 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
           <div className="w-16 h-16 rounded-full bg-green-100 mx-auto flex items-center justify-center">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          
+
           <div>
-            <h3 className="text-xl font-semibold mb-2">PDF Processed Successfully!</h3>
+            <h3 className="text-xl font-semibold mb-2">
+              {mode === 'pdf' ? 'PDF Processed Successfully!' : 'Notes Generated Successfully!'}
+            </h3>
             <p className="text-muted-foreground">
               {processResult.note && processResult.note.hasOwnProperty('modelOverloaded')
-                ? 'Your PDF has been processed, but AI notes could not be generated due to high demand.' 
-                : 'Your PDF has been processed and AI-powered notes have been generated.'}
+                ? `Your ${mode === 'pdf' ? 'PDF' : 'text'} has been processed, but AI notes could not be generated due to high demand.`
+                : `Your ${mode === 'pdf' ? 'PDF has been processed' : 'text has been converted'} and AI-powered notes have been generated.`}
             </p>
           </div>
 
@@ -222,8 +339,8 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-left">
               <h4 className="font-semibold text-sm mb-2 text-amber-800">AI Service Busy</h4>
               <p className="text-sm text-amber-700">
-                {processResult.note.hasOwnProperty('message') 
-                  ? (processResult.note as any).message 
+                {processResult.note.hasOwnProperty('message')
+                  ? (processResult.note as any).message
                   : 'The AI service is currently overloaded. Your document was processed and saved successfully.'}
               </p>
               <p className="text-xs text-amber-600 mt-2">
@@ -234,8 +351,8 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
             <div className="bg-muted/50 rounded-2xl p-4 text-left">
               <h4 className="font-semibold text-sm mb-2">Generated Note:</h4>
               <p className="text-sm text-muted-foreground mb-2">{processResult.note.title}</p>
-              <MarkdownRenderer 
-                content={processResult.note.content?.substring(0, 150) + '...' || 'No content available'} 
+              <MarkdownRenderer
+                content={processResult.note.content?.substring(0, 150) + '...' || 'No content available'}
                 className="text-xs text-muted-foreground"
               />
             </div>
@@ -246,7 +363,7 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
               View in My Notes
             </Button>
             <Button onClick={resetForm} variant="outline" className="rounded-xl">
-              Upload Another PDF
+              {mode === 'pdf' ? 'Upload Another PDF' : 'Create Another Note'}
             </Button>
           </div>
         </div>

@@ -606,4 +606,70 @@ Transform the provided document into comprehensive educational notes that serve 
       throw new Error("Failed to update note");
     }
   }
+
+  /**
+   * Generate AI notes from text content
+   */
+  async generateNotesFromContent(
+    content: string,
+    title: string = 'Text Note'
+  ): Promise<{ title: string; content: string }> {
+    try {
+      if (!content || content.trim().length === 0) {
+        throw new Error('Content is required to generate notes');
+      }
+
+      const analysisId = Math.random().toString(36).substring(2, 15);
+      const timestamp = new Date().toISOString();
+
+      const result = await generateText({
+        model: this.model,
+        prompt: `
+          Analysis ID: ${analysisId}
+          Timestamp: ${timestamp}
+          Source: Text Input
+          Title: ${title}
+          
+          You are a specialized AI tutor, designed to transform text content into comprehensive, tutorial-style educational notes. Your mission is to create detailed study materials that teach concepts thoroughly, as if you were a patient, expert teacher explaining everything step-by-step to help someone truly master the subject.
+
+          Transform the following text content into comprehensive educational notes:
+
+          ${content}
+
+          Create structured, educational notes that include:
+          1. A clear overview of the main concepts
+          2. Detailed explanations of key points
+          3. Important insights and takeaways
+          4. Practical applications where relevant
+          5. A summary of essential information
+
+          Make the notes comprehensive yet accessible, suitable for learning and reference.
+        `,
+      });
+
+      if (!result.text || result.text.trim().length === 0) {
+        throw new Error('AI failed to generate meaningful content');
+      }
+
+      // Generate a descriptive title based on the content
+      const generatedTitle = title || `Notes - ${new Date().toLocaleDateString()}`;
+
+      return {
+        title: generatedTitle,
+        content: result.text,
+      };
+    } catch (error) {
+      console.error('Error generating notes from content:', error);
+      throw new Error('Failed to generate notes from content');
+    }
+  }
+}
+
+// Export a function for use in API routes
+export async function generateNotesFromContent(
+  content: string,
+  title: string = 'Text Note'
+): Promise<{ title: string; content: string }> {
+  const noteService = new NoteService();
+  return noteService.generateNotesFromContent(content, title);
 }

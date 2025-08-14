@@ -214,6 +214,59 @@ export function useNotes() {
     }
   };
 
+  // Generate AI notes from text input
+  const generateNotesFromText = async (
+    text: string,
+    title: string = 'Text Note'
+  ): Promise<ProcessPDFResult | null> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/notes/generate-from-text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text, title }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Check if the error is related to insufficient credits
+        if (response.status === 403 && result.error === 'Insufficient credits') {
+          const error = new Error('Insufficient credits. Please purchase more credits to continue generating AI notes.');
+          // Add redirection info to the error
+          (error as any).redirectToPricing = true;
+          (error as any).redirectUrl = result.redirectUrl || '/pricing';
+          throw error;
+        }
+        throw new Error(result.message || 'Failed to generate notes from text');
+      }
+
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to generate notes from text');
+      }
+
+      return result.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      
+      // Handle redirection for insufficient credits
+      if (err instanceof Error && (err as any).redirectToPricing) {
+        if (typeof window !== 'undefined') {
+          window.location.href = (err as any).redirectUrl || '/pricing';
+        }
+      }
+      
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Get all notes for the current user
   const getNotes = async (transcriptId?: string): Promise<Note[] | null> => {
     setLoading(true);
@@ -364,6 +417,7 @@ export function useNotes() {
     processPDFWithNotes,
     generateNotesFromTranscript,
     generateFocusedNotes,
+    generateNotesFromText,
     getNotes,
     getNote,
     createNote,
