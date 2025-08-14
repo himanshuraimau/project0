@@ -248,7 +248,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
                         size="sm"
                         className="text-xs"
                       >
-                        View Full
+                        View Note
                       </Button>
                       <Button
                         onClick={(e) => {
