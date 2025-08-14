@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useNotes, Note } from '@/hooks/use-notes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
 import { MarkdownRenderer } from '@/components/mdx-renderer';
 
 interface NotesViewerProps {
@@ -226,15 +226,9 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
                 key={note.id}
                 className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
               >
-                {/* <div className="flex items-end justify-end mb-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {formatDate(note.createdAt)}
-                  </Badge>
-                </div> */}
-                
                 <div className="text-sm text-gray-700 line-clamp-3">
                   <MarkdownRenderer 
-                    content={note.content ? note.content.substring(0, 300) + '...' : 'No content available'} 
+                    content={note.content ? note.content.substring(0, 280) + '...' : 'No content available'} 
                     className="text-sm"
                   />
                 </div>
