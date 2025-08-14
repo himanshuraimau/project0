@@ -5,18 +5,14 @@ import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import { CreditCard } from 'lucide-react'
 import { UpgradeCreditButton } from '@/components/ui/upgrade-credit-button'
+import { CreditInfo } from '@/lib/types'
 
 interface CreditStatusProps {
   className?: string
   variant?: 'default' | 'compact'
 }
 
-interface CreditInfo {
-  total: number
-  used: number
-  remaining: number
-  isPro: boolean
-}
+
 
 export function CreditStatus({ className, variant = 'default' }: CreditStatusProps) {
   const [credits, setCredits] = useState<CreditInfo | null>(null)

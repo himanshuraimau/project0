@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { querySimilarChunks } from '../../../../lib/embedding-service';
 import { prisma } from '../../../../lib/prisma';
+import { ApiErrorResponse, SemanticSearchRequest, SemanticSearchResponse } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,19 +11,24 @@ export async function POST(req: NextRequest) {
     // Get the user session to authorize the request
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Unauthorized'
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
     
     // User is authenticated via Clerk, we don't need to check the database
     
     // Parse the request body
-    const { query, noteId, limit = 5 } = await req.json();
+    const { query, noteId, limit = 5 }: SemanticSearchRequest = await req.json();
     
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Query is required and must be a non-empty string' },
-        { status: 400 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Query is required and must be a non-empty string'
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
     
     // If noteId is provided, make sure the user has access to that note
@@ -35,7 +41,11 @@ export async function POST(req: NextRequest) {
       });
       
       if (!note) {
-        return NextResponse.json({ error: 'Note not found or unauthorized' }, { status: 404 });
+        const errorResponse: ApiErrorResponse = {
+          success: false,
+          error: 'Note not found or unauthorized'
+        };
+        return NextResponse.json(errorResponse, { status: 404 });
       }
     }
     
@@ -65,7 +75,7 @@ export async function POST(req: NextRequest) {
     });
     
     // Format the response to include both chunks and their parent notes
-    const response = {
+    const response: SemanticSearchResponse = {
       chunks: similarChunks.map(chunk => ({
         id: chunk.id,
         noteId: chunk.note_id,
@@ -73,7 +83,13 @@ export async function POST(req: NextRequest) {
         distance: chunk.distance,
       })),
       notes: notes.reduce((obj, note) => {
-        obj[note.id] = note;
+        obj[note.id] = {
+          id: note.id,
+          title: note.title,
+          content: note.content || '',
+          createdAt: note.createdAt.toISOString(),
+          updatedAt: note.updatedAt.toISOString(),
+        };
         return obj;
       }, {} as Record<string, any>),
     };
@@ -81,9 +97,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(response);
   } catch (error: any) {
     console.error('Error in semantic search API:', error);
-    return NextResponse.json(
-      { error: 'Failed to perform search', details: error.message },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to perform search',
+      message: error.message
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

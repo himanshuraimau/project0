@@ -17,19 +17,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useDocuments } from "@/hooks/use-documents";
+import { DocumentWithContent } from "@/lib/types";
 
-interface DocumentWithContent {
-  id: string;
-  fileName: string;
-  originalName: string;
-  content: string;
-  cleanContent: string;
-  pages: number;
-  metadata: Record<string, unknown> | null;
-  userId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+
 
 export function DocumentsList() {
   const { documents, loading, error, deleteDocument, getDocument } =
@@ -122,7 +112,7 @@ export function DocumentsList() {
                       </Badge>
                     </div>
                     <p className="text-xs text-gray-500">
-                      Uploaded: {formatDate(document.createdAt)}
+                      Uploaded: {formatDate(document.createdAt.toISOString())}
                     </p>
                     <p className="text-xs text-gray-400">
                       ID: {document.id.slice(0, 8)}...
@@ -170,16 +160,16 @@ export function DocumentsList() {
                 </div>
                 <div>
                   <strong>Created:</strong>{" "}
-                  {formatDate(selectedDocument.createdAt)}
+                  {formatDate(selectedDocument.createdAt.toISOString())}
                 </div>
               </div>
 
-              {selectedDocument.metadata?.title && (
+              {selectedDocument.metadata?.title && typeof selectedDocument.metadata.title === 'string' ? (
                 <div className="text-sm">
                   <strong>Title:</strong>{" "}
-                  {String(selectedDocument.metadata.title)}
+                  {selectedDocument.metadata.title}
                 </div>
-              )}
+              ) : null}
 
               <div>
                 <h4 className="font-medium mb-2">Content:</h4>

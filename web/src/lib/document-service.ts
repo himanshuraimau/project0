@@ -1,14 +1,5 @@
 import { prisma } from './prisma';
-
-export interface DocumentData {
-  fileName: string;
-  originalName: string;
-  content: string;
-  cleanContent: string;
-  pages: number;
-  metadata?: Record<string, unknown>;
-  userId?: string;
-}
+import { DocumentData } from './types/documents.types';
 
 export class DocumentService {
   /**

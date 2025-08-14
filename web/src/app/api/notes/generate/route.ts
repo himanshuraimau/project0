@@ -1,54 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NoteService } from '@/lib/note-service';
 import { auth } from '@clerk/nextjs/server';
+import { ApiSuccessResponse, ApiErrorResponse, GenerateNoteRequest } from '@/lib/types';
 
 const noteService = new NoteService();
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
-    const body = await request.json();
+    const body: GenerateNoteRequest = await request.json();
     const { transcriptId } = body;
 
     if (!transcriptId) {
-      return NextResponse.json(
-        { error: 'Transcript ID is required' },
-        { status: 400 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Transcript ID is required'
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Generate AI note from the transcript
     const note = await noteService.generateAINote(transcriptId, userId || undefined);
 
-    return NextResponse.json({
+    const response: ApiSuccessResponse = {
       success: true,
       data: note,
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('AI note generation error:', error);
     
     // Check if error is related to insufficient credits
     if (error instanceof Error && error.message.includes('Insufficient credits')) {
-      return NextResponse.json(
-        { 
-          error: 'Insufficient credits',
-          message: error.message,
-          // Add redirection information
-          redirectToPricing: true,
-          redirectUrl: '/pricing'
-        },
-        { status: 403 }
-      );
+      const creditErrorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Insufficient credits',
+        message: error.message,
+        redirectToPricing: true,
+        redirectUrl: '/pricing'
+      };
+      return NextResponse.json(creditErrorResponse, { status: 403 });
     }
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to generate AI note',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to generate AI note',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 

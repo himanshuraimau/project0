@@ -2,12 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
+import { SubscriptionStatus } from '@/lib/types'
 
-interface SubscriptionStatus {
-  isPro: boolean
-  loading: boolean
-  error: string | null
-}
+
 
 export function useSubscriptionStatus(): SubscriptionStatus {
   const { user, isLoaded } = useUser()

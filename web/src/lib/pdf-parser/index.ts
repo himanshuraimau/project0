@@ -2,24 +2,7 @@ import { writeFile, readFile, unlink, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { DocumentService } from '../document-service';
-
-export interface PDFParseResult {
-  text: string;
-  cleanText: string;
-  pages: number;
-  metadata?: Record<string, unknown>;
-  images?: string[];
-  extractedFiles?: {
-    textFile?: string;
-    imagesDir?: string;
-  };
-  documentId?: string; // Add database document ID
-}
-
-export interface ParseOptions {
-  extractImages?: boolean;
-  maxPages?: number;
-}
+import { PDFParseResult, PDFParseOptions } from '../types/documents.types';
 
 export class PDFParser {
   private readonly uploadDir: string;
@@ -33,7 +16,7 @@ export class PDFParser {
   /**
    * Extract text and metadata from PDF buffer
    */
-  async parseFromBuffer(buffer: Buffer, options: ParseOptions = {}): Promise<PDFParseResult> {
+  async parseFromBuffer(buffer: Buffer, options: PDFParseOptions = {}): Promise<PDFParseResult> {
     try {
       // Dynamic import to avoid test file dependency issues
       let pdf: typeof import('pdf-parse');
@@ -71,7 +54,7 @@ export class PDFParser {
   /**
    * Extract text from PDF file path
    */
-  async parseFromFile(filePath: string, options: ParseOptions = {}): Promise<PDFParseResult> {
+  async parseFromFile(filePath: string, options: PDFParseOptions = {}): Promise<PDFParseResult> {
     try {
       const buffer = await readFile(filePath);
       return await this.parseFromBuffer(buffer, options);
@@ -155,7 +138,7 @@ export class PDFParser {
   /**
    * Save PDF content to database instead of files
    */
-  async extractToDatabase(buffer: Buffer, originalName: string, options: ParseOptions = {}, userId?: string): Promise<PDFParseResult> {
+  async extractToDatabase(buffer: Buffer, originalName: string, options: PDFParseOptions = {}, userId?: string): Promise<PDFParseResult> {
     try {
       // Parse the PDF
       const parseResult = await this.parseFromBuffer(buffer, options);
@@ -188,7 +171,7 @@ export class PDFParser {
   /**
    * Save PDF and extract content to files (comprehensive extraction)
    */
-  async extractToFiles(buffer: Buffer, originalName: string, options: ParseOptions = {}): Promise<PDFParseResult> {
+  async extractToFiles(buffer: Buffer, originalName: string, options: PDFParseOptions = {}): Promise<PDFParseResult> {
     try {
       // Create output directory based on PDF name
       const timestamp = Date.now();

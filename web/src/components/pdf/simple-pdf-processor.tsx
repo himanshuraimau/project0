@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useNotes, ProcessPDFResult } from '@/hooks/use-notes';
+import { useNotes } from '@/hooks/use-notes';
+import { ProcessPDFResult } from '@/lib/types';
 
 // Extended interface to include model overload case
 interface NoteWithModelOverload {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { ApiResponse, ApiSuccessResponse, ApiErrorResponse } from '@/lib/types';
 
 export async function GET(
   request: NextRequest,
@@ -17,21 +18,21 @@ export async function GET(
       }
     });
 
-    return NextResponse.json({
+    const response: ApiSuccessResponse = {
       success: true,
       data: quiz
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error fetching quiz:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to fetch quiz',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to fetch quiz',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
@@ -50,20 +51,20 @@ export async function DELETE(
       }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       message: 'Quiz deleted successfully'
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error deleting quiz:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to delete quiz',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to delete quiz',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

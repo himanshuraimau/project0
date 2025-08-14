@@ -2,12 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, RotateCcw, X, Check, AlertCircle } from 'lucide-react';
-import { QuizQuestion } from '@/hooks/use-quiz';
-
-interface QuizViewerProps {
-  quiz: QuizQuestion[];
-  onClose: () => void;
-}
+import { QuizViewerProps } from '@/lib/types';
 
 export const QuizViewer: React.FC<QuizViewerProps> = ({
   quiz,
@@ -38,7 +33,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({
 
   const currentQuestion = quiz[currentIndex];
   const isAnswered = selectedAnswers[currentIndex] !== undefined;
-  const isCorrect = selectedAnswers[currentIndex] === currentQuestion.correct_answer;
+  const isCorrect = selectedAnswers[currentIndex] === (currentQuestion.correctAnswer || currentQuestion.correct_answer);
 
   const handleNext = () => {
     if (currentIndex < quiz.length - 1) {
@@ -84,7 +79,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({
     const maxTotalPoints = quiz.length * maxPointsPerQuestion;
     
     quiz.forEach((question, index) => {
-      if (selectedAnswers[index] === question.correct_answer) {
+      if (selectedAnswers[index] === (question.correctAnswer || question.correct_answer)) {
         correct++;
         totalPoints += maxPointsPerQuestion;
       }
@@ -236,7 +231,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({
               <div className="space-y-2">
                 {currentQuestion.options.map((option, index) => {
                   const isSelected = selectedAnswers[currentIndex] === option;
-                  const isCorrectAnswer = option === currentQuestion.correct_answer;
+                  const isCorrectAnswer = option === (currentQuestion.correctAnswer || currentQuestion.correct_answer);
                   const showCorrect = isAnswered && !isCorrect && isCorrectAnswer;
                   
                   let buttonClass = 'w-full text-left p-3 rounded-lg border transition-colors ';
@@ -277,7 +272,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({
               <div className="flex gap-4">
                 {[true, false].map((value) => {
                   const isSelected = selectedAnswers[currentIndex] === value;
-                  const isCorrectAnswer = value === currentQuestion.correct_answer;
+                  const isCorrectAnswer = value === (currentQuestion.correctAnswer || currentQuestion.correct_answer);
                   const showCorrect = isAnswered && !isCorrect && isCorrectAnswer;
                   
                   let buttonClass = 'flex-1 p-3 rounded-lg border transition-colors ';

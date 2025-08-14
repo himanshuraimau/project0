@@ -92,7 +92,11 @@ export function YouTubeProcessor({ onProcessComplete, onClose }: YouTubeProcesso
               content: data.data.content,
               originalName: data.data.originalName,
             },
-            note: note || undefined,
+            note: note && note.content ? {
+              id: note.id,
+              title: note.title,
+              content: note.content
+            } : undefined,
           })
         }
       } else {

@@ -1,30 +1,12 @@
 import { prisma } from './prisma';
 import axios, { AxiosError } from 'axios';
-
-export interface TranscriptData {
-  fileName: string;
-  originalName: string;
-  content: string;
-  cleanContent: string;
-  pages: number;
-  metadata?: Record<string, unknown>;
-  type?: string;
-  userId?: string;
-}
-
-export interface TranscriptResponse {
-  videoId: string;
-  transcript_only_text: string;
-  title?: string;
-  duration?: number;
-  [key: string]: unknown;
-}
+import { TranscriptData, YouTubeTranscriptResponse } from './types/documents.types';
 
 export class TranscriptService {
   /**
    * Get YouTube transcript from external API
    */
-  async getYoutubeTranscript(videoUrl: string): Promise<TranscriptResponse> {
+  async getYoutubeTranscript(videoUrl: string): Promise<YouTubeTranscriptResponse> {
     try {
       const apiKey = process.env.SCRAPPER_API_KEY;
 
@@ -32,7 +14,7 @@ export class TranscriptService {
         throw new Error('SCRAPPER_API_KEY environment variable is not configured');
       }
 
-      const response = await axios.get<TranscriptResponse>(
+      const response = await axios.get<YouTubeTranscriptResponse>(
         'https://api.scrapecreators.com/v1/youtube/video/transcript',
         {
           headers: {

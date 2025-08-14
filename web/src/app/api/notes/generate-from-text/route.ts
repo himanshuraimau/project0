@@ -3,39 +3,40 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { generateNotesFromContent, NoteService } from "@/lib/note-service";
 import { checkUserHasCredits, consumeCredits } from "@/lib/usage";
+import { ApiSuccessResponse, ApiErrorResponse, GenerateNotesFromTextRequest } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: "Unauthorized"
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
-    const { text, title } = await request.json();
+    const { text, title }: GenerateNotesFromTextRequest = await request.json();
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Text content is required" },
-        { status: 400 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: "Text content is required"
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Check if user has sufficient credits
     const hasCredits = await checkUserHasCredits();
     if (!hasCredits) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Insufficient credits",
-          message: "You need at least 1 credit to generate AI notes from text.",
-          redirectUrl: "/pricing",
-        },
-        { status: 403 }
-      );
+      const creditErrorResponse: ApiErrorResponse = {
+        success: false,
+        error: "Insufficient credits",
+        message: "You need at least 1 credit to generate AI notes from text.",
+        redirectUrl: "/pricing",
+      };
+      return NextResponse.json(creditErrorResponse, { status: 403 });
     }
 
     // Create a transcript record for the text input
@@ -103,19 +104,18 @@ export async function POST(request: NextRequest) {
       note,
     };
 
-    return NextResponse.json({
+    const response: ApiSuccessResponse = {
       success: true,
       data: result,
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error in generate-from-text API:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-        message: "Failed to process text input",
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: "Internal server error",
+      message: "Failed to process text input",
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

@@ -1,26 +1,5 @@
 import { useState, useCallback } from 'react';
-
-export interface QuizQuestion {
-  id: number;
-  type: 'multiple_choice' | 'true_false';
-  question: string;
-  options?: string[];
-  correct_answer: string | boolean;
-  explanation: string;
-}
-
-export interface QuizData {
-  quiz: QuizQuestion[];
-}
-
-export interface Quiz {
-  id: string;
-  noteId: string;
-  content: QuizData;
-  userId?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { QuizQuestion } from '@/lib/types';
 
 export const useQuiz = () => {
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);

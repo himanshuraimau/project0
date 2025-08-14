@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NoteService } from '@/lib/note-service';
 import { auth } from '@clerk/nextjs/server';
+import { ApiResponse, ApiSuccessResponse, ApiErrorResponse, UpdateNoteRequest } from '@/lib/types';
 
 const noteService = new NoteService();
 
@@ -9,153 +10,162 @@ interface Params {
 }
 
 // GET /api/notes/[id] - Get a specific note by ID
-export async function GET(request: NextRequest, { params }: { params: Params }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const { userId } = await auth();
     const { id } = await params;
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Authentication required'
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     const note = await noteService.getNote(id);
 
     if (!note) {
-      return NextResponse.json(
-        { error: 'Note not found' },
-        { status: 404 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Note not found'
+      };
+      return NextResponse.json(errorResponse, { status: 404 });
     }
 
     // Check if user has access to this note
     if (note.userId !== userId) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Access denied'
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
-    return NextResponse.json({
+    const response: ApiSuccessResponse = {
       success: true,
       data: note,
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error retrieving note:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to retrieve note',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to retrieve note',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
 // PUT /api/notes/[id] - Update a specific note by ID
-export async function PUT(request: NextRequest, { params }: { params: Params }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const { userId } = await auth();
     const { id } = await params;
-    const body = await request.json();
+    const body: UpdateNoteRequest = await request.json();
     const { title, content } = body;
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Authentication required'
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     // First, check if the note exists and belongs to the user
     const existingNote = await noteService.getNote(id);
     
     if (!existingNote) {
-      return NextResponse.json(
-        { error: 'Note not found' },
-        { status: 404 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Note not found'
+      };
+      return NextResponse.json(errorResponse, { status: 404 });
     }
 
     if (existingNote.userId !== userId) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Access denied'
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     // Update the note
     const updatedNote = await noteService.updateNote(id, { title, content });
 
-    return NextResponse.json({
+    const response: ApiSuccessResponse = {
       success: true,
       data: updatedNote,
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error updating note:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to update note',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to update note',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
 // DELETE /api/notes/[id] - Delete a specific note by ID
-export async function DELETE(request: NextRequest, { params }: { params: Params }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const { userId } = await auth();
     const { id } = await params;
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Authentication required'
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     // First, check if the note exists and belongs to the user
     const existingNote = await noteService.getNote(id);
     
     if (!existingNote) {
-      return NextResponse.json(
-        { error: 'Note not found' },
-        { status: 404 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Note not found'
+      };
+      return NextResponse.json(errorResponse, { status: 404 });
     }
 
     if (existingNote.userId !== userId) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Access denied'
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     // Delete the note
     await noteService.deleteNote(id);
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       message: 'Note deleted successfully',
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error deleting note:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to delete note',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to delete note',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

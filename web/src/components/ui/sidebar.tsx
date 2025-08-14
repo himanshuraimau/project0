@@ -151,7 +151,7 @@ export function useSidebar() {
 }
 
 // Sidebar Trigger
-interface SidebarTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+type SidebarTriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export function SidebarTrigger({ className, ...props }: SidebarTriggerProps) {
   const { toggle } = useSidebar()

@@ -3,26 +3,22 @@ import { google } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { ApiSuccessResponse, ApiErrorResponse, FlashcardItem, GenerateFlashcardRequest } from '@/lib/types';
 
 const model = google('models/gemini-1.5-flash-latest');
-
-interface Flashcard {
-  id: number;
-  question: string;
-  answer: string;
-}
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
-    const body = await request.json();
+    const body: GenerateFlashcardRequest = await request.json();
     const { noteId } = body;
 
     if (!noteId) {
-      return NextResponse.json(
-        { error: 'Note ID is required' },
-        { status: 400 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Note ID is required'
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Check if flashcards already exist for this note
@@ -31,11 +27,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingFlashcard) {
-      return NextResponse.json({
+      const response: ApiSuccessResponse = {
         success: true,
         data: existingFlashcard,
         message: 'Flashcards already exist for this note'
-      });
+      };
+      return NextResponse.json(response);
     }
 
     // Get the note and its content
@@ -47,10 +44,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (!note) {
-      return NextResponse.json(
-        { error: 'Note not found' },
-        { status: 404 }
-      );
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Note not found'
+      };
+      return NextResponse.json(errorResponse, { status: 404 });
     }
 
     // Generate flashcards using AI
@@ -144,7 +142,7 @@ Generate exactly 20 flashcards in the JSON format specified above. Focus on crea
       cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
     }
     
-    const flashcardsData: Flashcard[] = JSON.parse(cleanedText);
+    const flashcardsData: FlashcardItem[] = JSON.parse(cleanedText);
     
     if (!Array.isArray(flashcardsData) || flashcardsData.length !== 20) {
       throw new Error('Invalid flashcard format or count');
@@ -159,22 +157,22 @@ Generate exactly 20 flashcards in the JSON format specified above. Focus on crea
       }
     });
 
-    return NextResponse.json({
+    const response: ApiSuccessResponse = {
       success: true,
       data: createdFlashcard,
       message: `Successfully generated ${flashcardsData.length} flashcards`
-    });
+    };
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Flashcard generation error:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to generate flashcards',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const errorResponse: ApiErrorResponse = {
+      success: false,
+      error: 'Failed to generate flashcards',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 

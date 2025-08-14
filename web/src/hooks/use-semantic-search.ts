@@ -1,26 +1,5 @@
 import { useState } from 'react';
-
-interface SearchResult {
-  chunks: {
-    id: number;
-    noteId: string;
-    text: string;
-    distance: number;
-  }[];
-  notes: Record<string, {
-    id: string;
-    title: string;
-    content: string;
-    createdAt: string;
-    updatedAt: string;
-  }>;
-}
-
-interface UseSemanticSearchOptions {
-  onError?: (error: Error) => void;
-  noteId?: string;
-  limit?: number;
-}
+import type { SearchResult, UseSemanticSearchOptions } from '@/lib/types';
 
 /**
  * Hook for performing semantic search across user notes

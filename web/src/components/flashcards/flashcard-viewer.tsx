@@ -2,12 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-react';
-import { FlashcardItem } from '@/hooks/use-flashcards';
-
-interface FlashcardViewerProps {
-  flashcards: FlashcardItem[];
-  onClose: () => void;
-}
+import { FlashcardViewerProps } from '@/lib/types';
 
 export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   flashcards,
