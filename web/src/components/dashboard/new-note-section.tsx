@@ -193,7 +193,7 @@ export function NewNoteSection() {
               }}
             >
               <Link2 className="h-6 w-6 text-secondary" />
-              <span className="text-sm font-medium">YouTube Video</span>
+              <span className="text-sm font-medium">YouTube Video Link</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -282,7 +282,7 @@ export function NewNoteSection() {
               }}
             >
               <Upload className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium">Audio Transcription</span>
+              <span className="text-sm font-medium">Upload Audio</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
