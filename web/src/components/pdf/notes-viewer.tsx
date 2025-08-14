@@ -29,7 +29,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
         setShowNoteTypeOptions(false);
       }
     };
-    
+
     if (showNoteTypeOptions) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
@@ -47,7 +47,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
 
   const handleGenerateNotes = async () => {
     if (!transcriptId) return;
-    
+
     const result = await generateNotesFromTranscript(transcriptId);
     if (result) {
       await loadNotes();
@@ -56,7 +56,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
 
   const handleGenerateFocusedNotes = async (noteType: 'summary' | 'detailed' | 'action-items' | 'technical' | 'executive') => {
     if (!transcriptId) return;
-    
+
     setShowNoteTypeOptions(false);
     const result = await generateFocusedNotes(transcriptId, noteType);
     if (result) {
@@ -94,17 +94,17 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
     }
 
     const searchTerm = query.toLowerCase().trim();
-    
+
     return notes.filter((note) => {
       // Search in note title
       const titleMatch = note.title.toLowerCase().includes(searchTerm);
-      
+
       // Search in note content
       const contentMatch = note.content?.toLowerCase().includes(searchTerm) || false;
-      
+
       // Search in transcript original name
       const transcriptMatch = note.transcript?.originalName.toLowerCase().includes(searchTerm) || false;
-      
+
       return titleMatch || contentMatch || transcriptMatch;
     });
   };
@@ -148,7 +148,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
       <CardContent className="p-0">
         {transcriptId && (
           <div className="flex space-x-2 mb-6">
-            <Button 
+            <Button
               onClick={handleGenerateNotes}
               disabled={loading}
               size="sm"
@@ -156,7 +156,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
               Generate Standard Notes
             </Button>
             <div className="relative">
-              <Button 
+              <Button
                 onClick={() => setShowNoteTypeOptions(!showNoteTypeOptions)}
                 disabled={loading}
                 variant="outline"
@@ -188,10 +188,10 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
             </div>
           </div>
         )}
-        
+
         {(() => {
           const filteredNotes = filterNotes(notes, searchQuery || '');
-          
+
           if (notes.length === 0) {
             return (
               <div className="text-center py-8">
@@ -204,7 +204,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
               </div>
             );
           }
-          
+
           if (filteredNotes.length === 0 && searchQuery) {
             return (
               <div className="text-center py-8">
@@ -213,7 +213,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
               </div>
             );
           }
-          
+
           return (
             <div className="space-y-4">
               {searchQuery && (
@@ -222,49 +222,50 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
                 </div>
               )}
               {filteredNotes.map((note) => (
-              <div
-                key={note.id}
-                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-              >
-                <div className="text-sm text-gray-700 line-clamp-3">
-                  <MarkdownRenderer 
-                    content={note.content ? note.content.substring(0, 280) + '...' : 'No content available'} 
-                    className="text-sm"
-                  />
-                </div>
-                
-                <div className="flex justify-between items-center mt-3 pt-3 border-t">
-                  <span className="text-xs text-gray-500">
-                    Updated: {formatDate(note.updatedAt)}
-                  </span>
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewFullNote(note.id);
-                      }}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                    >
-                      View Full
-                    </Button>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteNote(note.id);
-                      }}
-                      variant="destructive"
-                      size="sm"
-                      className="text-xs"
-                      disabled={loading}
-                    >
-                      Delete
-                    </Button>
+                <div
+                  key={note.id}
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => handleViewFullNote(note.id)}
+                >
+                  <div className="text-sm text-gray-700 line-clamp-3">
+                    <MarkdownRenderer
+                      content={note.content ? note.content.substring(0, 280) + '...' : 'No content available'}
+                      className="text-sm"
+                    />
+                  </div>
+
+                  <div className="flex justify-between items-center mt-3 pt-3 border-t">
+                    <span className="text-xs text-gray-500">
+                      Updated: {formatDate(note.updatedAt)}
+                    </span>
+                    <div className="flex space-x-2">
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewFullNote(note.id);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        View Full
+                      </Button>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteNote(note.id);
+                        }}
+                        variant="destructive"
+                        size="sm"
+                        className="text-xs"
+                        disabled={loading}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
             </div>
           );
         })()}
