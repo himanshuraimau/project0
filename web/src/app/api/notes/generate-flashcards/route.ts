@@ -57,51 +57,80 @@ export async function POST(request: NextRequest) {
     const result = await generateText({
       model,
       prompt: `
-        You are an expert educational content creator and flashcard designer. I will provide you with a structured document summary, and your task is to analyze the content and create exactly 20 high-quality flashcards that test understanding of the key concepts, facts, and details.
+        You are an expert educational content creator and flashcard designer specializing in creating comprehensive, detailed study materials. I will provide you with a structured document summary, and your task is to analyze the content deeply and create exactly 20 high-quality flashcards that thoroughly test understanding of key concepts, facts, and details.
+Your flashcards should:
 
-        Your flashcards should:
-        - Cover the most important concepts, definitions, processes, and facts from the content
-        - Range from basic recall questions to more complex understanding and application questions
-        - Be clear, concise, and unambiguous
-        - Have answers that are complete but not overly lengthy
-        - Test different aspects of the material (definitions, comparisons, processes, benefits, etc.)
+Cover the most important concepts, definitions, processes, facts, and relationships from the content
+Range from foundational recall questions to complex analytical and application questions
+Be clear, specific, and unambiguous in their wording
+Have detailed, comprehensive answers that provide thorough explanations (3-6 sentences typically)
+Test different cognitive levels: knowledge, comprehension, application, analysis, and evaluation
+Include context and reasoning in answers, not just bare facts
 
-        INSTRUCTIONS:
-        1. Carefully read and analyze the entire provided content
-        2. Identify the 20 most important concepts, facts, or details that should be tested
-        3. Create exactly 20 flashcards in strict JSON format
-        4. Each flashcard must have: id (number), question (string), answer (string)
-        5. Questions should be diverse in type: definitions, comparisons, explanations, benefits, processes, etc.
-        6. Answers should be comprehensive but concise (1-3 sentences typically)
+DETAILED INSTRUCTIONS:
+1. Content Analysis Phase
 
-        OUTPUT FORMAT:
-        You must output ONLY valid JSON in the following exact format. DO NOT use markdown code blocks, backticks, or any other formatting. Return ONLY the raw JSON array:
+Read the entire provided content carefully and identify all major themes, concepts, and details
+Map out relationships between different concepts and ideas
+Note processes, methodologies, benefits, limitations, comparisons, and real-world applications
+Identify both explicit information and implicit connections
 
-        [
-          {
-            "id": 1,
-            "question": "What is the main architectural innovation of the Transformer model?",
-            "answer": "The Transformer uses only attention mechanisms, eliminating recurrence and convolutions entirely, which allows for better parallelization during training."
-          },
-          {
-            "id": 2,
-            "question": "How does the Transformer handle positional information without recurrence?",
-            "answer": "The Transformer adds positional encodings using sine and cosine functions with different frequencies to the input embeddings to provide information about token order."
-          }
-        ]
+2. Question Design Strategy
+Create exactly 20 flashcards with diverse question types:
 
-        QUALITY REQUIREMENTS:
-        - Questions must be specific and testable
-        - Avoid overly simple yes/no questions
-        - Include questions about key technical details, processes, benefits, and comparisons
-        - Ensure answers are factually accurate based on the provided content
-        - Cover different sections/topics from the material
-        - Questions should test both recall and understanding
+Definitional (3-4 cards): What is X? Define Y in the context of Z
+Explanatory (4-5 cards): How does X work? Why does Y occur? Explain the process of Z
+Comparative (2-3 cards): Compare X and Y. What are the differences between A and B?
+Application (3-4 cards): How would you apply X in situation Y? What would happen if Z?
+Analytical (3-4 cards): What are the implications of X? Why is Y significant? What factors influence Z?
+Evaluative (2-3 cards): What are the advantages/disadvantages of X? When should you use Y over Z?
 
-        INPUT CONTENT TO ANALYZE:
-        ${note.content}
+3. Answer Quality Requirements
+Each answer must:
 
-        Generate exactly 20 flashcards in the JSON format specified above. Output ONLY the JSON array, no other text, no markdown formatting, no code blocks, no backticks.
+Provide comprehensive explanations with sufficient detail for deep understanding
+Include relevant context and background information when necessary
+Explain the "why" behind facts, not just the "what"
+Use specific examples or scenarios when applicable
+Connect concepts to broader themes or implications
+Be self-contained (readable without referring back to the source material)
+
+4. Technical Requirements
+
+Each flashcard must have: id (number), question (string), answer (string)
+Questions should be specific, unambiguous, and test meaningful understanding
+Avoid overly simplistic yes/no questions or trivial details
+Ensure comprehensive coverage across all major sections of the provided content
+Questions should progressively build understanding from basic to advanced concepts
+
+OUTPUT FORMAT:
+You must output ONLY valid JSON in the following exact format. DO NOT use markdown code blocks, backticks, or any other formatting. Return ONLY the raw JSON array:
+[
+{
+"id": 1,
+"question": "[Example question testing core concept with comparative analysis]",
+"answer": "[Comprehensive 3-6 sentence answer explaining the concept, its significance, how it works, and why it matters. Includes context, reasoning, and connections to broader themes.]"
+},
+{
+"id": 2,
+"question": "[Example question testing process or methodology understanding]",
+"answer": "[Detailed explanation covering the process steps, underlying principles, effectiveness rationale, and practical implications. Self-contained with sufficient context for complete understanding.]"
+}
+]
+QUALITY CHECKLIST:
+Before finalizing, ensure each flashcard meets these criteria:
+
+✓ Question tests meaningful understanding, not trivial recall
+✓ Answer provides detailed explanation with reasoning
+✓ Answer includes relevant context and implications
+✓ Question and answer are clear and unambiguous
+✓ Content accurately reflects the source material
+✓ Covers different aspects and difficulty levels
+✓ Answers are comprehensive enough for thorough learning
+
+INPUT CONTENT TO ANALYZE:
+${note.content}
+Generate exactly 20 flashcards in the JSON format specified above. Focus on creating detailed, comprehensive answers that promote deep understanding. Output ONLY the JSON array, no other text, no markdown formatting, no code blocks, no backticks.
       `,
     });
 
