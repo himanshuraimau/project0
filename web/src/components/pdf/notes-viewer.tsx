@@ -4,6 +4,7 @@ import { useNotes, Note } from '@/hooks/use-notes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { MarkdownRenderer } from '@/components/mdx-renderer';
 
 interface NotesViewerProps {
   transcriptId?: string;
@@ -108,77 +109,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
     });
   };
 
-  const formatNoteContent = (content: string) => {
-    if (!content) return 'No content available';
-    
-    // First, process markdown formatting
-    let processedContent = content
-      // Bold text: **text** -> <strong>text</strong>
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-foreground">$1</strong>')
-      // Italic text: *text* -> <em>text</em>
-      .replace(/\*(.*?)\*/g, '<em class="italic text-foreground">$1</em>')
-      // Code/technical terms: `text` -> <code>text</code>
-      .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</code>')
-      // Strikethrough: ~~text~~ -> <del>text</del>
-      .replace(/~~(.*?)~~/g, '<del class="line-through text-muted-foreground">$1</del>')
-      // Links: [text](url) -> <a>text</a>
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">$1</a>')
-      // Line breaks: \n\n -> </p><p>
-      .replace(/\n\n/g, '</p>\n<p class="mb-3 leading-relaxed">');
-    
-    // Split content into lines
-    const lines = processedContent.split('\n');
-    const formattedLines: string[] = [];
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      if (!line) {
-        // Add spacing for empty lines
-        formattedLines.push('');
-        continue;
-      }
-      
-      // Check if this is a main section heading (e.g., "1. OVERVIEW / ABSTRACT")
-      if (/^\d+\.\s+[A-Z\s\/]+$/.test(line)) {
-        formattedLines.push(`<h2 class="text-xl font-bold text-foreground mt-6 mb-3 border-b border-border pb-2">${line}</h2>`);
-      }
-      // Check if this is a subsection heading (e.g., "BACKGROUND AND MOTIVATION")
-      else if (/^[A-Z\s]+$/.test(line) && line.length > 3 && line.length < 50) {
-        formattedLines.push(`<h3 class="text-lg font-semibold text-foreground mt-4 mb-2">${line}</h3>`);
-      }
-      // Check if this is a numbered list item (e.g., "1. First item")
-      else if (/^\d+\.\s+/.test(line)) {
-        const content = line.replace(/^\d+\.\s+/, '');
-        formattedLines.push(`<li class="ml-4 mb-2">${content}</li>`);
-      }
-      // Check if this is a bullet point (e.g., "- Item" or "• Item")
-      else if (/^[-•]\s+/.test(line)) {
-        const content = line.replace(/^[-•]\s+/, '');
-        formattedLines.push(`<li class="ml-4 mb-2">${content}</li>`);
-      }
-      // Check if this is a key term definition (e.g., "Term: Definition")
-      else if (/^[A-Za-z\s]+:\s+/.test(line)) {
-        const [term, definition] = line.split(': ', 2);
-        formattedLines.push(`<div class="mb-3 p-3 bg-muted/30 rounded-lg border border-border"><strong class="text-foreground">${term}:</strong> ${definition}</div>`);
-      }
-      // Regular paragraph text
-      else {
-        formattedLines.push(`<p class="mb-3 leading-relaxed">${line}</p>`);
-      }
-    }
-    
-    // Join lines and wrap lists properly
-    let formattedContent = formattedLines.join('\n');
-    
-    // Wrap consecutive list items in <ul> tags
-    formattedContent = formattedContent.replace(
-      /(<li[^>]*>.*?<\/li>(\s*<li[^>]*>.*?<\/li>)*)/g,
-      '<ul class="list-disc ml-6 mb-4">$1</ul>'
-    );
-    
-    return formattedContent;
-  };
+
 
   if (loading) {
     return (
@@ -295,23 +226,18 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
                 key={note.id}
                 className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-medium text-sm line-clamp-2 flex-1 mr-4">
-                    {note.title}
-                  </h3>
+                {/* <div className="flex items-end justify-end mb-2">
                   <Badge variant="secondary" className="text-xs">
                     {formatDate(note.createdAt)}
                   </Badge>
+                </div> */}
+                
+                <div className="text-sm text-gray-700 line-clamp-3">
+                  <MarkdownRenderer 
+                    content={note.content ? note.content.substring(0, 300) + '...' : 'No content available'} 
+                    className="text-sm"
+                  />
                 </div>
-                
-                {note.transcript && (
-                  <p className="text-xs text-gray-600 mb-2">
-                    Source: {note.transcript.originalName}
-                  </p>
-                )}
-                
-                <div className="text-sm text-gray-700 line-clamp-3 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-foreground [&>h2]:mt-3 [&>h2]:mb-2 [&>h2]:border-b [&>h2]:border-border [&>h2]:pb-1 [&>h3]:text-base [&>h3]:font-semibold [&>h3]:text-foreground [&>h3]:mt-2 [&>h3]:mb-1 [&>p]:mb-2 [&>p]:leading-relaxed [&>ul]:list-disc [&>ul]:ml-4 [&>ul]:mb-2 [&>li]:mb-1 [&>div]:mb-2 [&>strong]:text-foreground [&>div]:p-2 [&>div]:bg-muted/30 [&>div]:rounded [&>div]:border [&>div]:border-border [&>em]:italic [&>code]:bg-muted [&>code]:px-1 [&>code]:py-0.5 [&>code]:rounded [&>code]:text-xs [&>code]:font-mono [&>del]:line-through [&>del]:text-muted-foreground [&>a]:text-primary [&>a]:hover:underline [&>a]:transition-colors" 
-                     dangerouslySetInnerHTML={{ __html: formatNoteContent(note.content ? note.content.substring(0, 300) + '...' : 'No content available') }} />
                 
                 <div className="flex justify-between items-center mt-3 pt-3 border-t">
                   <span className="text-xs text-gray-500">

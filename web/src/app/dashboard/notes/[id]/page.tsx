@@ -13,6 +13,7 @@ import { QuizViewer } from '@/components/quiz';
 import { ArrowLeft, Copy, Download, Edit, FileText, HelpCircle, Layers, X, Trash2, MessageCircle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { DashboardLayout } from '@/components/dashboard';
+import { MarkdownRenderer } from '@/components/mdx-renderer';
 
 // Lazy load the chatbot components
 const DynamicChatbot = dynamic(
@@ -30,23 +31,23 @@ export default function NoteViewPage() {
   const router = useRouter();
   const noteId = params.id as string;
   const { getNote, loading, error } = useNotes();
-  const { 
-    flashcards, 
-    loading: flashcardsLoading, 
-    error: flashcardsError, 
-    generateFlashcards, 
+  const {
+    flashcards,
+    loading: flashcardsLoading,
+    error: flashcardsError,
+    generateFlashcards,
     getFlashcards,
-    deleteFlashcards 
+    deleteFlashcards
   } = useFlashcards();
-  const { 
-    quiz, 
-    loading: quizLoading, 
-    error: quizError, 
-    generateQuiz, 
+  const {
+    quiz,
+    loading: quizLoading,
+    error: quizError,
+    generateQuiz,
     getQuiz,
-    deleteQuiz 
+    deleteQuiz
   } = useQuiz();
-  
+
   const [note, setNote] = useState<Note | null>(null);
   const [transcript, setTranscript] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
@@ -116,12 +117,12 @@ export default function NoteViewPage() {
       alert('Please enter a title for your note');
       return;
     }
-    
+
     if (editTitle.trim() === note.title && editContent.trim() === note.content) {
       setIsEditing(false);
       return;
     }
-    
+
     setIsSaving(true);
     try {
       const response = await fetch(`/api/notes/${note.id}`, {
@@ -187,7 +188,7 @@ export default function NoteViewPage() {
       if (!response.ok) {
         throw new Error('Failed to fetch transcript');
       }
-      
+
       const data = await response.json();
       if (data.success) {
         setTranscript(data.data.content);
@@ -210,22 +211,22 @@ export default function NoteViewPage() {
 
   const handleGenerateQuiz = async () => {
     if (!noteId) return;
-    
+
     // If quiz is already shown, hide it and show note
     if (showQuiz) {
       setShowQuiz(false);
       return;
     }
-    
+
     try {
       // Hide other views first
       setShowFlashcards(false);
       setShowTranscript(false);
       setShowQuiz(true);
-      
+
       // Check if quiz already exists
       const existingQuiz = await getQuiz(noteId);
-      
+
       if (existingQuiz.length === 0) {
         // Generate new quiz if none exists
         await generateQuiz(noteId);
@@ -239,19 +240,19 @@ export default function NoteViewPage() {
 
   const handleGenerateFlashcard = async () => {
     if (!noteId) return;
-    
+
     // If flashcards are already shown, hide them and show note
     if (showFlashcards) {
       setShowFlashcards(false);
       return;
     }
-    
+
     try {
       setShowFlashcards(true);
-      
+
       // Check if flashcards already exist
       const existingFlashcards = await getFlashcards(noteId);
-      
+
       if (existingFlashcards.length === 0) {
         // Generate new flashcards if none exist
         await generateFlashcards(noteId);
@@ -266,12 +267,12 @@ export default function NoteViewPage() {
   const handleCloseFlashcards = () => {
     setShowFlashcards(false);
   };
-  
+
 
 
   const handleDeleteFlashcards = async () => {
     if (!noteId) return;
-    
+
     try {
       await deleteFlashcards(noteId);
       setShowFlashcards(false);
@@ -288,7 +289,7 @@ export default function NoteViewPage() {
 
   const handleDeleteQuiz = async () => {
     if (!noteId) return;
-    
+
     try {
       await deleteQuiz(noteId);
       setShowQuiz(false);
@@ -301,13 +302,13 @@ export default function NoteViewPage() {
 
   const handleChatWithNote = () => {
     if (!noteId) return;
-    
+
     // Toggle chat view
     if (showChat) {
       setShowChat(false);
       return;
     }
-    
+
     // Hide other views but keep the note visible for chat
     setShowFlashcards(false);
     setShowTranscript(false);
@@ -317,10 +318,10 @@ export default function NoteViewPage() {
 
   // Keyboard navigation for flashcards
   useFlashcardKeyboard(
-    () => {}, // Will be handled by FlashcardViewer
-    () => {}, // Will be handled by FlashcardViewer  
-    () => {}, // Will be handled by FlashcardViewer
-    () => {}, // Will be handled by FlashcardViewer
+    () => { }, // Will be handled by FlashcardViewer
+    () => { }, // Will be handled by FlashcardViewer  
+    () => { }, // Will be handled by FlashcardViewer
+    () => { }, // Will be handled by FlashcardViewer
     handleCloseFlashcards
   );
 
@@ -334,77 +335,7 @@ export default function NoteViewPage() {
     });
   };
 
-  const formatNoteContent = (content: string) => {
-    if (!content) return 'No content available';
-    
-    // First, process markdown formatting
-    let processedContent = content
-      // Bold text: **text** -> <strong>text</strong>
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-foreground">$1</strong>')
-      // Italic text: *text* -> <em>text</em>
-      .replace(/\*(.*?)\*/g, '<em class="italic text-foreground">$1</em>')
-      // Code/technical terms: `text` -> <code>text</code>
-      .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</code>')
-      // Strikethrough: ~~text~~ -> <del>text</del>
-      .replace(/~~(.*?)~~/g, '<del class="line-through text-muted-foreground">$1</del>')
-      // Links: [text](url) -> <a>text</a>
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">$1</a>')
-      // Line breaks: \n\n -> </p><p>
-      .replace(/\n\n/g, '</p>\n<p class="mb-3 leading-relaxed">');
-    
-    // Split content into lines
-    const lines = processedContent.split('\n');
-    const formattedLines: string[] = [];
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      if (!line) {
-        // Add spacing for empty lines
-        formattedLines.push('');
-        continue;
-      }
-      
-      // Check if this is a main section heading (e.g., "1. OVERVIEW / ABSTRACT")
-      if (/^\d+\.\s+[A-Z\s\/]+$/.test(line)) {
-        formattedLines.push(`<h2 class="text-xl font-bold text-foreground mt-6 mb-3 border-b border-border pb-2">${line}</h2>`);
-      }
-      // Check if this is a subsection heading (e.g., "BACKGROUND AND MOTIVATION")
-      else if (/^[A-Z\s]+$/.test(line) && line.length > 3 && line.length < 50) {
-        formattedLines.push(`<h3 class="text-lg font-semibold text-foreground mt-4 mb-2">${line}</h3>`);
-      }
-      // Check if this is a numbered list item (e.g., "1. First item")
-      else if (/^\d+\.\s+/.test(line)) {
-        const content = line.replace(/^\d+\.\s+/, '');
-        formattedLines.push(`<li class="ml-4 mb-2">${content}</li>`);
-      }
-      // Check if this is a bullet point (e.g., "- Item" or "• Item")
-      else if (/^[-•]\s+/.test(line)) {
-        const content = line.replace(/^[-•]\s+/, '');
-        formattedLines.push(`<li class="ml-4 mb-2">${content}</li>`);
-      }
-      // Check if this is a key term definition (e.g., "Term: Definition")
-      else if (/^[A-Za-z\s]+:\s+/.test(line)) {
-        const [term, definition] = line.split(': ', 2);
-        formattedLines.push(`<div class="mb-3 p-3 bg-muted/30 rounded-lg border border-border"><strong class="text-foreground">${term}:</strong> ${definition}</div>`);
-      }
-      // Regular paragraph text
-      else {
-        formattedLines.push(`<p class="mb-3 leading-relaxed">${line}</p>`);
-      }
-    }
-    
-    // Join lines and wrap lists properly
-    let formattedContent = formattedLines.join('\n');
-    
-    // Wrap consecutive list items in <ul> tags
-    formattedContent = formattedContent.replace(
-      /(<li[^>]*>.*?<\/li>(\s*<li[^>]*>.*?<\/li>)*)/g,
-      '<ul class="list-disc ml-6 mb-4">$1</ul>'
-    );
-    
-    return formattedContent;
-  };
+
 
   if (loading) {
     return (
@@ -451,7 +382,7 @@ export default function NoteViewPage() {
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          
+
           <div className="flex items-center gap-2">
             <Button
               onClick={handleCopy}
@@ -580,24 +511,10 @@ export default function NoteViewPage() {
                     placeholder="Note title"
                     className="text-xl font-semibold border-0 p-0 h-auto text-foreground bg-transparent"
                   />
-                  <div className="text-sm text-gray-600 space-y-1">
-                    {note.transcript && (
-                      <p>Source: {note.transcript.originalName}</p>
-                    )}
-                    <p>Created: {formatDate(note.createdAt)}</p>
-                    <p>Last updated: {formatDate(note.updatedAt)}</p>
-                  </div>
                 </div>
               ) : (
                 <>
-                  <CardTitle className="text-xl">{note.title}</CardTitle>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    {note.transcript && (
-                      <p>Source: {note.transcript.originalName}</p>
-                    )}
-                    <p>Created: {formatDate(note.createdAt)}</p>
-                    <p>Last updated: {formatDate(note.updatedAt)}</p>
-                  </div>
+                  {/* <CardTitle className="text-2xl">{note.title}</CardTitle> */}
                 </>
               )}
             </CardHeader>
@@ -608,14 +525,11 @@ export default function NoteViewPage() {
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
                     placeholder="Note content"
-                    className="w-full min-h-[400px] p-4 border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm leading-relaxed bg-background text-foreground"
+                    className="w-full h-[77vh] p-4 border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm leading-relaxed bg-background text-foreground "
                   />
                 </div>
               ) : (
-                <div className="prose max-w-none">
-                  <div className="text-sm leading-relaxed [&>h2]:text-xl [&>h2]:font-bold [&>h2]:text-foreground [&>h2]:mt-6 [&>h2]:mb-3 [&>h2]:border-b [&>h2]:border-border [&>h2]:pb-2 [&>h3]:text-lg [&>h3]:font-semibold [&>h3]:text-foreground [&>h3]:mt-4 [&>h3]:mb-2 [&>p]:mb-3 [&>p]:leading-relaxed [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-4 [&>li]:mb-2 [&>div]:mb-3 [&>strong]:text-foreground [&>div]:p-3 [&>div]:bg-muted/30 [&>div]:rounded-lg [&>div]:border [&>div]:border-border [&>em]:italic [&>code]:bg-muted [&>code]:px-1 [&>code]:py-0.5 [&>code]:rounded [&>code]:text-sm [&>code]:font-mono [&>del]:line-through [&>del]:text-muted-foreground [&>a]:text-primary [&>a]:hover:underline [&>a]:transition-colors" 
-                       dangerouslySetInnerHTML={{ __html: formatNoteContent(note.content || '') }} />
-                </div>
+                <MarkdownRenderer content={note.content || ''} />
               )}
             </CardContent>
           </Card>
@@ -637,16 +551,16 @@ export default function NoteViewPage() {
                 </CardContent>
               </Card>
             )}
-            
+
             {flashcardsError && !flashcardsLoading && (
               <Card>
                 <CardContent className="p-6">
                   <div className="text-center text-red-600">
                     <p className="font-medium">Error generating flashcards</p>
                     <p className="text-sm mt-1">{flashcardsError}</p>
-                    <Button 
-                      onClick={() => handleGenerateFlashcard()} 
-                      className="mt-3" 
+                    <Button
+                      onClick={() => handleGenerateFlashcard()}
+                      className="mt-3"
                       size="sm"
                     >
                       Try Again
@@ -655,9 +569,9 @@ export default function NoteViewPage() {
                 </CardContent>
               </Card>
             )}
-            
+
             {flashcards.length > 0 && !flashcardsLoading && (
-              <FlashcardViewer 
+              <FlashcardViewer
                 flashcards={flashcards}
                 onClose={handleCloseFlashcards}
               />
@@ -681,16 +595,16 @@ export default function NoteViewPage() {
                 </CardContent>
               </Card>
             )}
-            
+
             {quizError && !quizLoading && (
               <Card>
                 <CardContent className="p-6">
                   <div className="text-center text-red-600">
                     <p className="font-medium">Error generating quiz</p>
                     <p className="text-sm mt-1">{quizError}</p>
-                    <Button 
-                      onClick={() => handleGenerateQuiz()} 
-                      className="mt-3" 
+                    <Button
+                      onClick={() => handleGenerateQuiz()}
+                      className="mt-3"
                       size="sm"
                     >
                       Try Again
@@ -699,9 +613,9 @@ export default function NoteViewPage() {
                 </CardContent>
               </Card>
             )}
-            
+
             {quiz.length > 0 && !quizLoading && (
-              <QuizViewer 
+              <QuizViewer
                 quiz={quiz}
                 onClose={handleCloseQuiz}
               />
@@ -723,24 +637,10 @@ export default function NoteViewPage() {
                       placeholder="Note title"
                       className="text-lg font-semibold border-0 p-0 h-auto text-foreground bg-transparent"
                     />
-                    <div className="text-xs text-gray-600 space-y-1">
-                      {note.transcript && (
-                        <p>Source: {note.transcript.originalName}</p>
-                      )}
-                      <p>Created: {formatDate(note.createdAt)}</p>
-                      <p>Last updated: {formatDate(note.updatedAt)}</p>
-                    </div>
                   </div>
                 ) : (
                   <>
                     <CardTitle className="text-lg">{note.title}</CardTitle>
-                    <div className="text-xs text-gray-600 space-y-1">
-                      {note.transcript && (
-                        <p>Source: {note.transcript.originalName}</p>
-                      )}
-                      <p>Created: {formatDate(note.createdAt)}</p>
-                      <p>Last updated: {formatDate(note.updatedAt)}</p>
-                    </div>
                   </>
                 )}
               </CardHeader>
@@ -755,9 +655,8 @@ export default function NoteViewPage() {
                     />
                   </div>
                 ) : (
-                  <div className="prose max-w-none h-full">
-                    <div className="text-sm leading-relaxed h-full overflow-y-auto pr-2 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:text-foreground [&>h2]:mt-6 [&>h2]:mb-3 [&>h2]:border-b [&>h2]:border-border [&>h2]:pb-2 [&>h3]:text-lg [&>h3]:font-semibold [&>h3]:text-foreground [&>h3]:mt-4 [&>h3]:mb-2 [&>p]:mb-3 [&>p]:leading-relaxed [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-4 [&>li]:mb-2 [&>div]:mb-3 [&>strong]:text-foreground [&>div]:p-3 [&>div]:bg-muted/30 [&>div]:rounded-lg [&>div]:border [&>div]:border-border [&>em]:italic [&>code]:bg-muted [&>code]:px-1 [&>code]:py-0.5 [&>code]:rounded [&>code]:text-sm [&>code]:font-mono [&>del]:line-through [&>del]:text-muted-foreground [&>a]:text-primary [&>a]:hover:underline [&>a]:transition-colors" 
-                         dangerouslySetInnerHTML={{ __html: formatNoteContent(note.content || '') }} />
+                  <div className="h-full overflow-y-auto pr-2">
+                    <MarkdownRenderer content={note.content || ''} className="text-sm" />
                   </div>
                 )}
               </CardContent>
@@ -788,14 +687,7 @@ export default function NoteViewPage() {
         {showTranscript && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl">Transcript - {note.title}</CardTitle>
-              <div className="text-sm text-gray-600 space-y-1">
-                {note.transcript && (
-                  <p>Source: {note.transcript.originalName}</p>
-                )}
-                <p>Created: {formatDate(note.createdAt)}</p>
-                <p>Last updated: {formatDate(note.updatedAt)}</p>
-              </div>
+              <CardTitle className="text-xl">Transcript</CardTitle>
             </CardHeader>
             <CardContent>
               {transcriptLoading && (
@@ -806,14 +698,14 @@ export default function NoteViewPage() {
                   </div>
                 </div>
               )}
-              
+
               {transcriptError && (
                 <div className="text-center text-red-600 py-8">
                   <p className="font-medium">Error loading transcript</p>
                   <p className="text-sm mt-1">{transcriptError}</p>
                 </div>
               )}
-              
+
               {transcript && !transcriptLoading && (
                 <div className="prose max-w-none">
                   <div className="whitespace-pre-wrap text-sm leading-relaxed">
