@@ -35,6 +35,13 @@ export function Navbar({ className }: NavbarProps) {
             </Link>
           </Button>
         )}
+        {!loading && isPro && (
+          <div className="flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 px-3 py-1.5 border border-purple-200 dark:border-purple-800">
+            <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
+              Pro Plan
+            </span>
+          </div>
+        )}
         <UserControl showName />
       </div>
     </header>
