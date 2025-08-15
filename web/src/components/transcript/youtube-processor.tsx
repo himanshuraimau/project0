@@ -68,22 +68,45 @@ export function YouTubeProcessor({ onProcessComplete, onClose }: YouTubeProcesso
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          videoUrl: videoUrl.trim(),
+          url: videoUrl.trim(),
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
+        // Handle specific error cases with better user feedback
+        if (response.status === 400) {
+          if (data.error === 'Video URL is required' || data.message === 'Video URL is required') {
+            throw new Error('Please enter a valid YouTube URL')
+          }
+          if (data.error === 'Invalid YouTube URL format' || data.message === 'Invalid YouTube URL format') {
+            throw new Error('Please enter a valid YouTube URL (youtube.com or youtu.be)')
+          }
+        }
+
+        if (response.status === 401) {
+          throw new Error('Please sign in to process YouTube videos')
+        }
+
+        if (response.status === 403) {
+          throw new Error('You don\'t have permission to process videos. Please check your subscription.')
+        }
+
+        if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.')
+        }
+
+        // Generic error fallback
         throw new Error(data.error || data.message || 'Failed to process transcript')
       }
 
       if (data.success && data.data) {
         setResult(data.data)
-        
+
         // Automatically generate notes from the transcript
         const note = await handleGenerateNotes(data.data.id)
-        
+
         // Call the completion callback if provided
         if (onProcessComplete) {
           onProcessComplete({

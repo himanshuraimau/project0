@@ -1,29 +1,39 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useNotes } from '@/hooks/use-notes';
-import { Note } from '@/lib/types';
-import { useFlashcards } from '@/hooks/use-flashcards';
-import { useQuiz } from '@/hooks/use-quiz';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { FlashcardViewer, useFlashcardKeyboard } from '@/components/flashcards';
-import { QuizViewer } from '@/components/quiz';
-import { ArrowLeft, Copy, Download, Edit, FileText, HelpCircle, Layers, X, Trash2, MessageCircle } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import { DashboardLayout } from '@/components/dashboard';
-import { MarkdownRenderer } from '@/components/mdx-renderer';
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useNotes } from "@/hooks/use-notes";
+import { Note } from "@/lib/types";
+import { useFlashcards } from "@/hooks/use-flashcards";
+import { useQuiz } from "@/hooks/use-quiz";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { FlashcardViewer, useFlashcardKeyboard } from "@/components/flashcards";
+import { QuizViewer } from "@/components/quiz";
+import {
+  ArrowLeft,
+  Copy,
+  Download,
+  Edit,
+  FileText,
+  HelpCircle,
+  Layers,
+  X,
+  Trash2,
+  MessageCircle,
+} from "lucide-react";
+import dynamic from "next/dynamic";
+import { DashboardLayout } from "@/components/dashboard";
+import { MarkdownRenderer } from "@/components/mdx-renderer";
 
 // Lazy load the chatbot components
-const DynamicChatbot = dynamic(
-  () => import('@/components/chatbot/chatbot'),
-  { ssr: false }
-);
+const DynamicChatbot = dynamic(() => import("@/components/chatbot/chatbot"), {
+  ssr: false,
+});
 
 const DynamicInlineChatbot = dynamic(
-  () => import('@/components/chatbot/inline-chatbot'),
+  () => import("@/components/chatbot/inline-chatbot"),
   { ssr: false }
 );
 
@@ -38,7 +48,7 @@ export default function NoteViewPage() {
     error: flashcardsError,
     generateFlashcards,
     getFlashcards,
-    deleteFlashcards
+    deleteFlashcards,
   } = useFlashcards();
   const {
     quiz,
@@ -46,7 +56,7 @@ export default function NoteViewPage() {
     error: quizError,
     generateQuiz,
     getQuiz,
-    deleteQuiz
+    deleteQuiz,
   } = useQuiz();
 
   const [note, setNote] = useState<Note | null>(null);
@@ -58,8 +68,8 @@ export default function NoteViewPage() {
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editContent, setEditContent] = useState('');
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -70,8 +80,8 @@ export default function NoteViewPage() {
 
   useEffect(() => {
     if (note) {
-      setEditTitle(note.title || '');
-      setEditContent(note.content || '');
+      setEditTitle(note.title || "");
+      setEditContent(note.content || "");
     }
   }, [note]);
 
@@ -95,10 +105,10 @@ export default function NoteViewPage() {
 
   const handleDownload = () => {
     if (note) {
-      const element = document.createElement('a');
-      const file = new Blob([note.content || ''], { type: 'text/plain' });
+      const element = document.createElement("a");
+      const file = new Blob([note.content || ""], { type: "text/plain" });
       element.href = URL.createObjectURL(file);
-      element.download = `${note.title || 'note'}.txt`;
+      element.download = `${note.title || "note"}.txt`;
       document.body.appendChild(element);
       element.click();
       document.body.removeChild(element);
@@ -108,18 +118,21 @@ export default function NoteViewPage() {
   const handleEdit = () => {
     if (note) {
       setIsEditing(true);
-      setEditTitle(note.title || '');
-      setEditContent(note.content || '');
+      setEditTitle(note.title || "");
+      setEditContent(note.content || "");
     }
   };
 
   const handleSave = async () => {
     if (!note || !editTitle.trim()) {
-      alert('Please enter a title for your note');
+      alert("Please enter a title for your note");
       return;
     }
 
-    if (editTitle.trim() === note.title && editContent.trim() === note.content) {
+    if (
+      editTitle.trim() === note.title &&
+      editContent.trim() === note.content
+    ) {
       setIsEditing(false);
       return;
     }
@@ -127,9 +140,9 @@ export default function NoteViewPage() {
     setIsSaving(true);
     try {
       const response = await fetch(`/api/notes/${note.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title: editTitle.trim(),
@@ -144,11 +157,11 @@ export default function NoteViewPage() {
           setIsEditing(false);
         }
       } else {
-        throw new Error('Failed to update note');
+        throw new Error("Failed to update note");
       }
     } catch (error) {
-      console.error('Error updating note:', error);
-      alert('Failed to save note. Please try again.');
+      console.error("Error updating note:", error);
+      alert("Failed to save note. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -156,18 +169,18 @@ export default function NoteViewPage() {
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setEditTitle('');
-    setEditContent('');
+    setEditTitle("");
+    setEditContent("");
   };
 
   const handleShare = () => {
     // Placeholder for share functionality
-    console.log('Share functionality to be implemented');
+    console.log("Share functionality to be implemented");
   };
 
   const handleShowTranscript = async () => {
     if (!note?.transcriptId) {
-      setTranscriptError('No transcript available for this note');
+      setTranscriptError("No transcript available for this note");
       return;
     }
 
@@ -187,18 +200,20 @@ export default function NoteViewPage() {
       // Fetch transcript from API
       const response = await fetch(`/api/transcripts/${note.transcriptId}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch transcript');
+        throw new Error("Failed to fetch transcript");
       }
 
       const data = await response.json();
       if (data.success) {
         setTranscript(data.data.content);
       } else {
-        throw new Error(data.error || 'Failed to load transcript');
+        throw new Error(data.error || "Failed to load transcript");
       }
     } catch (error) {
-      console.error('Error fetching transcript:', error);
-      setTranscriptError(error instanceof Error ? error.message : 'Failed to load transcript');
+      console.error("Error fetching transcript:", error);
+      setTranscriptError(
+        error instanceof Error ? error.message : "Failed to load transcript"
+      );
     } finally {
       setTranscriptLoading(false);
     }
@@ -233,7 +248,7 @@ export default function NoteViewPage() {
         await generateQuiz(noteId);
       }
     } catch (error) {
-      console.error('Error with quiz:', error);
+      console.error("Error with quiz:", error);
       setShowQuiz(false);
       // You could add a toast notification here
     }
@@ -259,7 +274,7 @@ export default function NoteViewPage() {
         await generateFlashcards(noteId);
       }
     } catch (error) {
-      console.error('Error with flashcards:', error);
+      console.error("Error with flashcards:", error);
       setShowFlashcards(false);
       // You could add a toast notification here
     }
@@ -269,8 +284,6 @@ export default function NoteViewPage() {
     setShowFlashcards(false);
   };
 
-
-
   const handleDeleteFlashcards = async () => {
     if (!noteId) return;
 
@@ -279,7 +292,7 @@ export default function NoteViewPage() {
       setShowFlashcards(false);
       // You could add a toast notification here
     } catch (error) {
-      console.error('Error deleting flashcards:', error);
+      console.error("Error deleting flashcards:", error);
       // You could add a toast notification here
     }
   };
@@ -296,7 +309,7 @@ export default function NoteViewPage() {
       setShowQuiz(false);
       // You could add a toast notification here
     } catch (error) {
-      console.error('Error deleting quiz:', error);
+      console.error("Error deleting quiz:", error);
       // You could add a toast notification here
     }
   };
@@ -319,24 +332,22 @@ export default function NoteViewPage() {
 
   // Keyboard navigation for flashcards
   useFlashcardKeyboard(
-    () => { }, // Will be handled by FlashcardViewer
-    () => { }, // Will be handled by FlashcardViewer  
-    () => { }, // Will be handled by FlashcardViewer
-    () => { }, // Will be handled by FlashcardViewer
+    () => {}, // Will be handled by FlashcardViewer
+    () => {}, // Will be handled by FlashcardViewer
+    () => {}, // Will be handled by FlashcardViewer
+    () => {}, // Will be handled by FlashcardViewer
     handleCloseFlashcards
   );
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
-
-
 
   if (loading) {
     return (
@@ -358,7 +369,7 @@ export default function NoteViewPage() {
           <CardContent className="p-6">
             <div className="text-center text-red-600">
               <p className="font-medium">Error loading note</p>
-              <p className="text-sm mt-1">{error || 'Note not found'}</p>
+              <p className="text-sm mt-1">{error || "Note not found"}</p>
               <Button onClick={handleBack} className="mt-3" size="sm">
                 Go Back
               </Button>
@@ -373,7 +384,11 @@ export default function NoteViewPage() {
     <DashboardLayout>
       <div className={showChat ? "w-full px-0" : "w-full"}>
         {/* Header with 4 options */}
-        <div className={`flex items-center justify-between ${showChat ? 'mb-3' : 'mb-6'}`}>
+        <div
+          className={`flex items-center justify-between ${
+            showChat ? "mb-3" : "mb-6"
+          }`}
+        >
           <Button
             onClick={handleBack}
             variant="outline"
@@ -412,7 +427,7 @@ export default function NoteViewPage() {
                   className="flex items-center gap-2"
                   disabled={isSaving}
                 >
-                  {isSaving ? 'Saving...' : 'Save'}
+                  {isSaving ? "Saving..." : "Save"}
                 </Button>
                 <Button
                   onClick={handleCancelEdit}
@@ -439,14 +454,18 @@ export default function NoteViewPage() {
         </div>
 
         {/* Action Buttons Section */}
-        <div className={`flex items-center justify-center gap-4 ${showChat ? 'mb-3' : 'mb-6'}`}>
+        <div
+          className={`flex items-center justify-center gap-4 ${
+            showChat ? "mb-3" : "mb-6"
+          }`}
+        >
           <Button
             onClick={handleShowTranscript}
             variant="secondary"
             className="flex items-center gap-2"
           >
             <FileText className="h-4 w-4" />
-            {showTranscript ? 'Hide Transcript' : 'Show Transcript'}
+            {showTranscript ? "Hide Transcript" : "Show Transcript"}
           </Button>
           <Button
             onClick={handleGenerateQuiz}
@@ -455,7 +474,11 @@ export default function NoteViewPage() {
             disabled={quizLoading}
           >
             <HelpCircle className="h-4 w-4" />
-            {quizLoading ? 'Generating...' : showQuiz ? 'Show Note' : 'Generate Quiz'}
+            {quizLoading
+              ? "Generating..."
+              : showQuiz
+              ? "Show Note"
+              : "Generate Quiz"}
           </Button>
           <Button
             onClick={handleChatWithNote}
@@ -465,7 +488,7 @@ export default function NoteViewPage() {
             <div className="p-1 bg-primary/10 rounded-full">
               <MessageCircle className="h-4 w-4 text-primary" />
             </div>
-            {showChat ? 'Show Note' : 'Chat with Note'}
+            {showChat ? "Show Note" : "Chat with Note"}
           </Button>
           <Button
             onClick={handleGenerateFlashcard}
@@ -474,7 +497,11 @@ export default function NoteViewPage() {
             disabled={flashcardsLoading}
           >
             <Layers className="h-4 w-4" />
-            {flashcardsLoading ? 'Generating...' : showFlashcards ? 'Show Note' : 'Generate Flashcards'}
+            {flashcardsLoading
+              ? "Generating..."
+              : showFlashcards
+              ? "Show Note"
+              : "Generate Flashcards"}
           </Button>
           {flashcards.length > 0 && showFlashcards && (
             <Button
@@ -502,7 +529,7 @@ export default function NoteViewPage() {
 
         {/* Note Content, Flashcards, or Quiz */}
         {!showTranscript && !showFlashcards && !showQuiz && !showChat && (
-          <Card className={isEditing ? 'ring-2 ring-primary/20' : ''}>
+          <Card className={isEditing ? "ring-2 ring-primary/20" : ""}>
             <CardHeader>
               {isEditing ? (
                 <div className="space-y-4">
@@ -530,7 +557,7 @@ export default function NoteViewPage() {
                   />
                 </div>
               ) : (
-                <MarkdownRenderer content={note.content || ''} />
+                <MarkdownRenderer content={note.content || ""} />
               )}
             </CardContent>
           </Card>
@@ -545,8 +572,12 @@ export default function NoteViewPage() {
                   <div className="flex items-center justify-center py-8">
                     <div className="text-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-600">Generating flashcards...</p>
-                      <p className="text-xs text-gray-500 mt-1">This may take a few moments</p>
+                      <p className="text-sm text-gray-600">
+                        Generating flashcards...
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        This may take a few moments
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -589,8 +620,12 @@ export default function NoteViewPage() {
                   <div className="flex items-center justify-center py-8">
                     <div className="text-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-600">Generating quiz...</p>
-                      <p className="text-xs text-gray-500 mt-1">This may take a few moments</p>
+                      <p className="text-sm text-gray-600">
+                        Generating quiz...
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        This may take a few moments
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -616,10 +651,7 @@ export default function NoteViewPage() {
             )}
 
             {quiz.length > 0 && !quizLoading && (
-              <QuizViewer
-                quiz={quiz}
-                onClose={handleCloseQuiz}
-              />
+              <QuizViewer quiz={quiz} onClose={handleCloseQuiz} />
             )}
           </div>
         )}
@@ -628,7 +660,11 @@ export default function NoteViewPage() {
         {!showTranscript && showChat && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[600px]">
             {/* Note Content - Left Side (2/3 width) */}
-            <Card className={`lg:col-span-2 h-full flex flex-col ${isEditing ? 'ring-2 ring-primary/20' : ''}`}>
+            <Card
+              className={`lg:col-span-2 h-full flex flex-col ${
+                isEditing ? "ring-2 ring-primary/20" : ""
+              }`}
+            >
               <CardHeader className="pb-3">
                 {isEditing ? (
                   <div className="space-y-2">
@@ -657,7 +693,10 @@ export default function NoteViewPage() {
                   </div>
                 ) : (
                   <div className="h-full overflow-y-auto pr-2">
-                    <MarkdownRenderer content={note.content || ''} className="text-sm" />
+                    <MarkdownRenderer
+                      content={note.content || ""}
+                      className="text-sm"
+                    />
                   </div>
                 )}
               </CardContent>
@@ -695,7 +734,9 @@ export default function NoteViewPage() {
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-600">Loading transcript...</p>
+                    <p className="text-sm text-gray-600">
+                      Loading transcript...
+                    </p>
                   </div>
                 </div>
               )}
