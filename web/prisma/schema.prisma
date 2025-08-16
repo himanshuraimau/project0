@@ -80,8 +80,3 @@ model NoteChunk {
 }
 
 
-model Usage {
-  key String  @id
-  points Int
-  expire DateTime?
-}

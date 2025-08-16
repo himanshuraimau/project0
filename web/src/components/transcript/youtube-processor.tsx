@@ -89,9 +89,7 @@ export function YouTubeProcessor({ onProcessComplete, onClose }: YouTubeProcesso
           throw new Error('Please sign in to process YouTube videos')
         }
 
-        if (response.status === 403) {
-          throw new Error('You don\'t have permission to process videos. Please check your subscription.')
-        }
+
 
         if (response.status >= 500) {
           throw new Error('Server error. Please try again later.')

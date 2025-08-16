@@ -15,10 +15,7 @@ export interface UserContext {
   isAuthenticated: boolean;
 }
 
-export interface CreditError extends Error {
-  redirectToPricing?: boolean;
-  redirectUrl?: string;
-}
+
 
 export interface PaginationParams {
   page?: number;

@@ -17,7 +17,7 @@ import {
   Mic
 } from "lucide-react"
 import { SimplePDFProcessor, PDFUploader } from "@/components/pdf"
-import { checkCreditsAndRedirect } from "@/lib/client/credits-api"
+
 import { cn } from "@/lib/utils"
 import { AudioRecorder, RecordAudio } from "@/components/audio"
 import { YouTubeProcessor } from "@/components/transcript"
@@ -60,12 +60,6 @@ export function NewNoteSection() {
   }
 
   const handleSummarizeLink = async () => {
-    // Check credits before proceeding
-    const hasCredits = await checkCreditsAndRedirect();
-    if (!hasCredits) {
-      return;
-    }
-    
     // TODO: Implement link summarization
     console.log("Summarizing link:", webLink)
     setWebLink("")
@@ -83,28 +77,11 @@ export function NewNoteSection() {
       content?: string;
       error?: string;
       message?: string;
-      insufficientCredits?: boolean;
-      redirectToPricing?: boolean;
-      redirectUrl?: string;
     };
   }) => {
     console.log('Audio transcription completed:', result)
     setShowAudioDialog(false)
-    
-    // Handle insufficient credits case
-    if (result.note?.insufficientCredits && result.note?.redirectToPricing) {
-      // Show an alert
-      alert('Audio transcribed successfully, but note creation requires more credits. Redirecting to pricing page...');
-      
-      // Redirect to pricing page
-      if (typeof window !== 'undefined' && result.note.redirectUrl) {
-        setTimeout(() => {
-          window.location.href = result.note.redirectUrl || '/pricing';
-        }, 1500);
-      }
-    } else {
-      // Regular success case - you could add a callback here to refresh the notes section or show a success message
-    }
+    // You could add a callback here to refresh the notes section or show a success message
   }
 
   const handleRecordAudioComplete = (result: {
@@ -115,28 +92,11 @@ export function NewNoteSection() {
       content?: string;
       error?: string;
       message?: string;
-      insufficientCredits?: boolean;
-      redirectToPricing?: boolean;
-      redirectUrl?: string;
     };
   }) => {
     console.log('Record audio completed:', result)
     setShowRecordAudioDialog(false)
-    
-    // Handle insufficient credits case
-    if (result.note?.insufficientCredits && result.note?.redirectToPricing) {
-      // Show an alert
-      alert('Audio recorded and transcribed successfully, but note creation requires more credits. Redirecting to pricing page...');
-      
-      // Redirect to pricing page
-      if (typeof window !== 'undefined' && result.note.redirectUrl) {
-        setTimeout(() => {
-          window.location.href = result.note.redirectUrl || '/pricing';
-        }, 1500);
-      }
-    } else {
-      // Regular success case - you could add a callback here to refresh the notes section or show a success message
-    }
+    // You could add a callback here to refresh the notes section or show a success message
   }
 
   const handlePDFProcessComplete = (result: any) => {
@@ -185,12 +145,7 @@ export function NewNoteSection() {
             <Button
               variant="outline"
               className="h-20 flex-col gap-2 border-2 border-secondary/20 hover:border-secondary hover:bg-secondary/5 rounded-2xl transition-all duration-300"
-              onClick={async () => {
-                const hasCredits = await checkCreditsAndRedirect();
-                if (hasCredits) {
-                  setShowYouTubeDialog(true);
-                }
-              }}
+              onClick={() => setShowYouTubeDialog(true)}
             >
               <Link2 className="h-6 w-6 text-secondary" />
               <span className="text-sm font-medium">YouTube Video Link</span>
@@ -215,12 +170,7 @@ export function NewNoteSection() {
             <Button 
               variant="outline" 
               className="h-20 flex-col gap-2 border-2 border-accent/20 hover:border-accent hover:bg-accent/5 rounded-2xl transition-all duration-300"
-              onClick={async () => {
-                const hasCredits = await checkCreditsAndRedirect();
-                if (hasCredits) {
-                  setShowPDFDialog(true);
-                }
-              }}
+              onClick={() => setShowPDFDialog(true)}
             >
               <FileText className="h-6 w-6 text-accent-foreground" />
               <span className="text-sm font-medium">Upload PDF</span>
@@ -245,12 +195,7 @@ export function NewNoteSection() {
             <Button 
               variant="outline" 
               className="h-20 flex-col gap-2 border-2 border-destructive/20 hover:border-destructive hover:bg-destructive/5 rounded-2xl transition-all duration-300"
-              onClick={async () => {
-                const hasCredits = await checkCreditsAndRedirect();
-                if (hasCredits) {
-                  setShowRecordAudioDialog(true);
-                }
-              }}
+              onClick={() => setShowRecordAudioDialog(true)}
             >
               <Mic className="h-6 w-6 text-destructive" />
               <span className="text-sm font-medium">Record Audio</span>
@@ -274,12 +219,7 @@ export function NewNoteSection() {
             <Button 
               variant="outline" 
               className="h-20 flex-col gap-2 border-2 border-primary/20 hover:border-primary hover:bg-primary/5 rounded-2xl transition-all duration-300"
-              onClick={async () => {
-                const hasCredits = await checkCreditsAndRedirect();
-                if (hasCredits) {
-                  setShowAudioDialog(true);
-                }
-              }}
+              onClick={() => setShowAudioDialog(true)}
             >
               <Upload className="h-6 w-6 text-primary" />
               <span className="text-sm font-medium">Upload Audio</span>

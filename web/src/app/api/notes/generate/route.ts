@@ -31,18 +31,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('AI note generation error:', error);
     
-    // Check if error is related to insufficient credits
-    if (error instanceof Error && error.message.includes('Insufficient credits')) {
-      const creditErrorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Insufficient credits',
-        message: error.message,
-        redirectToPricing: true,
-        redirectUrl: '/pricing'
-      };
-      return NextResponse.json(creditErrorResponse, { status: 403 });
-    }
-    
     const errorResponse: ApiErrorResponse = {
       success: false,
       error: 'Failed to generate AI note',

@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { CreditStatus } from "@/components/ui/credit-status"
+
 
 import {
   Sidebar as UISidebar,
@@ -98,11 +98,7 @@ export function Sidebar({ className }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
       
-      {open && 
-        <SidebarFooter>
-          {open && <CreditStatus />}
-        </SidebarFooter>
-      }
+
     </UISidebar>
   )
 }

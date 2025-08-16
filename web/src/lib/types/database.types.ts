@@ -54,11 +54,7 @@ export interface NoteChunkModel {
   embedding: unknown; // Vector type from PostgreSQL
 }
 
-export interface UsageModel {
-  key: string;
-  points: number;
-  expire: Date | null;
-}
+
 
 // Extended types with relations - commonly used combinations
 
@@ -163,13 +159,3 @@ export interface CreateNoteChunkData {
   embedding: unknown;
 }
 
-export interface CreateUsageData {
-  key: string;
-  points: number;
-  expire?: Date | null;
-}
-
-export interface UpdateUsageData {
-  points?: number;
-  expire?: Date | null;
-}

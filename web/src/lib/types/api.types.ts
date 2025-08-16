@@ -16,11 +16,10 @@ export interface ApiSuccessResponse<T = unknown> extends ApiResponse<T> {
   data: T;
 }
 
-// Error response with redirection support
+// Error response
 export interface ApiErrorResponse extends ApiResponse {
   success: false;
   error: string;
-  redirectToPricing?: boolean;
   redirectUrl?: string;
 }
 
@@ -43,10 +42,7 @@ export interface ApiError {
   details?: unknown;
 }
 
-export interface CreditError extends ApiError {
-  redirectToPricing: boolean;
-  redirectUrl?: string;
-}
+
 
 export interface ValidationError extends ApiError {
   field: string;

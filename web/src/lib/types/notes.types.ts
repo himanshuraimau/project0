@@ -25,7 +25,6 @@ export interface NoteData {
   content: string;
   transcriptId: string;
   userId?: string;
-  consumeCredits?: boolean; // Flag to control whether credits should be consumed
 }
 
 export interface CreateNoteRequest {
@@ -57,7 +56,6 @@ export interface ProcessPDFOptions {
   extractImages?: boolean;
   maxPages?: number;
   generateNotes?: boolean;
-  redirectOnInsufficientCredits?: boolean;
 }
 
 export interface ProcessPDFResult {
@@ -73,10 +71,8 @@ export interface ProcessPDFResult {
   note?: Note | { 
     error: string; 
     message: string;
-    redirectToPricing?: boolean;
     redirectUrl?: string;
   };
-  insufficientCredits?: boolean;
   redirectUrl?: string;
 }
 
@@ -103,7 +99,6 @@ export interface UseNotesReturn {
 // Service types
 export interface NoteServiceOptions {
   userId?: string;
-  consumeCredits?: boolean;
 }
 
 export interface GeneratedNoteResult {

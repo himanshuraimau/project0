@@ -60,15 +60,7 @@ export interface TextareaProps extends ComponentProps<'textarea'> {
   label?: string;
 }
 
-// Credit status component props
-export interface CreditStatusProps extends BaseComponentProps {
-  variant?: 'default' | 'compact';
-}
 
-// Upgrade button props
-export interface UpgradeButtonProps extends BaseComponentProps {
-  compact?: boolean;
-}
 
 // Sidebar component props
 export interface SidebarProps extends BaseComponentProps {
