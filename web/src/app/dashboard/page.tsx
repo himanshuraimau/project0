@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
 import { NewNoteSection, MyNotesSection } from "@/components/dashboard"
+import { CreditDisplay } from "@/components/credit-display"
+import { UserService } from "@/lib/user-service"
 
 export default async function DashboardPage() {
   const { userId } = await auth()
@@ -8,6 +10,9 @@ export default async function DashboardPage() {
   if (!userId) {
     redirect("/sign-in")
   }
+
+  // Get current user credits
+  const user = await UserService.getOrCreateUser(userId)
 
   return (
     <div className="space-y-8">
@@ -20,6 +25,9 @@ export default async function DashboardPage() {
           Create, organize, and manage your notes with ease
         </p>
       </div>
+
+      {/* Credit Display */}
+      <CreditDisplay initialCredits={user.creditBalance} />
 
       {/* New Note Section */}
       <NewNoteSection />
