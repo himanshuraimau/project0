@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PDFParser } from '@/lib/pdf-parser';
 import { NoteService } from '@/lib/note-service';
+import { UserService } from '@/lib/user-service';
 import { join } from 'path';
 import { auth } from '@clerk/nextjs/server';
 
@@ -30,6 +31,22 @@ export async function POST(request: NextRequest) {
     // Get user ID from authentication
     const { userId } = await auth();
 
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Check if user has enough credits (1 credit for PDF processing)
+    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
+    if (!hasEnoughCredits) {
+      return NextResponse.json(
+        { error: 'Insufficient credits. You need 1 credit to process a PDF.' },
+        { status: 402 }
+      );
+    }
+
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
     
@@ -43,6 +60,9 @@ export async function POST(request: NextRequest) {
       extractImages,
       maxPages,
     }, userId || undefined);
+
+    // Deduct 1 credit for PDF processing
+    await UserService.deductCredits('pdf_processing', 1, parseResult.documentId);
 
     let noteResult = null;
 

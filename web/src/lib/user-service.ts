@@ -78,9 +78,9 @@ export class UserService {
   /**
    * Check if user has enough credits for an action
    */
-  static async hasEnoughCredits(requiredCredits: number = 1) {
-    const balance = await this.getCurrentUserCredits()
-    return balance >= requiredCredits
+  static async hasEnoughCredits(userId: string, requiredCredits: number = 1) {
+    const user = await this.getOrCreateUser(userId)
+    return user.creditBalance >= requiredCredits
   }
 
   /**

@@ -35,7 +35,7 @@ export function CreditDisplay({ initialCredits = 0, showPurchaseButton = true }:
     fetchCredits()
   }, [])
 
-  const isLowCredits = credits <= 2
+  const isLowCredits = credits <= 5
   const isOutOfCredits = credits <= 0
 
   return (

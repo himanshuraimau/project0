@@ -22,6 +22,9 @@ export const useQuiz = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 402) {
+          throw new Error('INSUFFICIENT_CREDITS');
+        }
         throw new Error(data.error || 'Failed to generate quiz');
       }
 
@@ -32,7 +35,7 @@ export const useQuiz = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate quiz';
       setError(errorMessage);
-      throw new Error(errorMessage);
+      throw err;
     } finally {
       setLoading(false);
     }

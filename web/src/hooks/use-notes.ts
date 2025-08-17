@@ -44,6 +44,9 @@ export function useNotes() {
       const result = await response.json();
 
       if (!result.success) {
+        if (response.status === 402) {
+          throw new Error('INSUFFICIENT_CREDITS');
+        }
         throw new Error(result.message || 'Failed to process PDF');
       }
 
@@ -74,6 +77,9 @@ export function useNotes() {
       const result = await response.json();
 
       if (!response.ok) {
+        if (response.status === 402) {
+          throw new Error('INSUFFICIENT_CREDITS');
+        }
         throw new Error(result.message || 'Failed to generate notes');
       }
 
@@ -111,6 +117,9 @@ export function useNotes() {
       const result = await response.json();
 
       if (!response.ok) {
+        if (response.status === 402) {
+          throw new Error('INSUFFICIENT_CREDITS');
+        }
         throw new Error(result.message || 'Failed to generate focused notes');
       }
 
@@ -148,6 +157,9 @@ export function useNotes() {
       const result = await response.json();
 
       if (!response.ok) {
+        if (response.status === 402) {
+          throw new Error('INSUFFICIENT_CREDITS');
+        }
         throw new Error(result.message || 'Failed to generate notes from text');
       }
 

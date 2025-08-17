@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NoteService } from '@/lib/note-service';
+import { UserService } from '@/lib/user-service';
 import { auth } from '@clerk/nextjs/server';
 import { ApiSuccessResponse, ApiErrorResponse, NoteType } from '@/lib/types';
 
@@ -10,6 +11,14 @@ export async function POST(request: NextRequest) {
     const { userId } = await auth();
     const body: { transcriptId: string; noteType?: NoteType } = await request.json();
     const { transcriptId, noteType = 'summary' } = body;
+
+    if (!userId) {
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Unauthorized'
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
+    }
 
     if (!transcriptId) {
       const errorResponse: ApiErrorResponse = {
@@ -28,8 +37,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
+    // Check if user has enough credits (1 credit for focused note generation)
+    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
+    if (!hasEnoughCredits) {
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Insufficient credits. You need 1 credit to generate focused notes.'
+      };
+      return NextResponse.json(errorResponse, { status: 402 });
+    }
+
     // Generate focused AI note from the transcript
     const note = await noteService.generateFocusedNote(transcriptId, noteType, userId || undefined);
+
+    // Deduct 1 credit for focused note generation
+    await UserService.deductCredits('focused_note_generation', 1, note.id);
 
     const response: ApiSuccessResponse = {
       success: true,

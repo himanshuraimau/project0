@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { google } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { prisma } from '@/lib/prisma';
+import { UserService } from '@/lib/user-service';
 import { auth } from '@clerk/nextjs/server';
 import { ApiSuccessResponse, ApiErrorResponse, FlashcardItem, GenerateFlashcardRequest } from '@/lib/types';
 
@@ -12,6 +13,14 @@ export async function POST(request: NextRequest) {
     const { userId } = await auth();
     const body: GenerateFlashcardRequest = await request.json();
     const { noteId } = body;
+
+    if (!userId) {
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Unauthorized'
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
+    }
 
     if (!noteId) {
       const errorResponse: ApiErrorResponse = {
@@ -33,6 +42,16 @@ export async function POST(request: NextRequest) {
         message: 'Flashcards already exist for this note'
       };
       return NextResponse.json(response);
+    }
+
+    // Check if user has enough credits (1 credit for flashcard generation)
+    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
+    if (!hasEnoughCredits) {
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Insufficient credits. You need 1 credit to generate flashcards.'
+      };
+      return NextResponse.json(errorResponse, { status: 402 });
     }
 
     // Get the note and its content
@@ -152,10 +171,13 @@ Generate exactly 20 flashcards in the JSON format specified above. Focus on crea
     const createdFlashcard = await prisma.flashcard.create({
       data: {
         noteId: noteId,
-        content: flashcardsData as any, // Cast to any for JSON compatibility
+        content: flashcardsData as object, // Cast to object for JSON compatibility
         userId: userId || undefined
       }
     });
+
+    // Deduct 1 credit for flashcard generation
+    await UserService.deductCredits('flashcard_generation', 1, createdFlashcard.id);
 
     const response: ApiSuccessResponse = {
       success: true,
