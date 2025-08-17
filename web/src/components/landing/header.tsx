@@ -1,31 +1,30 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
-import { Moon, Sun, Menu, X } from "lucide-react";
-import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
-import { UserControl } from "../user-control";
+import { useState, useEffect } from "react"
+import { useTheme } from "next-themes"
+import { Button } from "@/components/ui/button"
+import { Moon, Sun, Menu, X } from "lucide-react"
+import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs"
+import { UserControl } from "../user-control"
 
 export function Header() {
-  const [mounted, setMounted] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
   if (!mounted) {
-    return null;
+    return null
   }
 
   const navigation = [
     { name: "Features", href: "#features" },
     { name: "How It Works", href: "#how-it-works" },
-    { name: "Pricing", href: "#pricing" },
-    { name: "About", href: "#about" },
-  ];
+    { name: "About", href: "#about" }
+  ]
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40">
@@ -34,9 +33,7 @@ export function Header() {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">
-                P0
-              </span>
+              <span className="text-primary-foreground font-bold text-lg">P0</span>
             </div>
             <span className="text-2xl font-bold text-foreground">Project0</span>
           </div>
@@ -73,22 +70,24 @@ export function Header() {
 
             {/* CTA Button */}
             <SignedOut>
-              <div className="flex gap-2">
-                <SignUpButton>
-                  <Button variant="outline" size="sm">
-                    Sign Up
-                  </Button>
-                </SignUpButton>
+                    <div className="flex gap-2">
+                        <SignUpButton>
+                            <Button variant="outline" size="sm">
+                                Sign Up
+                            </Button>
+                        </SignUpButton>
 
-                <SignInButton>
-                  <Button size="sm">Sign In</Button>
-                </SignInButton>
-              </div>
-            </SignedOut>
+                         <SignInButton>
+                            <Button size="sm">
+                                Sign In
+                            </Button>
+                        </SignInButton>
+                    </div>
+                </SignedOut>
 
-            <SignedIn>
-              <UserControl showName />
-            </SignedIn>
+                <SignedIn>
+                    <UserControl showName />
+                </SignedIn>
 
             {/* Mobile menu button */}
             <Button
@@ -130,5 +129,5 @@ export function Header() {
         )}
       </div>
     </header>
-  );
+  )
 }

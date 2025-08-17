@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { generateNotesFromContent, NoteService } from "@/lib/note-service";
-import { checkUserHasCredits, consumeCredits } from "@/lib/usage";
 import { ApiSuccessResponse, ApiErrorResponse, GenerateNotesFromTextRequest } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
@@ -25,18 +24,6 @@ export async function POST(request: NextRequest) {
         error: "Text content is required"
       };
       return NextResponse.json(errorResponse, { status: 400 });
-    }
-
-    // Check if user has sufficient credits
-    const hasCredits = await checkUserHasCredits();
-    if (!hasCredits) {
-      const creditErrorResponse: ApiErrorResponse = {
-        success: false,
-        error: "Insufficient credits",
-        message: "You need at least 1 credit to generate AI notes from text.",
-        redirectUrl: "/pricing",
-      };
-      return NextResponse.json(creditErrorResponse, { status: 403 });
     }
 
     // Create a transcript record for the text input
@@ -64,9 +51,6 @@ export async function POST(request: NextRequest) {
     // Generate AI notes from the text content
     let note;
     try {
-      // Consume credits before generating notes
-      await consumeCredits();
-
       const aiNote = await generateNotesFromContent(
         text.trim(),
         title || "Text Note"
@@ -79,7 +63,6 @@ export async function POST(request: NextRequest) {
         content: aiNote.content,
         transcriptId: transcript.id,
         userId,
-        consumeCredits: false, // Don't consume credits again since we already did
       });
     } catch (error) {
       console.error("Error generating AI notes:", error);

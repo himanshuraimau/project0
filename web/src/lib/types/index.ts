@@ -8,7 +8,6 @@ export type {
   LoadingState,
   BaseEntity,
   UserContext,
-  CreditError,
   PaginationParams,
   SortParams,
   FilterParams,
@@ -44,7 +43,6 @@ export type {
   FlashcardModel,
   QuizModel,
   NoteChunkModel,
-  UsageModel,
   TranscriptWithNotes as DatabaseTranscriptWithNotes,
   NoteWithTranscript as DatabaseNoteWithTranscript,
   NoteWithFlashcard as DatabaseNoteWithFlashcard,
@@ -61,9 +59,7 @@ export type {
   UpdateFlashcardData,
   CreateQuizData,
   UpdateQuizData,
-  CreateNoteChunkData,
-  CreateUsageData,
-  UpdateUsageData
+  CreateNoteChunkData
 } from './database.types';
 
 // Notes types - note-related interfaces and types
@@ -203,24 +199,7 @@ export type {
   SearchError
 } from './search.types';
 
-// Credits types - credit system and subscription types
-export type {
-  CreditInfo,
-  SubscriptionStatus,
-  CreditStatusResponse,
-  SubscriptionCheckResponse,
-  CreditCheckResponse,
-  CreditError as CreditsCreditError,
-  UsageStatus,
-  CreditOperationResult,
-  SubscriptionPlan,
-  CreditTransactionType,
-  CreditTransaction,
-  CreditBalance,
-  SubscriptionMetadata,
-  UseSubscriptionStatusReturn,
-  UseCreditStatusReturn
-} from './credits.types';
+
 
 // UI types - UI component and interaction types
 export type {
@@ -234,8 +213,6 @@ export type {
   FormFieldProps,
   InputProps,
   TextareaProps,
-  CreditStatusProps,
-  UpgradeButtonProps,
   SidebarProps,
   NavigationItem,
   NavbarProps,

@@ -15,9 +15,7 @@ export function useNotes() {
   // Process PDF and generate notes
   const processPDFWithNotes = async (
     file: File,
-    options: ProcessPDFOptions & {
-      redirectOnInsufficientCredits?: boolean;
-    } = {}
+    options: ProcessPDFOptions = {}
   ): Promise<ProcessPDFResult | null> => {
     setLoading(true);
     setError(null);
@@ -48,33 +46,11 @@ export function useNotes() {
       if (!result.success) {
         throw new Error(result.message || 'Failed to process PDF');
       }
-      
-      // Check if note generation failed due to insufficient credits
-      if (result.data.note?.error === 'Insufficient credits' && result.data.note?.redirectToPricing) {
-        // Still return the data since PDF processing succeeded, but set a flag for the UI to show a message
-        result.data.insufficientCredits = true;
-        result.data.redirectUrl = result.data.note.redirectUrl || '/pricing';
-        
-        // If we want to automatically redirect
-        if (typeof window !== 'undefined' && options.redirectOnInsufficientCredits !== false) {
-          setTimeout(() => {
-            window.location.href = result.data.redirectUrl;
-          }, 3000); // Give the user a moment to see the result before redirecting
-        }
-      }
 
       return result.data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
-      
-      // Handle redirection for insufficient credits if the error has that info
-      if (err instanceof Error && (err as any).redirectToPricing) {
-        if (typeof window !== 'undefined') {
-          window.location.href = (err as any).redirectUrl || '/pricing';
-        }
-      }
-      
       return null;
     } finally {
       setLoading(false);
@@ -98,14 +74,6 @@ export function useNotes() {
       const result = await response.json();
 
       if (!response.ok) {
-        // Check if the error is related to insufficient credits
-        if (response.status === 403 && result.error === 'Insufficient credits') {
-          const error = new Error('Insufficient credits. Please purchase more credits to continue generating AI notes.');
-          // Add redirection info to the error
-          (error as any).redirectToPricing = true;
-          (error as any).redirectUrl = result.redirectUrl || '/pricing';
-          throw error;
-        }
         throw new Error(result.message || 'Failed to generate notes');
       }
 
@@ -117,14 +85,6 @@ export function useNotes() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
-      
-      // Handle redirection for insufficient credits
-      if (err instanceof Error && (err as any).redirectToPricing) {
-        if (typeof window !== 'undefined') {
-          window.location.href = (err as any).redirectUrl || '/pricing';
-        }
-      }
-      
       return null;
     } finally {
       setLoading(false);
@@ -151,14 +111,6 @@ export function useNotes() {
       const result = await response.json();
 
       if (!response.ok) {
-        // Check if the error is related to insufficient credits
-        if (response.status === 403 && result.error === 'Insufficient credits') {
-          const error = new Error('Insufficient credits. Please purchase more credits to continue generating AI notes.');
-          // Add redirection info to the error
-          (error as any).redirectToPricing = true;
-          (error as any).redirectUrl = result.redirectUrl || '/pricing';
-          throw error;
-        }
         throw new Error(result.message || 'Failed to generate focused notes');
       }
 
@@ -170,14 +122,6 @@ export function useNotes() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
-      
-      // Handle redirection for insufficient credits
-      if (err instanceof Error && (err as any).redirectToPricing) {
-        if (typeof window !== 'undefined') {
-          window.location.href = (err as any).redirectUrl || '/pricing';
-        }
-      }
-      
       return null;
     } finally {
       setLoading(false);
@@ -204,14 +148,6 @@ export function useNotes() {
       const result = await response.json();
 
       if (!response.ok) {
-        // Check if the error is related to insufficient credits
-        if (response.status === 403 && result.error === 'Insufficient credits') {
-          const error = new Error('Insufficient credits. Please purchase more credits to continue generating AI notes.');
-          // Add redirection info to the error
-          (error as any).redirectToPricing = true;
-          (error as any).redirectUrl = result.redirectUrl || '/pricing';
-          throw error;
-        }
         throw new Error(result.message || 'Failed to generate notes from text');
       }
 
@@ -223,14 +159,6 @@ export function useNotes() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
-      
-      // Handle redirection for insufficient credits
-      if (err instanceof Error && (err as any).redirectToPricing) {
-        if (typeof window !== 'undefined') {
-          window.location.href = (err as any).redirectUrl || '/pricing';
-        }
-      }
-      
       return null;
     } finally {
       setLoading(false);
