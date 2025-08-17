@@ -10,27 +10,15 @@
  */
 export async function checkUserCredits(): Promise<boolean> {
   try {
-    // First check if the user is on Pro plan
-    const proResponse = await fetch('/api/subscription/check');
-    
-    if (proResponse.ok) {
-      const proData = await proResponse.json();
-      
-      // Pro users always have credits
-      if (proData.success && proData.isPro) {
-        return true;
-      }
-    }
-    
-    // If not a Pro user, check regular credits
-    const response = await fetch('/api/credits/check');
+    // Check user's credit balance using the existing API
+    const response = await fetch('/api/users/credits');
     
     if (!response.ok) {
       return false;
     }
     
     const data = await response.json();
-    return data.hasCredits;
+    return data.success && data.credits > 0;
   } catch (error) {
     console.error('Error checking credits:', error);
     // Default to allowing usage in case of errors
@@ -48,8 +36,10 @@ export async function checkCreditsAndRedirect(): Promise<boolean> {
     const hasCredits = await checkUserCredits();
     
     if (!hasCredits) {
-      // Show a message to the user
-      alert('Insufficient credits. Please contact support for assistance.');
+      // Redirect to credits page instead of showing alert
+      if (typeof window !== 'undefined') {
+        window.location.href = '/credits?reason=insufficient';
+      }
       
       return false;
     }

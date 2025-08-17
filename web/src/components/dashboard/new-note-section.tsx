@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger 
@@ -94,17 +95,10 @@ export function NewNoteSection() {
     console.log('Audio transcription completed:', result)
     setShowAudioDialog(false)
     
-    // Handle insufficient credits case
-    if (result.note?.insufficientCredits && result.note?.redirectToPricing) {
+    // Handle error case
+    if (result.note?.error) {
       // Show an alert
-      alert('Audio transcribed successfully, but note creation requires more credits. Redirecting to pricing page...');
-      
-      // Redirect to pricing page
-      if (typeof window !== 'undefined' && result.note.redirectUrl) {
-        setTimeout(() => {
-          window.location.href = result.note.redirectUrl || '/pricing';
-        }, 1500);
-      }
+      alert('Audio transcribed successfully, but note creation failed: ' + (result.note.message || 'Unknown error'));
     } else {
       // Regular success case - you could add a callback here to refresh the notes section or show a success message
     }
@@ -123,17 +117,10 @@ export function NewNoteSection() {
     console.log('Record audio completed:', result)
     setShowRecordAudioDialog(false)
     
-    // Handle insufficient credits case
-    if (result.note?.insufficientCredits && result.note?.redirectToPricing) {
+    // Handle error case
+    if (result.note?.error) {
       // Show an alert
-      alert('Audio recorded and transcribed successfully, but note creation requires more credits. Redirecting to pricing page...');
-      
-      // Redirect to pricing page
-      if (typeof window !== 'undefined' && result.note.redirectUrl) {
-        setTimeout(() => {
-          window.location.href = result.note.redirectUrl || '/pricing';
-        }, 1500);
-      }
+      alert('Audio recorded and transcribed successfully, but note creation failed: ' + (result.note.message || 'Unknown error'));
     } else {
       // Regular success case - you could add a callback here to refresh the notes section or show a success message
     }
@@ -205,6 +192,9 @@ export function NewNoteSection() {
               <DialogTitle className="text-left">
                 Record Audio & Generate Notes
               </DialogTitle>
+              <DialogDescription>
+                Record audio content and automatically generate AI-powered notes from the transcription.
+              </DialogDescription>
             </DialogHeader>
             <div className="mt-4">
               <RecordAudio
@@ -242,6 +232,9 @@ export function NewNoteSection() {
               <DialogTitle className="text-left">
                 YouTube Transcript & Notes
               </DialogTitle>
+              <DialogDescription>
+                Extract transcript from YouTube videos and generate AI-powered notes.
+              </DialogDescription>
             </DialogHeader>
             <div className="mt-4">
               <YouTubeProcessor
@@ -280,6 +273,9 @@ export function NewNoteSection() {
               <DialogTitle className="text-left">
                 Upload PDF & Generate Notes
               </DialogTitle>
+              <DialogDescription>
+                Upload PDF documents and extract content to generate AI-powered notes.
+              </DialogDescription>
             </DialogHeader>
             <div className="mt-4">
               <SimplePDFProcessor
@@ -310,6 +306,9 @@ export function NewNoteSection() {
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-left">Record Audio & Generate Notes</DialogTitle>
+              <DialogDescription>
+                Record audio content and automatically generate AI-powered notes from the transcription.
+              </DialogDescription>
             </DialogHeader>
             <div className="mt-4">
               <RecordAudio
@@ -347,6 +346,9 @@ export function NewNoteSection() {
               <DialogTitle className="text-left">
                 Upload Audio File & Generate Notes
               </DialogTitle>
+              <DialogDescription>
+                Upload audio files and automatically generate AI-powered notes from the transcription.
+              </DialogDescription>
             </DialogHeader>
             <div className="mt-4">
               <AudioRecorder

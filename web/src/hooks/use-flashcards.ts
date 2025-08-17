@@ -22,6 +22,9 @@ export const useFlashcards = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 402) {
+          throw new Error('INSUFFICIENT_CREDITS');
+        }
         throw new Error(data.error || 'Failed to generate flashcards');
       }
 
@@ -32,7 +35,7 @@ export const useFlashcards = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate flashcards';
       setError(errorMessage);
-      throw new Error(errorMessage);
+      throw err;
     } finally {
       setLoading(false);
     }

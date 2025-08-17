@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has enough credits
-    const hasEnough = await UserService.hasEnoughCredits(credits)
+    const hasEnough = await UserService.hasEnoughCredits(userId, credits)
     if (!hasEnough) {
       return NextResponse.json(
         { error: 'Insufficient credits' },
