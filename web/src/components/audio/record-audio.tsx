@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Mic, MicOff, Loader2, Play, Square } from 'lucide-react';
-import { checkCreditsAndRedirect } from '@/lib/client/credits-api';
+
 
 interface RecordAudioProps {
   onTranscriptionComplete: (result: {
@@ -16,9 +16,6 @@ interface RecordAudioProps {
       content?: string;
       error?: string;
       message?: string;
-      insufficientCredits?: boolean;
-      redirectToPricing?: boolean;
-      redirectUrl?: string;
     };
   }) => void;
 }
@@ -93,12 +90,6 @@ export default function RecordAudio({ onTranscriptionComplete }: RecordAudioProp
   const transcribeAudio = async () => {
     if (!audioBlob) return;
 
-    // Check credits before processing
-    const hasCredits = await checkCreditsAndRedirect();
-    if (!hasCredits) {
-      return;
-    }
-
     setIsProcessing(true);
     try {
       const formData = new FormData();
@@ -112,23 +103,7 @@ export default function RecordAudio({ onTranscriptionComplete }: RecordAudioProp
 
       if (response.ok) {
         const result = await response.json();
-        
-        // Handle case where transcript was created but note creation failed due to insufficient credits
-        if (result.note?.insufficientCredits && result.note?.redirectToPricing) {
-          // Pass the result to the callback so the parent can handle the redirect
-          onTranscriptionComplete(result);
-          
-          // Optionally, also redirect automatically after a delay
-          if (typeof window !== 'undefined' && result.note.redirectUrl) {
-            setTimeout(() => {
-              window.location.href = result.note.redirectUrl || '/pricing';
-            }, 3000); // Give the user a moment to see the result before redirecting
-          }
-          
-          alert('Transcript created, but note generation requires more credits. Redirecting to pricing page...');
-        } else {
-          onTranscriptionComplete(result);
-        }
+        onTranscriptionComplete(result);
         
         // Reset form
         setAudioBlob(null);
@@ -136,18 +111,7 @@ export default function RecordAudio({ onTranscriptionComplete }: RecordAudioProp
         setIsPlaying(false);
       } else {
         const error = await response.json();
-        
-        // Handle insufficient credits error specifically
-        if (error.redirectToPricing) {
-          alert('Insufficient credits. You will be redirected to the pricing page.');
-          if (typeof window !== 'undefined' && error.redirectUrl) {
-            setTimeout(() => {
-              window.location.href = error.redirectUrl || '/pricing';
-            }, 1500);
-          }
-        } else {
-          throw new Error(error.error || 'Failed to transcribe audio');
-        }
+        throw new Error(error.error || 'Failed to transcribe audio');
       }
     } catch (error) {
       console.error('Transcription error:', error);

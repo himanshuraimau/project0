@@ -9,6 +9,45 @@ datasource db {
   extensions = [vector]
 }
 
+// ADD THESE 3 NEW MODELS FOR PAYMENTS
+model User {
+  id            String      @id // Clerk user ID
+  email         String?
+  creditBalance Int         @default(10) // Free credits
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  purchases     Purchase[]
+  
+  @@map("users")
+}
+
+model Purchase {
+  id            String   @id @default(cuid())
+  userId        String
+  plan          String   // "free", "basic", "pro"
+  credits       Int      // Credits purchased
+  amountPaid    Int      // Amount in cents
+  dodoPaymentId String?  @unique
+  status        String   @default("pending") // "pending", "completed", "failed"
+  createdAt     DateTime @default(now())
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("purchases")
+}
+
+model CreditUsage {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String   // "upload", "notes", "quiz", "flashcard"
+  credits    Int      @default(1)
+  resourceId String?  // noteId, transcriptId, etc.
+  createdAt  DateTime @default(now())
+  
+  @@map("credit_usage")
+}
+
+// YOUR EXISTING MODELS STAY EXACTLY THE SAME
 model Transcript {
   id           String   @id @default(cuid())
   fileName     String
@@ -75,13 +114,5 @@ model NoteChunk {
   note        Note     @relation("NoteToChunks", fields: [note_id], references: [id], onDelete: Cascade)
 
   @@index([note_id])
-  // Removed the Gist index since we created it manually
   @@map("note_chunks")
-}
-
-
-model Usage {
-  key String  @id
-  points Int
-  expire DateTime?
 }

@@ -39,7 +39,7 @@ export async function checkUserCredits(): Promise<boolean> {
 }
 
 /**
- * Checks if the user has available credits and redirects to pricing page if not.
+ * Checks if the user has available credits and shows an alert if not.
  * This is a client-side only function.
  * @returns A promise that resolves to true if the user has credits, false otherwise
  */
@@ -49,12 +49,7 @@ export async function checkCreditsAndRedirect(): Promise<boolean> {
     
     if (!hasCredits) {
       // Show a message to the user
-      alert('Insufficient credits. Please purchase more to continue using this feature.');
-      
-      // Redirect to pricing page
-      setTimeout(() => {
-        window.location.href = '/pricing';
-      }, 1000);
+      alert('Insufficient credits. Please contact support for assistance.');
       
       return false;
     }

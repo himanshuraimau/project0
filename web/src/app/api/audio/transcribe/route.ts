@@ -18,19 +18,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
     }
 
-    // Check if user has credits before processing audio
-    let hasCredits = true;
-    if (userId) {
-      try {
-        const { checkUserHasCredits } = await import('@/lib/usage');
-        hasCredits = await checkUserHasCredits();
-      } catch (error) {
-        console.error('Error checking credits:', error);
-        // If there's an error checking credits, assume they have credits
-        hasCredits = true;
-      }
-    }
-
     // Convert audio to base64
     const bytes = await audioFile.arrayBuffer();
     const base64Audio = Buffer.from(bytes).toString('base64');
@@ -109,50 +96,25 @@ export async function POST(req: NextRequest) {
     
     let noteResult = null;
     
-    // Only attempt to create a note if user has credits
-    if (hasCredits) {
-      try {
-        // Create the note using the service to ensure it gets indexed
-        const note = await noteService.saveNote({
-          title: `Audio Summary: ${fileName}`,
-          content: summarySection,
-          transcriptId: transcript.id,
-          userId: userId || undefined,
-          consumeCredits: true // Explicitly consume credits for audio notes
-        });
-        
-        noteResult = {
-          id: note.id,
-          title: note.title,
-          content: note.content
-        };
-      } catch (error) {
-        console.error('Failed to generate AI notes:', error);
-        
-        // Check if error is related to insufficient credits
-        if (error instanceof Error && (error as any).redirectToPricing) {
-          noteResult = {
-            error: 'Insufficient credits',
-            message: error instanceof Error ? error.message : 'Insufficient credits to generate AI note. Please purchase more credits.',
-            insufficientCredits: true,
-            redirectToPricing: true,
-            redirectUrl: '/pricing'
-          };
-        } else {
-          noteResult = {
-            error: 'Failed to generate AI notes',
-            message: error instanceof Error ? error.message : 'Unknown error'
-          };
-        }
-      }
-    } else {
-      // User has insufficient credits, don't even try to create a note
+    try {
+      // Create the note using the service to ensure it gets indexed
+      const note = await noteService.saveNote({
+        title: `Audio Summary: ${fileName}`,
+        content: summarySection,
+        transcriptId: transcript.id,
+        userId: userId || undefined
+      });
+      
       noteResult = {
-        error: 'Insufficient credits',
-        message: 'Insufficient credits to generate AI note. Please purchase more credits.',
-        insufficientCredits: true,
-        redirectToPricing: true,
-        redirectUrl: '/pricing'
+        id: note.id,
+        title: note.title,
+        content: note.content
+      };
+    } catch (error) {
+      console.error('Failed to generate AI notes:', error);
+      noteResult = {
+        error: 'Failed to generate AI notes',
+        message: error instanceof Error ? error.message : 'Unknown error'
       };
     }
     

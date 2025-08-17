@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { FileText, Upload, CheckCircle, AlertCircle, Type } from 'lucide-react';
-import { checkCreditsAndRedirect } from '@/lib/client/credits-api';
+
 import { MarkdownRenderer } from '@/components/mdx-renderer';
 
 interface SimplePDFProcessorProps {
@@ -33,7 +33,7 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
   const [textInput, setTextInput] = useState('');
   const [noteTitle, setNoteTitle] = useState('');
 
-  // We don't need to check credits on mount since the parent component already checks
+
 
 
 
@@ -77,15 +77,6 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
     if (mode === 'pdf' && !selectedFile) return;
     if (mode === 'text' && !textInput.trim()) return;
 
-    // Check credits before processing
-    const hasCredits = await checkCreditsAndRedirect();
-    if (!hasCredits) {
-      if (onClose) {
-        onClose();
-      }
-      return;
-    }
-
     let result;
 
     if (mode === 'pdf') {
@@ -108,15 +99,6 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
 
   const handleProcessText = async () => {
     if (!textInput.trim()) return;
-
-    // Check credits before processing
-    const hasCredits = await checkCreditsAndRedirect();
-    if (!hasCredits) {
-      if (onClose) {
-        onClose();
-      }
-      return;
-    }
 
     const result = await generateNotesFromText(textInput, noteTitle || 'Text Note');
 

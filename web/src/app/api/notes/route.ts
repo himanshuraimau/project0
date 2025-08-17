@@ -78,18 +78,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating note:', error);
     
-    // If insufficient credits, return the appropriate response
-    if (error instanceof Error && (error as any).redirectToPricing) {
-      const creditErrorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Insufficient credits',
-        message: error.message,
-        redirectToPricing: true,
-        redirectUrl: '/pricing'
-      };
-      return NextResponse.json(creditErrorResponse, { status: 403 });
-    }
-    
     const errorResponse: ApiErrorResponse = {
       success: false,
       error: 'Failed to create note',
