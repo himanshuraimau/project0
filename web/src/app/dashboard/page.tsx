@@ -3,6 +3,8 @@ import { auth } from "@clerk/nextjs/server"
 import { NewNoteSection, MyNotesSection } from "@/components/dashboard"
 import { CreditDisplay } from "@/components/credit-display"
 import { UserService } from "@/lib/user-service"
+import { MyCourses } from "@/components/course/MyCourses"
+import { prisma } from "@/lib/prisma"
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -14,6 +16,23 @@ export default async function DashboardPage() {
   // Get current user credits
   const user = await UserService.getOrCreateUser(userId)
 
+  // Get user's courses
+  const courses = await prisma.course.findMany({
+    where: {
+      userId: userId,
+    },
+    include: {
+      units: {
+        include: {
+          chapters: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
@@ -22,7 +41,7 @@ export default async function DashboardPage() {
           Welcome to your dashboard
         </h1>
         <p className="text-lg text-muted-foreground">
-          Create, organize, and manage your notes with ease
+          Create, organize, and manage your notes and courses with ease
         </p>
       </div>
 
@@ -31,6 +50,11 @@ export default async function DashboardPage() {
 
       {/* New Note Section */}
       <NewNoteSection />
+      
+      {/* My Courses Section */}
+      <MyCourses courses={courses} />
+      
+      {/* My Notes Section */}
       <MyNotesSection />
     </div>
   );
