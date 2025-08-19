@@ -23,6 +23,7 @@ import { checkCreditsAndRedirect } from "@/lib/client/credits-api"
 import { cn } from "@/lib/utils"
 import { AudioRecorder, RecordAudio } from "@/components/audio"
 import { YouTubeProcessor } from "@/components/transcript"
+import { GenerateCourseCard } from "@/components/course/GenerateCourseCard"
 import { Inter } from "next/font/google"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -160,7 +161,10 @@ export function NewNoteSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Generate Course */}
+        <GenerateCourseCard />
+
         {/* Record Audio */}
         <Dialog
           open={showRecordAudioDialog}

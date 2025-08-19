@@ -9,7 +9,6 @@ datasource db {
   extensions = [vector]
 }
 
-// ADD THESE 3 NEW MODELS FOR PAYMENTS
 model User {
   id            String      @id // Clerk user ID
   email         String?
@@ -47,7 +46,7 @@ model CreditUsage {
   @@map("credit_usage")
 }
 
-// YOUR EXISTING MODELS STAY EXACTLY THE SAME
+
 model Transcript {
   id           String   @id @default(cuid())
   fileName     String
@@ -115,4 +114,61 @@ model NoteChunk {
 
   @@index([note_id])
   @@map("note_chunks")
+}
+
+
+
+model Course {
+  id        String   @id @default(cuid())
+  name      String
+  image     String
+  userId    String? 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  units     Unit[]
+
+  @@map("courses")
+}
+
+model Unit {
+  id        String    @id @default(cuid())
+  courseId  String
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  chapters  Chapter[]
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@map("units")
+}
+
+model Chapter {
+  id                 String     @id @default(cuid())
+  unitId             String
+  name               String
+  youtubeSearchQuery String
+  videoId            String?
+  summary            String?    @db.Text
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  unit               Unit       @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  questions          Question[]
+
+  @@index([unitId])
+  @@map("chapters")
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  chapterId String
+  question  String   @db.Text
+  answer    String   @db.Text
+  options   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@index([chapterId])
+  @@map("questions")
 }
