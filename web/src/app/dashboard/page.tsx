@@ -2,7 +2,6 @@ import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
 import { NewNoteSection, MyNotesSection } from "@/components/dashboard"
 import { UserService } from "@/lib/user-service"
-import { MyCourses } from "@/components/course/MyCourses"
 import { prisma } from "@/lib/prisma"
 
 export default async function DashboardPage() {
@@ -11,26 +10,6 @@ export default async function DashboardPage() {
   if (!userId) {
     redirect("/sign-in");
   }
-
-  // Get current user credits
-  const user = await UserService.getOrCreateUser(userId)
-
-  // Get user's courses
-  const courses = await prisma.course.findMany({
-    where: {
-      userId: userId,
-    },
-    include: {
-      units: {
-        include: {
-          chapters: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
 
   return (
     <div className="space-y-8">
@@ -46,9 +25,6 @@ export default async function DashboardPage() {
 
       {/* New Note Section */}
       <NewNoteSection />
-      
-      {/* My Courses Section */}
-      <MyCourses courses={courses} />
       
       {/* My Notes Section */}
       <MyNotesSection />

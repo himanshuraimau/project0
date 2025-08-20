@@ -7,7 +7,8 @@ import {
   HelpCircle, 
   HeadphonesIcon, 
   Settings,
-  ChevronRight
+  ChevronRight,
+  BookOpen
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -33,6 +34,11 @@ const sidebarItems = [
     title: "Home",
     icon: Home,
     href: "/dashboard",
+  },
+  {
+    title: "Generate Course",
+    icon: BookOpen, // Use BookOpen icon for course generation
+    href: "/dashboard/generate-course",
   },
   {
     title: "How to use",
