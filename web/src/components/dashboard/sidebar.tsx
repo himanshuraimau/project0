@@ -104,9 +104,11 @@ export function Sidebar({ className }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="mt-auto px-2 pb-4">
-        <CreditDisplay initialCredits={initialCredits} />
-      </SidebarFooter>
+      {open && (
+        <SidebarFooter className="mt-auto px-2 pb-4">
+          <CreditDisplay initialCredits={initialCredits} />
+        </SidebarFooter>
+      )}
     </UISidebar>
   )
 }
