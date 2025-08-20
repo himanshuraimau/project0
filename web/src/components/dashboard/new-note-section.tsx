@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -20,10 +18,8 @@ import {
 } from "lucide-react"
 import { SimplePDFProcessor, PDFUploader } from "@/components/pdf"
 import { checkCreditsAndRedirect } from "@/lib/client/credits-api"
-import { cn } from "@/lib/utils"
 import { AudioRecorder, RecordAudio } from "@/components/audio"
 import { YouTubeProcessor } from "@/components/transcript"
-import { GenerateCourseCard } from "@/components/course/GenerateCourseCard"
 import { Inter } from "next/font/google"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -164,14 +160,11 @@ export function NewNoteSection() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
         {/* Record Audio */}
-        <Dialog
-          open={showRecordAudioDialog}
-          onOpenChange={setShowRecordAudioDialog}
-        >
+        <Dialog open={showRecordAudioDialog} onOpenChange={setShowRecordAudioDialog}>
           <DialogTrigger asChild>
             <Button
-              variant="ghost"
-              className="h-20 w-full flex items-center justify-start gap-4 p-6 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl transition-all duration-200"
+              variant="outline"
+              className="h-20 w-full flex flex-col items-center justify-center gap-2 border-2 border-primary/20 hover:border-primary hover:bg-primary/5 rounded-2xl font-semibold text-base transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -179,29 +172,21 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
-                <Mic className="h-6 w-6 text-red-600 dark:text-red-400" />
+              <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                <Mic className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
-              <div className="text-left">
-                <div className="font-semibold text-gray-900 dark:text-white">
-                  Record Audio
-                </div>
-              </div>
+              <span>Record Audio</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-left">
-                Record Audio & Generate Notes
-              </DialogTitle>
+              <DialogTitle className="text-left">Record Audio & Generate Notes</DialogTitle>
               <DialogDescription>
                 Record audio content and automatically generate AI-powered notes from the transcription.
               </DialogDescription>
             </DialogHeader>
             <div className="mt-4">
-              <RecordAudio
-                onTranscriptionComplete={handleRecordAudioComplete}
-              />
+              <RecordAudio onTranscriptionComplete={handleRecordAudioComplete} />
             </div>
           </DialogContent>
         </Dialog>
@@ -211,7 +196,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-20 flex-col gap-2 border-2 border-secondary/20 hover:border-secondary hover:bg-secondary/5 rounded-2xl transition-all duration-300"
+              className="h-20 w-full flex flex-col items-center justify-center gap-2 border-2 border-secondary/20 hover:border-secondary hover:bg-secondary/5 rounded-2xl font-semibold text-base transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -219,30 +204,21 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                <Link2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                <Link2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div className="text-left">
-                <div className="font-semibold text-gray-900 dark:text-white">
-                  YouTube Video Link
-                </div>
-              </div>
+              <span>YouTube Video Link</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-left">
-                YouTube Transcript & Notes
-              </DialogTitle>
+              <DialogTitle className="text-left">YouTube Transcript & Notes</DialogTitle>
               <DialogDescription>
                 Extract transcript from YouTube videos and generate AI-powered notes.
               </DialogDescription>
             </DialogHeader>
             <div className="mt-4">
-              <YouTubeProcessor
-                onProcessComplete={handleYouTubeTranscriptComplete}
-                onClose={handleCloseYouTubeDialog}
-              />
+              <YouTubeProcessor onProcessComplete={handleYouTubeTranscriptComplete} onClose={handleCloseYouTubeDialog} />
             </div>
           </DialogContent>
         </Dialog>
@@ -250,9 +226,9 @@ export function NewNoteSection() {
         {/* Upload PDF */}
         <Dialog open={showPDFDialog} onOpenChange={setShowPDFDialog}>
           <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col gap-2 border-2 border-accent/20 hover:border-accent hover:bg-accent/5 rounded-2xl transition-all duration-300"
+            <Button
+              variant="outline"
+              className="h-20 w-full flex flex-col items-center justify-center gap-2 border-2 border-accent/20 hover:border-accent hover:bg-accent/5 rounded-2xl font-semibold text-base transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -260,30 +236,21 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-                <FileText className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                <FileText className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </div>
-              <div className="text-left">
-                <div className="font-semibold text-gray-900 dark:text-white">
-                  Upload PDF
-                </div>
-              </div>
+              <span>Upload PDF or Text</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-left">
-                Upload PDF & Generate Notes
-              </DialogTitle>
+              <DialogTitle className="text-left">Upload PDF & Generate Notes</DialogTitle>
               <DialogDescription>
                 Upload PDF documents and extract content to generate AI-powered notes.
               </DialogDescription>
             </DialogHeader>
             <div className="mt-4">
-              <SimplePDFProcessor
-                onProcessComplete={handlePDFProcessComplete}
-                onClose={handleClosePDFDialog}
-              />
+              <SimplePDFProcessor onProcessComplete={handlePDFProcessComplete} onClose={handleClosePDFDialog} />
             </div>
           </DialogContent>
         </Dialog>
@@ -323,9 +290,9 @@ export function NewNoteSection() {
         {/* Audio Transcription Modal */}
         <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>
           <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col gap-2 border-2 border-primary/20 hover:border-primary hover:bg-primary/5 rounded-2xl transition-all duration-300"
+            <Button
+              variant="outline"
+              className="h-20 w-full flex flex-col items-center justify-center gap-2 border-2 border-secondary/20 hover:border-secondary hover:bg-secondary/5 rounded-2xl font-semibold text-base transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -333,14 +300,10 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-                <Upload className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                <Upload className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </div>
-              <div className="text-left">
-                <div className="font-semibold text-gray-900 dark:text-white">
-                  Upload Audio
-                </div>
-              </div>
+              <span>Upload Audio</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
