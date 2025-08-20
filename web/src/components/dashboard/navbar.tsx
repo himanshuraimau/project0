@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
 import { UserControl } from "@/components/user-control";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,7 @@ export function Navbar({ className }: NavbarProps) {
       </div>
 
       <div className="flex items-center gap-4">
+        <ThemeToggleButton />
         <UserControl showName />
       </div>
     </header>
