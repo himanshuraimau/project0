@@ -123,7 +123,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
   };
 
   const handleViewFullNote = (noteId: string) => {
-    router.push(`/dashboard/notes/${noteId}`);
+    router.push(`/notes/${noteId}`);
   };
 
   const formatDate = (dateString: string) => {
