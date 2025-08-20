@@ -32,54 +32,58 @@ const QuizCards = ({ chapter }: Props) => {
     });
   }, [answers, questionState, chapter.questions]);
   return (
-    <div className="flex-[1] mt-16 ml-8">
-      <h1 className="text-2xl font-bold">Concept Check</h1>
-      <div className="mt-2">
+    <div className="flex-[1] ml-8">
+      <h1 className="text-xl font-bold mb-4 text-foreground">Concept Check</h1>
+      <div className="space-y-4">
         {chapter.questions.map((question) => {
           const options = JSON.parse(question.options) as string[];
+          const state = questionState[question.id];
           return (
             <div
               key={question.id}
-              className={cn("p-3 mt-4 border border-secondary rounded-lg", {
-                "bg-green-700": questionState[question.id] === true,
-                "bg-red-700": questionState[question.id] === false,
-                "bg-secondary": questionState[question.id] === null,
-              })}
+              className={cn(
+                "p-4 rounded-xl border shadow transition-all duration-200",
+                state === true
+                  ? "bg-green-50 border-green-400 dark:bg-green-900/30 dark:border-green-600"
+                  : state === false
+                  ? "bg-red-50 border-red-400 dark:bg-red-900/30 dark:border-red-600"
+                  : "bg-card border-border dark:bg-muted dark:border-border"
+              )}
             >
-              <h1 className="text-lg font-semibold">{question.question}</h1>
-              <div className="mt-2">
-                <RadioGroup
-                  onValueChange={(e) => {
-                    setAnswers((prev) => {
-                      return {
-                        ...prev,
-                        [question.id]: e,
-                      };
-                    });
-                  }}
-                >
-                  {options.map((option, index) => {
-                    return (
-                      <div className="flex items-center space-x-2" key={index}>
-                        <RadioGroupItem
-                          value={option}
-                          id={question.id + index.toString()}
-                        />
-                        <Label htmlFor={question.id + index.toString()}>
-                          {option}
-                        </Label>
-                      </div>
-                    );
-                  })}
-                </RadioGroup>
-              </div>
+              <h2 className="text-base font-semibold mb-2 text-foreground flex items-center gap-2">
+                {question.question}
+                {state === true && <span className="text-green-600">✔️</span>}
+                {state === false && <span className="text-red-600">❌</span>}
+              </h2>
+              <RadioGroup
+                onValueChange={(e) => {
+                  setAnswers((prev) => ({ ...prev, [question.id]: e }));
+                }}
+                className="space-y-2"
+              >
+                {options.map((option, index) => (
+                  <div className="flex items-center gap-2" key={index}>
+                    <RadioGroupItem
+                      value={option}
+                      id={question.id + index.toString()}
+                    />
+                    <Label htmlFor={question.id + index.toString()} className="text-sm">
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
           );
         })}
       </div>
-      <Button className="w-full mt-2" size="lg" onClick={checkAnswer}>
-        Check Answer
-        <ChevronRight className="w-4 h-4 ml-1" />
+      <Button
+        className="w-full mt-6 text-base font-semibold py-3 rounded-xl shadow"
+        size="lg"
+        onClick={checkAnswer}
+      >
+        Check Answers
+        <ChevronRight className="w-4 h-4 ml-2" />
       </Button>
     </div>
   );
