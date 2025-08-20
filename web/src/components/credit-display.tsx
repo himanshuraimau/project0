@@ -39,11 +39,11 @@ export function CreditDisplay({ initialCredits = 0, showPurchaseButton = true }:
   const isOutOfCredits = credits <= 0
 
   return (
-    <Card className={`border-none shadow-none bg-transparent p-0 m-0 ${isLowCredits ? 'bg-yellow-50 dark:bg-yellow-950/20' : ''}`}>
+  <Card className="border-none shadow-none bg-transparent p-0 m-0">
       <CardContent className="p-0">
         <div className="flex items-center justify-between gap-2 rounded-lg px-2 py-2 sidebar-credit-display">
           <div className="flex items-center gap-2">
-            <div className={`p-1 rounded-full ${isLowCredits ? 'bg-yellow-100 dark:bg-yellow-900' : 'bg-primary/10'}`}>
+            <div className={`p-1 rounded-full ${isLowCredits ? '' : 'bg-primary/10'}`}>
               {isLowCredits ? (
                 <AlertTriangleIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
               ) : (
@@ -78,7 +78,7 @@ export function CreditDisplay({ initialCredits = 0, showPurchaseButton = true }:
         </div>
         {isLowCredits && (
           <div className="px-2 pt-1">
-            <p className="text-xs text-yellow-700 dark:text-yellow-300">
+            <p className="text-xs text-muted-foreground">
               {isOutOfCredits
                 ? 'You need credits to create notes, quizzes, and flashcards.'
                 : `You have ${credits} credit${credits === 1 ? '' : 's'} remaining.`
