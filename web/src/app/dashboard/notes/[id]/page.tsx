@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import { useNotes } from "@/hooks/use-notes";
 import { Note } from "@/lib/types";
@@ -99,7 +100,7 @@ export default function NoteViewPage() {
   const handleCopy = async () => {
     if (note?.content) {
       await navigator.clipboard.writeText(note.content);
-      // You could add a toast notification here
+      toast("Note content copied to clipboard.");
     }
   };
 

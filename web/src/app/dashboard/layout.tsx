@@ -4,6 +4,7 @@ import React from "react";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Navbar } from "@/components/dashboard/navbar";
+import { Toaster } from "sonner";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { open } = useSidebar();
@@ -17,7 +18,9 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         marginLeft: open ? sidebarWidth : collapsedWidth,
       }}
     >
-      <main className="p-6">{children}</main>
+      <main className="p-6">
+        {children}
+      </main>
     </div>
   );
 }
@@ -33,7 +36,10 @@ export default function DashboardLayout({
 
       <SidebarProvider defaultOpen={true}>
         <Sidebar />
-        <DashboardContent>{children}</DashboardContent>
+        <DashboardContent>
+          {children}
+          <Toaster />
+        </DashboardContent>
       </SidebarProvider>
     </div>
   );
