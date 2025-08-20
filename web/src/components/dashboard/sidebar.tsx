@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { CreditDisplay } from "@/components/credit-display"
 
 
 import {
@@ -58,6 +59,7 @@ export function Sidebar({ className }: AppSidebarProps) {
   const pathname = usePathname()
   const { open } = useSidebar()
 
+    const initialCredits = 0; // Placeholder for actual user credit balance
   return (
     <UISidebar className={cn("z-10", className)}>
       <SidebarHeader className="flex justify-between items-center">
@@ -74,7 +76,6 @@ export function Sidebar({ className }: AppSidebarProps) {
               {sidebarItems.map((item) => {
                 const isActive = pathname === item.href
                 const Icon = item.icon
-                
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton 
@@ -97,8 +98,9 @@ export function Sidebar({ className }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      
-
+      <SidebarFooter className="mt-auto px-2 pb-4">
+        <CreditDisplay initialCredits={initialCredits} />
+      </SidebarFooter>
     </UISidebar>
   )
 }

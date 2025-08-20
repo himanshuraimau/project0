@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
 import { NewNoteSection, MyNotesSection } from "@/components/dashboard"
-import { CreditDisplay } from "@/components/credit-display"
 import { UserService } from "@/lib/user-service"
 import { MyCourses } from "@/components/course/MyCourses"
 import { prisma } from "@/lib/prisma"
@@ -44,9 +43,6 @@ export default async function DashboardPage() {
           Create, organize, and manage your notes and courses with ease
         </p>
       </div>
-
-      {/* Credit Display */}
-      <CreditDisplay initialCredits={user.creditBalance} />
 
       {/* New Note Section */}
       <NewNoteSection />
