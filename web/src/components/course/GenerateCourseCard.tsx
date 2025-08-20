@@ -3,6 +3,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Plus } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -14,24 +15,26 @@ export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
   return (
     <Link href="/dashboard/create" className="block">
       <Card className={cn(
-        "h-20 transition-all duration-300 hover:shadow-md border-2 border-primary/20 hover:border-primary hover:bg-primary/5 rounded-xl cursor-pointer group",
+        "h-24 transition-all duration-200 shadow-sm hover:shadow-lg border border-primary/30 hover:border-primary bg-gradient-to-br from-primary/5 to-background rounded-2xl cursor-pointer group",
         className
       )}>
-        <CardContent className="p-6 h-full">
-          <div className="flex items-center justify-start gap-4 h-full">
-            <div className="w-12 h-12 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center flex-shrink-0 transition-colors duration-300">
-              <BookOpen className="h-6 w-6 text-primary" />
+        <CardContent className="p-6 h-full flex items-center">
+          <div className="flex items-center gap-5 w-full">
+            <div className="w-14 h-14 rounded-xl bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center flex-shrink-0 transition-colors duration-200 border border-primary/20">
+              <BookOpen className="h-7 w-7 text-primary" />
             </div>
-            <div className="text-left flex-1">
-              <div className="font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors duration-300">
+            <div className="flex-1 text-left">
+              <div className="font-bold text-lg text-foreground group-hover:text-primary transition-colors duration-200">
                 Generate Course
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <div className="text-sm text-muted-foreground mt-1">
                 Create AI-powered courses from topics
               </div>
             </div>
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Plus className="h-5 w-5 text-primary" />
+            <div className="flex items-center">
+              <span className="inline-flex items-center gap-1 px-2 py-2 rounded-full bg-primary/10 text-primary text-xs font-semibold group-hover:bg-primary/20 transition-colors duration-200">
+                <ChevronRight className="h-4 w-4" />
+              </span>
             </div>
           </div>
         </CardContent>

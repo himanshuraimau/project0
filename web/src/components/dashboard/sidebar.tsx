@@ -36,7 +36,7 @@ const sidebarItems = [
     href: "/dashboard",
   },
   {
-    title: "Generate Course",
+    title: "Create Course",
     icon: BookOpen, // Use BookOpen icon for course generation
     href: "/dashboard/generate-course",
   },

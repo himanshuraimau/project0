@@ -23,7 +23,7 @@ export default async function GenerateCoursePage() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Generate Course</h1>
+      <h1 className="text-3xl font-bold mb-4">Create Course</h1>
       <p className="text-muted-foreground mb-6">Easily generate a new course with AI assistance.</p>
       <div className="mt-6">
         <GenerateCourseCard className="w-full" />
