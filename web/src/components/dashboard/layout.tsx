@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import { cn } from "@/lib/utils"
 
 // This component is deprecated and should no longer be used
 // We're keeping a simplified version for backward compatibility

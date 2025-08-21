@@ -8,6 +8,16 @@ import { Note } from "@/lib/types";
 import { useFlashcards } from "@/hooks/use-flashcards";
 import { useQuiz } from "@/hooks/use-quiz";
 import { Button } from "@/components/ui/button";
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarCollapseTrigger,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  useSidebar
+} from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FlashcardViewer, useFlashcardKeyboard } from "@/components/flashcards";
@@ -23,6 +33,7 @@ import {
   X,
   Trash2,
   MessageCircle,
+  PanelRight,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { DashboardLayout } from "@/components/dashboard";
@@ -39,6 +50,9 @@ const DynamicInlineChatbot = dynamic(
 );
 
 export default function NoteViewPage() {
+  // Get sidebar open/closed state from context
+  const { open: sidebarOpen } = useSidebar?.() ?? { open: true };
+  // Removed manual sidebarOpen state and handler. Let SidebarProvider manage state internally.
   const params = useParams();
   const router = useRouter();
   const noteId = params.id as string;
@@ -367,7 +381,7 @@ export default function NoteViewPage() {
     return (
       <DashboardLayout>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-0">
             <div className="text-center text-red-600">
               <p className="font-medium">Error loading note</p>
               <p className="text-sm mt-1">{error || "Note not found"}</p>
@@ -382,383 +396,349 @@ export default function NoteViewPage() {
   }
 
   return (
+
     <DashboardLayout>
-      <div className={showChat ? "w-full px-0" : "w-full"}>
-        {/* Header with 4 options */}
-        <div
-          className={`flex items-center justify-between ${
-            showChat ? "mb-3" : "mb-6"
-          }`}
-        >
-          <Button
-            onClick={handleBack}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleCopy}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Copy className="h-4 w-4" />
-              Copy
-            </Button>
-            <Button
-              onClick={handleDownload}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
-            {isEditing ? (
-              <>
-                <Button
-                  onClick={handleSave}
-                  variant="default"
-                  size="sm"
-                  className="flex items-center gap-2"
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Saving..." : "Save"}
-                </Button>
-                <Button
-                  onClick={handleCancelEdit}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                  disabled={isSaving}
-                >
-                  Cancel
-                </Button>
-              </>
-            ) : (
-              <Button
-                onClick={handleEdit}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <Edit className="h-4 w-4" />
-                Edit
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Action Buttons Section */}
-        <div
-          className={`flex items-center justify-center gap-4 ${
-            showChat ? "mb-3" : "mb-6"
-          }`}
-        >
-          <Button
-            onClick={handleShowTranscript}
-            variant="secondary"
-            className="flex items-center gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            {showTranscript ? "Hide Transcript" : "Show Transcript"}
-          </Button>
-          <Button
-            onClick={handleGenerateQuiz}
-            variant="secondary"
-            className="flex items-center gap-2"
-            disabled={quizLoading}
-          >
-            <HelpCircle className="h-4 w-4" />
-            {quizLoading
-              ? "Generating..."
-              : showQuiz
-              ? "Show Note"
-              : "Generate Quiz"}
-          </Button>
-          <Button
-            onClick={handleChatWithNote}
-            variant="outline"
-            className="flex items-center gap-4 border-2 border-primary hover:bg-primary/5 text-primary rounded-2xl px-6 py-3 transition-all duration-300 shadow-lg hover:shadow-xl"
-          >
-            <div className="p-1 bg-primary/10 rounded-full">
-              <MessageCircle className="h-4 w-4 text-primary" />
+      <div className="grid grid-cols-[auto_1fr] w-full min-h-screen">
+  <SidebarProvider style={{ minWidth: '240px' }}>
+          <Sidebar className={showChat ? 'pb-3' : 'pb-6'}>
+            <SidebarHeader className="flex justify-end">
+              <SidebarCollapseTrigger />
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarMenu>
+                <SidebarMenuButton onClick={handleShowTranscript} active={showTranscript}>
+                  <FileText className="h-4 w-4" />
+                  {sidebarOpen && (
+                    <span className="ml-2 block text-foreground whitespace-nowrap">Show Transcript</span>
+                  )}
+                </SidebarMenuButton>
+                <SidebarMenuButton onClick={handleGenerateQuiz} active={showQuiz} disabled={quizLoading}>
+                  <HelpCircle className="h-4 w-4" />
+                  {sidebarOpen && (
+                    <span className="ml-2 block text-foreground whitespace-nowrap">Generate Quiz</span>
+                  )}
+                </SidebarMenuButton>
+                <SidebarMenuButton onClick={handleChatWithNote} active={showChat}>
+                  <MessageCircle className="h-4 w-4 text-primary" />
+                  {sidebarOpen && (
+                    <span className="ml-2 block text-foreground whitespace-nowrap">Chat with Note</span>
+                  )}
+                </SidebarMenuButton>
+                <SidebarMenuButton onClick={handleGenerateFlashcard} active={showFlashcards} disabled={flashcardsLoading}>
+                  <Layers className="h-4 w-4" />
+                  {sidebarOpen && (
+                    <span className="ml-2 block text-foreground whitespace-nowrap">Generate Flashcards</span>
+                  )}
+                </SidebarMenuButton>
+                {flashcards.length > 0 && showFlashcards && (
+                  <SidebarMenuButton onClick={handleDeleteFlashcards} variant="default">
+                    <Trash2 className="h-4 w-4" />
+                    {sidebarOpen ? (
+                      <span className="ml-2 block">Delete Flashcards</span>
+                    ) : null}
+                  </SidebarMenuButton>
+                )}
+                {quiz.length > 0 && showQuiz && (
+                  <SidebarMenuButton onClick={handleDeleteQuiz} variant="default">
+                    <Trash2 className="h-4 w-4" />
+                    {sidebarOpen ? (
+                      <span className="ml-2 block">Delete Quiz</span>
+                    ) : null}
+                  </SidebarMenuButton>
+                )}
+              </SidebarMenu>
+            </SidebarContent>
+          </Sidebar>
+          <main className="flex flex-col w-full">
+            <div>
+              <div className="flex flex-row items-center justify-between w-full gap-2">
+                <div>
+                  <Button
+                    onClick={handleBack}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleCopy}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy
+                  </Button>
+                  <Button
+                    onClick={handleDownload}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
+                  {isEditing ? (
+                    <>
+                      <Button
+                        onClick={handleSave}
+                        variant="default"
+                        size="sm"
+                        className="flex items-center gap-2"
+                        disabled={isSaving}
+                      >
+                        {isSaving ? "Saving..." : "Save"}
+                      </Button>
+                      <Button
+                        onClick={handleCancelEdit}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                        disabled={isSaving}
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={handleEdit}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <div className="flex-1 min-w-7xl w-full mx-auto">
+                {/* Note Content, Flashcards, or Quiz */}
+                {!showTranscript && !showFlashcards && !showQuiz && !showChat && (
+                  <Card className={isEditing ? "ring-2 ring-primary/20" : ""}>
+                    <CardHeader>
+                      {isEditing ? (
+                        <div className="space-y-4">
+                          <Input
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            placeholder="Note title"
+                            className="text-xl font-semibold border-0 p-0 h-auto text-foreground bg-transparent"
+                          />
+                        </div>
+                      ) : (
+                        <></>
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      {isEditing ? (
+                        <div className="space-y-4">
+                          <textarea
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            placeholder="Note content"
+                            className="w-full h-[77vh] p-4 border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm leading-relaxed bg-background text-foreground "
+                          />
+                        </div>
+                      ) : (
+                        <MarkdownRenderer content={note.content || ""} />
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+                {/* Flashcards Section - Replaces Note Content */}
+                {!showTranscript && showFlashcards && !showChat && (
+                  <div className="space-y-4">
+                    {flashcardsLoading && (
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-center py-8">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                              <p className="text-sm text-gray-600">
+                                Generating flashcards...
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                This may take a few moments
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {flashcardsError && !flashcardsLoading && (
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="text-center text-red-600">
+                            <p className="font-medium">Error generating flashcards</p>
+                            <p className="text-sm mt-1">{flashcardsError}</p>
+                            <Button
+                              onClick={() => handleGenerateFlashcard()}
+                              className="mt-3"
+                              size="sm"
+                            >
+                              Try Again
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {flashcards.length > 0 && !flashcardsLoading && (
+                      <FlashcardViewer
+                        flashcards={flashcards}
+                        onClose={handleCloseFlashcards}
+                      />
+                    )}
+                  </div>
+                )}
+                {/* Quiz Section - Replaces Note Content */}
+                {!showTranscript && showQuiz && !showChat && (
+                  <div className="space-y-4">
+                    {quizLoading && (
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-center py-8">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                              <p className="text-sm text-gray-600">
+                                Generating quiz...
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                This may take a few moments
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {quizError && !quizLoading && (
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="text-center text-red-600">
+                            <p className="font-medium">Error generating quiz</p>
+                            <p className="text-sm mt-1">{quizError}</p>
+                            <Button
+                              onClick={() => handleGenerateQuiz()}
+                              className="mt-3"
+                              size="sm"
+                            >
+                              Try Again
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {quiz.length > 0 && !quizLoading && (
+                      <QuizViewer quiz={quiz} onClose={handleCloseQuiz} />
+                    )}
+                  </div>
+                )}
+                {/* Chat Section - Two Column Layout */}
+                {!showTranscript && showChat && (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[600px]">
+                    {/* Note Content - Left Side (2/3 width) */}
+                    <Card
+                      className={`lg:col-span-2 h-full flex flex-col ${
+                        isEditing ? "ring-2 ring-primary/20" : ""
+                      }`}
+                    >
+                      <CardHeader className="pb-3">
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <Input
+                              value={editTitle}
+                              onChange={(e) => setEditTitle(e.target.value)}
+                              placeholder="Note title"
+                              className="text-lg font-semibold border-0 p-0 h-auto text-foreground bg-transparent"
+                            />
+                          </div>
+                        ) : (
+                          <CardTitle className="text-lg">{note.title}</CardTitle>
+                        )}
+                      </CardHeader>
+                      <CardContent className="pt-0 flex-grow">
+                        {isEditing ? (
+                          <div className="h-full">
+                            <textarea
+                              value={editContent}
+                              onChange={(e) => setEditContent(e.target.value)}
+                              placeholder="Note content"
+                              className="w-full h-full p-4 border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm leading-relaxed bg-background text-foreground"
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-full overflow-y-auto pr-2">
+                            <MarkdownRenderer
+                              content={note.content || ""}
+                              className="text-sm"
+                            />
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                    {/* Chat Interface - Right Side (1/3 width) */}
+                    <Card className="lg:col-span-1 rounded-3xl border-0 shadow-xl p-0 overflow-hidden h-[78vh] flex flex-col">
+                      <CardHeader className="pb-3 bg-muted/5 border-b border-border">
+                        <div className="flex items-center gap-4">
+                          <div className="p-2 bg-primary/10 rounded-full">
+                            <MessageCircle className="h-5 w-5 text-primary" />
+                          </div>
+                          <CardTitle className="text-lg">Chat with Note</CardTitle>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          <p>Ask questions about your note content</p>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0 p-0 flex-1 overflow-y-auto">
+                        {/* Render inline chatbot component */}
+                        <DynamicInlineChatbot noteId={noteId} />
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+                {/* Transcript Section */}
+                {showTranscript && (
+                  <div className="max-w-6xl w-full mx-auto">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-xl">Transcript</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {transcriptLoading && (
+                          <div className="flex items-center justify-center py-8">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                              <p className="text-sm text-gray-600">
+                                Loading transcript...
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        {transcriptError && (
+                          <div className="text-center text-red-600 py-8">
+                            <p className="font-medium">Error loading transcript</p>
+                            <p className="text-sm mt-1">{transcriptError}</p>
+                          </div>
+                        )}
+                        {transcript && !transcriptLoading && (
+                          <div className="prose max-w-none">
+                            <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                              {transcript}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
             </div>
-            {showChat ? "Show Note" : "Chat with Note"}
-          </Button>
-          <Button
-            onClick={handleGenerateFlashcard}
-            variant="secondary"
-            className="flex items-center gap-2"
-            disabled={flashcardsLoading}
-          >
-            <Layers className="h-4 w-4" />
-            {flashcardsLoading
-              ? "Generating..."
-              : showFlashcards
-              ? "Show Note"
-              : "Generate Flashcards"}
-          </Button>
-          {flashcards.length > 0 && showFlashcards && (
-            <Button
-              onClick={handleDeleteFlashcards}
-              variant="destructive"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete Flashcards
-            </Button>
-          )}
-          {quiz.length > 0 && showQuiz && (
-            <Button
-              onClick={handleDeleteQuiz}
-              variant="destructive"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete Quiz
-            </Button>
-          )}
-        </div>
-
-        {/* Note Content, Flashcards, or Quiz */}
-        {!showTranscript && !showFlashcards && !showQuiz && !showChat && (
-          <Card className={isEditing ? "ring-2 ring-primary/20" : ""}>
-            <CardHeader>
-              {isEditing ? (
-                <div className="space-y-4">
-                  <Input
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    placeholder="Note title"
-                    className="text-xl font-semibold border-0 p-0 h-auto text-foreground bg-transparent"
-                  />
-                </div>
-              ) : (
-                <>
-                  {/* <CardTitle className="text-2xl">{note.title}</CardTitle> */}
-                </>
-              )}
-            </CardHeader>
-            <CardContent>
-              {isEditing ? (
-                <div className="space-y-4">
-                  <textarea
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    placeholder="Note content"
-                    className="w-full h-[77vh] p-4 border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm leading-relaxed bg-background text-foreground "
-                  />
-                </div>
-              ) : (
-                <MarkdownRenderer content={note.content || ""} />
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Flashcards Section - Replaces Note Content */}
-        {!showTranscript && showFlashcards && !showChat && (
-          <div className="space-y-4">
-            {flashcardsLoading && (
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-center py-8">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-600">
-                        Generating flashcards...
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        This may take a few moments
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {flashcardsError && !flashcardsLoading && (
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center text-red-600">
-                    <p className="font-medium">Error generating flashcards</p>
-                    <p className="text-sm mt-1">{flashcardsError}</p>
-                    <Button
-                      onClick={() => handleGenerateFlashcard()}
-                      className="mt-3"
-                      size="sm"
-                    >
-                      Try Again
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {flashcards.length > 0 && !flashcardsLoading && (
-              <FlashcardViewer
-                flashcards={flashcards}
-                onClose={handleCloseFlashcards}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Quiz Section - Replaces Note Content */}
-        {!showTranscript && showQuiz && !showChat && (
-          <div className="space-y-4">
-            {quizLoading && (
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-center py-8">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-600">
-                        Generating quiz...
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        This may take a few moments
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {quizError && !quizLoading && (
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center text-red-600">
-                    <p className="font-medium">Error generating quiz</p>
-                    <p className="text-sm mt-1">{quizError}</p>
-                    <Button
-                      onClick={() => handleGenerateQuiz()}
-                      className="mt-3"
-                      size="sm"
-                    >
-                      Try Again
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {quiz.length > 0 && !quizLoading && (
-              <QuizViewer quiz={quiz} onClose={handleCloseQuiz} />
-            )}
-          </div>
-        )}
-
-        {/* Chat Section - Two Column Layout */}
-        {!showTranscript && showChat && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[600px]">
-            {/* Note Content - Left Side (2/3 width) */}
-            <Card
-              className={`lg:col-span-2 h-full flex flex-col ${
-                isEditing ? "ring-2 ring-primary/20" : ""
-              }`}
-            >
-              <CardHeader className="pb-3">
-                {isEditing ? (
-                  <div className="space-y-2">
-                    <Input
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      placeholder="Note title"
-                      className="text-lg font-semibold border-0 p-0 h-auto text-foreground bg-transparent"
-                    />
-                  </div>
-                ) : (
-                  <>
-                    <CardTitle className="text-lg">{note.title}</CardTitle>
-                  </>
-                )}
-              </CardHeader>
-              <CardContent className="pt-0 flex-grow">
-                {isEditing ? (
-                  <div className="h-full">
-                    <textarea
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      placeholder="Note content"
-                      className="w-full h-full p-4 border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm leading-relaxed bg-background text-foreground"
-                    />
-                  </div>
-                ) : (
-                  <div className="h-full overflow-y-auto pr-2">
-                    <MarkdownRenderer
-                      content={note.content || ""}
-                      className="text-sm"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Chat Interface - Right Side (1/3 width) */}
-            <Card className="lg:col-span-1 rounded-3xl border-0 shadow-xl p-0 overflow-hidden h-[78vh] flex flex-col">
-              <CardHeader className="pb-3 bg-muted/5 border-b border-border">
-                <div className="flex items-center gap-4">
-                  <div className="p-2 bg-primary/10 rounded-full">
-                    <MessageCircle className="h-5 w-5 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg">Chat with Note</CardTitle>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  <p>Ask questions about your note content</p>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0 p-0 flex-1 overflow-y-auto">
-                {/* Render inline chatbot component */}
-                <DynamicInlineChatbot noteId={noteId} />
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Transcript Section */}
-        {showTranscript && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Transcript</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {transcriptLoading && (
-                <div className="flex items-center justify-center py-8">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-600">
-                      Loading transcript...
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {transcriptError && (
-                <div className="text-center text-red-600 py-8">
-                  <p className="font-medium">Error loading transcript</p>
-                  <p className="text-sm mt-1">{transcriptError}</p>
-                </div>
-              )}
-
-              {transcript && !transcriptLoading && (
-                <div className="prose max-w-none">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {transcript}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+          </main>
+        </SidebarProvider>
       </div>
     </DashboardLayout>
   );
