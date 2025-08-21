@@ -1,5 +1,5 @@
 import axios from "axios";
-import { strict_output } from "./gemini";
+import { strict_output } from "./ai-course-service";
 
 // Types for the scraper API responses
 interface ScrapedVideo {

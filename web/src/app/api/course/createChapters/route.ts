@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { strict_output } from "@/lib/course/gemini";
+import { strict_output } from "@/lib/course/ai-course-service";
 import { getUnsplashImage } from "@/lib/course/unsplash";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";

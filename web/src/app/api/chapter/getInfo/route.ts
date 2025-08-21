@@ -1,7 +1,7 @@
 // /api/chapter/getInfo
 
 import { prisma } from "@/lib/prisma"
-import { strict_output } from "@/lib/course/gemini"
+import { strict_output } from "@/lib/course/ai-course-service"
 import {
   getQuestionsFromTranscript,
   getTranscript,

@@ -5,6 +5,7 @@
       "name": "web",
       "dependencies": {
         "@ai-sdk/google": "^2.0.2",
+        "@ai-sdk/openai": "^2.0.18",
         "@ai-sdk/react": "^2.0.5",
         "@clerk/nextjs": "^6.28.1",
         "@clerk/themes": "^2.4.4",
@@ -80,6 +81,8 @@
     "@ai-sdk/gateway": ["@ai-sdk/gateway@1.0.3", "", { "dependencies": { "@ai-sdk/provider": "2.0.0", "@ai-sdk/provider-utils": "3.0.1" }, "peerDependencies": { "zod": "^3.25.76 || ^4" } }, "sha512-QRGz2vH1WR9NvCv8gWocoebAKiXcuqj22mug6i8COeVsp33x5K5cK2DT4TwiQx5SfYbqJbVoBT+UqnHF7A3PHA=="],
 
     "@ai-sdk/google": ["@ai-sdk/google@2.0.2", "", { "dependencies": { "@ai-sdk/provider": "2.0.0", "@ai-sdk/provider-utils": "3.0.1" }, "peerDependencies": { "zod": "^3.25.76 || ^4" } }, "sha512-ZTETUnuXPBErzRiXSFvPjRUJQ6kAZLueFi3qCtpxPe7xgmQAqY+0z4pR+v4zOBgrCtgpuB6nayXXXG/8zUaCjA=="],
+
+    "@ai-sdk/openai": ["@ai-sdk/openai@2.0.18", "", { "dependencies": { "@ai-sdk/provider": "2.0.0", "@ai-sdk/provider-utils": "3.0.4" }, "peerDependencies": { "zod": "^3.25.76 || ^4" } }, "sha512-KmDOPJGJ+bAyoaToltQvdUL+pqkcW5Ez6ipOvAi3cdx7VTjnrcjcKss2hZIBKa+N5tVPfjto3rAerM2sx5hVJQ=="],
 
     "@ai-sdk/provider": ["@ai-sdk/provider@2.0.0", "", { "dependencies": { "json-schema": "^0.4.0" } }, "sha512-6o7Y2SeO9vFKB8lArHXehNuusnpddKPk7xqL7T2/b+OvXMRIXUO1rR4wcv1hAFUAT9avGZshty3Wlua/XA7TvA=="],
 
@@ -1650,6 +1653,8 @@
     "zustand": ["zustand@5.0.7", "", { "peerDependencies": { "@types/react": ">=18.0.0", "immer": ">=9.0.6", "react": ">=18.0.0", "use-sync-external-store": ">=1.2.0" }, "optionalPeers": ["@types/react", "immer", "react", "use-sync-external-store"] }, "sha512-Ot6uqHDW/O2VdYsKLLU8GQu8sCOM1LcoE8RwvLv9uuRT9s6SOHCKs0ZEOhxg+I1Ld+A1Q5lwx+UlKXXUoCZITg=="],
 
     "zwitch": ["zwitch@2.0.4", "", {}, "sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A=="],
+
+    "@ai-sdk/openai/@ai-sdk/provider-utils": ["@ai-sdk/provider-utils@3.0.4", "", { "dependencies": { "@ai-sdk/provider": "2.0.0", "@standard-schema/spec": "^1.0.0", "eventsource-parser": "^3.0.3", "zod-to-json-schema": "^3.24.1" }, "peerDependencies": { "zod": "^3.25.76 || ^4" } }, "sha512-/3Z6lfUp8r+ewFd9yzHkCmPlMOJUXup2Sx3aoUyrdXLhOmAfHRl6Z4lDbIdV0uvw/QYoBcVLJnvXN7ncYeS3uQ=="],
 
     "@eslint-community/eslint-utils/eslint-visitor-keys": ["eslint-visitor-keys@3.4.3", "", {}, "sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag=="],
 
