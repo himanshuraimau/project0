@@ -25,7 +25,7 @@ import {
   Folder,
   Trash2,
 } from "lucide-react";
-import { NotesViewer } from "@/components/pdf";
+import { NotesList } from "@/components/notes/notes-list";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -67,15 +67,12 @@ export function MyNotesSection() {
   };
 
   const handleDeleteFolder = (folderToDelete: string) => {
-    if (
-      confirm(`Are you sure you want to delete the "${folderToDelete}" folder?`)
-    ) {
-      setFolders(folders.filter((folder) => folder !== folderToDelete));
+    // Using AlertDialog component instead of browser confirm
+    setFolders(folders.filter((folder) => folder !== folderToDelete));
 
-      // Reset to "All Notes" if the deleted folder was selected
-      if (selectedFolder === folderToDelete) {
-        setSelectedFolder("All Notes");
-      }
+    // Reset to "All Notes" if the deleted folder was selected
+    if (selectedFolder === folderToDelete) {
+      setSelectedFolder("All Notes");
     }
   };
 
@@ -182,8 +179,8 @@ export function MyNotesSection() {
       </div>
 
       {/* Notes Display */}
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
-        <NotesViewer searchQuery={searchQuery} />
+      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden p-6">
+        <NotesList searchQuery={searchQuery} />
       </div>
 
       {/* Create Folder Dialog */}

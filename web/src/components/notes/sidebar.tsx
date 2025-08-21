@@ -21,6 +21,7 @@ import {
   SidebarCollapseTrigger,
   useSidebar
 } from "@/components/ui/sidebar"
+import { AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
 interface NotesSidebarProps {
   className?: string
@@ -28,6 +29,7 @@ interface NotesSidebarProps {
   showQuiz: boolean
   showChat: boolean
   showFlashcards: boolean
+  onShowNotes: () => void
   onShowTranscript: () => void
   onGenerateQuiz: () => void
   onChatWithNote: () => void
@@ -43,6 +45,7 @@ export function NotesSidebar({
   showQuiz,
   showChat,
   showFlashcards,
+  onShowNotes,
   onShowTranscript,
   onGenerateQuiz,
   onChatWithNote,
@@ -65,7 +68,7 @@ export function NotesSidebar({
         <SidebarMenu>
           {/* Notes */}
           <SidebarMenuItem>
-            <SidebarMenuButton>
+            <SidebarMenuButton onClick={onShowNotes} active={!showTranscript && !showQuiz && !showChat && !showFlashcards}>
               <FileIcon className="h-4 w-4" />
               {open && <span className="ml-3">Notes</span>}
             </SidebarMenuButton>
@@ -105,10 +108,15 @@ export function NotesSidebar({
           
           {/* Delete Notes */}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onDeleteNote} variant="default">
-              <Trash2 className="h-4 w-4" />
-              {open && <span className="ml-3">Delete Notes</span>}
-            </SidebarMenuButton>
+            <AlertDialogTrigger asChild>
+              <SidebarMenuButton 
+                variant="default"
+                className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 mt-4"
+              >
+                <Trash2 className="h-4 w-4" />
+                {open && <span className="ml-3 font-medium">Delete Notes</span>}
+              </SidebarMenuButton>
+            </AlertDialogTrigger>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>

@@ -1,0 +1,91 @@
+/* Editor overrides for dark mode */
+.dark .rdw-editor-toolbar {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+}
+
+.dark .rdw-option-wrapper {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.dark .rdw-option-wrapper:hover {
+  background-color: hsl(var(--accent));
+  border-color: hsl(var(--border));
+}
+
+.dark .rdw-option-active {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+.dark .rdw-dropdown-wrapper {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .rdw-dropdown-optionwrapper {
+  background-color: hsl(var(--popover));
+  border-color: hsl(var(--border));
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.dark .rdw-dropdownoption-default {
+  color: hsl(var(--foreground));
+}
+
+.dark .rdw-dropdownoption-highlighted {
+  background-color: hsl(var(--accent));
+}
+
+.dark .rdw-dropdownoption-active {
+  background-color: hsl(var(--primary));
+}
+
+.dark .rdw-link-modal,
+.dark .rdw-embedded-modal,
+.dark .rdw-image-modal {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.dark .rdw-link-modal-input,
+.dark .rdw-embedded-modal-input,
+.dark .rdw-image-modal-upload-option-input {
+  background-color: hsl(var(--input));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .rdw-link-modal-btn,
+.dark .rdw-embedded-modal-btn,
+.dark .rdw-image-modal-btn {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.rdw-editor-main {
+  min-height: 300px;
+  padding: 0.5rem;
+}
+
+/* Light mode adjustments */
+.rdw-editor-toolbar {
+  border-radius: 0.375rem 0.375rem 0 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.rdw-option-wrapper {
+  border-radius: 0.25rem;
+}
+
+.rdw-dropdown-wrapper {
+  border-radius: 0.25rem;
+}
+
+.rdw-dropdown-optionwrapper {
+  border-radius: 0.25rem;
+}
