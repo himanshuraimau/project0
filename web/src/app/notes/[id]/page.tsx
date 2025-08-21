@@ -8,16 +8,8 @@ import { Note } from "@/lib/types";
 import { useFlashcards } from "@/hooks/use-flashcards";
 import { useQuiz } from "@/hooks/use-quiz";
 import { Button } from "@/components/ui/button";
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarCollapseTrigger,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  useSidebar
-} from "@/components/ui/sidebar";
+import { NotesSidebar } from "@/components/notes/sidebar";
+import { NotesSidebarProvider, NotesSidebarContent } from "@/components/notes/sidebar-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FlashcardViewer, useFlashcardKeyboard } from "@/components/flashcards";
@@ -50,9 +42,10 @@ const DynamicInlineChatbot = dynamic(
 );
 
 export default function NoteViewPage() {
-  // Get sidebar open/closed state from context
-  const { open: sidebarOpen } = useSidebar?.() ?? { open: true };
-  // Removed manual sidebarOpen state and handler. Let SidebarProvider manage state internally.
+  // We'll use the NotesSidebarProvider to manage sidebar state
+  // Define sidebar width constants for consistent layout
+  const sidebarWidth = "240px";
+  const collapsedWidth = "4rem";
   const params = useParams();
   const router = useRouter();
   const noteId = params.id as string;
@@ -328,6 +321,31 @@ export default function NoteViewPage() {
       // You could add a toast notification here
     }
   };
+  
+  const handleDeleteNote = () => {
+    if (!noteId || !note) return;
+    
+    if (confirm("Are you sure you want to delete this note? This action cannot be undone.")) {
+      // Navigate back to notes list
+      router.push("/dashboard");
+      
+      // Delete the note in the background
+      fetch(`/api/notes/${noteId}`, {
+        method: "DELETE",
+      })
+      .then(response => {
+        if (response.ok) {
+          toast.success("Note deleted successfully");
+        } else {
+          throw new Error("Failed to delete note");
+        }
+      })
+      .catch(error => {
+        console.error("Error deleting note:", error);
+        toast.error("Failed to delete note");
+      });
+    }
+  };
 
   const handleChatWithNote = () => {
     if (!noteId) return;
@@ -396,60 +414,31 @@ export default function NoteViewPage() {
   }
 
   return (
-
     <DashboardLayout>
-      <div className="grid grid-cols-[auto_1fr] w-full min-h-screen">
-  <SidebarProvider style={{ minWidth: '240px' }}>
-          <Sidebar className={showChat ? 'pb-3' : 'pb-6'}>
-            <SidebarHeader className="flex justify-end">
-              <SidebarCollapseTrigger />
-            </SidebarHeader>
-            <SidebarContent>
-              <SidebarMenu>
-                <SidebarMenuButton onClick={handleShowTranscript} active={showTranscript}>
-                  <FileText className="h-4 w-4" />
-                  {sidebarOpen && (
-                    <span className="ml-2 block text-foreground whitespace-nowrap">Show Transcript</span>
-                  )}
-                </SidebarMenuButton>
-                <SidebarMenuButton onClick={handleGenerateQuiz} active={showQuiz} disabled={quizLoading}>
-                  <HelpCircle className="h-4 w-4" />
-                  {sidebarOpen && (
-                    <span className="ml-2 block text-foreground whitespace-nowrap">Generate Quiz</span>
-                  )}
-                </SidebarMenuButton>
-                <SidebarMenuButton onClick={handleChatWithNote} active={showChat}>
-                  <MessageCircle className="h-4 w-4 text-primary" />
-                  {sidebarOpen && (
-                    <span className="ml-2 block text-foreground whitespace-nowrap">Chat with Note</span>
-                  )}
-                </SidebarMenuButton>
-                <SidebarMenuButton onClick={handleGenerateFlashcard} active={showFlashcards} disabled={flashcardsLoading}>
-                  <Layers className="h-4 w-4" />
-                  {sidebarOpen && (
-                    <span className="ml-2 block text-foreground whitespace-nowrap">Generate Flashcards</span>
-                  )}
-                </SidebarMenuButton>
-                {flashcards.length > 0 && showFlashcards && (
-                  <SidebarMenuButton onClick={handleDeleteFlashcards} variant="default">
-                    <Trash2 className="h-4 w-4" />
-                    {sidebarOpen ? (
-                      <span className="ml-2 block">Delete Flashcards</span>
-                    ) : null}
-                  </SidebarMenuButton>
-                )}
-                {quiz.length > 0 && showQuiz && (
-                  <SidebarMenuButton onClick={handleDeleteQuiz} variant="default">
-                    <Trash2 className="h-4 w-4" />
-                    {sidebarOpen ? (
-                      <span className="ml-2 block">Delete Quiz</span>
-                    ) : null}
-                  </SidebarMenuButton>
-                )}
-              </SidebarMenu>
-            </SidebarContent>
-          </Sidebar>
-          <main className="flex flex-col w-full">
+      <div className="flex w-full min-h-screen relative">
+        <NotesSidebarProvider 
+          defaultOpen={true}
+          sidebarWidth={sidebarWidth}
+          sidebarWidthMobile={sidebarWidth}
+        >
+          <NotesSidebar 
+            className={showChat ? 'pb-3' : 'pb-6'}
+            showTranscript={showTranscript}
+            showQuiz={showQuiz}
+            showChat={showChat}
+            showFlashcards={showFlashcards}
+            onShowTranscript={handleShowTranscript}
+            onGenerateQuiz={handleGenerateQuiz}
+            onChatWithNote={handleChatWithNote}
+            onGenerateFlashcard={handleGenerateFlashcard}
+            onDeleteNote={handleDeleteNote}
+            quizLoading={quizLoading}
+            flashcardsLoading={flashcardsLoading}
+          />
+          <NotesSidebarContent 
+            sidebarWidth={sidebarWidth} 
+            collapsedWidth={collapsedWidth}
+          >
             <div>
               <div className="flex flex-row items-center justify-between w-full gap-2">
                 <div>
@@ -737,8 +726,8 @@ export default function NoteViewPage() {
                 )}
               </div>
             </div>
-          </main>
-        </SidebarProvider>
+          </NotesSidebarContent>
+        </NotesSidebarProvider>
       </div>
     </DashboardLayout>
   );
