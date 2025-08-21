@@ -41,7 +41,7 @@ import {
 import dynamic from "next/dynamic";
 import { DashboardLayout } from "@/components/dashboard";
 import { MarkdownRenderer } from "@/components/mdx-renderer";
-import { RichTextEditor } from "@/components/notes/rich-text-editor";
+import { SimpleEditor } from "@/components/notes/simple-editor";
 import { ViewNote } from "@/components/notes/view-note";
 
 // Lazy load the chatbot components
@@ -162,7 +162,18 @@ export default function NoteViewPage() {
 
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/notes/${note.id}`, {
+      console.log("Saving note with content:", editContent.substring(0, 100) + "...");
+      console.log("Note ID:", note.id);
+      
+      // Make sure we have a valid note ID
+      if (!note.id) {
+        throw new Error("Invalid note ID");
+      }
+      
+      const apiUrl = `/api/notes/${note.id}`;
+      console.log("API URL:", apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -173,18 +184,35 @@ export default function NoteViewPage() {
         }),
       });
 
-      if (response.ok) {
-        const updatedNote = await response.json();
-        if (updatedNote.success) {
-          setNote(updatedNote.data);
-          setIsEditing(false);
-        }
+      console.log("Response status:", response.status);
+      
+      // Get the response body as text first to debug
+      const responseText = await response.text();
+      console.log("Response body:", responseText);
+      
+      // Parse the JSON (if it's valid JSON)
+      let updatedNote;
+      try {
+        updatedNote = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Failed to parse response as JSON:", e);
+        throw new Error("Invalid response from server");
+      }
+
+      if (!response.ok) {
+        throw new Error(updatedNote.error || "Failed to update note");
+      }
+
+      if (updatedNote.success) {
+        toast.success("Note updated successfully");
+        setNote(updatedNote.data);
+        setIsEditing(false);
       } else {
-        throw new Error("Failed to update note");
+        throw new Error(updatedNote.error || "Failed to update note");
       }
     } catch (error) {
       console.error("Error updating note:", error);
-      toast.error("Failed to save note. Please try again.");
+      toast.error(`Failed to save note: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setIsSaving(false);
     }
@@ -526,7 +554,22 @@ export default function NoteViewPage() {
                   {isEditing && (
                     <>
                       <Button
-                        onClick={handleSave}
+                        onClick={() => {
+                          // Get the current title and content from the editor
+                          const editor = document.querySelector('.simple-editor');
+                          if (editor) {
+                            const titleInput = editor.querySelector('input');
+                            const contentTextarea = editor.querySelector('textarea');
+                            if (titleInput && contentTextarea) {
+                              setEditTitle(titleInput.value);
+                              setEditContent(contentTextarea.value);
+                              handleSave();
+                            }
+                          } else {
+                            // Fallback if we can't find the editor elements
+                            handleSave();
+                          }
+                        }}
                         variant="default"
                         size="sm"
                         className="flex items-center gap-2"
@@ -554,7 +597,7 @@ export default function NoteViewPage() {
                 {currentView === 'notes' && (
                   <>
                     {isEditing ? (
-                      <RichTextEditor
+                      <SimpleEditor
                         initialTitle={note.title || ""}
                         initialContent={note.content || ""}
                         onSave={(title, content) => {
@@ -562,7 +605,7 @@ export default function NoteViewPage() {
                           setEditContent(content);
                           handleSave();
                         }}
-                        onCancel={handleCancelEdit}
+                        onCancel={() => {}}
                         isSaving={isSaving}
                       />
                     ) : (
@@ -688,7 +731,7 @@ export default function NoteViewPage() {
                       </CardHeader>
                       <CardContent className="pt-0 flex-grow">
                         {isEditing ? (
-                          <RichTextEditor
+                          <SimpleEditor
                             initialTitle={note.title || ""}
                             initialContent={note.content || ""}
                             onSave={(title, content) => {
@@ -696,7 +739,7 @@ export default function NoteViewPage() {
                               setEditContent(content);
                               handleSave();
                             }}
-                            onCancel={handleCancelEdit}
+                            onCancel={() => {}}
                             isSaving={isSaving}
                           />
                         ) : (

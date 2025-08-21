@@ -255,37 +255,7 @@ export function NewNoteSection() {
           </DialogContent>
         </Dialog>
 
-        {/* Record Audio Modal */}
-        <Dialog open={showRecordAudioDialog} onOpenChange={setShowRecordAudioDialog}>
-          <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col gap-2 border-2 border-destructive/20 hover:border-destructive hover:bg-destructive/5 rounded-2xl transition-all duration-300"
-              onClick={async () => {
-                const hasCredits = await checkCreditsAndRedirect();
-                if (hasCredits) {
-                  setShowRecordAudioDialog(true);
-                }
-              }}
-            >
-              <Mic className="h-6 w-6 text-destructive" />
-              <span className="text-sm font-medium">Record Audio</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-left">Record Audio & Generate Notes</DialogTitle>
-              <DialogDescription>
-                Record audio content and automatically generate AI-powered notes from the transcription.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="mt-4">
-              <RecordAudio
-                onTranscriptionComplete={handleRecordAudioComplete}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
+
 
         {/* Audio Transcription Modal */}
         <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>

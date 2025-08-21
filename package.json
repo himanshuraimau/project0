@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "draft-js": "^0.11.7",
-    "draftjs-to-markdown": "^0.6.0",
-    "markdown-to-jsx": "^7.7.13",
-    "react-draft-wysiwyg": "^1.15.0"
-  }
-}

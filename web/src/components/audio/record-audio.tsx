@@ -52,7 +52,7 @@ export default function RecordAudio({ onTranscriptionComplete }: RecordAudioProp
       setIsRecording(true);
     } catch (error) {
       console.error('Error starting recording:', error);
-      alert('Failed to start recording. Please ensure microphone access is granted.');
+      alert('Failed to start recording. Please ensure microphone access is granted and try again.');
     }
   };
 
@@ -115,7 +115,7 @@ export default function RecordAudio({ onTranscriptionComplete }: RecordAudioProp
       }
     } catch (error) {
       console.error('Transcription error:', error);
-      alert('Failed to transcribe audio. Please try again.');
+      alert('Failed to transcribe audio. Please try again. Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setIsProcessing(false);
     }
