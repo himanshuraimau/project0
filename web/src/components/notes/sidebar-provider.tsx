@@ -22,7 +22,7 @@ export function NotesSidebarProvider({
       style={{
         "--sidebar-width": sidebarWidth,
         "--sidebar-width-mobile": sidebarWidthMobile
-      } as React.CSSProperties}
+      } as Record<string, string>}
     >
       {children}
     </UISidebarProvider>

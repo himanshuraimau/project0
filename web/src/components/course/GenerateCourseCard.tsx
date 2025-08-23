@@ -13,7 +13,7 @@ interface GenerateCourseCardProps {
 
 export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
   return (
-    <Link href="/dashboard/create" className="block">
+    <Link href="/dashboard/create/wizard" className="block">
       <Card className={cn(
         "h-24 transition-all duration-200 shadow-sm hover:shadow-lg border border-primary/30 hover:border-primary bg-gradient-to-br from-primary/5 to-background rounded-2xl cursor-pointer group",
         className

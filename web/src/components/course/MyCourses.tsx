@@ -52,7 +52,7 @@ export function MyCourses({ courses }: MyCoursesProps) {
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               Start your learning journey by creating your first AI-powered course
             </p>
-            <Link href="/dashboard/create">
+            <Link href="/dashboard/create/wizard">
               <Button className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 Create Your First Course
