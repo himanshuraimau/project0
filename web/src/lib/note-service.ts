@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { google } from "@ai-sdk/google";
+import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { indexNoteContent } from "./embedding-service";
 import {
@@ -11,7 +11,7 @@ import {
 
 
 export class NoteService {
-  private model = google("models/gemini-1.5-flash-latest");
+  private model = openai("gpt-4o");
 
   /**
    * Generate AI summary notes from transcript content

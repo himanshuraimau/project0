@@ -5,7 +5,11 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)', 
   '/sign-up(.*)',
-  '/api/(.*)',  // Allow all API routes to be public for now
+])
+
+const isProtectedApiRoute = createRouteMatcher([
+  '/api/course/(.*)',
+  '/api/chatbot',
 ])
 
 const isAuthRoute = createRouteMatcher([
@@ -21,10 +25,33 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
   
+  // Protect API routes that require authentication
+  if (isProtectedApiRoute(req)) {
+    await auth.protect()
+  }
+  
   // Protect non-public routes
   if (!isPublicRoute(req)) {
     await auth.protect()
   }
+
+  // Add security headers to all responses
+  const response = NextResponse.next()
+  
+  // Security headers
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN') // Allow same-origin framing for YouTube embeds
+  response.headers.set('X-XSS-Protection', '1; mode=block')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  
+  // Content Security Policy for additional XSS protection - updated to allow YouTube
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.com https://*.clerk.accounts.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: https://img.youtube.com https://i.ytimg.com; font-src 'self' data:; connect-src 'self' https://api.clerk.com https://*.clerk.accounts.dev https://clerk.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com;"
+  )
+
+  return response
 })
 
 export const config = {

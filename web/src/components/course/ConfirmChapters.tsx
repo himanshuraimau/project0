@@ -63,7 +63,7 @@ const ConfirmChapters = ({ course }: Props) => {
         <Separator className="flex-[1]" />
         <div className="flex items-center mx-4">
           <Link
-            href="/dashboard/create"
+            href="/dashboard/create?mode=manual"
             className={buttonVariants({
               variant: "secondary",
             })}

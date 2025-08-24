@@ -201,6 +201,27 @@ export type {
 
 
 
+// Course types - course creation and management types
+export type {
+  Unit,
+  Chapter,
+  UnitWithChapters,
+  CourseStructure,
+  WizardStep,
+  WizardState,
+  CourseCreationWizardProps,
+  TitleInputStepProps,
+  UnitsGenerationStepProps,
+  ChaptersReviewStepProps,
+  CourseCreationState,
+  GenerateUnitsRequest,
+  GenerateUnitsResponse,
+  GenerateChaptersRequest,
+  GenerateChaptersResponse,
+  CreateCourseRequest,
+  CreateCourseResponse
+} from './course.types';
+
 // UI types - UI component and interaction types
 export type {
   BaseComponentProps,

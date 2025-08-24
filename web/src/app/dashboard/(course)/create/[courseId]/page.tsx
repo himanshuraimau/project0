@@ -28,7 +28,7 @@ const CreateChapters = async ({ params }: Props) => {
   })
 
   if (!course) {
-    redirect("/dashboard/create")
+    redirect("/dashboard/create?mode=manual")
   }
 
   return (

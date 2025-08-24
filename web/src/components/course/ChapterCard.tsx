@@ -5,12 +5,14 @@ import axios from "axios";
 import React from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Props = {
   chapter: Chapter;
   chapterIndex: number;
   completedChapters: Set<string>;
   setCompletedChapters: React.Dispatch<React.SetStateAction<Set<string>>>;
+  courseId?: string;
 };
 
 export type ChapterCardHandler = {
@@ -18,9 +20,10 @@ export type ChapterCardHandler = {
 };
 
 const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
-  ({ chapter, setCompletedChapters }, ref) => {
+  ({ chapter, setCompletedChapters, courseId }, ref) => {
     const [success, setSuccess] = React.useState<boolean | null>(null);
     const [isLoading, setIsLoading] = React.useState(false);
+    const router = useRouter();
 
     const getChapterInfo = async () => {
       try {
@@ -57,7 +60,7 @@ const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
           addChapterIdToSet();
           return;
         }
-        
+
         try {
           await getChapterInfo();
           setSuccess(true);
@@ -73,11 +76,22 @@ const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
     return (
       <div
         key={chapter.id}
-        className={cn("px-4 py-2 mt-2 rounded flex justify-between", {
+        className={cn("px-4 py-2 mt-2 rounded flex justify-between cursor-pointer hover:opacity-80 transition-opacity", {
           "bg-secondary": success === null,
           "bg-red-500": success === false,
           "bg-green-500": success === true,
         })}
+        onClick={() => {
+          if (courseId) {
+            // Navigate to the chapter page
+            router.push(`/dashboard/course/${courseId}/chapter/${chapter.id}`);
+          } else {
+            // Fallback: just trigger the load
+            if (!chapter.videoId && !isLoading) {
+              getChapterInfo().catch(console.error);
+            }
+          }
+        }}
       >
         <h5>{chapter.name}</h5>
         {isLoading && <Loader2 className="animate-spin" />}

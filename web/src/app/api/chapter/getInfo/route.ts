@@ -1,7 +1,7 @@
 // /api/chapter/getInfo
 
 import { prisma } from "@/lib/prisma"
-import { strict_output } from "@/lib/course/gemini"
+import { strict_output } from "@/lib/course/ai-course-service"
 import {
   getQuestionsFromTranscript,
   getTranscript,
@@ -57,22 +57,39 @@ export async function POST(req: Request) {
     console.log("Transcript length:", transcript?.length)
     
     if (!transcript || transcript.trim().length === 0) {
+      console.log(`No transcript available for video: ${videoId}`)
       return NextResponse.json(
-        { success: false, error: "No transcript available for this video" },
+        { success: false, error: `No transcript available for video: ${videoId}` },
         { status: 400 }
       )
     }
 
     transcript = transcript.split(" ").slice(0, 500).join(" ")
 
-    const summaryResult = await strict_output(
-      "You are an AI capable of summarising a youtube transcript",
-      "summarise in 250 words or less and do not talk of the sponsors or anything unrelated to the main topic, also do not introduce what the summary is about.\n" +
-        transcript,
-      { summary: "summary of the transcript" }
-    ) as { summary: string }
+    let summaryResult: { summary: string };
+    try {
+      summaryResult = await strict_output(
+        "You are an AI capable of summarising a youtube transcript",
+        "summarise in 250 words or less and do not talk of the sponsors or anything unrelated to the main topic, also do not introduce what the summary is about.\n" +
+          transcript,
+        { summary: "summary of the transcript" }
+      ) as { summary: string };
+    } catch (summaryError) {
+      console.error("Error generating summary:", summaryError);
+      return NextResponse.json(
+        { success: false, error: "Failed to generate chapter summary" },
+        { status: 500 }
+      );
+    }
     
-    const { summary } = summaryResult
+    const { summary } = summaryResult;
+    
+    if (!summary || summary.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Generated summary is empty" },
+        { status: 500 }
+      );
+    }
 
     const questions = await getQuestionsFromTranscript(
       transcript,

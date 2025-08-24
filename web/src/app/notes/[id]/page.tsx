@@ -8,18 +8,20 @@ import { Note } from "@/lib/types";
 import { useFlashcards } from "@/hooks/use-flashcards";
 import { useQuiz } from "@/hooks/use-quiz";
 import { Button } from "@/components/ui/button";
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarCollapseTrigger,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  useSidebar
-} from "@/components/ui/sidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NotesSidebar } from "@/components/notes/sidebar";
+import { NotesSidebarProvider, NotesSidebarContent } from "@/components/notes/sidebar-provider";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { FlashcardViewer, useFlashcardKeyboard } from "@/components/flashcards";
 import { QuizViewer } from "@/components/quiz";
 import {
@@ -34,10 +36,13 @@ import {
   Trash2,
   MessageCircle,
   PanelRight,
+  AlertTriangle,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { DashboardLayout } from "@/components/dashboard";
 import { MarkdownRenderer } from "@/components/mdx-renderer";
+import { SimpleEditor } from "@/components/notes/simple-editor";
+import { ViewNote } from "@/components/notes/view-note";
 
 // Lazy load the chatbot components
 const DynamicChatbot = dynamic(() => import("@/components/chatbot/chatbot"), {
@@ -50,9 +55,10 @@ const DynamicInlineChatbot = dynamic(
 );
 
 export default function NoteViewPage() {
-  // Get sidebar open/closed state from context
-  const { open: sidebarOpen } = useSidebar?.() ?? { open: true };
-  // Removed manual sidebarOpen state and handler. Let SidebarProvider manage state internally.
+  // We'll use the NotesSidebarProvider to manage sidebar state
+  // Define sidebar width constants for consistent layout
+  const sidebarWidth = "240px";
+  const collapsedWidth = "4rem";
   const params = useParams();
   const router = useRouter();
   const noteId = params.id as string;
@@ -75,11 +81,13 @@ export default function NoteViewPage() {
   } = useQuiz();
 
   const [note, setNote] = useState<Note | null>(null);
+  // Define view types for better type safety
+  type ViewType = 'notes' | 'transcript' | 'quiz' | 'flashcards' | 'chat';
+  
+  // Single source of truth for current view
+  const [currentView, setCurrentView] = useState<ViewType>('notes');
+  
   const [transcript, setTranscript] = useState<string | null>(null);
-  const [showTranscript, setShowTranscript] = useState(false);
-  const [showFlashcards, setShowFlashcards] = useState(false);
-  const [showQuiz, setShowQuiz] = useState(false);
-  const [showChat, setShowChat] = useState(false);
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -140,7 +148,7 @@ export default function NoteViewPage() {
 
   const handleSave = async () => {
     if (!note || !editTitle.trim()) {
-      alert("Please enter a title for your note");
+      toast.error("Please enter a title for your note");
       return;
     }
 
@@ -154,7 +162,18 @@ export default function NoteViewPage() {
 
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/notes/${note.id}`, {
+      console.log("Saving note with content:", editContent.substring(0, 100) + "...");
+      console.log("Note ID:", note.id);
+      
+      // Make sure we have a valid note ID
+      if (!note.id) {
+        throw new Error("Invalid note ID");
+      }
+      
+      const apiUrl = `/api/notes/${note.id}`;
+      console.log("API URL:", apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -165,18 +184,35 @@ export default function NoteViewPage() {
         }),
       });
 
-      if (response.ok) {
-        const updatedNote = await response.json();
-        if (updatedNote.success) {
-          setNote(updatedNote.data);
-          setIsEditing(false);
-        }
+      console.log("Response status:", response.status);
+      
+      // Get the response body as text first to debug
+      const responseText = await response.text();
+      console.log("Response body:", responseText);
+      
+      // Parse the JSON (if it's valid JSON)
+      let updatedNote;
+      try {
+        updatedNote = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Failed to parse response as JSON:", e);
+        throw new Error("Invalid response from server");
+      }
+
+      if (!response.ok) {
+        throw new Error(updatedNote.error || "Failed to update note");
+      }
+
+      if (updatedNote.success) {
+        toast.success("Note updated successfully");
+        setNote(updatedNote.data);
+        setIsEditing(false);
       } else {
-        throw new Error("Failed to update note");
+        throw new Error(updatedNote.error || "Failed to update note");
       }
     } catch (error) {
       console.error("Error updating note:", error);
-      alert("Failed to save note. Please try again.");
+      toast.error(`Failed to save note: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setIsSaving(false);
     }
@@ -199,15 +235,16 @@ export default function NoteViewPage() {
       return;
     }
 
-    if (showTranscript) {
-      // If transcript is already shown, hide it
-      setShowTranscript(false);
+    if (currentView === 'transcript') {
+      // If transcript is already shown, go back to notes view
+      setCurrentView('notes');
       setTranscript(null);
       setTranscriptError(null);
       return;
     }
 
-    setShowTranscript(true);
+    // Switch to transcript view
+    setCurrentView('transcript');
     setTranscriptLoading(true);
     setTranscriptError(null);
 
@@ -235,7 +272,7 @@ export default function NoteViewPage() {
   };
 
   const handleCloseTranscript = () => {
-    setShowTranscript(false);
+    setCurrentView('notes');
     setTranscript(null);
     setTranscriptError(null);
   };
@@ -243,17 +280,15 @@ export default function NoteViewPage() {
   const handleGenerateQuiz = async () => {
     if (!noteId) return;
 
-    // If quiz is already shown, hide it and show note
-    if (showQuiz) {
-      setShowQuiz(false);
+    // If quiz is already shown, go back to notes view
+    if (currentView === 'quiz') {
+      setCurrentView('notes');
       return;
     }
 
     try {
-      // Hide other views first
-      setShowFlashcards(false);
-      setShowTranscript(false);
-      setShowQuiz(true);
+      // Switch to quiz view
+      setCurrentView('quiz');
 
       // Check if quiz already exists
       const existingQuiz = await getQuiz(noteId);
@@ -264,22 +299,23 @@ export default function NoteViewPage() {
       }
     } catch (error) {
       console.error("Error with quiz:", error);
-      setShowQuiz(false);
-      // You could add a toast notification here
+      setCurrentView('notes');
+      toast.error("Failed to generate quiz");
     }
   };
 
   const handleGenerateFlashcard = async () => {
     if (!noteId) return;
 
-    // If flashcards are already shown, hide them and show note
-    if (showFlashcards) {
-      setShowFlashcards(false);
+    // If flashcards are already shown, go back to notes view
+    if (currentView === 'flashcards') {
+      setCurrentView('notes');
       return;
     }
 
     try {
-      setShowFlashcards(true);
+      // Switch to flashcards view
+      setCurrentView('flashcards');
 
       // Check if flashcards already exist
       const existingFlashcards = await getFlashcards(noteId);
@@ -290,13 +326,13 @@ export default function NoteViewPage() {
       }
     } catch (error) {
       console.error("Error with flashcards:", error);
-      setShowFlashcards(false);
-      // You could add a toast notification here
+      setCurrentView('notes');
+      toast.error("Failed to generate flashcards");
     }
   };
 
   const handleCloseFlashcards = () => {
-    setShowFlashcards(false);
+    setCurrentView('notes');
   };
 
   const handleDeleteFlashcards = async () => {
@@ -304,16 +340,16 @@ export default function NoteViewPage() {
 
     try {
       await deleteFlashcards(noteId);
-      setShowFlashcards(false);
-      // You could add a toast notification here
+      setCurrentView('notes');
+      toast.success("Flashcards deleted successfully");
     } catch (error) {
       console.error("Error deleting flashcards:", error);
-      // You could add a toast notification here
+      toast.error("Failed to delete flashcards");
     }
   };
 
   const handleCloseQuiz = () => {
-    setShowQuiz(false);
+    setCurrentView('notes');
   };
 
   const handleDeleteQuiz = async () => {
@@ -321,11 +357,52 @@ export default function NoteViewPage() {
 
     try {
       await deleteQuiz(noteId);
-      setShowQuiz(false);
-      // You could add a toast notification here
+      setCurrentView('notes');
+      toast.success("Quiz deleted successfully");
     } catch (error) {
       console.error("Error deleting quiz:", error);
-      // You could add a toast notification here
+      toast.error("Failed to delete quiz");
+    }
+  };
+  
+  // Handle the delete note action
+  const handleDeleteNote = async () => {
+    if (!noteId || !note) return;
+    
+    try {
+      // Show loading toast
+      const loadingToast = toast.loading("Deleting note...");
+      
+      // Delete the note
+      const response = await fetch(`/api/notes/${noteId}`, {
+        method: "DELETE",
+      });
+      
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+      }
+      
+      // Show success toast
+      toast.success("Note deleted successfully", {
+        duration: 3000,
+        position: "top-center",
+      });
+      
+      // Navigate back to dashboard after a short delay
+      // This ensures the user sees the success message before navigation
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 500);
+      
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      toast.error(`Failed to delete note: ${error instanceof Error ? error.message : "Unknown error"}`, {
+        duration: 5000,
+        position: "top-center",
+      });
     }
   };
 
@@ -333,16 +410,18 @@ export default function NoteViewPage() {
     if (!noteId) return;
 
     // Toggle chat view
-    if (showChat) {
-      setShowChat(false);
+    if (currentView === 'chat') {
+      setCurrentView('notes');
       return;
     }
 
-    // Hide other views but keep the note visible for chat
-    setShowFlashcards(false);
-    setShowTranscript(false);
-    setShowQuiz(false);
-    setShowChat(true);
+    // Switch to chat view
+    setCurrentView('chat');
+  };
+  
+  // Add a handler for the Notes menu item
+  const handleShowNotes = () => {
+    setCurrentView('notes');
   };
 
   // Keyboard navigation for flashcards
@@ -396,60 +475,68 @@ export default function NoteViewPage() {
   }
 
   return (
-
     <DashboardLayout>
-      <div className="grid grid-cols-[auto_1fr] w-full min-h-screen">
-  <SidebarProvider style={{ minWidth: '240px' }}>
-          <Sidebar className={showChat ? 'pb-3' : 'pb-6'}>
-            <SidebarHeader className="flex justify-end">
-              <SidebarCollapseTrigger />
-            </SidebarHeader>
-            <SidebarContent>
-              <SidebarMenu>
-                <SidebarMenuButton onClick={handleShowTranscript} active={showTranscript}>
-                  <FileText className="h-4 w-4" />
-                  {sidebarOpen && (
-                    <span className="ml-2 block text-foreground whitespace-nowrap">Show Transcript</span>
-                  )}
-                </SidebarMenuButton>
-                <SidebarMenuButton onClick={handleGenerateQuiz} active={showQuiz} disabled={quizLoading}>
-                  <HelpCircle className="h-4 w-4" />
-                  {sidebarOpen && (
-                    <span className="ml-2 block text-foreground whitespace-nowrap">Generate Quiz</span>
-                  )}
-                </SidebarMenuButton>
-                <SidebarMenuButton onClick={handleChatWithNote} active={showChat}>
-                  <MessageCircle className="h-4 w-4 text-primary" />
-                  {sidebarOpen && (
-                    <span className="ml-2 block text-foreground whitespace-nowrap">Chat with Note</span>
-                  )}
-                </SidebarMenuButton>
-                <SidebarMenuButton onClick={handleGenerateFlashcard} active={showFlashcards} disabled={flashcardsLoading}>
-                  <Layers className="h-4 w-4" />
-                  {sidebarOpen && (
-                    <span className="ml-2 block text-foreground whitespace-nowrap">Generate Flashcards</span>
-                  )}
-                </SidebarMenuButton>
-                {flashcards.length > 0 && showFlashcards && (
-                  <SidebarMenuButton onClick={handleDeleteFlashcards} variant="default">
-                    <Trash2 className="h-4 w-4" />
-                    {sidebarOpen ? (
-                      <span className="ml-2 block">Delete Flashcards</span>
-                    ) : null}
-                  </SidebarMenuButton>
-                )}
-                {quiz.length > 0 && showQuiz && (
-                  <SidebarMenuButton onClick={handleDeleteQuiz} variant="default">
-                    <Trash2 className="h-4 w-4" />
-                    {sidebarOpen ? (
-                      <span className="ml-2 block">Delete Quiz</span>
-                    ) : null}
-                  </SidebarMenuButton>
-                )}
-              </SidebarMenu>
-            </SidebarContent>
-          </Sidebar>
-          <main className="flex flex-col w-full">
+      <div className="flex w-full min-h-screen relative">
+        <AlertDialog>
+          {/* Delete Confirmation Dialog Content */}
+          <AlertDialogContent className="max-w-md">
+            <AlertDialogHeader>
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-full bg-red-100">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <AlertDialogTitle className="text-red-600">Delete Note</AlertDialogTitle>
+              </div>
+              <AlertDialogDescription className="space-y-3 mt-2">
+                <p className="font-medium text-base border-l-4 border-l-red-200 pl-3 py-1">{note?.title}</p>
+                <p>This action cannot be undone. This will permanently delete this note and all associated content.</p>
+                <Card className="bg-amber-50 border-amber-200 mt-2">
+                  <CardContent className="p-3 text-sm text-amber-800">
+                    <p className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <span>All flashcards and quizzes generated from this note will also be deleted.</span>
+                    </p>
+                  </CardContent>
+                </Card>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="font-medium">Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                className="bg-red-600 hover:bg-red-700 text-white font-medium flex items-center gap-2"
+                onClick={handleDeleteNote}
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Note
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+
+          {/* Sidebar with the AlertDialogTrigger */}
+          <NotesSidebarProvider 
+            defaultOpen={true}
+            sidebarWidth={sidebarWidth}
+            sidebarWidthMobile={sidebarWidth}
+          >
+            <NotesSidebar 
+              className={currentView === 'chat' ? 'pb-3' : 'pb-6'}
+              showTranscript={currentView === 'transcript'}
+              showQuiz={currentView === 'quiz'}
+              showChat={currentView === 'chat'}
+              showFlashcards={currentView === 'flashcards'}
+              onShowNotes={handleShowNotes}
+              onShowTranscript={handleShowTranscript}
+              onGenerateQuiz={handleGenerateQuiz}
+              onChatWithNote={handleChatWithNote}
+              onGenerateFlashcard={handleGenerateFlashcard}
+              onDeleteNote={handleDeleteNote}
+              quizLoading={quizLoading}
+              flashcardsLoading={flashcardsLoading}
+            />
+          <NotesSidebarContent 
+            sidebarWidth={sidebarWidth} 
+            collapsedWidth={collapsedWidth}
+          >
             <div>
               <div className="flex flex-row items-center justify-between w-full gap-2">
                 <div>
@@ -464,28 +551,25 @@ export default function NoteViewPage() {
                   </Button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    onClick={handleCopy}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Copy className="h-4 w-4" />
-                    Copy
-                  </Button>
-                  <Button
-                    onClick={handleDownload}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download
-                  </Button>
-                  {isEditing ? (
+                  {isEditing && (
                     <>
                       <Button
-                        onClick={handleSave}
+                        onClick={() => {
+                          // Get the current title and content from the editor
+                          const editor = document.querySelector('.simple-editor');
+                          if (editor) {
+                            const titleInput = editor.querySelector('input');
+                            const contentTextarea = editor.querySelector('textarea');
+                            if (titleInput && contentTextarea) {
+                              setEditTitle(titleInput.value);
+                              setEditContent(contentTextarea.value);
+                              handleSave();
+                            }
+                          } else {
+                            // Fallback if we can't find the editor elements
+                            handleSave();
+                          }
+                        }}
                         variant="default"
                         size="sm"
                         className="flex items-center gap-2"
@@ -503,55 +587,38 @@ export default function NoteViewPage() {
                         Cancel
                       </Button>
                     </>
-                  ) : (
-                    <Button
-                      onClick={handleEdit}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <Edit className="h-4 w-4" />
-                      Edit
-                    </Button>
                   )}
                 </div>
               </div>
               <div className="flex-1 min-w-7xl w-full mx-auto">
-                {/* Note Content, Flashcards, or Quiz */}
-                {!showTranscript && !showFlashcards && !showQuiz && !showChat && (
-                  <Card className={isEditing ? "ring-2 ring-primary/20" : ""}>
-                    <CardHeader>
-                      {isEditing ? (
-                        <div className="space-y-4">
-                          <Input
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            placeholder="Note title"
-                            className="text-xl font-semibold border-0 p-0 h-auto text-foreground bg-transparent"
-                          />
-                        </div>
-                      ) : (
-                        <></>
-                      )}
-                    </CardHeader>
-                    <CardContent>
-                      {isEditing ? (
-                        <div className="space-y-4">
-                          <textarea
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                            placeholder="Note content"
-                            className="w-full h-[77vh] p-4 border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm leading-relaxed bg-background text-foreground "
-                          />
-                        </div>
-                      ) : (
-                        <MarkdownRenderer content={note.content || ""} />
-                      )}
-                    </CardContent>
-                  </Card>
+                {/* Content sections - Only one visible at a time based on currentView */}
+                
+                {/* Notes View */}
+                {currentView === 'notes' && (
+                  <>
+                    {isEditing ? (
+                      <SimpleEditor
+                        initialTitle={note.title || ""}
+                        initialContent={note.content || ""}
+                        onSave={(title, content) => {
+                          setEditTitle(title);
+                          setEditContent(content);
+                          handleSave();
+                        }}
+                        onCancel={() => {}}
+                        isSaving={isSaving}
+                      />
+                    ) : (
+                      <ViewNote 
+                        note={note} 
+                        onEdit={handleEdit}
+                      />
+                    )}
+                  </>
                 )}
-                {/* Flashcards Section - Replaces Note Content */}
-                {!showTranscript && showFlashcards && !showChat && (
+                
+                {/* Flashcards Section */}
+                {currentView === 'flashcards' && (
                   <div className="space-y-4">
                     {flashcardsLoading && (
                       <Card>
@@ -595,8 +662,9 @@ export default function NoteViewPage() {
                     )}
                   </div>
                 )}
-                {/* Quiz Section - Replaces Note Content */}
-                {!showTranscript && showQuiz && !showChat && (
+                
+                {/* Quiz Section */}
+                {currentView === 'quiz' && (
                   <div className="space-y-4">
                     {quizLoading && (
                       <Card>
@@ -637,8 +705,9 @@ export default function NoteViewPage() {
                     )}
                   </div>
                 )}
-                {/* Chat Section - Two Column Layout */}
-                {!showTranscript && showChat && (
+                
+                {/* Chat Section */}
+                {currentView === 'chat' && (
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[600px]">
                     {/* Note Content - Left Side (2/3 width) */}
                     <Card
@@ -662,14 +731,17 @@ export default function NoteViewPage() {
                       </CardHeader>
                       <CardContent className="pt-0 flex-grow">
                         {isEditing ? (
-                          <div className="h-full">
-                            <textarea
-                              value={editContent}
-                              onChange={(e) => setEditContent(e.target.value)}
-                              placeholder="Note content"
-                              className="w-full h-full p-4 border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm leading-relaxed bg-background text-foreground"
-                            />
-                          </div>
+                          <SimpleEditor
+                            initialTitle={note.title || ""}
+                            initialContent={note.content || ""}
+                            onSave={(title, content) => {
+                              setEditTitle(title);
+                              setEditContent(content);
+                              handleSave();
+                            }}
+                            onCancel={() => {}}
+                            isSaving={isSaving}
+                          />
                         ) : (
                           <div className="h-full overflow-y-auto pr-2">
                             <MarkdownRenderer
@@ -700,8 +772,9 @@ export default function NoteViewPage() {
                     </Card>
                   </div>
                 )}
+                
                 {/* Transcript Section */}
-                {showTranscript && (
+                {currentView === 'transcript' && (
                   <div className="max-w-6xl w-full mx-auto">
                     <Card>
                       <CardHeader>
@@ -737,8 +810,9 @@ export default function NoteViewPage() {
                 )}
               </div>
             </div>
-          </main>
-        </SidebarProvider>
+          </NotesSidebarContent>
+        </NotesSidebarProvider>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );

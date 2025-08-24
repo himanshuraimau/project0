@@ -1,0 +1,323 @@
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UnitsGenerationStepProps, Unit } from '@/lib/types/course.types';
+import { Plus, Trash2, Edit3, Check, X } from 'lucide-react';
+import { LoadingState, InlineLoading } from '@/components/ui/loading-spinner';
+import { validateUnitName, sanitizeString, validateContentSafety } from '@/lib/utils/validation';
+
+/**
+ * UnitsGenerationStep component handles display and editing of generated course units
+ * Allows users to add, remove, and edit units with real-time validation
+ */
+export function UnitsGenerationStep({ 
+  units, 
+  onUnitsChange, 
+  onFinalize, 
+  isLoading 
+}: UnitsGenerationStepProps) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
+  const [error, setError] = useState<string>('');
+
+  // Start editing a unit
+  const startEditing = (unit: Unit) => {
+    setEditingId(unit.id);
+    setEditValue(unit.name);
+    setError('');
+  };
+
+  // Save edited unit
+  const saveEdit = () => {
+    // Enhanced validation using validation utilities
+    const unitValidation = validateUnitName(editValue);
+    if (!unitValidation.isValid) {
+      setError(unitValidation.error || 'Invalid unit name');
+      return;
+    }
+
+    // Content safety validation
+    const safetyCheck = validateContentSafety(editValue);
+    if (!safetyCheck.isSafe) {
+      setError(`Content validation failed: ${safetyCheck.reason}`);
+      return;
+    }
+
+    // Sanitize the input
+    let sanitizedValue;
+    try {
+      sanitizedValue = sanitizeString(editValue);
+    } catch (sanitizeError) {
+      setError('Invalid characters in unit name');
+      return;
+    }
+
+    const updatedUnits = units.map(unit => 
+      unit.id === editingId 
+        ? { ...unit, name: sanitizedValue }
+        : unit
+    );
+    
+    onUnitsChange(updatedUnits);
+    setEditingId(null);
+    setEditValue('');
+    setError('');
+  };
+
+  // Cancel editing
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValue('');
+    setError('');
+  };
+
+  // Add new unit
+  const addUnit = () => {
+    const newUnit: Unit = {
+      id: `unit-${Date.now()}`,
+      name: '',
+      isEditing: true
+    };
+    
+    const updatedUnits = [...units, newUnit];
+    onUnitsChange(updatedUnits);
+    setEditingId(newUnit.id);
+    setEditValue('');
+    setError('');
+  };
+
+  // Remove unit
+  const removeUnit = (unitId: string) => {
+    const updatedUnits = units.filter(unit => unit.id !== unitId);
+    onUnitsChange(updatedUnits);
+    
+    // If we're editing the unit being removed, clear editing state
+    if (editingId === unitId) {
+      setEditingId(null);
+      setEditValue('');
+      setError('');
+    }
+  };
+
+  // Handle key press in edit input
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      saveEdit();
+    } else if (e.key === 'Escape') {
+      cancelEdit();
+    }
+  };
+
+  // Validate units before finalization
+  const validateUnits = () => {
+    if (units.length === 0) {
+      setError('At least one unit is required');
+      return false;
+    }
+
+    // Enhanced validation for each unit
+    for (let i = 0; i < units.length; i++) {
+      const unit = units[i];
+      
+      // Use validation utility
+      const unitValidation = validateUnitName(unit.name);
+      if (!unitValidation.isValid) {
+        setError(`Unit ${i + 1}: ${unitValidation.error}`);
+        return false;
+      }
+
+      // Content safety check
+      const safetyCheck = validateContentSafety(unit.name);
+      if (!safetyCheck.isSafe) {
+        setError(`Unit ${i + 1} contains inappropriate content: ${safetyCheck.reason}`);
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // Handle finalize button click
+  const handleFinalize = () => {
+    if (editingId) {
+      setError('Please finish editing before finalizing');
+      return;
+    }
+
+    if (validateUnits()) {
+      setError('');
+      onFinalize();
+    }
+  };
+
+  const canFinalize = units.length > 0 && 
+                     units.every(unit => unit.name.trim()) && 
+                     !editingId && 
+                     !isLoading;
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Review and Edit Units
+        </h2>
+        <p className="text-gray-600">
+          AI has generated course units for you. Edit, add, or remove units as needed.
+        </p>
+      </div>
+
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Course Units ({units.length})</span>
+            <Button
+              onClick={addUnit}
+              variant="outline"
+              size="sm"
+              disabled={isLoading}
+              className="flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Unit</span>
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        
+        <CardContent>
+          {units.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>No units generated yet.</p>
+              <p className="text-sm mt-1">Click "Add Unit" to create your first unit.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {units.map((unit, index) => (
+                <div
+                  key={unit.id}
+                  className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium">
+                    {index + 1}
+                  </div>
+                  
+                  <div className="flex-1">
+                    {editingId === unit.id ? (
+                      <div className="space-y-2">
+                        <Input
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onKeyDown={handleKeyPress}
+                          placeholder="Enter unit name..."
+                          className={error ? 'border-red-500' : ''}
+                          autoFocus
+                        />
+                        {error && (
+                          <p className="text-sm text-red-600">{error}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className={`${!unit.name.trim() ? 'text-gray-400 italic' : 'text-gray-900'}`}>
+                          {unit.name.trim() || 'Empty unit - click edit to add name'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    {editingId === unit.id ? (
+                      <>
+                        <Button
+                          onClick={saveEdit}
+                          variant="ghost"
+                          size="sm"
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          <Check className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          onClick={cancelEdit}
+                          variant="ghost"
+                          size="sm"
+                          className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          onClick={() => startEditing(unit)}
+                          variant="ghost"
+                          size="sm"
+                          disabled={isLoading}
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          onClick={() => removeUnit(unit.id)}
+                          variant="ghost"
+                          size="sm"
+                          disabled={isLoading || units.length <= 1}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:text-gray-400"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {error && !editingId && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {isLoading && (
+        <div className="max-w-2xl mx-auto mt-6">
+          <LoadingState
+            message="Generating Course Chapters"
+            submessage="AI is creating 3-5 chapters for each unit with YouTube search queries..."
+            variant="ai"
+            className="bg-purple-50 border border-purple-200 rounded-lg"
+          />
+        </div>
+      )}
+
+      {units.length > 0 && !isLoading && (
+        <div className="max-w-2xl mx-auto">
+          <Button
+            onClick={handleFinalize}
+            disabled={!canFinalize}
+            className="w-full"
+            size="lg"
+          >
+            {isLoading ? (
+              <InlineLoading 
+                message="Generating Chapters..." 
+                variant="ai"
+                className="text-white"
+              />
+            ) : (
+              'Finalize Units & Generate Chapters'
+            )}
+          </Button>
+          
+          <p className="text-sm text-gray-600 text-center mt-2">
+            This will automatically generate 3-5 chapters for each unit using AI.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}

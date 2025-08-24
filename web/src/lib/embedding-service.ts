@@ -1,6 +1,5 @@
 import { Pool } from 'pg';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import dotenv from 'dotenv';
 
 // Constants - use the values from the .env file
 const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || 'models/embedding-001';
