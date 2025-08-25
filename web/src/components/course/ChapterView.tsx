@@ -3,10 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { YouTubePlayer } from './YouTubePlayer';
-import { YouTubeFallback } from './YouTubeFallback';
 import { LoadingState } from '@/components/ui/loading-spinner';
 import { BookOpen, Play, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { Chapter } from '@prisma/client';
@@ -18,13 +16,8 @@ interface ChapterViewProps {
     onComplete?: () => void;
 }
 
-interface ChapterData extends Chapter {
-    summary?: string;
-    videoId?: string;
-}
-
 export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
-    const [chapterData, setChapterData] = useState<ChapterData>(chapter);
+    const [chapterData, setChapterData] = useState<Chapter>(chapter);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isCompleted, setIsCompleted] = useState(false);
