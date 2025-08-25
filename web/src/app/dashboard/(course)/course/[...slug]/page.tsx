@@ -1,6 +1,5 @@
 import CourseSideBar from "@/components/course/CourseSideBar";
-import MainVideoSummary from "@/components/course/MainVideoSummary";
-import QuizCards from "@/components/course/QuizCards";
+import { CourseContentTabs } from "@/components/course/CourseContentTabs";
 import { prisma } from "@/lib/prisma";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -49,6 +48,7 @@ const CoursePage = async ({ params }: Props) => {
   }
   const nextChapter = unit.chapters[chapterIndex + 1];
   const prevChapter = unit.chapters[chapterIndex - 1];
+  
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sticky Sidebar */}
@@ -56,24 +56,23 @@ const CoursePage = async ({ params }: Props) => {
         <CourseSideBar course={course} currentChapterId={chapter.id} />
       </aside>
       <main className="flex-1 px-8 py-10">
-        <div className="max-w-5xl mx-auto">
-          {/* Main Content Card */}
-          <div className="flex gap-8 mb-8">
-            <div className="flex-1">
-              <div className="bg-card rounded-2xl shadow-lg p-6">
-                <MainVideoSummary
-                  chapter={chapter}
-                  chapterIndex={chapterIndex}
-                  unit={unit}
-                  unitIndex={unitIndex}
-                />
-              </div>
-            </div>
-            <div className="w-[340px]">
-              <div className="bg-card rounded-2xl shadow-lg p-6">
-                <QuizCards chapter={chapter} />
-              </div>
-            </div>
+        <div className="max-w-7xl mx-auto">
+          {/* Chapter Header */}
+          <div className="mb-8">
+            <h4 className="text-xs uppercase text-muted-foreground tracking-wide mb-2">
+              Unit {unitIndex + 1} &bull; Chapter {chapterIndex + 1}
+            </h4>
+            <h1 className="text-3xl font-bold text-foreground">{chapter.name}</h1>
+          </div>
+
+          {/* Main Content with Tabs */}
+          <div className="mb-8">
+            <CourseContentTabs 
+              chapter={chapter}
+              unit={unit}
+              unitIndex={unitIndex}
+              chapterIndex={chapterIndex}
+            />
           </div>
 
           {/* Divider */}
