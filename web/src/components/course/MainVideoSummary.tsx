@@ -1,5 +1,6 @@
 import { Chapter, Unit } from "@prisma/client";
 import React from "react";
+import { ChapterView } from "./ChapterView";
 
 type Props = {
   chapter: Chapter;
@@ -20,18 +21,8 @@ const MainVideoSummary = ({
         Unit {unitIndex + 1} &bull; Chapter {chapterIndex + 1}
       </h4>
       <h1 className="text-3xl font-bold text-foreground mb-4">{chapter.name}</h1>
-      <div className="aspect-video w-full rounded-xl overflow-hidden shadow mb-6">
-        <iframe
-          title="chapter video"
-          className="w-full h-full"
-          src={`https://www.youtube.com/embed/${chapter.videoId}`}
-          allowFullScreen
-        />
-      </div>
-      <div className="border-t border-border pt-4">
-        <h3 className="text-lg font-semibold mb-2 text-foreground">Summary</h3>
-        <p className="text-base text-muted-foreground leading-relaxed">{chapter.summary}</p>
-      </div>
+      
+      <ChapterView chapter={chapter} />
     </div>
   );
 };

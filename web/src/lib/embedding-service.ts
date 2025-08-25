@@ -42,14 +42,14 @@ export function chunkText(text: string): { chunks: string[], chunkIndices: [numb
 
   const chunks: string[] = [];
   const chunkIndices: [number, number][] = [];
-  
+
   let startIndex = 0;
   while (startIndex < text.length) {
     const endIndex = Math.min(startIndex + CHUNK_SIZE, text.length);
     chunks.push(text.substring(startIndex, endIndex));
     chunkIndices.push([startIndex, endIndex]);
     startIndex = endIndex - CHUNK_OVERLAP;
-    
+
     // If the remaining text is too small for a meaningful chunk, just include it in the last chunk
     if (text.length - startIndex < CHUNK_SIZE / 2) {
       if (startIndex < text.length) {
@@ -59,7 +59,7 @@ export function chunkText(text: string): { chunks: string[], chunkIndices: [numb
       break;
     }
   }
-  
+
   return { chunks, chunkIndices };
 }
 
@@ -68,12 +68,12 @@ export function chunkText(text: string): { chunks: string[], chunkIndices: [numb
  */
 export function generateMockEmbeddings(count: number): number[][] {
   const embeddings: number[][] = [];
-  
+
   for (let i = 0; i < count; i++) {
     const embedding = Array.from({ length: EMBEDDING_DIM }, () => Math.random() * 2 - 1);
     embeddings.push(embedding);
   }
-  
+
   console.log(`Generated ${count} mock embeddings for testing`);
   return embeddings;
 }
@@ -88,10 +88,10 @@ export async function generateEmbeddings(chunks: string[]): Promise<number[][]> 
       console.log('Google AI client not available - using mock embeddings');
       return generateMockEmbeddings(chunks.length);
     }
-    
+
     const embeddings: number[][] = [];
     const embeddingModel = genAI.getGenerativeModel({ model: EMBEDDING_MODEL });
-    
+
     // Process chunks in batches to avoid rate limiting
     for (let i = 0; i < chunks.length; i++) {
       try {
@@ -109,12 +109,12 @@ export async function generateEmbeddings(chunks: string[]): Promise<number[][]> 
         }
       }
     }
-    
+
     console.log(`Successfully generated embeddings for ${chunks.length} chunks`);
     return embeddings;
   } catch (error) {
     console.error('Error in generateEmbeddings:', error);
-    
+
     // Always fall back to mock embeddings if there's an error
     console.log('Falling back to mock embeddings due to error');
     return generateMockEmbeddings(chunks.length);
@@ -131,30 +131,30 @@ export async function insertChunks(
   embeddings: number[][]
 ): Promise<void> {
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
-    
+
     // First delete any existing chunks for this note
     await client.query(
       'DELETE FROM note_chunks WHERE note_id = $1',
       [noteId]
     );
-    
+
     // Make sure vector extension is available
     await client.query('CREATE EXTENSION IF NOT EXISTS vector');
-    
+
     // Insert each chunk with its embedding
     // Use text representation and cast to vector to avoid Prisma issues
     const query = `
       INSERT INTO note_chunks (note_id, chunk_text, embedding)
       VALUES ($1, $2, $3::vector)
     `;
-    
+
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
       const embedding = embeddings[i];
-      
+
       // Compress the embedding if necessary
       // If the API returns a larger embedding than we want to store
       let processedEmbedding = embedding;
@@ -183,19 +183,19 @@ export async function insertChunks(
           console.log(`Padded embedding from ${embedding.length} to ${EMBEDDING_DIM} dimensions`);
         }
       }
-      
+
       // Format embedding for PostgreSQL vector format
       const vectorString = `[${processedEmbedding.join(',')}]`;
-      
+
       await client.query(query, [
         noteId,
         chunk,
         vectorString
       ]);
-      
+
       console.log(`Inserted chunk ${i + 1}/${chunks.length} for note ${noteId}`);
     }
-    
+
     await client.query('COMMIT');
     console.log(`Successfully indexed ${chunks.length} chunks for note ${noteId}`);
     return;
@@ -218,18 +218,18 @@ export async function indexNoteContent(noteId: string, content: string): Promise
       console.log(`Note ${noteId} has no content to index`);
       return;
     }
-    
+
     // Chunk the text
     const { chunks, chunkIndices } = chunkText(content);
-    
+
     if (chunks.length === 0) {
       console.log(`No chunks generated for note ${noteId}`);
       return;
     }
-    
+
     // Generate embeddings
     const embeddings = await generateEmbeddings(chunks);
-    
+
     // Store chunks and embeddings
     await insertChunks(noteId, chunks, chunkIndices, embeddings);
   } catch (error) {
@@ -244,7 +244,7 @@ export async function indexNoteContent(noteId: string, content: string): Promise
 export async function querySimilarChunks(query: string, noteId?: string, topK: number = 3): Promise<any[]> {
   try {
     let embedding: number[] = [];
-    
+
     // Generate embedding for query
     if (genAI) {
       try {
@@ -259,7 +259,7 @@ export async function querySimilarChunks(query: string, noteId?: string, topK: n
       console.log('Using mock embedding for query');
       embedding = generateMockEmbeddings(1)[0];
     }
-    
+
     // Process the embedding to match our storage dimension
     let processedEmbedding = embedding;
     if (embedding.length !== EMBEDDING_DIM) {
@@ -281,16 +281,16 @@ export async function querySimilarChunks(query: string, noteId?: string, topK: n
         processedEmbedding = [...embedding, ...Array(EMBEDDING_DIM - embedding.length).fill(0)];
       }
     }
-    
+
     // Format embedding for PostgreSQL vector format
     const vectorString = `[${processedEmbedding.join(',')}]`;
-    
+
     // Query database for similar chunks
     const client = await pool.connect();
     try {
       let queryText: string;
       let queryParams: any[];
-      
+
       if (noteId) {
         // Search within a specific note
         // Use <=> for cosine distance which is optimized by our index
@@ -313,14 +313,14 @@ export async function querySimilarChunks(query: string, noteId?: string, topK: n
         `;
         queryParams = [vectorString, topK];
       }
-      
+
       try {
         const { rows } = await client.query(queryText, queryParams);
         return rows;
       } catch (error) {
         console.error('Error in vector query, falling back to simple text match:', error);
         // Fallback to simple text search if vector search fails
-        const fallbackQuery = noteId 
+        const fallbackQuery = noteId
           ? `SELECT id, note_id, chunk_text FROM note_chunks WHERE note_id = $1 LIMIT $2`
           : `SELECT id, note_id, chunk_text FROM note_chunks LIMIT $1`;
         const fallbackParams = noteId ? [noteId, topK] : [topK];

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
 import { DashboardLayout } from "@/components/dashboard"
 import { Card } from "@/components/ui/card"
+import { YouTubePlayer } from "@/components/course/YouTubePlayer"
 
 export default async function HowToUsePage() {
   const { userId } = await auth()
@@ -28,16 +29,11 @@ export default async function HowToUsePage() {
               Get started in 20 seconds
             </h2>
             
-            <div className="aspect-video rounded-2xl overflow-hidden bg-muted">
-              <iframe
-                src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                title="How to use Project0"
-                className="w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
+            <YouTubePlayer
+              videoId="dQw4w9WgXcQ"
+              title="How to use Project0"
+              className="rounded-2xl overflow-hidden"
+            />
             
             <div className="prose prose-neutral max-w-none">
               <p className="text-muted-foreground">
