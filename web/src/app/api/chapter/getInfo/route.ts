@@ -10,6 +10,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { openai } from "@ai-sdk/openai"
 import { generateText } from "ai"
+import { indexChapterContent } from "@/lib/chapter-embedding-service"
 
 const bodyParser = z.object({
   chapterId: z.union([z.string(), z.number()]).transform(String),
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
     console.log("Searching YouTube for:", chapter.youtubeSearchQuery)
     const videoId = await searchYoutube(chapter.youtubeSearchQuery)
     console.log("VideoId found:", videoId)
-    
+
     if (!videoId) {
       return NextResponse.json(
         { success: false, error: "No suitable videos found for the search query" },
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
     console.log("Fetching transcript for video:", videoId)
     let transcript = await getTranscript(videoId)
     console.log("Transcript length:", transcript?.length)
-    
+
     if (!transcript || transcript.trim().length === 0) {
       console.log(`No transcript available for video: ${videoId}`)
       return NextResponse.json(
@@ -86,7 +87,7 @@ Make explanations clear and educational, as if teaching someone who needs to tru
 
 Transcript: ${transcript}`,
       });
-      
+
       notes = result.text;
     } catch (notesError) {
       console.error("Error generating notes:", notesError);
@@ -95,7 +96,7 @@ Transcript: ${transcript}`,
         { status: 500 }
       );
     }
-    
+
     if (!notes || notes.trim().length === 0) {
       return NextResponse.json(
         { success: false, error: "Generated notes are empty" },
@@ -135,8 +136,18 @@ Transcript: ${transcript}`,
       data: {
         videoId,
         notes,
+        transcript,
       },
     })
+
+    // Index the chapter content for chatbot functionality
+    try {
+      await indexChapterContent(chapterId, notes, transcript);
+      console.log(`Successfully indexed content for chapter ${chapterId}`);
+    } catch (indexError) {
+      console.error(`Failed to index chapter ${chapterId}:`, indexError);
+      // Don't fail the main request if indexing fails
+    }
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

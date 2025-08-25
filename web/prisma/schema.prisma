@@ -116,6 +116,19 @@ model NoteChunk {
   @@map("note_chunks")
 }
 
+model ChapterChunk {
+  id          Int      @id @default(autoincrement())
+  chapter_id  String
+  chunk_text  String   @db.Text
+  embedding   Unsupported("vector(768)")
+  source      String   @default("notes") // "notes" or "transcript"
+  
+  chapter     Chapter  @relation("ChapterToChunks", fields: [chapter_id], references: [id], onDelete: Cascade)
+
+  @@index([chapter_id])
+  @@map("chapter_chunks")
+}
+
 
 
 model Course {
@@ -151,11 +164,14 @@ model Chapter {
   youtubeSearchQuery String
   videoId            String?
   notes              String?               @db.Text
+  transcript         String?               @db.Text
+  flashcards         Json?
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
   unit               Unit                  @relation(fields: [unitId], references: [id], onDelete: Cascade)
   questions          Question[]
   userProgress       UserChapterProgress[]
+  chunks             ChapterChunk[]        @relation("ChapterToChunks")
 
   @@index([unitId])
   @@map("chapters")
