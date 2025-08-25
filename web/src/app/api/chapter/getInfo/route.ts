@@ -1,7 +1,6 @@
 // /api/chapter/getInfo
 
 import { prisma } from "@/lib/prisma"
-import { strict_output } from "@/lib/course/ai-course-service"
 import {
   getQuestionsFromTranscript,
   getTranscript,
@@ -9,6 +8,8 @@ import {
 } from "@/lib/course/youtube"
 import { NextResponse } from "next/server"
 import { z } from "zod"
+import { openai } from "@ai-sdk/openai"
+import { generateText } from "ai"
 
 const bodyParser = z.object({
   chapterId: z.union([z.string(), z.number()]).transform(String),
@@ -66,27 +67,38 @@ export async function POST(req: Request) {
 
     transcript = transcript.split(" ").slice(0, 500).join(" ")
 
-    let summaryResult: { summary: string };
+    let notes: string;
     try {
-      summaryResult = await strict_output(
-        "You are an AI capable of summarising a youtube transcript",
-        "summarise in 250 words or less and do not talk of the sponsors or anything unrelated to the main topic, also do not introduce what the summary is about.\n" +
-          transcript,
-        { summary: "summary of the transcript" }
-      ) as { summary: string };
-    } catch (summaryError) {
-      console.error("Error generating summary:", summaryError);
+      const result = await generateText({
+        model: openai("gpt-4o"),
+        prompt: `You are an advanced AI educational content specialist, designed to transform YouTube video transcripts into comprehensive, tutorial-style learning materials. Your mission is to create detailed educational notes that not only summarize content but teach concepts thoroughly, as if you were an expert educator helping someone achieve complete mastery of the subject.
+
+Transform this YouTube transcript into comprehensive educational notes that enable deep understanding:
+
+EDUCATIONAL STRUCTURE REQUIRED:
+1. **Learning Overview (100-150 words):** What you'll learn and why it matters
+2. **Key Concepts Explained (200-400 words):** Detailed explanations of main topics with clear reasoning  
+3. **Practical Applications (100-200 words):** Real-world examples and use cases
+4. **Important Takeaways (50-100 words):** Essential points for retention
+5. **Next Steps (50-100 words):** How to apply or continue learning
+
+Make explanations clear and educational, as if teaching someone who needs to truly understand the concepts. Focus on the main educational content and ignore sponsors or unrelated material.
+
+Transcript: ${transcript}`,
+      });
+      
+      notes = result.text;
+    } catch (notesError) {
+      console.error("Error generating notes:", notesError);
       return NextResponse.json(
-        { success: false, error: "Failed to generate chapter summary" },
+        { success: false, error: "Failed to generate chapter notes" },
         { status: 500 }
       );
     }
     
-    const { summary } = summaryResult;
-    
-    if (!summary || summary.trim().length === 0) {
+    if (!notes || notes.trim().length === 0) {
       return NextResponse.json(
-        { success: false, error: "Generated summary is empty" },
+        { success: false, error: "Generated notes are empty" },
         { status: 500 }
       );
     }
@@ -122,7 +134,7 @@ export async function POST(req: Request) {
       where: { id: chapterId },
       data: {
         videoId,
-        summary,
+        notes,
       },
     })
 

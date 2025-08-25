@@ -84,7 +84,7 @@ export async function strict_output(
       // First, protect contractions and possessives
       res = res.replace(/(\w)'(\w)/g, '$1APOSTROPHE$2'); // Protect contractions like "don't"
       res = res.replace(/(\w)'s\b/g, '$1APOSTROPHEs'); // Protect possessives like "HTML's"
-      
+
       // More robust quote handling - escape quotes inside JSON string values
       // This regex finds string values and escapes internal quotes
       res = res.replace(/:\s*"([^"]*(?:"[^"]*)*[^"]*)"/g, (match, content) => {
@@ -97,10 +97,10 @@ export async function strict_output(
         }
         return match;
       });
-      
+
       // Convert remaining single quotes to double quotes (but not inside already quoted strings)
       res = res.replace(/'/g, '"');
-      
+
       // Restore contractions and possessives
       res = res.replace(/(\w)APOSTROPHE(\w)/g, "$1'$2");
       res = res.replace(/(\w)APOSTROPHEs\b/g, "$1's");
@@ -234,29 +234,32 @@ export class CourseService {
       const analysisId = Math.random().toString(36).substring(2, 15);
       const timestamp = new Date().toISOString();
 
-      const result = await strict_output(
-        `You are a course creation expert. Your task is to create a detailed course outline.
-        Analysis ID: ${analysisId}
-        Timestamp: ${timestamp}
-        `,
-        `Create a comprehensive course outline for: "${title}"
-        Course description: "${description}"
-        `,
-        {
-          chapters: [
-            {
-              title: "Chapter title",
-              description: "Chapter description (3-5 sentences)",
-              objectives: ["Learning objective 1", "Learning objective 2", "Learning objective 3"]
-            }
-          ]
-        },
-        "",
-        false,
-        0.7,
-        3,
-        false
-      );
+      const { generateObject } = await import("ai");
+      const { z } = await import("zod");
+
+      const courseOutlineSchema = z.object({
+        chapters: z.array(z.object({
+          title: z.string().describe("Chapter title"),
+          description: z.string().describe("Chapter description (3-5 sentences)"),
+          objectives: z.array(z.string()).min(2).max(5).describe("Learning objectives for this chapter")
+        }))
+      });
+
+      const result = await generateObject({
+        model,
+        schema: courseOutlineSchema,
+        prompt: `You are a course creation expert. Create a detailed course outline.
+
+Analysis ID: ${analysisId}
+Timestamp: ${timestamp}
+
+Create a comprehensive course outline for: "${title}"
+Course description: "${description}"
+
+Generate chapters with clear titles, descriptions, and learning objectives.`,
+      });
+
+      return result.object;
 
       return result;
     } catch (error) {
@@ -277,35 +280,36 @@ export class CourseService {
       const analysisId = Math.random().toString(36).substring(2, 15);
       const timestamp = new Date().toISOString();
 
-      const result = await strict_output(
-        `You are a course content expert. Your task is to create detailed content for a course chapter.
-        Analysis ID: ${analysisId}
-        Timestamp: ${timestamp}
-        `,
-        `Create detailed content for the chapter: "${chapterTitle}"
-        Chapter description: "${chapterDescription}"
-        `,
-        {
-          sections: [
-            {
-              title: "Section title",
-              content: "Detailed section content (at least 300 words)",
-              quiz: [
-                {
-                  question: "Quiz question",
-                  options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-                  answer: "Correct option"
-                }
-              ]
-            }
-          ]
-        },
-        "",
-        false,
-        0.7,
-        3,
-        false
-      );
+      const { generateObject } = await import("ai");
+      const { z } = await import("zod");
+
+      const chapterDetailsSchema = z.object({
+        sections: z.array(z.object({
+          title: z.string().describe("Section title"),
+          content: z.string().min(300).describe("Detailed section content (at least 300 words)"),
+          quiz: z.array(z.object({
+            question: z.string().describe("Quiz question"),
+            options: z.array(z.string()).length(4).describe("Four answer options"),
+            answer: z.string().describe("Correct option")
+          }))
+        }))
+      });
+
+      const result = await generateObject({
+        model,
+        schema: chapterDetailsSchema,
+        prompt: `You are a course content expert. Create detailed content for a course chapter.
+
+Analysis ID: ${analysisId}
+Timestamp: ${timestamp}
+
+Create detailed content for the chapter: "${chapterTitle}"
+Chapter description: "${chapterDescription}"
+
+Generate comprehensive sections with detailed content and quiz questions.`,
+      });
+
+      return result.object;
 
       return result;
     } catch (error) {
@@ -326,30 +330,33 @@ export class CourseService {
       const analysisId = Math.random().toString(36).substring(2, 15);
       const timestamp = new Date().toISOString();
 
-      const result = await strict_output(
-        `You are an educational assessment expert. Your task is to create challenging quiz questions.
-        Analysis ID: ${analysisId}
-        Timestamp: ${timestamp}
-        `,
-        `Create ${numberOfQuestions} quiz questions for the topic: "${topic}"
-        Make sure the questions test understanding rather than just recall.
-        `,
-        {
-          questions: [
-            {
-              question: "Quiz question",
-              options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-              answer: "Correct option",
-              explanation: "Explanation of why this is the correct answer"
-            }
-          ]
-        },
-        "",
-        false,
-        0.7,
-        3,
-        false
-      );
+      const { generateObject } = await import("ai");
+      const { z } = await import("zod");
+
+      const quizSchema = z.object({
+        questions: z.array(z.object({
+          question: z.string().describe("Quiz question"),
+          options: z.array(z.string()).length(4).describe("Four answer options"),
+          answer: z.string().describe("Correct option"),
+          explanation: z.string().describe("Explanation of why this is the correct answer")
+        })).length(numberOfQuestions)
+      });
+
+      const result = await generateObject({
+        model,
+        schema: quizSchema,
+        prompt: `You are an educational assessment expert. Create challenging quiz questions.
+
+Analysis ID: ${analysisId}
+Timestamp: ${timestamp}
+
+Create ${numberOfQuestions} quiz questions for the topic: "${topic}"
+Make sure the questions test understanding rather than just recall.
+
+Generate questions with four options each, the correct answer, and explanations.`,
+      });
+
+      return result.object;
 
       return result;
     } catch (error) {
@@ -521,74 +528,50 @@ Timestamp: ${timestamp}`,
 
       const unitsText = units.map((unit, index) => `${index + 1}. ${unit.name}`).join('\n');
 
-      const result = await strict_output(
-        `You are an expert course designer. Your task is to create 3-5 chapters for each course unit.
-        
-        Guidelines:
-        - Generate 3-5 chapters per unit that are coherent and build upon each other
-        - Each chapter should have a descriptive title that relates to its parent unit
-        - Include a YouTube search query for each chapter to find relevant educational videos
-        - Ensure chapters within a unit progress logically from basic to advanced concepts
-        - Avoid duplicate or overlapping topics within the same unit
-        - Make YouTube search queries specific enough to find relevant educational content
-        
-        Analysis ID: ${analysisId}
-        Timestamp: ${timestamp}
-        `,
-        `Create chapters for each unit in the course: "${title.trim()}"
-        
-        Units:
-        ${unitsText}
-        
-        For each unit, generate 3-5 chapters that cover the key topics within that unit.
-        Each chapter should include a YouTube search query that would help find relevant educational videos.
-        `,
-        {
-          unitsWithChapters: [
-            {
-              unitName: "<unit name>",
-              chapters: [
-                {
-                  name: "<chapter name>",
-                  youtubeSearchQuery: "<specific search query for finding educational videos about this chapter>"
-                }
-              ]
-            }
-          ]
-        },
-        "",
-        false,
-        0.7,
-        3,
-        false
-      );
+      // Use modern AI SDK with proper schema validation
+      const { generateObject } = await import("ai");
+      const { z } = await import("zod");
+
+      const chaptersSchema = z.object({
+        unitsWithChapters: z.array(z.object({
+          unitName: z.string().describe("The name of the unit"),
+          chapters: z.array(z.object({
+            name: z.string().describe("Chapter title that relates to the unit"),
+            youtubeSearchQuery: z.string().describe("Specific search query for finding educational videos about this chapter")
+          })).min(3).max(5).describe("3-5 chapters for this unit")
+        }))
+      });
+
+      const result = await generateObject({
+        model,
+        schema: chaptersSchema,
+        prompt: `You are an expert course designer. Create 3-5 chapters for each course unit.
+
+Guidelines:
+- Generate 3-5 chapters per unit that are coherent and build upon each other
+- Each chapter should have a descriptive title that relates to its parent unit
+- Include a YouTube search query for each chapter to find relevant educational videos
+- Ensure chapters within a unit progress logically from basic to advanced concepts
+- Avoid duplicate or overlapping topics within the same unit
+- Make YouTube search queries specific enough to find relevant educational content
+
+Analysis ID: ${analysisId}
+Timestamp: ${timestamp}
+
+Create chapters for each unit in the course: "${title.trim()}"
+
+Units:
+${unitsText}
+
+For each unit, generate 3-5 chapters that cover the key topics within that unit.
+Each chapter should include a YouTube search query that would help find relevant educational videos.`,
+      });
 
       // Debug: Log the actual result structure
-      console.log("AI chapters result structure:", JSON.stringify(result, null, 2));
+      console.log("AI chapters result structure:", JSON.stringify(result.object, null, 2));
 
-      // Validate result structure
-      if (!result || typeof result !== 'object') {
-        throw new Error("AI returned invalid result structure for chapters");
-      }
-
-      const resultObj = result as any;
-
-      // Check if unitsWithChapters property exists and is an array
-      if (!resultObj.unitsWithChapters) {
-        throw new Error("AI result missing 'unitsWithChapters' property");
-      }
-
-      if (!Array.isArray(resultObj.unitsWithChapters)) {
-        throw new Error(`AI result 'unitsWithChapters' is not an array, got: ${typeof resultObj.unitsWithChapters}`);
-      }
-
-      // Transform the result to match our UnitWithChapters interface
-      const generatedData = resultObj as {
-        unitsWithChapters: {
-          unitName: string;
-          chapters: { name: string; youtubeSearchQuery: string }[];
-        }[];
-      };
+      // The result is already validated by the schema
+      const generatedData = result.object;
 
       const unitsWithChapters: UnitWithChapters[] = units.map((unit, unitIndex) => {
         // Find the corresponding generated data for this unit
