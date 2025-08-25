@@ -18,5 +18,7 @@ export { ChaptersReviewStep } from "./steps/ChaptersReviewStep";
 
 // Video and Chapter components
 export { YouTubePlayer } from "./YouTubePlayer";
+export { YouTubeIframePlayer } from "./YouTubeIframePlayer";
 export { YouTubeFallback } from "./YouTubeFallback";
+export { YouTubePlayerTest } from "./YouTubePlayerTest";
 export { ChapterView } from "./ChapterView";

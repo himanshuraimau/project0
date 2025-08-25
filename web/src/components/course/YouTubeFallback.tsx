@@ -6,18 +6,20 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Play, Youtube } from 'lucide-react';
 
 interface YouTubeFallbackProps {
-  videoId: string;
+  videoId: string | null | undefined;
   title?: string;
   className?: string;
 }
 
 export function YouTubeFallback({ videoId, title, className }: YouTubeFallbackProps) {
-  if (!videoId) {
+  if (!videoId || typeof videoId !== 'string' || videoId.trim() === '') {
+    console.warn('YouTubeFallback: No valid video ID provided:', videoId);
     return null;
   }
 
-  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  const cleanVideoId = videoId.trim();
+  const watchUrl = `https://www.youtube.com/watch?v=${cleanVideoId}`;
+  const thumbnailUrl = `https://img.youtube.com/vi/${cleanVideoId}/maxresdefault.jpg`;
 
   return (
     <Card className={className}>
