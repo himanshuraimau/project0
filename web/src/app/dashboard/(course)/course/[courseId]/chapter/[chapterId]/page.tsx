@@ -4,14 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { ChapterView } from "@/components/course/ChapterView";
 
 interface ChapterPageProps {
-  params: {
+  params: Promise<{
     courseId: string;
     chapterId: string;
-  };
+  }>;
 }
 
 export default async function ChapterPage({ params }: ChapterPageProps) {
   const { userId } = await auth();
+  const { chapterId } = await params;
   
   if (!userId) {
     redirect("/sign-in");
@@ -19,7 +20,7 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
 
   // Fetch the chapter and verify ownership
   const chapter = await prisma.chapter.findUnique({
-    where: { id: params.chapterId },
+    where: { id: chapterId },
     include: {
       unit: {
         include: {

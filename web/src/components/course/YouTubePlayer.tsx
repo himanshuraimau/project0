@@ -23,18 +23,9 @@ export function YouTubePlayer({ videoId, title, className }: YouTubePlayerProps)
   // Extract and validate video ID
   const cleanVideoId = getCleanVideoId(videoId);
 
-  // Return null if no valid video ID
-  if (!cleanVideoId) {
-    if (videoId) {
-      console.warn('YouTubePlayer: Invalid video ID provided:', videoId);
-    }
-    return null;
-  }
-
-  const watchUrl = getYouTubeWatchUrl(cleanVideoId);
-
   // Check if YouTube API is available
   React.useEffect(() => {
+    if (!cleanVideoId) return; // Don't run effect if no valid video ID
     const checkYouTubeAPI = () => {
       if (typeof window !== 'undefined' && (window as any).YT && (window as any).YT.Player) {
         setApiLoaded(true);
@@ -73,7 +64,17 @@ export function YouTubePlayer({ videoId, title, className }: YouTubePlayerProps)
     };
 
     checkYouTubeAPI();
-  }, [apiLoaded]);
+  }, [apiLoaded, cleanVideoId]);
+
+  // Return null if no valid video ID
+  if (!cleanVideoId) {
+    if (videoId) {
+      console.warn('YouTubePlayer: Invalid video ID provided:', videoId);
+    }
+    return null;
+  }
+
+  const watchUrl = getYouTubeWatchUrl(cleanVideoId);
 
   // Use iframe fallback if API fails or CSP blocks it
   if (useIframeFallback) {

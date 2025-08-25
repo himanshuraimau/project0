@@ -18,3 +18,6 @@ export { ChaptersReviewStep } from "./steps/ChaptersReviewStep";
 export { YouTubePlayer } from "./YouTubePlayer";
 export { YouTubeIframePlayer } from "./YouTubeIframePlayer";
 export { ChapterView } from "./ChapterView";
+export { CourseCompletionCard } from "./CourseCompletionCard";
+export { ChapterProgressList } from "./ChapterProgressList";
+export { CourseQuickActions } from "./CourseQuickActions";

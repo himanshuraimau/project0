@@ -10,6 +10,7 @@ import { BookOpen, Play, FileText, CheckCircle, AlertCircle } from 'lucide-react
 import { Chapter } from '@prisma/client';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useChapterProgress } from '@/hooks/use-chapter-progress';
 
 interface ChapterViewProps {
     chapter: Chapter;
@@ -20,11 +21,17 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
     const [chapterData, setChapterData] = useState<Chapter>(chapter);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isCompleted, setIsCompleted] = useState(false);
+    const { progress: chapterProgress, updating: chapterUpdating, toggleCompletion } = useChapterProgress(chapter.id);
 
     const loadChapterContent = async () => {
         if (chapterData.videoId && chapterData.summary) {
             return; // Already loaded
+        }
+
+        // Don't try to load content if there's no search query
+        if (!chapterData.youtubeSearchQuery) {
+            setError('No content available for this chapter yet.');
+            return;
         }
 
         try {
@@ -52,10 +59,9 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
         }
     };
 
-    const markAsCompleted = () => {
-        setIsCompleted(true);
+    const markAsCompleted = async () => {
+        await toggleCompletion();
         onComplete?.();
-        toast.success('Chapter completed!');
     };
 
     useEffect(() => {
@@ -89,7 +95,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
                                 </Badge>
                             )}
                         </div>
-                        {isCompleted && (
+                        {chapterProgress.isCompleted && (
                             <Badge variant="default" className="bg-green-500">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Completed
@@ -145,19 +151,34 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
             )}
 
             {/* Completion Button */}
-            {chapterData.videoId && chapterData.summary && !isCompleted && (
+            {chapterData.videoId && chapterData.summary && (
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h4 className="font-medium">Ready to continue?</h4>
+                                <h4 className="font-medium">
+                                    {chapterProgress.isCompleted ? 'Chapter Completed!' : 'Ready to continue?'}
+                                </h4>
                                 <p className="text-sm text-muted-foreground">
-                                    Mark this chapter as completed to track your progress.
+                                    {chapterProgress.isCompleted 
+                                        ? 'You can undo completion if needed.'
+                                        : 'Mark this chapter as completed to track your progress.'
+                                    }
                                 </p>
                             </div>
-                            <Button onClick={markAsCompleted}>
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Mark Complete
+                            <Button 
+                                onClick={markAsCompleted}
+                                disabled={chapterUpdating}
+                                variant={chapterProgress.isCompleted ? "outline" : "default"}
+                            >
+                                {chapterUpdating ? (
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                                ) : chapterProgress.isCompleted ? (
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                ) : (
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                )}
+                                {chapterProgress.isCompleted ? 'Undo Complete' : 'Mark Complete'}
                             </Button>
                         </div>
                     </CardContent>
