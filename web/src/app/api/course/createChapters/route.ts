@@ -2,7 +2,8 @@
 
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { strict_output } from "@/lib/course/ai-course-service";
+import { openai } from "@ai-sdk/openai";
+import { generateObject } from "ai";
 import { getUnsplashImage } from "@/lib/course/unsplash";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
@@ -37,25 +38,41 @@ export async function POST(req: Request) {
       }[];
     }[];
 
-    const output_units: outputUnits = await strict_output(
-      "You are an AI capable of curating course content, coming up with relevant chapter titles, and finding relevant youtube videos for each chapter",
-      new Array(limitedUnits.length).fill(
-        `It is your job to create a course about ${title}. The user has requested to create chapters for each of the units. Create EXACTLY 2 chapters per unit - no more, no less. Then, for each chapter, provide a detailed youtube search query that can be used to find an informative educational video for each chapter. Each query should give an educational informative course in youtube.`
-      ),
-      {
-        title: "title of the unit",
-        chapters:
-          "an array of exactly 2 chapters, each chapter should have a youtube_search_query and a chapter_title key in the JSON object",
-      }
-    ) as outputUnits;
+    const unitsSchema = z.object({
+      units: z.array(z.object({
+        title: z.string().describe("Title of the unit"),
+        chapters: z.array(z.object({
+          youtube_search_query: z.string().describe("Detailed YouTube search query for educational video"),
+          chapter_title: z.string().describe("Title of the chapter")
+        })).length(2).describe("Exactly 2 chapters per unit")
+      }))
+    });
 
-    const imageSearchTerm = await strict_output(
-      "you are an AI capable of finding the most relevant image for a course",
-      `Please provide a good image search term for the title of a course about ${title}. This search term will be fed into the unsplash API, so make sure it is a good search term that will return good results`,
-      {
-        image_search_term: "a good search term for the title of the course",
-      }
-    ) as { image_search_term: string };
+    const unitsResult = await generateObject({
+      model: openai("gpt-4o"),
+      schema: unitsSchema,
+      prompt: `You are an AI capable of curating course content, coming up with relevant chapter titles, and finding relevant youtube videos for each chapter.
+
+Create a course about "${title}" with the following units: ${limitedUnits.join(", ")}
+
+For each unit, create EXACTLY 2 chapters - no more, no less. Then, for each chapter, provide a detailed youtube search query that can be used to find an informative educational video for each chapter. Each query should give an educational informative course in youtube.`,
+    });
+
+    const output_units: outputUnits = unitsResult.object.units;
+
+    const imageSearchSchema = z.object({
+      image_search_term: z.string().describe("A good search term for the title of the course")
+    });
+
+    const imageSearchResult = await generateObject({
+      model: openai("gpt-4o"),
+      schema: imageSearchSchema,
+      prompt: `You are an AI capable of finding the most relevant image for a course.
+
+Please provide a good image search term for the title of a course about "${title}". This search term will be fed into the unsplash API, so make sure it is a good search term that will return good results.`,
+    });
+
+    const imageSearchTerm = imageSearchResult.object;
 
     const course_image = await getUnsplashImage(
       imageSearchTerm.image_search_term

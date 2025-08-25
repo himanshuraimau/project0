@@ -58,7 +58,7 @@ export async function GET(
       name: chapter.name,
       youtubeSearchQuery: chapter.youtubeSearchQuery,
       videoId: chapter.videoId,
-      summary: chapter.summary,
+      notes: chapter.notes,
       unitId: chapter.unitId,
       createdAt: chapter.createdAt,
       updatedAt: chapter.updatedAt,

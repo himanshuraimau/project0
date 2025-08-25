@@ -1,5 +1,4 @@
 import axios from "axios";
-import { strict_output } from "./ai-course-service";
 
 // Types for the scraper API responses
 interface ScrapedVideo {
@@ -135,25 +134,63 @@ export async function getQuestionsFromTranscript(
   transcript: string,
   course_title: string
 ) {
-  type Question = {
-    question: string;
-    answer: string;
-    option1: string;
-    option2: string;
-    option3: string;
-  };
-  const questions: Question[] = await strict_output(
-    "You are a helpful AI that is able to generate mcq questions and answers, the length of each answer should not be more than 15 words",
-    new Array(3).fill(
-      `You are to generate a random hard mcq question about ${course_title} with context of the following transcript: ${transcript}`
-    ),
-    {
-      question: "question",
-      answer: "answer with max length of 15 words",
-      option1: "option1 with max length of 15 words",
-      option2: "option2 with max length of 15 words",
-      option3: "option3 with max length of 15 words",
-    }
-  ) as Question[];
-  return questions;
+  try {
+    const { generateObject } = await import("ai");
+    const { z } = await import("zod");
+    const { openai } = await import("@ai-sdk/openai");
+
+    const questionSchema = z.object({
+      questions: z.array(z.object({
+        question: z.string().describe("A challenging multiple choice question"),
+        answer: z.string().max(60).describe("The correct answer (max 15 words)"),
+        option1: z.string().max(60).describe("First incorrect option (max 15 words)"),
+        option2: z.string().max(60).describe("Second incorrect option (max 15 words)"),
+        option3: z.string().max(60).describe("Third incorrect option (max 15 words)")
+      })).length(3)
+    });
+
+    const result = await generateObject({
+      model: openai("gpt-4o"),
+      schema: questionSchema,
+      prompt: `You are a helpful AI that generates challenging multiple choice questions and answers. Each answer should be concise (max 15 words).
+
+Generate 3 challenging MCQ questions about "${course_title}" based on this transcript:
+
+${transcript}
+
+Requirements:
+- Questions should test understanding, not just memorization
+- All options should be plausible but only one correct
+- Keep answers and options under 15 words each
+- Focus on key concepts from the transcript`,
+    });
+
+    return result.object.questions;
+  } catch (error) {
+    console.error("Error generating questions:", error);
+    // Fallback to basic questions if AI generation fails
+    return [
+      {
+        question: `What is the main topic discussed in this ${course_title} content?`,
+        answer: "The core concepts and principles",
+        option1: "Advanced theoretical frameworks",
+        option2: "Historical background information",
+        option3: "Future predictions and trends"
+      },
+      {
+        question: `Which approach is emphasized in this ${course_title} material?`,
+        answer: "Practical application methods",
+        option1: "Theoretical analysis only",
+        option2: "Historical documentation",
+        option3: "Speculative future scenarios"
+      },
+      {
+        question: `What is the key takeaway from this ${course_title} content?`,
+        answer: "Understanding fundamental principles",
+        option1: "Memorizing specific details",
+        option2: "Learning historical dates",
+        option3: "Predicting future outcomes"
+      }
+    ];
+  }
 }

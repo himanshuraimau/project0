@@ -150,7 +150,7 @@ model Chapter {
   name               String
   youtubeSearchQuery String
   videoId            String?
-  summary            String?               @db.Text
+  notes              String?               @db.Text
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
   unit               Unit                  @relation(fields: [unitId], references: [id], onDelete: Cascade)

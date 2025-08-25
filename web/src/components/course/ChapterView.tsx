@@ -24,7 +24,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
     const { progress: chapterProgress, updating: chapterUpdating, toggleCompletion } = useChapterProgress(chapter.id);
 
     const loadChapterContent = async () => {
-        if (chapterData.videoId && chapterData.summary) {
+        if (chapterData.videoId && chapterData.notes) {
             return; // Already loaded
         }
 
@@ -133,25 +133,25 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
                 />
             )}
 
-            {/* Chapter Summary */}
-            {chapterData.summary && (
+            {/* Chapter Notes */}
+            {chapterData.notes && (
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
                             <FileText className="h-4 w-4" />
-                            Chapter Summary
+                            Chapter Notes
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-muted-foreground leading-relaxed">
-                            {chapterData.summary}
-                        </p>
+                        <div className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                            {chapterData.notes}
+                        </div>
                     </CardContent>
                 </Card>
             )}
 
             {/* Completion Button */}
-            {chapterData.videoId && chapterData.summary && (
+            {chapterData.videoId && chapterData.notes && (
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
@@ -160,13 +160,13 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
                                     {chapterProgress.isCompleted ? 'Chapter Completed!' : 'Ready to continue?'}
                                 </h4>
                                 <p className="text-sm text-muted-foreground">
-                                    {chapterProgress.isCompleted 
+                                    {chapterProgress.isCompleted
                                         ? 'You can undo completion if needed.'
                                         : 'Mark this chapter as completed to track your progress.'
                                     }
                                 </p>
                             </div>
-                            <Button 
+                            <Button
                                 onClick={markAsCompleted}
                                 disabled={chapterUpdating}
                                 variant={chapterProgress.isCompleted ? "outline" : "default"}
