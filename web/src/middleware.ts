@@ -51,6 +51,7 @@ export default clerkMiddleware(async (auth, req) => {
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
       "https://clerk.com https://*.clerk.accounts.dev https://*.clerk.dev https://clerk.*.dev " +
+      "https://challenges.cloudflare.com https://static.cloudflareinsights.com " +
       "https://www.youtube.com https://s.ytimg.com https://www.youtube.com/iframe_api; " +
     "style-src 'self' 'unsafe-inline' " +
       "https://clerk.com https://*.clerk.accounts.dev; " +
@@ -60,10 +61,12 @@ export default clerkMiddleware(async (auth, req) => {
       "https://clerk.com https://*.clerk.accounts.dev; " +
     "connect-src 'self' " +
       "https://api.clerk.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.dev https://clerk.*.dev " +
+      "https://challenges.cloudflare.com https://cloudflareinsights.com " +
       "https://www.youtube.com https://s.ytimg.com; " +
     "frame-src 'self' " +
       "https://www.youtube.com https://www.youtube-nocookie.com " +
-      "https://clerk.com https://*.clerk.accounts.dev; " +
+      "https://clerk.com https://*.clerk.accounts.dev " +
+      "https://challenges.cloudflare.com; " +
     "worker-src blob:; " +
     "child-src blob:;"
   )
