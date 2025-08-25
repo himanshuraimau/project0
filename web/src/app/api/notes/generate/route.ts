@@ -28,21 +28,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    // Check if user has enough credits (1 credit for note generation)
-    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
-    if (!hasEnoughCredits) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Insufficient credits. You need 1 credit to generate notes.'
-      };
-      return NextResponse.json(errorResponse, { status: 402 });
-    }
+    // Notes from existing transcripts are now free - no credit check needed
+    // Only YouTube video processing (transcription + notes) costs 1 credit
 
     // Generate AI note from the transcript
     const note = await noteService.generateAINote(transcriptId, userId || undefined);
 
-    // Deduct 1 credit for note generation
-    await UserService.deductCredits('note_generation', 1, note.id);
+    // No credit deduction - notes from existing content are free
 
     const response: ApiSuccessResponse = {
       success: true,

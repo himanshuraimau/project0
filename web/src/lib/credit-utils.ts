@@ -2,6 +2,12 @@
 
 /**
  * Helper function to check and deduct credits for user actions
+ * 
+ * Credit System Rules:
+ * - YouTube Video Upload + Transcription + Notes: 1 credit
+ * - Course Generation: 2 credits  
+ * - Flashcards, Quizzes, Transcripts: FREE (once content exists)
+ * - Notes from existing content: FREE
  */
 export async function useCredits(action: string, credits: number = 1, resourceId?: string) {
   try {

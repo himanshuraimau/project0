@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { NoteService } from '@/lib/note-service';
+import { UserService } from '@/lib/user-service';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
@@ -10,12 +11,25 @@ export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
     
+    if (!userId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+    
     const formData = await req.formData();
     const audioFile = formData.get('audio') as File;
     const fileName = formData.get('fileName') as string || 'recorded-audio';
 
     if (!audioFile) {
       return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
+    }
+
+    // Check if user has enough credits (1 credit for audio transcription + notes)
+    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
+    if (!hasEnoughCredits) {
+      return NextResponse.json(
+        { error: 'Insufficient credits. You need 1 credit to process audio files and generate notes.' },
+        { status: 402 }
+      );
     }
 
     // Convert audio to base64
@@ -82,7 +96,7 @@ export async function POST(req: NextRequest) {
         content: transcriptSection,
         cleanContent: transcriptSection,
         type: 'audio',
-        userId: userId || undefined,
+        userId: userId,
         metadata: {
           fileSize: audioFile.size,
           mimeType: audioFile.type,
@@ -90,6 +104,9 @@ export async function POST(req: NextRequest) {
         }
       }
     });
+
+    // Deduct 1 credit for audio transcription + notes generation
+    await UserService.deductCredits('audio_transcription', 1, transcript.id);
 
     // Create an instance of NoteService to use its saveNote method which handles indexing
     const noteService = new NoteService();
@@ -102,7 +119,7 @@ export async function POST(req: NextRequest) {
         title: `Audio Summary: ${fileName}`,
         content: summarySection,
         transcriptId: transcript.id,
-        userId: userId || undefined
+        userId: userId
       });
       
       noteResult = {

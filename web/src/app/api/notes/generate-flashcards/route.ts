@@ -44,15 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response);
     }
 
-    // Check if user has enough credits (1 credit for flashcard generation)
-    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
-    if (!hasEnoughCredits) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Insufficient credits. You need 1 credit to generate flashcards.'
-      };
-      return NextResponse.json(errorResponse, { status: 402 });
-    }
+    // Flashcards are now free once content exists - no credit check needed
 
     // Get the note and its content
     const note = await prisma.note.findUnique({
@@ -176,8 +168,7 @@ Generate exactly 20 flashcards in the JSON format specified above. Focus on crea
       }
     });
 
-    // Deduct 1 credit for flashcard generation
-    await UserService.deductCredits('flashcard_generation', 1, createdFlashcard.id);
+    // Flashcards are now free - no credit deduction
 
     const response: ApiSuccessResponse = {
       success: true,

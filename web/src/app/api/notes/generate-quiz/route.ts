@@ -44,15 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response);
     }
 
-    // Check if user has enough credits (1 credit for quiz generation)
-    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
-    if (!hasEnoughCredits) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Insufficient credits. You need 1 credit to generate a quiz.'
-      };
-      return NextResponse.json(errorResponse, { status: 402 });
-    }
+    // Quizzes are now free once content exists - no credit check needed
 
     // Get the note and its content
     const note = await prisma.note.findUnique({
@@ -215,8 +207,7 @@ ${note.content}
       }
     });
 
-    // Deduct 1 credit for quiz generation
-    await UserService.deductCredits('quiz_generation', 1, createdQuiz.id);
+    // Quizzes are now free - no credit deduction
 
     const response: ApiSuccessResponse = {
       success: true,

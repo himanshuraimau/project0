@@ -4,6 +4,7 @@ import { saveCourseStructure } from "@/lib/course/ai-course-service";
 import type { CreateCourseRequest, CreateCourseResponse } from "@/lib/types/course.types";
 import { ApiValidationSchemas, validateContentSafety, isValidUserId } from "@/lib/utils/validation";
 import { rateLimiters } from "@/lib/utils/rate-limit";
+import { UserService } from "@/lib/user-service";
 import { z } from "zod";
 
 export async function POST(request: NextRequest) {
@@ -73,6 +74,15 @@ export async function POST(request: NextRequest) {
 
     const { title, units } = validatedData;
 
+    // Check if user has enough credits (2 credits for course generation)
+    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 2);
+    if (!hasEnoughCredits) {
+      return NextResponse.json(
+        { error: "Insufficient credits. You need 2 credits to generate a full course." },
+        { status: 402 }
+      );
+    }
+
     // Content safety validation for title
     const titleSafetyCheck = validateContentSafety(title);
     if (!titleSafetyCheck.isSafe) {
@@ -134,6 +144,9 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Deduct 2 credits for course generation
+    await UserService.deductCredits('course_generation', 2, courseId);
 
     // Return successful response with rate limit headers (Requirements: 5.4)
     const response: CreateCourseResponse = {

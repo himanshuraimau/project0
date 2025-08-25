@@ -11,6 +11,8 @@ import { z } from "zod"
 import { openai } from "@ai-sdk/openai"
 import { generateText } from "ai"
 import { indexChapterContent } from "@/lib/chapter-embedding-service"
+import { auth } from "@clerk/nextjs/server"
+import { UserService } from "@/lib/user-service"
 
 const bodyParser = z.object({
   chapterId: z.union([z.string(), z.number()]).transform(String),
@@ -18,6 +20,15 @@ const bodyParser = z.object({
 
 export async function POST(req: Request) {
   try {
+    // Check authentication
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required" },
+        { status: 401 }
+      )
+    }
+
     const body = await req.json()
     console.log("Body received:", body)
 
@@ -40,6 +51,20 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { success: false, error: "No youtubeSearchQuery set" },
         { status: 400 }
+      )
+    }
+
+    // Check if chapter already has content (video processed)
+    if (chapter.videoId && chapter.notes && chapter.transcript) {
+      return NextResponse.json({ success: true, message: "Chapter already processed" })
+    }
+
+    // Check if user has enough credits (1 credit for YouTube video processing + notes)
+    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
+    if (!hasEnoughCredits) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient credits. You need 1 credit to process YouTube videos and generate notes." },
+        { status: 402 }
       )
     }
 
@@ -139,6 +164,9 @@ Transcript: ${transcript}`,
         transcript,
       },
     })
+
+    // Deduct 1 credit for YouTube video processing + notes generation
+    await UserService.deductCredits('youtube_video_processing', 1, chapterId);
 
     // Index the chapter content for chatbot functionality
     try {

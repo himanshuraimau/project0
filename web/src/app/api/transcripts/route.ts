@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { TranscriptService } from '@/lib/transcript-service';
 import { auth } from '@clerk/nextjs/server';
 import { ApiResponse, ApiSuccessResponse, ApiErrorResponse, YouTubeProcessRequest } from '@/lib/types';
+import { UserService } from '@/lib/user-service';
 
 const transcriptService = new TranscriptService();
 
@@ -72,11 +73,24 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(errorResponse, { status: 400 });
         }
 
+        // Check if user has enough credits (1 credit for YouTube transcription)
+        const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
+        if (!hasEnoughCredits) {
+            const errorResponse: ApiErrorResponse = {
+                success: false,
+                error: 'Insufficient credits. You need 1 credit to process YouTube videos.'
+            };
+            return NextResponse.json(errorResponse, { status: 402 });
+        }
+
         // Process and save the transcript
         const transcript = await transcriptService.processYoutubeTranscript(
             videoUrl,
             userId
         );
+
+        // Deduct 1 credit for YouTube transcription
+        await UserService.deductCredits('youtube_transcription', 1, transcript.id);
 
         const response: ApiSuccessResponse = {
             success: true,
