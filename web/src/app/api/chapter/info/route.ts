@@ -25,6 +25,8 @@ const bodyParser = z.object({
 })
 
 export async function POST(req: Request) {
+  const startTime = Date.now();
+  
   try {
     // Check authentication
     const { userId } = await auth()
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    console.log("Body received:", body)
+    console.log("Chapter processing started for user:", userId, "at", new Date().toISOString())
 
     let parsedData;
     try {
@@ -240,11 +242,15 @@ Transcript: ${transcript}`,
       // Don't fail the main request if indexing fails - this is a non-critical feature
     }
 
+    const processingTime = Date.now() - startTime;
+    console.log(`Chapter ${chapterId} processed successfully in ${processingTime}ms`);
+
     return createSuccessResponse({ 
       message: "Chapter processed successfully",
       videoId,
       notesLength: notes.length,
-      questionsCount: questions.length
+      questionsCount: questions.length,
+      processingTimeMs: processingTime
     });
 
   } catch (error: unknown) {
