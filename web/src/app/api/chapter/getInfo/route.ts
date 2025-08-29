@@ -12,7 +12,6 @@ import { openai } from "@ai-sdk/openai"
 import { generateText } from "ai"
 import { indexChapterContent } from "@/lib/chapter-embedding-service"
 import { auth } from "@clerk/nextjs/server"
-import { UserService } from "@/lib/user-service"
 
 const bodyParser = z.object({
   chapterId: z.union([z.string(), z.number()]).transform(String),
@@ -59,14 +58,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, message: "Chapter already processed" })
     }
 
-    // Check if user has enough credits (1 credit for YouTube video processing + notes)
-    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
-    if (!hasEnoughCredits) {
-      return NextResponse.json(
-        { success: false, error: "Insufficient credits. You need 1 credit to process YouTube videos and generate notes." },
-        { status: 402 }
-      )
-    }
+    // Note: Credit checking removed - course generation already charges 2 credits total
+    // Individual chapter processing is now included in the course generation cost
 
     console.log("Searching YouTube for:", chapter.youtubeSearchQuery)
     const videoId = await searchYoutube(chapter.youtubeSearchQuery)
@@ -165,8 +158,8 @@ Transcript: ${transcript}`,
       },
     })
 
-    // Deduct 1 credit for YouTube video processing + notes generation
-    await UserService.deductCredits('youtube_video_processing', 1, chapterId);
+    // Note: Credit deduction removed - course generation already charges 2 credits total
+    // Individual chapter processing costs are included in the course generation fee
 
     // Index the chapter content for chatbot functionality
     try {
@@ -178,7 +171,7 @@ Transcript: ${transcript}`,
     }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API Error:", error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -187,7 +180,7 @@ Transcript: ${transcript}`,
       )
     }
     return NextResponse.json(
-      { success: false, error: error.message || "unknown" },
+      { success: false, error: error instanceof Error ? error.message : "unknown" },
       { status: 500 }
     )
   }

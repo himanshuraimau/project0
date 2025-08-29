@@ -3,7 +3,6 @@ import { auth } from "@clerk/nextjs/server";
 import { saveCourseStructure } from "@/lib/course/ai-course-service";
 import type { CreateCourseRequest, CreateCourseResponse } from "@/lib/types/course.types";
 import { ApiValidationSchemas, validateContentSafety, isValidUserId } from "@/lib/utils/validation";
-import { rateLimiters } from "@/lib/utils/rate-limit";
 import { UserService } from "@/lib/user-service";
 import { z } from "zod";
 
@@ -26,26 +25,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Apply rate limiting
-    const rateLimitResult = rateLimiters.courseCreation(userId, 'create-course');
-    if (!rateLimitResult.allowed) {
-      return NextResponse.json(
-        {
-          error: "Rate limit exceeded. Please try again later.",
-          retryAfter: rateLimitResult.retryAfter
-        },
-        {
-          status: 429,
-          headers: rateLimitResult.headers
-        }
-      );
-    }
-
     // Parse request body
     let body: CreateCourseRequest;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: "Invalid JSON in request body" },
         { status: 400 }
@@ -148,14 +132,13 @@ export async function POST(request: NextRequest) {
     // Deduct 2 credits for course generation
     await UserService.deductCredits('course_generation', 2, courseId);
 
-    // Return successful response with rate limit headers (Requirements: 5.4)
+    // Return successful response
     const response: CreateCourseResponse = {
       courseId
     };
 
     return NextResponse.json(response, {
-      status: 201,
-      headers: rateLimitResult.headers
+      status: 201
     });
 
   } catch (error) {
