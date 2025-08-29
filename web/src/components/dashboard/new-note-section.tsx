@@ -14,12 +14,14 @@ import {
   Link2, 
   FileText, 
   Upload,
-  Mic
+  Mic,
+  Globe
 } from "lucide-react"
-import { SimplePDFProcessor, PDFUploader } from "@/components/pdf"
+import { SimplePDFProcessor } from "@/components/pdf"
 import { checkCreditsAndRedirect } from "@/lib/client/credits-api"
 import { AudioRecorder, RecordAudio } from "@/components/audio"
 import { YouTubeProcessor } from "@/components/transcript"
+import { WebpageProcessor } from "@/components/webpage"
 import { Inter } from "next/font/google"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -29,54 +31,19 @@ export function NewNoteSection() {
   const [showAudioDialog, setShowAudioDialog] = useState(false);
   const [showRecordAudioDialog, setShowRecordAudioDialog] = useState(false);
   const [showYouTubeDialog, setShowYouTubeDialog] = useState(false);
-  const [recordingState, setRecordingState] = useState<
-    "idle" | "recording" | "stopped"
-  >("idle");
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [webLink, setWebLink] = useState("");
-  const [showWebLinkDialog, setShowWebLinkDialog] = useState(false);
+  const [showWebpageDialog, setShowWebpageDialog] = useState(false);
 
-  const handleStartRecording = () => {
-    setRecordingState("recording");
-    // TODO: Implement actual recording logic
+  const handleWebpageProcessComplete = (result: {
+    transcript: { id: string; title: string; content: string; url: string; originalName: string };
+    note?: { id: string; title: string; content: string };
+  }) => {
+    console.log('Webpage processing completed:', result);
+    setShowWebpageDialog(false);
+    // You could add a callback here to refresh the notes section or show a success message
   };
 
-  const handleStopRecording = () => {
-    setRecordingState("stopped");
-    // TODO: Stop recording
-  };
-
-  const handleResumeRecording = () => {
-    setRecordingState("recording");
-    // TODO: Resume recording
-  };
-
-  const handleDeleteRecording = () => {
-    setRecordingState("idle");
-    setRecordingTime(0);
-    // TODO: Delete recording
-  };
-
-  const handleSaveRecording = () => {
-    // TODO: Save recording and create note
-    setRecordingState("idle");
-    setRecordingTime(0);
-  };
-
-  const handleSummarizeLink = async () => {
-    // Check credits before proceeding
-    const hasCredits = await checkCreditsAndRedirect();
-    if (!hasCredits) {
-      return;
-    }
-    
-    // TODO: Implement link summarization
-    console.log("Summarizing link:", webLink);
-    setWebLink("");
-    setShowWebLinkDialog(false);
-  };
-  const handleWebLinkDialogClose = () => {
-    setShowWebLinkDialog(false);
+  const handleCloseWebpageDialog = () => {
+    setShowWebpageDialog(false);
   };
 
   const handleAudioTranscriptionComplete = (result: {
@@ -123,7 +90,7 @@ export function NewNoteSection() {
     }
   }
 
-  const handlePDFProcessComplete = (result: any) => {
+  const handlePDFProcessComplete = () => {
     // PDF processed successfully, close dialog and potentially refresh notes
     setShowPDFDialog(false);
     // You could add a callback here to refresh the notes section
@@ -219,6 +186,38 @@ export function NewNoteSection() {
             </DialogHeader>
             <div className="mt-4">
               <YouTubeProcessor onProcessComplete={handleYouTubeTranscriptComplete} onClose={handleCloseYouTubeDialog} />
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Webpage URL */}
+        <Dialog open={showWebpageDialog} onOpenChange={setShowWebpageDialog}>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="h-20 w-full flex flex-col items-center justify-center gap-2 border-2 border-green-200 hover:border-green-400 hover:bg-green-50 dark:border-green-800 dark:hover:border-green-600 dark:hover:bg-green-950 rounded-2xl font-semibold text-base transition-all duration-200"
+              onClick={async () => {
+                const hasCredits = await checkCreditsAndRedirect();
+                if (hasCredits) {
+                  setShowWebpageDialog(true);
+                }
+              }}
+            >
+              <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                <Globe className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <span>Webpage URL</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-left">Process Webpage & Generate Notes</DialogTitle>
+              <DialogDescription>
+                Extract content from any webpage and generate AI-powered educational notes.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              <WebpageProcessor onProcessComplete={handleWebpageProcessComplete} onClose={handleCloseWebpageDialog} />
             </div>
           </DialogContent>
         </Dialog>
