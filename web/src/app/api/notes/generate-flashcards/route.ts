@@ -66,80 +66,88 @@ export async function POST(request: NextRequest) {
     const result = await generateText({
       model,
       prompt: `
-        You are an expert educational content creator and flashcard designer specializing in creating comprehensive, detailed study materials. I will provide you with a structured document summary, and your task is to analyze the content deeply and create exactly 20 high-quality flashcards that thoroughly test understanding of key concepts, facts, and details.
-Your flashcards should:
+🎯 **MASTER FLASHCARD CREATOR & LEARNING SPECIALIST** 📚
 
-Cover the most important concepts, definitions, processes, facts, and relationships from the content
-Range from foundational recall questions to complex analytical and application questions
-Be clear, specific, and unambiguous in their wording
-Have detailed, comprehensive answers that provide thorough explanations (3-6 sentences typically)
-Test different cognitive levels: knowledge, comprehension, application, analysis, and evaluation
-Include context and reasoning in answers, not just bare facts
+You are the ultimate flashcard designer! Your mission is to transform educational content into engaging, comprehensive, and powerful study materials that make learning both effective and enjoyable. 
 
-DETAILED INSTRUCTIONS:
-1. Content Analysis Phase
+✨ **YOUR CHALLENGE:** Create exactly 20 brilliant flashcards that thoroughly test understanding and promote deep learning mastery!
 
-Read the entire provided content carefully and identify all major themes, concepts, and details
-Map out relationships between different concepts and ideas
-Note processes, methodologies, benefits, limitations, comparisons, and real-world applications
-Identify both explicit information and implicit connections
+🧠 **FLASHCARD EXCELLENCE GOALS:**
+- 🎯 Cover most important concepts, definitions, processes, and relationships
+- 📈 Range from foundational recall to complex analytical questions
+- 🔍 Be crystal clear, specific, and unambiguous
+- 📖 Provide detailed, comprehensive answers (3-6 sentences typically)
+- 🧩 Test different cognitive levels: knowledge, comprehension, application, analysis, evaluation
+- 🔗 Include context and reasoning, not just bare facts
 
-2. Question Design Strategy
-Create exactly 20 flashcards with diverse question types:
+🎪 **CONTENT ANALYSIS STRATEGY:**
 
-Definitional (3-4 cards): What is X? Define Y in the context of Z
-Explanatory (4-5 cards): How does X work? Why does Y occur? Explain the process of Z
-Comparative (2-3 cards): Compare X and Y. What are the differences between A and B?
-Application (3-4 cards): How would you apply X in situation Y? What would happen if Z?
-Analytical (3-4 cards): What are the implications of X? Why is Y significant? What factors influence Z?
-Evaluative (2-3 cards): What are the advantages/disadvantages of X? When should you use Y over Z?
+**Phase 1 - Deep Content Mining 🔍**
+- 📚 Read entire content carefully and identify all major themes
+- 🔗 Map relationships between different concepts and ideas  
+- 📋 Note processes, methodologies, benefits, limitations, comparisons
+- 🌍 Identify both explicit information and implicit connections
 
-3. Answer Quality Requirements
-Each answer must:
+**Phase 2 - Strategic Question Design 🎯**
 
-Provide comprehensive explanations with sufficient detail for deep understanding
-Include relevant context and background information when necessary
-Explain the "why" behind facts, not just the "what"
-Use specific examples or scenarios when applicable
-Connect concepts to broader themes or implications
-Be self-contained (readable without referring back to the source material)
+Create exactly 20 flashcards with diverse types:
+- 📝 **Definitional (3-4 cards):** What is X? Define Y in context of Z
+- 💡 **Explanatory (4-5 cards):** How does X work? Why does Y occur? Explain process of Z
+- ⚖️ **Comparative (2-3 cards):** Compare X and Y. Differences between A and B?
+- 🛠️ **Application (3-4 cards):** Apply X in situation Y. What happens if Z?
+- 🧠 **Analytical (3-4 cards):** Implications of X? Why is Y significant? Factors influencing Z?
+- 🎭 **Evaluative (2-3 cards):** Advantages/disadvantages of X? When use Y over Z?
 
-4. Technical Requirements
+🌟 **ANSWER EXCELLENCE REQUIREMENTS:**
 
-Each flashcard must have: id (number), question (string), answer (string)
-Questions should be specific, unambiguous, and test meaningful understanding
-Avoid overly simplistic yes/no questions or trivial details
-Ensure comprehensive coverage across all major sections of the provided content
-Questions should progressively build understanding from basic to advanced concepts
+Each answer MUST:
+- 📚 Provide comprehensive explanations with sufficient detail
+- 🌍 Include relevant context and background when necessary
+- 🤔 Explain the "why" behind facts, not just "what"
+- 📖 Use specific examples or scenarios when applicable
+- 🔗 Connect concepts to broader themes and implications
+- 💪 Be self-contained (readable without source material)
 
-OUTPUT FORMAT:
-You must output ONLY valid JSON in the following exact format. DO NOT use markdown code blocks, backticks, or any other formatting. Return ONLY the raw JSON array:
+🎯 **TECHNICAL SPECIFICATIONS:**
+
+**Requirements:**
+- 🆔 Each flashcard: id (number), question (string), answer (string)
+- ❓ Questions: specific, unambiguous, test meaningful understanding
+- 🚫 Avoid overly simplistic yes/no or trivial details
+- 📋 Ensure comprehensive coverage across all major sections
+- 📈 Progressive difficulty from basic to advanced concepts
+
+⚠️ **CRITICAL OUTPUT FORMAT:**
+Return ONLY valid JSON in this EXACT format. NO markdown, NO code blocks, NO backticks:
+
 [
 {
 "id": 1,
-"question": "[Example question testing core concept with comparative analysis]",
-"answer": "[Comprehensive 3-6 sentence answer explaining the concept, its significance, how it works, and why it matters. Includes context, reasoning, and connections to broader themes.]"
+"question": "[Engaging question testing core concept with depth 🎯]",
+"answer": "[Comprehensive 3-6 sentence answer explaining concept, significance, how it works, and why it matters. Includes context, reasoning, and connections 📚]"
 },
 {
 "id": 2,
-"question": "[Example question testing process or methodology understanding]",
-"answer": "[Detailed explanation covering the process steps, underlying principles, effectiveness rationale, and practical implications. Self-contained with sufficient context for complete understanding.]"
+"question": "[Question testing process/methodology understanding 🔍]",
+"answer": "[Detailed explanation covering process steps, principles, effectiveness rationale, and practical implications. Self-contained with complete context 💡]"
 }
 ]
-QUALITY CHECKLIST:
-Before finalizing, ensure each flashcard meets these criteria:
 
-✓ Question tests meaningful understanding, not trivial recall
-✓ Answer provides detailed explanation with reasoning
-✓ Answer includes relevant context and implications
-✓ Question and answer are clear and unambiguous
-✓ Content accurately reflects the source material
-✓ Covers different aspects and difficulty levels
-✓ Answers are comprehensive enough for thorough learning
+✅ **QUALITY EXCELLENCE CHECKLIST:**
 
-INPUT CONTENT TO ANALYZE:
+Before finalizing, ensure each flashcard:
+- 🧠 Tests meaningful understanding, not trivial recall
+- 📖 Answer provides detailed explanation with reasoning
+- 🌍 Answer includes relevant context and implications
+- 🔍 Question and answer are clear and unambiguous
+- ✅ Content accurately reflects source material
+- 📊 Covers different aspects and difficulty levels
+- 📚 Answers comprehensive enough for thorough learning
+
+🎓 **INPUT CONTENT TO TRANSFORM:**
 ${note.content}
-Generate exactly 20 flashcards in the JSON format specified above. Focus on creating detailed, comprehensive answers that promote deep understanding. Output ONLY the JSON array, no other text, no markdown formatting, no code blocks, no backticks.
+
+🎪 Generate exactly 20 amazing flashcards in JSON format! Focus on creating detailed, comprehensive answers that promote deep understanding. Output ONLY the JSON array - no extra text, no markdown, no code blocks! 🚀
       `,
     });
 

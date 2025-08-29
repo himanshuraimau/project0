@@ -3,7 +3,6 @@ import { auth } from "@clerk/nextjs/server";
 import { generateChaptersForUnits } from "@/lib/course/ai-course-service";
 import type { GenerateChaptersRequest, GenerateChaptersResponse } from "@/lib/types/course.types";
 import { ApiValidationSchemas, validateContentSafety, isValidUserId } from "@/lib/utils/validation";
-import { rateLimiters } from "@/lib/utils/rate-limit";
 import { z } from "zod";
 
 export async function POST(request: NextRequest) {
@@ -25,26 +24,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Apply rate limiting
-    const rateLimitResult = rateLimiters.aiGeneration(userId, 'generate-chapters');
-    if (!rateLimitResult.allowed) {
-      return NextResponse.json(
-        { 
-          error: "Rate limit exceeded. Please try again later.",
-          retryAfter: rateLimitResult.retryAfter 
-        },
-        { 
-          status: 429,
-          headers: rateLimitResult.headers
-        }
-      );
-    }
-
     // Parse request body
     let body: GenerateChaptersRequest;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: "Invalid JSON in request body" },
         { status: 400 }
@@ -134,14 +118,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Return successful response with rate limit headers
+    // Return successful response
     const response: GenerateChaptersResponse = {
       unitsWithChapters
     };
 
     return NextResponse.json(response, { 
-      status: 200,
-      headers: rateLimitResult.headers
+      status: 200
     });
 
   } catch (error) {

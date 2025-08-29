@@ -209,11 +209,6 @@ export function isValidId(id: string): boolean {
          /^[a-zA-Z0-9_-]+$/.test(id);
 }
 
-// Rate limiting helper (to be used with external rate limiting middleware)
-export function createRateLimitKey(userId: string, endpoint: string): string {
-  return `rate_limit:${endpoint}:${userId}`;
-}
-
 // Content safety validation
 export function containsInappropriateContent(text: string): boolean {
   const inappropriatePatterns = [

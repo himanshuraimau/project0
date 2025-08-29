@@ -1,20 +1,29 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { YouTubePlayer } from './YouTubePlayer';
 import { LoadingState } from '@/components/ui/loading-spinner';
-import { BookOpen, Play, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { BookOpen, Play, FileText, CheckCircle } from 'lucide-react';
 import { Chapter } from '@prisma/client';
-import axios from 'axios';
-import { toast } from 'sonner';
 import { useChapterProgress } from '@/hooks/use-chapter-progress';
+import { 
+  displayError, 
+  fetchWithErrorHandling
+} from '@/lib/utils/client-error-handler';
+import { InlineErrorDisplay } from '@/components/ui/error-components';
 
 interface ChapterViewProps {
     chapter: Chapter;
     onComplete?: () => void;
+}
+
+interface ChapterResponse {
+    success: boolean;
+    data?: Chapter;
+    message?: string;
 }
 
 export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
@@ -23,7 +32,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
     const [error, setError] = useState<string | null>(null);
     const { progress: chapterProgress, updating: chapterUpdating, toggleCompletion } = useChapterProgress(chapter.id);
 
-    const loadChapterContent = async () => {
+    const loadChapterContent = useCallback(async () => {
         if (chapterData.videoId && chapterData.notes) {
             return; // Already loaded
         }
@@ -34,30 +43,39 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
             return;
         }
 
-        try {
-            setIsLoading(true);
-            setError(null);
+        setIsLoading(true);
+        setError(null);
 
-            const response = await axios.post("/api/chapter/getInfo", {
-                chapterId: chapter.id,
+        try {
+            const response = await fetchWithErrorHandling<ChapterResponse>("/api/chapter/info", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ chapterId: chapter.id })
+            }, {
+                showToast: true
             });
 
-            if (response.data.success) {
+            if (response?.success) {
                 // Refetch the chapter data to get updated videoId and summary
-                const updatedResponse = await axios.get(`/api/chapter/${chapter.id}`);
-                setChapterData(updatedResponse.data);
+                const updatedResponse = await fetchWithErrorHandling<Chapter>(`/api/chapter/${chapter.id}`, undefined, {
+                    showToast: false
+                });
+                
+                if (updatedResponse) {
+                    setChapterData(updatedResponse);
+                }
             } else {
-                throw new Error(response.data.error || 'Failed to load chapter content');
+                setError('Failed to load chapter content');
             }
-        } catch (error: any) {
-            console.error('Error loading chapter content:', error);
-            const errorMessage = error.response?.data?.error || error.message || 'Failed to load chapter content';
-            setError(errorMessage);
-            toast.error(errorMessage);
+        } catch (err) {
+            const errorInfo = displayError(err, { showToast: false });
+            setError(errorInfo.userMessage);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [chapter.id, chapterData.videoId, chapterData.notes, chapterData.youtubeSearchQuery]);
 
     const markAsCompleted = async () => {
         await toggleCompletion();
@@ -66,7 +84,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
 
     useEffect(() => {
         loadChapterContent();
-    }, []);
+    }, [loadChapterContent]);
 
     if (isLoading) {
         return (
@@ -107,22 +125,11 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
 
             {/* Error State */}
             {error && (
-                <Card className="border-red-200 bg-red-50">
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-2 text-red-700">
-                            <AlertCircle className="h-4 w-4" />
-                            <span className="text-sm">{error}</span>
-                        </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={loadChapterContent}
-                            className="mt-2"
-                        >
-                            Try Again
-                        </Button>
-                    </CardContent>
-                </Card>
+                <InlineErrorDisplay 
+                    error={error}
+                    onRetry={() => loadChapterContent()}
+                    className="mb-4"
+                />
             )}
 
             {/* Video Player */}
@@ -186,7 +193,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
             )}
 
             {/* Loading State for Missing Content */}
-            {!chapterData.videoId && !error && (
+            {!chapterData.videoId && !error && !isLoading && (
                 <Card className="border-dashed">
                     <CardContent className="p-6 text-center">
                         <Play className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />

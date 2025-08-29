@@ -64,6 +64,7 @@ export interface ChaptersReviewStepProps {
   units: UnitWithChapters[];
   onSave: () => void;
   onEdit: (unitId: string, chapterId: string, newName: string) => void;
+  onDeleteChapter: (unitId: string, chapterId: string) => void;
   isLoading: boolean;
 }
 
@@ -86,6 +87,7 @@ export interface CourseCreationState {
   setUnits: (units: Unit[]) => void;
   setChapters: (chapters: UnitWithChapters[]) => void;
   updateChapterName: (unitId: string, chapterId: string, newName: string) => void;
+  deleteChapter: (unitId: string, chapterId: string) => void;
   
   // Loading state setters
   setGeneratingUnits: (loading: boolean) => void;

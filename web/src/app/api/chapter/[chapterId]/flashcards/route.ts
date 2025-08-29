@@ -84,27 +84,54 @@ export async function POST(
     const result = await generateObject({
       model: openai("gpt-4o"),
       schema: flashcardSchema,
-      prompt: `You are an expert educational content creator specializing in creating high-quality study flashcards.
+      prompt: `🎯 **CHAPTER FLASHCARD MASTER & LEARNING ARCHITECT** 📚
 
-Create exactly 10 flashcards based on the following chapter content. The flashcards should:
+You are the ultimate chapter-focused flashcard creator! Your mission is to transform this specific chapter content into 10 powerful, engaging flashcards that make mastering chapter concepts both effective and enjoyable.
 
-1. **Test Key Concepts**: Focus on the most important ideas, definitions, and principles
-2. **Range in Difficulty**: Include both foundational and analytical questions
-3. **Be Clear and Specific**: Questions should be unambiguous and test meaningful understanding
-4. **Have Comprehensive Answers**: Provide detailed explanations with context and reasoning (2-4 sentences)
+✨ **YOUR MISSION:** Create exactly 10 brilliant flashcards that thoroughly test understanding of this chapter's key concepts!
 
-**Question Types to Include:**
-- Definitional: "What is...?" "Define..."
-- Explanatory: "How does...?" "Why does...?" "Explain..."
-- Application: "How would you apply...?" "What would happen if...?"
-- Analytical: "What are the implications of...?" "Compare..."
+🧠 **FLASHCARD EXCELLENCE STANDARDS:**
 
-**Chapter Title:** ${chapter.name}
+**1. 🎯 Test Key Concepts**
+- Focus on most important ideas, definitions, and principles
+- Target concepts that students MUST understand from this chapter
+- Include both explicit facts and implicit connections
 
-**Chapter Content:**
+**2. 📈 Smart Difficulty Range**
+- Mix foundational recall with analytical thinking
+- Progress from basic understanding to application
+- Include questions that test deeper comprehension
+
+**3. 🔍 Crystal Clear Questions**
+- Unambiguous wording that tests meaningful understanding
+- Specific enough to have one clear correct answer
+- Avoid trick questions but challenge thinking
+
+**4. 📖 Comprehensive Answers**
+- Detailed explanations with context and reasoning (2-4 sentences)
+- Include WHY something is true, not just WHAT is true
+- Connect concepts to broader chapter themes
+
+🎪 **STRATEGIC QUESTION TYPES TO INCLUDE:**
+
+- 📝 **Definitional (2-3 cards):** "What is...?" "Define..." "Identify..."
+- 💡 **Explanatory (3-4 cards):** "How does...?" "Why does...?" "Explain the process..."
+- 🛠️ **Application (2-3 cards):** "How would you apply...?" "What would happen if...?" "In what scenario...?"
+- 🧠 **Analytical (1-2 cards):** "What are the implications of...?" "Compare..." "Analyze the relationship..."
+
+🌟 **QUALITY GUIDELINES:**
+- ✅ Each question should test understanding, not just memorization
+- 🎯 Answers should teach while testing - educational and comprehensive
+- 🔗 Include connections between concepts when relevant
+- 📚 Make answers self-contained with sufficient context
+- 🎪 Use engaging language that makes learning enjoyable
+
+**📖 Chapter Title:** ${chapter.name}
+
+**📋 Chapter Content to Transform:**
 ${chapter.notes}
 
-Generate exactly 10 flashcards that thoroughly cover the key concepts from this chapter content.`,
+🚀 Create exactly 10 amazing flashcards that help students master this chapter's key concepts! Make each flashcard a powerful learning tool that builds understanding step by step. 🎓`,
     });
 
     // Save the generated flashcards to the database

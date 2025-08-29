@@ -32,6 +32,7 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
     setUnits,
     setChapters,
     updateChapterName,
+    deleteChapter,
     generateUnitsWithRetry,
     generateChaptersWithRetry,
     saveCourseWithRetry,
@@ -110,6 +111,10 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
 
   const handleEditChapter = (unitId: string, chapterId: string, newName: string) => {
     updateChapterName(unitId, chapterId, newName);
+  };
+
+  const handleDeleteChapter = (unitId: string, chapterId: string) => {
+    deleteChapter(unitId, chapterId);
   };
 
   const handleSaveCourse = async () => {
@@ -318,6 +323,7 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
                   units={chapters}
                   onSave={handleSaveCourse}
                   onEdit={handleEditChapter}
+                  onDeleteChapter={handleDeleteChapter}
                   isLoading={isSaving}
                 />
               </div>

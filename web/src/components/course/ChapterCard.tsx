@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import { Chapter } from "@prisma/client";
 import axios from "axios";
 import React from "react";
-import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -13,14 +12,16 @@ type Props = {
   completedChapters: Set<string>;
   setCompletedChapters: React.Dispatch<React.SetStateAction<Set<string>>>;
   courseId?: string;
+  isCurrentlyProcessing?: boolean;
+  hasFailed?: boolean;
 };
 
 export type ChapterCardHandler = {
-  triggerLoad: () => void;
+  triggerLoad: () => Promise<void>;
 };
 
 const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
-  ({ chapter, setCompletedChapters, courseId }, ref) => {
+  ({ chapter, setCompletedChapters, courseId, isCurrentlyProcessing = false, hasFailed = false }, ref) => {
     const [success, setSuccess] = React.useState<boolean | null>(null);
     const [isLoading, setIsLoading] = React.useState(false);
     const router = useRouter();
@@ -28,7 +29,7 @@ const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
     const getChapterInfo = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.post("/api/chapter/getInfo", {
+        const response = await axios.post("/api/chapter/info", {
           chapterId: chapter.id,
         });
         return response.data;
@@ -66,10 +67,11 @@ const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
           setSuccess(true);
           addChapterIdToSet();
         } catch (error) {
-          console.error(error);
+          console.error("Chapter processing error:", error);
           setSuccess(false);
-          toast("There was an error loading your chapter");
           addChapterIdToSet();
+          // Re-throw to allow parent component to handle the error
+          throw new Error(`Failed to process chapter: ${chapter.name}`);
         }
       },
     }));
@@ -77,8 +79,9 @@ const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
       <div
         key={chapter.id}
         className={cn("px-4 py-2 mt-2 rounded flex justify-between cursor-pointer hover:opacity-80 transition-opacity", {
-          "bg-secondary": success === null,
-          "bg-red-500": success === false,
+          "bg-secondary": success === null && !isCurrentlyProcessing && !hasFailed,
+          "bg-blue-100 border-2 border-blue-400": isCurrentlyProcessing,
+          "bg-red-500": success === false || hasFailed,
           "bg-green-500": success === true,
         })}
         onClick={() => {
@@ -93,8 +96,16 @@ const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
           }
         }}
       >
-        <h5>{chapter.name}</h5>
-        {isLoading && <Loader2 className="animate-spin" />}
+        <div className="flex items-center gap-2">
+          <h5>{chapter.name}</h5>
+          {isCurrentlyProcessing && (
+            <span className="text-xs text-blue-600 font-medium">Processing...</span>
+          )}
+          {hasFailed && (
+            <span className="text-xs text-white font-medium">Failed - Click to retry</span>
+          )}
+        </div>
+        {(isLoading || isCurrentlyProcessing) && <Loader2 className="animate-spin" />}
       </div>
     );
   }

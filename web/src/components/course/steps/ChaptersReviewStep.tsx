@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChaptersReviewStepProps } from '@/lib/types/course.types';
-import { Edit3, Check, X, BookOpen, PlayCircle } from 'lucide-react';
+import { Edit3, Check, X, BookOpen, PlayCircle, Trash2 } from 'lucide-react';
 import { LoadingState, InlineLoading } from '@/components/ui/loading-spinner';
 import { validateUnitName, validateChapterName, sanitizeString, validateContentSafety } from '@/lib/utils/validation';
 
@@ -18,6 +18,7 @@ export function ChaptersReviewStep({
   units, 
   onSave, 
   onEdit, 
+  onDeleteChapter,
   isLoading 
 }: ChaptersReviewStepProps) {
   const [editingItem, setEditingItem] = useState<{ unitId: string; chapterId?: string } | null>(null);
@@ -96,6 +97,26 @@ export function ChaptersReviewStep({
     } else if (e.key === 'Escape') {
       cancelEdit();
     }
+  };
+
+  // Delete a chapter
+  const deleteChapter = (unitId: string, chapterId: string) => {
+    const unit = units.find(u => u.id === unitId);
+    
+    // Don't allow deleting the last chapter in a unit
+    if (unit && unit.chapters.length <= 1) {
+      setError('Cannot delete the last chapter in a unit. Each unit must have at least one chapter.');
+      return;
+    }
+
+    // Clear editing state if we're editing the chapter being deleted
+    if (editingItem?.unitId === unitId && editingItem?.chapterId === chapterId) {
+      setEditingItem(null);
+      setEditValue('');
+      setError('');
+    }
+
+    onDeleteChapter(unitId, chapterId);
   };
 
   // Generate chapter number (e.g., 1.1, 1.2, 2.1, 2.2)
@@ -268,15 +289,27 @@ export function ChaptersReviewStep({
                           </Button>
                         </>
                       ) : (
-                        <Button
-                          onClick={() => startEditing(unit.id, chapter.id)}
-                          variant="ghost"
-                          size="sm"
-                          disabled={isLoading}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </Button>
+                        <>
+                          <Button
+                            onClick={() => startEditing(unit.id, chapter.id)}
+                            variant="ghost"
+                            size="sm"
+                            disabled={isLoading}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            onClick={() => deleteChapter(unit.id, chapter.id)}
+                            variant="ghost"
+                            size="sm"
+                            disabled={isLoading || unit.chapters.length <= 1}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:text-gray-400 disabled:hover:bg-transparent"
+                            title={unit.chapters.length <= 1 ? "Cannot delete the last chapter in a unit" : "Delete chapter"}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
