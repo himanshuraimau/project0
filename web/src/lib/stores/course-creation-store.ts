@@ -138,6 +138,22 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
     set({ chapters: updatedChapters });
   },
 
+  // Delete specific chapter
+  deleteChapter: (unitId: string, chapterId: string) => {
+    const { chapters } = get();
+    const updatedChapters = chapters.map(unit => {
+      if (unit.id === unitId) {
+        return {
+          ...unit,
+          chapters: unit.chapters.filter(chapter => chapter.id !== chapterId)
+        };
+      }
+      return unit;
+    });
+
+    set({ chapters: updatedChapters });
+  },
+
   // Loading state setters
   setGeneratingUnits: (loading: boolean) => set({ isGeneratingUnits: loading }),
   setGeneratingChapters: (loading: boolean) => set({ isGeneratingChapters: loading }),
@@ -373,11 +389,14 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
         });
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
-      if (data.error) {
-        throw new Error(data.error);
+      if (responseData.error) {
+        throw new Error(responseData.error);
       }
+
+      // Handle the enhanced response wrapper
+      const data = responseData.success ? responseData.data : responseData;
 
       clearError(); // Clear error on success
       clearStoredState(); // Clear recovery data on successful save

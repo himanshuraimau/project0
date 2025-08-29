@@ -65,6 +65,7 @@ import {
 
 interface ViewNoteProps {
   note: Note;
+  onEdit?: () => void;
 }
 
 // Lexical theme configuration

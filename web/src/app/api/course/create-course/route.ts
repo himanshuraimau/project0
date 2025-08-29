@@ -1,28 +1,31 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { saveCourseStructure } from "@/lib/course/ai-course-service";
 import type { CreateCourseRequest, CreateCourseResponse } from "@/lib/types/course.types";
 import { ApiValidationSchemas, validateContentSafety, isValidUserId } from "@/lib/utils/validation";
 import { UserService } from "@/lib/user-service";
 import { z } from "zod";
+import { 
+  createSuccessResponse, 
+  handleApiError,
+  CourseValidation
+} from "@/lib/utils/api-error-handler";
+import { 
+  AppErrorType, 
+  createAppError 
+} from "@/lib/utils/enhanced-error-handler";
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication (Requirements: 5.2)
+    // Check authentication
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      throw createAppError(AppErrorType.AUTHENTICATION_FAILED);
     }
 
     // Validate user ID format for security
     if (!isValidUserId(userId)) {
-      return NextResponse.json(
-        { error: "Invalid user session" },
-        { status: 401 }
-      );
+      throw createAppError(AppErrorType.INVALID_SESSION);
     }
 
     // Parse request body
@@ -30,10 +33,7 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json(
-        { error: "Invalid JSON in request body" },
-        { status: 400 }
-      );
+      throw createAppError(AppErrorType.INVALID_INPUT, {}, "Invalid JSON in request body");
     }
 
     // Validate and sanitize request data using Zod schema
@@ -42,37 +42,38 @@ export async function POST(request: NextRequest) {
       validatedData = ApiValidationSchemas.createCourse.parse(body);
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
-        return NextResponse.json(
-          {
-            error: "Validation failed",
-            details: validationError.issues.map(e => e.message).join(', ')
-          },
-          { status: 400 }
+        const fieldErrors = validationError.issues.map(e => e.message).join(', ');
+        throw createAppError(
+          AppErrorType.INVALID_INPUT,
+          { zodErrors: validationError.issues },
+          `Validation failed: ${fieldErrors}`
         );
       }
-      return NextResponse.json(
-        { error: "Invalid request data" },
-        { status: 400 }
-      );
+      throw createAppError(AppErrorType.INVALID_INPUT, {}, "Invalid request data");
     }
 
     const { title, units } = validatedData;
 
+    // Validate course title
+    CourseValidation.title(title);
+
+    // Validate units structure
+    const unitNames = units.map(unit => unit.name);
+    CourseValidation.units(unitNames);
+
     // Check if user has enough credits (2 credits for course generation)
     const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 2);
     if (!hasEnoughCredits) {
-      return NextResponse.json(
-        { error: "Insufficient credits. You need 2 credits to generate a full course." },
-        { status: 402 }
-      );
+      throw createAppError(AppErrorType.INSUFFICIENT_CREDITS);
     }
 
     // Content safety validation for title
     const titleSafetyCheck = validateContentSafety(title);
     if (!titleSafetyCheck.isSafe) {
-      return NextResponse.json(
-        { error: `Title validation failed: ${titleSafetyCheck.reason}` },
-        { status: 400 }
+      throw createAppError(
+        AppErrorType.COURSE_TITLE_INVALID,
+        { reason: titleSafetyCheck.reason },
+        `Course title contains inappropriate content: ${titleSafetyCheck.reason}`
       );
     }
 
@@ -83,9 +84,10 @@ export async function POST(request: NextRequest) {
       // Validate unit name content safety
       const unitSafetyCheck = validateContentSafety(unit.name);
       if (!unitSafetyCheck.isSafe) {
-        return NextResponse.json(
-          { error: `Unit ${i + 1} validation failed: ${unitSafetyCheck.reason}` },
-          { status: 400 }
+        throw createAppError(
+          AppErrorType.UNITS_INVALID,
+          { unitIndex: i, reason: unitSafetyCheck.reason },
+          `Unit "${unit.name}" contains inappropriate content: ${unitSafetyCheck.reason}`
         );
       }
 
@@ -95,17 +97,19 @@ export async function POST(request: NextRequest) {
 
         const chapterSafetyCheck = validateContentSafety(chapter.name);
         if (!chapterSafetyCheck.isSafe) {
-          return NextResponse.json(
-            { error: `Unit ${i + 1}, Chapter ${j + 1} name validation failed: ${chapterSafetyCheck.reason}` },
-            { status: 400 }
+          throw createAppError(
+            AppErrorType.UNITS_INVALID,
+            { unitIndex: i, chapterIndex: j, reason: chapterSafetyCheck.reason },
+            `Chapter "${chapter.name}" contains inappropriate content: ${chapterSafetyCheck.reason}`
           );
         }
 
         const querySafetyCheck = validateContentSafety(chapter.youtubeSearchQuery);
         if (!querySafetyCheck.isSafe) {
-          return NextResponse.json(
-            { error: `Unit ${i + 1}, Chapter ${j + 1} YouTube query validation failed: ${querySafetyCheck.reason}` },
-            { status: 400 }
+          throw createAppError(
+            AppErrorType.UNITS_INVALID,
+            { unitIndex: i, chapterIndex: j, reason: querySafetyCheck.reason },
+            `YouTube search query contains inappropriate content: ${querySafetyCheck.reason}`
           );
         }
       }
@@ -118,69 +122,52 @@ export async function POST(request: NextRequest) {
       units
     };
 
-    // Save course structure using AI service (Requirements: 5.1, 5.2, 5.3)
-    const courseId = await saveCourseStructure(courseStructure);
+    // Save course structure using AI service
+    let courseId: string;
+    try {
+      courseId = await saveCourseStructure(courseStructure);
+    } catch (error) {
+      throw createAppError(
+        AppErrorType.COURSE_SAVE_FAILED,
+        { originalError: error instanceof Error ? error.message : String(error) },
+        "Failed to save course structure to database"
+      );
+    }
 
     // Validate that course was created successfully
     if (!courseId || typeof courseId !== "string") {
-      return NextResponse.json(
-        { error: "Failed to create course - invalid course ID returned" },
-        { status: 500 }
+      throw createAppError(
+        AppErrorType.COURSE_SAVE_FAILED,
+        { courseId },
+        "Invalid course ID returned from database"
       );
     }
 
     // Deduct 2 credits for course generation
-    await UserService.deductCredits('course_generation', 2, courseId);
+    try {
+      await UserService.deductCredits('course_generation', 2, courseId);
+    } catch (error) {
+      // If credit deduction fails, we should log the error but not fail the request
+      // since the course was already created
+      console.error("Failed to deduct credits after course creation:", error);
+      throw createAppError(
+        AppErrorType.CREDIT_DEDUCTION_FAILED,
+        { courseId, userId, error: error instanceof Error ? error.message : String(error) },
+        "Course created successfully but failed to deduct credits. Please contact support."
+      );
+    }
 
     // Return successful response
     const response: CreateCourseResponse = {
       courseId
     };
 
-    return NextResponse.json(response, {
-      status: 201
-    });
+    return createSuccessResponse(response);
 
   } catch (error) {
-    console.error("Error in create-course API:", error);
-
-    // Handle specific error types (Requirements: 5.3)
-    if (error instanceof Error) {
-      // Handle validation errors
-      if (error.message.includes("title must be between") ||
-        error.message.includes("units are required") ||
-        error.message.includes("must have valid") ||
-        error.message.includes("cannot be empty")) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 400 }
-        );
-      }
-
-      // Handle database/save errors
-      if (error.message.includes("Failed to save") ||
-        error.message.includes("database") ||
-        error.message.includes("transaction")) {
-        return NextResponse.json(
-          { error: "Failed to save course. Please try again." },
-          { status: 500 }
-        );
-      }
-
-      // Handle authentication errors
-      if (error.message.includes("Unauthorized") ||
-        error.message.includes("authentication")) {
-        return NextResponse.json(
-          { error: "Authentication required" },
-          { status: 401 }
-        );
-      }
-    }
-
-    // Generic error response
-    return NextResponse.json(
-      { error: "Internal server error. Please try again later." },
-      { status: 500 }
-    );
+    return handleApiError(error, { 
+      endpoint: 'create-course',
+      userId: request.headers.get('x-user-id') || 'unknown'
+    });
   }
 }

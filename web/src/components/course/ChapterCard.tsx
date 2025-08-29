@@ -28,7 +28,7 @@ const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
     const getChapterInfo = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.post("/api/chapter/getInfo", {
+        const response = await axios.post("/api/chapter/info", {
           chapterId: chapter.id,
         });
         return response.data;
