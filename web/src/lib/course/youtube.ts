@@ -81,11 +81,11 @@ export async function searchYoutube(searchQuery: string): Promise<string | null>
     }
 
     return suitableVideos[0].id;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("YouTube search failed:", error);
     
     // If it's a 402 error (payment required), return a fallback video ID
-    if (error.status === 402) {
+    if (error && typeof error === 'object' && 'status' in error && error.status === 402) {
       console.log("API limit reached, using fallback video");
       // Return a generic educational video ID as fallback
       return "dQw4w9WgXcQ"; // You can replace this with any educational video ID
@@ -117,11 +117,11 @@ export async function getTranscript(videoId: string): Promise<string> {
     }
 
     return data.transcript_only_text;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Transcript fetch failed for video:", videoId, error);
     
     // If it's a 402 error (payment required), return a generic transcript
-    if (error.status === 402) {
+    if (error && typeof error === 'object' && 'status' in error && error.status === 402) {
       console.log("API limit reached, using fallback transcript");
       return "This is a sample transcript for testing purposes. The video covers the fundamental concepts of the topic with detailed explanations and examples.";
     }
@@ -152,17 +152,29 @@ export async function getQuestionsFromTranscript(
     const result = await generateObject({
       model: openai("gpt-4o"),
       schema: questionSchema,
-      prompt: `You are a helpful AI that generates challenging multiple choice questions and answers. Each answer should be concise (max 15 words).
+      prompt: `🧠 You are a master quiz creator and educational assessment expert! Your mission is to craft engaging, challenging, and thought-provoking multiple choice questions that test real understanding.
 
-Generate 3 challenging MCQ questions about "${course_title}" based on this transcript:
+🎯 **QUIZ MISSION:** Create 3 stellar MCQ questions about "${course_title}" that make students think critically!
+
+📝 **QUESTION CRAFTING RULES:**
+- 🔥 Make questions challenging but fair - test understanding, not just memorization
+- 💡 Focus on "why" and "how" rather than just "what"
+- 🎯 All answer options should be plausible to make students think
+- ⚡ Keep answers snappy and under 15 words each
+- 🧩 Cover the most important concepts from the transcript
+- 🎪 Make questions engaging and relevant to real-world scenarios
+
+🎊 **STYLE GUIDELINES:**
+- Write clear, direct questions without unnecessary complexity
+- Ensure one option is clearly correct when you understand the material
+- Make incorrect options believable but definitely wrong
+- Focus on practical application and conceptual understanding
+
+Based on this transcript about "${course_title}":
 
 ${transcript}
 
-Requirements:
-- Questions should test understanding, not just memorization
-- All options should be plausible but only one correct
-- Keep answers and options under 15 words each
-- Focus on key concepts from the transcript`,
+Create questions that would make a great teacher proud! 🌟`,
     });
 
     return result.object.questions;

@@ -53,7 +53,7 @@ const ConfirmChapters = ({ course }: Props) => {
     setCurrentlyProcessing("");
     setProcessedCount(0);
     const chapterEntries = Object.entries(chapterRefs);
-    const BATCH_SIZE = 2; // Process 2 chapters at a time
+    const BATCH_SIZE = 4; // Process 4 chapters at a time
     
     for (let i = 0; i < chapterEntries.length; i += BATCH_SIZE) {
       const batch = chapterEntries.slice(i, i + BATCH_SIZE);
@@ -226,7 +226,7 @@ const ConfirmChapters = ({ course }: Props) => {
                 />
               </div>
               <div className="text-xs text-blue-500 mt-1">
-                Processing 2 chapters at a time
+                Processing 4 chapters at a time
               </div>
             </div>
           )}
