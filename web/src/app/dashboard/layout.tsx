@@ -1,26 +1,25 @@
 "use client";
 
 import React from "react";
-import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { Sidebar } from "@/components/dashboard/sidebar";
-import { Navbar } from "@/components/dashboard/navbar";
 import { Toaster } from "sonner";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
-  const { open } = useSidebar();
-  const sidebarWidth = "16rem";
-  const collapsedWidth = "4rem";
-
   return (
-    <div
-      className="flex-1 transition-all duration-300"
-      style={{
-        marginLeft: open ? sidebarWidth : collapsedWidth,
-      }}
-    >
-      <main className="p-6">
+    <div className="flex-1 h-screen bg-stone-50 dark:bg-stone-950">
+      <div className="p-8">
+        <div className="flex  items-center border-b border-stone-200 dark:border-stone-800  justify-between mb-8">
+          <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+            Dashboard
+          </h1>
+          <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900">
+            <span className="text-sm font-medium">Unlimited Notes</span>
+            <span className="text-lg">⚡</span>
+          </div>
+        </div>
         {children}
-      </main>
+      </div>
     </div>
   );
 }
@@ -31,15 +30,15 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen">
-      <Navbar className="w-full sticky top-0 z-40" />
-
+    <div className="h-screen bg-stone-50 dark:bg-stone-950">
       <SidebarProvider defaultOpen={true}>
-        <Sidebar />
-        <DashboardContent>
-          {children}
-          <Toaster />
-        </DashboardContent>
+        <div className="flex h-screen">
+          <Sidebar />
+          <DashboardContent>
+            {children}
+            <Toaster />
+          </DashboardContent>
+        </div>
       </SidebarProvider>
     </div>
   );

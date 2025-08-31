@@ -1,19 +1,18 @@
-"use client"
+"use client";
 
-import React from "react"
-import { cn } from "@/lib/utils"
-import { 
-  Home, 
-  HelpCircle, 
-  HeadphonesIcon, 
+import React from "react";
+import { cn } from "@/lib/utils";
+import {
+  Home,
+  HelpCircle,
+  HeadphonesIcon,
   Settings,
-  ChevronRight,
-  BookOpen
-} from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { CreditDisplay } from "@/components/credit-display"
-
+  BookOpen,
+  Zap,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { CreditDisplay } from "@/components/credit-display";
 
 import {
   Sidebar as UISidebar,
@@ -25,19 +24,18 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarCollapseTrigger,
-  useSidebar
-} from "@/components/ui/sidebar"
+  useSidebar,
+} from "@/components/ui/sidebar";
 
 const sidebarItems = [
   {
-    title: "Home",
+    title: "Dashboard",
     icon: Home,
     href: "/dashboard",
   },
   {
     title: "Create Course",
-    icon: BookOpen, // Use BookOpen icon for course generation
+    icon: BookOpen,
     href: "/dashboard/generate-course",
   },
   {
@@ -55,60 +53,90 @@ const sidebarItems = [
     icon: Settings,
     href: "/dashboard/settings",
   },
-]
+];
 
 interface AppSidebarProps {
-  className?: string
+  className?: string;
 }
 
 export function Sidebar({ className }: AppSidebarProps) {
-  const pathname = usePathname()
-  const { open } = useSidebar()
+  const pathname = usePathname();
+  const { open } = useSidebar();
 
-    const initialCredits = 0; // Placeholder for actual user credit balance
+  const initialCredits = 0; // Placeholder for actual user credit balance
+
   return (
-    <UISidebar className={cn("z-10", className)}>
-      <SidebarHeader className="flex justify-between items-center">
-        <div className="flex items-center">
-          {open && <span className="font-semibold">Dashboard</span>}
+    <UISidebar
+      className={cn(
+        "border-r border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-950",
+        className
+      )}
+    >
+      <SidebarHeader className="p-6 border-b border-stone-200 dark:border-stone-800">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-stone-900 dark:bg-stone-100">
+            <Zap className="h-5 w-5 text-stone-50 dark:text-stone-900" />
+          </div>
+          <span className="text-xl font-bold text-stone-900 dark:text-stone-100">
+            SonicLearn
+          </span>
         </div>
-        <SidebarCollapseTrigger />
       </SidebarHeader>
-      
-      <SidebarContent>
+
+      <SidebarContent className="p-2">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {sidebarItems.map((item) => {
-                const isActive = pathname === item.href
-                const Icon = item.icon
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
                 return (
                   <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton 
+                    <SidebarMenuButton
                       asChild
-                      active={isActive}
-                      className={!open ? "justify-center !px-2" : ""}
+                      className={cn(
+                        "w-full justify-start px-3 py-2.5 text-sm font-medium rounded-lg transition-colors",
+                        isActive
+                          ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900"
+                          : "text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+                      )}
                     >
-                      <Link href={item.href} className="flex items-center w-full">
-                        <Icon className="h-4 w-4" />
-                        {open && <span className="ml-3">{item.title}</span>}
-                        {isActive && open && (
-                          <ChevronRight className="ml-auto h-4 w-4" />
-                        )}
+                      <Link
+                        href={item.href}
+                        className="flex items-center gap-3 w-full"
+                      >
+                        <Icon className="h-4 w-4 flex-shrink-0" />
+                        <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
+                );
               })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      {open && (
-        <SidebarFooter className="mt-auto px-2 pb-4">
+
+      <SidebarFooter className="mt-auto p-4 ">
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-stone-100 dark:bg-stone-900">
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-stone-200 dark:bg-stone-800">
+            <span className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+              BS
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-stone-900 dark:text-stone-100 truncate">
+              Bhanu singh
+            </p>
+            <p className="text-xs text-stone-600 dark:text-stone-400 truncate">
+              bhanusingh12345@gmail.com
+            </p>
+          </div>
+        </div>
+        {/* <div className="mt-3">
           <CreditDisplay initialCredits={initialCredits} />
-        </SidebarFooter>
-      )}
+        </div> */}
+      </SidebarFooter>
     </UISidebar>
-  )
+  );
 }
