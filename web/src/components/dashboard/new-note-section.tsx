@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +16,11 @@ import { AudioRecorder, RecordAudio } from "@/components/audio";
 import { YouTubeProcessor } from "@/components/transcript";
 import { WebpageProcessor } from "@/components/webpage";
 import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
+const jakarta = Plus_Jakarta_Sans({
+  weight: "600", // e.g., SemiBold
+  subsets: ["latin-ext", "vietnamese"],
+});
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -121,23 +125,23 @@ export function NewNoteSection() {
 
   return (
     <div className={`w-full max-w-6xl mx-auto ${inter.className}`}>
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
+      <div className="mb-[36px]">
+        <h2 className={`text-2xl leading-8 font-semibold text-stone-900 dark:text-stone-100 mb-[6px] ${jakarta.className}`}>
           New Note
         </h2>
-        <p className="text-stone-600 dark:text-stone-400">
+        <p className={`text-stone-600 text-[16px] font-medium leading-6 dark:text-stone-400 ${jakarta.className}`}>
           Record audio, or upload audio, use PDF or upload youtube or website
           link
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {/* YouTube Video Links */}
         <Dialog open={showYouTubeDialog} onOpenChange={setShowYouTubeDialog}>
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 w-full flex flex-col items-center justify-center gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-all duration-200"
+              className="h-24 w-full flex  items-center justify-center gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -185,7 +189,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 w-full flex flex-col items-center justify-center gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-all duration-200"
+              className="h-24 w-full flex  items-center justify-center gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -229,7 +233,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 w-full flex flex-col items-center justify-center gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-all duration-200"
+              className="h-24 w-full flex  items-center justify-center gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -274,7 +278,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 w-full flex flex-col items-center justify-center gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-all duration-200"
+              className="h-24 px-6 py-5 w-[460px] flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -282,14 +286,14 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center flex-shrink-0">
+              <div className="size-[36px] rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center flex-shrink-0">
                 <Upload className="h-5 w-5 text-stone-600 dark:text-stone-400" />
               </div>
-              <div className="text-center">
-                <div className="font-medium text-stone-900 dark:text-stone-100">
+              <div className="flex flex-col items-start">
+                <div className="font-semibold text-lg leading-[28px] text-stone-900 dark:text-stone-100">
                   Upload Audio
                 </div>
-                <div className="text-xs text-stone-500 dark:text-stone-400">
+                <div className="font-medium leading-[24px] text-stone-500 dark:text-stone-400">
                   Record audio, or upload
                 </div>
               </div>

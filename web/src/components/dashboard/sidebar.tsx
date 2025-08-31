@@ -13,7 +13,11 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CreditDisplay } from "@/components/credit-display";
-
+import { Plus_Jakarta_Sans } from "next/font/google";
+const jakarta = Plus_Jakarta_Sans({
+  weight: "600", // e.g., SemiBold
+  subsets: ["latin-ext", "vietnamese"],
+});
 import {
   Sidebar as UISidebar,
   SidebarContent,
@@ -68,7 +72,7 @@ export function Sidebar({ className }: AppSidebarProps) {
   return (
     <UISidebar
       className={cn(
-        "border-r border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-950",
+        "border-r h-full pl-5 border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-950",
         className
       )}
     >
@@ -77,13 +81,15 @@ export function Sidebar({ className }: AppSidebarProps) {
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-stone-900 dark:bg-stone-100">
             <Zap className="h-5 w-5 text-stone-50 dark:text-stone-900" />
           </div>
-          <span className="text-xl font-bold text-stone-900 dark:text-stone-100">
+          <span
+            className={`text-2xl leading-[32px] font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
+          >
             SonicLearn
           </span>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="p-2">
+      <SidebarContent className="p-2">  
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
@@ -95,7 +101,7 @@ export function Sidebar({ className }: AppSidebarProps) {
                     <SidebarMenuButton
                       asChild
                       className={cn(
-                        "w-full justify-start px-3 py-2.5 text-sm font-medium rounded-lg transition-colors",
+                        "w-full justify-start px-3 py-3 text-sm font-medium rounded-[12px] transition-colors",
                         isActive
                           ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900"
                           : "text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
@@ -106,7 +112,7 @@ export function Sidebar({ className }: AppSidebarProps) {
                         className="flex items-center gap-3 w-full"
                       >
                         <Icon className="h-4 w-4 flex-shrink-0" />
-                        <span>{item.title}</span>
+                        <span className="">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

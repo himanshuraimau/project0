@@ -180,7 +180,7 @@ export function Sidebar({ className, ...props }: SidebarProps) {
     <aside
       data-state={open ? "open" : "closed"}
       className={cn(
-        "fixed top-16 left-0 flex h-[calc(100vh-4rem)] flex-col bg-background border-r border-border transition-all duration-300 z-30",
+        "fixed top-0 pt-[34px] left-0 flex h-[calc(100vh-4rem)] flex-col bg-background border-r border-border transition-all duration-300 z-30",
         isMobile ? (open ? "translate-x-0" : "-translate-x-full") : "",
         className
       )}
