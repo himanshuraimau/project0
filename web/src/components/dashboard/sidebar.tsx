@@ -72,7 +72,7 @@ export function Sidebar({ className }: AppSidebarProps) {
   return (
     <UISidebar
       className={cn(
-        "border-r sticky  h-screen  border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-950",
+        "border-r  top-0 h-screen  border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-950",
         className
       )}
     >
@@ -101,7 +101,7 @@ export function Sidebar({ className }: AppSidebarProps) {
                     <SidebarMenuButton
                       asChild
                       className={cn(
-                        "w-[288px] flex items-center justify-start my-2 px-[18px] py-[15px] text-sm font-medium rounded-[12px] transition-colors",
+                        "w-[288px] flex items-center justify-start my-2 px-[18px] py-[15px] text-lg font-medium rounded-[12px] transition-colors",
                         isActive
                           ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900"
                           : "text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
@@ -128,17 +128,17 @@ export function Sidebar({ className }: AppSidebarProps) {
       </SidebarContent>
 
       <SidebarFooter className="mt-auto w-full">
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-stone-100 dark:bg-stone-900">
+        <div className="flex items-center gap-5 rounded-lg">
           <div className="flex items-center justify-center rounded-[64px] size-[52px] bg-stone-200 dark:bg-stone-800">
             <span className="text-sm  font-semibold text-stone-900 dark:text-stone-100">
               BS
             </span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-stone-900 dark:text-stone-100 truncate">
+          <div className="flex-1 flex flex-col gap-1 min-w-0">
+            <p className="text-lg font-medium text-stone-900 dark:text-stone-100 truncate">
               Bhanu singh
             </p>
-            <p className="text-xs text-stone-600 dark:text-stone-400 truncate">
+            <p className="text-sm font-normal leading-5 text-stone-600 dark:text-stone-400 truncate">
               bhanusingh12345@gmail.com
             </p>
           </div>

@@ -124,24 +124,28 @@ export function NewNoteSection() {
   };
 
   return (
-    <div className={`w-full max-w-6xl mx-auto ${inter.className}`}>
+    <div className={`w-full mx-auto   ${inter.className}`}>
       <div className="mb-[36px]">
-        <h2 className={`text-2xl leading-8 font-semibold text-stone-900 dark:text-stone-100 mb-[6px] ${jakarta.className}`}>
+        <h2
+          className={`text-2xl leading-8 font-semibold text-stone-900 dark:text-stone-100 mb-[6px] ${jakarta.className}`}
+        >
           New Note
         </h2>
-        <p className={`text-stone-600 text-[16px] font-medium leading-6 dark:text-stone-400 ${jakarta.className}`}>
+        <p
+          className={`text-stone-600 text-[16px] font-medium leading-6 dark:text-stone-400 ${jakarta.className}`}
+        >
           Record audio, or upload audio, use PDF or upload youtube or website
           link
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 ">
         {/* YouTube Video Links */}
         <Dialog open={showYouTubeDialog} onOpenChange={setShowYouTubeDialog}>
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 px-6 py-5 w-[460px] flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
+              className="h-24 px-6 py-5 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -149,8 +153,8 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
-                <Link2 className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <div className=" rounded-full  flex items-center justify-center flex-shrink-0">
+                <img src={"/youtube.png"} className="size-[40px]" />
               </div>
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-lg leading-[28px] text-stone-900 dark:text-stone-100">
@@ -164,10 +168,10 @@ export function NewNoteSection() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-left">
+              <DialogTitle className={`text-left text-lg ${jakarta.className}`}>
                 YouTube Transcript & Notes
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className={`${jakarta.className}`}>
                 Extract transcript from YouTube videos and generate AI-powered
                 notes.
               </DialogDescription>
@@ -189,7 +193,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 px-6 py-5 w-[460px] flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
+              className="h-24 px-6 py-5 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -197,8 +201,8 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
-                <Mic className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <div className="size-[40px] border rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="size-[18px] rounded-[40px] bg-red-500" />
               </div>
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-lg leading-[28px] text-stone-900 dark:text-stone-100">
@@ -233,7 +237,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 px-6 py-5 w-[460px] flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
+              className="h-24 px-6 py-5 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -241,8 +245,11 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
-                <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <div className="rounded-full flex items-center justify-center flex-shrink-0">
+                <img
+                  src={"/pdf.png"}
+                  className="size-[40px] text-red-600 dark:text-red-400"
+                />
               </div>
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-lg leading-[28px] text-stone-900 dark:text-stone-100">
@@ -278,7 +285,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 px-6 py-5 w-[460px] flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
+              className="h-24 px-6 py-5 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -286,9 +293,9 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="size-[36px] rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center flex-shrink-0">
+              <div className=" rounded-full  flex items-center justify-center flex-shrink-0">
                 {/* <Upload className="h-5 w-5 text-stone-600 dark:text-stone-400" /> */}
-                <CloudUpload/>
+                <CloudUpload className="size-[40px]" />
               </div>
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-lg leading-[28px] text-stone-900 dark:text-stone-100">

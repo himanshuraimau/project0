@@ -201,7 +201,7 @@ export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 flex w-full h-[100px] items-center border-none border-border ",
+        "top-0 flex w-full h-[100px] items-center border-none border-border ",
         className
       )}
       {...props}
@@ -218,7 +218,7 @@ export function SidebarFooter({ className, ...props }: SidebarFooterProps) {
   return (
     <footer
       className={cn(
-        "sticky bottom-0 flex items-center border-t border-border bg-card mt-auto p-4",
+        "sticky bottom-0 flex items-center   mt-auto p-4",
         className
       )}
       {...props}

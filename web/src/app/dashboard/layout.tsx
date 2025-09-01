@@ -8,16 +8,18 @@ import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex-1 h-auto bg-stone-100 dark:bg-stone-950">
+    <div className="flex-1  bg-white border-b border-stone-200 dark:bg-stone-950">
       <div className="p-8">
-        <div className="flex  items-center border-b border-stone-200 dark:border-stone-800  justify-between mb-8">
+        <div className="flex  items-center  dark:border-stone-800  justify-between mb-8">
           <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-            SonicLearn
+            Dashboard
           </h1>
-          <div className="flex items-center gap-3 px-4 py-2 rounded-full  dark:bg-stone-100 dark:text-stone-50 text-stone-900">
-            <ThemeToggleButton />
-            <span className="text-sm font-medium">Unlimited Notes</span>
-            <span className="text-lg">⚡</span>
+          <ThemeToggleButton />
+          <div
+            className="px-6 py-2 rounded-full bg-gradient-to-b from-stone-800/90 to-stone-800 text-white flex items-center gap-2  shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)]
+  transition-all duration-300"
+          >
+            <span className="text-[16px] font-medium">Unlimited Notes⚡</span>
           </div>
         </div>
         {children}
@@ -32,9 +34,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-auto bg-stone-50 dark:bg-stone-950">
+    <div className="h-screen bg-stone-50 dark:bg-stone-950">
       <SidebarProvider defaultOpen={true}>
-        <div className="flex h-auto">
+        <div className="flex h-screen">
           <Sidebar />
           <DashboardContent>
             {children}

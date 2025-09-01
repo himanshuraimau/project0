@@ -83,9 +83,9 @@ export function MyNotesSection() {
   };
 
   return (
-    <div className={`w-full max-w-6xl mx-auto font-inter ${inter.className}`}>
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
+    <div className={`w-full  mx-auto font-inter ${inter.className}`}>
+      <div className="mb-4">
+        <h2 className="text-2xl leading-8 font-semibold text-stone-900 dark:text-stone-100">
           My Notes
         </h2>
       </div>
@@ -97,7 +97,7 @@ export function MyNotesSection() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="justify-between min-w-[150px] h-10 px-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-900 dark:text-stone-100 font-medium"
+                className="justify-between min-w-[150px] h-10 px-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-[8px] hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-900 dark:text-stone-100 font-medium"
               >
                 <div className="flex items-center gap-2">
                   <Folder className="h-4 w-4 text-yellow-500" />
@@ -108,7 +108,7 @@ export function MyNotesSection() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuItem onClick={() => setSelectedFolder("All Notes")}>
-                <Folder className="h-4 w-4 mr-2 text-yellow-500" />
+                <Folder className="h-4 w-4 mr-2.5 text-yellow-500" />
                 All Notes
               </DropdownMenuItem>
 
@@ -123,7 +123,7 @@ export function MyNotesSection() {
                       <Folder className="h-4 w-4 mr-2 text-yellow-500" />
                       {folder}
                     </div>
-                    <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center  space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -153,7 +153,7 @@ export function MyNotesSection() {
 
               <DropdownMenuItem
                 onClick={() => setShowCreateFolderDialog(true)}
-                className="border-t mt-1 pt-1"
+                className="border-t border-stone-300 dark:border-stone-700 mt-1 pt-2"
               >
                 <FolderPlus className="h-4 w-4 mr-2" />
                 Create New Folder
@@ -163,13 +163,13 @@ export function MyNotesSection() {
         </div>
 
         <div className="relative flex-1 max-w-md ml-auto">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-stone-400" />
+          
           <Input
             placeholder="Search any notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-10 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-stone-900 dark:text-stone-100 placeholder:text-stone-400"
-          />
+            className="pl-4 h-10 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-[8px] text-stone-900 dark:text-stone-100 placeholder:text-stone-400"
+          /><Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-stone-400" />
         </div>
       </div>
 
