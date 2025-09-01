@@ -10,7 +10,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="pt-6 h-screen space-y-8 ">
+    <div className="pt-6 h-full space-y-8 ">
       <NewNoteSection />
       <MyNotesSection />
     </div>

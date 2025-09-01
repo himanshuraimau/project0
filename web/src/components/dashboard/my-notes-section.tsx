@@ -83,7 +83,7 @@ export function MyNotesSection() {
   };
 
   return (
-    <div className={`w-full  mx-auto font-inter ${inter.className}`}>
+    <div className={`w-full  mx-auto  ${inter.className}`}>
       <div className="mb-4">
         <h2 className="text-2xl leading-8 font-semibold text-stone-900 dark:text-stone-100">
           My Notes
@@ -163,18 +163,18 @@ export function MyNotesSection() {
         </div>
 
         <div className="relative flex-1 max-w-md ml-auto">
-          
           <Input
             placeholder="Search any notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-4 h-10 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-[8px] text-stone-900 dark:text-stone-100 placeholder:text-stone-400"
-          /><Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-stone-400" />
+          />
+          <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-stone-400" />
         </div>
       </div>
 
       {/* Notes Display */}
-      <div className="bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden">
+      <div className=" dark:bg-stone-950 rounded-lg  ">
         <NotesList searchQuery={searchQuery} />
       </div>
 

@@ -8,7 +8,7 @@ import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex-1  bg-white border-b border-stone-200 dark:bg-stone-950">
+    <div className="flex-1 h-full bg-white border-b border-stone-200 dark:bg-stone-950 overflow-y-scroll">
       <div className="p-8">
         <div className="flex  items-center  dark:border-stone-800  justify-between mb-8">
           <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
