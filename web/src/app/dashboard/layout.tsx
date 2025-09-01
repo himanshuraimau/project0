@@ -8,9 +8,9 @@ import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex-1 h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="flex-1 h-auto bg-stone-100 dark:bg-stone-950">
       <div className="p-8">
-        <div className="flex bg-red-50 items-center border-b border-stone-200 dark:border-stone-800  justify-between mb-8">
+        <div className="flex  items-center border-b border-stone-200 dark:border-stone-800  justify-between mb-8">
           <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             SonicLearn
           </h1>
@@ -32,9 +32,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen bg-stone-50 dark:bg-stone-950">
+    <div className="h-auto bg-stone-50 dark:bg-stone-950">
       <SidebarProvider defaultOpen={true}>
-        <div className="flex h-screen">
+        <div className="flex h-auto">
           <Sidebar />
           <DashboardContent>
             {children}

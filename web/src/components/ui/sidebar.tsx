@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 // Constants for sidebar width and keyboard shortcut
-const SIDEBAR_WIDTH = "16rem"
+const SIDEBAR_WIDTH = "360px"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
@@ -180,12 +180,12 @@ export function Sidebar({ className, ...props }: SidebarProps) {
     <aside
       data-state={open ? "open" : "closed"}
       className={cn(
-        "fixed top-0 pt-[34px] left-0 flex h-[calc(100vh-4rem)] flex-col bg-background border-r border-border transition-all duration-300 z-30",
+        " top-0 px-[36px] left-0 flex h-[calc(100vh-4rem)] flex-col bg-background border-r border-border transition-all duration-300 z-30",
         isMobile ? (open ? "translate-x-0" : "-translate-x-full") : "",
         className
       )}
       style={{
-        width: isMobile ? (open ? mobileWidth : "0") : (open ? width : "4rem"),
+        width: isMobile ? (open ? mobileWidth : "0") : (open ? width : "360px"),
       }}
       {...props}
     />
@@ -201,7 +201,7 @@ export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 flex h-14 items-center border-none border-border px-4 py-2",
+        "sticky top-0 flex w-full h-[100px] items-center border-none border-border ",
         className
       )}
       {...props}

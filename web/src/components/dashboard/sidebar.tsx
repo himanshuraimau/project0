@@ -72,11 +72,11 @@ export function Sidebar({ className }: AppSidebarProps) {
   return (
     <UISidebar
       className={cn(
-        "border-r h-full pl-5 border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-950",
+        "border-r sticky  h-screen  border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-950",
         className
       )}
     >
-      <SidebarHeader className="p-6 border-b border-stone-200 dark:border-stone-800">
+      <SidebarHeader className="  border-b border-stone-200 dark:border-stone-800">
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-stone-900 dark:bg-stone-100">
             <Zap className="h-5 w-5 text-stone-50 dark:text-stone-900" />
@@ -89,7 +89,7 @@ export function Sidebar({ className }: AppSidebarProps) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="p-2">  
+      <SidebarContent className="p-2">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
@@ -101,7 +101,7 @@ export function Sidebar({ className }: AppSidebarProps) {
                     <SidebarMenuButton
                       asChild
                       className={cn(
-                        "w-full justify-start px-3 py-3 text-sm font-medium rounded-[12px] transition-colors",
+                        "w-[288px] flex items-center justify-start my-2 px-[18px] py-[15px] text-sm font-medium rounded-[12px] transition-colors",
                         isActive
                           ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900"
                           : "text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
@@ -109,10 +109,14 @@ export function Sidebar({ className }: AppSidebarProps) {
                     >
                       <Link
                         href={item.href}
-                        className="flex items-center gap-3 w-full"
+                        className="flex items-center gap-3 w-full "
                       >
-                        <Icon className="h-4 w-4 flex-shrink-0" />
-                        <span className="">{item.title}</span>
+                        <Icon className="size-[22px] flex-shrink-0" />
+                        <span
+                          className={`font-medium text-[18px] leading-[28px] `}
+                        >
+                          {item.title}
+                        </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -123,10 +127,10 @@ export function Sidebar({ className }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto p-4 ">
+      <SidebarFooter className="mt-auto w-full">
         <div className="flex items-center gap-3 p-3 rounded-lg bg-stone-100 dark:bg-stone-900">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-stone-200 dark:bg-stone-800">
-            <span className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+          <div className="flex items-center justify-center rounded-[64px] size-[52px] bg-stone-200 dark:bg-stone-800">
+            <span className="text-sm  font-semibold text-stone-900 dark:text-stone-100">
               BS
             </span>
           </div>

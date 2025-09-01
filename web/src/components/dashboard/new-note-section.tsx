@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Link2, FileText, Upload, Mic, Globe } from "lucide-react";
+import { Link2, FileText, Upload, Mic, Globe, CloudUpload } from "lucide-react";
 import { SimplePDFProcessor } from "@/components/pdf";
 import { checkCreditsAndRedirect } from "@/lib/client/credits-api";
 import { AudioRecorder, RecordAudio } from "@/components/audio";
@@ -141,7 +141,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 w-full flex  items-center justify-center gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-all duration-200"
+              className="h-24 px-6 py-5 w-[460px] flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -152,11 +152,11 @@ export function NewNoteSection() {
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
                 <Link2 className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
-              <div className="text-center">
-                <div className="font-medium text-stone-900 dark:text-stone-100">
+              <div className="flex flex-col items-start">
+                <div className="font-semibold text-lg leading-[28px] text-stone-900 dark:text-stone-100">
                   Youtube video links
                 </div>
-                <div className="text-xs text-stone-500 dark:text-stone-400">
+                <div className="font-medium leading-[24px] text-stone-500 dark:text-stone-400">
                   upload youtube videos
                 </div>
               </div>
@@ -189,7 +189,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 w-full flex  items-center justify-center gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-all duration-200"
+              className="h-24 px-6 py-5 w-[460px] flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -200,11 +200,11 @@ export function NewNoteSection() {
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
                 <Mic className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
-              <div className="text-center">
-                <div className="font-medium text-stone-900 dark:text-stone-100">
+              <div className="flex flex-col items-start">
+                <div className="font-semibold text-lg leading-[28px] text-stone-900 dark:text-stone-100">
                   Record Audio
                 </div>
-                <div className="text-xs text-stone-500 dark:text-stone-400">
+                <div className="font-medium leading-[24px] text-stone-500 dark:text-stone-400">
                   Record audio, or upload
                 </div>
               </div>
@@ -233,7 +233,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 w-full flex  items-center justify-center gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-all duration-200"
+              className="h-24 px-6 py-5 w-[460px] flex items-center justify-start gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-sm transition-all duration-200"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -244,11 +244,11 @@ export function NewNoteSection() {
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
                 <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
-              <div className="text-center">
-                <div className="font-medium text-stone-900 dark:text-stone-100">
+              <div className="flex flex-col items-start">
+                <div className="font-semibold text-lg leading-[28px] text-stone-900 dark:text-stone-100">
                   PDF
                 </div>
-                <div className="text-xs text-stone-500 dark:text-stone-400">
+                <div className="font-medium leading-[24px] text-stone-500 dark:text-stone-400">
                   Record audio, or upload
                 </div>
               </div>
@@ -287,7 +287,8 @@ export function NewNoteSection() {
               }}
             >
               <div className="size-[36px] rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center flex-shrink-0">
-                <Upload className="h-5 w-5 text-stone-600 dark:text-stone-400" />
+                {/* <Upload className="h-5 w-5 text-stone-600 dark:text-stone-400" /> */}
+                <CloudUpload/>
               </div>
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-lg leading-[28px] text-stone-900 dark:text-stone-100">
