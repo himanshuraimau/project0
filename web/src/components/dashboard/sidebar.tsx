@@ -76,8 +76,8 @@ export function Sidebar({ className }: AppSidebarProps) {
         className
       )}
     >
-      <SidebarHeader className="  border-b border-stone-200 dark:border-stone-800">
-        <div className="flex items-center gap-2">
+      <SidebarHeader className="  border-b border-stone-200 dark:border-stone-700">
+        <div className="flex items-center gap-2 pl-6">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-stone-900 dark:bg-stone-100">
             <Zap className="h-5 w-5 text-stone-50 dark:text-stone-900" />
           </div>
@@ -89,7 +89,7 @@ export function Sidebar({ className }: AppSidebarProps) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="p-2">
+      <SidebarContent className="">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
@@ -101,7 +101,7 @@ export function Sidebar({ className }: AppSidebarProps) {
                     <SidebarMenuButton
                       asChild
                       className={cn(
-                        "w-[288px] flex items-center justify-start my-2 px-[18px] py-[15px] text-lg font-medium rounded-[12px] transition-colors",
+                        "w-[300px] flex items-center justify-start my-2 px-[20px] py-[15px] text-lg font-medium rounded-[12px] transition-colors",
                         isActive
                           ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900"
                           : "text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"

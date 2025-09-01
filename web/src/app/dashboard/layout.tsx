@@ -14,13 +14,15 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             Dashboard
           </h1>
-          <ThemeToggleButton />
-          <div
-            className="px-6 py-2 rounded-full bg-gradient-to-b from-stone-800/90 to-stone-800 text-white flex items-center gap-2  shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)]
+          <span className="flex gap-6 items-center">
+            <ThemeToggleButton />
+            <div
+              className="px-6 py-2 rounded-full bg-gradient-to-b from-stone-800/90 to-stone-800 text-white flex items-center gap-2  shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)]
   transition-all duration-300"
-          >
-            <span className="text-[16px] font-medium">Unlimited Notes⚡</span>
-          </div>
+            >
+              <span className="text-[16px] font-medium">Unlimited Notes⚡</span>
+            </div>
+          </span>
         </div>
         {children}
       </div>

@@ -39,9 +39,9 @@ export function ThemeToggleButton() {
       className="rounded-full"
     >
       {isDark ? (
-        <Sun className="h-5 w-5 text-yellow-500" />
+        <Sun className="size-6 text-yellow-500" />
       ) : (
-        <Moon className="h-5 w-5 text-blue-500" />
+        <Moon className="size-6 text-blue-500" />
       )}
     </Button>
   );
