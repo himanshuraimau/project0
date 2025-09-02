@@ -16,7 +16,7 @@ export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
     <Link href="/dashboard/create/wizard" className="block">
       <Card
         className={cn(
-          "h-24 transition-all duration-200 shadow-sm hover:shadow-lg border border-primary/30 hover:border-primary bg-gradient-to-br from-primary/5 to-background rounded-[8px] cursor-pointer group",
+          "h-24 transition-all duration-200 shadow-sm hover:shadow-lg border border-stone-800 hover:border-primary bg-gradient-to-br from-primary/5 to-background rounded-[8px] cursor-pointer group",
           className
         )}
       >

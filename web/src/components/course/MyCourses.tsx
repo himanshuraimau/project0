@@ -49,7 +49,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
   };
 
   return (
-    <Card className="max-sm:w-full max-lg:w-1/2 lg:w-1/3 group hover:shadow-lg  transition-all duration-300 rounded-[12px] border-0 ">
+    <Card className="max-sm:w-full max-lg:w-1/2 lg:w-1/3 group hover:shadow-lg  transition-all duration-300 rounded-[12px] border-0 bg-stone-900">
       <CardHeader className="p-0">
         <div className="relative h-52 w-full overflow-hidden rounded-t-lg">
           {course.image ? (
@@ -65,7 +65,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
               <BookOpen className="h-16 w-16 text-primary/60" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="absolute inset-0" />
 
           {/* Completion Badge */}
           <div className="absolute top-4 right-4">
@@ -77,18 +77,18 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
             )}
           </div>
 
-          <div className="absolute bottom-4 left-4 right-4">
+          {/* <div className="absolute bottom-4 left-4 right-4">
             <h3 className="text-white font-bold text-lg leading-tight line-clamp-2">
               {course.name}
             </h3>
-          </div>
+          </div> */}
         </div>
       </CardHeader>
 
-      <CardContent className="py-4 ">
+      <CardContent className="pt-4">
         <div className=" space-y-4 mb-2 ">
           <div className=" left-4 right-4">
-            <h3 className="text-stone-900 font-semibold text-[20px] leading-tight line-clamp-2">
+            <h3 className="text-stone-900 dark:text-stone-100 font-semibold text-[20px] leading-tight line-clamp-2">
               {course.name}
             </h3>
           </div>
@@ -139,8 +139,8 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
               className="flex-1"
             >
               <Button className="w-full bg-stone-800 rounded-[8px] px-4 flex items-center gap-2 ">
-                <Eye className="size-[18px]" />
-                <p className="text-[14px] font-medium">
+                <Eye className="size-[18px] dark:text-stone-200" />
+                <p className="text-[14px] font-medium dark:text-stone-200">
                   {" "}
                   {progress.isCompleted ? "Review Course" : "Continue Learning"}
                 </p>{" "}
@@ -202,7 +202,7 @@ export function MyCourses({ courses }: MyCoursesProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="flex w-full overflow-x-scroll gap-6">
+        <div className="flex w-full  gap-6">
           {courses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
