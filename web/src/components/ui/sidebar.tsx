@@ -234,7 +234,7 @@ interface SidebarContentProps extends React.HTMLAttributes<HTMLDivElement> {
 export function SidebarContent({ className, ...props }: SidebarContentProps) {
   return (
     <div
-      className={cn("flex-1 overflow-auto p-2", className)}
+      className={cn("flex-1 overflow-auto ", className)}
       {...props}
     />
   )
@@ -246,7 +246,7 @@ interface SidebarGroupProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarGroup({ className, ...props }: SidebarGroupProps) {
-  return <div className={cn("p-2 space-y-2", className)} {...props} />
+  return <div className={cn(" space-y-2", className)} {...props} />
 }
 
 // Sidebar Group Label

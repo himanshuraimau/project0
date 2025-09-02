@@ -5,12 +5,15 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Toaster } from "sonner";
 import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
-
+import { Plus_Jakarta_Sans } from "next/font/google";
+const jakarta = Plus_Jakarta_Sans({
+  weight:"600"
+})
 function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex-1 h-full bg-white border-b border-stone-200 dark:bg-stone-950 overflow-y-scroll">
       <div className="p-8">
-        <div className="flex  items-center  dark:border-stone-800  justify-between mb-8">
+        <div className={`${jakarta.className} flex  items-center  dark:border-stone-800  justify-between mb-8`}>
           <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             Dashboard
           </h1>

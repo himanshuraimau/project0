@@ -14,20 +14,22 @@ interface GenerateCourseCardProps {
 export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
   return (
     <Link href="/dashboard/create/wizard" className="block">
-      <Card className={cn(
-        "h-24 transition-all duration-200 shadow-sm hover:shadow-lg border border-primary/30 hover:border-primary bg-gradient-to-br from-primary/5 to-background rounded-2xl cursor-pointer group",
-        className
-      )}>
+      <Card
+        className={cn(
+          "h-24 transition-all duration-200 shadow-sm hover:shadow-lg border border-primary/30 hover:border-primary bg-gradient-to-br from-primary/5 to-background rounded-[8px] cursor-pointer group",
+          className
+        )}
+      >
         <CardContent className="p-6 h-full flex items-center">
           <div className="flex items-center gap-5 w-full">
-            <div className="w-14 h-14 rounded-xl bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center flex-shrink-0 transition-colors duration-200 border border-primary/20">
-              <BookOpen className="h-7 w-7 text-primary" />
+            <div className="size-14 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0 transition-colors duration-200">
+              <BookOpen className="size-10 text-stone-800" />
             </div>
             <div className="flex-1 text-left">
-              <div className="font-bold text-lg text-foreground group-hover:text-primary transition-colors duration-200">
+              <div className="font-semibold text-[20px] text-foreground group-hover:text-primary transition-colors duration-200">
                 Generate Course
               </div>
-              <div className="text-sm text-muted-foreground mt-1">
+              <div className="text-sm font-medium text-muted-foreground mt-1">
                 Create AI-powered courses from topics
               </div>
             </div>

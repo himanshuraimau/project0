@@ -260,24 +260,27 @@ export function YouTubeProcessor({
   }
 
   return (
-    <Card>
+    <Card
+      className={`${jakarta.className} rounded-[8px] border border-stone-500`}
+    >
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 pt-4 ">
           <Youtube className="h-5 w-5 text-red-500" />
           YouTube Transcript Generator
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="font-semibold text-stone-500 text-[14px] mb-4">
           Enter a YouTube URL to generate a transcript and create notes from the
           video content.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="youtube-url" className="text-sm font-medium">
+      <CardContent className="space-y-4 bg-red-40 px-4">
+        <div className="space-y-2 my-2">
+          <label htmlFor="youtube-url" className="text-sm font-semibold pl-2">
             YouTube URL
           </label>
           <Input
             id="youtube-url"
+            className=" rounded-[6px] my-2"
             type="url"
             placeholder="https://www.youtube.com/watch?v=..."
             value={videoUrl}
@@ -287,8 +290,8 @@ export function YouTubeProcessor({
             }}
             disabled={isProcessing}
           />
-          <p className="text-xs text-muted-foreground">
-            Supports youtube.com and youtu.be URLs
+          <p className="text-xs  text-muted-foreground">
+            *Supports youtube.com and youtu.be URLs
           </p>
         </div>
 
@@ -302,7 +305,7 @@ export function YouTubeProcessor({
           <Button
             onClick={handleProcessTranscript}
             disabled={isProcessing || !videoUrl.trim()}
-            className="flex-1"
+            className="flex-1 "
           >
             {isProcessing ? (
               <>

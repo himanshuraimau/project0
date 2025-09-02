@@ -166,9 +166,9 @@ export function NewNoteSection() {
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className={`text-left text-lg ${jakarta.className}`}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-stone-500">
+            <DialogHeader className="">
+              <DialogTitle className={`text-left text-xl ${jakarta.className}`}>
                 YouTube Transcript & Notes
               </DialogTitle>
               <DialogDescription className={`${jakarta.className}`}>
