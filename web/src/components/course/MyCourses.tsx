@@ -49,7 +49,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
   };
 
   return (
-    <Card className="max-sm:w-full max-lg:w-1/2 lg:w-1/3 group hover:shadow-lg  transition-all duration-300 rounded-[12px] border-0 bg-stone-900">
+    <Card className="max-sm:w-full max-lg:w-1/2 lg:w-1/3 group hover:shadow-lg  transition-all duration-300 rounded-[12px] border-0 dark:bg-stone-900 bg-stone-100">
       <CardHeader className="p-0">
         <div className="relative h-52 w-full overflow-hidden rounded-t-lg">
           {course.image ? (
@@ -85,7 +85,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
         </div>
       </CardHeader>
 
-      <CardContent className="pt-4">
+      <CardContent className="pt-4  px-4">
         <div className=" space-y-4 mb-2 ">
           <div className=" left-4 right-4">
             <h3 className="text-stone-900 dark:text-stone-100 font-semibold text-[20px] leading-tight line-clamp-2">
@@ -98,7 +98,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
               <span>{course.units.length} units</span>
             </div>
             <div className="flex items-center gap-1">
-              <BookOpen className="h-4 w-4" />
+              <BookOpen className="h-4 w-4 " />
               <span>{getTotalChapters(course)} chapters</span>
             </div>
             <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
@@ -152,10 +152,10 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
               variant={progress.isCompleted ? "outline" : "default"}
               onClick={toggleCompletion}
               disabled={updating}
-              className=" bg-stone-200 text-stone-900 rounded-[8px] px-4 flex items-center gap-2 "
+              className=" bg-stone-200 text-stone-900 rounded-[8px] px-4 flex items-center gap-2 hover:bg-stone-400"
             >
               {updating ? (
-                <div className="size-[18px] animate-spin rounded-[8px] bg- border-2 border-current border-t-transparent" />
+                <div className="size-[18px] animate-spin rounded-[8px] bg- border-2 border-stone-500 border-t-transparent" />
               ) : progress.isCompleted ? (
                 <Circle className="size-[18px]" />
               ) : (
