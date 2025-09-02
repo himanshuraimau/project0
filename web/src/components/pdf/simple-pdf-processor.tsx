@@ -125,7 +125,7 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
               variant={mode === 'pdf' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setMode('pdf')}
-              className="flex-1 rounded-lg"
+              className="flex-1 rounded-lg hover:bg-stone-600"
             >
               <FileText className="h-4 w-4 mr-2" />
               Upload PDF
@@ -155,7 +155,7 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
                 onDrop={handleDrop}
               >
                 <div className="space-y-4">
-                  <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="mx-auto w-12 h-12 rounded-[8px] bg-primary/10 flex items-center justify-center">
                     <FileText className="h-6 w-6 text-primary" />
                   </div>
 
@@ -237,7 +237,7 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
                     value={noteTitle}
                     onChange={(e) => setNoteTitle(e.target.value)}
                     disabled={loading}
-                    className="rounded-xl"
+                    className="rounded-[8px] text-[16px] font-medium"
                   />
                 </div>
 
@@ -251,7 +251,7 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
                     disabled={loading}
-                    className="min-h-[200px] rounded-xl resize-none"
+                    className="min-h-[200px] rounded-[8px] resize-none  font-medium text-[15px]"
                   />
                   <p className="text-xs text-muted-foreground mt-2">
                     {textInput.length} characters

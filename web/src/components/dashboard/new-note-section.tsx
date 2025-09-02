@@ -214,7 +214,9 @@ export function NewNoteSection() {
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent
+            className={`${jakarta.className} max-w-2xl max-h-[90vh] overflow-y-auto border border-stone-400`}
+          >
             <DialogHeader>
               <DialogTitle className="text-left">
                 Record Audio & Generate Notes
@@ -261,7 +263,7 @@ export function NewNoteSection() {
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className={`${jakarta.className} max-w-2xl max-h-[90vh] overflow-y-auto border border-stone-400`}>
             <DialogHeader>
               <DialogTitle className="text-left">
                 Upload PDF & Generate Notes
