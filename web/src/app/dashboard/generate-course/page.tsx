@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { Plus_Jakarta_Sans } from "next/font/google";
 const jakarta = Plus_Jakarta_Sans({
-  weight: "600",
+  weight: ["400", "500", "600"],
 });
 export default async function GenerateCoursePage() {
   const { userId } = await auth();
@@ -28,8 +28,8 @@ export default async function GenerateCoursePage() {
     <div
       className={`${jakarta.className} p-8 max-w-7xl bg-stone-100 dark:bg-stone-950`}
     >
-      <h1 className="text-3xl font-bold mb-2">Create Course</h1>
-      <p className="text-stone-500 text-[16px] mb-6">
+      <h1 className="text-2xl font-bold mb-2">Create Course</h1>
+      <p className="text-stone-500 text-[16px] font-medium leading-6 mb-6">
         Easily generate a new course with AI assistance.
       </p>
       <div className="mt-6">

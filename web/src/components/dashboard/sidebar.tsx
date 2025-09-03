@@ -72,12 +72,12 @@ export function Sidebar({ className }: AppSidebarProps) {
   return (
     <UISidebar
       className={cn(
-        "border-r top-0 h-screen max-w-[320px] border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-950",
+        "border-r h-screen max-w-[320px] border-stone-200  dark:border-stone-800 dark:bg-stone-950",
         className
       )}
     >
-      <SidebarHeader className="border-b border-stone-200  dark:border-stone-700">
-        <div className="flex items-center gap-2 pl-6 ">
+      <SidebarHeader className="border-b border-stone-200 w-[320px] -mx-9 dark:border-stone-800">
+        <div className="flex items-center gap-2 pl-9 ">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-stone-900 dark:bg-stone-100">
             <Zap className="h-5 w-5 text-stone-50 dark:text-stone-900" />
           </div>
@@ -101,7 +101,7 @@ export function Sidebar({ className }: AppSidebarProps) {
                     <SidebarMenuButton
                       asChild
                       className={cn(
-                        "max-w-[248px] flex items-center justify-start my-2 px-[16px] py-[10px] text-[16px] font-normal rounded-[12px] transition-colors",
+                        "max-w-[248px] flex items-center justify-start my-2 px-[16px] py-[10px] text-[16px] font-normal rounded-[12px] transition-colors bg-stone-50 dark:bg-stone-900 ",
                         isActive
                           ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900"
                           : "text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
@@ -112,7 +112,7 @@ export function Sidebar({ className }: AppSidebarProps) {
                         className="flex items-center gap-3 w-full "
                       >
                         <Icon className="size-[22px] flex-shrink-0" />
-                        <span className={` text-[18px] leading-[28px]`}>
+                        <span className={` text-[17px] leading-[24px] font-normal`}>
                           {item.title}
                         </span>
                       </Link>
