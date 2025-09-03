@@ -15,7 +15,7 @@ export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
     <Link href="/dashboard/create/wizard" className="block">
       <Card
         className={cn(
-          "h-24 transition-all duration-200 shadow-sm hover:shadow-lg border border-stone-50 dark:border-stone-800 dark:bg-stone-900 hover:border-stone-400 bg-white rounded-[12px] cursor-pointer group",
+          "h-24 transition-all duration-200 shadow-sm hover:shadow-lg border border-stone-200 dark:border-stone-800 dark:bg-stone-900 hover:border-stone-400 bg-white rounded-[12px] cursor-pointer group",
           className
         )}
       >
@@ -33,7 +33,7 @@ export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
               </div>
             </div>
             <div className="flex items-center">
-              <span className="inline-flex items-center gap-1 px-2 py-2 rounded-full  text-stone-200 text-xs font-semibold group-hover:bg-primary/20 transition-colors duration-200">
+              <span className="inline-flex items-center gap-1 px-2 py-2 rounded-full  text-stone-200 text-xs font-semibold group-hover:bg-primary/10 transition-colors duration-200">
                 <CirclePlus className="size-6 text-stone-800 dark:text-stone-200" />
               </span>
             </div>

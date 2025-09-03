@@ -26,7 +26,7 @@ export default async function GenerateCoursePage() {
 
   return (
     <div
-      className={`${jakarta.className} p-8 max-w-7xl bg-stone-100 dark:bg-stone-950`}
+      className={`${jakarta.className} p-8 max-w-7xl bg-stone-50 dark:bg-stone-950`}
     >
       <h1 className="text-2xl font-bold mb-2">Create Course</h1>
       <p className="text-stone-500 text-[16px] font-medium leading-6 mb-6">
