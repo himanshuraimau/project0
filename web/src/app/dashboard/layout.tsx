@@ -12,8 +12,8 @@ const jakarta = Plus_Jakarta_Sans({
 function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex-1 h-full bg-white border-b border-stone-200 dark:bg-stone-950 overflow-y-scroll">
-      <div className="p-8">
-        <div className={`${jakarta.className} flex  items-center  dark:border-stone-800  justify-between mb-8`}>
+      <div className="">
+        <div className={`${jakarta.className} h-[100px] border-b border-stone-200 flex bg-white items-center  dark:border-stone-800  justify-between px-8`}>
           <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             Dashboard
           </h1>

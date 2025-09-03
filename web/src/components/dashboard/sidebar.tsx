@@ -15,7 +15,7 @@ import { usePathname } from "next/navigation";
 import { CreditDisplay } from "@/components/credit-display";
 import { Plus_Jakarta_Sans } from "next/font/google";
 const jakarta = Plus_Jakarta_Sans({
-  weight: "600", // e.g., SemiBold
+  weight: ["400", "600"], // e.g., SemiBold
   subsets: ["latin-ext", "vietnamese"],
 });
 import {
@@ -72,12 +72,12 @@ export function Sidebar({ className }: AppSidebarProps) {
   return (
     <UISidebar
       className={cn(
-        "border-r  top-0 h-screen  border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-950",
+        "border-r top-0 h-screen max-w-[320px] border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-950",
         className
       )}
     >
-      <SidebarHeader className="border-b border-stone-200 dark:border-stone-700">
-        <div className="flex items-center gap-2 pl-6">
+      <SidebarHeader className="border-b border-stone-200  dark:border-stone-700">
+        <div className="flex items-center gap-2 pl-6 ">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-stone-900 dark:bg-stone-100">
             <Zap className="h-5 w-5 text-stone-50 dark:text-stone-900" />
           </div>
@@ -89,7 +89,7 @@ export function Sidebar({ className }: AppSidebarProps) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="">
+      <SidebarContent className="pt-6">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
@@ -101,7 +101,7 @@ export function Sidebar({ className }: AppSidebarProps) {
                     <SidebarMenuButton
                       asChild
                       className={cn(
-                        "w-[248px] flex items-center justify-start my-2 px-[16px] py-[10px] text-lg font-medium rounded-[12px] transition-colors",
+                        "max-w-[248px] flex items-center justify-start my-2 px-[16px] py-[10px] text-[16px] font-normal rounded-[12px] transition-colors",
                         isActive
                           ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900"
                           : "text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
@@ -112,9 +112,7 @@ export function Sidebar({ className }: AppSidebarProps) {
                         className="flex items-center gap-3 w-full "
                       >
                         <Icon className="size-[22px] flex-shrink-0" />
-                        <span
-                          className={`font-medium text-[18px] leading-[28px] `}
-                        >
+                        <span className={` text-[18px] leading-[28px]`}>
                           {item.title}
                         </span>
                       </Link>
@@ -127,8 +125,8 @@ export function Sidebar({ className }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto w-full">
-        <div className="flex items-center gap-5 rounded-lg">
+      <SidebarFooter className="mt-auto w-full -mx-5">
+        <div className="flex items-center gap-4 rounded-lg">
           <div className="flex items-center justify-center rounded-[64px] size-[52px] bg-stone-200 dark:bg-stone-800">
             <span className="text-sm  font-semibold text-stone-900 dark:text-stone-100">
               BS

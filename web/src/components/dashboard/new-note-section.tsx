@@ -124,7 +124,7 @@ export function NewNoteSection() {
   };
 
   return (
-    <div className={`w-full mx-auto   ${inter.className}`}>
+    <div className={`w-full mx-auto ${inter.className}`}>
       <div className="mb-[36px]">
         <h2
           className={`text-2xl leading-8 font-semibold text-stone-900 dark:text-stone-100 mb-[6px] ${jakarta.className}`}
@@ -263,7 +263,9 @@ export function NewNoteSection() {
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className={`${jakarta.className} max-w-2xl max-h-[90vh] overflow-y-auto border border-stone-400`}>
+          <DialogContent
+            className={`${jakarta.className} max-w-2xl max-h-[90vh] overflow-y-auto border border-stone-400`}
+          >
             <DialogHeader>
               <DialogTitle className="text-left">
                 Upload PDF & Generate Notes
@@ -309,7 +311,9 @@ export function NewNoteSection() {
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent
+            className={`${jakarta.className} max-w-2xl max-h-[90vh] overflow-y-auto border border-stone-400`}
+          >
             <DialogHeader>
               <DialogTitle className="text-left">
                 Upload Audio File & Generate Notes

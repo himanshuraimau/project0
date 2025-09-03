@@ -95,7 +95,7 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
   };
 
   return (
-    <Card>
+    <Card className='pt-4 rounded-[8px] border border-stone-400'>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
@@ -105,10 +105,10 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
           Upload an audio file to generate transcripts and summaries
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 mt-4 px-5">
         {/* File Upload */}
         <div>
-          <label htmlFor="audio-upload" className="block text-sm font-medium mb-2">
+          <label htmlFor="audio-upload" className=" block text-sm font-semibold mb-2">
             Select Audio File
           </label>
           <Input
@@ -116,7 +116,7 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
             type="file"
             accept=".wav,.mp3,.aiff,.aac,.ogg,.flac"
             onChange={handleFileUpload}
-            className="cursor-pointer"
+            className="cursor-pointer rounded-[8px]"
           />
         </div>
 
