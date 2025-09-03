@@ -25,7 +25,9 @@ export default async function GenerateCoursePage() {
   });
 
   return (
-    <div className={`${jakarta.className} p-8 max-w-7xl`}>
+    <div
+      className={`${jakarta.className} p-8 max-w-7xl bg-stone-100 dark:bg-stone-950`}
+    >
       <h1 className="text-3xl font-bold mb-2">Create Course</h1>
       <p className="text-stone-500 text-[16px] mb-6">
         Easily generate a new course with AI assistance.

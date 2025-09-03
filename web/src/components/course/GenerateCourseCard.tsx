@@ -2,8 +2,7 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, Plus } from "lucide-react";
-import { ChevronRight } from "lucide-react";
+import { BookOpen, CirclePlus, Plus } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +15,7 @@ export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
     <Link href="/dashboard/create/wizard" className="block">
       <Card
         className={cn(
-          "h-24 transition-all duration-200 shadow-sm hover:shadow-lg border border-stone-800 hover:border-stone-400 bg-gradient-to-br from-primary/5 to-background rounded-[8px] cursor-pointer group",
+          "h-24 transition-all duration-200 shadow-sm hover:shadow-lg border border-stone-50 dark:border-stone-800 dark:bg-stone-900 hover:border-stone-400 bg-white rounded-[8px] cursor-pointer group",
           className
         )}
       >
@@ -26,7 +25,7 @@ export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
               <BookOpen className="size-10 text-stone-800 dark:text-stone-100" />
             </div>
             <div className="flex-1 text-left">
-              <div className="font-semibold text-[20px] text-foreground group-hover:text-stone-200 transition-colors duration-200">
+              <div className="font-semibold text-[20px] text-foreground group-hover:text-stone-800 dark:group-hover:text-stone-200 transition-colors duration-200">
                 Generate Course
               </div>
               <div className="text-sm font-medium text-muted-foreground mt-1">
@@ -34,8 +33,8 @@ export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
               </div>
             </div>
             <div className="flex items-center">
-              <span className="inline-flex items-center gap-1 px-2 py-2 rounded-full bg-primary/10 text-stone-200 text-xs font-semibold group-hover:bg-primary/20 transition-colors duration-200">
-                <ChevronRight className="h-4 w-4" />
+              <span className="inline-flex items-center gap-1 px-2 py-2 rounded-full  text-stone-200 text-xs font-semibold group-hover:bg-primary/20 transition-colors duration-200">
+                <CirclePlus className="size-6 text-stone-800 dark:text-stone-200" />
               </span>
             </div>
           </div>
