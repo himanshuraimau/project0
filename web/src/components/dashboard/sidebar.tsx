@@ -1,20 +1,23 @@
-"use client"
+"use client";
 
-import React from "react"
-import { cn } from "@/lib/utils"
-import { 
-  Home, 
-  HelpCircle, 
-  HeadphonesIcon, 
+import React from "react";
+import { cn } from "@/lib/utils";
+import {
+  Home,
+  HelpCircle,
+  HeadphonesIcon,
   Settings,
-  ChevronRight,
-  BookOpen
-} from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { CreditDisplay } from "@/components/credit-display"
-
-
+  BookOpen,
+  Zap,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { CreditDisplay } from "@/components/credit-display";
+import { Plus_Jakarta_Sans } from "next/font/google";
+const jakarta = Plus_Jakarta_Sans({
+  weight: ["400", "600"], // e.g., SemiBold
+  subsets: ["latin-ext", "vietnamese"],
+});
 import {
   Sidebar as UISidebar,
   SidebarContent,
@@ -25,19 +28,18 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarCollapseTrigger,
-  useSidebar
-} from "@/components/ui/sidebar"
+  useSidebar,
+} from "@/components/ui/sidebar";
 
 const sidebarItems = [
   {
-    title: "Home",
+    title: "Dashboard",
     icon: Home,
     href: "/dashboard",
   },
   {
     title: "Create Course",
-    icon: BookOpen, // Use BookOpen icon for course generation
+    icon: BookOpen,
     href: "/dashboard/generate-course",
   },
   {
@@ -55,60 +57,94 @@ const sidebarItems = [
     icon: Settings,
     href: "/dashboard/settings",
   },
-]
+];
 
 interface AppSidebarProps {
-  className?: string
+  className?: string;
 }
 
 export function Sidebar({ className }: AppSidebarProps) {
-  const pathname = usePathname()
-  const { open } = useSidebar()
+  const pathname = usePathname();
+  const { open } = useSidebar();
 
-    const initialCredits = 0; // Placeholder for actual user credit balance
+  const initialCredits = 0; // Placeholder for actual user credit balance
+
   return (
-    <UISidebar className={cn("z-10", className)}>
-      <SidebarHeader className="flex justify-between items-center">
-        <div className="flex items-center">
-          {open && <span className="font-semibold">Dashboard</span>}
+    <UISidebar
+      className={cn(
+        "border-r h-screen max-w-[320px] border-stone-200  dark:border-stone-800 dark:bg-stone-950",
+        className
+      )}
+    >
+      <SidebarHeader className="border-b border-stone-200 w-[320px] -mx-9 dark:border-stone-800">
+        <div className="flex items-center gap-2 pl-9 ">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-stone-900 dark:bg-stone-100">
+            <Zap className="h-5 w-5 text-stone-50 dark:text-stone-900" />
+          </div>
+          <span
+            className={`text-2xl leading-[32px] font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
+          >
+            SonicLearn
+          </span>
         </div>
-        <SidebarCollapseTrigger />
       </SidebarHeader>
-      
-      <SidebarContent>
+
+      <SidebarContent className="pt-6">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {sidebarItems.map((item) => {
-                const isActive = pathname === item.href
-                const Icon = item.icon
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
                 return (
                   <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton 
+                    <SidebarMenuButton
                       asChild
-                      active={isActive}
-                      className={!open ? "justify-center !px-2" : ""}
+                      className={cn(
+                        "max-w-[248px] flex items-center justify-start my-2 px-[16px] py-[10px] text-[16px] font-normal rounded-[12px] transition-colors bg-stone-50 dark:bg-stone-900 ",
+                        isActive
+                          ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900"
+                          : "text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+                      )}
                     >
-                      <Link href={item.href} className="flex items-center w-full">
-                        <Icon className="h-4 w-4" />
-                        {open && <span className="ml-3">{item.title}</span>}
-                        {isActive && open && (
-                          <ChevronRight className="ml-auto h-4 w-4" />
-                        )}
+                      <Link
+                        href={item.href}
+                        className="flex items-center gap-3 w-full "
+                      >
+                        <Icon className="size-[22px] flex-shrink-0" />
+                        <span className={` text-[17px] leading-[24px] font-normal`}>
+                          {item.title}
+                        </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
+                );
               })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      {open && (
-        <SidebarFooter className="mt-auto px-2 pb-4">
+
+      <SidebarFooter className="mt-auto w-full -mx-5">
+        <div className="flex items-center gap-4 rounded-lg">
+          <div className="flex items-center justify-center rounded-[64px] size-[52px] bg-stone-200 dark:bg-stone-800">
+            <span className="text-sm  font-semibold text-stone-900 dark:text-stone-100">
+              BS
+            </span>
+          </div>
+          <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+            <p className="text-lg font-medium text-stone-900 dark:text-stone-100 truncate">
+              Bhanu singh
+            </p>
+            <p className="text-sm font-normal leading-5 text-stone-600 dark:text-stone-400 truncate">
+              bhanusingh12345@gmail.com
+            </p>
+          </div>
+        </div>
+        {/* <div className="mt-3">
           <CreditDisplay initialCredits={initialCredits} />
-        </SidebarFooter>
-      )}
+        </div> */}
+      </SidebarFooter>
     </UISidebar>
-  )
+  );
 }

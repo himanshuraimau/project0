@@ -122,17 +122,17 @@ export default function RecordAudio({ onTranscriptionComplete }: RecordAudioProp
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className='pt-4 rounded-[8px] border border-stone-400'>
+      <CardHeader className=''>
         <CardTitle className="flex items-center gap-2">
           <Mic className="h-5 w-5" />
           Record Audio
         </CardTitle>
-        <CardDescription>
+        <CardDescription >
           Record audio to generate transcripts and summaries
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 mt-4">
         {/* Recording Controls */}
         <div className="space-y-4">
           <div className="flex gap-2">

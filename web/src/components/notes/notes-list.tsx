@@ -152,7 +152,7 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
   if (filteredNotes.length === 0 && searchQuery) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-gray-100 dark:bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
           <FileText className="h-8 w-8 text-gray-400" />
         </div>
         <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
@@ -167,7 +167,7 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="flex flex-col gap-4">
         {filteredNotes.map((note) => (
           <NoteCard
             key={note.id}

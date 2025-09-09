@@ -5,7 +5,15 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, Eye, Plus, Clock, Users, CheckCircle, Circle } from "lucide-react";
+import {
+  BookOpen,
+  Eye,
+  Plus,
+  Clock,
+  Users,
+  CheckCircle,
+  Circle,
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Course, Unit, Chapter } from "@prisma/client";
@@ -34,15 +42,16 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
   };
 
   const getTotalChapters = (course: CourseWithDetails) => {
-    return course.units.reduce((total, unit) => total + unit.chapters.length, 0);
+    return course.units.reduce(
+      (total, unit) => total + unit.chapters.length,
+      0
+    );
   };
 
   return (
-    <Card 
-      className="group hover:shadow-lg transition-all duration-300 border hover:border-primary/50"
-    >
+    <Card className="max-sm:w-full max-lg:w-1/2 lg:w-1/3 group hover:shadow-lg  transition-all duration-300 rounded-[12px] border-0 dark:bg-stone-900 bg-stone-100">
       <CardHeader className="p-0">
-        <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+        <div className="relative h-52 w-full overflow-hidden rounded-t-lg">
           {course.image ? (
             <Image
               src={course.image}
@@ -56,8 +65,8 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
               <BookOpen className="h-16 w-16 text-primary/60" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-          
+          <div className="absolute inset-0" />
+
           {/* Completion Badge */}
           <div className="absolute top-4 right-4">
             {progress.isCompleted && (
@@ -67,31 +76,35 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
               </Badge>
             )}
           </div>
-          
-          <div className="absolute bottom-4 left-4 right-4">
+
+          {/* <div className="absolute bottom-4 left-4 right-4">
             <h3 className="text-white font-bold text-lg leading-tight line-clamp-2">
               {course.name}
             </h3>
-          </div>
+          </div> */}
         </div>
       </CardHeader>
-      
-      <CardContent className="p-6">
-        <div className="space-y-4">
+
+      <CardContent className="pt-4  px-4">
+        <div className=" space-y-4 mb-2 ">
+          <div className=" left-4 right-4">
+            <h3 className="text-stone-900 dark:text-stone-100 font-semibold text-[20px] leading-tight line-clamp-2">
+              {course.name}
+            </h3>
+          </div>
           <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
               <span>{course.units.length} units</span>
             </div>
             <div className="flex items-center gap-1">
-              <BookOpen className="h-4 w-4" />
+              <BookOpen className="h-4 w-4 " />
               <span>{getTotalChapters(course)} chapters</span>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-            <Clock className="h-4 w-4" />
-            <span>Created {formatDate(course.createdAt)}</span>
+            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+              <Clock className="h-4 w-4" />
+              <span>{formatDate(course.createdAt)}</span>
+            </div>
           </div>
 
           {/* Progress Bar */}
@@ -99,9 +112,14 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Progress</span>
-                <span>{progress.completedChapters}/{progress.totalChapters} chapters</span>
+                <span>
+                  {progress.completedChapters}/{progress.totalChapters} chapters
+                </span>
               </div>
-              <Progress value={progress.completionPercentage} className="h-1.5" />
+              <Progress
+                value={progress.completionPercentage}
+                className="h-1.5"
+              />
             </div>
           )}
 
@@ -109,34 +127,41 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
           {progress.isCompleted && progress.completedAt && (
             <div className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
               <CheckCircle className="h-4 w-4" />
-              <span>Completed {formatDate(new Date(progress.completedAt))}</span>
+              <span>
+                Completed {formatDate(new Date(progress.completedAt))}
+              </span>
             </div>
           )}
 
           <div className="flex gap-2 mt-4">
-            <Link href={`/dashboard/course/${course.id}/0/0`} className="flex-1">
-              <Button className="w-full flex items-center gap-2" size="sm">
-                <Eye className="h-4 w-4" />
-                {progress.isCompleted ? 'Review Course' : 'Continue Learning'}
+            <Link
+              href={`/dashboard/course/${course.id}/0/0`}
+              className="flex-1"
+            >
+              <Button className="w-full bg-stone-800 rounded-[8px] px-4 flex items-center gap-2 ">
+                <Eye className="size-[18px] dark:text-stone-200" />
+                <p className="text-[14px] font-medium dark:text-stone-200">
+                  {" "}
+                  {progress.isCompleted ? "Review Course" : "Continue Learning"}
+                </p>{" "}
               </Button>
             </Link>
-            
+
             {/* Completion Toggle Button */}
             <Button
               variant={progress.isCompleted ? "outline" : "default"}
-              size="sm"
               onClick={toggleCompletion}
               disabled={updating}
-              className="flex items-center gap-2"
+              className=" bg-stone-200 text-stone-900 rounded-[8px] px-4 flex items-center gap-2 hover:bg-stone-400"
             >
               {updating ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <div className="size-[18px] animate-spin rounded-[8px] bg- border-2 border-stone-500 border-t-transparent" />
               ) : progress.isCompleted ? (
-                <Circle className="h-4 w-4" />
+                <Circle className="size-[18px]" />
               ) : (
-                <CheckCircle className="h-4 w-4" />
+                <CheckCircle className="size-[18px]" />
               )}
-              {progress.isCompleted ? 'Undo' : 'Complete'}
+              {progress.isCompleted ? "Undo" : "Complete"}
             </Button>
           </div>
         </div>
@@ -147,25 +172,26 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
 
 export function MyCourses({ courses }: MyCoursesProps) {
   return (
-    <div className="w-full max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="mb-6">
+        <h2 className="text-2xl leading-8 font-semibold text-stone-900 dark:text-white mb-2">
           My Courses
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-stone-500 dark:text-gray-400 font-medium text-[16px]">
           View and continue your AI-generated courses
         </p>
       </div>
 
       {courses.length === 0 ? (
-        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
+        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-sm">
           <CardContent className="p-12 text-center">
             <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               No courses yet
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Start your learning journey by creating your first AI-powered course
+              Start your learning journey by creating your first AI-powered
+              course
             </p>
             <Link href="/dashboard/create/wizard">
               <Button className="flex items-center gap-2">
@@ -176,7 +202,7 @@ export function MyCourses({ courses }: MyCoursesProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex w-full  gap-6">
           {courses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}

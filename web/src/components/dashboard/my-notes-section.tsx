@@ -83,16 +83,11 @@ export function MyNotesSection() {
   };
 
   return (
-    <div
-      className={`w-full max-w-6xl mt-24 mx-auto font-inter ${inter.className}`}
-    >
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+    <div className={`w-full  mx-auto  ${inter.className}`}>
+      <div className="mb-4">
+        <h2 className="text-2xl leading-8 font-semibold text-stone-900 dark:text-stone-100">
           My Notes
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          View and manage all your generated notes
-        </p>
       </div>
 
       {/* Controls */}
@@ -102,18 +97,18 @@ export function MyNotesSection() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="justify-between min-w-[150px] h-10 px-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-900 dark:text-white font-medium"
+                className="justify-between min-w-[150px] h-10 px-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-[8px] hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-900 dark:text-stone-100 font-medium"
               >
                 <div className="flex items-center gap-2">
                   <Folder className="h-4 w-4 text-yellow-500" />
                   <span className="text-sm">{selectedFolder}</span>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-400" />
+                <ChevronDown className="h-4 w-4 text-stone-400" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuItem onClick={() => setSelectedFolder("All Notes")}>
-                <Folder className="h-4 w-4 mr-2 text-yellow-500" />
+                <Folder className="h-4 w-4 mr-2.5 text-yellow-500" />
                 All Notes
               </DropdownMenuItem>
 
@@ -128,7 +123,7 @@ export function MyNotesSection() {
                       <Folder className="h-4 w-4 mr-2 text-yellow-500" />
                       {folder}
                     </div>
-                    <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center  space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -158,7 +153,7 @@ export function MyNotesSection() {
 
               <DropdownMenuItem
                 onClick={() => setShowCreateFolderDialog(true)}
-                className="border-t mt-1 pt-1"
+                className="border-t border-stone-300 dark:border-stone-700 mt-1 pt-2"
               >
                 <FolderPlus className="h-4 w-4 mr-2" />
                 Create New Folder
@@ -168,18 +163,18 @@ export function MyNotesSection() {
         </div>
 
         <div className="relative flex-1 max-w-md ml-auto">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search any note"
+            placeholder="Search any notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-10 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400"
+            className="pl-4 h-10 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-[8px] text-stone-900 dark:text-stone-100 placeholder:text-stone-400"
           />
+          <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-stone-400" />
         </div>
       </div>
 
       {/* Notes Display */}
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden p-6">
+      <div className=" dark:bg-stone-950 rounded-lg  ">
         <NotesList searchQuery={searchQuery} />
       </div>
 
