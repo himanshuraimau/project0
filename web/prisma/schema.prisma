@@ -1,4 +1,4 @@
-generator client {
+  generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
 }
@@ -75,6 +75,7 @@ model Note {
   flashcard    Flashcard?
   transcript   Transcript  @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
   quiz         Quiz?
+  podcast      Podcast?
   chunks       NoteChunk[] @relation("NoteToChunks")
 
   @@map("notes")
@@ -102,6 +103,54 @@ model Quiz {
   note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
 
   @@map("quizzes")
+}
+
+model Podcast {
+  id                  String           @id @default(cuid())
+  noteId              String           @unique
+  userId              String?
+  title               String
+  description         String?
+  language            String           @default("en")
+  durationPreset      String           // 'short', 'medium', 'long'
+  estimatedDuration   Int?             // in seconds
+  actualDuration      Int?             // in seconds after generation
+  host1VoiceId        String
+  host1VoiceName      String
+  host2VoiceId        String
+  host2VoiceName      String
+  customInstructions  String?
+  audioUrl            String?          // Vercel Blob URL
+  transcriptData      Json?            // Structured transcript with timestamps
+  generationStatus    String           @default("pending") // 'pending', 'generating', 'completed', 'failed'
+  generationError     String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  
+  note                Note             @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  segments            PodcastSegment[]
+
+  @@index([noteId])
+  @@index([userId])
+  @@map("podcasts")
+}
+
+model PodcastSegment {
+  id             Int      @id @default(autoincrement())
+  podcastId      String
+  speaker        String   // 'host1' or 'host2'
+  content        String   @db.Text
+  startTime      Decimal? @db.Decimal(10, 3) // in seconds
+  endTime        Decimal? @db.Decimal(10, 3) // in seconds
+  audioUrl       String?  // Individual segment audio URL
+  sequenceOrder  Int
+  createdAt      DateTime @default(now())
+  
+  podcast        Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+
+  @@index([podcastId])
+  @@index([podcastId, sequenceOrder])
+  @@map("podcast_segments")
 }
 
 model NoteChunk {
