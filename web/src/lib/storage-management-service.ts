@@ -1,9 +1,9 @@
-import { audioStorageService, StorageStats } from './audio-storage-service';
+import { StorageStats } from './uploadthing-audio-storage-service';
 import { PodcastGenerationError } from './types/podcast.types';
 
 /**
  * Service for managing storage cleanup, monitoring, and optimization
- * Handles failed generation cleanup, quota monitoring, and error recovery
+ * Simplified for UploadThing cloud storage - mainly handles database cleanup
  */
 export class StorageManagementService {
     private readonly quotaLimits = {
@@ -12,14 +12,8 @@ export class StorageManagementService {
         maxFileAge: 90 * 24 * 60 * 60 * 1000, // 90 days in milliseconds
     };
 
-    private readonly cleanupSchedule = {
-        failedGenerations: 24, // hours
-        tempFiles: 6, // hours
-        oldFiles: 7 * 24, // 7 days in hours
-    };
-
     /**
-     * Performs comprehensive storage cleanup
+     * Performs comprehensive storage cleanup - mainly database cleanup for UploadThing
      * @param options - Cleanup configuration options
      * @returns Promise<CleanupResult> - Results of cleanup operation
      */
@@ -33,10 +27,10 @@ export class StorageManagementService {
                 errors: []
             };
 
-            // Clean up failed generations
+            // Clean up failed generations from database (UploadThing files remain in cloud)
             try {
                 const failedCleanup = await this.cleanupFailedGenerations(
-                    options.failedGenerationAge || this.cleanupSchedule.failedGenerations
+                    options.failedGenerationAge || 24
                 );
                 result.failedGenerationsDeleted = failedCleanup.filesDeleted;
                 result.totalSpaceFreed += failedCleanup.spaceFreed;
@@ -44,22 +38,11 @@ export class StorageManagementService {
                 result.errors.push(`Failed generation cleanup error: ${error}`);
             }
 
-            // Clean up temporary files
-            try {
-                const tempCleanup = await this.cleanupTemporaryFiles(
-                    options.tempFileAge || this.cleanupSchedule.tempFiles
-                );
-                result.tempFilesDeleted = tempCleanup.filesDeleted;
-                result.totalSpaceFreed += tempCleanup.spaceFreed;
-            } catch (error) {
-                result.errors.push(`Temporary file cleanup error: ${error}`);
-            }
-
             // Clean up old files if enabled
             if (options.cleanupOldFiles) {
                 try {
                     const oldCleanup = await this.cleanupOldFiles(
-                        options.oldFileAge || this.cleanupSchedule.oldFiles
+                        options.oldFileAge || 7 * 24
                     );
                     result.oldFilesDeleted = oldCleanup.filesDeleted;
                     result.totalSpaceFreed += oldCleanup.spaceFreed;
@@ -78,7 +61,8 @@ export class StorageManagementService {
     }
 
     /**
-     * Cleans up failed podcast generation attempts
+     * Cleans up failed podcast generation attempts from database
+     * Note: UploadThing files are managed separately in the cloud
      * @param olderThanHours - Delete failed attempts older than this many hours
      * @returns Promise<CleanupStats> - Cleanup statistics
      */
@@ -105,12 +89,9 @@ export class StorageManagementService {
             let filesDeleted = 0;
             let spaceFreed = 0;
 
-            // Delete associated storage files and database records
+            // Delete database records (UploadThing files should be cleaned up separately)
             for (const podcast of failedPodcasts) {
                 try {
-                    // Delete from storage
-                    await audioStorageService.deletePodcastAudio(podcast.id);
-                    
                     // Delete from database
                     await prisma.podcastSegment.deleteMany({
                         where: { podcastId: podcast.id }
@@ -138,29 +119,8 @@ export class StorageManagementService {
     }
 
     /**
-     * Cleans up temporary files and incomplete uploads
-     * @param olderThanHours - Delete temp files older than this many hours
-     * @returns Promise<CleanupStats> - Cleanup statistics
-     */
-    async cleanupTemporaryFiles(olderThanHours: number = 6): Promise<CleanupStats> {
-        try {
-            // Use the existing cleanup method from audio storage service
-            const filesDeleted = await audioStorageService.cleanupFailedGenerations(olderThanHours);
-            
-            // Estimate space freed
-            const spaceFreed = filesDeleted * 5 * 1024 * 1024; // Assume 5MB per temp file
-
-            return { filesDeleted, spaceFreed };
-        } catch (error) {
-            throw new PodcastGenerationError(
-                'Failed to cleanup temporary files',
-                { code: 'STORAGE_FAILED', details: error }
-            );
-        }
-    }
-
-    /**
-     * Cleans up old podcast files based on age
+     * Cleans up old podcast files based on age from database
+     * Note: UploadThing files remain in cloud storage
      * @param olderThanHours - Delete files older than this many hours
      * @returns Promise<CleanupStats> - Cleanup statistics
      */
@@ -189,8 +149,6 @@ export class StorageManagementService {
 
             for (const podcast of oldPodcasts) {
                 try {
-                    await audioStorageService.deletePodcastAudio(podcast.id);
-                    
                     await prisma.podcastSegment.deleteMany({
                         where: { podcastId: podcast.id }
                     });
@@ -216,19 +174,27 @@ export class StorageManagementService {
     }
 
     /**
-     * Monitors storage quota and usage
+     * Monitors storage quota and usage - simplified for UploadThing
      * @param userId - Optional user ID to check specific user quota
      * @returns Promise<QuotaStatus> - Current quota status
      */
     async monitorStorageQuota(userId?: string): Promise<QuotaStatus> {
         try {
-            const stats = await audioStorageService.getStorageStats(userId);
+            // Since UploadThing manages the actual files, we can only track database records
+            const { prisma } = await import('./prisma');
+            
+            const podcastCount = await prisma.podcast.count({
+                where: userId ? { userId } : undefined
+            });
+            
+            // Estimate total size based on podcast count (rough approximation)
+            const estimatedTotalSize = podcastCount * 10 * 1024 * 1024; // 10MB per podcast
             
             const quotaStatus: QuotaStatus = {
                 currentUsage: {
-                    totalFiles: stats.totalFiles,
-                    totalSizeBytes: stats.totalSizeBytes,
-                    sizeFormatted: this.formatBytes(stats.totalSizeBytes)
+                    totalFiles: podcastCount,
+                    totalSizeBytes: estimatedTotalSize,
+                    sizeFormatted: this.formatBytes(estimatedTotalSize)
                 },
                 limits: {
                     maxTotalSizeBytes: this.quotaLimits.maxTotalSizeBytes,
@@ -236,8 +202,8 @@ export class StorageManagementService {
                     maxFileSizeFormatted: this.formatBytes(this.quotaLimits.maxTotalSizeBytes)
                 },
                 utilization: {
-                    sizePercentage: (stats.totalSizeBytes / this.quotaLimits.maxTotalSizeBytes) * 100,
-                    filePercentage: (stats.totalFiles / this.quotaLimits.maxFilesPerUser) * 100
+                    sizePercentage: (estimatedTotalSize / this.quotaLimits.maxTotalSizeBytes) * 100,
+                    filePercentage: (podcastCount / this.quotaLimits.maxFilesPerUser) * 100
                 },
                 warnings: [],
                 recommendations: []
@@ -245,18 +211,13 @@ export class StorageManagementService {
 
             // Add warnings for high usage
             if (quotaStatus.utilization.sizePercentage > 80) {
-                quotaStatus.warnings.push('Storage usage is above 80% of quota');
+                quotaStatus.warnings.push('Estimated storage usage is above 80% of quota');
                 quotaStatus.recommendations.push('Consider cleaning up old or unused podcasts');
             }
 
             if (quotaStatus.utilization.filePercentage > 80) {
                 quotaStatus.warnings.push('File count is above 80% of quota');
                 quotaStatus.recommendations.push('Consider consolidating or removing old podcast files');
-            }
-
-            // Add recommendations based on usage patterns
-            if (stats.oldestFile && this.isOlderThan(stats.oldestFile, 60)) { // 60 days
-                quotaStatus.recommendations.push('You have files older than 60 days that could be archived');
             }
 
             return quotaStatus;
@@ -274,7 +235,7 @@ export class StorageManagementService {
      * @param context - Additional context about the operation
      * @returns Promise<StorageErrorRecovery> - Recovery result
      */
-    async handleStorageError(error: any, context: StorageErrorContext): Promise<StorageErrorRecovery> {
+    async handleStorageError(error: unknown, context: StorageErrorContext): Promise<StorageErrorRecovery> {
         try {
             const recovery: StorageErrorRecovery = {
                 canRecover: false,
@@ -323,9 +284,6 @@ export class StorageManagementService {
             // Clean up failed generations immediately
             await this.cleanupFailedGenerations(1); // 1 hour old
             
-            // Clean up temp files immediately
-            await this.cleanupTemporaryFiles(1); // 1 hour old
-            
             // If still over quota, clean up older completed files
             const quotaStatus = await this.monitorStorageQuota();
             if (quotaStatus.utilization.sizePercentage > 90) {
@@ -340,16 +298,16 @@ export class StorageManagementService {
      * Logs storage errors for monitoring and analysis
      */
     private async logStorageError(
-        error: any, 
+        error: unknown, 
         context: StorageErrorContext, 
         recovery: StorageErrorRecovery
     ): Promise<void> {
         const errorLog = {
             timestamp: new Date().toISOString(),
             error: {
-                message: error.message,
-                code: error.code,
-                stack: error.stack
+                message: error instanceof Error ? error.message : String(error),
+                code: (error as any)?.code,
+                stack: error instanceof Error ? error.stack : undefined
             },
             context,
             recovery,
@@ -363,7 +321,7 @@ export class StorageManagementService {
     /**
      * Determines error severity for monitoring
      */
-    private determineErrorSeverity(error: any): 'low' | 'medium' | 'high' | 'critical' {
+    private determineErrorSeverity(error: unknown): 'low' | 'medium' | 'high' | 'critical' {
         if (this.isQuotaExceededError(error)) return 'high';
         if (this.isPermissionError(error)) return 'critical';
         if (this.isNetworkError(error)) return 'medium';
@@ -373,28 +331,34 @@ export class StorageManagementService {
     /**
      * Checks if error is quota exceeded
      */
-    private isQuotaExceededError(error: any): boolean {
-        return error.message?.includes('quota') || 
-               error.message?.includes('limit') ||
-               error.code === 'QUOTA_EXCEEDED';
+    private isQuotaExceededError(error: unknown): boolean {
+        const message = error instanceof Error ? error.message : String(error);
+        const code = (error as any)?.code;
+        return message?.includes('quota') || 
+               message?.includes('limit') ||
+               code === 'QUOTA_EXCEEDED';
     }
 
     /**
      * Checks if error is network related
      */
-    private isNetworkError(error: any): boolean {
-        return error.message?.includes('network') ||
-               error.message?.includes('timeout') ||
-               error.code === 'NETWORK_ERROR';
+    private isNetworkError(error: unknown): boolean {
+        const message = error instanceof Error ? error.message : String(error);
+        const code = (error as any)?.code;
+        return message?.includes('network') ||
+               message?.includes('timeout') ||
+               code === 'NETWORK_ERROR';
     }
 
     /**
      * Checks if error is permission related
      */
-    private isPermissionError(error: any): boolean {
-        return error.message?.includes('permission') ||
-               error.message?.includes('unauthorized') ||
-               error.code === 'PERMISSION_DENIED';
+    private isPermissionError(error: unknown): boolean {
+        const message = error instanceof Error ? error.message : String(error);
+        const code = (error as any)?.code;
+        return message?.includes('permission') ||
+               message?.includes('unauthorized') ||
+               code === 'PERMISSION_DENIED';
     }
 
     /**

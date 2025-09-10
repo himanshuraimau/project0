@@ -175,10 +175,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       }
     });
 
-    // TODO: Also delete audio files from Vercel Blob storage when implemented
-    // if (podcast.audioUrl) {
-    //   await deleteFromBlobStorage(podcast.audioUrl);
-    // }
+    // Note: UploadThing files are managed in the cloud and don't need explicit deletion
+    // from this API route. They can be managed separately through UploadThing dashboard.
 
     const response: ApiSuccessResponse = {
       success: true,

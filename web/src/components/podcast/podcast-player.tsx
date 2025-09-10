@@ -297,10 +297,7 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
   className,
   compact = false
 }) => {
-  // Show skeleton if podcast is not ready
-  if (!podcast.audioUrl || podcast.generationStatus !== 'completed') {
-    return <PodcastPlayerSkeleton />;
-  }
+  // Initialize all hooks first
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -310,11 +307,19 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [currentSpeaker, setCurrentSpeaker] = useState<'host1' | 'host2' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [isExpanded, setIsExpanded] = useState(!compact);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Show skeleton if podcast is not ready
+  if (!podcast.audioUrl || podcast.generationStatus !== 'completed') {
+    return <PodcastPlayerSkeleton />;
+  }
 
   // Find current segment and speaker
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     const currentSegment = segments.find(segment => 
       segment.startTime !== undefined && 
@@ -325,11 +330,24 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
     setCurrentSpeaker(currentSegment?.speaker || null);
   }, [currentTime, segments]);
 
+  // Responsive breakpoint detection
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Audio event handlers
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
       setDuration(audioRef.current.duration);
       setIsLoading(false);
+      setAudioError(null);
     }
   };
 
@@ -348,10 +366,18 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
 
   const handleLoadStart = () => {
     setIsLoading(true);
+    setAudioError(null);
   };
 
   const handleCanPlay = () => {
     setIsLoading(false);
+    setAudioError(null);
+  };
+
+  const handleError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
+    console.error('Audio error:', e.currentTarget.error);
+    setIsLoading(false);
+    setAudioError('Failed to load audio. Please check your connection or try again.');
   };
 
   // Playback controls
@@ -442,19 +468,6 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
 
   const speedOptions = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
-  // Responsive breakpoint detection
-  const [isMobile, setIsMobile] = useState(false);
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   // Compact mode for mobile or embedded use
   if (compact && !isExpanded) {
     return (
@@ -468,8 +481,17 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
             onEnded={handleEnded}
             onLoadStart={handleLoadStart}
             onCanPlay={handleCanPlay}
+            onError={handleError}
             preload="metadata"
+            crossOrigin="anonymous"
           />
+          
+          {/* Error display */}
+          {audioError && (
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-sm text-destructive">{audioError}</p>
+            </div>
+          )}
           
           {/* Compact header */}
           <div className="flex items-center justify-between mb-4">
@@ -557,8 +579,20 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
           onEnded={handleEnded}
           onLoadStart={handleLoadStart}
           onCanPlay={handleCanPlay}
+          onError={handleError}
           preload="metadata"
+          crossOrigin="anonymous"
         />
+
+        {/* Error display */}
+        {audioError && (
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <p className="text-sm text-destructive">{audioError}</p>
+            <div className="mt-2 text-xs text-muted-foreground">
+              Audio URL: {podcast.audioUrl}
+            </div>
+          </div>
+        )}
 
         {/* Header with expand/collapse for compact mode */}
         {compact && (

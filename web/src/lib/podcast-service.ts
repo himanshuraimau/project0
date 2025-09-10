@@ -7,8 +7,6 @@ import {
     ValidationResult,
     PodcastGenerationError
 } from './types/podcast.types';
-import { podcastQueryOptimizer } from './utils/podcast-query-optimizer';
-import { podcastCacheService } from './utils/podcast-cache-service';
 
 /**
  * Core service for podcast generation and management
@@ -197,16 +195,15 @@ export class PodcastService {
 
     /**
      * Saves podcast to storage and database
-     * Uploads audio to Vercel Blob and stores metadata
+     * Uploads audio to UploadThing and stores metadata
      */
     async savePodcast(audioBuffer: Buffer, metadata: PodcastMetadata, noteId: string, userId?: string): Promise<Podcast> {
         try {
-            const { audioStorageService } = await import('./audio-storage-service');
-            const { storageManagementService } = await import('./storage-management-service');
+            const { uploadThingAudioStorageService } = await import('./uploadthing-audio-storage-service');
             const { prisma } = await import('./prisma');
 
             // Validate audio buffer before upload
-            const validation = await audioStorageService.validateAudioBuffer(audioBuffer);
+            const validation = await uploadThingAudioStorageService.validateAudioBuffer(audioBuffer);
             if (!validation.isValid) {
                 throw new PodcastGenerationError(
                     `Audio validation failed: ${validation.errors.join(', ')}`,
@@ -218,8 +215,8 @@ export class PodcastService {
             const podcastId = metadata.id || this.generatePodcastId();
 
             try {
-                // Upload audio to Vercel Blob storage
-                const audioUrl = await audioStorageService.uploadPodcastAudio(audioBuffer, {
+                // Upload audio to UploadThing storage
+                const audioUrl = await uploadThingAudioStorageService.uploadPodcastAudio(audioBuffer, {
                     podcastId,
                     noteId,
                     userId,
@@ -279,81 +276,11 @@ export class PodcastService {
 
                 return podcast;
             } catch (storageError) {
-                // Handle storage errors with recovery strategies
-                const recovery = await storageManagementService.handleStorageError(storageError, {
-                    operation: 'savePodcast',
-                    podcastId,
-                    userId,
-                    fileSize: audioBuffer.length,
-                    timestamp: new Date()
-                });
-
-                if (recovery.canRecover && recovery.recoveryAction === 'cleanup') {
-                    // Retry after cleanup
-                    const audioUrl = await audioStorageService.uploadPodcastAudio(audioBuffer, {
-                        podcastId,
-                        noteId,
-                        userId,
-                        title: metadata.title,
-                        language: metadata.language,
-                        durationPreset: metadata.durationPreset
-                    });
-
-                    const createdPodcast = await prisma.podcast.create({
-                        data: {
-                            id: podcastId,
-                            noteId,
-                            userId,
-                            title: metadata.title,
-                            description: metadata.description,
-                            language: metadata.language,
-                            durationPreset: metadata.durationPreset,
-                            estimatedDuration: metadata.estimatedDuration,
-                            actualDuration: validation.metadata.estimatedDurationSeconds,
-                            host1VoiceId: metadata.host1VoiceId,
-                            host1VoiceName: metadata.host1VoiceName,
-                            host2VoiceId: metadata.host2VoiceId,
-                            host2VoiceName: metadata.host2VoiceName,
-                            customInstructions: metadata.customInstructions,
-                            audioUrl,
-                            transcriptData: metadata.transcriptData,
-                            generationStatus: 'completed',
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        }
-                    });
-
-                    // Convert null to undefined for TypeScript compatibility
-                    const podcast: Podcast = {
-                        ...createdPodcast,
-                        userId: createdPodcast.userId ?? undefined,
-                        description: createdPodcast.description ?? undefined,
-                        estimatedDuration: createdPodcast.estimatedDuration ?? undefined,
-                        actualDuration: createdPodcast.actualDuration ?? undefined,
-                        customInstructions: createdPodcast.customInstructions ?? undefined,
-                        audioUrl: createdPodcast.audioUrl ?? undefined,
-                        generationError: createdPodcast.generationError ?? undefined,
-                        durationPreset: createdPodcast.durationPreset as 'short' | 'medium' | 'long',
-                        generationStatus: createdPodcast.generationStatus as 'pending' | 'generating' | 'completed' | 'failed',
-                        transcriptData: createdPodcast.transcriptData ? createdPodcast.transcriptData as any : undefined
-                    };
-
-                    // Index podcast transcript for chatbot integration
-                    try {
-                        await this.indexPodcastTranscript(podcastId, noteId);
-                        console.log(`Podcast transcript indexed successfully for ${podcastId} (recovery path)`);
-                    } catch (indexError) {
-                        console.error(`Failed to index podcast transcript for ${podcastId} (recovery path):`, indexError);
-                        // Don't fail the entire operation if indexing fails
-                    }
-
-                    return podcast;
-                } else {
-                    throw new PodcastGenerationError(
-                        `Storage error: ${recovery.message}`,
-                        { code: 'STORAGE_FAILED', details: storageError }
-                    );
-                }
+                // If UploadThing fails, throw the error directly
+                throw new PodcastGenerationError(
+                    `Storage error: Failed to upload audio to UploadThing`,
+                    { code: 'STORAGE_FAILED', details: storageError }
+                );
             }
         } catch (error) {
             if (error instanceof PodcastGenerationError) {
@@ -471,14 +398,14 @@ export class PodcastService {
      */
     async saveAudioSegments(segments: AudioSegment[], podcastId: string): Promise<void> {
         try {
-            const { audioStorageService } = await import('./audio-storage-service');
+            const { uploadThingAudioStorageService } = await import('./uploadthing-audio-storage-service');
             const { prisma } = await import('./prisma');
 
             // Upload each segment to storage
             const segmentPromises = segments.map(async (segment, index) => {
                 if (segment.audioBuffer) {
                     // Upload segment audio
-                    const segmentUrl = await audioStorageService.uploadAudioSegment(
+                    const segmentUrl = await uploadThingAudioStorageService.uploadAudioSegment(
                         segment.audioBuffer,
                         {
                             podcastId,
@@ -517,11 +444,11 @@ export class PodcastService {
      */
     async deletePodcast(podcastId: string): Promise<void> {
         try {
-            const { audioStorageService } = await import('./audio-storage-service');
+            const { uploadThingAudioStorageService } = await import('./uploadthing-audio-storage-service');
             const { prisma } = await import('./prisma');
 
-            // Delete from storage first
-            await audioStorageService.deletePodcastAudio(podcastId);
+            // Delete from UploadThing storage (note: requires file keys to be stored in database)
+            await uploadThingAudioStorageService.deletePodcastAudio(podcastId);
 
             // Delete from database
             await prisma.podcastSegment.deleteMany({

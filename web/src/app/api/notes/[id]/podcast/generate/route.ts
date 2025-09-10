@@ -238,13 +238,153 @@ async function generatePodcastInBackground(
       }
     });
 
-    // TODO: Continue with audio synthesis when implemented
+    // Generate actual audio using ElevenLabs TTS
+    currentStage = 'audio_generation';
+    console.log(`Starting audio generation for podcast ${podcastId}`);
+    
+    const podcastRecord = await prisma.podcast.findUnique({
+      where: { id: podcastId },
+      select: { 
+        title: true, 
+        language: true, 
+        durationPreset: true, 
+        noteId: true,
+        userId: true,
+        host1VoiceId: true,
+        host2VoiceId: true
+      }
+    });
+    
+    if (!podcastRecord) {
+      throw new Error('Podcast record not found');
+    }
+
+    // Generate audio for ALL script segments
+    const audioSegments: Buffer[] = [];
+    let totalDuration = 0;
+    
+    console.log(`🎵 Generating audio for ${script.segments.length} segments...`);
+    
+    for (let i = 0; i < script.segments.length; i++) {
+      const segment = script.segments[i];
+      const segmentNumber = i + 1;
+      
+      try {
+        console.log(`� Generating segment ${segmentNumber}/${script.segments.length} (${segment.speaker}): ${segment.content.substring(0, 50)}...`);
+        
+        // Determine voice ID based on speaker
+        const voiceId = segment.speaker === 'host1' ? 
+          podcastRecord.host1VoiceId : podcastRecord.host2VoiceId;
+          
+        if (!voiceId) {
+          throw new Error(`Voice ID not configured for ${segment.speaker}`);
+        }
+        
+        // Call ElevenLabs TTS API directly
+        const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+        if (!ELEVENLABS_API_KEY) {
+          throw new Error('ElevenLabs API key not configured');
+        }
+
+        const ttsResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'audio/mpeg',
+            'Content-Type': 'application/json',
+            'xi-api-key': ELEVENLABS_API_KEY,
+          },
+          body: JSON.stringify({
+            text: segment.content,
+            model_id: 'eleven_flash_v2_5',
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.8,
+              style: 0.0,
+              use_speaker_boost: true
+            }
+          })
+        });
+
+        if (!ttsResponse.ok) {
+          const errorText = await ttsResponse.text();
+          console.error(`❌ TTS error for segment ${segmentNumber}:`, ttsResponse.status, errorText);
+          throw new Error(`TTS API error for segment ${segmentNumber}: ${ttsResponse.status} - ${errorText}`);
+        }
+
+        const segmentAudioBuffer = Buffer.from(await ttsResponse.arrayBuffer());
+        audioSegments.push(segmentAudioBuffer);
+        
+        // Estimate duration (rough calculation: MP3 audio is ~16KB per second at 128kbps)
+        const segmentDuration = segmentAudioBuffer.length / (16 * 1024);
+        totalDuration += segmentDuration;
+        
+        console.log(`✅ Generated segment ${segmentNumber} (${segmentAudioBuffer.length} bytes, ~${segmentDuration.toFixed(1)}s)`);
+        
+        // Add silence between segments (except after the last one)
+        if (i < script.segments.length - 1) {
+          // Generate 1 second of silence (approximate for MP3)
+          const silenceBuffer = Buffer.alloc(16 * 1024, 0); // ~1 second of silence
+          audioSegments.push(silenceBuffer);
+          totalDuration += 1.0; // Add 1 second for silence
+          console.log(`🔇 Added 1 second silence buffer`);
+        }
+        
+        // Add a small delay between TTS calls to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+      } catch (segmentError) {
+        console.error(`❌ Error generating segment ${segmentNumber}:`, segmentError);
+        throw new Error(`Audio generation failed for segment ${segmentNumber}: ${segmentError}`);
+      }
+    }
+
+    // Combine all audio segments into one file
+    console.log(`🔗 Combining ${audioSegments.length} audio segments...`);
+    const finalAudioBuffer = Buffer.concat(audioSegments);
+    
+    if (!finalAudioBuffer || finalAudioBuffer.length === 0) {
+      throw new Error('No audio content generated');
+    }
+    
+    console.log(`✅ Combined audio: ${finalAudioBuffer.length} bytes, ~${totalDuration.toFixed(1)}s total duration`);
+
+    // Upload the audio using UploadThing
+    currentStage = 'audio_upload';
+    const { uploadThingAudioStorageService } = await import('@/lib/uploadthing-audio-storage-service');
+    
+    try {
+      const audioUrl = await uploadThingAudioStorageService.uploadPodcastAudio(finalAudioBuffer, {
+        podcastId,
+        noteId: podcastRecord.noteId,
+        userId: podcastRecord.userId || undefined,
+        title: podcastRecord.title,
+        language: podcastRecord.language,
+        durationPreset: podcastRecord.durationPreset
+      });
+      
+      // Update podcast with audio URL and actual duration
+      await prisma.podcast.update({
+        where: { id: podcastId },
+        data: { 
+          audioUrl,
+          actualDuration: Math.round(totalDuration)
+        }
+      });
+      
+      console.log(`✅ Audio uploaded successfully for podcast ${podcastId}: ${audioUrl}`);
+      console.log(`File size: ${finalAudioBuffer.length} bytes, Duration: ${totalDuration.toFixed(1)}s`);
+    } catch (uploadError) {
+      console.error(`❌ Failed to upload audio for podcast ${podcastId}:`, uploadError);
+      throw uploadError;
+    }
+
+
     // const audioSegments = await podcastService.synthesizeAudio(script, config);
     // const finalAudio = await podcastService.assembleAudio(audioSegments);
     // const savedPodcast = await podcastService.savePodcast(finalAudio, metadata, noteId, userId);
 
     // Save podcast segments to database for transcript indexing
-    const segmentPromises = script.segments.map(async (segment, index) => {
+    const segmentPromises = script.segments.map(async (segment) => {
       return prisma.podcastSegment.create({
         data: {
           podcastId: podcastId,
