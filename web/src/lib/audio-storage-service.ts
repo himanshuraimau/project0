@@ -1,20 +1,85 @@
-import { put, del, list } from '@vercel/blob';
+/**
+ * Audio Storage Service
+ * Handles audio file storage operations for podcast generation
+ * Uses local file system storage for development
+ * Requirements: 3.1, 3.2, 3.3, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8
+ */
+
+import fs from 'fs/promises';
+import path from 'path';
 import { PodcastGenerationError } from './types/podcast.types';
 
+interface AudioFile {
+    id: string;
+    filename: string;
+    url: string;
+    size: number;
+    mimeType: string;
+    uploadedAt: Date;
+    metadata?: Record<string, any>;
+}
+
+interface UploadOptions {
+    filename?: string;
+    metadata?: Record<string, any>;
+    maxSizeBytes?: number;
+    allowedMimeTypes?: string[];
+}
+
 /**
- * Service for managing podcast audio storage using Vercel Blob
+ * Storage statistics interface
+ */
+export interface StorageStats {
+    totalFiles: number;
+    totalSizeBytes: number;
+    oldestFile: Date | null;
+    newestFile: Date | null;
+    filesByType: Record<string, number>;
+}
+
+/**
+ * Audio validation result interface
+ */
+export interface AudioValidationResult {
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+    metadata: {
+        sizeBytes: number;
+        estimatedDurationSeconds: number;
+    };
+}
+
+/**
+ * Service for managing podcast audio storage using local file system
  * Handles upload, organization, metadata, and cleanup operations
  */
 export class AudioStorageService {
     private readonly maxFileSize = 100 * 1024 * 1024; // 100MB limit
     private readonly allowedMimeTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3'];
-    private readonly baseFolder = 'podcasts';
+    private readonly STORAGE_DIR = path.join(process.cwd(), 'public', 'podcasts', 'audio');
+
+    constructor() {
+        // Ensure storage directory exists
+        this.ensureStorageDirectory();
+    }
 
     /**
-     * Uploads podcast audio to Vercel Blob storage
+     * Ensure storage directory exists
+     */
+    private async ensureStorageDirectory(): Promise<void> {
+        try {
+            await fs.mkdir(this.STORAGE_DIR, { recursive: true });
+        } catch (error) {
+            console.error('Failed to create storage directory:', error);
+        }
+    }
+
+    /**
+     * Uploads podcast audio to local storage
      * @param audioBuffer - The audio file buffer
      * @param metadata - Podcast metadata for file organization
-     * @returns Promise<string> - The CDN URL of the uploaded file
+     * @returns Promise<string> - The local URL of the uploaded file
      */
     async uploadPodcastAudio(
         audioBuffer: Buffer,
@@ -36,18 +101,38 @@ export class AudioStorageService {
                 );
             }
 
+            // Validate audio buffer
+            const validation = await this.validateAudioBuffer(audioBuffer);
+            if (!validation.isValid) {
+                throw new PodcastGenerationError(
+                    `Audio validation failed: ${validation.errors.join(', ')}`,
+                    { code: 'STORAGE_FAILED', details: validation }
+                );
+            }
+
             // Generate organized file path
             const fileName = this.generateFileName(metadata);
-            const filePath = this.generateFilePath(metadata, fileName);
+            const filePath = path.join(this.STORAGE_DIR, fileName);
 
-            // Upload to Vercel Blob
-            const blob = await put(filePath, audioBuffer, {
-                access: 'public',
-                contentType: 'audio/mpeg',
-                addRandomSuffix: false, // We're already using unique IDs
-            });
+            // Write file to disk
+            await fs.writeFile(filePath, audioBuffer);
 
-            return blob.url;
+            // Create metadata file
+            const metadataPath = path.join(this.STORAGE_DIR, `${fileName}.meta.json`);
+            const fileMetadata = {
+                podcastId: metadata.podcastId,
+                noteId: metadata.noteId,
+                userId: metadata.userId,
+                title: metadata.title,
+                language: metadata.language,
+                durationPreset: metadata.durationPreset,
+                uploadedAt: new Date().toISOString(),
+                originalSize: audioBuffer.length,
+                mimeType: this.detectMimeType(audioBuffer),
+            };
+            await fs.writeFile(metadataPath, JSON.stringify(fileMetadata, null, 2));
+
+            return `/podcasts/audio/${fileName}`;
         } catch (error) {
             if (error instanceof PodcastGenerationError) {
                 throw error;
@@ -60,10 +145,10 @@ export class AudioStorageService {
     }
 
     /**
-     * Uploads individual audio segment to storage
+     * Uploads individual audio segment to local storage
      * @param segmentBuffer - The audio segment buffer
      * @param metadata - Segment metadata
-     * @returns Promise<string> - The CDN URL of the uploaded segment
+     * @returns Promise<string> - The local URL of the uploaded segment
      */
     async uploadAudioSegment(
         segmentBuffer: Buffer,
@@ -83,18 +168,27 @@ export class AudioStorageService {
                 );
             }
 
-            // Generate segment file path
-            const fileName = `segment-${metadata.sequenceOrder}-${metadata.speaker}.mp3`;
-            const filePath = `${this.baseFolder}/${metadata.podcastId}/segments/${fileName}`;
+            // Generate segment file name
+            const fileName = `segment-${metadata.sequenceOrder}-${metadata.speaker}-${metadata.podcastId}.mp3`;
+            const filePath = path.join(this.STORAGE_DIR, fileName);
 
-            // Upload segment to Vercel Blob
-            const blob = await put(filePath, segmentBuffer, {
-                access: 'public',
-                contentType: 'audio/mpeg',
-                addRandomSuffix: false,
-            });
+            // Write segment to disk
+            await fs.writeFile(filePath, segmentBuffer);
 
-            return blob.url;
+            // Create metadata file
+            const metadataPath = path.join(this.STORAGE_DIR, `${fileName}.meta.json`);
+            const fileMetadata = {
+                podcastId: metadata.podcastId,
+                segmentId: metadata.segmentId,
+                speaker: metadata.speaker,
+                sequenceOrder: metadata.sequenceOrder,
+                uploadedAt: new Date().toISOString(),
+                originalSize: segmentBuffer.length,
+                mimeType: this.detectMimeType(segmentBuffer),
+            };
+            await fs.writeFile(metadataPath, JSON.stringify(fileMetadata, null, 2));
+
+            return `/podcasts/audio/${fileName}`;
         } catch (error) {
             throw new PodcastGenerationError(
                 'Failed to upload audio segment to storage',
@@ -104,21 +198,28 @@ export class AudioStorageService {
     }
 
     /**
-     * Deletes podcast audio and all associated segments from storage
+     * Deletes podcast audio and all associated segments from local storage
      * @param podcastId - The podcast ID
      * @returns Promise<void>
      */
     async deletePodcastAudio(podcastId: string): Promise<void> {
         try {
-            // List all files for this podcast
-            const { blobs } = await list({
-                prefix: `${this.baseFolder}/${podcastId}/`,
-            });
+            await this.ensureStorageDirectory();
+
+            const files = await fs.readdir(this.STORAGE_DIR);
+            const podcastFiles = files.filter(file => file.includes(podcastId));
 
             // Delete all files associated with this podcast
-            const deletePromises = blobs.map(blob => del(blob.url));
-            await Promise.all(deletePromises);
+            const deletePromises = podcastFiles.map(async (file) => {
+                const filePath = path.join(this.STORAGE_DIR, file);
+                try {
+                    await fs.unlink(filePath);
+                } catch (error) {
+                    console.warn(`Failed to delete file ${file}:`, error);
+                }
+            });
 
+            await Promise.all(deletePromises);
         } catch (error) {
             throw new PodcastGenerationError(
                 'Failed to delete podcast audio from storage',
@@ -128,13 +229,22 @@ export class AudioStorageService {
     }
 
     /**
-     * Deletes a specific audio segment from storage
-     * @param segmentUrl - The URL of the segment to delete
+     * Deletes a specific audio segment from local storage
+     * @param segmentUrl - The URL of the segment to delete (or filename)
      * @returns Promise<void>
      */
     async deleteAudioSegment(segmentUrl: string): Promise<void> {
         try {
-            await del(segmentUrl);
+            // Extract filename from URL
+            const fileName = segmentUrl.split('/').pop() || segmentUrl;
+            const filePath = path.join(this.STORAGE_DIR, fileName);
+            const metadataPath = path.join(this.STORAGE_DIR, `${fileName}.meta.json`);
+
+            // Delete both the audio file and metadata
+            await Promise.all([
+                fs.unlink(filePath).catch(() => { }), // Ignore if file doesn't exist
+                fs.unlink(metadataPath).catch(() => { }), // Ignore if metadata doesn't exist
+            ]);
         } catch (error) {
             throw new PodcastGenerationError(
                 'Failed to delete audio segment from storage',
@@ -150,27 +260,30 @@ export class AudioStorageService {
      */
     async cleanupFailedGenerations(olderThanHours: number = 24): Promise<number> {
         try {
+            await this.ensureStorageDirectory();
+
             const cutoffTime = new Date(Date.now() - (olderThanHours * 60 * 60 * 1000));
             let cleanedCount = 0;
 
-            // List all podcast files
-            const { blobs } = await list({
-                prefix: `${this.baseFolder}/`,
-            });
+            const files = await fs.readdir(this.STORAGE_DIR);
 
-            // Filter files older than cutoff time
-            const filesToDelete = blobs.filter(blob => {
-                const uploadTime = new Date(blob.uploadedAt);
-                return uploadTime < cutoffTime;
-            });
+            for (const file of files) {
+                if (file.endsWith('.meta.json')) continue; // Skip metadata files for now
 
-            // Delete old files in batches to avoid overwhelming the API
-            const batchSize = 10;
-            for (let i = 0; i < filesToDelete.length; i += batchSize) {
-                const batch = filesToDelete.slice(i, i + batchSize);
-                const deletePromises = batch.map(blob => del(blob.url));
-                await Promise.all(deletePromises);
-                cleanedCount += batch.length;
+                const filePath = path.join(this.STORAGE_DIR, file);
+                const stats = await fs.stat(filePath);
+
+                if (stats.birthtime < cutoffTime) {
+                    try {
+                        await fs.unlink(filePath);
+                        // Also delete associated metadata
+                        const metadataPath = path.join(this.STORAGE_DIR, `${file}.meta.json`);
+                        await fs.unlink(metadataPath).catch(() => { });
+                        cleanedCount++;
+                    } catch (error) {
+                        console.warn(`Failed to delete old file ${file}:`, error);
+                    }
+                }
             }
 
             return cleanedCount;
@@ -189,21 +302,48 @@ export class AudioStorageService {
      */
     async getStorageStats(userId?: string): Promise<StorageStats> {
         try {
-            const prefix = userId 
-                ? `${this.baseFolder}/user-${userId}/`
-                : `${this.baseFolder}/`;
+            await this.ensureStorageDirectory();
 
-            const { blobs } = await list({ prefix });
+            const files = await fs.readdir(this.STORAGE_DIR);
+            const audioFiles = files.filter(file =>
+                !file.endsWith('.meta.json') &&
+                this.allowedMimeTypes.some(type => file.endsWith(type.split('/')[1]))
+            );
 
-            const stats: StorageStats = {
-                totalFiles: blobs.length,
-                totalSizeBytes: blobs.reduce((total, blob) => total + blob.size, 0),
-                oldestFile: blobs.length > 0 ? new Date(Math.min(...blobs.map(b => new Date(b.uploadedAt).getTime()))) : null,
-                newestFile: blobs.length > 0 ? new Date(Math.max(...blobs.map(b => new Date(b.uploadedAt).getTime()))) : null,
-                filesByType: this.categorizeFilesByType(blobs)
+            let totalSizeBytes = 0;
+            const fileDates: Date[] = [];
+            const filesByType: Record<string, number> = {
+                podcasts: 0,
+                segments: 0,
+                temporary: 0
             };
 
-            return stats;
+            for (const file of audioFiles) {
+                const filePath = path.join(this.STORAGE_DIR, file);
+                const stats = await fs.stat(filePath);
+
+                totalSizeBytes += stats.size;
+                fileDates.push(stats.birthtime);
+
+                // Categorize files
+                if (file.includes('segment-')) {
+                    filesByType.segments++;
+                } else if (file.includes('temp-')) {
+                    filesByType.temporary++;
+                } else {
+                    filesByType.podcasts++;
+                }
+            }
+
+            fileDates.sort((a, b) => a.getTime() - b.getTime());
+
+            return {
+                totalFiles: audioFiles.length,
+                totalSizeBytes,
+                oldestFile: fileDates.length > 0 ? fileDates[0] : null,
+                newestFile: fileDates.length > 0 ? fileDates[fileDates.length - 1] : null,
+                filesByType
+            };
         } catch (error) {
             throw new PodcastGenerationError(
                 'Failed to get storage statistics',
@@ -263,6 +403,33 @@ export class AudioStorageService {
     }
 
     /**
+     * Detect MIME type from buffer
+     */
+    private detectMimeType(buffer: Buffer): string {
+        // Check for MP3
+        if (buffer.length >= 3 &&
+            ((buffer[0] === 0xFF && (buffer[1] & 0xE0) === 0xE0) || // MP3 frame header
+                (buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33))) { // ID3 tag
+            return 'audio/mpeg';
+        }
+
+        // Check for WAV
+        if (buffer.length >= 12 &&
+            buffer.toString('ascii', 0, 4) === 'RIFF' &&
+            buffer.toString('ascii', 8, 12) === 'WAVE') {
+            return 'audio/wav';
+        }
+
+        // Check for OGG
+        if (buffer.length >= 4 && buffer.toString('ascii', 0, 4) === 'OggS') {
+            return 'audio/ogg';
+        }
+
+        // Default to MP3
+        return 'audio/mpeg';
+    }
+
+    /**
      * Generates a unique filename for the podcast
      */
     private generateFileName(metadata: {
@@ -278,25 +445,9 @@ export class AudioStorageService {
             .replace(/\s+/g, '-')
             .substring(0, 50);
 
-        const timestamp = new Date().toISOString().split('T')[0];
-        
-        return `${sanitizedTitle}-${metadata.language}-${metadata.durationPreset}-${timestamp}.mp3`;
-    }
+        const timestamp = Date.now();
 
-    /**
-     * Generates organized file path for storage
-     */
-    private generateFilePath(metadata: {
-        podcastId: string;
-        noteId: string;
-        userId?: string;
-        language: string;
-        durationPreset: string;
-    }, fileName: string): string {
-        const userFolder = metadata.userId ? `user-${metadata.userId}` : 'anonymous';
-        const dateFolder = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-        
-        return `${this.baseFolder}/${userFolder}/${dateFolder}/${metadata.podcastId}/${fileName}`;
+        return `${sanitizedTitle}-${metadata.language}-${metadata.durationPreset}-${timestamp}.mp3`;
     }
 
     /**
@@ -326,53 +477,6 @@ export class AudioStorageService {
             return signature.every((byte, index) => buffer[index] === byte);
         });
     }
-
-    /**
-     * Categorizes files by type for statistics
-     */
-    private categorizeFilesByType(blobs: any[]): Record<string, number> {
-        const categories: Record<string, number> = {
-            podcasts: 0,
-            segments: 0,
-            temporary: 0
-        };
-
-        blobs.forEach(blob => {
-            if (blob.pathname.includes('/segments/')) {
-                categories.segments++;
-            } else if (blob.pathname.includes('/temp/')) {
-                categories.temporary++;
-            } else {
-                categories.podcasts++;
-            }
-        });
-
-        return categories;
-    }
-}
-
-/**
- * Storage statistics interface
- */
-export interface StorageStats {
-    totalFiles: number;
-    totalSizeBytes: number;
-    oldestFile: Date | null;
-    newestFile: Date | null;
-    filesByType: Record<string, number>;
-}
-
-/**
- * Audio validation result interface
- */
-export interface AudioValidationResult {
-    isValid: boolean;
-    errors: string[];
-    warnings: string[];
-    metadata: {
-        sizeBytes: number;
-        estimatedDurationSeconds: number;
-    };
 }
 
 // Export singleton instance

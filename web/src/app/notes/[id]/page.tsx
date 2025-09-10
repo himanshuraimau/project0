@@ -34,6 +34,7 @@ import {
   FileText,
   HelpCircle,
   Layers,
+  Mic,
   X,
   Trash2,
   MessageCircle,
@@ -443,18 +444,17 @@ export default function NoteViewPage() {
       return;
     }
 
-    // Check if podcast already exists
+    // Always switch to podcast view first - the view will handle showing appropriate content
+    setCurrentView('podcast');
+
+    // Then check if podcast exists in the background
     const existingPodcast = await getPodcast(noteId);
 
-    if (existingPodcast && existingPodcast.generationStatus === 'completed') {
-      // Switch to podcast view if podcast exists and is completed
-      setCurrentView('podcast');
-    } else if (existingPodcast && existingPodcast.generationStatus === 'generating') {
-      // Switch to podcast view to show generation progress
-      setCurrentView('podcast');
-    } else {
-      // Show configuration modal for new podcast
-      setShowPodcastConfig(true);
+    // If no podcast exists, show configuration modal after a short delay
+    if (!existingPodcast) {
+      setTimeout(() => {
+        setShowPodcastConfig(true);
+      }, 500); // Small delay to allow view to render first
     }
   };
 
@@ -882,6 +882,30 @@ export default function NoteViewPage() {
                 {/* Podcast Section */}
                 {currentView === 'podcast' && (
                   <div className="space-y-4">
+                    {/* No podcast exists - show creation prompt */}
+                    {!podcast && !podcastLoading && !podcastError && (
+                      <Card>
+                        <CardContent className="flex flex-col items-center justify-center py-12">
+                          <div className="p-4 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
+                            <Mic className="h-12 w-12 text-blue-600" />
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                            Create a Podcast
+                          </h3>
+                          <p className="text-gray-600 dark:text-gray-400 text-center mb-6 max-w-md">
+                            Transform your notes into an engaging podcast conversation between two AI hosts.
+                          </p>
+                          <Button
+                            onClick={() => setShowPodcastConfig(true)}
+                            className="flex items-center gap-2"
+                          >
+                            <Mic className="h-4 w-4" />
+                            Generate Podcast
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    )}
+
                     {podcastLoading && (
                       <Card>
                         <CardContent className="p-6">
@@ -944,7 +968,7 @@ export default function NoteViewPage() {
                               segments={segments}
                             />
                           </div>
-                          
+
                           {/* Chat Interface - Right Side (1/3 width) */}
                           <Card className="lg:col-span-1 rounded-3xl border-0 shadow-xl p-0 overflow-hidden h-[78vh] flex flex-col">
                             <CardHeader className="pb-3 bg-muted/5 border-b border-border">

@@ -34,7 +34,7 @@ export class PodcastApiErrorHandler {
         let podcastError: PodcastGenerationError;
 
         if (typeof error === 'string') {
-            podcastError = new PodcastGenerationError(error, { code: 'UNKNOWN_ERROR' });
+            podcastError = new PodcastGenerationError(error, { code: 'CONFIGURATION_INVALID' });
         } else if (error instanceof PodcastGenerationError) {
             podcastError = error;
         } else {

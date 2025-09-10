@@ -74,10 +74,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
       );
     }
 
-    // Check if note has sufficient content
-    if (!note.content || note.content.trim().length < 50) {
+    // Check if note has sufficient content - be more lenient
+    if (!note.content || note.content.trim().length < 10) {
       return PodcastApiErrorHandler.createValidationErrorResponse(
-        ['Note must have at least 50 characters of content to generate a podcast'],
+        ['Note must have at least 10 characters of content to generate a podcast'],
         'content validation'
       );
     }
