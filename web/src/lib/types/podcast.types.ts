@@ -84,8 +84,11 @@ export interface ScriptSegment {
 
 export interface AudioSegment {
   speaker: 'host1' | 'host2';
-  audioBuffer: Buffer;
-  duration: number;
+  audioBuffer?: Buffer;
+  content: string;
+  startTime?: number;
+  endTime?: number;
+  duration?: number;
   sequenceOrder: number;
 }
 
@@ -107,15 +110,18 @@ export interface TranscriptSegment {
 }
 
 export interface PodcastMetadata {
+  id?: string;
   title: string;
   description?: string;
   language: string;
-  duration: number;
-  hosts: {
-    host1: { voiceId: string; voiceName: string };
-    host2: { voiceId: string; voiceName: string };
-  };
+  durationPreset: 'short' | 'medium' | 'long';
+  estimatedDuration?: number;
+  host1VoiceId: string;
+  host1VoiceName: string;
+  host2VoiceId: string;
+  host2VoiceName: string;
   customInstructions?: string;
+  transcriptData?: any;
 }
 
 export interface AudioMetadata {
@@ -163,6 +169,31 @@ export interface ChatResponse {
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];
+}
+
+// Storage-related types
+export interface StorageError extends Error {
+  code: 'QUOTA_EXCEEDED' | 'NETWORK_ERROR' | 'PERMISSION_DENIED' | 'STORAGE_FAILED';
+  details?: any;
+  retryable?: boolean;
+}
+
+export interface StorageStats {
+  totalFiles: number;
+  totalSizeBytes: number;
+  oldestFile: Date | null;
+  newestFile: Date | null;
+  filesByType: Record<string, number>;
+}
+
+export interface AudioValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  metadata: {
+    sizeBytes: number;
+    estimatedDurationSeconds: number;
+  };
 }
 
 // Error class for podcast generation failures
