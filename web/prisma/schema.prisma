@@ -276,3 +276,5 @@ model UserChapterProgress {
   @@index([chapterId])
   @@map("user_chapter_progress")
 }
+
+

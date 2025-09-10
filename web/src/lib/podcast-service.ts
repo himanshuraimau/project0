@@ -7,6 +7,8 @@ import {
     ValidationResult,
     PodcastGenerationError
 } from './types/podcast.types';
+import { podcastQueryOptimizer } from './utils/podcast-query-optimizer';
+import { podcastCacheService } from './utils/podcast-cache-service';
 
 /**
  * Core service for podcast generation and management

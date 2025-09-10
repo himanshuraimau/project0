@@ -21,6 +21,7 @@ export const PodcastWithTranscript: React.FC<PodcastWithTranscriptProps> = ({
   className
 }) => {
   const [currentTime, setCurrentTime] = useState(0);
+  const playerRef = React.useRef<{ seek: (time: number) => void } | null>(null);
 
   const handleTimeUpdate = (time: number) => {
     setCurrentTime(time);
@@ -28,14 +29,17 @@ export const PodcastWithTranscript: React.FC<PodcastWithTranscriptProps> = ({
 
   const handleSeek = (time: number) => {
     setCurrentTime(time);
-    // In a real implementation, this would also seek the audio player
-    // The PodcastPlayer component would need to expose a seek method
+    // Seek the audio player if ref is available
+    if (playerRef.current?.seek) {
+      playerRef.current.seek(time);
+    }
   };
 
   return (
-    <div className={`space-y-6 ${className || ''}`}>
+    <div className={`space-y-6 ${className || ''}`} role="region" aria-label="Podcast player with transcript">
       {/* Audio Player */}
       <PodcastPlayer
+        ref={playerRef}
         podcast={podcast}
         segments={segments}
         onTimeUpdate={handleTimeUpdate}

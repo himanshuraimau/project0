@@ -17,9 +17,11 @@ import {
   BookmarkCheck,
   Menu,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Loader2
 } from 'lucide-react';
 import { Podcast, PodcastSegment } from '@/lib/types/podcast.types';
+import { PodcastPlayerSkeleton, PodcastInlineLoading } from './podcast-loading-states';
 
 interface Bookmark {
   id: string;
@@ -43,7 +45,7 @@ interface PodcastPlayerProps {
 }
 
 interface WaveformProps {
-  audioRef: React.RefObject<HTMLAudioElement>;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
   duration: number;
   currentTime: number;
   onSeek: (time: number) => void;
@@ -220,6 +222,22 @@ const Waveform: React.FC<WaveformProps> = ({
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         onClick={handleClick}
+        role="slider"
+        aria-label="Audio timeline scrubber"
+        aria-valuemin={0}
+        aria-valuemax={duration}
+        aria-valuenow={currentTime}
+        aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            onSeek(Math.max(0, currentTime - 5));
+          } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            onSeek(Math.min(duration, currentTime + 5));
+          }
+        }}
       />
       {isHovering && (
         <div 
@@ -279,6 +297,10 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
   className,
   compact = false
 }) => {
+  // Show skeleton if podcast is not ready
+  if (!podcast.audioUrl || podcast.generationStatus !== 'completed') {
+    return <PodcastPlayerSkeleton />;
+  }
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -664,6 +686,7 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
             size={isMobile ? "sm" : "icon"}
             onClick={restart}
             disabled={isLoading}
+            aria-label="Restart podcast from beginning"
           >
             <RotateCcw className={cn("h-4 w-4", isMobile && "h-3 w-3")} />
           </Button>
@@ -673,6 +696,7 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
             size={isMobile ? "sm" : "icon"}
             onClick={skipBackward}
             disabled={isLoading}
+            aria-label="Skip backward 15 seconds"
           >
             <SkipBack className={cn("h-4 w-4", isMobile && "h-3 w-3")} />
           </Button>
@@ -682,12 +706,16 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
             onClick={togglePlayPause}
             disabled={isLoading || !podcast.audioUrl}
             className={cn("w-12 h-12", isMobile && "w-10 h-10")}
+            aria-label={isPlaying ? "Pause podcast" : "Play podcast"}
           >
             {isLoading ? (
-              <div className={cn(
-                "w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin",
-                isMobile && "w-3 h-3"
-              )} />
+              <div 
+                className={cn(
+                  "w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin",
+                  isMobile && "w-3 h-3"
+                )} 
+                aria-label="Loading audio"
+              />
             ) : isPlaying ? (
               <Pause className={cn("h-5 w-5", isMobile && "h-4 w-4")} />
             ) : (
@@ -700,6 +728,7 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
             size={isMobile ? "sm" : "icon"}
             onClick={skipForward}
             disabled={isLoading}
+            aria-label="Skip forward 15 seconds"
           >
             <SkipForward className={cn("h-4 w-4", isMobile && "h-3 w-3")} />
           </Button>
@@ -709,6 +738,7 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
             size={isMobile ? "sm" : "icon"}
             onClick={handleDownload}
             disabled={!podcast.audioUrl}
+            aria-label="Download podcast audio file"
           >
             <Download className={cn("h-4 w-4", isMobile && "h-3 w-3")} />
           </Button>
@@ -725,6 +755,7 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
               variant="ghost"
               size="sm"
               onClick={toggleMute}
+              aria-label={isMuted ? "Unmute audio" : "Mute audio"}
             >
               {isMuted || volume === 0 ? (
                 <VolumeX className="h-4 w-4" />
@@ -743,9 +774,14 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
                 "h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer",
                 isMobile ? "w-32" : "w-20"
               )}
+              aria-label="Volume control"
+              aria-valuemin={0}
+              aria-valuemax={1}
+              aria-valuenow={volume}
+              aria-valuetext={`Volume ${Math.round(volume * 100)}%`}
             />
             {!isMobile && (
-              <span className="text-xs text-muted-foreground w-8">
+              <span className="text-xs text-muted-foreground w-8" aria-hidden="true">
                 {Math.round(volume * 100)}%
               </span>
             )}
@@ -753,11 +789,13 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
 
           {/* Speed control */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Speed:</span>
+            <label htmlFor="playback-speed" className="text-sm text-muted-foreground">Speed:</label>
             <select
+              id="playback-speed"
               value={playbackRate}
               onChange={(e) => handleSpeedChange(parseFloat(e.target.value))}
               className="text-sm bg-background border border-border rounded px-2 py-1"
+              aria-label="Playback speed control"
             >
               {speedOptions.map(speed => (
                 <option key={speed} value={speed}>

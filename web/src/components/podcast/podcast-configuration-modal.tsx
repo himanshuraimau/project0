@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Loader2 } from "lucide-react"
+import { ConfigurationLoadingOverlay } from "./podcast-loading-states"
+import { usePodcastLoading } from "@/hooks/use-podcast-progress"
 
 import {
   Dialog,
@@ -31,15 +33,14 @@ import {
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Card } from "@/components/ui/card"
 import { PodcastConfig } from "@/lib/types/podcast.types"
 import { VoiceSelectionInterface } from "./voice-selection-interface"
 
 // Form validation schema
 const podcastConfigSchema = z.object({
   language: z.string().min(1, "Language is required"),
-  durationPreset: z.enum(["short", "medium", "long"], {
-    required_error: "Duration preset is required",
-  }),
+  durationPreset: z.enum(["short", "medium", "long"]),
   host1VoiceId: z.string().min(1, "Host 1 voice is required"),
   host1VoiceName: z.string().min(1, "Host 1 voice name is required"),
   host2VoiceId: z.string().min(1, "Host 2 voice is required"),
@@ -116,6 +117,7 @@ export function PodcastConfigurationModal({
   onGenerate,
 }: PodcastConfigurationModalProps) {
   const [voiceError, setVoiceError] = useState<string | null>(null)
+  const { isLoading, error, startLoading, stopLoading, setError, clearError } = usePodcastLoading()
 
   const form = useForm<FormData>({
     resolver: zodResolver(podcastConfigSchema),
@@ -156,7 +158,7 @@ export function PodcastConfigurationModal({
     form.setValue("customInstructions", template)
   }
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     // Validate that different voices are selected
     if (data.host1VoiceId === data.host2VoiceId) {
       form.setError("host2VoiceId", {
@@ -175,13 +177,23 @@ export function PodcastConfigurationModal({
       customInstructions: data.customInstructions,
     }
 
-    onGenerate(config)
+    try {
+      startLoading()
+      await onGenerate(config)
+      handleClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate podcast')
+      stopLoading()
+    }
   }
 
   const handleClose = () => {
+    if (isLoading) return // Prevent closing while loading
+    
     // Reset form
     form.reset()
     setVoiceError(null)
+    clearError()
     onClose()
   }
 
@@ -348,18 +360,56 @@ export function PodcastConfigurationModal({
             />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleClose}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleClose}
+                disabled={isLoading}
+              >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                disabled={!isFormValid}
+                disabled={!isFormValid || isLoading}
               >
-                Generate Podcast
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  'Generate Podcast'
+                )}
               </Button>
             </DialogFooter>
           </form>
         </Form>
+        
+        {/* Loading overlay */}
+        {isLoading && (
+          <ConfigurationLoadingOverlay 
+            message="Starting podcast generation..."
+            onCancel={() => {
+              stopLoading()
+              handleClose()
+            }}
+          />
+        )}
+        
+        {/* Error display */}
+        {error && (
+          <div className="absolute bottom-4 left-4 right-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-700">{error}</p>
+            <Button
+              onClick={clearError}
+              size="sm"
+              variant="ghost"
+              className="mt-2 text-red-600 hover:text-red-800"
+            >
+              Dismiss
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

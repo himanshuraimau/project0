@@ -1,5 +1,7 @@
 import { Voice, VoiceSettings, PodcastGenerationError } from './types/podcast.types';
 import { podcastErrorHandler } from './utils/podcast-error-handler';
+import { podcastCacheService } from './utils/podcast-cache-service';
+import { performanceMonitor } from './utils/simple-performance-monitor';
 
 /**
  * Service for interacting with ElevenLabs API for voice synthesis
@@ -27,7 +29,13 @@ export class ElevenLabsService {
    */
   async getVoices(language: string = 'en'): Promise<Voice[]> {
     try {
-      return await podcastErrorHandler.retryWithBackoff(async () => {
+      // Check cache first
+      const cachedVoices = podcastCacheService.getCachedVoices(language);
+      if (cachedVoices) {
+        return cachedVoices;
+      }
+
+      const voices = await podcastErrorHandler.retryWithBackoff(async () => {
         const response = await fetch(`${this.baseUrl}/voices`, {
           headers: {
             'xi-api-key': this.apiKey,
@@ -44,6 +52,11 @@ export class ElevenLabsService {
         // Filter and map voices for the requested language
         return this.filterVoicesByLanguage(data.voices || [], language);
       }, 3, 'getVoices');
+
+      // Cache the result
+      await podcastCacheService.cacheVoices(language, voices);
+      
+      return voices;
     } catch (error) {
       throw podcastErrorHandler.handleError(
         error as Error,
@@ -60,6 +73,8 @@ export class ElevenLabsService {
     voiceId: string, 
     settings: Partial<VoiceSettings> = {}
   ): Promise<Buffer> {
+    const timerId = performanceMonitor.startTimer('elevenlabs_tts');
+    
     try {
       if (!text.trim()) {
         throw new Error('Text content is required for speech synthesis');
@@ -71,7 +86,7 @@ export class ElevenLabsService {
 
       const voiceSettings = { ...this.defaultVoiceSettings, ...settings };
 
-      return await podcastErrorHandler.retryWithBackoff(async () => {
+      const result = await podcastErrorHandler.retryWithBackoff(async () => {
         const response = await fetch(`${this.baseUrl}/text-to-speech/${voiceId}`, {
           method: 'POST',
           headers: {
@@ -94,7 +109,11 @@ export class ElevenLabsService {
         const arrayBuffer = await response.arrayBuffer();
         return Buffer.from(arrayBuffer);
       }, 3, `textToSpeech for voice ${voiceId}`);
+
+      performanceMonitor.endTimer(timerId, true);
+      return result;
     } catch (error) {
+      performanceMonitor.endTimer(timerId, false, error as Error);
       throw podcastErrorHandler.handleError(
         error as Error,
         `Failed to generate speech for voice ${voiceId}`
@@ -111,7 +130,13 @@ export class ElevenLabsService {
         throw new Error('Voice ID is required for preview');
       }
 
-      return await podcastErrorHandler.retryWithBackoff(async () => {
+      // Check cache first
+      const cachedPreview = podcastCacheService.getCachedVoicePreview(voiceId);
+      if (cachedPreview) {
+        return cachedPreview;
+      }
+
+      const audioBuffer = await podcastErrorHandler.retryWithBackoff(async () => {
         const response = await fetch(`${this.baseUrl}/voices/${voiceId}`, {
           headers: {
             'xi-api-key': this.apiKey
@@ -142,6 +167,11 @@ export class ElevenLabsService {
           useSpeakerBoost: true
         });
       }, 2, `getVoicePreview for voice ${voiceId}`);
+
+      // Cache the result
+      await podcastCacheService.cacheVoicePreview(voiceId, audioBuffer);
+      
+      return audioBuffer;
     } catch (error) {
       throw podcastErrorHandler.handleError(
         error as Error,

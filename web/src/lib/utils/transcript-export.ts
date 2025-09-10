@@ -344,12 +344,12 @@ export const extractTopicsAdvanced = (segments: PodcastSegment[]): TopicSection[
 
     if (isTopicStart || !currentTopic) {
       // Finalize previous topic
-      if (currentTopic && currentTopic.segments.length > 0) {
+      if (currentTopic && currentTopic.segments && currentTopic.segments.length > 0) {
         const lastSegment = currentTopic.segments[currentTopic.segments.length - 1];
         currentTopic.endTime = lastSegment.endTime || lastSegment.startTime || 0;
 
         // Extract keywords from all segments in the topic
-        const allText = currentTopic.segments.map(s => s.content).join(' ');
+        const allText = currentTopic.segments.map((s: PodcastSegment) => s.content).join(' ');
         currentTopic.keywords = extractKeywords(allText);
 
         topics.push(currentTopic);

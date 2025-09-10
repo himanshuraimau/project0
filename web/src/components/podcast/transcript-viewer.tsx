@@ -20,6 +20,7 @@ import {
   Filter
 } from 'lucide-react';
 import { PodcastSegment } from '@/lib/types/podcast.types';
+import { TranscriptViewerSkeleton, PodcastInlineLoading } from './podcast-loading-states';
 import { 
   searchTranscript, 
   exportAsText, 
@@ -297,6 +298,10 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({
   host1Name = 'Host 1',
   host2Name = 'Host 2'
 }) => {
+  // Show skeleton if segments are not available
+  if (!segments || segments.length === 0) {
+    return <TranscriptViewerSkeleton />;
+  }
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(-1);

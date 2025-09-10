@@ -8,7 +8,8 @@ import {
   Layers, 
   MessageCircle,
   Trash2,
-  FileIcon
+  FileIcon,
+  Mic
 } from "lucide-react"
 
 import {
@@ -29,14 +30,17 @@ interface NotesSidebarProps {
   showQuiz: boolean
   showChat: boolean
   showFlashcards: boolean
+  showPodcast: boolean
   onShowNotes: () => void
   onShowTranscript: () => void
   onGenerateQuiz: () => void
   onChatWithNote: () => void
   onGenerateFlashcard: () => void
+  onGeneratePodcast: () => void
   onDeleteNote: () => void
   quizLoading?: boolean
   flashcardsLoading?: boolean
+  podcastLoading?: boolean
 }
 
 export function NotesSidebar({ 
@@ -45,14 +49,17 @@ export function NotesSidebar({
   showQuiz,
   showChat,
   showFlashcards,
+  showPodcast,
   onShowNotes,
   onShowTranscript,
   onGenerateQuiz,
   onChatWithNote,
   onGenerateFlashcard,
+  onGeneratePodcast,
   onDeleteNote,
   quizLoading,
-  flashcardsLoading
+  flashcardsLoading,
+  podcastLoading
 }: NotesSidebarProps) {
   const { open } = useSidebar()
 
@@ -68,7 +75,7 @@ export function NotesSidebar({
         <SidebarMenu>
           {/* Notes */}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onShowNotes} active={!showTranscript && !showQuiz && !showChat && !showFlashcards}>
+            <SidebarMenuButton onClick={onShowNotes} active={!showTranscript && !showQuiz && !showChat && !showFlashcards && !showPodcast}>
               <FileIcon className="h-4 w-4" />
               {open && <span className="ml-3">Notes</span>}
             </SidebarMenuButton>
@@ -103,6 +110,14 @@ export function NotesSidebar({
             <SidebarMenuButton onClick={onGenerateFlashcard} active={showFlashcards} disabled={flashcardsLoading}>
               <Layers className="h-4 w-4" />
               {open && <span className="ml-3">Flashcard</span>}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          {/* Generate Podcast */}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={onGeneratePodcast} active={showPodcast} disabled={podcastLoading}>
+              <Mic className="h-4 w-4" />
+              {open && <span className="ml-3">Generate Podcast</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
           

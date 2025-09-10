@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { VoiceSelectionSkeleton } from "./podcast-loading-states"
 import { Separator } from "@/components/ui/separator"
 
 import { Voice } from "@/lib/types/podcast.types"
@@ -209,12 +210,7 @@ export function VoiceSelectionInterface({
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <LoadingSpinner className="mr-2" />
-        <span>Loading voices for {language}...</span>
-      </div>
-    )
+    return <VoiceSelectionSkeleton />
   }
 
   if (error) {

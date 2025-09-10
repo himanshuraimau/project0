@@ -9,6 +9,8 @@ import {
   PodcastGenerationError 
 } from '@/lib/types/podcast.types';
 import { ApiErrorResponse } from '@/lib/types';
+import { PodcastApiErrorHandler } from '@/lib/utils/podcast-api-error-handler';
+import { podcastErrorHandler } from '@/lib/utils/podcast-error-handler';
 
 const noteService = new NoteService();
 const podcastService = new PodcastService();
@@ -19,16 +21,12 @@ interface Params {
 
 // POST /api/notes/[id]/podcast/generate - Generate a podcast from note content
 export async function POST(request: NextRequest, { params }: { params: Promise<Params> }) {
-  try {
+  return PodcastApiErrorHandler.withErrorHandling(async () => {
     const { userId } = await auth();
     const { id: noteId } = await params;
 
     if (!userId) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Authentication required'
-      };
-      return NextResponse.json(errorResponse, { status: 401 });
+      return PodcastApiErrorHandler.createAuthErrorResponse();
     }
 
     // Parse and validate request body
@@ -36,15 +34,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
     try {
       requestBody = await request.json();
     } catch (error) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Invalid request body',
-        message: 'Request body must be valid JSON'
-      };
-      return NextResponse.json(errorResponse, { status: 400 });
+      return PodcastApiErrorHandler.createValidationErrorResponse(
+        ['Request body must be valid JSON'],
+        'request parsing'
+      );
     }
 
-    // Validate required fields
+    // Validate and sanitize configuration
+    const validation = podcastErrorHandler.validateAndSanitizeConfig(requestBody);
+    if (!validation.isValid) {
+      return PodcastApiErrorHandler.createValidationErrorResponse(
+        validation.errors,
+        'configuration validation'
+      );
+    }
+
+    const config = validation.sanitizedConfig!;
     const { 
       language, 
       durationPreset, 
@@ -53,63 +58,28 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
       host2VoiceId, 
       host2VoiceName,
       customInstructions 
-    } = requestBody;
-
-    if (!language || !durationPreset || !host1VoiceId || !host1VoiceName || !host2VoiceId || !host2VoiceName) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Missing required fields',
-        message: 'language, durationPreset, host1VoiceId, host1VoiceName, host2VoiceId, and host2VoiceName are required'
-      };
-      return NextResponse.json(errorResponse, { status: 400 });
-    }
-
-    // Validate duration preset
-    if (!['short', 'medium', 'long'].includes(durationPreset)) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Invalid duration preset',
-        message: 'durationPreset must be one of: short, medium, long'
-      };
-      return NextResponse.json(errorResponse, { status: 400 });
-    }
-
-    // Validate voice IDs are different
-    if (host1VoiceId === host2VoiceId) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Invalid voice configuration',
-        message: 'Host voices must be different'
-      };
-      return NextResponse.json(errorResponse, { status: 400 });
-    }
+    } = config;
 
     // Check if note exists and user has access
     const note = await noteService.getNote(noteId);
     if (!note) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Note not found'
-      };
-      return NextResponse.json(errorResponse, { status: 404 });
+      return PodcastApiErrorHandler.createNotFoundResponse('Note');
     }
 
     if (note.userId !== userId) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Access denied'
-      };
-      return NextResponse.json(errorResponse, { status: 403 });
+      return PodcastApiErrorHandler.createErrorResponse(
+        'You do not have permission to access this note',
+        'authorization check',
+        403
+      );
     }
 
     // Check if note has sufficient content
     if (!note.content || note.content.trim().length < 50) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Insufficient content',
-        message: 'Note must have at least 50 characters of content to generate a podcast'
-      };
-      return NextResponse.json(errorResponse, { status: 400 });
+      return PodcastApiErrorHandler.createValidationErrorResponse(
+        ['Note must have at least 50 characters of content to generate a podcast'],
+        'content validation'
+      );
     }
 
     // Check if podcast already exists for this note
@@ -124,41 +94,33 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
 
     if (existingPodcast) {
       if (existingPodcast.generationStatus === 'completed') {
-        const errorResponse: ApiErrorResponse = {
-          success: false,
-          error: 'Podcast already exists',
-          message: 'A podcast has already been generated for this note'
-        };
-        return NextResponse.json(errorResponse, { status: 409 });
+        return PodcastApiErrorHandler.createConflictResponse(
+          'A podcast has already been generated for this note',
+          [
+            'Delete the existing podcast first if you want to create a new one',
+            'Use the existing podcast or modify your note content',
+            'Try generating a podcast for a different note'
+          ]
+        );
       } else {
-        const errorResponse: ApiErrorResponse = {
-          success: false,
-          error: 'Podcast generation in progress',
-          message: 'A podcast is currently being generated for this note'
-        };
-        return NextResponse.json(errorResponse, { status: 409 });
+        return PodcastApiErrorHandler.createConflictResponse(
+          'A podcast is currently being generated for this note',
+          [
+            'Wait for the current generation to complete',
+            'Check the podcast status in a few minutes',
+            'Cancel the current generation if possible'
+          ]
+        );
       }
     }
 
-    // Validate podcast configuration
-    const config = {
-      language,
-      durationPreset,
-      host1VoiceId,
-      host1VoiceName,
-      host2VoiceId,
-      host2VoiceName,
-      customInstructions
-    };
-
-    const validation = podcastService.validateConfiguration(config);
-    if (!validation.isValid) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: 'Invalid configuration',
-        message: validation.errors.join(', ')
-      };
-      return NextResponse.json(errorResponse, { status: 400 });
+    // Additional service-level validation
+    const serviceValidation = podcastService.validateConfiguration(config);
+    if (!serviceValidation.isValid) {
+      return PodcastApiErrorHandler.createValidationErrorResponse(
+        serviceValidation.errors,
+        'service configuration validation'
+      );
     }
 
     // Estimate duration
@@ -183,20 +145,37 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
       }
     });
 
-    // Start background podcast generation (fire and forget)
-    // This will update the podcast status as it progresses
-    generatePodcastInBackground(podcast.id, note.content, config).catch(error => {
+    // Start background podcast generation with enhanced error handling
+    generatePodcastInBackground(podcast.id, note.content, config).catch(async (error) => {
       console.error('Background podcast generation failed:', error);
-      // Update podcast status to failed
-      prisma.podcast.update({
-        where: { id: podcast.id },
-        data: {
-          generationStatus: 'failed',
-          generationError: error instanceof Error ? error.message : 'Unknown error'
-        }
-      }).catch(dbError => {
-        console.error('Failed to update podcast status:', dbError);
-      });
+      
+      // Enhanced error handling and cleanup
+      try {
+        await podcastErrorHandler.cleanupFailedGeneration(podcast.id);
+        
+        const podcastError = error instanceof PodcastGenerationError 
+          ? error 
+          : podcastErrorHandler.handleError(error, 'background generation');
+        
+        await prisma.podcast.update({
+          where: { id: podcast.id },
+          data: {
+            generationStatus: 'failed',
+            generationError: podcastError.message
+          }
+        });
+        
+        // Log detailed error information
+        podcastErrorHandler.logError(podcastError, 'Background Generation', {
+          podcastId: podcast.id,
+          noteId: noteId,
+          userId: userId,
+          config: config
+        });
+        
+      } catch (cleanupError) {
+        console.error('Failed to handle generation failure:', cleanupError);
+      }
     });
 
     const response: GeneratePodcastResponse = {
@@ -209,30 +188,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
     };
 
     return NextResponse.json(response, { status: 202 }); // 202 Accepted for async processing
-
-  } catch (error) {
-    console.error('Error generating podcast:', error);
-
-    if (error instanceof PodcastGenerationError) {
-      const errorResponse: ApiErrorResponse = {
-        success: false,
-        error: error.message,
-        message: error.details ? JSON.stringify(error.details) : undefined
-      };
-      return NextResponse.json(errorResponse, { status: 400 });
-    }
-
-    const errorResponse: ApiErrorResponse = {
-      success: false,
-      error: 'Failed to generate podcast',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    };
-    return NextResponse.json(errorResponse, { status: 500 });
-  }
+  }, 'podcast generation');
 }
 
 /**
- * Background function to handle podcast generation
+ * Background function to handle podcast generation with enhanced error handling
  * This runs asynchronously and updates the podcast status as it progresses
  */
 async function generatePodcastInBackground(
@@ -240,6 +200,8 @@ async function generatePodcastInBackground(
   noteContent: string, 
   config: any
 ): Promise<void> {
+  let currentStage = 'initialization';
+  
   try {
     // Update status to generating
     await prisma.podcast.update({
@@ -247,9 +209,15 @@ async function generatePodcastInBackground(
       data: { generationStatus: 'generating' }
     });
 
-    // Generate script
+    // Generate script with retry logic
+    currentStage = 'script_generation';
     console.log(`Starting script generation for podcast ${podcastId}`);
-    const script = await podcastService.generateScript(noteContent, config);
+    
+    const script = await podcastErrorHandler.retryWithBackoff(
+      () => podcastService.generateScript(noteContent, config),
+      3,
+      'script generation'
+    );
     
     // Update estimated duration based on actual script
     await prisma.podcast.update({
@@ -292,6 +260,7 @@ async function generatePodcastInBackground(
     await Promise.all(segmentPromises);
 
     // Index podcast transcript for chatbot integration
+    currentStage = 'transcript_indexing';
     try {
       const noteRecord = await prisma.podcast.findUnique({
         where: { id: podcastId },
@@ -299,15 +268,25 @@ async function generatePodcastInBackground(
       });
       
       if (noteRecord) {
-        await podcastService.indexPodcastTranscript(podcastId, noteRecord.noteId);
+        await podcastErrorHandler.retryWithBackoff(
+          () => podcastService.indexPodcastTranscript(podcastId, noteRecord.noteId),
+          2,
+          'transcript indexing'
+        );
         console.log(`Podcast transcript indexed successfully for ${podcastId}`);
       }
     } catch (indexError) {
       console.error(`Failed to index podcast transcript for ${podcastId}:`, indexError);
       // Don't fail the entire operation if indexing fails
+      podcastErrorHandler.logError(
+        indexError as Error,
+        'Transcript Indexing',
+        { podcastId, stage: currentStage, critical: false }
+      );
     }
 
-    // For now, mark as completed with script generation only
+    // Mark as completed with script generation
+    currentStage = 'completion';
     await prisma.podcast.update({
       where: { id: podcastId },
       data: { 
@@ -319,17 +298,37 @@ async function generatePodcastInBackground(
     console.log(`Podcast generation completed for ${podcastId}`);
 
   } catch (error) {
-    console.error(`Podcast generation failed for ${podcastId}:`, error);
+    console.error(`Podcast generation failed at stage ${currentStage} for ${podcastId}:`, error);
     
-    // Update status to failed
+    // Enhanced error handling with stage information
+    const podcastError = error instanceof PodcastGenerationError 
+      ? error 
+      : podcastErrorHandler.handleError(error as Error, `background generation - ${currentStage}`);
+    
+    // Log detailed error with stage information
+    podcastErrorHandler.logError(podcastError, 'Background Generation Failed', {
+      podcastId,
+      stage: currentStage,
+      config,
+      critical: true
+    });
+    
+    // Update status to failed with detailed error information
     await prisma.podcast.update({
       where: { id: podcastId },
       data: {
         generationStatus: 'failed',
-        generationError: error instanceof Error ? error.message : 'Unknown error'
+        generationError: `${currentStage}: ${podcastError.message}`
       }
     });
 
-    throw error;
+    // Attempt cleanup
+    try {
+      await podcastErrorHandler.cleanupFailedGeneration(podcastId);
+    } catch (cleanupError) {
+      console.error(`Cleanup failed for ${podcastId}:`, cleanupError);
+    }
+
+    throw podcastError;
   }
 }
