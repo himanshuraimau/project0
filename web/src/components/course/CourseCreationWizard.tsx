@@ -1,21 +1,23 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { useCourseCreationStore } from '@/lib/stores/course-creation-store';
-import { CourseCreationWizardProps } from '@/lib/types/course.types';
-import { TitleInputStep } from './steps/TitleInputStep';
-import { UnitsGenerationStep } from './steps/UnitsGenerationStep';
-import { ChaptersReviewStep } from './steps/ChaptersReviewStep';
-import { ErrorMessage } from '@/components/ui/error-message';
-import { RecoveryBanner } from '@/components/ui/recovery-dialog';
-import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useCourseCreationStore } from "@/lib/stores/course-creation-store";
+import { CourseCreationWizardProps } from "@/lib/types/course.types";
+import { TitleInputStep } from "./steps/TitleInputStep";
+import { UnitsGenerationStep } from "./steps/UnitsGenerationStep";
+import { ChaptersReviewStep } from "./steps/ChaptersReviewStep";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { RecoveryBanner } from "@/components/ui/recovery-dialog";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 /**
  * Main CourseCreationWizard component that orchestrates the multi-step course creation process
  * Manages step navigation and coordinates between different wizard steps
  */
-export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) {
+export function CourseCreationWizard({
+  onComplete,
+}: CourseCreationWizardProps) {
   const {
     currentStep,
     courseTitle,
@@ -71,15 +73,15 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
   };
 
   // Add navigation methods
-  const canGoBack = currentStep !== 'title';
+  const canGoBack = currentStep !== "title";
   const goBack = () => {
-    if (currentStep === 'units') {
+    if (currentStep === "units") {
       setCourseTitle(courseTitle); // Keep the title
       setUnits([]); // Clear units to allow regeneration
-      setStep('title');
-    } else if (currentStep === 'chapters') {
+      setStep("title");
+    } else if (currentStep === "chapters") {
       setChapters([]); // Clear chapters to allow regeneration
-      setStep('units');
+      setStep("units");
     }
   };
 
@@ -92,7 +94,7 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
       await generateUnitsWithRetry();
     } catch (error) {
       // Error is already handled by the store and displayed via errorState
-      console.error('Failed to generate units:', error);
+      console.error("Failed to generate units:", error);
     }
   };
 
@@ -105,11 +107,15 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
       await generateChaptersWithRetry();
     } catch (error) {
       // Error is already handled by the store and displayed via errorState
-      console.error('Failed to generate chapters:', error);
+      console.error("Failed to generate chapters:", error);
     }
   };
 
-  const handleEditChapter = (unitId: string, chapterId: string, newName: string) => {
+  const handleEditChapter = (
+    unitId: string,
+    chapterId: string,
+    newName: string
+  ) => {
     updateChapterName(unitId, chapterId, newName);
   };
 
@@ -123,7 +129,7 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
       onComplete(courseId);
     } catch (error) {
       // Error is already handled by the store and displayed via errorState
-      console.error('Failed to save course:', error);
+      console.error("Failed to save course:", error);
     }
   };
 
@@ -145,24 +151,35 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
         )}
         {/* Progress indicator */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-baseline  justify-between mb-4">
             {/* Step 1: Course Title */}
-            <div className="flex items-center space-x-4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${currentStep === 'title'
-                ? 'bg-blue-600 text-white shadow-lg scale-110'
-                : ['units', 'chapters'].includes(currentStep)
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-300 text-gray-600'
-                }`}>
-                {['units', 'chapters'].includes(currentStep) ? '✓' : '1'}
+            <div className="flex flex-col  items-left space-y-1">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+                  currentStep === "title"
+                    ? "bg-stone-800 text-white shadow-lg scale-110"
+                    : ["units", "chapters"].includes(currentStep)
+                    ? "bg-stone-800 text-white"
+                    : "bg-gray-300 text-gray-600"
+                }`}
+              >
+                {["units", "chapters"].includes(currentStep) ? (
+                  "✓"
+                ) : (
+                  <span className="size-4 rounded-3xl bg-stone-400"></span>
+                )}
               </div>
+              <p className="text-sm text-stone-600 mt-1">Step 1</p>
               <div>
-                <span className={`text-sm font-medium transition-colors duration-300 ${currentStep === 'title'
-                  ? 'text-blue-600'
-                  : ['units', 'chapters'].includes(currentStep)
-                    ? 'text-green-600'
-                    : 'text-gray-500'
-                  }`}>
+                <span
+                  className={`text-lg font-semibold transition-colors duration-300 ${
+                    currentStep === "title"
+                      ? "text-stone-800"
+                      : ["units", "chapters"].includes(currentStep)
+                      ? "text-stone-600"
+                      : "text-gray-500"
+                  }`}
+                >
                   Course Title
                 </span>
                 {courseTitle && (
@@ -174,26 +191,43 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
             </div>
 
             {/* Connector line */}
-            <div className={`flex-1 h-0.5 mx-4 transition-colors duration-300 ${['units', 'chapters'].includes(currentStep) ? 'bg-green-400' : 'bg-gray-300'
-              }`} />
+            <div
+              className={`flex-1 h-0.5 mx-2 transition-colors duration-300  ${
+                ["units", "chapters"].includes(currentStep)
+                  ? "bg-gray-800"
+                  : "bg-gray-600"
+              }`}
+            />
 
             {/* Step 2: Generate Units */}
-            <div className="flex items-center space-x-4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${currentStep === 'units'
-                ? 'bg-blue-600 text-white shadow-lg scale-110'
-                : currentStep === 'chapters'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-300 text-gray-600'
-                }`}>
-                {currentStep === 'chapters' ? '✓' : '2'}
+            <div className="flex flex-col items-center space-y-1">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+                  currentStep === "units"
+                    ? "bg-stone-300 text-white shadow-lg scale-110"
+                    : currentStep === "chapters"
+                    ? "bg-stone-800 text-white"
+                    : "bg-gray-300 text-gray-600"
+                }`}
+              >
+                {currentStep === "chapters" ? (
+                  "✓"
+                ) : (
+                  <span className="size-4 rounded-3xl bg-stone-800"></span>
+                )}
               </div>
+              <p className="text-sm text-stone-600 mt-1">Step 2</p>
+
               <div>
-                <span className={`text-sm font-medium transition-colors duration-300 ${currentStep === 'units'
-                  ? 'text-blue-600'
-                  : currentStep === 'chapters'
-                    ? 'text-green-600'
-                    : 'text-gray-500'
-                  }`}>
+                <span
+                  className={`text-lg font-semibold transition-colors duration-300 ${
+                    currentStep === "units"
+                      ? "text-stone-800"
+                      : currentStep === "chapters"
+                      ? "text-stone-800"
+                      : "text-gray-500"
+                  }`}
+                >
                   Generate Units
                 </span>
                 {units.length > 0 && (
@@ -205,25 +239,41 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
             </div>
 
             {/* Connector line */}
-            <div className={`flex-1 h-0.5 mx-4 transition-colors duration-300 ${currentStep === 'chapters' ? 'bg-green-400' : 'bg-gray-300'
-              }`} />
+            <div
+              className={`flex-1 h-0.5 mx-2  transition-colors duration-300 ${
+                currentStep === "chapters" ? "bg-stone-800" : "bg-gray-300"
+              }`}
+            />
 
             {/* Step 3: Review Structure */}
-            <div className="flex items-center space-x-4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${currentStep === 'chapters'
-                ? 'bg-blue-600 text-white shadow-lg scale-110'
-                : 'bg-gray-300 text-gray-600'
-                }`}>
-                3
+            <div className="flex flex-col items-end space-y-1">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+                  currentStep === "chapters"
+                    ? "bg-stone-400 text-white shadow-lg scale-110"
+                    : "bg-gray-300 text-gray-600"
+                }`}
+              >
+                <span className="size-4 rounded-3xl bg-stone-800"></span>
               </div>
+              <p className="text-sm text-stone-600 mt-1">Step 3</p>
               <div>
-                <span className={`text-sm font-medium transition-colors duration-300 ${currentStep === 'chapters' ? 'text-blue-600' : 'text-gray-500'
-                  }`}>
-                  Review Structure
+                <span
+                  className={`text-lg font-semibold transition-colors duration-300 ${
+                    currentStep === "chapters"
+                      ? "text-stone-800"
+                      : "text-stone-500"
+                  }`}
+                >
+                  Review 
                 </span>
                 {chapters.length > 0 && (
                   <p className="text-xs text-gray-500">
-                    {chapters.reduce((total, unit) => total + unit.chapters.length, 0)} chapters
+                    {chapters.reduce(
+                      (total, unit) => total + unit.chapters.length,
+                      0
+                    )}{" "}
+                    chapters
                   </p>
                 )}
               </div>
@@ -231,25 +281,25 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
           </div>
 
           {/* Progress bar */}
-          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+          {/* <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
             <div
               className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
               style={{
-                width: currentStep === 'title' ? '33%' :
-                  currentStep === 'units' ? '66%' :
+                width: currentStep === 'title' ? '50%' :
+                  currentStep === 'units' ? '60%' :
                     '100%'
               }}
             />
-          </div>
+          </div> */}
 
           {/* Step description */}
-          <div className="mt-3 text-center">
+          {/* <div className="mt-3 text-center">
             <p className="text-sm text-gray-600">
               {currentStep === 'title' && 'Enter your course title to get started'}
               {currentStep === 'units' && 'Review and customize the generated course units'}
               {currentStep === 'chapters' && 'Final review of your complete course structure'}
             </p>
-          </div>
+          </div> */}
         </div>
 
         {/* Recovery Banner */}
@@ -268,7 +318,9 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
           <div className="max-w-4xl mx-auto mb-6">
             <ErrorMessage
               error={errorState.error}
-              onRetry={errorState.error.retryable ? retryLastOperation : undefined}
+              onRetry={
+                errorState.error.retryable ? retryLastOperation : undefined
+              }
               onDismiss={clearError}
               isRetrying={isGeneratingUnits || isGeneratingChapters || isSaving}
               retryCount={errorState.retryCount}
@@ -281,10 +333,13 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
         <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
           <div className="relative">
             {/* Title Step */}
-            <div className={`transition-all duration-500 ease-in-out ${currentStep === 'title'
-              ? 'opacity-100 translate-x-0 relative'
-              : 'opacity-0 translate-x-full absolute inset-0 pointer-events-none'
-              }`}>
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                currentStep === "title"
+                  ? "opacity-100 translate-x-0 relative"
+                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+              }`}
+            >
               <div className="p-6">
                 <TitleInputStep
                   title={courseTitle}
@@ -296,12 +351,15 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
             </div>
 
             {/* Units Step */}
-            <div className={`transition-all duration-500 ease-in-out ${currentStep === 'units'
-              ? 'opacity-100 translate-x-0 relative'
-              : currentStep === 'title'
-                ? 'opacity-0 -translate-x-full absolute inset-0 pointer-events-none'
-                : 'opacity-0 translate-x-full absolute inset-0 pointer-events-none'
-              }`}>
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                currentStep === "units"
+                  ? "opacity-100 translate-x-0 relative"
+                  : currentStep === "title"
+                  ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
+                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+              }`}
+            >
               <div className="p-6">
                 <UnitsGenerationStep
                   units={units}
@@ -313,10 +371,13 @@ export function CourseCreationWizard({ onComplete }: CourseCreationWizardProps) 
             </div>
 
             {/* Chapters Step */}
-            <div className={`transition-all duration-500 ease-in-out ${currentStep === 'chapters'
-              ? 'opacity-100 translate-x-0 relative'
-              : 'opacity-0 -translate-x-full absolute inset-0 pointer-events-none'
-              }`}>
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                currentStep === "chapters"
+                  ? "opacity-100 translate-x-0 relative"
+                  : "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
+              }`}
+            >
               <div className="p-6">
                 <ChaptersReviewStep
                   courseTitle={courseTitle}

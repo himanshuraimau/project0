@@ -7,6 +7,8 @@ import { useNotes } from "@/hooks/use-notes";
 import { Note } from "@/lib/types";
 import { useFlashcards } from "@/hooks/use-flashcards";
 import { useQuiz } from "@/hooks/use-quiz";
+import { usePodcast } from "@/hooks/use-podcast";
+import { useMindmap } from "@/hooks/use-mindmap";
 import { Button } from "@/components/ui/button";
 import { NotesSidebar } from "@/components/notes/sidebar";
 import { NotesSidebarProvider, NotesSidebarContent } from "@/components/notes/sidebar-provider";
@@ -24,6 +26,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { FlashcardViewer, useFlashcardKeyboard } from "@/components/flashcards";
 import { QuizViewer } from "@/components/quiz";
+import { PodcastConfigurationModal, PodcastPlayer, TranscriptViewer, PodcastWithTranscript } from "@/components/podcast";
+import { MindmapGenerator } from "@/components/mindmap";
 import {
   ArrowLeft,
   Copy,
@@ -32,6 +36,7 @@ import {
   FileText,
   HelpCircle,
   Layers,
+  Mic,
   X,
   Trash2,
   MessageCircle,
@@ -79,10 +84,27 @@ export default function NoteViewPage() {
     getQuiz,
     deleteQuiz,
   } = useQuiz();
+  const {
+    podcast,
+    segments,
+    loading: podcastLoading,
+    error: podcastError,
+    generatePodcast,
+    getPodcast,
+    deletePodcast,
+  } = usePodcast();
+  const {
+    mindmap,
+    loading: mindmapLoading,
+    error: mindmapError,
+    generateMindmap,
+    getMindmap,
+    deleteMindmap,
+  } = useMindmap();
 
   const [note, setNote] = useState<Note | null>(null);
   // Define view types for better type safety
-  type ViewType = 'notes' | 'transcript' | 'quiz' | 'flashcards' | 'chat';
+  type ViewType = 'notes' | 'transcript' | 'quiz' | 'flashcards' | 'chat' | 'podcast' | 'mindmap';
   
   // Single source of truth for current view
   const [currentView, setCurrentView] = useState<ViewType>('notes');
@@ -94,12 +116,18 @@ export default function NoteViewPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [showPodcastConfig, setShowPodcastConfig] = useState(false);
+  const [podcastCurrentTime, setPodcastCurrentTime] = useState(0);
 
   useEffect(() => {
     if (noteId) {
       loadNote(noteId);
+      // Load podcast data if it exists
+      getPodcast(noteId);
+      // Load mindmap data if it exists
+      getMindmap(noteId);
     }
-  }, [noteId]);
+  }, [noteId, getPodcast, getMindmap]);
 
   useEffect(() => {
     if (note) {
@@ -418,6 +446,101 @@ export default function NoteViewPage() {
     // Switch to chat view
     setCurrentView('chat');
   };
+
+  const handleGeneratePodcast = async () => {
+    if (!noteId) return;
+
+    // If podcast is already shown, go back to notes view
+    if (currentView === 'podcast') {
+      setCurrentView('notes');
+      return;
+    }
+
+    // Always switch to podcast view first - the view will handle showing appropriate content
+    setCurrentView('podcast');
+
+    // Then check if podcast exists in the background
+    const existingPodcast = await getPodcast(noteId);
+
+    // If no podcast exists, show configuration modal after a short delay
+    if (!existingPodcast) {
+      setTimeout(() => {
+        setShowPodcastConfig(true);
+      }, 500); // Small delay to allow view to render first
+    }
+  };
+
+  const handlePodcastGenerate = async (config: any) => {
+    if (!noteId) return;
+
+    try {
+      setShowPodcastConfig(false);
+      setCurrentView('podcast');
+      await generatePodcast(noteId, config);
+    } catch (error) {
+      console.error("Error generating podcast:", error);
+      setCurrentView('notes');
+    }
+  };
+
+  const handleClosePodcast = () => {
+    setCurrentView('notes');
+  };
+
+  const handleDeletePodcast = async () => {
+    if (!noteId) return;
+
+    try {
+      await deletePodcast(noteId);
+      setCurrentView('notes');
+    } catch (error) {
+      console.error("Error deleting podcast:", error);
+    }
+  };
+
+  const handleGenerateMindmap = async () => {
+    if (!noteId) return;
+
+    // If mindmap is already shown, go back to notes view
+    if (currentView === 'mindmap') {
+      setCurrentView('notes');
+      return;
+    }
+
+    try {
+      // Switch to mindmap view
+      setCurrentView('mindmap');
+
+      // Check if mindmap already exists
+      const existingMindmap = await getMindmap(noteId);
+
+      if (existingMindmap.length === 0) {
+        // Generate new mindmap if none exists
+        await generateMindmap(noteId);
+      }
+    } catch (error) {
+      console.error("Error with mindmap:", error);
+      setCurrentView('notes');
+      toast.error("Failed to generate mindmap");
+    }
+  };
+
+  const handleCloseMindmap = () => {
+    setCurrentView('notes');
+  };
+
+  const handleDeleteMindmap = async () => {
+    if (!noteId) return;
+
+    try {
+      await deleteMindmap(noteId);
+      setCurrentView('notes');
+      toast.success("Mindmap deleted successfully");
+    } catch (error) {
+      console.error("Error deleting mindmap:", error);
+      toast.error("Failed to delete mindmap");
+    }
+  };
   
   // Add a handler for the Notes menu item
   const handleShowNotes = () => {
@@ -524,14 +647,20 @@ export default function NoteViewPage() {
               showQuiz={currentView === 'quiz'}
               showChat={currentView === 'chat'}
               showFlashcards={currentView === 'flashcards'}
+              showPodcast={currentView === 'podcast'}
+              showMindmap={currentView === 'mindmap'}
               onShowNotes={handleShowNotes}
               onShowTranscript={handleShowTranscript}
               onGenerateQuiz={handleGenerateQuiz}
               onChatWithNote={handleChatWithNote}
               onGenerateFlashcard={handleGenerateFlashcard}
+              onGeneratePodcast={handleGeneratePodcast}
+              onGenerateMindmap={handleGenerateMindmap}
               onDeleteNote={handleDeleteNote}
               quizLoading={quizLoading}
               flashcardsLoading={flashcardsLoading}
+              podcastLoading={podcastLoading}
+              mindmapLoading={mindmapLoading}
             />
           <NotesSidebarContent 
             sidebarWidth={sidebarWidth} 
@@ -808,11 +937,140 @@ export default function NoteViewPage() {
                     </Card>
                   </div>
                 )}
+
+                {/* Mindmap Section */}
+                {currentView === 'mindmap' && (
+                  <div className="space-y-4">
+                    <MindmapGenerator noteId={noteId} />
+                  </div>
+                )}
+
+                {/* Podcast Section */}
+                {currentView === 'podcast' && (
+                  <div className="space-y-4">
+                    {/* No podcast exists - show creation prompt */}
+                    {!podcast && !podcastLoading && !podcastError && (
+                      <Card>
+                        <CardContent className="flex flex-col items-center justify-center py-12">
+                          <div className="p-4 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
+                            <Mic className="h-12 w-12 text-blue-600" />
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                            Create a Podcast
+                          </h3>
+                          <p className="text-gray-600 dark:text-gray-400 text-center mb-6 max-w-md">
+                            Transform your notes into an engaging podcast conversation between two AI hosts.
+                          </p>
+                          <Button
+                            onClick={() => setShowPodcastConfig(true)}
+                            className="flex items-center gap-2"
+                          >
+                            <Mic className="h-4 w-4" />
+                            Generate Podcast
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {podcastLoading && (
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-center py-8">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                              <p className="text-sm text-gray-600">
+                                Generating podcast...
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                This may take a few minutes
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {podcastError && !podcastLoading && (
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="text-center text-red-600">
+                            <p className="font-medium">Error generating podcast</p>
+                            <p className="text-sm mt-1">{podcastError}</p>
+                            <Button
+                              onClick={() => handleGeneratePodcast()}
+                              className="mt-3"
+                              size="sm"
+                            >
+                              Try Again
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {podcast && podcast.generationStatus === 'generating' && !podcastLoading && (
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-center py-8">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                              <p className="text-sm text-gray-600">
+                                Podcast is being generated...
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                This process can take several minutes. You can check back later.
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {podcast && podcast.generationStatus === 'completed' && podcast.audioUrl && (
+                      <div className="space-y-4">
+                        {/* Integrated Podcast Player and Transcript Layout */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                          {/* Podcast Player and Transcript - Left Side (2/3 width) */}
+                          <div className="lg:col-span-2">
+                            <PodcastWithTranscript
+                              podcast={podcast}
+                              segments={segments}
+                            />
+                          </div>
+
+                          {/* Chat Interface - Right Side (1/3 width) */}
+                          <Card className="lg:col-span-1 rounded-3xl border-0 shadow-xl p-0 overflow-hidden h-[78vh] flex flex-col">
+                            <CardHeader className="pb-3 bg-muted/5 border-b border-border">
+                              <div className="flex items-center gap-4">
+                                <div className="p-2 bg-primary/10 rounded-full">
+                                  <MessageCircle className="h-5 w-5 text-primary" />
+                                </div>
+                                <CardTitle className="text-lg">Chat about Podcast</CardTitle>
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                <p>Ask questions about the podcast content</p>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="pt-0 p-0 flex-1 overflow-y-auto">
+                              {/* Render inline chatbot component */}
+                              <DynamicInlineChatbot noteId={noteId} />
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </NotesSidebarContent>
         </NotesSidebarProvider>
         </AlertDialog>
+
+        {/* Podcast Configuration Modal */}
+        <PodcastConfigurationModal
+          noteId={noteId}
+          isOpen={showPodcastConfig}
+          onClose={() => setShowPodcastConfig(false)}
+          onGenerate={handlePodcastGenerate}
+        />
       </div>
     </DashboardLayout>
   );
