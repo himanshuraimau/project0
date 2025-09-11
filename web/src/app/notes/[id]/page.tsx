@@ -8,6 +8,7 @@ import { Note } from "@/lib/types";
 import { useFlashcards } from "@/hooks/use-flashcards";
 import { useQuiz } from "@/hooks/use-quiz";
 import { usePodcast } from "@/hooks/use-podcast";
+import { useMindmap } from "@/hooks/use-mindmap";
 import { Button } from "@/components/ui/button";
 import { NotesSidebar } from "@/components/notes/sidebar";
 import { NotesSidebarProvider, NotesSidebarContent } from "@/components/notes/sidebar-provider";
@@ -26,6 +27,7 @@ import {
 import { FlashcardViewer, useFlashcardKeyboard } from "@/components/flashcards";
 import { QuizViewer } from "@/components/quiz";
 import { PodcastConfigurationModal, PodcastPlayer, TranscriptViewer, PodcastWithTranscript } from "@/components/podcast";
+import { MindmapGenerator } from "@/components/mindmap";
 import {
   ArrowLeft,
   Copy,
@@ -91,10 +93,18 @@ export default function NoteViewPage() {
     getPodcast,
     deletePodcast,
   } = usePodcast();
+  const {
+    mindmap,
+    loading: mindmapLoading,
+    error: mindmapError,
+    generateMindmap,
+    getMindmap,
+    deleteMindmap,
+  } = useMindmap();
 
   const [note, setNote] = useState<Note | null>(null);
   // Define view types for better type safety
-  type ViewType = 'notes' | 'transcript' | 'quiz' | 'flashcards' | 'chat' | 'podcast';
+  type ViewType = 'notes' | 'transcript' | 'quiz' | 'flashcards' | 'chat' | 'podcast' | 'mindmap';
   
   // Single source of truth for current view
   const [currentView, setCurrentView] = useState<ViewType>('notes');
@@ -114,8 +124,10 @@ export default function NoteViewPage() {
       loadNote(noteId);
       // Load podcast data if it exists
       getPodcast(noteId);
+      // Load mindmap data if it exists
+      getMindmap(noteId);
     }
-  }, [noteId, getPodcast]);
+  }, [noteId, getPodcast, getMindmap]);
 
   useEffect(() => {
     if (note) {
@@ -485,6 +497,50 @@ export default function NoteViewPage() {
       console.error("Error deleting podcast:", error);
     }
   };
+
+  const handleGenerateMindmap = async () => {
+    if (!noteId) return;
+
+    // If mindmap is already shown, go back to notes view
+    if (currentView === 'mindmap') {
+      setCurrentView('notes');
+      return;
+    }
+
+    try {
+      // Switch to mindmap view
+      setCurrentView('mindmap');
+
+      // Check if mindmap already exists
+      const existingMindmap = await getMindmap(noteId);
+
+      if (existingMindmap.length === 0) {
+        // Generate new mindmap if none exists
+        await generateMindmap(noteId);
+      }
+    } catch (error) {
+      console.error("Error with mindmap:", error);
+      setCurrentView('notes');
+      toast.error("Failed to generate mindmap");
+    }
+  };
+
+  const handleCloseMindmap = () => {
+    setCurrentView('notes');
+  };
+
+  const handleDeleteMindmap = async () => {
+    if (!noteId) return;
+
+    try {
+      await deleteMindmap(noteId);
+      setCurrentView('notes');
+      toast.success("Mindmap deleted successfully");
+    } catch (error) {
+      console.error("Error deleting mindmap:", error);
+      toast.error("Failed to delete mindmap");
+    }
+  };
   
   // Add a handler for the Notes menu item
   const handleShowNotes = () => {
@@ -592,16 +648,19 @@ export default function NoteViewPage() {
               showChat={currentView === 'chat'}
               showFlashcards={currentView === 'flashcards'}
               showPodcast={currentView === 'podcast'}
+              showMindmap={currentView === 'mindmap'}
               onShowNotes={handleShowNotes}
               onShowTranscript={handleShowTranscript}
               onGenerateQuiz={handleGenerateQuiz}
               onChatWithNote={handleChatWithNote}
               onGenerateFlashcard={handleGenerateFlashcard}
               onGeneratePodcast={handleGeneratePodcast}
+              onGenerateMindmap={handleGenerateMindmap}
               onDeleteNote={handleDeleteNote}
               quizLoading={quizLoading}
               flashcardsLoading={flashcardsLoading}
               podcastLoading={podcastLoading}
+              mindmapLoading={mindmapLoading}
             />
           <NotesSidebarContent 
             sidebarWidth={sidebarWidth} 
@@ -876,6 +935,13 @@ export default function NoteViewPage() {
                         )}
                       </CardContent>
                     </Card>
+                  </div>
+                )}
+
+                {/* Mindmap Section */}
+                {currentView === 'mindmap' && (
+                  <div className="space-y-4">
+                    <MindmapGenerator noteId={noteId} />
                   </div>
                 )}
 

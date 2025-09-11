@@ -75,6 +75,7 @@ model Note {
   transcript   Transcript  @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
   podcast      Podcast?
   quiz         Quiz?
+  mindmap      MindMap?
 
   @@map("notes")
 }
@@ -101,6 +102,20 @@ model Quiz {
   note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
 
   @@map("quizzes")
+}
+
+model MindMap {
+  id          String   @id @default(cuid())
+  title       String
+  mermaidCode String
+  noteId      String   @unique
+  userId      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  
+  @@map("mind_maps")
 }
 
 model Podcast {
