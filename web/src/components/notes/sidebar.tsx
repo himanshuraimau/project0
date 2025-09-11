@@ -8,7 +8,9 @@ import {
   Layers, 
   MessageCircle,
   Trash2,
-  FileIcon
+  FileIcon,
+  Mic,
+  Brain
 } from "lucide-react"
 
 import {
@@ -29,14 +31,20 @@ interface NotesSidebarProps {
   showQuiz: boolean
   showChat: boolean
   showFlashcards: boolean
+  showPodcast: boolean
+  showMindmap: boolean
   onShowNotes: () => void
   onShowTranscript: () => void
   onGenerateQuiz: () => void
   onChatWithNote: () => void
   onGenerateFlashcard: () => void
+  onGeneratePodcast: () => void
+  onGenerateMindmap: () => void
   onDeleteNote: () => void
   quizLoading?: boolean
   flashcardsLoading?: boolean
+  podcastLoading?: boolean
+  mindmapLoading?: boolean
 }
 
 export function NotesSidebar({ 
@@ -45,14 +53,20 @@ export function NotesSidebar({
   showQuiz,
   showChat,
   showFlashcards,
+  showPodcast,
+  showMindmap,
   onShowNotes,
   onShowTranscript,
   onGenerateQuiz,
   onChatWithNote,
   onGenerateFlashcard,
+  onGeneratePodcast,
+  onGenerateMindmap,
   onDeleteNote,
   quizLoading,
-  flashcardsLoading
+  flashcardsLoading,
+  podcastLoading,
+  mindmapLoading
 }: NotesSidebarProps) {
   const { open } = useSidebar()
 
@@ -68,7 +82,7 @@ export function NotesSidebar({
         <SidebarMenu>
           {/* Notes */}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onShowNotes} active={!showTranscript && !showQuiz && !showChat && !showFlashcards}>
+            <SidebarMenuButton onClick={onShowNotes} active={!showTranscript && !showQuiz && !showChat && !showFlashcards && !showPodcast && !showMindmap}>
               <FileIcon className="h-4 w-4" />
               {open && <span className="ml-3">Notes</span>}
             </SidebarMenuButton>
@@ -103,6 +117,22 @@ export function NotesSidebar({
             <SidebarMenuButton onClick={onGenerateFlashcard} active={showFlashcards} disabled={flashcardsLoading}>
               <Layers className="h-4 w-4" />
               {open && <span className="ml-3">Flashcard</span>}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          {/* Generate Mindmap */}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={onGenerateMindmap} active={showMindmap} disabled={mindmapLoading}>
+              <Brain className="h-4 w-4" />
+              {open && <span className="ml-3">Generate Mindmap</span>}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          {/* Generate Podcast */}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={onGeneratePodcast} active={showPodcast} disabled={podcastLoading}>
+              <Mic className="h-4 w-4" />
+              {open && <span className="ml-3">Generate Podcast</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
           

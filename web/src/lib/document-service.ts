@@ -7,6 +7,23 @@ export class DocumentService {
    */
   async saveDocument(data: DocumentData) {
     try {
+      // Validate content for problematic characters before saving
+      const validateText = (text: string, fieldName: string) => {
+        if (text.includes('\x00')) {
+          throw new Error(`${fieldName} contains null bytes that cannot be saved to database`);
+        }
+        // Check for other problematic UTF-8 sequences
+        try {
+          Buffer.from(text, 'utf8');
+        } catch (e) {
+          throw new Error(`${fieldName} contains invalid UTF-8 sequences: ${e}`);
+        }
+      };
+
+      // Validate both content fields
+      validateText(data.content, 'content');
+      validateText(data.cleanContent, 'cleanContent');
+
       const document = await prisma.transcript.create({
         data: {
           fileName: data.fileName,
@@ -22,6 +39,17 @@ export class DocumentService {
       return document;
     } catch (error) {
       console.error('Error saving document to database:', error);
+
+      // Provide more specific error messages for common issues
+      if (error instanceof Error) {
+        if (error.message.includes('invalid byte sequence')) {
+          throw new Error('Document contains invalid characters that cannot be saved. Please try a different PDF file.');
+        }
+        if (error.message.includes('null bytes')) {
+          throw new Error('Document contains null bytes that cannot be saved. The PDF text extraction may need to be improved.');
+        }
+      }
+
       throw new Error('Failed to save document to database');
     }
   }

@@ -64,6 +64,110 @@ export function chunkText(text: string): { chunks: string[], chunkIndices: [numb
 }
 
 /**
+ * Chunk podcast segments for optimal RAG performance
+ * Groups segments by speaker and topic while maintaining conversation context
+ */
+export function chunkPodcastSegments(segments: any[], podcastId: string): { 
+  chunks: string[], 
+  chunkMetadata: Array<{
+    podcastId: string;
+    segmentIds: number[];
+    speakers: string[];
+    startTime?: number;
+    endTime?: number;
+    sequenceRange: [number, number];
+  }> 
+} {
+  if (!segments || segments.length === 0) {
+    return { chunks: [], chunkMetadata: [] };
+  }
+
+  const chunks: string[] = [];
+  const chunkMetadata: Array<{
+    podcastId: string;
+    segmentIds: number[];
+    speakers: string[];
+    startTime?: number;
+    endTime?: number;
+    sequenceRange: [number, number];
+  }> = [];
+
+  // Strategy: Group consecutive segments into chunks while maintaining conversation flow
+  // This preserves the back-and-forth nature of podcast conversations for better context
+  
+  let currentChunk = '';
+  let currentSegmentIds: number[] = [];
+  let currentSpeakers: string[] = [];
+  let chunkStartTime: number | undefined;
+  let chunkEndTime: number | undefined;
+  let sequenceStart: number | undefined;
+  let sequenceEnd: number | undefined;
+
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+    const segmentText = `[${segment.speaker.toUpperCase()}]: ${segment.content}`;
+    
+    // Check if adding this segment would exceed chunk size
+    const potentialChunk = currentChunk + (currentChunk ? '\n\n' : '') + segmentText;
+    
+    if (potentialChunk.length > CHUNK_SIZE && currentChunk.length > 0) {
+      // Save current chunk and start a new one
+      chunks.push(currentChunk);
+      chunkMetadata.push({
+        podcastId,
+        segmentIds: [...currentSegmentIds],
+        speakers: [...new Set(currentSpeakers)], // Remove duplicates
+        startTime: chunkStartTime,
+        endTime: chunkEndTime,
+        sequenceRange: [sequenceStart!, sequenceEnd!]
+      });
+
+      // Start new chunk with overlap - include the last segment for context
+      const lastSegment = segments[i - 1];
+      currentChunk = `[${lastSegment.speaker.toUpperCase()}]: ${lastSegment.content}\n\n${segmentText}`;
+      currentSegmentIds = [lastSegment.id, segment.id];
+      currentSpeakers = [lastSegment.speaker, segment.speaker];
+      chunkStartTime = lastSegment.startTime ? Number(lastSegment.startTime) : undefined;
+      chunkEndTime = segment.endTime ? Number(segment.endTime) : undefined;
+      sequenceStart = lastSegment.sequenceOrder;
+      sequenceEnd = segment.sequenceOrder;
+    } else {
+      // Add segment to current chunk
+      currentChunk = potentialChunk;
+      currentSegmentIds.push(segment.id);
+      currentSpeakers.push(segment.speaker);
+      
+      if (chunkStartTime === undefined && segment.startTime) {
+        chunkStartTime = Number(segment.startTime);
+      }
+      if (segment.endTime) {
+        chunkEndTime = Number(segment.endTime);
+      }
+      if (sequenceStart === undefined) {
+        sequenceStart = segment.sequenceOrder;
+      }
+      sequenceEnd = segment.sequenceOrder;
+    }
+  }
+
+  // Add the final chunk if it has content
+  if (currentChunk.trim().length > 0) {
+    chunks.push(currentChunk);
+    chunkMetadata.push({
+      podcastId,
+      segmentIds: [...currentSegmentIds],
+      speakers: [...new Set(currentSpeakers)],
+      startTime: chunkStartTime,
+      endTime: chunkEndTime,
+      sequenceRange: [sequenceStart!, sequenceEnd!]
+    });
+  }
+
+  console.log(`Created ${chunks.length} podcast chunks from ${segments.length} segments`);
+  return { chunks, chunkMetadata };
+}
+
+/**
  * Generate mock embeddings for testing
  */
 export function generateMockEmbeddings(count: number): number[][] {
@@ -209,6 +313,100 @@ export async function insertChunks(
 }
 
 /**
+ * Insert podcast transcript chunks with metadata linking to original note
+ */
+export async function insertPodcastChunks(
+  noteId: string,
+  podcastId: string,
+  chunks: string[],
+  chunkMetadata: Array<{
+    podcastId: string;
+    segmentIds: number[];
+    speakers: string[];
+    startTime?: number;
+    endTime?: number;
+    sequenceRange: [number, number];
+  }>,
+  embeddings: number[][]
+): Promise<void> {
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Delete any existing podcast chunks for this note/podcast combination
+    await client.query(
+      'DELETE FROM note_chunks WHERE note_id = $1 AND chunk_text LIKE $2',
+      [noteId, `%[PODCAST:${podcastId}]%`]
+    );
+
+    // Make sure vector extension is available
+    await client.query('CREATE EXTENSION IF NOT EXISTS vector');
+
+    // Insert each podcast chunk with enhanced metadata
+    const query = `
+      INSERT INTO note_chunks (note_id, chunk_text, embedding)
+      VALUES ($1, $2, $3::vector)
+    `;
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      const metadata = chunkMetadata[i];
+      const embedding = embeddings[i];
+
+      // Enhance chunk text with podcast metadata for better context
+      const enhancedChunk = `[PODCAST:${podcastId}] [SPEAKERS:${metadata.speakers.join(',')}] [TIME:${metadata.startTime || 0}-${metadata.endTime || 0}] [SEQUENCE:${metadata.sequenceRange[0]}-${metadata.sequenceRange[1]}]
+
+${chunk}
+
+[END_PODCAST_CHUNK]`;
+
+      // Process embedding (same logic as regular chunks)
+      let processedEmbedding = embedding;
+      if (embedding.length !== EMBEDDING_DIM) {
+        if (embedding.length > EMBEDDING_DIM) {
+          const compressionFactor = Math.floor(embedding.length / EMBEDDING_DIM);
+          if (compressionFactor > 1) {
+            processedEmbedding = [];
+            for (let j = 0; j < EMBEDDING_DIM; j++) {
+              const start = j * compressionFactor;
+              const group = embedding.slice(start, start + compressionFactor);
+              const avg = group.reduce((sum, val) => sum + val, 0) / group.length;
+              processedEmbedding.push(avg);
+            }
+          } else {
+            processedEmbedding = embedding.slice(0, EMBEDDING_DIM);
+          }
+        } else {
+          processedEmbedding = [...embedding, ...Array(EMBEDDING_DIM - embedding.length).fill(0)];
+        }
+      }
+
+      // Format embedding for PostgreSQL vector format
+      const vectorString = `[${processedEmbedding.join(',')}]`;
+
+      await client.query(query, [
+        noteId,
+        enhancedChunk,
+        vectorString
+      ]);
+
+      console.log(`Inserted podcast chunk ${i + 1}/${chunks.length} for note ${noteId}, podcast ${podcastId}`);
+    }
+
+    await client.query('COMMIT');
+    console.log(`Successfully indexed ${chunks.length} podcast transcript chunks for note ${noteId}`);
+    return;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error inserting podcast chunks:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+/**
  * Process a note's content to generate and store embeddings
  */
 export async function indexNoteContent(noteId: string, content: string): Promise<void> {
@@ -234,6 +432,39 @@ export async function indexNoteContent(noteId: string, content: string): Promise
     await insertChunks(noteId, chunks, chunkIndices, embeddings);
   } catch (error) {
     console.error(`Failed to index note ${noteId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Process podcast transcript segments to generate and store embeddings
+ * Creates chunks from podcast segments with speaker and timing metadata
+ */
+export async function indexPodcastTranscript(noteId: string, podcastId: string, segments: any[]): Promise<void> {
+  try {
+    // Skip indexing if no segments
+    if (!segments || segments.length === 0) {
+      console.log(`Podcast ${podcastId} has no segments to index`);
+      return;
+    }
+
+    // Create chunks from podcast segments using a specialized strategy
+    const { chunks, chunkMetadata } = chunkPodcastSegments(segments, podcastId);
+
+    if (chunks.length === 0) {
+      console.log(`No chunks generated for podcast ${podcastId}`);
+      return;
+    }
+
+    // Generate embeddings for podcast chunks
+    const embeddings = await generateEmbeddings(chunks);
+
+    // Store podcast chunks with metadata linking to original note
+    await insertPodcastChunks(noteId, podcastId, chunks, chunkMetadata, embeddings);
+    
+    console.log(`Successfully indexed ${chunks.length} podcast transcript chunks for note ${noteId}`);
+  } catch (error) {
+    console.error(`Failed to index podcast transcript for note ${noteId}:`, error);
     throw error;
   }
 }
@@ -338,8 +569,11 @@ export async function querySimilarChunks(query: string, noteId?: string, topK: n
 
 export default {
   chunkText,
+  chunkPodcastSegments,
   generateEmbeddings,
   insertChunks,
+  insertPodcastChunks,
   indexNoteContent,
+  indexPodcastTranscript,
   querySimilarChunks
 };

@@ -45,3 +45,6 @@ next-env.d.ts
 
 .kiro
 promot.md
+
+# Generated podcast audio files
+/public/podcasts/

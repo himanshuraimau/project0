@@ -18,23 +18,20 @@ export class PDFParser {
    */
   async parseFromBuffer(buffer: Buffer, options: PDFParseOptions = {}): Promise<PDFParseResult> {
     try {
-      // Dynamic import to avoid test file dependency issues
-      let pdf: typeof import('pdf-parse');
-      try {
-        pdf = (await import('pdf-parse')).default;
-      } catch (importError) {
-        // If pdf-parse fails to load due to test file dependency, create the test file temporarily
-        if (importError instanceof Error && importError.message.includes('ENOENT') && importError.message.includes('test/data/05-versions-space.pdf')) {
-          await this.createTemporaryTestFile();
-          pdf = (await import('pdf-parse')).default;
-        } else {
-          throw importError;
-        }
-      }
-      
+      // Dynamic import of pdf-parse
+      const pdf = (await import('pdf-parse')).default;
+
       const data = await pdf(buffer, {
         max: options.maxPages || 0, // 0 means no limit
       });
+
+      // Log raw text statistics for debugging
+      const nullByteCount = (data.text.match(/\x00/g) || []).length;
+      const controlCharCount = (data.text.match(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g) || []).length;
+
+      if (nullByteCount > 0 || controlCharCount > 0) {
+        console.warn(`PDF text contains ${nullByteCount} null bytes and ${controlCharCount} control characters - cleaning...`);
+      }
 
       const cleanText = this.cleanExtractedText(data.text);
 
@@ -93,6 +90,9 @@ export class PDFParser {
    */
   private cleanExtractedText(text: string): string {
     return text
+      // Remove null bytes and other control characters that can cause database issues
+      .replace(/\x00/g, '') // Remove null bytes
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove other control characters
       .split('\n')
       .map(line => line.trim())
       .filter((line, index, array) => {
@@ -104,7 +104,8 @@ export class PDFParser {
       })
       .join('\n')
       .replace(/\n{3,}/g, '\n\n') // Replace 3 or more consecutive newlines with just 2
-      .replace(/\n+$/, ''); // Remove trailing newlines
+      .replace(/\n+$/, '') // Remove trailing newlines
+      .trim(); // Remove leading/trailing whitespace
   }
 
   /**
@@ -252,44 +253,5 @@ export class PDFParser {
     ];
   }
 
-  /**
-   * Create temporary test file for pdf-parse library dependency
-   * This is a workaround for the library's hardcoded test file requirement
-   */
-  private async createTemporaryTestFile(): Promise<void> {
-    try {
-      const testDir = join(process.cwd(), 'test', 'data');
-      const testFile = join(testDir, '05-versions-space.pdf');
-      
-      if (!existsSync(testFile)) {
-        // Create directory
-        await mkdir(testDir, { recursive: true });
-        
-        // Create a minimal dummy PDF file
-        const dummyPdfContent = `%PDF-1.4
-1 0 obj
-<</Type/Catalog/Pages 2 0 R>>
-endobj
-2 0 obj
-<</Type/Pages/Count 1/Kids[3 0 R]>>
-endobj
-3 0 obj
-<</Type/Page/Parent 2 0 R>>
-endobj
-xref
-0 4
-0000000000 65535 f 
-trailer
-<</Size 4/Root 1 0 R>>
-startxref
-184
-%%EOF`;
-        
-        await writeFile(testFile, dummyPdfContent);
-        console.log('⚠️ Created temporary test file for pdf-parse library');
-      }
-    } catch (error) {
-      console.warn('Could not create temporary test file:', error);
-    }
-  }
+
 }

@@ -45,24 +45,30 @@ export default clerkMiddleware(async (auth, req) => {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
   
-  // Content Security Policy for additional XSS protection - updated to allow YouTube iframe API and Clerk workers
+  // Content Security Policy for additional XSS protection - updated to allow YouTube iframe API, Clerk, and UploadThing
   response.headers.set(
     'Content-Security-Policy',
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
-      "https://clerk.com https://*.clerk.accounts.dev https://*.clerk.dev https://clerk.*.dev " +
+      "https://clerk.com https://*.clerk.accounts.dev https://*.clerk.dev " +
       "https://challenges.cloudflare.com https://static.cloudflareinsights.com " +
       "https://www.youtube.com https://s.ytimg.com https://www.youtube.com/iframe_api; " +
     "style-src 'self' 'unsafe-inline' " +
       "https://clerk.com https://*.clerk.accounts.dev; " +
     "img-src 'self' data: https: " +
-      "https://img.youtube.com https://i.ytimg.com https://images.clerk.dev https://*.clerk.dev https://s.ytimg.com; " +
+      "https://img.youtube.com https://i.ytimg.com https://images.clerk.dev https://*.clerk.dev https://s.ytimg.com " +
+      "https://utfs.io; " + // UploadThing images
     "font-src 'self' data: " +
       "https://clerk.com https://*.clerk.accounts.dev; " +
     "connect-src 'self' " +
-      "https://api.clerk.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.dev https://clerk.*.dev " +
+      "https://api.clerk.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.dev " +
       "https://challenges.cloudflare.com https://cloudflareinsights.com " +
-      "https://www.youtube.com https://s.ytimg.com; " +
+      "https://www.youtube.com https://s.ytimg.com " +
+      "https://utfs.io https://api.uploadthing.com " + // UploadThing API
+      "https://api.elevenlabs.io; " + // ElevenLabs TTS API
+    "media-src 'self' " +
+      "https://utfs.io " + // UploadThing media files
+      "blob: data:; " + // Allow blob URLs for audio playback
     "frame-src 'self' " +
       "https://www.youtube.com https://www.youtube-nocookie.com " +
       "https://clerk.com https://*.clerk.accounts.dev " +
