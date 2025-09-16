@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useNotes } from '@/hooks/use-notes';
-import { ProcessPDFResult } from '@/lib/types';
+import React, { useState, useEffect } from "react";
+import { useNotes } from "@/hooks/use-notes";
+import { ProcessPDFResult } from "@/lib/types";
 
 // Extended interface to include model overload case
 interface NoteWithModelOverload {
@@ -12,37 +12,39 @@ interface NoteWithModelOverload {
   retryAfter?: number;
   retryable?: boolean;
 }
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { FileText, Upload, CheckCircle, AlertCircle, Type } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { FileText, Upload, CheckCircle, AlertCircle, Type } from "lucide-react";
 
-import { MarkdownRenderer } from '@/components/mdx-renderer';
+import { MarkdownRenderer } from "@/components/mdx-renderer";
 
 interface SimplePDFProcessorProps {
   onProcessComplete?: (result: ProcessPDFResult) => void;
   onClose?: () => void;
 }
 
-export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProcessorProps) {
-  const { processPDFWithNotes, generateNotesFromText, loading, error } = useNotes();
+export function SimplePDFProcessor({
+  onProcessComplete,
+  onClose,
+}: SimplePDFProcessorProps) {
+  const { processPDFWithNotes, generateNotesFromText, loading, error } =
+    useNotes();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [processResult, setProcessResult] = useState<ProcessPDFResult | null>(null);
-  const [mode, setMode] = useState<'pdf' | 'text'>('pdf');
-  const [textInput, setTextInput] = useState('');
-  const [noteTitle, setNoteTitle] = useState('');
-
-
-
-
+  const [processResult, setProcessResult] = useState<ProcessPDFResult | null>(
+    null
+  );
+  const [mode, setMode] = useState<"pdf" | "text">("pdf");
+  const [textInput, setTextInput] = useState("");
+  const [noteTitle, setNoteTitle] = useState("");
 
   const handleFileSelect = (file: File) => {
-    if (file.type === 'application/pdf') {
+    if (file.type === "application/pdf") {
       setSelectedFile(file);
       setProcessResult(null);
     } else {
-      alert('Please select a valid PDF file');
+      alert("Please select a valid PDF file");
     }
   };
 
@@ -74,12 +76,12 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
   };
 
   const handleProcess = async () => {
-    if (mode === 'pdf' && !selectedFile) return;
-    if (mode === 'text' && !textInput.trim()) return;
+    if (mode === "pdf" && !selectedFile) return;
+    if (mode === "text" && !textInput.trim()) return;
 
     let result;
 
-    if (mode === 'pdf') {
+    if (mode === "pdf") {
       // Use simplified options - always generate notes, no images
       const options = {
         extractImages: false,
@@ -88,7 +90,7 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
       result = await processPDFWithNotes(selectedFile!, options);
     } else {
       // Generate notes from text
-      result = await generateNotesFromText(textInput, noteTitle || 'Text Note');
+      result = await generateNotesFromText(textInput, noteTitle || "Text Note");
     }
 
     if (result) {
@@ -100,7 +102,10 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
   const handleProcessText = async () => {
     if (!textInput.trim()) return;
 
-    const result = await generateNotesFromText(textInput, noteTitle || 'Text Note');
+    const result = await generateNotesFromText(
+      textInput,
+      noteTitle || "Text Note"
+    );
 
     if (result) {
       setProcessResult(result);
@@ -111,8 +116,8 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
   const resetForm = () => {
     setSelectedFile(null);
     setProcessResult(null);
-    setTextInput('');
-    setNoteTitle('');
+    setTextInput("");
+    setNoteTitle("");
   };
 
   return (
@@ -122,18 +127,18 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
           {/* Mode Toggle */}
           <div className="flex gap-2 p-1 bg-muted rounded-xl">
             <Button
-              variant={mode === 'pdf' ? 'default' : 'ghost'}
+              variant={mode === "pdf" ? "default" : "ghost"}
               size="sm"
-              onClick={() => setMode('pdf')}
+              onClick={() => setMode("pdf")}
               className="flex-1 rounded-lg hover:bg-stone-600"
             >
               <FileText className="h-4 w-4 mr-2" />
               Upload PDF
             </Button>
             <Button
-              variant={mode === 'text' ? 'default' : 'ghost'}
+              variant={mode === "text" ? "default" : "ghost"}
               size="sm"
-              onClick={() => setMode('text')}
+              onClick={() => setMode("text")}
               className="flex-1 rounded-lg"
             >
               <Type className="h-4 w-4 mr-2" />
@@ -141,14 +146,15 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
             </Button>
           </div>
 
-          {mode === 'pdf' ? (
+          {mode === "pdf" ? (
             <>
               {/* File Upload Area */}
               <div
-                className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors ${dragActive
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted-foreground/25 hover:border-primary/50'
-                  }`}
+                className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors ${
+                  dragActive
+                    ? "border-primary bg-primary/5"
+                    : "border-muted-foreground/25 hover:border-primary/50"
+                }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
@@ -160,7 +166,9 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">Upload PDF Document</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      Upload PDF Document
+                    </h3>
                     <p className="text-muted-foreground text-sm">
                       Drag and drop your PDF file here, or click to browse
                     </p>
@@ -194,7 +202,9 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
                         <FileText className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-medium text-sm">{selectedFile.name}</p>
+                        <p className="font-medium text-sm">
+                          {selectedFile.name}
+                        </p>
                         <p className="text-muted-foreground text-xs">
                           {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                         </p>
@@ -207,7 +217,7 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
                         disabled={loading}
                         className="rounded-xl"
                       >
-                        {loading ? 'Processing...' : 'Generate Notes'}
+                        {loading ? "Processing..." : "Generate Notes"}
                       </Button>
                       <Button
                         onClick={resetForm}
@@ -227,7 +237,10 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
               {/* Text Input Area */}
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="note-title" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="note-title"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Note Title (Optional)
                   </label>
                   <Input
@@ -237,12 +250,15 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
                     value={noteTitle}
                     onChange={(e) => setNoteTitle(e.target.value)}
                     disabled={loading}
-                    className="rounded-[8px] text-[16px] font-medium"
+                    className="rounded-[8px] text-[16px] bg-white border-none dark:bg-neutral-800 font-medium"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="text-content" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="text-content"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Text Content
                   </label>
                   <Textarea
@@ -251,7 +267,7 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
                     disabled={loading}
-                    className="min-h-[200px] rounded-[8px] resize-none  font-medium text-[15px]"
+                    className="min-h-[200px] rounded-[8px] resize-none  font-medium text-[15px] bg-white border-none dark:bg-neutral-800"
                   />
                   <p className="text-xs text-muted-foreground mt-2">
                     {textInput.length} characters
@@ -265,7 +281,7 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
                       disabled={loading || !textInput.trim()}
                       className="rounded-xl"
                     >
-                      {loading ? 'Generating Notes...' : 'Generate AI Notes'}
+                      {loading ? "Generating Notes..." : "Generate AI Notes"}
                     </Button>
                     <Button
                       onClick={resetForm}
@@ -287,14 +303,15 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-destructive" />
                 <p className="text-sm text-destructive font-medium">
-                  {error.includes('overloaded') ?
-                    'AI service is currently at capacity. Your PDF was processed, but AI notes could not be generated. Please try again in a few minutes.' :
-                    `Error: ${error}`}
+                  {error.includes("overloaded")
+                    ? "AI service is currently at capacity. Your PDF was processed, but AI notes could not be generated. Please try again in a few minutes."
+                    : `Error: ${error}`}
                 </p>
               </div>
-              {error.includes('overloaded') && (
+              {error.includes("overloaded") && (
                 <p className="text-xs text-muted-foreground mt-2 ml-7">
-                  The document was successfully processed and saved. You can view it in your notes or try generating AI notes later.
+                  The document was successfully processed and saved. You can
+                  view it in your notes or try generating AI notes later.
                 </p>
               )}
             </div>
@@ -309,44 +326,69 @@ export function SimplePDFProcessor({ onProcessComplete, onClose }: SimplePDFProc
 
           <div>
             <h3 className="text-xl font-semibold mb-2">
-              {mode === 'pdf' ? 'PDF Processed Successfully!' : 'Notes Generated Successfully!'}
+              {mode === "pdf"
+                ? "PDF Processed Successfully!"
+                : "Notes Generated Successfully!"}
             </h3>
             <p className="text-muted-foreground">
-              {processResult.note && processResult.note.hasOwnProperty('modelOverloaded')
-                ? `Your ${mode === 'pdf' ? 'PDF' : 'text'} has been processed, but AI notes could not be generated due to high demand.`
-                : `Your ${mode === 'pdf' ? 'PDF has been processed' : 'text has been converted'} and AI-powered notes have been generated.`}
+              {processResult.note &&
+              processResult.note.hasOwnProperty("modelOverloaded")
+                ? `Your ${
+                    mode === "pdf" ? "PDF" : "text"
+                  } has been processed, but AI notes could not be generated due to high demand.`
+                : `Your ${
+                    mode === "pdf"
+                      ? "PDF has been processed"
+                      : "text has been converted"
+                  } and AI-powered notes have been generated.`}
             </p>
           </div>
 
-          {processResult.note && processResult.note.hasOwnProperty('modelOverloaded') ? (
+          {processResult.note &&
+          processResult.note.hasOwnProperty("modelOverloaded") ? (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-left">
-              <h4 className="font-semibold text-sm mb-2 text-amber-800">AI Service Busy</h4>
+              <h4 className="font-semibold text-sm mb-2 text-amber-800">
+                AI Service Busy
+              </h4>
               <p className="text-sm text-amber-700">
-                {processResult.note.hasOwnProperty('message')
+                {processResult.note.hasOwnProperty("message")
                   ? (processResult.note as any).message
-                  : 'The AI service is currently overloaded. Your document was processed and saved successfully.'}
+                  : "The AI service is currently overloaded. Your document was processed and saved successfully."}
               </p>
               <p className="text-xs text-amber-600 mt-2">
-                You can try generating AI notes for this document again later when the service is less busy.
+                You can try generating AI notes for this document again later
+                when the service is less busy.
               </p>
             </div>
-          ) : processResult.note && !('error' in processResult.note) && (
-            <div className="bg-muted/50 rounded-2xl p-4 text-left">
-              <h4 className="font-semibold text-sm mb-2">Generated Note:</h4>
-              <p className="text-sm text-muted-foreground mb-2">{processResult.note.title}</p>
-              <MarkdownRenderer
-                content={processResult.note.content?.substring(0, 150) + '...' || 'No content available'}
-                className="text-xs text-muted-foreground"
-              />
-            </div>
+          ) : (
+            processResult.note &&
+            !("error" in processResult.note) && (
+              <div className="bg-muted/50 rounded-2xl p-4 text-left">
+                <h4 className="font-semibold text-sm mb-2">Generated Note:</h4>
+                <p className="text-sm text-muted-foreground mb-2">
+                  {processResult.note.title}
+                </p>
+                <MarkdownRenderer
+                  content={
+                    processResult.note.content?.substring(0, 150) + "..." ||
+                    "No content available"
+                  }
+                  className="text-xs text-muted-foreground"
+                />
+              </div>
+            )
           )}
 
           <div className="flex gap-2 justify-center">
             <Button onClick={onClose} className="rounded-xl">
               View in My Notes
             </Button>
-            <Button onClick={resetForm} variant="outline" className="rounded-xl">
-              {mode === 'pdf' ? 'Upload Another PDF' : 'Create Another Note'}
+            <Button
+              onClick={resetForm}
+              variant="outline"
+              className="rounded-xl"
+            >
+              {mode === "pdf" ? "Upload Another PDF" : "Create Another Note"}
             </Button>
           </div>
         </div>

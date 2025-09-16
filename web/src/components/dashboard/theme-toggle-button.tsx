@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 export function ThemeToggleButton() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  
+
   // Only show the theme toggle after mounting to avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
@@ -31,18 +31,15 @@ export function ThemeToggleButton() {
   const isDark = theme === "dark";
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      aria-label="Toggle theme"
+    <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="rounded-full"
+      className="rounded-full bg-transparent cursor-pointer"
     >
       {isDark ? (
         <Sun className="size-6 text-yellow-500" />
       ) : (
         <Moon className="size-6 text-blue-500" />
       )}
-    </Button>
+    </button>
   );
 }

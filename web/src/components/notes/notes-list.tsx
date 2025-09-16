@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from "react"
-import { useNotes } from "@/hooks/use-notes"
-import { Note } from "@/lib/types"
-import { NoteCard } from "./note-card"
-import { Loader2, FileText, AlertTriangle, Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import React, { useState, useEffect } from "react";
+import { useNotes } from "@/hooks/use-notes";
+import { Note } from "@/lib/types";
+import { NoteCard } from "./note-card";
+import { Loader2, FileText, AlertTriangle, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,87 +15,87 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { toast } from "sonner"
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface NotesListProps {
-  searchQuery?: string
-  transcriptId?: string
+  searchQuery?: string;
+  transcriptId?: string;
 }
 
 export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
-  const { getNotes, deleteNote, loading, error } = useNotes()
-  const [notes, setNotes] = useState<Note[]>([])
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [noteToDelete, setNoteToDelete] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const { getNotes, deleteNote, loading, error } = useNotes();
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load notes on component mount
   useEffect(() => {
-    loadNotes()
-  }, [transcriptId, searchQuery])
+    loadNotes();
+  }, [transcriptId, searchQuery]);
 
   const loadNotes = async () => {
-    const result = await getNotes(transcriptId)
+    const result = await getNotes(transcriptId);
     if (result) {
-      setNotes(result)
+      setNotes(result);
     }
-  }
+  };
 
   const handleDeleteNote = (id: string) => {
-    setNoteToDelete(id)
-    setDeleteDialogOpen(true)
-  }
+    setNoteToDelete(id);
+    setDeleteDialogOpen(true);
+  };
 
   const confirmDeleteNote = async () => {
-    if (!noteToDelete) return
+    if (!noteToDelete) return;
 
-    setIsDeleting(true)
+    setIsDeleting(true);
     try {
-      const success = await deleteNote(noteToDelete)
+      const success = await deleteNote(noteToDelete);
       if (success) {
-        await loadNotes()
-        setDeleteDialogOpen(false)
-        setNoteToDelete(null)
-        toast.success("Note deleted successfully")
+        await loadNotes();
+        setDeleteDialogOpen(false);
+        setNoteToDelete(null);
+        toast.success("Note deleted successfully");
       }
     } catch (error) {
-      console.error("Error deleting note:", error)
-      toast.error("Failed to delete note")
+      console.error("Error deleting note:", error);
+      toast.error("Failed to delete note");
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   const cancelDeleteNote = () => {
-    setDeleteDialogOpen(false)
-    setNoteToDelete(null)
-  }
+    setDeleteDialogOpen(false);
+    setNoteToDelete(null);
+  };
 
   // Filter notes based on search query
   const filterNotes = (notes: Note[], query: string): Note[] => {
     if (!query || query.trim() === "") {
-      return notes
+      return notes;
     }
 
-    const searchTerm = query.toLowerCase().trim()
+    const searchTerm = query.toLowerCase().trim();
 
     return notes.filter((note) => {
       // Search in note title
-      const titleMatch = note.title.toLowerCase().includes(searchTerm)
+      const titleMatch = note.title.toLowerCase().includes(searchTerm);
 
       // Search in note content
       const contentMatch =
-        note.content?.toLowerCase().includes(searchTerm) || false
+        note.content?.toLowerCase().includes(searchTerm) || false;
 
       // Search in transcript original name
       const transcriptMatch =
         note.transcript?.originalName.toLowerCase().includes(searchTerm) ||
-        false
+        false;
 
-      return titleMatch || contentMatch || transcriptMatch
-    })
-  }
+      return titleMatch || contentMatch || transcriptMatch;
+    });
+  };
 
   if (loading) {
     return (
@@ -107,7 +107,7 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -128,52 +128,48 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
-  const filteredNotes = filterNotes(notes, searchQuery || "")
+  const filteredNotes = filterNotes(notes, searchQuery || "");
 
   if (notes.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-          <FileText className="h-8 w-8 text-gray-400" />
+        <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <FileText className="h-8 w-8 text-stone-400" />
         </div>
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+        <h3 className="font-semibold text-stone-900 dark:text-white mb-2">
           No notes found
         </h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-stone-600 dark:text-stone-400 mb-6">
           Create your first note to get started
         </p>
       </div>
-    )
+    );
   }
 
   if (filteredNotes.length === 0 && searchQuery) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 bg-gray-100 dark:bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
-          <FileText className="h-8 w-8 text-gray-400" />
+        <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <FileText className="h-8 w-8 text-stone-400" />
         </div>
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+        <h3 className="font-semibold text-stone-900 dark:text-white mb-2">
           No notes match your search
         </h3>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-stone-600 dark:text-stone-400">
           Try adjusting your search terms
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <>
       <div className="flex flex-col gap-4">
         {filteredNotes.map((note) => (
-          <NoteCard
-            key={note.id}
-            note={note}
-            onDelete={handleDeleteNote}
-          />
+          <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} />
         ))}
       </div>
 
@@ -221,5 +217,5 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }
