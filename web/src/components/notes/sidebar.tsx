@@ -71,7 +71,10 @@ export function NotesSidebar({
   const { open } = useSidebar()
 
   return (
-    <UISidebar className={cn("z-30 bg-background", className)}>
+    <UISidebar 
+      collapsible="icon"
+      className={cn("z-30 bg-background", className)}
+    >
       <SidebarHeader className="flex justify-between items-center">
         <div className="flex items-center">
           {open && <span className="font-semibold">Notes</span>}

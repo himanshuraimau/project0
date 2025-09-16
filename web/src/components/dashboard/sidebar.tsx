@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CreditDisplay } from "@/components/credit-display";
 import { Plus_Jakarta_Sans } from "next/font/google";
 const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "600"],
@@ -73,18 +72,20 @@ export function AppSidebar({ className }: AppSidebarProps) {
       )}
     >
       <SidebarHeader className="border-b py-6 border-stone-200 w-full dark:border-stone-800">
-        <div className="flex items-center gap-2 pl-9">
-          <div className="flex items-center justify-center size-7 rounded-lg bg-stone-900 dark:bg-stone-100">
-            <Zap className="size-4 text-stone-50 dark:text-stone-900" />
+        <div className="flex items-center justify-between gap-2 pl-9 pr-4">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center size-7 rounded-lg bg-stone-900 dark:bg-stone-100">
+              <Zap className="size-4 text-stone-50 dark:text-stone-900" />
+            </div>
+            <span
+              className={`text-xl leading-[32px] font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
+            >
+              SonicLearn
+            </span>
           </div>
-          <span
-            className={`text-xl leading-[32px] font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
-          >
-            SonicLearn
-          </span>
         </div>
       </SidebarHeader>
-      
+
       <SidebarContent className="flex-1 pt-2 px-4">
         <SidebarGroup>
           <SidebarGroupContent>
@@ -96,6 +97,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       asChild
+                      isActive={isActive}
                       className={cn(
                         "w-full flex items-center justify-start my-2 px-[16px] py-[10px] text-[16px] font-normal rounded-[12px] transition-colors bg-stone-50 dark:bg-stone-900 ",
                         isActive
@@ -122,22 +124,22 @@ export function AppSidebar({ className }: AppSidebarProps) {
       </SidebarContent>
 
       <SidebarFooter className="mt-auto w-full px-4">
-            <div className="flex items-center gap-4 rounded-lg">
-              <div className="flex items-center justify-center size-10 rounded-full bg-stone-200 dark:bg-stone-800">
-                <span className="text-sm  font-semibold text-stone-900 dark:text-stone-100">
-                  BS
-                </span>
-              </div>
-              <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-                <p className="font-medium text-sm text-stone-900 dark:text-stone-100 truncate">
-                  Bhanu singh
-                </p>
-                <p className="text-xs font-normal leading-5 text-stone-600 dark:text-stone-400 truncate">
-                  bhanusingh12345@gmail.com
-                </p>
-              </div>
-            </div>
-          </SidebarFooter>
+        <div className="flex items-center gap-4 rounded-lg">
+          <div className="flex items-center justify-center size-10 rounded-full bg-stone-200 dark:bg-stone-800">
+            <span className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+              BS
+            </span>
+          </div>
+          <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+            <p className="font-medium text-sm text-stone-900 dark:text-stone-100 truncate">
+              Bhanu singh
+            </p>
+            <p className="text-xs font-normal leading-5 text-stone-600 dark:text-stone-400 truncate">
+              bhanusingh12345@gmail.com
+            </p>
+          </div>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }
