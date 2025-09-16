@@ -261,7 +261,7 @@ export function YouTubeProcessor({
 
   return (
     <Card
-      className={`${jakarta.className} rounded-[8px] border border-stone-500`}
+      className={`${jakarta.className} rounded-[8px] border bg-stone-50 border-stone-100 dark:bg-stone-900/50 dark:border-stone-900`}
     >
       <CardHeader>
         <CardTitle className="flex items-center gap-2 pt-4 ">
@@ -280,7 +280,7 @@ export function YouTubeProcessor({
           </label>
           <Input
             id="youtube-url"
-            className=" rounded-[6px] my-2"
+            className=" rounded-[6px] my-2 border-none bg-white dark:bg-stone-800 text-stone-400"
             type="url"
             placeholder="https://www.youtube.com/watch?v=..."
             value={videoUrl}

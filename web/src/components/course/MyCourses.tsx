@@ -172,12 +172,12 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
 
 export function MyCourses({ courses }: MyCoursesProps) {
   return (
-    <div className="w-full max-w-7xl mx-auto">
+    <div className="w-full ">
       <div className="mb-6">
-        <h2 className="text-2xl leading-8 font-semibold text-stone-900 dark:text-white mb-2">
+        <h2 className="text-xl leading-8 font-semibold text-stone-900 dark:text-white mb-1">
           My Courses
         </h2>
-        <p className="text-stone-500 dark:text-gray-400 font-medium text-[16px]">
+        <p className="text-stone-500 dark:text-gray-400 font-medium text-sm">
           View and continue your AI-generated courses
         </p>
       </div>
@@ -202,7 +202,7 @@ export function MyCourses({ courses }: MyCoursesProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="flex w-full  gap-6">
+        <div className="flex w-full gap-6">
           {courses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
