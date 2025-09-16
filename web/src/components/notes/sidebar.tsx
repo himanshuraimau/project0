@@ -20,7 +20,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarCollapseTrigger,
+  SidebarTrigger,
   useSidebar
 } from "@/components/ui/sidebar"
 import { AlertDialogTrigger } from "@/components/ui/alert-dialog"
@@ -76,13 +76,13 @@ export function NotesSidebar({
         <div className="flex items-center">
           {open && <span className="font-semibold">Notes</span>}
         </div>
-        <SidebarCollapseTrigger />
+        <SidebarTrigger />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
           {/* Notes */}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onShowNotes} active={!showTranscript && !showQuiz && !showChat && !showFlashcards && !showPodcast && !showMindmap}>
+            <SidebarMenuButton onClick={onShowNotes} isActive={!showTranscript && !showQuiz && !showChat && !showFlashcards && !showPodcast && !showMindmap}>
               <FileIcon className="h-4 w-4" />
               {open && <span className="ml-3">Notes</span>}
             </SidebarMenuButton>
@@ -90,7 +90,7 @@ export function NotesSidebar({
           
           {/* Transcript */}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onShowTranscript} active={showTranscript}>
+            <SidebarMenuButton onClick={onShowTranscript} isActive={showTranscript}>
               <FileText className="h-4 w-4" />
               {open && <span className="ml-3">Transcript</span>}
             </SidebarMenuButton>
@@ -98,7 +98,7 @@ export function NotesSidebar({
           
           {/* Generate Quiz */}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onGenerateQuiz} active={showQuiz} disabled={quizLoading}>
+            <SidebarMenuButton onClick={onGenerateQuiz} isActive={showQuiz} disabled={quizLoading}>
               <HelpCircle className="h-4 w-4" />
               {open && <span className="ml-3">Generate Quiz</span>}
             </SidebarMenuButton>
@@ -106,7 +106,7 @@ export function NotesSidebar({
           
           {/* Chat with Note */}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onChatWithNote} active={showChat}>
+            <SidebarMenuButton onClick={onChatWithNote} isActive={showChat}>
               <MessageCircle className="h-4 w-4 text-primary" />
               {open && <span className="ml-3">Chat with Note</span>}
             </SidebarMenuButton>
@@ -114,7 +114,7 @@ export function NotesSidebar({
           
           {/* Flashcard */}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onGenerateFlashcard} active={showFlashcards} disabled={flashcardsLoading}>
+            <SidebarMenuButton onClick={onGenerateFlashcard} isActive={showFlashcards} disabled={flashcardsLoading}>
               <Layers className="h-4 w-4" />
               {open && <span className="ml-3">Flashcard</span>}
             </SidebarMenuButton>
@@ -122,7 +122,7 @@ export function NotesSidebar({
           
           {/* Generate Mindmap */}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onGenerateMindmap} active={showMindmap} disabled={mindmapLoading}>
+            <SidebarMenuButton onClick={onGenerateMindmap} isActive={showMindmap} disabled={mindmapLoading}>
               <Brain className="h-4 w-4" />
               {open && <span className="ml-3">Generate Mindmap</span>}
             </SidebarMenuButton>
@@ -130,7 +130,7 @@ export function NotesSidebar({
           
           {/* Generate Podcast */}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onGeneratePodcast} active={showPodcast} disabled={podcastLoading}>
+            <SidebarMenuButton onClick={onGeneratePodcast} isActive={showPodcast} disabled={podcastLoading}>
               <Mic className="h-4 w-4" />
               {open && <span className="ml-3">Generate Podcast</span>}
             </SidebarMenuButton>

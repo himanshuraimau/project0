@@ -2,7 +2,7 @@
 
 import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Sidebar } from "@/components/dashboard/sidebar";
+import { AppSidebar } from "@/components/dashboard/sidebar";
 import { Toaster } from "sonner";
 import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -44,7 +44,7 @@ export default function DashboardLayout({
     <div className="h-screen bg-stone-50 dark:bg-stone-900">
       <SidebarProvider defaultOpen={true}>
         <div className="flex flex-1">
-          <Sidebar />
+          <AppSidebar />
           <DashboardContent>
             {children}
             <Toaster />
