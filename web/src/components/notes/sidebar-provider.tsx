@@ -47,7 +47,6 @@ export function NotesSidebarContent({
     <main 
       className={`flex flex-col w-full transition-all duration-300 ${className || ''}`}
       style={{
-        marginLeft: open ? sidebarWidth : collapsedWidth,
         width: `calc(100% - ${open ? sidebarWidth : collapsedWidth})`,
       }}
     >
