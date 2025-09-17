@@ -117,9 +117,9 @@ export function AppSidebar({ className }: AppSidebarProps) {
                       isActive={isActive}
                       className={cn(
                         "flex items-center gap-3 rounded-lg transition-colors",
-                        isCollapsed ? "w-14 h-14 justify-center" : "px-3 py-2 my-2",
+                        isCollapsed ? "w-16 h-16 justify-center" : "px-3 py-2 my-2",
                         isActive
-                          ? "bg-gray-500 text-white"
+                          ? "!bg-gray-300 !text-black dark:!bg-gray-900 dark:!text-white"
                           : "text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
                       )}
                     >
