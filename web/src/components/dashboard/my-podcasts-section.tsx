@@ -44,6 +44,19 @@ export function MyPodcastsSection() {
       const notesResponse = await fetch('/api/notes');
       const notesData = await notesResponse.json();
 
+      if (!notesResponse.ok) {
+        // Handle different error types based on status code
+        if (notesResponse.status === 503) {
+          toast.error('Service temporarily unavailable. Please try again later.');
+        } else if (notesResponse.status === 401) {
+          toast.error('Please log in to view your notes.');
+        } else {
+          const errorMessage = notesData.message || 'Failed to load notes';
+          toast.error(errorMessage);
+        }
+        return;
+      }
+
       if (notesData.success && notesData.data) {
         const notesMap: Record<string, Note> = {};
         notesData.data.forEach((note: Note) => {
@@ -71,10 +84,19 @@ export function MyPodcastsSection() {
         const validPodcasts = podcastResults.filter(Boolean) as Podcast[];
 
         setPodcasts(validPodcasts);
+      } else {
+        const errorMessage = notesData.message || 'No notes data available';
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Error fetching podcasts:', error);
-      toast.error('Failed to load podcasts');
+      
+      // Provide a more user-friendly error message
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        toast.error('Unable to connect to the server. Please check your internet connection.');
+      } else {
+        toast.error('Failed to load podcasts. Please try refreshing the page.');
+      }
     } finally {
       setLoading(false);
     }

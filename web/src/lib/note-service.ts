@@ -611,7 +611,31 @@ Generate ONE perfect title (no quotes, just the title):`,
       });
     } catch (error) {
       console.error("Error retrieving user notes:", error);
-      throw new Error("Failed to retrieve user notes");
+      
+      // Check if it's a Prisma error
+      if (error && typeof error === 'object' && 'code' in error) {
+        const prismaError = error as { code: string; message: string };
+        
+        switch (prismaError.code) {
+          case 'P2021':
+            throw new Error("Database table 'notes' does not exist. Please check your database migration status.");
+          case 'P2002':
+            throw new Error("A unique constraint violation occurred while retrieving notes.");
+          case 'P1001':
+            throw new Error("Database connection failed. Please check your database configuration.");
+          case 'P2025':
+            throw new Error("The requested notes data was not found.");
+          default:
+            throw new Error(`Database error (${prismaError.code}): ${prismaError.message}`);
+        }
+      }
+      
+      // Handle other types of errors
+      if (error instanceof Error) {
+        throw new Error(`Failed to retrieve user notes: ${error.message}`);
+      }
+      
+      throw new Error("An unexpected error occurred while retrieving user notes");
     }
   }
 

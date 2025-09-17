@@ -38,12 +38,32 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error retrieving notes:', error);
     
+    let errorMessage = 'Failed to retrieve notes';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // Provide more specific status codes based on error type
+      if (error.message.includes('Database table') || error.message.includes('does not exist')) {
+        statusCode = 503; // Service Unavailable
+        errorMessage = 'The notes service is currently unavailable. Please contact support if this persists.';
+      } else if (error.message.includes('Database connection failed')) {
+        statusCode = 503; // Service Unavailable
+        errorMessage = 'Unable to connect to the database. Please try again later.';
+      } else if (error.message.includes('Authentication') || error.message.includes('unauthorized')) {
+        statusCode = 401;
+      } else if (error.message.includes('not found')) {
+        statusCode = 404;
+      }
+    }
+    
     const errorResponse: ApiErrorResponse = {
       success: false,
       error: 'Failed to retrieve notes',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: errorMessage
     };
-    return NextResponse.json(errorResponse, { status: 500 });
+    return NextResponse.json(errorResponse, { status: statusCode });
   }
 }
 

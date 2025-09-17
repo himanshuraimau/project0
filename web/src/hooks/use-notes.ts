@@ -191,13 +191,34 @@ export function useNotes() {
       const response = await fetch(url.toString());
       const result = await response.json();
 
+      if (!response.ok) {
+        // Handle different error types based on status code
+        if (response.status === 503) {
+          throw new Error('The notes service is temporarily unavailable. Please try again later or contact support if this persists.');
+        } else if (response.status === 401) {
+          throw new Error('Please log in to view your notes.');
+        } else if (response.status === 404) {
+          throw new Error('The requested notes were not found.');
+        } else {
+          throw new Error(result.message || `Server error (${response.status}). Please try again.`);
+        }
+      }
+
       if (!result.success) {
         throw new Error(result.message || 'Failed to fetch notes');
       }
 
       return result.data;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      // Provide more specific error messages
+      let errorMessage = 'Unknown error';
+      
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
       return null;
     } finally {
