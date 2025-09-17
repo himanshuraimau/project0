@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { UserControl } from "@/components/user-control";
 const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "600"],
   subsets: ["latin-ext", "vietnamese"],
@@ -123,23 +124,17 @@ export function AppSidebar({ className }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
+
+
       <SidebarFooter className="mt-auto w-full px-4">
-        <div className="flex items-center gap-4 rounded-lg">
-          <div className="flex items-center justify-center size-10 rounded-full bg-stone-200 dark:bg-stone-800">
-            <span className="text-sm font-semibold text-stone-900 dark:text-stone-100">
-              BS
-            </span>
-          </div>
-          <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-            <p className="font-medium text-sm text-stone-900 dark:text-stone-100 truncate">
-              Bhanu singh
-            </p>
-            <p className="text-xs font-normal leading-5 text-stone-600 dark:text-stone-400 truncate">
-              bhanusingh12345@gmail.com
-            </p>
-          </div>
-        </div>
-      </SidebarFooter>
+  <div className="w-full flex justify-center">
+    <UserControl showName />
+  </div>
+</SidebarFooter>
+
+
+
+
     </Sidebar>
   );
 }
