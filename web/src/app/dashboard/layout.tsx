@@ -2,7 +2,7 @@
 
 import React from "react";
 import { UserControl } from "@/components/user-control";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/sidebar";
 import { Toaster } from "sonner";
 import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
@@ -11,11 +11,19 @@ const jakarta = Plus_Jakarta_Sans({
   weight: "600",
 });
 function DashboardContent({ children }: { children: React.ReactNode }) {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+  
   return (
-    <div className="flex-1 h-full bg-white border-b border-stone-200 dark:bg-stone-950 overflow-y-scroll">
+    <div 
+      className={`
+        flex-1 h-full bg-white border-b border-stone-200 dark:bg-stone-950 overflow-y-scroll 
+        transition-all duration-300 ease-in-out
+      `}
+    >
       <div className="">
         <div
-          className={`${jakarta.className} py-[22px] border-b border-stone-200 flex bg-white dark:bg-stone-950 items-center  dark:border-stone-800  justify-between px-8`}
+          className={`${jakarta.className} py-[22px] border-b border-stone-200 flex bg-white dark:bg-stone-950 items-center  dark:border-stone-800  justify-between px-8 transition-all duration-300`}
         >
           <h1 className="text-xl font-semibold text-stone-900 dark:text-stone-100">
             Dashboard
@@ -27,7 +35,9 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
           </span>
         </div>
-        {children}
+        <div className="transition-all duration-300">
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -41,7 +51,7 @@ export default function DashboardLayout({
   return (
     <div className="h-screen bg-stone-50 dark:bg-stone-900">
       <SidebarProvider defaultOpen={true}>
-        <div className="flex flex-1">
+        <div className="flex flex-1 h-full">
           <AppSidebar />
           <DashboardContent>
             {children}
