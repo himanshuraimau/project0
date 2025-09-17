@@ -14,7 +14,6 @@ import {
   Menu,
   ChevronLeft,
   PanelLeftClose,
-  PanelLeftOpen,
 } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -177,11 +176,9 @@ export function NotesSidebar({
                     isCollapsed ? "justify-center" : "justify-end"
                   )}>
                     {isCollapsed ? (
-                      <PanelLeftOpen className="!size-5 flex-shrink-0" />
+                      <Menu className="!size-5 flex-shrink-0" />
                     ) : (
-                      <>
-                        <PanelLeftOpen className="!size-5 flex-shrink-0" />
-                      </>
+                      <></>
                     )}
                   </div>
                 </SidebarMenuButton>

@@ -3,14 +3,11 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import {
-  FileText,
   Plus,
   Search,
-  Settings,
   Zap,
   Menu,
   ChevronLeft,
-  Home,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -35,11 +32,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const notesSidebarItems = [
-  { title: "All Notes", icon: FileText, href: "/notes" },
-  { title: "Dashboard", icon: Home, href: "/dashboard" },
   { title: "Create Note", icon: Plus, href: "/notes/new" },
   { title: "Search", icon: Search, href: "/notes/search" },
-  { title: "Settings", icon: Settings, href: "/dashboard/settings" },
 ];
 
 interface NotesAppSidebarProps {
@@ -107,9 +101,7 @@ export function NotesAppSidebar({ className }: NotesAppSidebarProps) {
               isCollapsed && "flex flex-col items-center w-full"
             )}>
               {notesSidebarItems.map((item) => {
-                const isActive = item.href === "/notes" 
-                  ? pathname === "/notes" 
-                  : pathname.startsWith(item.href);
+                const isActive = pathname.startsWith(item.href);
                 const Icon = item.icon;
 
                 return (
@@ -146,23 +138,7 @@ export function NotesAppSidebar({ className }: NotesAppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Sidebar Footer */}
-      <SidebarFooter className="mt-auto w-full px-3 py-4 border-t border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-950">
-        <div
-          className={cn(
-            "flex items-center gap-3 px-4 py-2 rounded-lg shadow-sm transition-colors duration-200",
-            "bg-stone-50 hover:bg-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800",
-            isCollapsed ? "mx-auto justify-center w-14" : "mx-auto"
-          )}
-        >
-          <span className="text-stone-600 text-2xl dark:text-stone-400">📝</span>
-          {!isCollapsed && (
-            <span className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-              Notes Hub
-            </span>
-          )}
-        </div>
-      </SidebarFooter>
+      {/* Removed Notes Hub footer - dashboard handles all notes functionality */}
     </Sidebar>
   );
 }

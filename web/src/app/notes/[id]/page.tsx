@@ -45,6 +45,7 @@ import dynamic from "next/dynamic";
 import { MarkdownRenderer } from "@/components/mdx-renderer";
 import { SimpleEditor } from "@/components/notes/simple-editor";
 import { ViewNote } from "@/components/notes/view-note";
+import { Navbar } from "@/components/shared/navbar";
 
 const DynamicInlineChatbot = dynamic(
   () => import("@/components/chatbot/inline-chatbot"),
@@ -127,7 +128,7 @@ export default function NoteViewPage() {
   }, [noteId]); // Removed getNote from dependencies to prevent infinite loop
 
   const handleBack = () => {
-    router.push("/notes");
+    router.push("/dashboard");
   };
 
   const handleDeleteNote = async () => {
@@ -156,7 +157,7 @@ export default function NoteViewPage() {
       });
 
       setTimeout(() => {
-        router.push("/notes");
+        router.push("/dashboard");
       }, 500);
     } catch (error) {
       console.error("Error deleting note:", error);
@@ -386,6 +387,7 @@ export default function NoteViewPage() {
             sidebarWidth={sidebarWidth}
             collapsedWidth={collapsedWidth}
           >
+            <Navbar title="Notes" />
             <div className="p-6">
               <div className="flex flex-row items-center justify-between w-full gap-2 mb-6">
                 <div>
