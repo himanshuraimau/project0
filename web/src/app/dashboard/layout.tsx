@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { UserControl } from "@/components/user-control";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/sidebar";
 import { Toaster } from "sonner";
@@ -21,12 +22,9 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           </h1>
           <span className="flex gap-6 items-center">
             <ThemeToggleButton />
-            <div
-              className="px-6 py-2 rounded-full bg-gradient-to-b from-stone-800/90 via-stone-800 to-black text-white flex items-center gap-2  shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)]
-  transition-all duration-300"
-            >
-              <span className="text-sm font-medium">Unlimited Notes⚡</span>
-            </div>
+
+            <UserControl showName />
+
           </span>
         </div>
         {children}
