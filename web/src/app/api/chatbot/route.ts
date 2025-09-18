@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
-import { querySimilarChunks } from '../../../lib/embedding-service';
+import { querySimilarChunks } from '../../../lib/course/embedding-service';
 
 // Environment variables
 const CHAT_MODEL = process.env.CHAT_MODEL || 'models/gemini-pro';

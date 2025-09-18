@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { indexChapterContent } from '@/lib/chapter-embedding-service';
+import { indexChapterContent } from '@/lib/course/chapter-embedding-service';
 
 export async function POST(
   req: NextRequest,

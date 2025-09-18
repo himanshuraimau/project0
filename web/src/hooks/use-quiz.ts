@@ -11,6 +11,8 @@ export const useQuiz = () => {
     setError(null);
     
     try {
+      console.log('Generating quiz for noteId:', noteId);
+      
       const response = await fetch('/api/notes/generate-quiz', {
         method: 'POST',
         headers: {
@@ -20,6 +22,7 @@ export const useQuiz = () => {
       });
 
       const data = await response.json();
+      console.log('Quiz generation response:', data);
 
       if (!response.ok) {
         if (response.status === 402) {
@@ -30,11 +33,14 @@ export const useQuiz = () => {
 
       // data.data is now a single Quiz object with content containing quiz array
       const quizQuestions = data.data.content?.quiz || [];
+      console.log('Extracted quiz questions:', quizQuestions);
+      
       setQuiz(quizQuestions);
       return quizQuestions;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate quiz';
       setError(errorMessage);
+      console.error('Quiz generation error:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -50,6 +56,11 @@ export const useQuiz = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 404) {
+          // Quiz doesn't exist yet, return empty array
+          setQuiz([]);
+          return [];
+        }
         throw new Error(data.error || 'Failed to fetch quiz');
       }
 
@@ -60,7 +71,8 @@ export const useQuiz = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch quiz';
       setError(errorMessage);
-      throw new Error(errorMessage);
+      console.error('Quiz fetch error:', err);
+      return [];
     } finally {
       setLoading(false);
     }

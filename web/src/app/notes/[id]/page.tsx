@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useNotes } from "@/hooks/use-notes";
 import { Note } from "@/lib/types";
 import { useFlashcards } from "@/hooks/use-flashcards";
-import { useQuiz } from "@/hooks/use-quiz";
+
 import { usePodcast } from "@/hooks/use-podcast";
 import { useMindmap } from "@/hooks/use-mindmap";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FlashcardViewer, useFlashcardKeyboard } from "@/components/flashcards";
-import { QuizViewer } from "@/components/quiz";
+import { QuizViewer, QuizGenerator } from "@/components/quiz";
 import {
   PodcastConfigurationModal,
   PodcastWithTranscript,
@@ -66,13 +66,7 @@ export default function NoteViewPage() {
     generateFlashcards,
     getFlashcards,
   } = useFlashcards();
-  const {
-    quiz,
-    loading: quizLoading,
-    error: quizError,
-    generateQuiz,
-    getQuiz,
-  } = useQuiz();
+
   const {
     podcast,
     segments,
@@ -178,24 +172,46 @@ export default function NoteViewPage() {
     setCurrentView("notes");
   };
 
-  const handleShowTranscript = () => {
+  const handleShowTranscript = async () => {
+    if (currentView === "transcript") {
+      // If transcript is already shown, go back to notes view
+      setCurrentView("notes");
+      setTranscript(null);
+      setTranscriptError(null);
+      return;
+    }
+
+    // Switch to transcript view
     setCurrentView("transcript");
+    setTranscriptLoading(true);
+    setTranscriptError(null);
+
+    try {
+      // Fetch transcript from API
+      const response = await fetch(`/api/transcripts/${note?.transcriptId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch transcript");
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setTranscript(data.data.content);
+      } else {
+        throw new Error(data.error || "Failed to load transcript");
+      }
+    } catch (error) {
+      console.error("Error fetching transcript:", error);
+      setTranscriptError(
+        error instanceof Error ? error.message : "Failed to load transcript"
+      );
+    } finally {
+      setTranscriptLoading(false);
+    }
   };
 
   const handleGenerateQuiz = async () => {
     if (!noteId) return;
-    
-    try {
-      setCurrentView("quiz");
-      const existingQuiz = await getQuiz(noteId);
-      if (!existingQuiz) {
-        await generateQuiz(noteId);
-      }
-    } catch (error) {
-      console.error("Error with quiz:", error);
-      setCurrentView("notes");
-      toast.error("Failed to generate quiz");
-    }
+    setCurrentView("quiz");
   };
 
   const handleChatWithNote = () => {
@@ -378,7 +394,7 @@ export default function NoteViewPage() {
             onGeneratePodcast={handleGeneratePodcast}
             onGenerateMindmap={handleGenerateMindmap}
             onDeleteNote={handleDeleteNote}
-            quizLoading={quizLoading}
+            quizLoading={false}
             flashcardsLoading={flashcardsLoading}
             podcastLoading={podcastLoading}
             mindmapLoading={mindmapLoading}
@@ -408,6 +424,43 @@ export default function NoteViewPage() {
                 <ViewNote note={note} />
               )}
 
+              {currentView === "transcript" && (
+                <div className="max-w-6xl w-full mx-auto">
+                  <Card className="rounded-lg">
+                    <CardHeader>
+                      <CardTitle className="text-xl">Transcript</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {transcriptLoading && (
+                        <div className="flex items-center justify-center py-8">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                            <p className="text-sm text-gray-600">
+                              Loading transcript...
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {transcriptError && (
+                        <div className="text-center text-red-600 py-8">
+                          <p className="font-medium">
+                            Error loading transcript
+                          </p>
+                          <p className="text-sm mt-1">{transcriptError}</p>
+                        </div>
+                      )}
+                      {transcript && !transcriptLoading && (
+                        <div className="prose max-w-none">
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                            {transcript}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
               {currentView === "flashcards" && (
                 <div>
                   {flashcardsLoading && (
@@ -432,26 +485,7 @@ export default function NoteViewPage() {
               )}
 
               {currentView === "quiz" && (
-                <div>
-                  {quizLoading && (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-600">Generating quiz...</p>
-                    </div>
-                  )}
-                  {quiz && (
-                    <QuizViewer 
-                      quiz={quiz}
-                      onClose={() => setCurrentView("notes")}
-                    />
-                  )}
-                  {quizError && (
-                    <div className="text-center text-red-600">
-                      <p className="font-medium">Error generating quiz</p>
-                      <p className="text-sm mt-1">{quizError}</p>
-                    </div>
-                  )}
-                </div>
+                <QuizGenerator noteId={noteId} />
               )}
 
               {currentView === "chat" && (

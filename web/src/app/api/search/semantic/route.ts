@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { querySimilarChunks } from '../../../../lib/embedding-service';
+import { querySimilarChunks } from '../../../../lib/course/embedding-service';
 import { prisma } from '../../../../lib/prisma';
 import { ApiErrorResponse, SemanticSearchRequest, SemanticSearchResponse } from '@/lib/types';
 

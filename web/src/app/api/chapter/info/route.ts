@@ -9,7 +9,7 @@ import {
 import { z } from "zod"
 import { openai } from "@ai-sdk/openai"
 import { generateText } from "ai"
-import { indexChapterContent } from "@/lib/chapter-embedding-service"
+import { indexChapterContent } from "@/lib/course/chapter-embedding-service"
 import { auth } from "@clerk/nextjs/server"
 import { 
   createSuccessResponse, 

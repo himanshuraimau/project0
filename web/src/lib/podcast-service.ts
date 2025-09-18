@@ -300,7 +300,7 @@ export class PodcastService {
     async indexPodcastTranscript(podcastId: string, noteId: string): Promise<void> {
         try {
             const { prisma } = await import('./prisma');
-            const { indexPodcastTranscript } = await import('./embedding-service');
+            const { indexPodcastTranscript } = await import('./course/embedding-service');
 
             // Fetch podcast segments from database
             const segments = await prisma.podcastSegment.findMany({

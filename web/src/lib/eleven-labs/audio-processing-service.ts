@@ -1,5 +1,5 @@
-import { AudioSegment, AudioMetadata, WaveformData, PodcastGenerationError } from './types/podcast.types';
-import { podcastErrorHandler } from './utils/podcast-error-handler';
+import { AudioSegment, AudioMetadata, WaveformData, PodcastGenerationError } from '../types/podcast.types';
+import { podcastErrorHandler } from '../utils/podcast-error-handler';
 
 /**
  * Service for audio processing operations including combining, compression, and analysis
@@ -35,7 +35,7 @@ export class AudioProcessingService {
         // TODO: Implement actual audio combining using appropriate audio library
         // This would use a library like node-ffmpeg, fluent-ffmpeg, or similar
         // For now, we'll create a placeholder implementation
-        
+
         // In a real implementation, this would:
         // 1. Load each audio buffer into an audio processing library
         // 2. Add small gaps (0.5-1 second) between speakers for natural flow
@@ -43,16 +43,16 @@ export class AudioProcessingService {
         // 4. Apply crossfade transitions between segments
         // 5. Compress and optimize the final audio
         // 6. Export as high-quality MP3
-        
+
         const totalSize = sortedSegments.reduce((sum, segment) => sum + segment.audioBuffer.length, 0);
-        
+
         if (totalSize > this.maxFileSize) {
           throw new Error(`Combined audio size (${totalSize} bytes) exceeds maximum limit (${this.maxFileSize} bytes)`);
         }
 
         // Placeholder: concatenate buffers (in real implementation, this would be proper audio mixing)
         const combinedBuffer = Buffer.concat(sortedSegments.map(segment => segment.audioBuffer));
-        
+
         return combinedBuffer;
       }, 3, 'combineAudioSegments');
     } catch (error) {
@@ -66,10 +66,10 @@ export class AudioProcessingService {
   /**
    * Generate waveform data for audio visualization
    */
-  async generateWaveform(audioBuffer: Buffer, options: { 
-    width?: number; 
-    height?: number; 
-    samplesPerPixel?: number 
+  async generateWaveform(audioBuffer: Buffer, options: {
+    width?: number;
+    height?: number;
+    samplesPerPixel?: number
   } = {}): Promise<WaveformData> {
     try {
       if (!audioBuffer || audioBuffer.length === 0) {
@@ -82,18 +82,18 @@ export class AudioProcessingService {
         // TODO: Implement actual waveform generation using audio analysis library
         // This would use a library like web-audio-api, node-web-audio-api, or similar
         // For now, we'll create a placeholder implementation
-        
+
         // In a real implementation, this would:
         // 1. Decode the audio buffer to get raw PCM data
         // 2. Analyze amplitude data at regular intervals
         // 3. Generate peak values for visualization
         // 4. Normalize values to fit the specified height
         // 5. Return array of peak values for rendering
-        
+
         // Placeholder: generate synthetic waveform data
         const peaks: number[] = [];
         const numPeaks = Math.floor(width);
-        
+
         for (let i = 0; i < numPeaks; i++) {
           // Generate realistic-looking waveform with some randomness
           const baseAmplitude = Math.sin(i * 0.1) * 0.5 + 0.5;
@@ -132,18 +132,18 @@ export class AudioProcessingService {
         // TODO: Implement actual metadata extraction using audio analysis library
         // This would use a library like node-ffprobe, music-metadata, or similar
         // For now, we'll create a placeholder implementation
-        
+
         // In a real implementation, this would:
         // 1. Parse audio file headers to extract format information
         // 2. Analyze audio stream to determine sample rate, channels, etc.
         // 3. Calculate actual duration from audio data
         // 4. Determine bit rate and compression format
         // 5. Extract any embedded metadata tags
-        
+
         // Placeholder: estimate metadata based on buffer size
         const fileSizeKB = audioBuffer.length / 1024;
         const estimatedDurationSeconds = fileSizeKB / (this.defaultBitRate / 8 / 1024); // Rough estimate
-        
+
         // Try to detect format from buffer header (very basic detection)
         let format = 'unknown';
         if (audioBuffer.length >= 4) {
@@ -186,10 +186,10 @@ export class AudioProcessingService {
         throw new Error('Audio buffer is required for compression');
       }
 
-      const { 
-        bitRate = this.defaultBitRate, 
-        sampleRate = this.defaultSampleRate, 
-        format = 'mp3' 
+      const {
+        bitRate = this.defaultBitRate,
+        sampleRate = this.defaultSampleRate,
+        format = 'mp3'
       } = options;
 
       if (!this.supportedFormats.includes(format)) {
@@ -200,14 +200,14 @@ export class AudioProcessingService {
         // TODO: Implement actual audio compression using ffmpeg or similar
         // This would use a library like fluent-ffmpeg, node-ffmpeg, or similar
         // For now, we'll return the original buffer
-        
+
         // In a real implementation, this would:
         // 1. Use ffmpeg to re-encode audio with specified settings
         // 2. Apply audio normalization and noise reduction
         // 3. Optimize for streaming (constant bit rate)
         // 4. Add appropriate metadata tags
         // 5. Ensure compatibility across different players
-        
+
         // Validate compression settings
         if (bitRate < 64000 || bitRate > 320000) {
           throw new Error('Bit rate must be between 64 and 320 kbps');
@@ -245,12 +245,12 @@ export class AudioProcessingService {
         // TODO: Implement actual silence generation and insertion
         // This would generate appropriate silence based on the audio format
         // For now, we'll return the original buffer
-        
+
         // In a real implementation, this would:
         // 1. Generate silence buffer with same format as input audio
         // 2. Concatenate: silence + original audio + silence
         // 3. Ensure smooth transitions without clicks or pops
-        
+
         // Placeholder: return original buffer
         return audioBuffer;
       }, 2, 'addSilencePadding');
@@ -275,14 +275,14 @@ export class AudioProcessingService {
         // TODO: Implement actual audio level normalization
         // This would analyze peak levels and apply gain adjustments
         // For now, we'll return the original segments
-        
+
         // In a real implementation, this would:
         // 1. Analyze peak and RMS levels for each segment
         // 2. Calculate optimal gain adjustments
         // 3. Apply normalization to ensure consistent volume
         // 4. Prevent clipping and distortion
         // 5. Maintain dynamic range while ensuring audibility
-        
+
         // Placeholder: return original segments
         return segments.map(segment => ({ ...segment }));
       }, 2, 'normalizeAudioLevels');
@@ -318,14 +318,14 @@ export class AudioProcessingService {
       const header = audioBuffer.subarray(0, 4);
       const headerHex = header.toString('hex');
       const headerString = header.toString('ascii');
-      
-      const hasValidHeader = 
+
+      const hasValidHeader =
         headerHex.startsWith('494433') || // ID3 (MP3)
         headerHex.includes('fff') || // MP3 frame sync
         headerString.startsWith('RIFF') || // WAV
         headerString.startsWith('OggS') || // OGG
         headerHex.startsWith('667479704d344120'); // M4A
-      
+
       if (!hasValidHeader) {
         errors.push('Audio buffer does not appear to contain valid audio data');
       }
