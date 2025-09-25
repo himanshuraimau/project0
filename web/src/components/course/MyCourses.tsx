@@ -29,7 +29,6 @@ interface MyCoursesProps {
   courses: CourseWithDetails[];
 }
 
-// Individual course card component to manage its own progress state
 function CourseCard({ course }: { course: CourseWithDetails }) {
   const { progress, updating, toggleCompletion } = useCourseProgress(course.id);
 
@@ -49,7 +48,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
   };
 
   return (
-    <Card className="max-sm:w-full max-lg:w-1/2 lg:w-1/3 group hover:shadow-lg  transition-all duration-300 rounded-[12px] border-0 dark:bg-stone-900 bg-stone-100">
+    <Card className="w-full md:w-[380px] group hover:shadow-lg  transition-all duration-300 rounded-[12px] border border-stone-100 dark:border-stone-900 bg-white dark:bg-stone-900/50">
       <CardHeader className="p-0">
         <div className="relative h-52 w-full overflow-hidden rounded-t-lg">
           {course.image ? (
@@ -61,7 +60,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <div className="w-full h-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
               <BookOpen className="h-16 w-16 text-primary/60" />
             </div>
           )}
@@ -85,29 +84,26 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
         </div>
       </CardHeader>
 
-      <CardContent className="pt-4  px-4">
-        <div className=" space-y-4 mb-2 ">
-          <div className=" left-4 right-4">
-            <h3 className="text-stone-900 dark:text-stone-100 font-semibold text-[20px] leading-tight line-clamp-2">
-              {course.name}
-            </h3>
-          </div>
-          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+      <CardContent className="px-4 py-2.5">
+        <div className="">
+          <h3 className="text-stone-900 mb-3 dark:text-stone-100 font-semibold text-[20px] leading-tight line-clamp-2">
+            {course.name}
+          </h3>
+          <div className="flex items-center justify-between text-sm text-stone-600 dark:text-stone-400">
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
               <span>{course.units.length} units</span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 text-stone-600 dark:text-stone-400">
               <BookOpen className="h-4 w-4 " />
               <span>{getTotalChapters(course)} chapters</span>
             </div>
-            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-1 text-sm text-stone-600 dark:text-stone-400">
               <Clock className="h-4 w-4" />
               <span>{formatDate(course.createdAt)}</span>
             </div>
           </div>
 
-          {/* Progress Bar */}
           {progress.totalChapters > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -123,7 +119,6 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
             </div>
           )}
 
-          {/* Completion Status */}
           {progress.isCompleted && progress.completedAt && (
             <div className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
               <CheckCircle className="h-4 w-4" />
@@ -133,12 +128,12 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
             </div>
           )}
 
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-10">
             <Link
               href={`/dashboard/course/${course.id}/0/0`}
               className="flex-1"
             >
-              <Button className="w-full bg-stone-800 rounded-[8px] px-4 flex items-center gap-2 ">
+              <Button className="w-full cursor-pointer bg-stone-800 rounded-[8px] px-4 flex items-center gap-2 ">
                 <Eye className="size-[18px] dark:text-stone-200" />
                 <p className="text-[14px] font-medium dark:text-stone-200">
                   {" "}
@@ -174,19 +169,19 @@ export function MyCourses({ courses }: MyCoursesProps) {
   return (
     <div className="w-full ">
       <div className="mb-6">
-        <h2 className="text-xl leading-8 font-semibold text-stone-900 dark:text-white mb-1">
+        <h2 className="text-lg leading-8 font-semibold text-stone-900 dark:text-white mb-0.5">
           My Courses
         </h2>
-        <p className="text-stone-500 dark:text-gray-400 font-medium text-sm">
+        <p className="text-stone-500 text-sm font-medium leading-6">
           View and continue your AI-generated courses
         </p>
       </div>
 
       {courses.length === 0 ? (
-        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-sm">
+        <Card className="border-2 border-dashed border-gray-300 bg-white dark:border-stone-600 rounded-sm">
           <CardContent className="p-12 text-center">
-            <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <BookOpen className="h-16 w-16 text-stone-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-stone-900 dark:text-white mb-2">
               No courses yet
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">

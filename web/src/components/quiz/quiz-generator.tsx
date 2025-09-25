@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Brain, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { QuizViewer } from './quiz-viewer';
+import React, { useState, useCallback } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Brain, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { QuizViewer } from "./quiz-viewer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,10 +51,10 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
     setError(null);
 
     try {
-      const response = await fetch('/api/notes/generate-quiz', {
-        method: 'POST',
+      const response = await fetch("/api/notes/generate-quiz", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ noteId }),
       });
@@ -62,18 +62,19 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate quiz');
+        throw new Error(data.error || "Failed to generate quiz");
       }
 
       if (data.success) {
         setQuiz(data.data);
-        toast.success('Quiz generated successfully!');
+        toast.success("Quiz generated successfully!");
       } else {
-        throw new Error(data.error || 'Failed to generate quiz');
+        throw new Error(data.error || "Failed to generate quiz");
       }
     } catch (error) {
-      console.error('Error generating quiz:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to generate quiz';
+      console.error("Error generating quiz:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to generate quiz";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -84,7 +85,7 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
   const fetchExistingQuiz = useCallback(async () => {
     try {
       const response = await fetch(`/api/notes/${noteId}/quiz`);
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
@@ -93,7 +94,7 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
       }
       // If quiz doesn't exist, that's fine - we'll show the generation option
     } catch (error) {
-      console.error('Error fetching existing quiz:', error);
+      console.error("Error fetching existing quiz:", error);
       // Don't show error for this - just means no quiz exists yet
     }
   }, [noteId]);
@@ -103,20 +104,21 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
 
     try {
       const response = await fetch(`/api/notes/${noteId}/quiz`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete quiz');
+        throw new Error(data.error || "Failed to delete quiz");
       }
 
       setQuiz(null);
-      toast.success('Quiz deleted successfully');
+      toast.success("Quiz deleted successfully");
     } catch (error) {
-      console.error('Error deleting quiz:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete quiz';
+      console.error("Error deleting quiz:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to delete quiz";
       toast.error(errorMessage);
     }
   };
@@ -129,26 +131,20 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
   // If we have a quiz, show the viewer
   if (quiz && quiz.content?.quiz) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 p-6 mb-5">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold">Quiz</h2>
           <div className="flex items-center gap-2">
             <Button
               onClick={generateQuiz}
               disabled={loading}
-              variant="outline"
-              size="sm"
+              className="bg-stone-100 p-4 text-black hover:bg-stone-200 dark:bg-stone-900 dark:text-white dark:hover:bg-stone-800 flex items-center"
             >
-              <Brain className="h-4 w-4 mr-2" />
               Regenerate
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-red-600 hover:text-red-700"
-                >
+                <Button className="text-red-600 p-4 cursor-pointer bg-red-950/20 hover:bg-red-950/30 flex items-center dark:text-red-600 dark:hover:bg-red-950/30">
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </Button>
@@ -157,12 +153,16 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Quiz</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete this quiz? This action cannot be undone.
+                    Are you sure you want to delete this quiz? This action
+                    cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={deleteQuiz} className="bg-red-600 hover:bg-red-700">
+                  <AlertDialogAction
+                    onClick={deleteQuiz}
+                    className="text-red-600 p-4 cursor-pointer bg-red-950/20 hover:bg-red-950/30 flex items-center dark:text-red-600 dark:hover:bg-red-950/30"
+                  >
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -170,47 +170,39 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
             </AlertDialog>
           </div>
         </div>
-        
-        <QuizViewer
-          quiz={quiz.content.quiz}
-          onClose={() => {}}
-        />
+
+        <QuizViewer quiz={quiz.content.quiz} onClose={() => {}} />
       </div>
     );
   }
 
   // Show generation UI
   return (
-    <div className="space-y-4">
-      <Card>
+    <div className="space-y-4 h-screen flex items-center justify-center bg-transparent">
+      <Card className="bg-transparent border-none">
         <CardContent className="flex flex-col items-center justify-center py-12">
-          <div className="p-4 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
-            <Brain className="h-12 w-12 text-blue-600" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <h3 className="text-2xl font-medium text-stone-900 dark:text-stone-100 mb-2">
             Generate Quiz
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 text-center mb-6 max-w-md">
-            Create an interactive quiz from your notes to test your understanding and reinforce key concepts.
+          <p className="text-stone-600 dark:text-stone-400 text-sm text-center mb-6 max-w-md">
+            Create an interactive quiz from your notes to test your
+            understanding and reinforce key concepts.
           </p>
-          
+
           {error && (
-            <div className="text-red-600 text-sm mb-4 text-center">
-              {error}
-            </div>
+            <div className="text-red-600 text-sm mb-4 text-center">{error}</div>
           )}
-          
+
           <Button
             onClick={generateQuiz}
             disabled={loading}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-600 cursor-pointer text-white"
           >
-            <Brain className="h-4 w-4" />
-            {loading ? 'Generating Quiz...' : 'Generate Quiz'}
+            {loading ? "Generating Quiz..." : "Generate Quiz"}
           </Button>
-          
+
           {loading && (
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-stone-500 mt-2">
               This may take a few moments...
             </p>
           )}

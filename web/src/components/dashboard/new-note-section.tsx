@@ -133,7 +133,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 dark:hover:bg-stone-800/80  hover:bg-stone-100 cursor-pointer hover:border-stone-300 rounded-lg transition-all duration-200 group"
+              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 dark:hover:bg-stone-800/80  hover:bg-stone-100 cursor-pointer hover:border-stone-300 rounded-lg transition-all duration-200 group"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -185,7 +185,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 dark:hover:bg-stone-800/80  hover:bg-stone-100 cursor-pointer hover:border-stone-300 rounded-lg transition-all duration-200 group"
+              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 dark:hover:bg-stone-800/80  hover:bg-stone-100 cursor-pointer hover:border-stone-300 rounded-lg transition-all duration-200 group"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -233,7 +233,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 dark:border-stone-800 hover:bg-stone-100 cursor-pointer hover:border-stone-300 dark:hover:border-stone-700 rounded-lg transition-all duration-200 group"
+              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 dark:hover:bg-stone-800/80  hover:bg-stone-100 cursor-pointer hover:border-stone-300 rounded-lg transition-all duration-200 group"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -282,7 +282,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 hover:bg-stone-100 cursor-pointer dark:hover:bg-stone-800/80 hover:border-stone-300 dark:hover:border-stone-700 rounded-lg transition-all duration-200 group"
+              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 dark:hover:bg-stone-800/80  hover:bg-stone-100 cursor-pointer hover:border-stone-300 rounded-lg transition-all duration-200 group"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -328,7 +328,7 @@ export function NewNoteSection() {
 
       {/* Webpage URL Dialog (Hidden in DOM) */}
       <Dialog open={showWebpageDialog} onOpenChange={setShowWebpageDialog}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 shadow-2xl">
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden bg-white dark:bg-stone-950 border border-stone-100 dark:border-stone-900 shadow-2xl">
           <DialogHeader className="border-b border-stone-100 dark:border-stone-800 pb-4">
             <DialogTitle
               className={`text-left text-xl font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}

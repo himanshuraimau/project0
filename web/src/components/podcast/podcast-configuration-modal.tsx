@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Loader2 } from "lucide-react"
-import { ConfigurationLoadingOverlay } from "./podcast-loading-states"
-import { usePodcastLoading } from "@/hooks/use-podcast-progress"
+import * as React from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Loader2 } from "lucide-react";
+import { ConfigurationLoadingOverlay } from "./podcast-loading-states";
+import { usePodcastLoading } from "@/hooks/use-podcast-progress";
 
 import {
   Dialog,
@@ -16,7 +16,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -25,17 +25,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/components/ui/radio-group"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card } from "@/components/ui/card"
-import { PodcastConfig } from "@/lib/types/podcast.types"
-import { VoiceSelectionInterface } from "./voice-selection-interface"
+} from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
+import { PodcastConfig } from "@/lib/types/podcast.types";
+import { VoiceSelectionInterface } from "./voice-selection-interface";
 
 // Form validation schema
 const podcastConfigSchema = z.object({
@@ -46,15 +43,15 @@ const podcastConfigSchema = z.object({
   host2VoiceId: z.string().min(1, "Host 2 voice is required"),
   host2VoiceName: z.string().min(1, "Host 2 voice name is required"),
   customInstructions: z.string().optional(),
-})
+});
 
-type FormData = z.infer<typeof podcastConfigSchema>
+type FormData = z.infer<typeof podcastConfigSchema>;
 
 interface PodcastConfigurationModalProps {
-  noteId: string
-  isOpen: boolean
-  onClose: () => void
-  onGenerate: (config: PodcastConfig) => void
+  noteId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onGenerate: (config: PodcastConfig) => void;
 }
 
 // Language options
@@ -63,7 +60,7 @@ const LANGUAGE_OPTIONS = [
   { value: "es", label: "Spanish", flag: "🇪🇸" },
   { value: "fr", label: "French", flag: "🇫🇷" },
   { value: "de", label: "German", flag: "🇩🇪" },
-]
+];
 
 // Duration presets with estimates
 const DURATION_PRESETS = [
@@ -76,7 +73,7 @@ const DURATION_PRESETS = [
   },
   {
     value: "medium",
-    label: "Medium", 
+    label: "Medium",
     duration: "8-15 minutes",
     description: "Detailed discussion with examples",
     wordCount: "1000-2000 words",
@@ -88,27 +85,31 @@ const DURATION_PRESETS = [
     description: "Comprehensive deep-dive conversation",
     wordCount: "2500-4000 words",
   },
-]
+];
 
 // Custom instruction templates
 const INSTRUCTION_TEMPLATES = [
   {
     label: "Educational",
-    value: "Focus on explaining concepts clearly with examples. Use a teaching tone and include practical applications.",
+    value:
+      "Focus on explaining concepts clearly with examples. Use a teaching tone and include practical applications.",
   },
   {
     label: "Conversational",
-    value: "Keep the discussion casual and engaging. Include personal anecdotes and relatable examples.",
+    value:
+      "Keep the discussion casual and engaging. Include personal anecdotes and relatable examples.",
   },
   {
     label: "Professional",
-    value: "Maintain a formal, business-oriented tone. Focus on practical insights and actionable takeaways.",
+    value:
+      "Maintain a formal, business-oriented tone. Focus on practical insights and actionable takeaways.",
   },
   {
     label: "Storytelling",
-    value: "Present information through narratives and stories. Make it engaging and memorable.",
+    value:
+      "Present information through narratives and stories. Make it engaging and memorable.",
   },
-]
+];
 
 export function PodcastConfigurationModal({
   noteId,
@@ -116,8 +117,9 @@ export function PodcastConfigurationModal({
   onClose,
   onGenerate,
 }: PodcastConfigurationModalProps) {
-  const [voiceError, setVoiceError] = useState<string | null>(null)
-  const { isLoading, error, startLoading, stopLoading, setError, clearError } = usePodcastLoading()
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const { isLoading, error, startLoading, stopLoading, setError, clearError } =
+    usePodcastLoading();
 
   const form = useForm<FormData>({
     resolver: zodResolver(podcastConfigSchema),
@@ -130,41 +132,45 @@ export function PodcastConfigurationModal({
       host2VoiceName: "",
       customInstructions: "",
     },
-  })
+  });
 
-  const watchedLanguage = form.watch("language")
-  const watchedHost1Voice = form.watch("host1VoiceId")
-  const watchedHost2Voice = form.watch("host2VoiceId")
+  const watchedLanguage = form.watch("language");
+  const watchedHost1Voice = form.watch("host1VoiceId");
+  const watchedHost2Voice = form.watch("host2VoiceId");
 
   // Clear voice selections when language changes
   useEffect(() => {
-    form.setValue("host1VoiceId", "")
-    form.setValue("host1VoiceName", "")
-    form.setValue("host2VoiceId", "")
-    form.setValue("host2VoiceName", "")
-  }, [watchedLanguage, form])
+    form.setValue("host1VoiceId", "");
+    form.setValue("host1VoiceName", "");
+    form.setValue("host2VoiceId", "");
+    form.setValue("host2VoiceName", "");
+  }, [watchedLanguage, form]);
 
-  const handleVoiceSelect = (voiceId: string, voiceName: string, hostNumber: 1 | 2) => {
+  const handleVoiceSelect = (
+    voiceId: string,
+    voiceName: string,
+    hostNumber: 1 | 2
+  ) => {
     if (hostNumber === 1) {
-      form.setValue("host1VoiceId", voiceId)
-      form.setValue("host1VoiceName", voiceName)
+      form.setValue("host1VoiceId", voiceId);
+      form.setValue("host1VoiceName", voiceName);
     } else {
-      form.setValue("host2VoiceId", voiceId)
-      form.setValue("host2VoiceName", voiceName)
+      form.setValue("host2VoiceId", voiceId);
+      form.setValue("host2VoiceName", voiceName);
     }
-  }
+  };
 
   const handleTemplateSelect = (template: string) => {
-    form.setValue("customInstructions", template)
-  }
+    form.setValue("customInstructions", template);
+  };
 
   const onSubmit = async (data: FormData) => {
     // Validate that different voices are selected
     if (data.host1VoiceId === data.host2VoiceId) {
       form.setError("host2VoiceId", {
-        message: "Please select different voices for each host"
-      })
-      return
+        message: "Please select different voices for each host",
+      });
+      return;
     }
 
     const config: PodcastConfig = {
@@ -175,40 +181,44 @@ export function PodcastConfigurationModal({
       host2VoiceId: data.host2VoiceId,
       host2VoiceName: data.host2VoiceName,
       customInstructions: data.customInstructions,
-    }
+    };
 
     try {
-      startLoading()
-      await onGenerate(config)
-      handleClose()
+      startLoading();
+      await onGenerate(config);
+      handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate podcast')
-      stopLoading()
+      setError(
+        err instanceof Error ? err.message : "Failed to generate podcast"
+      );
+      stopLoading();
     }
-  }
+  };
 
   const handleClose = () => {
-    if (isLoading) return // Prevent closing while loading
-    
-    // Reset form
-    form.reset()
-    setVoiceError(null)
-    clearError()
-    onClose()
-  }
+    if (isLoading) return; // Prevent closing while loading
 
-  const isFormValid = form.formState.isValid && 
-    watchedHost1Voice && 
-    watchedHost2Voice && 
-    watchedHost1Voice !== watchedHost2Voice
+    // Reset form
+    form.reset();
+    setVoiceError(null);
+    clearError();
+    onClose();
+  };
+
+  const isFormValid =
+    form.formState.isValid &&
+    watchedHost1Voice &&
+    watchedHost2Voice &&
+    watchedHost1Voice !== watchedHost2Voice;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl bg-stone-100 dark:bg-stone-900/50 border-none max-h-[90vh] overflow-y-scroll">
         <DialogHeader>
           <DialogTitle>Generate Podcast</DialogTitle>
           <DialogDescription>
-            Configure your podcast settings to transform your notes into an engaging conversation between two AI hosts.
+            Configure your podcast settings to transform your notes into an
+            engaging conversation between two AI hosts.
           </DialogDescription>
         </DialogHeader>
 
@@ -228,9 +238,18 @@ export function PodcastConfigurationModal({
                       className="grid grid-cols-2 gap-4"
                     >
                       {LANGUAGE_OPTIONS.map((option) => (
-                        <div key={option.value} className="flex items-center space-x-2">
-                          <RadioGroupItem value={option.value} id={option.value} />
-                          <Label htmlFor={option.value} className="flex items-center gap-2 cursor-pointer">
+                        <div
+                          key={option.value}
+                          className="flex items-center space-x-2"
+                        >
+                          <RadioGroupItem
+                            value={option.value}
+                            id={option.value}
+                          />
+                          <Label
+                            htmlFor={option.value}
+                            className="flex items-center gap-2 cursor-pointer"
+                          >
                             <span className="text-lg">{option.flag}</span>
                             {option.label}
                           </Label>
@@ -257,18 +276,35 @@ export function PodcastConfigurationModal({
                       className="grid gap-4"
                     >
                       {DURATION_PRESETS.map((preset) => (
-                        <div key={preset.value} className="flex items-center space-x-3">
-                          <RadioGroupItem value={preset.value} id={preset.value} />
-                          <Label htmlFor={preset.value} className="flex-1 cursor-pointer">
+                        <div
+                          key={preset.value}
+                          className="flex items-center space-x-3"
+                        >
+                          <RadioGroupItem
+                            value={preset.value}
+                            id={preset.value}
+                          />
+                          <Label
+                            htmlFor={preset.value}
+                            className="flex-1 cursor-pointer"
+                          >
                             <Card className="p-4">
                               <div className="flex justify-between items-start">
                                 <div>
-                                  <div className="font-medium">{preset.label}</div>
-                                  <div className="text-sm text-muted-foreground">{preset.description}</div>
+                                  <div className="font-medium">
+                                    {preset.label}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {preset.description}
+                                  </div>
                                 </div>
                                 <div className="text-right text-sm">
-                                  <div className="font-medium">{preset.duration}</div>
-                                  <div className="text-muted-foreground">{preset.wordCount}</div>
+                                  <div className="font-medium">
+                                    {preset.duration}
+                                  </div>
+                                  <div className="text-muted-foreground">
+                                    {preset.wordCount}
+                                  </div>
                                 </div>
                               </div>
                             </Card>
@@ -291,7 +327,7 @@ export function PodcastConfigurationModal({
                 onVoiceSelect={handleVoiceSelect}
                 onError={setVoiceError}
               />
-              
+
               {/* Form validation for voices */}
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -329,9 +365,10 @@ export function PodcastConfigurationModal({
                 <FormItem>
                   <FormLabel>Custom Instructions (Optional)</FormLabel>
                   <FormDescription>
-                    Provide specific guidance for the podcast style and content approach.
+                    Provide specific guidance for the podcast style and content
+                    approach.
                   </FormDescription>
-                  
+
                   {/* Template buttons */}
                   <div className="flex flex-wrap gap-2 mb-3">
                     {INSTRUCTION_TEMPLATES.map((template) => (
@@ -346,7 +383,7 @@ export function PodcastConfigurationModal({
                       </Button>
                     ))}
                   </div>
-                  
+
                   <FormControl>
                     <Textarea
                       placeholder="e.g., Focus on practical examples and keep the tone conversational..."
@@ -360,42 +397,39 @@ export function PodcastConfigurationModal({
             />
 
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={handleClose}
                 disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                disabled={!isFormValid || isLoading}
-              >
+              <Button type="submit" disabled={!isFormValid || isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Generating...
                   </>
                 ) : (
-                  'Generate Podcast'
+                  "Generate Podcast"
                 )}
               </Button>
             </DialogFooter>
           </form>
         </Form>
-        
+
         {/* Loading overlay */}
         {isLoading && (
-          <ConfigurationLoadingOverlay 
+          <ConfigurationLoadingOverlay
             message="Starting podcast generation..."
             onCancel={() => {
-              stopLoading()
-              handleClose()
+              stopLoading();
+              handleClose();
             }}
           />
         )}
-        
+
         {/* Error display */}
         {error && (
           <div className="absolute bottom-4 left-4 right-4 p-3 bg-red-50 border border-red-200 rounded-md">
@@ -412,5 +446,5 @@ export function PodcastConfigurationModal({
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

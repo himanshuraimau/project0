@@ -314,11 +314,11 @@ function ToolbarPlugin({
   };
 
   return (
-    <div className="border-b border-border p-4">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className=" bg-white dark:bg-stone-900 fixed top-5 z-50 rounded-lg p-3">
+      <div className="flex flex-wrap justify-center items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-40 justify-between">
+            <Button className="w-40 justify-between text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800">
               {FONT_OPTIONS.find((f) => f.value === selectedFont)?.label ||
                 "Select Font"}
             </Button>
@@ -336,12 +336,16 @@ function ToolbarPlugin({
         </DropdownMenu>
 
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" onClick={decreaseFontSize}>
+          <Button
+            className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
+            size="sm"
+            onClick={decreaseFontSize}
+          >
             <Minus className="h-4 w-4" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-16 justify-center">
+              <Button className="w-16 justify-center text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800">
                 {fontSize}
               </Button>
             </DropdownMenuTrigger>
@@ -356,75 +360,90 @@ function ToolbarPlugin({
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm" onClick={increaseFontSize}>
+          <Button
+            className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
+            size="sm"
+            onClick={increaseFontSize}
+          >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="w-px h-6 bg-border mx-1" />
+        <div className="w-px h-6 bg-stone-200 dark:bg-stone-700 mx-2.5" />
 
         <Button
-          variant={isBold ? "default" : "outline"}
           size="sm"
+          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           onClick={formatBold}
         >
           <Bold className="h-4 w-4" />
         </Button>
         <Button
-          variant={isItalic ? "default" : "outline"}
+          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={formatItalic}
         >
           <Italic className="h-4 w-4" />
         </Button>
         <Button
-          variant={isUnderline ? "default" : "outline"}
+          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={formatUnderline}
         >
           <Underline className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="sm">
+        <Button
+          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
+          size="sm"
+        >
           <Type className="h-4 w-4" />
         </Button>
 
-        <div className="w-px h-6 bg-border mx-1" />
+        <div className="w-px h-6 bg-stone-200 dark:bg-stone-700 mx-2.5" />
 
         <Button
-          variant={alignment === "left" ? "default" : "outline"}
+          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={formatAlignLeft}
         >
           <AlignLeft className="h-4 w-4" />
         </Button>
         <Button
-          variant={alignment === "center" ? "default" : "outline"}
+          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={formatAlignCenter}
         >
           <AlignCenter className="h-4 w-4" />
         </Button>
         <Button
-          variant={alignment === "right" ? "default" : "outline"}
+          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={formatAlignRight}
         >
           <AlignRight className="h-4 w-4" />
         </Button>
 
-        <div className="w-px h-6 bg-border mx-1" />
+        <div className="w-px h-6 bg-stone-200 dark:bg-stone-700 mx-2.5" />
 
-        <Button variant="outline" size="sm" onClick={insertBulletList}>
+        <Button
+          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
+          size="sm"
+          onClick={insertBulletList}
+        >
           <List className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="sm" onClick={insertNumberedList}>
+        <Button
+          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
+          size="sm"
+          onClick={insertNumberedList}
+        >
           <ListOrdered className="h-4 w-4" />
         </Button>
 
-        <div className="w-px h-6 bg-border mx-1" />
+        <div className="w-px h-6 bg-stone-200 dark:bg-stone-700 mx-2.5" />
 
         <Button
-          variant="outline"
+          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={onCopy}
           title="Copy Content"
@@ -433,7 +452,7 @@ function ToolbarPlugin({
         </Button>
 
         <Button
-          variant="outline"
+          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={() => {
             try {
@@ -461,10 +480,9 @@ export function LexicalViewer({
   showToolbar = true,
   className = "",
   contentClassName = "",
-  minHeight = "300px",
 }: LexicalViewerProps) {
   const [selectedFont, setSelectedFont] = useState("font-serif");
-  const [fontSize, setFontSize] = useState("16");
+  const [fontSize, setFontSize] = useState("15");
 
   // Initial editor configuration with content
   const initialConfig = {
@@ -513,7 +531,7 @@ export function LexicalViewer({
   };
 
   return (
-    <Card className={`border border-border shadow-sm ${className}`}>
+    <Card className={`border-none bg-transparent ${className}`}>
       <LexicalComposer initialConfig={initialConfig}>
         {showToolbar && (
           <ToolbarPlugin
@@ -526,11 +544,11 @@ export function LexicalViewer({
           />
         )}
 
-        <div className="relative">
+        <div className="relative mt-24">
           <RichTextPlugin
             contentEditable={
               <ContentEditable
-                className={`min-h-[${minHeight}] p-6 outline-none resize-none overflow-hidden ${selectedFont} ${contentClassName}`}
+                className={`p-6 outline-none ${selectedFont} ${contentClassName}`}
                 style={{ fontSize: `${fontSize}px` }}
               />
             }

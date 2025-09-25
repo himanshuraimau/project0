@@ -1,33 +1,37 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UnitsGenerationStepProps, Unit } from '@/lib/types/course.types';
-import { Plus, Trash2, Edit3, Check, X } from 'lucide-react';
-import { LoadingState, InlineLoading } from '@/components/ui/loading-spinner';
-import { validateUnitName, sanitizeString, validateContentSafety } from '@/lib/utils/validation';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UnitsGenerationStepProps, Unit } from "@/lib/types/course.types";
+import { Plus, Trash2, Edit3, Check, X } from "lucide-react";
+import { LoadingState, InlineLoading } from "@/components/ui/loading-spinner";
+import {
+  validateUnitName,
+  sanitizeString,
+  validateContentSafety,
+} from "@/lib/utils/validation";
 
 /**
  * UnitsGenerationStep component handles display and editing of generated course units
  * Allows users to add, remove, and edit units with real-time validation
  */
-export function UnitsGenerationStep({ 
-  units, 
-  onUnitsChange, 
-  onFinalize, 
-  isLoading 
+export function UnitsGenerationStep({
+  units,
+  onUnitsChange,
+  onFinalize,
+  isLoading,
 }: UnitsGenerationStepProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [editValue, setEditValue] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   // Start editing a unit
   const startEditing = (unit: Unit) => {
     setEditingId(unit.id);
     setEditValue(unit.name);
-    setError('');
+    setError("");
   };
 
   // Save edited unit
@@ -35,7 +39,7 @@ export function UnitsGenerationStep({
     // Enhanced validation using validation utilities
     const unitValidation = validateUnitName(editValue);
     if (!unitValidation.isValid) {
-      setError(unitValidation.error || 'Invalid unit name');
+      setError(unitValidation.error || "Invalid unit name");
       return;
     }
 
@@ -51,62 +55,60 @@ export function UnitsGenerationStep({
     try {
       sanitizedValue = sanitizeString(editValue);
     } catch (sanitizeError) {
-      setError('Invalid characters in unit name');
+      setError("Invalid characters in unit name");
       return;
     }
 
-    const updatedUnits = units.map(unit => 
-      unit.id === editingId 
-        ? { ...unit, name: sanitizedValue }
-        : unit
+    const updatedUnits = units.map((unit) =>
+      unit.id === editingId ? { ...unit, name: sanitizedValue } : unit
     );
-    
+
     onUnitsChange(updatedUnits);
     setEditingId(null);
-    setEditValue('');
-    setError('');
+    setEditValue("");
+    setError("");
   };
 
   // Cancel editing
   const cancelEdit = () => {
     setEditingId(null);
-    setEditValue('');
-    setError('');
+    setEditValue("");
+    setError("");
   };
 
   // Add new unit
   const addUnit = () => {
     const newUnit: Unit = {
       id: `unit-${Date.now()}`,
-      name: '',
-      isEditing: true
+      name: "",
+      isEditing: true,
     };
-    
+
     const updatedUnits = [...units, newUnit];
     onUnitsChange(updatedUnits);
     setEditingId(newUnit.id);
-    setEditValue('');
-    setError('');
+    setEditValue("");
+    setError("");
   };
 
   // Remove unit
   const removeUnit = (unitId: string) => {
-    const updatedUnits = units.filter(unit => unit.id !== unitId);
+    const updatedUnits = units.filter((unit) => unit.id !== unitId);
     onUnitsChange(updatedUnits);
-    
+
     // If we're editing the unit being removed, clear editing state
     if (editingId === unitId) {
       setEditingId(null);
-      setEditValue('');
-      setError('');
+      setEditValue("");
+      setError("");
     }
   };
 
   // Handle key press in edit input
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       saveEdit();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       cancelEdit();
     }
   };
@@ -114,14 +116,14 @@ export function UnitsGenerationStep({
   // Validate units before finalization
   const validateUnits = () => {
     if (units.length === 0) {
-      setError('At least one unit is required');
+      setError("At least one unit is required");
       return false;
     }
 
     // Enhanced validation for each unit
     for (let i = 0; i < units.length; i++) {
       const unit = units[i];
-      
+
       // Use validation utility
       const unitValidation = validateUnitName(unit.name);
       if (!unitValidation.isValid) {
@@ -132,7 +134,9 @@ export function UnitsGenerationStep({
       // Content safety check
       const safetyCheck = validateContentSafety(unit.name);
       if (!safetyCheck.isSafe) {
-        setError(`Unit ${i + 1} contains inappropriate content: ${safetyCheck.reason}`);
+        setError(
+          `Unit ${i + 1} contains inappropriate content: ${safetyCheck.reason}`
+        );
         return false;
       }
     }
@@ -143,66 +147,69 @@ export function UnitsGenerationStep({
   // Handle finalize button click
   const handleFinalize = () => {
     if (editingId) {
-      setError('Please finish editing before finalizing');
+      setError("Please finish editing before finalizing");
       return;
     }
 
     if (validateUnits()) {
-      setError('');
+      setError("");
       onFinalize();
     }
   };
 
-  const canFinalize = units.length > 0 && 
-                     units.every(unit => unit.name.trim()) && 
-                     !editingId && 
-                     !isLoading;
+  const canFinalize =
+    units.length > 0 &&
+    units.every((unit) => unit.name.trim()) &&
+    !editingId &&
+    !isLoading;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-stone-900 dark:text-white mb-2">
           Review and Edit Units
         </h2>
-        <p className="text-gray-600">
-          AI has generated course units for you. Edit, add, or remove units as needed.
+        <p className="text-stone-600">
+          AI has generated course units for you. Edit, add, or remove units as
+          needed.
         </p>
       </div>
 
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-2xl bg-transparent border-none mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex mb-2.5 items-center justify-between">
             <span>Course Units ({units.length})</span>
             <Button
               onClick={addUnit}
-              variant="outline"
               size="sm"
               disabled={isLoading}
-              className="flex items-center space-x-2"
+              className="flex cursor-pointer items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
               <span>Add Unit</span>
             </Button>
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent>
           {units.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-stone-500">
               <p>No units generated yet.</p>
-              <p className="text-sm mt-1">Click "Add Unit" to create your first unit.</p>
+              <p className="text-sm mt-1">
+                Click Add Unit to create your first unit.
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
               {units.map((unit, index) => (
                 <div
                   key={unit.id}
-                  className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center border-none bg-stone-50 dark:bg-stone-900/50 space-x-3 p-3 border rounded-md hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">
                     {index + 1}
                   </div>
-                  
+
                   <div className="flex-1">
                     {editingId === unit.id ? (
                       <div className="space-y-2">
@@ -211,7 +218,7 @@ export function UnitsGenerationStep({
                           onChange={(e) => setEditValue(e.target.value)}
                           onKeyDown={handleKeyPress}
                           placeholder="Enter unit name..."
-                          className={error ? 'border-red-500' : ''}
+                          className={error ? "border-red-500" : ""}
                           autoFocus
                         />
                         {error && (
@@ -220,13 +227,20 @@ export function UnitsGenerationStep({
                       </div>
                     ) : (
                       <div className="flex items-center justify-between">
-                        <span className={`${!unit.name.trim() ? 'text-gray-400 italic' : 'text-gray-900'}`}>
-                          {unit.name.trim() || 'Empty unit - click edit to add name'}
+                        <span
+                          className={`${
+                            !unit.name.trim()
+                              ? "text-stone-400 italic"
+                              : "text-stone-900 dark:text-white font-medium"
+                          }`}
+                        >
+                          {unit.name.trim() ||
+                            "Empty unit - click edit to add name"}
                         </span>
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     {editingId === unit.id ? (
                       <>
@@ -242,7 +256,7 @@ export function UnitsGenerationStep({
                           onClick={cancelEdit}
                           variant="ghost"
                           size="sm"
-                          className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                          className="text-stone-600 hover:text-stone-700 hover:bg-stone-50"
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -254,7 +268,7 @@ export function UnitsGenerationStep({
                           variant="ghost"
                           size="sm"
                           disabled={isLoading}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          className="text-stone-600 hover:text-stone-700 cursor-pointer dark:hover:bg-blue-50 hover:bg-blue-50"
                         >
                           <Edit3 className="w-4 h-4" />
                         </Button>
@@ -263,7 +277,7 @@ export function UnitsGenerationStep({
                           variant="ghost"
                           size="sm"
                           disabled={isLoading || units.length <= 1}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:text-gray-400"
+                          className="text-red-600 hover:text-red-700 cursor-pointer dark:hover:bg-blue-50 hover:bg-blue-50 disabled:text-stone-400"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -274,7 +288,7 @@ export function UnitsGenerationStep({
               ))}
             </div>
           )}
-          
+
           {error && !editingId && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600">{error}</p>
@@ -289,7 +303,6 @@ export function UnitsGenerationStep({
             message="Generating Course Chapters"
             submessage="AI is creating 3-5 chapters for each unit with YouTube search queries..."
             variant="ai"
-            className="bg-purple-50 border border-purple-200 rounded-lg"
           />
         </div>
       )}
@@ -299,22 +312,23 @@ export function UnitsGenerationStep({
           <Button
             onClick={handleFinalize}
             disabled={!canFinalize}
-            className="w-full"
+            className="w-full cursor-pointer"
             size="lg"
           >
             {isLoading ? (
-              <InlineLoading 
-                message="Generating Chapters..." 
+              <InlineLoading
+                message="Generating Chapters..."
                 variant="ai"
                 className="text-white"
               />
             ) : (
-              'Finalize Units & Generate Chapters'
+              "Finalize Units & Generate Chapters"
             )}
           </Button>
-          
-          <p className="text-sm text-gray-600 text-center mt-2">
-            This will automatically generate 3-5 chapters for each unit using AI.
+
+          <p className="text-sm text-stone-600 text-center mt-2">
+            This will automatically generate 3-5 chapters for each unit using
+            AI.
           </p>
         </div>
       )}

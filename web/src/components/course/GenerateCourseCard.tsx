@@ -15,12 +15,12 @@ export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
     <Link href="/dashboard/create/wizard" className="block">
       <Card
         className={cn(
-          "h-20 transition-all duration-200 shadow-sm hover:shadow-lg border border-stone-200 dark:border-stone-800 dark:bg-stone-900 hover:border-stone-400 bg-white rounded-[12px] cursor-pointer group",
+          "h-20 transition-all duration-200 shadow-sm hover:shadow-lg border border-stone-100 dark:border-stone-900 dark:bg-stone-900/50 hover:border-stone-400 bg-white rounded-[12px] cursor-pointer group",
           className
         )}
       >
-        <CardContent className="p-6 h-full flex items-center">
-          <div className="flex items-center gap-5 w-full">
+        <CardContent className="p-4 h-full flex items-center">
+          <div className="flex items-center gap-2 w-full">
             <div className="size-14 rounded-full  flex items-center justify-center flex-shrink-0 transition-colors duration-200">
               <BookOpen className="size-8 text-stone-800 dark:text-stone-100" />
             </div>
@@ -28,7 +28,7 @@ export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
               <div className="font-semibold text-lg text-foreground group-hover:text-stone-800 dark:group-hover:text-stone-200 transition-colors duration-200">
                 Generate Course
               </div>
-              <div className="text-sm font-medium text-stone-500 mt-1">
+              <div className="text-sm font-medium text-stone-500">
                 Create AI-powered courses from topics
               </div>
             </div>

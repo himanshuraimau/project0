@@ -2,13 +2,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import {
-  Plus,
-  Search,
-  Zap,
-  Menu,
-  ChevronLeft,
-} from "lucide-react";
+import { Plus, Search, Zap, Menu, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -70,7 +64,7 @@ export function NotesAppSidebar({ className }: NotesAppSidebarProps) {
         ) : (
           <div className="flex items-center justify-between px-4">
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-stone-900 dark:bg-stone-100">
+              <div className="flex items-center justify-center size-8 rounded-lg bg-stone-900 dark:bg-white">
                 <Zap className="size-5 text-stone-50 dark:text-stone-900" />
               </div>
               <span
@@ -90,43 +84,61 @@ export function NotesAppSidebar({ className }: NotesAppSidebarProps) {
       </SidebarHeader>
 
       {/* Sidebar Content */}
-      <SidebarContent className={cn(
-        "flex-1 pt-2",
-        isCollapsed ? "px-1 flex flex-col items-center" : "px-2"
-      )}>
-        <SidebarGroup className={isCollapsed ? "w-full flex flex-col items-center" : ""}>
+      <SidebarContent
+        className={cn(
+          "flex-1 pt-2",
+          isCollapsed ? "px-1 flex flex-col items-center" : "px-2"
+        )}
+      >
+        <SidebarGroup
+          className={isCollapsed ? "w-full flex flex-col items-center" : ""}
+        >
           <SidebarGroupContent>
-            <SidebarMenu className={cn(
-              "space-y-1",
-              isCollapsed && "flex flex-col items-center w-full"
-            )}>
+            <SidebarMenu
+              className={cn(
+                "space-y-1",
+                isCollapsed && "flex flex-col items-center w-full"
+              )}
+            >
               {notesSidebarItems.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 const Icon = item.icon;
 
                 return (
-                  <SidebarMenuItem key={item.href} className={isCollapsed ? "flex justify-center" : ""}>
+                  <SidebarMenuItem
+                    key={item.href}
+                    className={isCollapsed ? "flex justify-center" : ""}
+                  >
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
                       className={cn(
                         "flex items-center gap-3 rounded-lg transition-colors",
-                        isCollapsed ? "w-16 h-16 justify-center" : "px-3 py-2 my-2",
+                        isCollapsed
+                          ? "w-16 h-16 justify-center"
+                          : "px-3 py-2 my-2",
                         isActive
                           ? "!bg-gray-300 !text-black dark:!bg-gray-900 dark:!text-white"
                           : "text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
                       )}
                     >
-                      <Link href={item.href} className={cn(
-                        "flex items-center gap-3",
-                        isCollapsed ? "w-full justify-center" : "w-full"
-                      )}>
-                        <Icon className={cn(
-                          "!size-5 flex-shrink-0",
-                          isCollapsed ? "" : ""
-                        )} />
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-3",
+                          isCollapsed ? "w-full justify-center" : "w-full"
+                        )}
+                      >
+                        <Icon
+                          className={cn(
+                            "!size-5 flex-shrink-0",
+                            isCollapsed ? "" : ""
+                          )}
+                        />
                         {!isCollapsed && (
-                          <span className="leading-[24px] font-normal">{item.title}</span>
+                          <span className="leading-[24px] font-normal">
+                            {item.title}
+                          </span>
                         )}
                       </Link>
                     </SidebarMenuButton>

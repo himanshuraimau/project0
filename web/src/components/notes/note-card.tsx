@@ -33,30 +33,17 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
     onDelete(note.id);
   };
 
-  // Extract a preview of the content (first 150 chars)
-  const contentPreview = note.content
-    ? note.content.substring(0, 150) + (note.content.length > 150 ? "..." : "")
-    : "No content available";
-
   return (
     <Card
-      className="group rounded-[12px] hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-200 dark:border-stone-800  dark:bg-stone-900 "
+      className="group rounded-[12px] p-4 hover:shadow-md transition-all duration-200 cursor-pointer bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 dark:hover:bg-stone-800/80"
       onClick={handleViewNote}
     >
       <CardContent className="">
-        <h3 className="font-medium text-lg mt-6 pl-2 line-clamp-1">
-          {note.title}
-        </h3>
-        {/* <div className="text-gray-800 dark:text-gray-200 line-clamp-3 text-sm">
-          <MarkdownRenderer 
-            content={contentPreview} 
-            className="text-sm leading-relaxed" 
-          />
-        </div> */}
+        <h3 className="font-medium text-lg  line-clamp-1">{note.title}</h3>
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between  dark:border-slate-700">
-        <div className="flex items-center gap-2 text-sm font-normal leading-5 text-stone-400 dark:text-gray-400">
+      <CardFooter className="flex items-center justify-between pl-2 dark:border-stone-700">
+        <div className="flex items-center gap-2 text-sm font-normal leading-5 text-stone-400 dark:text-stone-400">
           <Calendar className="h-3 w-3" />
           <span>
             {formatDate(
@@ -75,7 +62,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
             }}
             variant="outline"
             size="sm"
-            className="h-8  px-3 text-xs bg-white cursor-pointer dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-600 rounded-[8px]"
+            className="h-8  px-3 text-xs cursor-pointer border-none dark:bg-stone-800 dark:hover:bg-stone-700 bg-stone-50 hover:bg-stone-100 rounded-[8px]"
           >
             <Eye className="h-3 w-3 mr-1" />
             View
@@ -84,7 +71,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
             onClick={handleDeleteNote}
             variant="outline"
             size="sm"
-            className="h-8  px-3 text-xs bg-white  cursor-pointer dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-600 rounded-[8px]"
+            className="h-8  px-3 text-xs cursor-pointer border-none dark:bg-stone-800 dark:hover:bg-stone-700 bg-stone-50 hover:bg-stone-100 rounded-[8px]"
           >
             <Trash2 className="h-3 w-3 mr-1 text-red-500" />
             Delete

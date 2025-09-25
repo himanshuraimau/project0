@@ -1,37 +1,45 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChaptersReviewStepProps } from '@/lib/types/course.types';
-import { Edit3, Check, X, BookOpen, PlayCircle, Trash2 } from 'lucide-react';
-import { LoadingState, InlineLoading } from '@/components/ui/loading-spinner';
-import { validateUnitName, validateChapterName, sanitizeString, validateContentSafety } from '@/lib/utils/validation';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChaptersReviewStepProps } from "@/lib/types/course.types";
+import { Edit3, Check, X, BookOpen, PlayCircle, Trash2 } from "lucide-react";
+import { LoadingState, InlineLoading } from "@/components/ui/loading-spinner";
+import {
+  validateUnitName,
+  validateChapterName,
+  sanitizeString,
+  validateContentSafety,
+} from "@/lib/utils/validation";
 
 /**
  * ChaptersReviewStep component displays the complete hierarchical course structure
  * Allows final editing of unit and chapter names before saving the course
  */
-export function ChaptersReviewStep({ 
+export function ChaptersReviewStep({
   courseTitle,
-  units, 
-  onSave, 
-  onEdit, 
+  units,
+  onSave,
+  onEdit,
   onDeleteChapter,
-  isLoading 
+  isLoading,
 }: ChaptersReviewStepProps) {
-  const [editingItem, setEditingItem] = useState<{ unitId: string; chapterId?: string } | null>(null);
-  const [editValue, setEditValue] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [editingItem, setEditingItem] = useState<{
+    unitId: string;
+    chapterId?: string;
+  } | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   // Start editing a unit or chapter
   const startEditing = (unitId: string, chapterId?: string) => {
-    const unit = units.find(u => u.id === unitId);
+    const unit = units.find((u) => u.id === unitId);
     if (!unit) return;
 
     if (chapterId) {
-      const chapter = unit.chapters.find(c => c.id === chapterId);
+      const chapter = unit.chapters.find((c) => c.id === chapterId);
       if (chapter) {
         setEditingItem({ unitId, chapterId });
         setEditValue(chapter.name);
@@ -40,7 +48,7 @@ export function ChaptersReviewStep({
       setEditingItem({ unitId });
       setEditValue(unit.name);
     }
-    setError('');
+    setError("");
   };
 
   // Save edited item
@@ -49,12 +57,12 @@ export function ChaptersReviewStep({
 
     // Determine if editing unit or chapter and validate accordingly
     const isEditingChapter = !!editingItem.chapterId;
-    const validation = isEditingChapter 
+    const validation = isEditingChapter
       ? validateChapterName(editValue)
       : validateUnitName(editValue);
 
     if (!validation.isValid) {
-      setError(validation.error || 'Invalid name');
+      setError(validation.error || "Invalid name");
       return;
     }
 
@@ -70,50 +78,55 @@ export function ChaptersReviewStep({
     try {
       sanitizedValue = sanitizeString(editValue);
     } catch (sanitizeError) {
-      setError('Invalid characters in name');
+      setError("Invalid characters in name");
       return;
     }
 
     if (editingItem) {
-      onEdit(editingItem.unitId, editingItem.chapterId || '', editValue.trim());
+      onEdit(editingItem.unitId, editingItem.chapterId || "", editValue.trim());
     }
-    
+
     setEditingItem(null);
-    setEditValue('');
-    setError('');
+    setEditValue("");
+    setError("");
   };
 
   // Cancel editing
   const cancelEdit = () => {
     setEditingItem(null);
-    setEditValue('');
-    setError('');
+    setEditValue("");
+    setError("");
   };
 
   // Handle key press in edit input
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       saveEdit();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       cancelEdit();
     }
   };
 
   // Delete a chapter
   const deleteChapter = (unitId: string, chapterId: string) => {
-    const unit = units.find(u => u.id === unitId);
-    
+    const unit = units.find((u) => u.id === unitId);
+
     // Don't allow deleting the last chapter in a unit
     if (unit && unit.chapters.length <= 1) {
-      setError('Cannot delete the last chapter in a unit. Each unit must have at least one chapter.');
+      setError(
+        "Cannot delete the last chapter in a unit. Each unit must have at least one chapter."
+      );
       return;
     }
 
     // Clear editing state if we're editing the chapter being deleted
-    if (editingItem?.unitId === unitId && editingItem?.chapterId === chapterId) {
+    if (
+      editingItem?.unitId === unitId &&
+      editingItem?.chapterId === chapterId
+    ) {
       setEditingItem(null);
-      setEditValue('');
-      setError('');
+      setEditValue("");
+      setError("");
     }
 
     onDeleteChapter(unitId, chapterId);
@@ -126,23 +139,28 @@ export function ChaptersReviewStep({
 
   // Check if currently editing this item
   const isEditing = (unitId: string, chapterId?: string) => {
-    return editingItem?.unitId === unitId && editingItem?.chapterId === chapterId;
+    return (
+      editingItem?.unitId === unitId && editingItem?.chapterId === chapterId
+    );
   };
 
-  const totalChapters = units.reduce((total, unit) => total + unit.chapters.length, 0);
+  const totalChapters = units.reduce(
+    (total, unit) => total + unit.chapters.length,
+    0
+  );
 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-stone-900 dark:text-white mb-2">
           Review Course Structure
         </h2>
-        <p className="text-gray-600">
-          Your complete course structure is ready. Make any final edits before saving.
+        <p className="text-stone-600">
+          Your complete course structure is ready. Make any final edits before
+          saving.
         </p>
       </div>
 
-      {/* Course Overview */}
       <Card className="max-w-4xl mx-auto">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
           <CardTitle className="flex items-center space-x-3">
@@ -175,7 +193,9 @@ export function ChaptersReviewStep({
                           onChange={(e) => setEditValue(e.target.value)}
                           onKeyDown={handleKeyPress}
                           placeholder="Enter unit name..."
-                          className={`text-lg font-semibold ${error ? 'border-red-500' : ''}`}
+                          className={`text-lg font-semibold ${
+                            error ? "border-red-500" : ""
+                          }`}
                           autoFocus
                         />
                         {error && (
@@ -189,7 +209,7 @@ export function ChaptersReviewStep({
                     )}
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   {isEditing(unit.id) ? (
                     <>
@@ -224,7 +244,7 @@ export function ChaptersReviewStep({
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="p-0">
               <div className="divide-y divide-gray-100">
                 {unit.chapters.map((chapter, chapterIndex) => (
@@ -236,7 +256,7 @@ export function ChaptersReviewStep({
                       <div className="flex-shrink-0 w-12 h-8 bg-gray-100 text-gray-600 rounded flex items-center justify-center text-sm font-medium">
                         {getChapterNumber(unitIndex, chapterIndex)}
                       </div>
-                      
+
                       <div className="flex-1">
                         {isEditing(unit.id, chapter.id) ? (
                           <div className="space-y-2">
@@ -245,7 +265,7 @@ export function ChaptersReviewStep({
                               onChange={(e) => setEditValue(e.target.value)}
                               onKeyDown={handleKeyPress}
                               placeholder="Enter chapter name..."
-                              className={error ? 'border-red-500' : ''}
+                              className={error ? "border-red-500" : ""}
                               autoFocus
                             />
                             {error && (
@@ -267,7 +287,7 @@ export function ChaptersReviewStep({
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       {isEditing(unit.id, chapter.id) ? (
                         <>
@@ -305,7 +325,11 @@ export function ChaptersReviewStep({
                             size="sm"
                             disabled={isLoading || unit.chapters.length <= 1}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:text-gray-400 disabled:hover:bg-transparent"
-                            title={unit.chapters.length <= 1 ? "Cannot delete the last chapter in a unit" : "Delete chapter"}
+                            title={
+                              unit.chapters.length <= 1
+                                ? "Cannot delete the last chapter in a unit"
+                                : "Delete chapter"
+                            }
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -341,10 +365,11 @@ export function ChaptersReviewStep({
                 Ready to Create Your Course?
               </h3>
               <p className="text-green-700">
-                Your course structure looks great! Click below to save and start building your content.
+                Your course structure looks great! Click below to save and start
+                building your content.
               </p>
             </div>
-            
+
             <Button
               onClick={onSave}
               disabled={isLoading || editingItem !== null}
@@ -352,8 +377,8 @@ export function ChaptersReviewStep({
               className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
             >
               {isLoading ? (
-                <InlineLoading 
-                  message="Saving Course..." 
+                <InlineLoading
+                  message="Saving Course..."
                   variant="save"
                   className="text-white"
                 />
@@ -361,7 +386,7 @@ export function ChaptersReviewStep({
                 "Let's Go!"
               )}
             </Button>
-            
+
             {editingItem && (
               <p className="text-sm text-amber-600">
                 Please finish editing before saving the course.

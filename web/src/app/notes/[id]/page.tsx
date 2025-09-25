@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useNotes } from "@/hooks/use-notes";
 import { Note } from "@/lib/types";
 import { useFlashcards } from "@/hooks/use-flashcards";
-
 import { usePodcast } from "@/hooks/use-podcast";
 import { useMindmap } from "@/hooks/use-mindmap";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,6 @@ import {
   NotesSidebarContent,
 } from "@/components/notes/sidebar-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,24 +26,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FlashcardViewer, useFlashcardKeyboard } from "@/components/flashcards";
-import { QuizViewer, QuizGenerator } from "@/components/quiz";
+import { QuizGenerator } from "@/components/quiz";
 import {
   PodcastConfigurationModal,
   PodcastWithTranscript,
 } from "@/components/podcast";
 import { MindmapGenerator } from "@/components/mindmap";
-import {
-  ArrowLeft,
-  Mic,
-  Trash2,
-  MessageCircle,
-  AlertTriangle,
-} from "lucide-react";
+import { Trash2, MessageCircle, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
-import { MarkdownRenderer } from "@/components/mdx-renderer";
-import { SimpleEditor } from "@/components/notes/simple-editor";
 import { ViewNote } from "@/components/notes/view-note";
-import { Navbar } from "@/components/shared/navbar";
 
 const DynamicInlineChatbot = dynamic(
   () => import("@/components/chatbot/inline-chatbot"),
@@ -83,7 +72,6 @@ export default function NoteViewPage() {
   } = useMindmap();
 
   const [note, setNote] = useState<Note | null>(null);
-  // Define view types for better type safety
   type ViewType =
     | "notes"
     | "transcript"
@@ -93,14 +81,12 @@ export default function NoteViewPage() {
     | "podcast"
     | "mindmap";
 
-  // Single source of truth for current view
   const [currentView, setCurrentView] = useState<ViewType>("notes");
 
   const [transcript, setTranscript] = useState<string | null>(null);
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
 
-  const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
   const [editedContent, setEditedContent] = useState("");
 
@@ -167,27 +153,23 @@ export default function NoteViewPage() {
     }
   };
 
-  // Add handlers for the sidebar functionality
   const handleShowNotes = () => {
     setCurrentView("notes");
   };
 
   const handleShowTranscript = async () => {
     if (currentView === "transcript") {
-      // If transcript is already shown, go back to notes view
       setCurrentView("notes");
       setTranscript(null);
       setTranscriptError(null);
       return;
     }
 
-    // Switch to transcript view
     setCurrentView("transcript");
     setTranscriptLoading(true);
     setTranscriptError(null);
 
     try {
-      // Fetch transcript from API
       const response = await fetch(`/api/transcripts/${note?.transcriptId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch transcript");
@@ -227,7 +209,7 @@ export default function NoteViewPage() {
 
   const handleGenerateFlashcard = async () => {
     if (!noteId) return;
-    
+
     try {
       setCurrentView("flashcards");
       const existingFlashcards = await getFlashcards(noteId);
@@ -273,7 +255,7 @@ export default function NoteViewPage() {
 
   const handleGenerateMindmap = async () => {
     if (!noteId) return;
-    
+
     try {
       setCurrentView("mindmap");
       const existingMindmap = await getMindmap(noteId);
@@ -287,12 +269,11 @@ export default function NoteViewPage() {
     }
   };
 
-  // Keyboard navigation for flashcards
   useFlashcardKeyboard(
-    () => {}, // Will be handled by FlashcardViewer
-    () => {}, // Will be handled by FlashcardViewer
-    () => {}, // Will be handled by FlashcardViewer
-    () => {}, // Will be handled by FlashcardViewer
+    () => {},
+    () => {},
+    () => {},
+    () => {},
     handleCloseFlashcards
   );
 
@@ -301,7 +282,7 @@ export default function NoteViewPage() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-sm text-gray-600">Loading note...</p>
+          <p className="text-sm text-stone-600">Loading note...</p>
         </div>
       </div>
     );
@@ -324,9 +305,8 @@ export default function NoteViewPage() {
   }
 
   return (
-    <div className="flex w-full h-full relative">
+    <div className="flex w-full border-none h-full relative bg-transparent">
       <AlertDialog>
-        {/* Delete Confirmation Dialog Content */}
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <div className="flex items-center gap-2">
@@ -342,8 +322,8 @@ export default function NoteViewPage() {
                 {note?.title}
               </p>
               <p>
-                This action cannot be undone. This will permanently delete
-                this note and all associated content.
+                This action cannot be undone. This will permanently delete this
+                note and all associated content.
               </p>
               <Card className="bg-amber-50 border-amber-200 mt-2">
                 <CardContent className="p-3 text-sm text-amber-800">
@@ -403,36 +383,20 @@ export default function NoteViewPage() {
             sidebarWidth={sidebarWidth}
             collapsedWidth={collapsedWidth}
           >
-            <Navbar title="Notes" />
-            <div className="p-6">
-              <div className="flex flex-row items-center justify-between w-full gap-2 mb-6">
-                <div>
-                  <Button
-                    onClick={handleBack}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
-                  </Button>
-                </div>
-              </div>
-
+            {/* <Navbar title="Notes" /> */}
+            <div className="bg-stone-50 dark:bg-stone-950/50 border-none">
               {/* Content based on current view */}
-              {currentView === "notes" && (
-                <ViewNote note={note} />
-              )}
+              {currentView === "notes" && <ViewNote note={note} />}
 
               {currentView === "transcript" && (
-                <div className="max-w-6xl w-full mx-auto">
-                  <Card className="rounded-lg">
-                    <CardHeader>
-                      <CardTitle className="text-xl">Transcript</CardTitle>
-                    </CardHeader>
+                <div className="max-w-6xl pt-6 w-full mx-auto bg-transparent">
+                  <Card className="rounded-lg border-none bg-transparent">
+                    <div>
+                      <p className="text-2xl font-medium">Transcript</p>
+                    </div>
                     <CardContent>
                       {transcriptLoading && (
-                        <div className="flex items-center justify-center py-8">
+                        <div className="flex items-center justify-center">
                           <div className="text-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
                             <p className="text-sm text-gray-600">
@@ -450,8 +414,8 @@ export default function NoteViewPage() {
                         </div>
                       )}
                       {transcript && !transcriptLoading && (
-                        <div className="prose max-w-none">
-                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        <div className="">
+                          <div className="text-stone-500 text-sm leading-relaxed mt-2.5">
                             {transcript}
                           </div>
                         </div>
@@ -466,12 +430,14 @@ export default function NoteViewPage() {
                   {flashcardsLoading && (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-600">Generating flashcards...</p>
+                      <p className="text-sm text-stone-600">
+                        Generating flashcards...
+                      </p>
                     </div>
                   )}
                   {flashcards && flashcards.length > 0 && (
-                    <FlashcardViewer 
-                      flashcards={flashcards} 
+                    <FlashcardViewer
+                      flashcards={flashcards}
                       onClose={handleCloseFlashcards}
                     />
                   )}
@@ -484,23 +450,15 @@ export default function NoteViewPage() {
                 </div>
               )}
 
-              {currentView === "quiz" && (
-                <QuizGenerator noteId={noteId} />
-              )}
+              {currentView === "quiz" && <QuizGenerator noteId={noteId} />}
 
               {currentView === "chat" && (
-                <Card className="rounded-3xl border-0 shadow-xl p-0 overflow-hidden h-[78vh] flex flex-col">
-                  <CardHeader className="pb-3 bg-muted/5 border-b border-border">
+                <Card className="border-0 overflow-hidden h-screen flex flex-col bg-transparent">
+                  <CardHeader className="p-5 border-b border-stone-100 dark:border-stone-900 bg-muted/5">
                     <div className="flex items-center gap-4">
-                      <div className="p-2 bg-primary/10 rounded-full">
-                        <MessageCircle className="h-5 w-5 text-primary" />
-                      </div>
-                      <CardTitle className="text-lg">
+                      <CardTitle className="font-normal">
                         Chat about Note
                       </CardTitle>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      <p>Ask questions about the note content</p>
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0 p-0 flex-1 overflow-y-auto">
@@ -514,7 +472,9 @@ export default function NoteViewPage() {
                   {podcastLoading && (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-600">Generating podcast...</p>
+                      <p className="text-sm text-stone-600">
+                        Generating podcast...
+                      </p>
                     </div>
                   )}
                   {podcast && podcast.audioUrl && (
@@ -559,7 +519,9 @@ export default function NoteViewPage() {
                   {mindmapLoading && (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-600">Generating mindmap...</p>
+                      <p className="text-sm text-stone-600">
+                        Generating mindmap...
+                      </p>
                     </div>
                   )}
                   <MindmapGenerator noteId={noteId} />
@@ -576,7 +538,6 @@ export default function NoteViewPage() {
         </NotesSidebarProvider>
       </AlertDialog>
 
-      {/* Podcast Configuration Modal */}
       <PodcastConfigurationModal
         noteId={noteId}
         isOpen={showPodcastConfig}

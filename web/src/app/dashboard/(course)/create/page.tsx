@@ -1,14 +1,14 @@
-import CreateCourseForm from '@/components/course/CreateCourseForm'
-import { CourseCreationRouter } from '@/components/course/CourseCreationRouter'
-import { InfoIcon, BookOpen, Sparkles, Settings } from 'lucide-react'
-import React, { Suspense } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
+import CreateCourseForm from "@/components/course/CreateCourseForm";
+import { CourseCreationRouter } from "@/components/course/CourseCreationRouter";
+import { InfoIcon, BookOpen, Sparkles, Settings } from "lucide-react";
+import React, { Suspense } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const CreatePage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-background/80 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background/80 py-6">
       <Suspense fallback={null}>
         <CourseCreationRouter />
       </Suspense>
@@ -25,7 +25,8 @@ const CreatePage = () => {
               Course Generator
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Transform your learning ideas into structured, AI-powered courses with automated content generation
+              Transform your learning ideas into structured, AI-powered courses
+              with automated content generation
             </p>
           </div>
 
@@ -44,7 +45,8 @@ const CreatePage = () => {
                   </div>
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  Just enter a course title and let our AI generate the complete structure, units, and chapters for you.
+                  Just enter a course title and let our AI generate the complete
+                  structure, units, and chapters for you.
                 </p>
                 <Link href="/dashboard/create/wizard">
                   <Button className="w-full">
@@ -64,11 +66,14 @@ const CreatePage = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg">Manual Setup</h3>
-                    <p className="text-sm text-muted-foreground">Full control</p>
+                    <p className="text-sm text-muted-foreground">
+                      Full control
+                    </p>
                   </div>
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  Manually define your course title and units for complete control over the structure.
+                  Manually define your course title and units for complete
+                  control over the structure.
                 </p>
                 <Link href="/dashboard/create?mode=manual">
                   <Button variant="outline" className="w-full">
@@ -88,10 +93,14 @@ const CreatePage = () => {
                   <InfoIcon className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-foreground mb-2">How it works</h3>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    How it works
+                  </h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    Choose the AI Wizard for automatic course generation, or use Manual Setup to define your own structure. 
-                    Both options will generate comprehensive courses with chapters, video content, and learning materials.
+                    Choose the AI Wizard for automatic course generation, or use
+                    Manual Setup to define your own structure. Both options will
+                    generate comprehensive courses with chapters, video content,
+                    and learning materials.
                   </p>
                 </div>
               </div>
@@ -101,7 +110,9 @@ const CreatePage = () => {
           {/* Manual Form Card */}
           <Card id="manual-form">
             <CardHeader>
-              <CardTitle className="text-2xl text-center">Manual Course Setup</CardTitle>
+              <CardTitle className="text-2xl text-center">
+                Manual Course Setup
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-8">
               <CreateCourseForm />
@@ -110,7 +121,7 @@ const CreatePage = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CreatePage
+export default CreatePage;
