@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-react';
-import { FlashcardViewerProps } from '@/lib/types';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, RotateCcw, X } from "lucide-react";
+import { FlashcardViewerProps } from "@/lib/types";
 
 export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   flashcards,
@@ -23,7 +23,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-center text-gray-600">No flashcards available</p>
+          <p className="text-center text-stone-600">No flashcards available</p>
         </CardContent>
       </Card>
     );
@@ -37,7 +37,9 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   };
 
   const handlePrevious = () => {
-    setCurrentIndex((prev) => (prev - 1 + flashcards.length) % flashcards.length);
+    setCurrentIndex(
+      (prev) => (prev - 1 + flashcards.length) % flashcards.length
+    );
     setShowAnswer(false);
   };
 
@@ -51,51 +53,55 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
+    <div className="max-w-4xl mx-auto space-y-4 p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold">Flashcards</h2>
-          <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+          <span className="text-stone-600 bg-stone-100 text-xs cursor-pointer dark:text-stone-500 dark:bg-stone-900 px-5 py-2 rounded-md">
             {currentIndex + 1} of {flashcards.length}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleReset} variant="outline" size="sm">
+          <Button
+            onClick={handleReset}
+            className="text-stone-600 bg-stone-100 cursor-pointer dark:text-stone-500 dark:bg-stone-900 px-5 py-2 rounded-md"
+          >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset
           </Button>
-          <Button onClick={onClose} variant="outline" size="sm">
+          <Button
+            onClick={onClose}
+            className="text-stone-600 bg-stone-100 cursor-pointer dark:text-stone-500 dark:bg-stone-900 px-5 py-2 rounded-md"
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="w-full bg-stone-200 dark:bg-stone-800 rounded-full h-2">
         <div
           className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-          style={{ width: `${((currentIndex + 1) / flashcards.length) * 100}%` }}
+          style={{
+            width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
+          }}
         />
       </div>
 
       {/* Flashcard */}
-      <Card 
-        className="min-h-[300px] cursor-pointer transition-transform duration-200 hover:scale-[1.01]"
+      <Card
+        className="min-h-[420px] p-4 rounded-md my-6 max-w-sm mx-auto bg-stone-100 border-none dark:bg-stone-900 cursor-pointer transition-transform duration-200 hover:scale-[1.01]"
         onClick={handleFlip}
       >
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-gray-600">
-            {showAnswer ? 'Answer' : 'Question'}
-          </CardTitle>
-        </CardHeader>
         <CardContent className="flex items-center justify-center min-h-[200px]">
-          <div className="text-center space-y-4">
-            <div className="text-lg leading-relaxed">
+          <div className=" space-y-4">
+            {showAnswer ? "Answer" : "Question"}
+            <div className=" text-stone-600 dark:text-stone-500 leading-relaxed">
               {showAnswer ? currentFlashcard.answer : currentFlashcard.question}
             </div>
             {!showAnswer && (
-              <p className="text-sm text-gray-500">Click to reveal answer</p>
+              <p className="text-sm text-green-500">Click to reveal answer</p>
             )}
           </div>
         </CardContent>
@@ -105,9 +111,8 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
       <div className="flex items-center justify-between">
         <Button
           onClick={handlePrevious}
-          variant="outline"
           disabled={flashcards.length <= 1}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 text-stone-600 bg-stone-100 cursor-pointer dark:text-stone-500 dark:bg-stone-900 px-5 py-2 rounded-md"
         >
           <ChevronLeft className="h-4 w-4" />
           Previous
@@ -115,17 +120,16 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
 
         <Button
           onClick={handleFlip}
-          variant={showAnswer ? 'secondary' : 'default'}
+          variant={showAnswer ? "secondary" : "default"}
           className="px-8"
         >
-          {showAnswer ? 'Show Question' : 'Show Answer'}
+          {showAnswer ? "Show Question" : "Show Answer"}
         </Button>
 
         <Button
           onClick={handleNext}
-          variant="outline"
           disabled={flashcards.length <= 1}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 text-stone-600 bg-stone-100 cursor-pointer dark:text-stone-500 dark:bg-stone-900 px-5 py-2 rounded-md"
         >
           Next
           <ChevronRight className="h-4 w-4" />
@@ -133,7 +137,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
       </div>
 
       {/* Keyboard shortcuts hint */}
-      <div className="text-xs text-gray-500 text-center space-x-4">
+      <div className="text-xs text-stone-500 text-center space-x-4">
         <span>Space: Flip card</span>
         <span>←/→: Navigate</span>
         <span>R: Reset</span>
@@ -155,44 +159,44 @@ export const useFlashcardKeyboard = (
       // Don't capture keyboard events when an input, textarea or contentEditable element is focused
       const target = event.target as HTMLElement;
       if (
-        target.tagName === 'INPUT' || 
-        target.tagName === 'TEXTAREA' || 
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
         target.isContentEditable
       ) {
         return;
       }
 
       switch (event.key) {
-        case 'ArrowRight':
-        case 'j':
+        case "ArrowRight":
+        case "j":
           event.preventDefault();
           onNext();
           break;
-        case 'ArrowLeft':
-        case 'k':
+        case "ArrowLeft":
+        case "k":
           event.preventDefault();
           onPrevious();
           break;
-        case ' ':
-        case 'Enter':
+        case " ":
+        case "Enter":
           event.preventDefault();
           onFlip();
           break;
-        case 'r':
-        case 'R':
+        case "r":
+        case "R":
           event.preventDefault();
           onReset();
           break;
-        case 'Escape':
+        case "Escape":
           event.preventDefault();
           onClose();
           break;
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
+    window.addEventListener("keydown", handleKeyPress);
     return () => {
-      window.removeEventListener('keydown', handleKeyPress);
+      window.removeEventListener("keydown", handleKeyPress);
     };
   }, [onNext, onPrevious, onFlip, onReset, onClose]);
 };

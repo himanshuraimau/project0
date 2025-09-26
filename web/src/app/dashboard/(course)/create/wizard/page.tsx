@@ -56,11 +56,6 @@ export default function CourseWizardPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center">
-              {/* <div className="flex justify-center mb-6">
-                <div className="p-4 bg-primary/10 rounded-full">
-                  <BookOpen className="h-12 w-12 text-primary animate-pulse" />
-                </div>
-              </div> */}
               <h1 className="text-2xl md:text-3xl font-semibold leading-9 text-foreground mb-8">
                 AI Course Wizard
               </h1>
@@ -120,33 +115,22 @@ export default function CourseWizardPage() {
 
   return (
     <div
-      className={`min-h-screen bg-gradient-to-br from-background to-background/80 py-8 ${jakarta.className} `}
+      className={`h-full w-full bg-stone-50 py-4 px-6 dark:bg-stone-950 ${jakarta.className} `}
     >
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Header Section */}
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            {/* <div className="flex justify-center mb-6">
-              <div className="p-4 bg-primary/10 rounded-full">
-                <BookOpen className="h-12 w-12 text-primary" />
-              </div>
-            </div> */}
             <h1
-              className={`text-2xl md:text-3xl font-semibold leading-9 text-foreground mb-3 `}
+              className={`text-3xl md:text-3xl font-semibold leading-9 text-foreground mb-3 `}
             >
               AI Course Wizard
             </h1>
-            <p className="text-lg leading-[28px] text-muted-foreground max-w-2xl mx-auto mb-4">
+            <p className="leading-[24px] text-stone-600 dark:text-stone-500  max-w-3xl mx-auto mb-4">
               Create comprehensive courses with AI assistance. Just enter a
               title and let our AI generate the complete structure for you.
             </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <CreditCard className="h-4 w-4" />
-              <span>2 credits required for course generation</span>
-            </div>
           </div>
 
-          {/* Wizard Component */}
           <CourseCreationWizard onComplete={handleComplete} />
         </div>
       </div>

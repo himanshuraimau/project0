@@ -9,7 +9,7 @@ export default function NotesLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen bg-stone-50 dark:bg-stone-900">
+    <div className="">
       {children}
       <Toaster />
     </div>

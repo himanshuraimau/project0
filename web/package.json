@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "test-pdf": "bun run test-pdf.ts",
-    "test-workflow": "bun run test-pdf-workflow.ts"
+    "test-workflow": "bun run test-pdf-workflow.ts",
+    "db:studio": "bun prisma studio",
+    "db:generate": "bun prisma generate",
+    "db:migrate": "bun prisma migrate dev",
+    "db:push": "bun prisma db push",
+    "db:reset": "bun prisma migrate reset"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.2",

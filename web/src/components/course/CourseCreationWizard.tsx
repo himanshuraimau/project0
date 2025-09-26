@@ -11,10 +11,6 @@ import { ErrorMessage } from "@/components/ui/error-message";
 import { RecoveryBanner } from "@/components/ui/recovery-dialog";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 
-/**
- * Main CourseCreationWizard component that orchestrates the multi-step course creation process
- * Manages step navigation and coordinates between different wizard steps
- */
 export function CourseCreationWizard({
   onComplete,
 }: CourseCreationWizardProps) {
@@ -135,14 +131,14 @@ export function CourseCreationWizard({
 
   return (
     <ErrorBoundary>
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto mt-10 p-6">
         {/* Back button */}
         {canGoBack && (
           <div className="mb-4">
             <Button
               onClick={goBack}
               variant="ghost"
-              className="text-gray-600 hover:text-gray-800"
+              className="text-stone-600 hover:text-stone-800"
               disabled={isGeneratingUnits || isGeneratingChapters || isSaving}
             >
               ← Back
@@ -160,7 +156,7 @@ export function CourseCreationWizard({
                     ? "bg-stone-800 text-white shadow-lg scale-110"
                     : ["units", "chapters"].includes(currentStep)
                     ? "bg-stone-800 text-white"
-                    : "bg-gray-300 text-gray-600"
+                    : "bg-stone-300 text-stone-600"
                 }`}
               >
                 {["units", "chapters"].includes(currentStep) ? (
@@ -177,13 +173,13 @@ export function CourseCreationWizard({
                       ? "text-stone-800"
                       : ["units", "chapters"].includes(currentStep)
                       ? "text-stone-600"
-                      : "text-gray-500"
+                      : "text-stone-500"
                   }`}
                 >
                   Course Title
                 </span>
                 {courseTitle && (
-                  <p className="text-xs text-gray-500 truncate max-w-32">
+                  <p className="text-xs text-stone-500 truncate max-w-32">
                     {courseTitle}
                   </p>
                 )}
@@ -194,8 +190,8 @@ export function CourseCreationWizard({
             <div
               className={`flex-1 h-0.5 mx-2 transition-colors duration-300  ${
                 ["units", "chapters"].includes(currentStep)
-                  ? "bg-gray-800"
-                  : "bg-gray-600"
+                  ? "bg-stone-800"
+                  : "bg-stone-600"
               }`}
             />
 
@@ -207,7 +203,7 @@ export function CourseCreationWizard({
                     ? "bg-stone-300 text-white shadow-lg scale-110"
                     : currentStep === "chapters"
                     ? "bg-stone-800 text-white"
-                    : "bg-gray-300 text-gray-600"
+                    : "bg-gray-300 text-stone-600"
                 }`}
               >
                 {currentStep === "chapters" ? (
@@ -251,7 +247,7 @@ export function CourseCreationWizard({
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
                   currentStep === "chapters"
                     ? "bg-stone-400 text-white shadow-lg scale-110"
-                    : "bg-gray-300 text-gray-600"
+                    : "bg-stone-300 text-stone-600"
                 }`}
               >
                 <span className="size-4 rounded-3xl bg-stone-800"></span>
@@ -265,10 +261,10 @@ export function CourseCreationWizard({
                       : "text-stone-500"
                   }`}
                 >
-                  Review 
+                  Review
                 </span>
                 {chapters.length > 0 && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-stone-500">
                     {chapters.reduce(
                       (total, unit) => total + unit.chapters.length,
                       0
@@ -330,9 +326,8 @@ export function CourseCreationWizard({
         )}
 
         {/* Step content */}
-        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div className="bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 mt-16 rounded-lg shadow-sm overflow-hidden">
           <div className="relative">
-            {/* Title Step */}
             <div
               className={`transition-all duration-500 ease-in-out ${
                 currentStep === "title"

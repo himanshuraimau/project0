@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
-import { queryChapterSimilarChunks } from '@/lib/chapter-embedding-service';
+import { queryChapterSimilarChunks } from '@/lib/course/chapter-embedding-service';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 

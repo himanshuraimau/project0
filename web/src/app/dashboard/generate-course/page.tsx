@@ -26,17 +26,16 @@ export default async function GenerateCoursePage() {
 
   return (
     <div
-      className={`${jakarta.className} p-8 flex-1 bg-stone-50 dark:bg-stone-950`}
+      className={`${jakarta.className} px-6 py-4 flex-1 bg-stone-50 dark:bg-stone-950`}
     >
-      <h1 className="text-xl font-bold mb-2">Create Course</h1>
+      <h1 className="text-lg font-bold mb-0.5">Create Course</h1>
       <p className="text-stone-500 text-sm font-medium leading-6 mb-6">
         Easily generate a new course with AI assistance.
       </p>
       <div className="mt-6">
         <GenerateCourseCard className="w-full" />
       </div>
-      {/* My Courses Section */}
-      <div className="mt-10 w-full">
+      <div className="mt-16 w-full">
         <MyCourses courses={courses} />
       </div>
     </div>

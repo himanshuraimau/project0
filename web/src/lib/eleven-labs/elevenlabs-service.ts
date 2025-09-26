@@ -1,5 +1,5 @@
-import { Voice, VoiceSettings } from './types/podcast.types';
-import { podcastErrorHandler } from './utils/podcast-error-handler';
+import { Voice, VoiceSettings } from '../types/podcast.types';
+import { podcastErrorHandler } from '../utils/podcast-error-handler';
 
 /**
  * Service for interacting with ElevenLabs API through backend routes

@@ -48,3 +48,4 @@ promot.md
 
 # Generated podcast audio files
 /public/podcasts/
+/src/generated/prisma

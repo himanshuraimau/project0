@@ -12,7 +12,7 @@ import { VoiceSelectionSkeleton } from "./podcast-loading-states"
 import { Separator } from "@/components/ui/separator"
 
 import { Voice } from "@/lib/types/podcast.types"
-import { elevenLabsService } from "@/lib/elevenlabs-service"
+import { elevenLabsService } from "@/lib/eleven-labs/elevenlabs-service"
 
 interface VoiceSelectionInterfaceProps {
   language: string

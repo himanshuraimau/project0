@@ -97,7 +97,7 @@ export function MyNotesSection() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="justify-between min-w-[150px] h-10 px-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-[8px] hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-900 dark:text-stone-100 font-medium"
+                className="justify-between min-w-[150px] h-10 px-3 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 rounded-[8px] hover:bg-stone-50 dark:hover:bg-stone-900 text-stone-900 dark:text-stone-100 font-medium"
               >
                 <div className="flex items-center gap-2">
                   <Folder className="h-4 w-4 text-yellow-500" />
@@ -167,7 +167,7 @@ export function MyNotesSection() {
             placeholder="Search any notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-4 h-10 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-[8px] text-stone-900 dark:text-stone-100 placeholder:text-stone-400"
+            className="pl-4 h-10 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 rounded-[8px] text-stone-900 dark:text-stone-100 placeholder:text-stone-400"
           />
           <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-stone-400" />
         </div>

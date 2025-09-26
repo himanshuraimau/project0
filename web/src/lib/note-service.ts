@@ -1,7 +1,7 @@
 import { prisma } from "./prisma";
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
-import { indexNoteContent } from "./embedding-service";
+import { indexNoteContent } from "./course/embedding-service";
 import {
   NoteData,
   NoteType,
