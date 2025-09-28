@@ -544,7 +544,7 @@ export function LexicalViewer({
           />
         )}
 
-        <div className="relative mt-24">
+        <div className="relative mt-2">
           <RichTextPlugin
             contentEditable={
               <ContentEditable

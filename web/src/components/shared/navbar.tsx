@@ -22,7 +22,7 @@ export function Navbar({ title, className = "" }: NavbarProps) {
 
   const getPageTitle = () => {
     if (isCourseCreation) return "Create Course";
-    if (pathname.includes("/generate-course")) return "Course";
+    if (pathname.includes("/course") && !pathname.includes("/course/")) return "Course";
     if (isCoursePage) return "Course";
     return title;
   };

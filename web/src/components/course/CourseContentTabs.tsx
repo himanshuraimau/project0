@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Chapter, Unit } from '@prisma/client';
+import { Chapter } from '@prisma/client';
 import { cn } from '@/lib/utils';
 import { ChapterView } from './ChapterView';
 import { Play, HelpCircle, CreditCard, MessageSquare, FileSearch } from 'lucide-react';
+import { FlashcardItem } from '@/lib/types';
 import dynamic from 'next/dynamic';
 
 // Lazy load components that might be heavy or require server calls
@@ -21,14 +22,18 @@ const TranscriptViewer = dynamic(() => import('./TranscriptViewer'), {
 
 interface CourseContentTabsProps {
   chapter: Chapter & {
-    questions: any[];
+    questions: Question[];
   };
-  unit: Unit;
-  unitIndex: number;
-  chapterIndex: number;
 }
 
-export function CourseContentTabs({ chapter, unit, unitIndex, chapterIndex }: CourseContentTabsProps) {
+interface Question {
+  id: string;
+  question: string;
+  answer: string;
+  options: string;
+}
+
+export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
   const [activeTab, setActiveTab] = useState("notes");
 
   const tabs = [
@@ -42,7 +47,7 @@ export function CourseContentTabs({ chapter, unit, unitIndex, chapterIndex }: Co
   return (
     <div className="w-full">
       {/* Tab Navigation */}
-      <div className="flex border-b border-border mb-6">
+      <div className="flex mb-8 overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -50,10 +55,10 @@ export function CourseContentTabs({ chapter, unit, unitIndex, chapterIndex }: Co
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px",
+                "flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all duration-200 rounded-lg mr-2 whitespace-nowrap",
                 activeTab === tab.id
-                  ? "border-primary text-primary bg-primary/5"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50"
+                  ? "bg-accent text-accent-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
               )}
             >
               <Icon className="h-4 w-4" />
@@ -66,25 +71,31 @@ export function CourseContentTabs({ chapter, unit, unitIndex, chapterIndex }: Co
       {/* Tab Content */}
       <div className="mt-0">
         {activeTab === "notes" && (
-          <div className="bg-card rounded-2xl shadow-lg p-6">
+          <div className="max-w-5xl mx-auto">
+            <ChapterView chapter={chapter} />
+          </div>
+        )}
+
+                {activeTab === "content" && (
+          <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
             <ChapterView chapter={chapter} />
           </div>
         )}
 
         {activeTab === "quiz" && (
-          <div className="bg-card rounded-2xl shadow-lg p-6">
+          <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
             <QuizTab chapter={chapter} />
           </div>
         )}
 
         {activeTab === "flashcards" && (
-          <div className="bg-card rounded-2xl shadow-lg p-6">
+          <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
             <FlashcardsTab chapterId={chapter.id} />
           </div>
         )}
 
         {activeTab === "transcript" && (
-          <div className="bg-card rounded-2xl shadow-lg p-6">
+          <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
             <TranscriptViewer 
               chapterId={chapter.id}
               videoId={chapter.videoId} 
@@ -94,7 +105,7 @@ export function CourseContentTabs({ chapter, unit, unitIndex, chapterIndex }: Co
         )}
 
         {activeTab === "chatbot" && (
-          <div className="bg-card rounded-2xl shadow-lg p-6">
+          <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
             <ChatbotTab chapterId={chapter.id} chapterName={chapter.name} />
           </div>
         )}
@@ -105,7 +116,7 @@ export function CourseContentTabs({ chapter, unit, unitIndex, chapterIndex }: Co
 
 // Flashcards tab component with real API integration
 function FlashcardsTab({ chapterId }: { chapterId: string }) {
-  const [flashcards, setFlashcards] = useState<any[]>([]);
+  const [flashcards, setFlashcards] = useState<FlashcardItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -168,7 +179,7 @@ function FlashcardsTab({ chapterId }: { chapterId: string }) {
         <div className="space-x-2">
           <button
             onClick={generateFlashcards}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            className="px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors"
           >
             Try Again
           </button>
@@ -193,7 +204,7 @@ function FlashcardsTab({ chapterId }: { chapterId: string }) {
         </p>
         <button
           onClick={generateFlashcards}
-          className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold"
+          className="px-6 py-3 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors font-semibold"
         >
           Generate Flashcards
         </button>
@@ -226,7 +237,7 @@ function FlashcardsTab({ chapterId }: { chapterId: string }) {
 }
 
 // Quiz tab component optimized for tab layout
-function QuizTab({ chapter }: { chapter: Chapter & { questions: any[] } }) {
+function QuizTab({ chapter }: { chapter: Chapter & { questions: Question[] } }) {
   const [answers, setAnswers] = React.useState<Record<string, string>>({});
   const [questionState, setQuestionState] = React.useState<
     Record<string, boolean | null>
@@ -298,7 +309,7 @@ function QuizTab({ chapter }: { chapter: Chapter & { questions: any[] } }) {
                       onChange={(e) => {
                         setAnswers((prev) => ({ ...prev, [question.id]: e.target.value }));
                       }}
-                      className="w-4 h-4 text-primary"
+                      className="w-4 h-4 text-accent"
                     />
                     <span className="text-sm">{option}</span>
                   </label>
@@ -312,7 +323,7 @@ function QuizTab({ chapter }: { chapter: Chapter & { questions: any[] } }) {
       <div className="flex justify-center">
         <button
           onClick={checkAnswer}
-          className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold"
+          className="px-6 py-3 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors font-semibold"
         >
           Check Answers
         </button>

@@ -39,7 +39,7 @@ const sidebarItems = [
   {
     title: "Create Course",
     icon: BookOpen,
-    href: "/dashboard/generate-course",
+    href: "/dashboard/course",
   },
   { title: "How to use", icon: HelpCircle, href: "/dashboard/how-to-use" },
   { title: "Support", icon: HeadphonesIcon, href: "/dashboard/support" },
