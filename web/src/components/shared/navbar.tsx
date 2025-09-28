@@ -18,14 +18,22 @@ interface NavbarProps {
 export function Navbar({ title, className = "" }: NavbarProps) {
   const pathname = usePathname();
   const isCoursePage = pathname.includes("/course/");
+  const isCourseCreation = pathname.includes("/create/wizard");
+
+  const getPageTitle = () => {
+    if (isCourseCreation) return "Create Course";
+    if (pathname.includes("/generate-course")) return "Course";
+    if (isCoursePage) return "Course";
+    return title;
+  };
 
   return (
     <div
-      className={`${jakarta.className} py-6 flex bg-background items-center justify-between px-6 lg:px-12 xl:px-16 transition-all duration-300 ${className}`}
+      className={`${jakarta.className} py-6 flex bg-background items-center justify-between px-6 transition-all duration-300 ${className}`}
     >
       <div className="flex items-center gap-4">
         <h1 className="text-xl font-semibold text-foreground">
-          {isCoursePage ? "Course" : title}
+          {getPageTitle()}
         </h1>
       </div>
       <div className="flex items-center gap-4">

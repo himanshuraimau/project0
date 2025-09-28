@@ -2,10 +2,7 @@ import { GenerateCourseCard } from "@/components/course/GenerateCourseCard";
 import { MyCourses } from "@/components/course/MyCourses";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { Plus_Jakarta_Sans } from "next/font/google";
-const jakarta = Plus_Jakarta_Sans({
-  weight: ["400", "500", "600"],
-});
+
 export default async function GenerateCoursePage() {
   const { userId } = await auth();
   if (!userId) {
@@ -25,21 +22,9 @@ export default async function GenerateCoursePage() {
   });
 
   return (
-    <div className={`${jakarta.className} w-full space-y-12`}>
-      <div>
-        <h1 className="text-2xl leading-8 font-semibold text-foreground mb-3">Create Course</h1>
-        <p className="text-muted-foreground text-base font-medium leading-6">
-          Easily generate a new course with AI assistance.
-        </p>
-      </div>
-      
-      <div className="w-full">
-        <GenerateCourseCard />
-      </div>
-      
-      <div className="w-full">
-        <MyCourses courses={courses} />
-      </div>
+    <div className="w-full space-y-12">
+      <GenerateCourseCard />
+      <MyCourses courses={courses} />
     </div>
   );
 }
