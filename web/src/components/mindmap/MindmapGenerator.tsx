@@ -123,7 +123,7 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
   // If we have a mindmap, show the viewer
   if (mindmap) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 px-6 py-4 mx-4 my-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold">Mindmap</h2>
           <div className="flex items-center gap-2">
@@ -179,37 +179,35 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
 
   // Show generation UI
   return (
-    <div className="space-y-4">
-      <Card className="bg-transparent border-none	">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
-            Generate Mindmap
-          </h3>
-          <p className="text-stone-600 dark:text-stone-400 text-center mb-6 max-w-md">
-            Transform your notes into a visual mindmap that helps you understand
-            the relationships between key concepts.
-          </p>
-
-          {error && (
-            <div className="text-red-600 text-sm mb-4 text-center">{error}</div>
-          )}
-
-          <Button
-            onClick={generateMindmap}
-            disabled={loading}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <Brain className="h-4 w-4" />
-            {loading ? "Generating..." : "Generate Mindmap"}
-          </Button>
-
-          {loading && (
-            <p className="text-xs text-gray-500 mt-2">
-              This may take a few moments...
+      <div className="h-[92vh] flex items-center justify-center bg-transparent px-6 py-4 mx-4 my-6">
+        <Card className="bg-transparent border-none">
+          <CardContent className="flex flex-col items-center justify-center py-8 px-6">
+            <h3 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
+              Generate Mindmap
+            </h3>
+            <p className="text-stone-600 dark:text-stone-400 text-base text-center mb-6 max-w-md">
+              Transform your notes into a visual mindmap that helps you understand the relationships between key concepts.
             </p>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+  
+            {error && (
+              <div className="text-red-600 text-base mb-4 text-center">{error}</div>
+            )}
+  
+            <Button
+              onClick={generateMindmap}
+              disabled={loading}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-600 cursor-pointer text-white text-base px-6 py-3"
+            >
+              {loading ? "Generating..." : "Generate Mindmap"}
+            </Button>
+  
+            {loading && (
+              <p className="text-sm text-stone-500 mt-2">
+                This may take a few moments...
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
 }
