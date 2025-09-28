@@ -196,7 +196,16 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
               </p>
               
               <Button
-                onClick={() => setShowPodcastForm(true)}
+                onClick={() => {
+                  setShowPodcastForm(true);
+                  // Scroll down to show the podcast configuration form
+                  setTimeout(() => {
+                    window.scrollBy({
+                      top: window.innerHeight * 0.8, // Scroll down by 80% of viewport height
+                      behavior: 'smooth'
+                    });
+                  }, 100); // Small delay to ensure the form is rendered
+                }}
                 disabled={loading}
                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 cursor-pointer text-white text-base px-6 py-3"
               >
