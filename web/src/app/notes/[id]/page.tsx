@@ -383,13 +383,13 @@ export default function NoteViewPage() {
               <div className="sticky top-0 z-40 bg-background/95 backdrop-blur">
                 <Navbar title="Notes" />
               </div>
-              <main className="flex-1 px-6 py-8">
-                <div className="bg-stone-50 dark:bg-stone-950/50 border-none">
+              <main className="flex-1">
+                <div className="bg-stone-50 dark:bg-stone-950/50 border-none px-6">
                   {/* Content based on current view */}
               {currentView === "notes" && <ViewNote note={note} />}
 
               {currentView === "transcript" && (
-                <div className="max-w-6xl pt-6 w-full mx-auto bg-transparent">
+                <div className="max-w-6xl w-full mx-auto bg-transparent">
                   <Card className="rounded-lg border-none bg-transparent">
                     <div>
                       <p className="text-2xl font-medium">Transcript</p>
