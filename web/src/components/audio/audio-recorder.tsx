@@ -2,13 +2,6 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Upload, Loader2, Play, Square } from "lucide-react";
 
@@ -104,87 +97,103 @@ export default function AudioRecorder({
   };
 
   return (
-    <Card className="pt-4 rounded-[8px] border bg-stone-50 dark:bg-stone-950 border-stone-100 dark:border-stone-900">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Upload className="h-5 w-5" />
-          Upload Audio File
-        </CardTitle>
-        <CardDescription>
-          Upload an audio file to generate transcripts and summaries
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 mt-4 px-5">
-        {/* File Upload */}
-        <div>
-          <label
-            htmlFor="audio-upload"
-            className=" block text-sm font-semibold mb-2"
-          >
-            Select Audio File
-          </label>
-          <Input
-            id="audio-upload"
-            type="file"
-            accept=".wav,.mp3,.aiff,.aac,.ogg,.flac"
-            onChange={handleFileUpload}
-            className="cursor-pointer rounded-[8px] border-none bg-white dark:bg-stone-800"
-          />
-        </div>
-
-        {/* Audio Preview */}
-        {audioBlob && (
+    <div className="space-y-6">
+      <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8">
+        <div className="text-center space-y-4">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+            <Upload className="h-8 w-8 text-accent-foreground" />
+          </div>
+          
           <div className="space-y-3">
-            <div className="flex gap-2">
-              {!isPlaying ? (
-                <Button onClick={playAudio} variant="outline" size="sm">
-                  <Play className="h-4 w-4 mr-2" />
-                  Play
-                </Button>
-              ) : (
-                <Button onClick={stopAudio} variant="outline" size="sm">
-                  <Square className="h-4 w-4 mr-2" />
-                  Stop
-                </Button>
-              )}
-            </div>
+            <h3 className="text-xl font-bold text-foreground">Upload Audio File</h3>
+            <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+              Upload an audio file to generate transcripts and summaries
+            </p>
+          </div>
 
-            <div>
+          <div className="space-y-4 max-w-lg mx-auto">
+            <div className="text-left">
               <label
-                htmlFor="fileName"
-                className="block text-sm font-medium mb-2"
+                htmlFor="audio-upload"
+                className="block text-sm font-semibold text-foreground mb-3"
               >
-                File Name (Optional)
+                Select Audio File
               </label>
               <Input
-                id="fileName"
-                type="text"
-                value={fileName}
-                onChange={(e) => setFileName(e.target.value)}
-                placeholder="Enter a name for this audio"
+                id="audio-upload"
+                type="file"
+                accept=".wav,.mp3,.aiff,.aac,.ogg,.flac"
+                onChange={handleFileUpload}
+                className="h-12 rounded-xl border-2 border-border/20 bg-background text-foreground cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-accent/10 file:text-accent hover:file:bg-accent/20 focus:border-accent/50 transition-colors"
               />
             </div>
 
-            <Button
-              onClick={transcribeAudio}
-              disabled={isProcessing}
-              className="w-full"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Transcribing...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Transcribe & Generate Summary
-                </>
-              )}
-            </Button>
+            {/* Audio Preview */}
+            {audioBlob && (
+              <div className="space-y-4 p-6 rounded-xl bg-accent/10 border border-accent/20">
+                <div className="flex gap-3">
+                  {!isPlaying ? (
+                    <Button 
+                      onClick={playAudio} 
+                      variant="outline" 
+                      size="sm"
+                      className="rounded-xl"
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Play
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={stopAudio} 
+                      variant="outline" 
+                      size="sm"
+                      className="rounded-xl"
+                    >
+                      <Square className="h-4 w-4 mr-2" />
+                      Stop
+                    </Button>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="fileName"
+                    className="block text-sm font-semibold text-foreground mb-2"
+                  >
+                    File Name (Optional)
+                  </label>
+                  <Input
+                    id="fileName"
+                    type="text"
+                    value={fileName}
+                    onChange={(e) => setFileName(e.target.value)}
+                    placeholder="Enter a name for this audio"
+                    className="h-10 rounded-xl border-2 border-border/20 bg-background text-foreground placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                  />
+                </div>
+
+                <Button
+                  onClick={transcribeAudio}
+                  disabled={isProcessing}
+                  className="w-full h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Transcribing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-5 w-5 mr-2" />
+                      Transcribe & Generate Summary
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      </div>
+    </div>
   );
 }

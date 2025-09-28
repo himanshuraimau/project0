@@ -2,13 +2,6 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Mic, MicOff, Loader2, Play, Square } from "lucide-react";
 
@@ -136,91 +129,109 @@ export default function RecordAudio({
   };
 
   return (
-    <Card className="pt-4 rounded-[8px] bg-stone-50 border border-stone-100 dark:bg-stone-950 dark:border-stone-900">
-      <CardHeader className="">
-        <CardTitle className="flex items-center gap-2">
-          <Mic className="h-5 w-5" />
-          Record Audio
-        </CardTitle>
-        <CardDescription>
-          Record audio to generate transcripts and summaries
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 mt-4">
-        {/* Recording Controls */}
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            {!isRecording ? (
-              <Button onClick={startRecording} className="flex-1">
-                <Mic className="h-4 w-4 mr-2" />
-                Start Recording
-              </Button>
-            ) : (
-              <Button
-                onClick={stopRecording}
-                variant="destructive"
-                className="flex-1"
-              >
-                <MicOff className="h-4 w-4 mr-2" />
-                Stop Recording
-              </Button>
-            )}
+    <div className="space-y-6">
+      <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8">
+        <div className="text-center space-y-4">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+            <Mic className="h-8 w-8 text-accent-foreground" />
+          </div>
+          
+          <div className="space-y-3">
+            <h3 className="text-xl font-bold text-foreground">Record Audio</h3>
+            <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+              Record audio to generate transcripts and summaries
+            </p>
           </div>
 
-          {/* Audio Preview */}
-          {audioBlob && (
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                {!isPlaying ? (
-                  <Button onClick={playAudio} variant="outline" size="sm">
-                    <Play className="h-4 w-4 mr-2" />
-                    Play
-                  </Button>
-                ) : (
-                  <Button onClick={stopAudio} variant="outline" size="sm">
-                    <Square className="h-4 w-4 mr-2" />
-                    Stop
-                  </Button>
-                )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor="fileName"
-                  className="block text-sm font-medium mb-2"
+          <div className="space-y-4 max-w-lg mx-auto">
+            {/* Recording Controls */}
+            <div className="flex gap-2">
+              {!isRecording ? (
+                <Button 
+                  onClick={startRecording} 
+                  className="flex-1 h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg"
                 >
-                  File Name (Optional)
-                </label>
-                <Input
-                  id="fileName"
-                  type="text"
-                  value={fileName}
-                  onChange={(e) => setFileName(e.target.value)}
-                  placeholder="Enter a name for this audio"
-                />
-              </div>
-
-              <Button
-                onClick={transcribeAudio}
-                disabled={isProcessing}
-                className="w-full"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Transcribing...
-                  </>
-                ) : (
-                  <>
-                    <Mic className="h-4 w-4 mr-2" />
-                    Transcribe & Generate Summary
-                  </>
-                )}
-              </Button>
+                  <Mic className="h-5 w-5 mr-2" />
+                  Start Recording
+                </Button>
+              ) : (
+                <Button
+                  onClick={stopRecording}
+                  variant="destructive"
+                  className="flex-1 h-12 rounded-xl font-semibold shadow-lg"
+                >
+                  <MicOff className="h-5 w-5 mr-2" />
+                  Stop Recording
+                </Button>
+              )}
             </div>
-          )}
+
+            {/* Audio Preview */}
+            {audioBlob && (
+              <div className="space-y-4 p-6 rounded-xl bg-accent/10 border border-accent/20">
+                <div className="flex gap-3">
+                  {!isPlaying ? (
+                    <Button 
+                      onClick={playAudio} 
+                      variant="outline" 
+                      size="sm"
+                      className="rounded-xl"
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Play
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={stopAudio} 
+                      variant="outline" 
+                      size="sm"
+                      className="rounded-xl"
+                    >
+                      <Square className="h-4 w-4 mr-2" />
+                      Stop
+                    </Button>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="fileName"
+                    className="block text-sm font-semibold text-foreground mb-2"
+                  >
+                    File Name (Optional)
+                  </label>
+                  <Input
+                    id="fileName"
+                    type="text"
+                    value={fileName}
+                    onChange={(e) => setFileName(e.target.value)}
+                    placeholder="Enter a name for this audio"
+                    className="h-10 rounded-xl border-2 border-border/20 bg-background text-foreground placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                  />
+                </div>
+
+                <Button
+                  onClick={transcribeAudio}
+                  disabled={isProcessing}
+                  className="w-full h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Transcribing...
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-5 w-5 mr-2" />
+                      Transcribe & Generate Summary
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

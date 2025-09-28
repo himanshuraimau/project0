@@ -7,13 +7,6 @@ const jakarta = Plus_Jakarta_Sans({
 });
 import { Input } from "@/components/ui/input";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Loader2,
   Youtube,
   FileText,
@@ -38,10 +31,19 @@ export function YouTubeProcessor({
   const [videoUrl, setVideoUrl] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isGeneratingNotes, setIsGeneratingNotes] = useState(false);
-  const [result, setResult] = useState<any>(null);
-  const [generatedNote, setGeneratedNote] = useState<any>(null);
+  const [result, setResult] = useState<{
+    id: string;
+    content: string;
+    originalName: string;
+    metadata?: { duration?: number };
+  } | null>(null);
+  const [generatedNote, setGeneratedNote] = useState<{
+    id: string;
+    title: string;
+    content: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { generateNotesFromTranscript, loading: notesLoading } = useNotes();
+  const { generateNotesFromTranscript } = useNotes();
 
   const validateYouTubeUrl = (url: string): boolean => {
     const youtubeRegex =
@@ -53,9 +55,17 @@ export function YouTubeProcessor({
     setIsGeneratingNotes(true);
     try {
       const note = await generateNotesFromTranscript(transcriptId);
-      if (note) {
-        setGeneratedNote(note);
-        return note;
+      if (note && note.content) {
+        setGeneratedNote({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+        });
+        return {
+          id: note.id,
+          title: note.title,
+          content: note.content,
+        };
       }
       return null;
     } catch (error) {
@@ -172,38 +182,42 @@ export function YouTubeProcessor({
 
   if (result) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle
-            className={`flex items-center gap-2 text-green-600 ${jakarta.className}`}
-          >
-            <CheckCircle className="size-6" />
-            Transcript Created Successfully
-          </CardTitle>
-          <CardDescription>
-            Your YouTube video has been transcribed and saved.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-6">
+        <div className="text-center space-y-4">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 mx-auto flex items-center justify-center shadow-lg">
+            <CheckCircle className="h-10 w-10 text-white" />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className={`text-2xl font-bold text-green-600 dark:text-green-400 ${jakarta.className}`}>
+              Transcript Created Successfully
+            </h3>
+            <p className="text-muted-foreground/90 text-lg">
+              Your YouTube video has been transcribed and saved.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
           {/* Transcript Info */}
-          <div>
-            <h4 className="text-sm font-semibold mb-2">Transcript Details</h4>
-            <div className="grid grid-cols-1 gap-2 text-sm">
-              <div>
-                <span className="font-medium">Title:</span>{" "}
-                {result.originalName}
+          <div className="rounded-xl bg-muted/30 border border-border/50 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <FileText className="h-5 w-5 text-purple-600" />
+              <h4 className="font-bold text-foreground">Transcript Details</h4>
+            </div>
+            <div className="grid grid-cols-1 gap-3 text-sm">
+              <div className="flex justify-between">
+                <span className="font-medium text-muted-foreground">Title:</span>
+                <span className="text-foreground font-medium">{result.originalName}</span>
               </div>
-              <div>
-                <span className="font-medium">ID:</span> {result.id}
-              </div>
-              <div>
-                <span className="font-medium">Content Length:</span>{" "}
-                {result.content?.length || 0} characters
+              <div className="flex justify-between">
+                <span className="font-medium text-muted-foreground">Content Length:</span>
+                <span className="text-foreground font-medium">{result.content?.length || 0} characters</span>
               </div>
               {result.metadata?.duration && (
-                <div>
-                  <span className="font-medium">Duration:</span>{" "}
-                  {Math.round(result.metadata.duration / 60)} minutes
+                <div className="flex justify-between">
+                  <span className="font-medium text-muted-foreground">Duration:</span>
+                  <span className="text-foreground font-medium">{Math.round(result.metadata.duration / 60)} minutes</span>
                 </div>
               )}
             </div>
@@ -211,137 +225,128 @@ export function YouTubeProcessor({
 
           {/* Generated Notes Info */}
           {generatedNote && (
-            <div>
-              <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                Generated Notes
-              </h4>
-              <div className="grid grid-cols-1 gap-2 text-sm">
-                <div>
-                  <span className="font-medium">Note Title:</span>{" "}
-                  {generatedNote.title}
+            <div className="rounded-xl bg-gradient-to-br from-purple-50/50 to-pink-50/30 dark:from-purple-950/20 dark:to-pink-950/10 border border-purple-200/50 dark:border-purple-800/30 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <BookOpen className="h-5 w-5 text-purple-600" />
+                <h4 className="font-bold text-foreground">Generated Notes</h4>
+              </div>
+              <div className="grid grid-cols-1 gap-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="font-medium text-muted-foreground">Note Title:</span>
+                  <span className="text-foreground font-medium">{generatedNote.title}</span>
                 </div>
-                <div>
-                  <span className="font-medium">Note ID:</span>{" "}
-                  {generatedNote.id}
-                </div>
-                <div>
-                  <span className="font-medium">Content Length:</span>{" "}
-                  {generatedNote.content?.length || 0} characters
+                <div className="flex justify-between">
+                  <span className="font-medium text-muted-foreground">Content Length:</span>
+                  <span className="text-foreground font-medium">{generatedNote.content?.length || 0} characters</span>
                 </div>
               </div>
             </div>
           )}
+        </div>
 
-          {/* Actions */}
-          <div className="flex gap-2 pt-4">
-            <Button variant="outline" size="sm" onClick={handleReset}>
-              Process Another Video
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                // Navigate to transcript view
-                console.log("Navigate to transcript:", result.id);
-              }}
+        {/* Actions */}
+        <div className="flex gap-3 justify-center pt-4">
+          <Button 
+            onClick={handleReset}
+            variant="outline" 
+            className="rounded-xl px-6"
+          >
+            Process Another Video
+          </Button>
+          {onClose && (
+            <Button 
+              onClick={onClose}
+              className="rounded-xl px-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-              View Transcript
+              Done
             </Button>
-            {onClose && (
-              <Button variant="default" size="sm" onClick={onClose}>
-                Done
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          )}
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card
-      className={`${jakarta.className} rounded-[8px] border bg-stone-50 border-stone-100 dark:bg-stone-900/50 dark:border-stone-900`}
-    >
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 pt-4 ">
-          <Youtube className="h-5 w-5 text-red-500" />
-          YouTube Transcript Generator
-        </CardTitle>
-        <CardDescription className="font-semibold text-stone-500 text-[14px] mb-4">
-          Enter a YouTube URL to generate a transcript and create notes from the
-          video content.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 bg-red-40 px-4">
-        <div className="space-y-2 my-2">
-          <label htmlFor="youtube-url" className="text-sm font-semibold pl-2">
-            YouTube URL
-          </label>
-          <Input
-            id="youtube-url"
-            className=" rounded-[6px] my-2 border-none bg-white dark:bg-stone-800 text-stone-400"
-            type="url"
-            placeholder="https://www.youtube.com/watch?v=..."
-            value={videoUrl}
-            onChange={(e) => {
-              setVideoUrl(e.target.value);
-              if (error) setError(null);
-            }}
-            disabled={isProcessing}
-          />
-          <p className="text-xs  text-muted-foreground">
-            *Supports youtube.com and youtu.be URLs
-          </p>
-        </div>
-
-        {error && (
-          <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
-            <p className="text-sm text-destructive">{error}</p>
+    <div className="space-y-6">
+      <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8">
+        <div className="text-center space-y-4">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+            <Youtube className="h-8 w-8 text-accent-foreground" />
           </div>
-        )}
-
-        <div className="flex gap-2 pt-2">
-          <Button
-            onClick={handleProcessTranscript}
-            disabled={isProcessing || !videoUrl.trim()}
-            className="flex-1 "
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <FileText className="mr-2 h-4 w-4" />
-                Generate Transcript
-              </>
-            )}
-          </Button>
-        </div>
-
-        {(isProcessing || isGeneratingNotes) && (
-          <div className="p-4 rounded-md bg-muted">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>
-                {isProcessing &&
-                  !isGeneratingNotes &&
-                  "Fetching transcript from YouTube..."}
-                {isGeneratingNotes && "Generating AI notes from transcript..."}
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {isProcessing &&
-                !isGeneratingNotes &&
-                "This may take a few moments depending on video length."}
-              {isGeneratingNotes &&
-                "Creating structured notes and summaries from the video content."}
+          
+          <div className="space-y-3">
+            <h3 className="text-xl font-bold text-foreground">YouTube Transcript Generator</h3>
+            <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+              Enter a YouTube URL to generate a transcript and create notes from the video content.
             </p>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          <div className="space-y-4 max-w-lg mx-auto">
+            <div className="text-left">
+              <label htmlFor="youtube-url" className="block text-sm font-semibold text-foreground mb-3">
+                YouTube URL
+              </label>
+              <Input
+                id="youtube-url"
+                className="h-12 rounded-xl border-2 border-border/20 bg-background text-foreground placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                type="url"
+                placeholder="https://www.youtube.com/watch?v=..."
+                value={videoUrl}
+                onChange={(e) => {
+                  setVideoUrl(e.target.value);
+                  if (error) setError(null);
+                }}
+                disabled={isProcessing}
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Supports youtube.com and youtu.be URLs
+              </p>
+            </div>
+
+            {error && (
+              <div className="rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/30 p-4">
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>
+              </div>
+            )}
+
+            <Button
+              onClick={handleProcessTranscript}
+              disabled={isProcessing || !videoUrl.trim()}
+              className="w-full h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-5 w-5" />
+                  Generate Transcript
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {(isProcessing || isGeneratingNotes) && (
+        <div className="rounded-2xl bg-muted/50 border border-border/20 p-6">
+          <div className="flex items-center gap-3 text-foreground">
+            <Loader2 className="h-5 w-5 animate-spin text-accent" />
+            <div>
+              <p className="font-semibold">
+                {isProcessing && !isGeneratingNotes && "Fetching transcript from YouTube..."}
+                {isGeneratingNotes && "Generating AI notes from transcript..."}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {isProcessing && !isGeneratingNotes && "This may take a few moments depending on video length."}
+                {isGeneratingNotes && "Creating structured notes and summaries from the video content."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

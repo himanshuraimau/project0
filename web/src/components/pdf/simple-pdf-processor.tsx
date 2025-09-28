@@ -1,17 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNotes } from "@/hooks/use-notes";
 import { ProcessPDFResult } from "@/lib/types";
-
-// Extended interface to include model overload case
-interface NoteWithModelOverload {
-  error: string;
-  message: string;
-  modelOverloaded: boolean;
-  retryAfter?: number;
-  retryable?: boolean;
-}
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -99,20 +90,6 @@ export function SimplePDFProcessor({
     }
   };
 
-  const handleProcessText = async () => {
-    if (!textInput.trim()) return;
-
-    const result = await generateNotesFromText(
-      textInput,
-      noteTitle || "Text Note"
-    );
-
-    if (result) {
-      setProcessResult(result);
-      onProcessComplete?.(result);
-    }
-  };
-
   const resetForm = () => {
     setSelectedFile(null);
     setProcessResult(null);
@@ -125,12 +102,16 @@ export function SimplePDFProcessor({
       {!processResult ? (
         <>
           {/* Mode Toggle */}
-          <div className="flex gap-2 p-1 bg-muted rounded-xl">
+          <div className="flex gap-2 p-2 bg-muted/50 rounded-2xl border border-border/20">
             <Button
               variant={mode === "pdf" ? "default" : "ghost"}
               size="sm"
               onClick={() => setMode("pdf")}
-              className="flex-1 rounded-lg hover:bg-stone-600"
+              className={`flex-1 rounded-xl ${
+                mode === "pdf"
+                  ? "bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
+                  : "hover:bg-muted"
+              }`}
             >
               <FileText className="h-4 w-4 mr-2" />
               Upload PDF
@@ -139,7 +120,11 @@ export function SimplePDFProcessor({
               variant={mode === "text" ? "default" : "ghost"}
               size="sm"
               onClick={() => setMode("text")}
-              className="flex-1 rounded-lg"
+              className={`flex-1 rounded-xl ${
+                mode === "text"
+                  ? "bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
+                  : "hover:bg-muted"
+              }`}
             >
               <Type className="h-4 w-4 mr-2" />
               Create from Text
@@ -150,26 +135,26 @@ export function SimplePDFProcessor({
             <>
               {/* File Upload Area */}
               <div
-                className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors ${
+                className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 ${
                   dragActive
-                    ? "border-primary bg-primary/5"
-                    : "border-muted-foreground/25 hover:border-primary/50"
+                    ? "border-accent/50 bg-accent/10 scale-[1.02]"
+                    : "border-accent/30 hover:border-accent/50 bg-accent/5 hover:scale-[1.01]"
                 }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
               >
-                <div className="space-y-4">
-                  <div className="mx-auto w-12 h-12 rounded-[8px] bg-primary/10 flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-primary" />
+                <div className="space-y-6">
+                  <div className="mx-auto w-20 h-20 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+                    <FileText className="h-10 w-10 text-accent-foreground" />
                   </div>
 
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold text-foreground">
                       Upload PDF Document
                     </h3>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
                       Drag and drop your PDF file here, or click to browse
                     </p>
                   </div>
@@ -185,9 +170,9 @@ export function SimplePDFProcessor({
 
                   <label
                     htmlFor="pdf-upload"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-accent text-accent-foreground rounded-2xl hover:bg-accent/90 transition-all duration-200 cursor-pointer font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105"
                   >
-                    <Upload className="h-4 w-4" />
+                    <Upload className="h-5 w-5" />
                     Choose PDF File
                   </label>
                 </div>
@@ -195,27 +180,27 @@ export function SimplePDFProcessor({
 
               {/* Selected File Info */}
               {selectedFile && (
-                <div className="bg-muted/50 rounded-2xl p-4">
+                <div className="bg-accent/10 rounded-2xl border border-accent/30 p-6">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-primary" />
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-xl bg-accent flex items-center justify-center shadow-lg">
+                        <FileText className="h-7 w-7 text-accent-foreground" />
                       </div>
                       <div>
-                        <p className="font-medium text-sm">
+                        <p className="font-bold text-foreground text-lg">
                           {selectedFile.name}
                         </p>
-                        <p className="text-muted-foreground text-xs">
+                        <p className="text-muted-foreground">
                           {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                       <Button
                         onClick={handleProcess}
                         disabled={loading}
-                        className="rounded-xl"
+                        className="rounded-xl px-6 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
                       >
                         {loading ? "Processing..." : "Generate Notes"}
                       </Button>
@@ -223,7 +208,7 @@ export function SimplePDFProcessor({
                         onClick={resetForm}
                         variant="outline"
                         disabled={loading}
-                        className="rounded-xl"
+                        className="rounded-xl px-4"
                       >
                         Remove
                       </Button>
@@ -235,102 +220,113 @@ export function SimplePDFProcessor({
           ) : (
             <>
               {/* Text Input Area */}
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="note-title"
-                    className="block text-sm font-medium mb-2"
-                  >
-                    Note Title (Optional)
-                  </label>
-                  <Input
-                    id="note-title"
-                    type="text"
-                    placeholder="Enter a title for your note..."
-                    value={noteTitle}
-                    onChange={(e) => setNoteTitle(e.target.value)}
-                    disabled={loading}
-                    className="rounded-[8px] text-[16px] bg-white border-none dark:bg-neutral-800 font-medium"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="text-content"
-                    className="block text-sm font-medium mb-2"
-                  >
-                    Text Content
-                  </label>
-                  <Textarea
-                    id="text-content"
-                    placeholder="Paste or type your text content here. AI will generate structured notes from this content..."
-                    value={textInput}
-                    onChange={(e) => setTextInput(e.target.value)}
-                    disabled={loading}
-                    className="min-h-[200px] rounded-[8px] resize-none  font-medium text-[15px] bg-white border-none dark:bg-neutral-800"
-                  />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {textInput.length} characters
-                  </p>
-                </div>
-
-                {textInput.trim() && (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleProcess}
-                      disabled={loading || !textInput.trim()}
-                      className="rounded-xl"
-                    >
-                      {loading ? "Generating Notes..." : "Generate AI Notes"}
-                    </Button>
-                    <Button
-                      onClick={resetForm}
-                      variant="outline"
-                      disabled={loading}
-                      className="rounded-xl"
-                    >
-                      Clear
-                    </Button>
+              <div className="space-y-6 rounded-2xl border border-accent/30 bg-accent/5 p-8">
+                <div className="text-center space-y-3 mb-6">
+                  <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+                    <Type className="h-8 w-8 text-accent-foreground" />
                   </div>
-                )}
+                  <h3 className="text-2xl font-bold text-foreground">Create from Text</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="note-title"
+                      className="block text-sm font-bold text-foreground mb-3"
+                    >
+                      Note Title (Optional)
+                    </label>
+                    <Input
+                      id="note-title"
+                      type="text"
+                      placeholder="Enter a title for your note..."
+                      value={noteTitle}
+                      onChange={(e) => setNoteTitle(e.target.value)}
+                      disabled={loading}
+                      className="h-12 rounded-xl border-2 border-border/20 bg-background text-foreground placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="text-content"
+                      className="block text-sm font-bold text-foreground mb-3"
+                    >
+                      Text Content
+                    </label>
+                    <Textarea
+                      id="text-content"
+                      placeholder="Paste or type your text content here. AI will generate structured notes from this content..."
+                      value={textInput}
+                      onChange={(e) => setTextInput(e.target.value)}
+                      disabled={loading}
+                      className="min-h-[240px] rounded-xl border-2 border-border/20 bg-background text-foreground placeholder:text-muted-foreground focus:border-accent/50 transition-colors resize-none"
+                    />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {textInput.length} characters
+                    </p>
+                  </div>
+
+                  {textInput.trim() && (
+                    <div className="flex gap-3 pt-2">
+                      <Button
+                        onClick={handleProcess}
+                        disabled={loading || !textInput.trim()}
+                        className="flex-1 h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg"
+                      >
+                        {loading ? "Generating Notes..." : "Generate AI Notes"}
+                      </Button>
+                      <Button
+                        onClick={resetForm}
+                        variant="outline"
+                        disabled={loading}
+                        className="rounded-xl px-6"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           )}
 
           {/* Error Display */}
           {error && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-4">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-destructive" />
-                <p className="text-sm text-destructive font-medium">
-                  {error.includes("overloaded")
-                    ? "AI service is currently at capacity. Your PDF was processed, but AI notes could not be generated. Please try again in a few minutes."
-                    : `Error: ${error}`}
-                </p>
+            <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/30 rounded-2xl p-6">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400 flex-shrink-0" />
+                <div>
+                  <p className="text-red-600 dark:text-red-400 font-semibold">
+                    {error.includes("overloaded")
+                      ? "AI service is currently at capacity. Your document was processed, but AI notes could not be generated. Please try again in a few minutes."
+                      : `Error: ${error}`}
+                  </p>
+                  {error.includes("overloaded") && (
+                    <p className="text-sm text-red-500 dark:text-red-300 mt-2">
+                      The document was successfully processed and saved. You can
+                      view it in your notes or try generating AI notes later.
+                    </p>
+                  )}
+                </div>
               </div>
-              {error.includes("overloaded") && (
-                <p className="text-xs text-muted-foreground mt-2 ml-7">
-                  The document was successfully processed and saved. You can
-                  view it in your notes or try generating AI notes later.
-                </p>
-              )}
             </div>
           )}
         </>
       ) : (
         /* Success State */
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-green-100 mx-auto flex items-center justify-center">
-            <CheckCircle className="h-8 w-8 text-green-600" />
+        <div className="text-center space-y-6">
+          <div className="w-24 h-24 rounded-full bg-accent mx-auto flex items-center justify-center shadow-lg">
+            <CheckCircle className="h-12 w-12 text-accent-foreground" />
           </div>
 
-          <div>
-            <h3 className="text-xl font-semibold mb-2">
+          <div className="space-y-3">
+            <h3 className="text-2xl font-bold text-foreground">
               {mode === "pdf"
                 ? "PDF Processed Successfully!"
                 : "Notes Generated Successfully!"}
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-lg max-w-lg mx-auto leading-relaxed">
               {processResult.note &&
               processResult.note.hasOwnProperty("modelOverloaded")
                 ? `Your ${
@@ -346,16 +342,16 @@ export function SimplePDFProcessor({
 
           {processResult.note &&
           processResult.note.hasOwnProperty("modelOverloaded") ? (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-left">
-              <h4 className="font-semibold text-sm mb-2 text-amber-800">
+            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 rounded-2xl p-6 text-left">
+              <h4 className="font-bold text-amber-800 dark:text-amber-300 text-lg mb-2">
                 AI Service Busy
               </h4>
-              <p className="text-sm text-amber-700">
+              <p className="text-amber-700 dark:text-amber-200">
                 {processResult.note.hasOwnProperty("message")
-                  ? (processResult.note as any).message
+                  ? (processResult.note as { message: string }).message
                   : "The AI service is currently overloaded. Your document was processed and saved successfully."}
               </p>
-              <p className="text-xs text-amber-600 mt-2">
+              <p className="text-sm text-amber-600 dark:text-amber-300 mt-2">
                 You can try generating AI notes for this document again later
                 when the service is less busy.
               </p>
@@ -363,30 +359,33 @@ export function SimplePDFProcessor({
           ) : (
             processResult.note &&
             !("error" in processResult.note) && (
-              <div className="bg-muted/50 rounded-2xl p-4 text-left">
-                <h4 className="font-semibold text-sm mb-2">Generated Note:</h4>
-                <p className="text-sm text-muted-foreground mb-2">
+              <div className="bg-muted/30 border border-border/50 rounded-2xl p-6 text-left">
+                <h4 className="font-bold text-foreground text-lg mb-3">Generated Note:</h4>
+                <p className="text-muted-foreground font-medium mb-3">
                   {processResult.note.title}
                 </p>
                 <MarkdownRenderer
                   content={
-                    processResult.note.content?.substring(0, 150) + "..." ||
+                    processResult.note.content?.substring(0, 200) + "..." ||
                     "No content available"
                   }
-                  className="text-xs text-muted-foreground"
+                  className="text-sm text-muted-foreground/80"
                 />
               </div>
             )
           )}
 
-          <div className="flex gap-2 justify-center">
-            <Button onClick={onClose} className="rounded-xl">
+          <div className="flex gap-3 justify-center pt-4">
+            <Button 
+              onClick={onClose} 
+              className="rounded-xl px-6 bg-accent hover:bg-accent/90 text-accent-foreground"
+            >
               View in My Notes
             </Button>
             <Button
               onClick={resetForm}
               variant="outline"
-              className="rounded-xl"
+              className="rounded-xl px-6"
             >
               {mode === "pdf" ? "Upload Another PDF" : "Create Another Note"}
             </Button>
