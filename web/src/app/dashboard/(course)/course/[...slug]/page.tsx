@@ -1,4 +1,3 @@
-import CourseSideBar from "@/components/course/CourseSideBar";
 import { CourseContentTabs } from "@/components/course/CourseContentTabs";
 import { prisma } from "@/lib/prisma";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -50,65 +49,84 @@ const CoursePage = async ({ params }: Props) => {
   const prevChapter = unit.chapters[chapterIndex - 1];
   
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sticky Sidebar */}
-      <aside className="sticky top-0 h-screen w-[320px] bg-card z-10">
-        <CourseSideBar course={course} currentChapterId={chapter.id} />
-      </aside>
-      <main className="flex-1 px-8 py-10">
-        <div className="max-w-7xl mx-auto">
-          {/* Chapter Header */}
-          <div className="mb-8">
-            <h4 className="text-xs uppercase text-muted-foreground tracking-wide mb-2">
-              Unit {unitIndex + 1} &bull; Chapter {chapterIndex + 1}
-            </h4>
-            <h1 className="text-3xl font-bold text-foreground">{chapter.name}</h1>
+    <>
+      {/* Course Content */}
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Course Header */}
+        <header className="space-y-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              {course.name}
+            </p>
           </div>
-
-          {/* Main Content with Tabs */}
-          <div className="mb-8">
-            <CourseContentTabs 
-              chapter={chapter}
-              unit={unit}
-              unitIndex={unitIndex}
-              chapterIndex={chapterIndex}
-            />
+          <div>
+            <p className="text-base text-muted-foreground">
+              Unit {unitIndex + 1} · Chapter {chapterIndex + 1}
+            </p>
           </div>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+            {chapter.name}
+          </h1>
+        </header>
 
-          {/* Divider */}
-          <div className="h-[1px] w-full my-6 bg-border" />
+        {/* Main Content */}
+        <div className="space-y-8">
+          <CourseContentTabs 
+            chapter={chapter}
+            unit={unit}
+            unitIndex={unitIndex}
+            chapterIndex={chapterIndex}
+          />
+        </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex items-center justify-between pb-8">
+        {/* Navigation Section */}
+        <div className="border-t border-border pt-8">
+          <div className="flex items-center justify-between gap-4">
             {prevChapter ? (
               <Link
                 href={`/dashboard/course/${course.id}/${unitIndex}/${chapterIndex - 1}`}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-muted hover:bg-accent transition-colors shadow text-foreground"
+                className="group inline-flex items-center gap-4 rounded-xl bg-muted px-6 py-4 text-sm font-medium text-foreground transition-all hover:bg-muted/80 hover:shadow-sm"
               >
-                <ChevronLeft className="w-5 h-5 mr-1" />
-                <div className="flex flex-col items-start">
-                  <span className="text-xs text-muted-foreground">Previous</span>
-                  <span className="text-base font-semibold">{prevChapter.name}</span>
+                <ChevronLeft className="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+                <div className="text-left">
+                  <div className="text-xs text-muted-foreground mb-1">Previous</div>
+                  <div className="font-semibold text-base">{prevChapter.name}</div>
                 </div>
               </Link>
-            ) : <span />}
+            ) : (
+              <div></div>
+            )}
 
             {nextChapter ? (
               <Link
                 href={`/dashboard/course/${course.id}/${unitIndex}/${chapterIndex + 1}`}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/80 transition-colors shadow"
+                className="group inline-flex items-center gap-4 rounded-xl bg-primary px-6 py-4 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-sm"
               >
-                <div className="flex flex-col items-end">
-                  <span className="text-xs text-primary-foreground/80">Next</span>
-                  <span className="text-base font-semibold">{nextChapter.name}</span>
+                <div className="text-right">
+                  <div className="text-xs text-primary-foreground/80 mb-1">Next</div>
+                  <div className="font-semibold text-base">{nextChapter.name}</div>
                 </div>
-                <ChevronRight className="w-5 h-5 ml-1" />
+                <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
               </Link>
-            ) : <span />}
+            ) : (
+              <div></div>
+            )}
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+
+      {/* Hidden course data for sidebar */}
+      <script
+        id="course-data"
+        type="application/json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            course,
+            currentChapterId: chapter.id
+          })
+        }}
+      />
+    </>
   );
 };
 

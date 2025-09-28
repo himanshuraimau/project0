@@ -4,6 +4,7 @@ import React from "react";
 import { UserControl } from "@/components/user-control";
 import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { usePathname } from "next/navigation";
 
 const jakarta = Plus_Jakarta_Sans({
   weight: "600",
@@ -15,17 +16,22 @@ interface NavbarProps {
 }
 
 export function Navbar({ title, className = "" }: NavbarProps) {
+  const pathname = usePathname();
+  const isCoursePage = pathname.includes("/course/");
+
   return (
     <div
-      className={`${jakarta.className} py-[17px] border-b border-stone-200 flex bg-white dark:bg-stone-950 items-center dark:border-stone-900 justify-between px-8 transition-all duration-300 ${className}`}
+      className={`${jakarta.className} py-4 border-b border-border flex bg-background items-center justify-between px-6 transition-all duration-300 ${className}`}
     >
-      <h1 className=" font-medium text-stone-900 dark:text-stone-100">
-        {title}
-      </h1>
-      <span className="flex gap-6 items-center">
+      <div className="flex items-center gap-4">
+        <h1 className="text-lg font-semibold text-foreground">
+          {isCoursePage ? "Course" : title}
+        </h1>
+      </div>
+      <div className="flex items-center gap-4">
         <ThemeToggleButton />
         <UserControl showName />
-      </span>
+      </div>
     </div>
   );
 }
