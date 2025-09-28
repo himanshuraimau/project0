@@ -21,10 +21,10 @@ export function Navbar({ title, className = "" }: NavbarProps) {
 
   return (
     <div
-      className={`${jakarta.className} py-4 border-b border-border flex bg-background items-center justify-between px-6 transition-all duration-300 ${className}`}
+      className={`${jakarta.className} py-6 flex bg-background items-center justify-between px-6 lg:px-12 xl:px-16 transition-all duration-300 ${className}`}
     >
       <div className="flex items-center gap-4">
-        <h1 className="text-lg font-semibold text-foreground">
+        <h1 className="text-xl font-semibold text-foreground">
           {isCoursePage ? "Course" : title}
         </h1>
       </div>

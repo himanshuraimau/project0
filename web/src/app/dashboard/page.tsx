@@ -10,7 +10,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="h-full space-y-8">
+    <div className="w-full space-y-12">
       <NewNoteSection />
       <MyNotesSection />
     </div>

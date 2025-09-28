@@ -26,9 +26,13 @@ import {
   Trash2,
 } from "lucide-react";
 import { NotesList } from "@/components/notes/notes-list";
-import { Inter } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
+const jakarta = Plus_Jakarta_Sans({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin-ext", "vietnamese"],
+});
 
 export function MyNotesSection() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -83,32 +87,35 @@ export function MyNotesSection() {
   };
 
   return (
-    <div className={`w-full  mx-auto  ${inter.className}`}>
-      <div className="mb-4">
-        <h2 className="text-2xl leading-8 font-semibold text-stone-900 dark:text-stone-100">
+    <div className={`w-full ${inter.className}`}>
+      <div className="mb-8">
+        <h2 className={`text-2xl leading-8 font-semibold text-foreground mb-3 ${jakarta.className}`}>
           My Notes
         </h2>
+        <p className={`text-muted-foreground text-base font-medium leading-6 ${jakarta.className}`}>
+          Manage and organize your notes
+        </p>
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-6 mb-8">
         <div className="flex-shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="justify-between min-w-[150px] h-10 px-3 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 rounded-[8px] hover:bg-stone-50 dark:hover:bg-stone-900 text-stone-900 dark:text-stone-100 font-medium"
+                className="justify-between min-w-[180px] h-12 px-4 bg-card border border-border rounded-2xl hover:bg-muted/50 text-foreground font-medium transition-all duration-200"
               >
-                <div className="flex items-center gap-2">
-                  <Folder className="h-4 w-4 text-yellow-500" />
+                <div className="flex items-center gap-3">
+                  <Folder className="h-4 w-4 text-accent" />
                   <span className="text-sm">{selectedFolder}</span>
                 </div>
-                <ChevronDown className="h-4 w-4 text-stone-400" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuContent align="start" className="w-56 bg-card border border-border shadow-xl">
               <DropdownMenuItem onClick={() => setSelectedFolder("All Notes")}>
-                <Folder className="h-4 w-4 mr-2.5 text-yellow-500" />
+                <Folder className="h-4 w-4 mr-2.5 text-accent" />
                 All Notes
               </DropdownMenuItem>
 
@@ -120,10 +127,10 @@ export function MyNotesSection() {
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center">
-                      <Folder className="h-4 w-4 mr-2 text-yellow-500" />
+                      <Folder className="h-4 w-4 mr-2 text-accent" />
                       {folder}
                     </div>
-                    <div className="flex items-center  space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -153,7 +160,7 @@ export function MyNotesSection() {
 
               <DropdownMenuItem
                 onClick={() => setShowCreateFolderDialog(true)}
-                className="border-t border-stone-300 dark:border-stone-700 mt-1 pt-2"
+                className="border-t border-border mt-1 pt-2"
               >
                 <FolderPlus className="h-4 w-4 mr-2" />
                 Create New Folder
@@ -162,19 +169,19 @@ export function MyNotesSection() {
           </DropdownMenu>
         </div>
 
-        <div className="relative flex-1 max-w-md ml-auto">
+        <div className="relative flex-1 max-w-lg">
           <Input
-            placeholder="Search any notes..."
+            placeholder="Search notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-4 h-10 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 rounded-[8px] text-stone-900 dark:text-stone-100 placeholder:text-stone-400"
+            className="pl-4 pr-12 h-12 bg-card border border-border rounded-2xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 transition-all duration-200"
           />
-          <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-stone-400" />
+          <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         </div>
       </div>
 
       {/* Notes Display */}
-      <div className=" dark:bg-stone-950 rounded-lg  ">
+      <div className="w-full">
         <NotesList searchQuery={searchQuery} />
       </div>
 
@@ -240,7 +247,7 @@ export function MyNotesSection() {
           <DialogHeader>
             <DialogTitle>Edit Folder</DialogTitle>
             <DialogDescription>
-              Rename the "{editingFolder}" folder.
+              Rename the &quot;{editingFolder}&quot; folder.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

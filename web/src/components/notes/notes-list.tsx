@@ -33,7 +33,7 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
   // Load notes on component mount
   useEffect(() => {
     loadNotes();
-  }, [transcriptId, searchQuery]);
+  }, [transcriptId, searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadNotes = async () => {
     const result = await getNotes(transcriptId);
@@ -101,8 +101,8 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
     return (
       <div className="flex items-center justify-center p-12">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-3" />
-          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground font-medium">
             Loading notes...
           </p>
         </div>
@@ -114,13 +114,13 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
     return (
       <div className="p-8 text-center">
         <div className="max-w-md mx-auto">
-          <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+          <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
           </div>
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="font-semibold text-foreground mb-2">
             Error loading notes
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             {error}
           </p>
           <Button onClick={loadNotes} variant="outline" size="sm">
@@ -136,13 +136,13 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
   if (notes.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
-          <FileText className="h-8 w-8 text-stone-400" />
+        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+          <FileText className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="font-semibold text-stone-900 dark:text-white mb-2">
+        <h3 className="font-semibold text-foreground mb-2">
           No notes found
         </h3>
-        <p className="text-stone-600 dark:text-stone-400 mb-6">
+        <p className="text-muted-foreground mb-6">
           Create your first note to get started
         </p>
       </div>
@@ -152,13 +152,13 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
   if (filteredNotes.length === 0 && searchQuery) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
-          <FileText className="h-8 w-8 text-stone-400" />
+        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+          <FileText className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="font-semibold text-stone-900 dark:text-white mb-2">
+        <h3 className="font-semibold text-foreground mb-2">
           No notes match your search
         </h3>
-        <p className="text-stone-600 dark:text-stone-400">
+        <p className="text-muted-foreground">
           Try adjusting your search terms
         </p>
       </div>
@@ -167,7 +167,7 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredNotes.map((note) => (
           <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} />
         ))}
@@ -175,11 +175,11 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="max-w-md">
+        <AlertDialogContent className="max-w-md bg-card border border-border">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <div className="w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
               </div>
               Delete Note
             </AlertDialogTitle>
@@ -199,7 +199,7 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
             <AlertDialogAction
               onClick={confirmDeleteNote}
               disabled={isDeleting}
-              className="flex-1 bg-red-600 hover:bg-red-700"
+              className="flex-1 bg-destructive hover:bg-destructive/90"
             >
               {isDeleting ? (
                 <>
