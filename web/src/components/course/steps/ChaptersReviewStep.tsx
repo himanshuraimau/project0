@@ -152,10 +152,10 @@ export function ChaptersReviewStep({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-stone-900 dark:text-white mb-2">
+        <h2 className="text-2xl font-bold text-foreground mb-2">
           Review Course Structure
         </h2>
-        <p className="text-stone-600">
+        <p className="text-muted-foreground">
           Your complete course structure is ready. Make any final edits before
           saving.
         </p>
@@ -166,8 +166,8 @@ export function ChaptersReviewStep({
           <CardTitle className="flex items-center space-x-3">
             <BookOpen className="w-6 h-6 text-accent" />
             <div>
-              <h3 className="text-xl font-bold text-gray-900">{courseTitle}</h3>
-              <p className="text-sm text-gray-600 font-normal">
+              <h3 className="text-xl font-bold text-foreground">{courseTitle}</h3>
+              <p className="text-sm text-muted-foreground font-normal">
                 {units.length} units • {totalChapters} chapters
               </p>
             </div>
@@ -179,7 +179,7 @@ export function ChaptersReviewStep({
       <div className="max-w-4xl mx-auto space-y-4">
         {units.map((unit, unitIndex) => (
           <Card key={unit.id} className="overflow-hidden">
-            <CardHeader className="bg-gray-50 border-b">
+            <CardHeader className="bg-muted/30 border-b">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0 w-8 h-8 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold">
@@ -194,16 +194,16 @@ export function ChaptersReviewStep({
                           onKeyDown={handleKeyPress}
                           placeholder="Enter unit name..."
                           className={`text-lg font-semibold ${
-                            error ? "border-red-500" : ""
+                            error ? "border-destructive" : ""
                           }`}
                           autoFocus
                         />
                         {error && (
-                          <p className="text-sm text-red-600">{error}</p>
+                          <p className="text-sm text-destructive">{error}</p>
                         )}
                       </div>
                     ) : (
-                      <h4 className="text-lg font-semibold text-gray-900">
+                      <h4 className="text-lg font-semibold text-foreground">
                         Unit {unitIndex + 1}: {unit.name}
                       </h4>
                     )}
@@ -217,7 +217,7 @@ export function ChaptersReviewStep({
                         onClick={saveEdit}
                         variant="ghost"
                         size="sm"
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="text-accent hover:text-accent/80 hover:bg-accent/10"
                       >
                         <Check className="w-4 h-4" />
                       </Button>
@@ -225,7 +225,7 @@ export function ChaptersReviewStep({
                         onClick={cancelEdit}
                         variant="ghost"
                         size="sm"
-                        className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted/50"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -246,14 +246,14 @@ export function ChaptersReviewStep({
             </CardHeader>
 
             <CardContent className="p-0">
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-border">
                 {unit.chapters.map((chapter, chapterIndex) => (
                   <div
                     key={chapter.id}
-                    className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center space-x-4 flex-1">
-                      <div className="flex-shrink-0 w-12 h-8 bg-gray-100 text-gray-600 rounded flex items-center justify-center text-sm font-medium">
+                      <div className="flex-shrink-0 w-12 h-8 bg-muted text-muted-foreground rounded flex items-center justify-center text-sm font-medium">
                         {getChapterNumber(unitIndex, chapterIndex)}
                       </div>
 
@@ -265,21 +265,21 @@ export function ChaptersReviewStep({
                               onChange={(e) => setEditValue(e.target.value)}
                               onKeyDown={handleKeyPress}
                               placeholder="Enter chapter name..."
-                              className={error ? "border-red-500" : ""}
+                              className={error ? "border-destructive" : ""}
                               autoFocus
                             />
                             {error && (
-                              <p className="text-sm text-red-600">{error}</p>
+                              <p className="text-sm text-destructive">{error}</p>
                             )}
                           </div>
                         ) : (
                           <div>
-                            <h5 className="font-medium text-gray-900">
+                            <h5 className="font-medium text-foreground">
                               {chapter.name}
                             </h5>
                             <div className="flex items-center space-x-2 mt-1">
-                              <PlayCircle className="w-3 h-3 text-gray-400" />
-                              <span className="text-xs text-gray-500">
+                              <PlayCircle className="w-3 h-3 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground">
                                 Search: {chapter.youtubeSearchQuery}
                               </span>
                             </div>
@@ -295,7 +295,7 @@ export function ChaptersReviewStep({
                             onClick={saveEdit}
                             variant="ghost"
                             size="sm"
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                            className="text-accent hover:text-accent/80 hover:bg-accent/10"
                           >
                             <Check className="w-4 h-4" />
                           </Button>
@@ -303,7 +303,7 @@ export function ChaptersReviewStep({
                             onClick={cancelEdit}
                             variant="ghost"
                             size="sm"
-                            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted/50"
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -324,7 +324,7 @@ export function ChaptersReviewStep({
                             variant="ghost"
                             size="sm"
                             disabled={isLoading || unit.chapters.length <= 1}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:text-gray-400 disabled:hover:bg-transparent"
+                            className="text-destructive hover:text-destructive/80 hover:bg-destructive/10 disabled:text-muted-foreground disabled:hover:bg-transparent"
                             title={
                               unit.chapters.length <= 1
                                 ? "Cannot delete the last chapter in a unit"
@@ -351,20 +351,20 @@ export function ChaptersReviewStep({
             message="Saving Your Course"
             submessage="Creating course structure in the database..."
             variant="save"
-            className="bg-orange-50 border border-orange-200 rounded-lg"
+            className="bg-accent/5 border border-accent/10 rounded-lg"
           />
         </div>
       )}
 
       {/* Save Button */}
       <div className="max-w-4xl mx-auto">
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
+        <div className="bg-accent/10 border border-accent/20 rounded-lg p-6">
           <div className="text-center space-y-4">
             <div>
-              <h3 className="text-lg font-semibold text-green-900 mb-2">
+              <h3 className="text-lg font-semibold text-accent mb-2">
                 Ready to Create Your Course?
               </h3>
-              <p className="text-green-700">
+              <p className="text-accent/80">
                 Your course structure looks great! Click below to save and start
                 building your content.
               </p>
@@ -374,7 +374,7 @@ export function ChaptersReviewStep({
               onClick={onSave}
               disabled={isLoading || editingItem !== null}
               size="lg"
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3"
             >
               {isLoading ? (
                 <InlineLoading
@@ -388,7 +388,7 @@ export function ChaptersReviewStep({
             </Button>
 
             {editingItem && (
-              <p className="text-sm text-amber-600">
+              <p className="text-sm text-muted-foreground">
                 Please finish editing before saving the course.
               </p>
             )}

@@ -166,10 +166,10 @@ export function UnitsGenerationStep({
   return (
     <div className="space-y-10">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-stone-900 dark:text-white mb-2">
+        <h2 className="text-2xl font-bold text-foreground mb-2">
           Review and Edit Units
         </h2>
-        <p className="text-stone-600">
+        <p className="text-muted-foreground">
           AI has generated course units for you. Edit, add, or remove units as
           needed.
         </p>
@@ -193,7 +193,7 @@ export function UnitsGenerationStep({
 
         <CardContent>
           {units.length === 0 ? (
-            <div className="text-center py-8 text-stone-500">
+            <div className="text-center py-8 text-muted-foreground">
               <p>No units generated yet.</p>
               <p className="text-sm mt-1">
                 Click Add Unit to create your first unit.
@@ -204,7 +204,7 @@ export function UnitsGenerationStep({
               {units.map((unit, index) => (
                 <div
                   key={unit.id}
-                  className="flex items-center border-none bg-stone-50 dark:bg-stone-900/50 space-x-3 p-3 border rounded-md hover:bg-gray-50 transition-colors"
+                  className="flex items-center border-none bg-card space-x-3 p-3 border rounded-md hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">
                     {index + 1}
@@ -218,11 +218,11 @@ export function UnitsGenerationStep({
                           onChange={(e) => setEditValue(e.target.value)}
                           onKeyDown={handleKeyPress}
                           placeholder="Enter unit name..."
-                          className={error ? "border-red-500" : ""}
+                          className={error ? "border-destructive" : ""}
                           autoFocus
                         />
                         {error && (
-                          <p className="text-sm text-red-600">{error}</p>
+                          <p className="text-sm text-destructive">{error}</p>
                         )}
                       </div>
                     ) : (
@@ -230,8 +230,8 @@ export function UnitsGenerationStep({
                         <span
                           className={`${
                             !unit.name.trim()
-                              ? "text-stone-400 italic"
-                              : "text-stone-900 dark:text-white font-medium"
+                              ? "text-muted-foreground italic"
+                              : "text-foreground font-medium"
                           }`}
                         >
                           {unit.name.trim() ||
@@ -248,7 +248,7 @@ export function UnitsGenerationStep({
                           onClick={saveEdit}
                           variant="ghost"
                           size="sm"
-                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                          className="text-accent hover:text-accent/80 hover:bg-accent/10"
                         >
                           <Check className="w-4 h-4" />
                         </Button>
@@ -256,7 +256,7 @@ export function UnitsGenerationStep({
                           onClick={cancelEdit}
                           variant="ghost"
                           size="sm"
-                          className="text-stone-600 hover:text-stone-700 hover:bg-stone-50"
+                          className="text-muted-foreground hover:text-foreground hover:bg-muted/50"
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -268,7 +268,7 @@ export function UnitsGenerationStep({
                           variant="ghost"
                           size="sm"
                           disabled={isLoading}
-                          className="text-stone-600 hover:text-stone-700 cursor-pointer hover:bg-accent/10"
+                          className="text-muted-foreground hover:text-foreground cursor-pointer hover:bg-accent/10"
                         >
                           <Edit3 className="w-4 h-4" />
                         </Button>
@@ -277,7 +277,7 @@ export function UnitsGenerationStep({
                           variant="ghost"
                           size="sm"
                           disabled={isLoading || units.length <= 1}
-                          className="text-red-600 hover:text-red-700 cursor-pointer hover:bg-red-50 disabled:text-stone-400"
+                          className="text-destructive hover:text-destructive/80 cursor-pointer hover:bg-destructive/10 disabled:text-muted-foreground"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -290,8 +290,8 @@ export function UnitsGenerationStep({
           )}
 
           {error && !editingId && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
         </CardContent>
@@ -326,7 +326,7 @@ export function UnitsGenerationStep({
             )}
           </Button>
 
-          <p className="text-sm text-stone-600 text-center mt-2">
+          <p className="text-sm text-muted-foreground text-center mt-2">
             This will automatically generate 3-5 chapters for each unit using
             AI.
           </p>
