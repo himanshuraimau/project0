@@ -357,7 +357,6 @@ export function NotesSidebar({
                         : "w-full px-4 py-5",
                       "text-red-600  dark:bg-red-950/20 hover:text-red-600"
                     )}
-                    onClick={onDeleteNote}
                     title={isCollapsed ? "Delete Notes" : undefined}
                   >
                     <div
