@@ -193,7 +193,7 @@ export function FlashcardGenerator({ noteId }: FlashcardGeneratorProps) {
           <Button
             onClick={generateFlashcards}
             disabled={loading}
-            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 cursor-pointer text-white text-base px-6 py-3"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 cursor-pointer text-white text-base px-6 py-3"
           >
             {loading ? "Generating Flashcards..." : "Generate Flashcards"}
           </Button>

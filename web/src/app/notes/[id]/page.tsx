@@ -29,6 +29,7 @@ import { QuizGenerator } from "@/components/quiz";
 import {
   PodcastConfigurationModal,
   PodcastWithTranscript,
+  PodcastGenerator,
 } from "@/components/podcast";
 import { MindmapGenerator } from "@/components/mindmap";
 import { Trash2, MessageCircle, AlertTriangle } from "lucide-react";
@@ -88,8 +89,6 @@ export default function NoteViewPage() {
 
   const [editedTitle, setEditedTitle] = useState("");
   const [editedContent, setEditedContent] = useState("");
-
-  const [showPodcastConfig, setShowPodcastConfig] = useState(false);
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -224,23 +223,10 @@ export default function NoteViewPage() {
       return;
     }
 
-    try {
-      setCurrentView("podcast");
-      const existingPodcast = await getPodcast(noteId);
-      if (!existingPodcast) {
-        setShowPodcastConfig(true);
-      }
-    } catch (error) {
-      console.error("Error with podcast:", error);
-      setCurrentView("notes");
-      toast.error("Failed to generate podcast");
-    }
+    setCurrentView("podcast");
   };
 
-  const handlePodcastGenerate = async (config: any) => {
-    setShowPodcastConfig(false);
-    await generatePodcast(noteId, config);
-  };
+
 
   const handleGenerateMindmap = async () => {
     if (!noteId) return;
@@ -434,52 +420,7 @@ export default function NoteViewPage() {
                 </Card>
               )}
 
-              {currentView === "podcast" && (
-                <div>
-                  {podcastLoading && (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-stone-600">
-                        Generating podcast...
-                      </p>
-                    </div>
-                  )}
-                  {podcast && podcast.audioUrl && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                      <div className="lg:col-span-2">
-                        <PodcastWithTranscript
-                          podcast={podcast}
-                          segments={segments}
-                        />
-                      </div>
-                      <Card className="lg:col-span-1 rounded-3xl border-0 shadow-xl p-0 overflow-hidden h-[78vh] flex flex-col">
-                        <CardHeader className="pb-3 bg-muted/5 border-b border-border">
-                          <div className="flex items-center gap-4">
-                            <div className="p-2 bg-primary/10 rounded-full">
-                              <MessageCircle className="h-5 w-5 text-primary" />
-                            </div>
-                            <CardTitle className="text-lg">
-                              Chat about Podcast
-                            </CardTitle>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            <p>Ask questions about the podcast content</p>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="pt-0 p-0 flex-1 overflow-y-auto">
-                          <DynamicInlineChatbot noteId={noteId} />
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
-                  {podcastError && (
-                    <div className="text-center text-red-600">
-                      <p className="font-medium">Error generating podcast</p>
-                      <p className="text-sm mt-1">{podcastError}</p>
-                    </div>
-                  )}
-                </div>
-              )}
+              {currentView === "podcast" && <PodcastGenerator noteId={noteId} />}
 
               {currentView === "mindmap" && (
                 <div>
@@ -507,12 +448,7 @@ export default function NoteViewPage() {
         </NotesSidebarProvider>
       </AlertDialog>
 
-      <PodcastConfigurationModal
-        noteId={noteId}
-        isOpen={showPodcastConfig}
-        onClose={() => setShowPodcastConfig(false)}
-        onGenerate={handlePodcastGenerate}
-      />
+
     </div>
   );
 }
