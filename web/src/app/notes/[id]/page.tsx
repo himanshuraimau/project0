@@ -35,6 +35,7 @@ import { MindmapGenerator } from "@/components/mindmap";
 import { Trash2, MessageCircle, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ViewNote } from "@/components/notes/view-note";
+import { Navbar } from "@/components/shared/navbar";
 
 const DynamicInlineChatbot = dynamic(
   () => import("@/components/chatbot/inline-chatbot"),
@@ -383,7 +384,7 @@ export default function NoteViewPage() {
             sidebarWidth={sidebarWidth}
             collapsedWidth={collapsedWidth}
           >
-            {/* <Navbar title="Notes" /> */}
+            <Navbar title="Notes" />
             <div className="bg-stone-50 dark:bg-stone-950/50 border-none">
               {/* Content based on current view */}
               {currentView === "notes" && <ViewNote note={note} />}
