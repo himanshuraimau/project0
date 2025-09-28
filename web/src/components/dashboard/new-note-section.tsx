@@ -155,21 +155,21 @@ export function NewNoteSection() {
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-card border border-border shadow-2xl">
-            <DialogHeader className="border-b border-border pb-4">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+            <DialogHeader>
               <DialogTitle
-                className={`text-left text-xl font-semibold text-card-foreground ${jakarta.className}`}
+                className={`text-left ${jakarta.className}`}
               >
                 YouTube Transcript & Notes
               </DialogTitle>
               <DialogDescription
-                className={`text-muted-foreground mt-1 ${jakarta.className}`}
+                className={`${jakarta.className}`}
               >
                 Extract transcript from YouTube videos and generate AI-powered
                 notes automatically.
               </DialogDescription>
             </DialogHeader>
-            <div className="mt-6 overflow-y-auto max-h-[calc(85vh-140px)]">
+            <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <YouTubeProcessor
                 onProcessComplete={handleYouTubeTranscriptComplete}
                 onClose={handleCloseYouTubeDialog}
@@ -207,21 +207,21 @@ export function NewNoteSection() {
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-card border border-border shadow-2xl">
-            <DialogHeader className="border-b border-border pb-4">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+            <DialogHeader>
               <DialogTitle
-                className={`text-left text-xl font-semibold text-card-foreground ${jakarta.className}`}
+                className={`text-left ${jakarta.className}`}
               >
                 Record Audio & Generate Notes
               </DialogTitle>
               <DialogDescription
-                className={`text-muted-foreground mt-1 ${jakarta.className}`}
+                className={`${jakarta.className}`}
               >
                 Record audio content and automatically generate AI-powered notes
                 from the transcription.
               </DialogDescription>
             </DialogHeader>
-            <div className="mt-6 overflow-y-auto max-h-[calc(85vh-140px)]">
+            <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <RecordAudio
                 onTranscriptionComplete={handleRecordAudioComplete}
               />
@@ -255,21 +255,21 @@ export function NewNoteSection() {
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-card border border-border shadow-2xl">
-            <DialogHeader className="border-b border-border pb-4">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+            <DialogHeader>
               <DialogTitle
-                className={`text-left text-xl font-semibold text-card-foreground ${jakarta.className}`}
+                className={`text-left ${jakarta.className}`}
               >
                 Upload PDF & Generate Notes
               </DialogTitle>
               <DialogDescription
-                className={`text-muted-foreground mt-1 ${jakarta.className}`}
+                className={`${jakarta.className}`}
               >
                 Upload PDF documents and extract content to generate
                 comprehensive AI-powered notes.
               </DialogDescription>
             </DialogHeader>
-            <div className="mt-6 overflow-y-auto max-h-[calc(85vh-140px)]">
+            <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <SimplePDFProcessor
                 onProcessComplete={handlePDFProcessComplete}
                 onClose={handleClosePDFDialog}
@@ -304,21 +304,21 @@ export function NewNoteSection() {
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-card border border-border shadow-2xl">
-            <DialogHeader className="border-b border-border pb-4">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+            <DialogHeader>
               <DialogTitle
-                className={`text-left text-xl font-semibold text-card-foreground ${jakarta.className}`}
+                className={`text-left ${jakarta.className}`}
               >
                 Upload Audio File & Generate Notes
               </DialogTitle>
               <DialogDescription
-                className={`text-muted-foreground mt-1 ${jakarta.className}`}
+                className={`${jakarta.className}`}
               >
                 Upload audio files from your device and automatically generate
                 AI-powered notes from the transcription.
               </DialogDescription>
             </DialogHeader>
-            <div className="mt-6 overflow-y-auto max-h-[calc(85vh-140px)]">
+            <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <AudioRecorder
                 onTranscriptionComplete={handleAudioTranscriptionComplete}
               />
@@ -329,21 +329,21 @@ export function NewNoteSection() {
 
       {/* Webpage URL Dialog (Hidden in DOM) */}
       <Dialog open={showWebpageDialog} onOpenChange={setShowWebpageDialog}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden bg-card border border-border shadow-2xl">
-          <DialogHeader className="border-b border-border pb-4">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
             <DialogTitle
-              className={`text-left text-xl font-semibold text-card-foreground ${jakarta.className}`}
+              className={`text-left ${jakarta.className}`}
             >
               Process Webpage & Generate Notes
             </DialogTitle>
             <DialogDescription
-              className={`text-muted-foreground mt-1 ${jakarta.className}`}
+              className={`${jakarta.className}`}
             >
               Extract content from any webpage and generate comprehensive
               AI-powered educational notes.
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-6 overflow-y-auto max-h-[calc(85vh-140px)]">
+          <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
             <WebpageProcessor
               onProcessComplete={handleWebpageProcessComplete}
               onClose={handleCloseWebpageDialog}
