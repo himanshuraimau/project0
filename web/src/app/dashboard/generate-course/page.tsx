@@ -25,17 +25,19 @@ export default async function GenerateCoursePage() {
   });
 
   return (
-    <div
-      className={`${jakarta.className} px-6 py-4 flex-1 bg-stone-50 dark:bg-stone-950`}
-    >
-      <h1 className="text-lg font-bold mb-0.5">Create Course</h1>
-      <p className="text-stone-500 text-sm font-medium leading-6 mb-6">
-        Easily generate a new course with AI assistance.
-      </p>
-      <div className="mt-6">
-        <GenerateCourseCard className="w-full" />
+    <div className={`${jakarta.className} w-full space-y-12`}>
+      <div>
+        <h1 className="text-2xl leading-8 font-semibold text-foreground mb-3">Create Course</h1>
+        <p className="text-muted-foreground text-base font-medium leading-6">
+          Easily generate a new course with AI assistance.
+        </p>
       </div>
-      <div className="mt-16 w-full">
+      
+      <div className="w-full">
+        <GenerateCourseCard />
+      </div>
+      
+      <div className="w-full">
         <MyCourses courses={courses} />
       </div>
     </div>
