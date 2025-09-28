@@ -83,8 +83,8 @@ function ChapterItem({
         asChild 
         isActive={isCurrentChapter}
         className={cn(
-          "group relative py-3 px-4 transition-all hover:bg-accent/60",
-          "text-sm font-medium rounded-lg my-1",
+          "group relative py-2 px-4 transition-all hover:bg-accent/60",
+          "text-sm font-medium rounded-lg my-0.5",
           isCurrentChapter && "bg-accent text-accent-foreground shadow-sm"
         )}
       >
@@ -166,7 +166,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
         className
       )}
     >
-      <SidebarHeader className="border-b border-border py-6 px-6 bg-background/80 backdrop-blur-sm">
+      <SidebarHeader className="border-b border-border py-4 px-6 bg-background/80 backdrop-blur-sm">
         {isCollapsed ? (
           <div className="flex flex-col items-center gap-3">
             <button
@@ -195,7 +195,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
         )}
       </SidebarHeader>
 
-      <SidebarContent className="flex-1 py-6 px-4 overflow-y-auto">
+      <SidebarContent className="flex-1 py-4 px-4 overflow-y-auto">
         {isCoursePage && courseData ? (
           // Course Navigation
           <>
@@ -216,9 +216,9 @@ export function AppSidebar({ className }: AppSidebarProps) {
             )}
             
             {/* Course Units and Chapters */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {courseData.course.units.map((unit, unitIndex) => (
-                <SidebarGroup key={unit.id}>
+                <SidebarGroup key={unit.id} className={unitIndex > 0 ? "mt-4" : ""}>
                   {!isCollapsed && (
                     <SidebarGroupLabel className="text-xs uppercase tracking-wider px-2 py-2 text-muted-foreground font-semibold">
                       Unit {unitIndex + 1}: {unit.name}
@@ -226,7 +226,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                   )}
                   
                   <SidebarGroupContent>
-                    <SidebarMenu className="space-y-1">
+                    <SidebarMenu className="space-y-0.5">
                       {unit.chapters.map((chapter, chapterIndex) => (
                         <ChapterItem
                           key={chapter.id}
@@ -247,7 +247,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           // Dashboard Navigation
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-2">
+              <SidebarMenu className="space-y-1">
                 {dashboardItems.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
@@ -258,7 +258,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         asChild
                         isActive={isActive}
                         className={cn(
-                          "flex items-center rounded-lg transition-all py-4 px-4",
+                          "flex items-center rounded-lg transition-all py-2 px-4",
                           "text-sm font-medium hover:bg-accent/60",
                           isActive && "bg-accent text-accent-foreground shadow-sm"
                         )}
@@ -283,7 +283,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
 
       {/* Footer */}
       {!isCollapsed && (
-        <SidebarFooter className="border-t border-border py-6 px-6 bg-background/80">
+        <SidebarFooter className="py-4 px-4 bg-background/80">
           {isCoursePage ? (
             // Course Footer
             <div className="flex items-center justify-between text-xs text-muted-foreground">

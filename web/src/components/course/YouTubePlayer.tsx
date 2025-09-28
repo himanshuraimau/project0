@@ -187,23 +187,25 @@ export function YouTubePlayer({ videoId, title, className }: YouTubePlayerProps)
           )}
         </div>
         {title && (
-          <div className="p-4 flex items-center justify-between">
-            <h3 className="font-medium text-sm">{title}</h3>
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-            >
-              <a
-                href={watchUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2"
+          <div className="p-4 border-t">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-sm">{title}</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
               >
-                <ExternalLink className="h-3 w-3" />
-                Watch on YouTube
-              </a>
-            </Button>
+                <a
+                  href={watchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Watch on YouTube
+                </a>
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>
