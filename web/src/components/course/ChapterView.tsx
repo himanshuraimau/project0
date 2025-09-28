@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { YouTubePlayer } from "./YouTubePlayer";
 import { LoadingState } from "@/components/ui/loading-spinner";
-import { BookOpen, Play, FileText, CheckCircle } from "lucide-react";
+import { Play, FileText, CheckCircle } from "lucide-react";
 import { Chapter } from "@prisma/client";
 import { useChapterProgress } from "@/hooks/use-chapter-progress";
 import {
@@ -116,31 +115,6 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Chapter Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                {chapterData.name}
-              </CardTitle>
-              {chapterData.youtubeSearchQuery && (
-                <Badge variant="secondary" className="text-xs">
-                  {chapterData.youtubeSearchQuery}
-                </Badge>
-              )}
-            </div>
-            {chapterProgress.isCompleted && (
-              <Badge variant="default" className="bg-green-500">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Completed
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-      </Card>
-
       {/* Error State */}
       {error && (
         <InlineErrorDisplay
@@ -152,7 +126,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
 
       {/* Video Player */}
       {chapterData.videoId && (
-        <YouTubePlayer videoId={chapterData.videoId} title={chapterData.name} />
+        <YouTubePlayer videoId={chapterData.videoId} />
       )}
 
       {/* Chapter Notes */}

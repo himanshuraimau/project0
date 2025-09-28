@@ -50,10 +50,10 @@ const CoursePage = async ({ params }: Props) => {
   
   return (
     <>
-      {/* Course Content */}
-      <div className="max-w-6xl mx-auto space-y-8">
+      {/* Course Content with proper vertical spacing */}
+      <div className="space-y-6">
         {/* Course Header */}
-        <header className="space-y-4">
+        <header className="space-y-6">
           <div>
             <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               {course.name}
@@ -69,8 +69,8 @@ const CoursePage = async ({ params }: Props) => {
           </h1>
         </header>
 
-        {/* Main Content */}
-        <div className="space-y-8">
+        {/* Main Content Tabs */}
+        <div>
           <CourseContentTabs 
             chapter={chapter}
             unit={unit}
@@ -80,7 +80,7 @@ const CoursePage = async ({ params }: Props) => {
         </div>
 
         {/* Navigation Section */}
-        <div className="border-t border-border pt-8">
+        <div className="border-t border-border pt-6">
           <div className="flex items-center justify-between gap-4">
             {prevChapter ? (
               <Link

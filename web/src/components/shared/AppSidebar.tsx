@@ -83,9 +83,9 @@ function ChapterItem({
         asChild 
         isActive={isCurrentChapter}
         className={cn(
-          "group relative py-3 px-4 transition-all hover:bg-accent/60",
-          "text-sm font-medium rounded-lg my-1",
-          isCurrentChapter && "bg-accent text-accent-foreground shadow-sm"
+          "group relative py-2 px-4 transition-all hover:bg-sidebar-accent/60",
+          "text-sm font-medium rounded-lg my-0.5 text-sidebar-foreground",
+          isCurrentChapter && "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
         )}
       >
         <Link href={`/dashboard/course/${courseId}/${unitIndex}/${chapterIndex}`}>
@@ -94,8 +94,8 @@ function ChapterItem({
             progress.isCompleted 
               ? "bg-green-500" 
               : isCurrentChapter 
-              ? "bg-primary" 
-              : "bg-muted-foreground/40"
+              ? "bg-sidebar-primary" 
+              : "bg-sidebar-foreground/40"
           )} />
           {!isCollapsed && (
             <span className="text-sm leading-relaxed truncate">
@@ -121,7 +121,7 @@ function ChapterItem({
           ) : progress.isCompleted ? (
             <CheckCircle className="h-4 w-4 text-green-500" />
           ) : (
-            <Circle className="h-4 w-4 text-muted-foreground" />
+            <Circle className="h-4 w-4 text-sidebar-foreground/60" />
           )}
         </SidebarMenuAction>
       )}
@@ -162,40 +162,40 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "border-r border-border bg-card/50 backdrop-blur-sm sticky top-0 h-screen",
+        "border-r border-sidebar-border bg-sidebar sticky top-0 h-screen",
         className
       )}
     >
-      <SidebarHeader className="border-b border-border py-6 px-6 bg-background/80 backdrop-blur-sm">
+      <SidebarHeader className="border-b border-sidebar-border py-4 px-6 bg-sidebar">
         {isCollapsed ? (
           <div className="flex flex-col items-center gap-3">
             <button
               onClick={toggleSidebar}
-              className="p-2 hover:bg-accent rounded-md transition-colors"
+              className="p-2 hover:bg-sidebar-accent rounded-md transition-colors"
             >
-              <BookOpen className="w-5 h-5" />
+              <BookOpen className="w-5 h-5 text-sidebar-foreground" />
             </button>
           </div>
         ) : (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span
-                className={`text-xl font-semibold text-foreground ${jakarta.className}`}
+                className={`text-xl font-semibold text-sidebar-foreground ${jakarta.className}`}
               >
                 SonicLearn
               </span>
             </div>
             <button
               onClick={toggleSidebar}
-              className="p-2 hover:bg-accent rounded-md transition-colors"
+              className="p-2 hover:bg-sidebar-accent rounded-md transition-colors"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4 text-sidebar-foreground" />
             </button>
           </div>
         )}
       </SidebarHeader>
 
-      <SidebarContent className="flex-1 py-6 px-4 overflow-y-auto">
+      <SidebarContent className="flex-1 py-4 px-4 overflow-y-auto">
         {isCoursePage && courseData ? (
           // Course Navigation
           <>
@@ -204,29 +204,29 @@ export function AppSidebar({ className }: AppSidebarProps) {
               <div className="px-2 py-3 mb-6">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+                  className="inline-flex items-center gap-2 text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors mb-4"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Back to Dashboard
                 </Link>
-                <h2 className="text-lg font-semibold text-foreground truncate">
+                <h2 className="text-lg font-semibold text-sidebar-foreground truncate">
                   {courseData.course.name}
                 </h2>
               </div>
             )}
             
             {/* Course Units and Chapters */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {courseData.course.units.map((unit, unitIndex) => (
-                <SidebarGroup key={unit.id}>
+                <SidebarGroup key={unit.id} className={unitIndex > 0 ? "mt-4" : ""}>
                   {!isCollapsed && (
-                    <SidebarGroupLabel className="text-xs uppercase tracking-wider px-2 py-2 text-muted-foreground font-semibold">
+                    <SidebarGroupLabel className="text-xs uppercase tracking-wider px-2 py-2 text-sidebar-foreground/60 font-semibold">
                       Unit {unitIndex + 1}: {unit.name}
                     </SidebarGroupLabel>
                   )}
                   
                   <SidebarGroupContent>
-                    <SidebarMenu className="space-y-1">
+                    <SidebarMenu className="space-y-0.5">
                       {unit.chapters.map((chapter, chapterIndex) => (
                         <ChapterItem
                           key={chapter.id}
@@ -247,7 +247,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           // Dashboard Navigation
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-2">
+              <SidebarMenu className="space-y-1">
                 {dashboardItems.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
@@ -258,9 +258,9 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         asChild
                         isActive={isActive}
                         className={cn(
-                          "flex items-center rounded-lg transition-all py-4 px-4",
-                          "text-sm font-medium hover:bg-accent/60",
-                          isActive && "bg-accent text-accent-foreground shadow-sm"
+                          "flex items-center rounded-lg transition-all py-2 px-4",
+                          "text-sm font-medium hover:bg-sidebar-accent/60 text-sidebar-foreground",
+                          isActive && "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
                         )}
                       >
                         <Link href={item.href} className="flex items-center gap-3 w-full">
@@ -283,24 +283,24 @@ export function AppSidebar({ className }: AppSidebarProps) {
 
       {/* Footer */}
       {!isCollapsed && (
-        <SidebarFooter className="border-t border-border py-6 px-6 bg-background/80">
+        <SidebarFooter className="py-4 px-4 bg-sidebar">
           {isCoursePage ? (
             // Course Footer
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center justify-between text-xs text-sidebar-foreground/60">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500" />
                 <span>Completed</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-muted-foreground/40" />
+                <div className="w-2 h-2 rounded-full bg-sidebar-foreground/40" />
                 <span>In Progress</span>
               </div>
             </div>
           ) : (
             // Dashboard Footer
-            <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-accent/30">
+            <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-sidebar-accent/30">
               <span className="text-xl">⚡</span>
-              <span className="font-medium text-sm">Unlimited Notes</span>
+              <span className="font-medium text-sm text-sidebar-foreground">Unlimited Notes</span>
             </div>
           )}
         </SidebarFooter>
