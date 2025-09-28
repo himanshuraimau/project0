@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { NotesSidebar } from "@/components/notes/sidebar";
 import {
   NotesSidebarProvider,
-  NotesSidebarContent,
 } from "@/components/notes/sidebar-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -44,7 +43,6 @@ const DynamicInlineChatbot = dynamic(
 
 export default function NoteViewPage() {
   const sidebarWidth = "280px";
-  const collapsedWidth = "4rem";
   const params = useParams();
   const router = useRouter();
   const noteId = params.id as string;
@@ -359,34 +357,35 @@ export default function NoteViewPage() {
           sidebarWidth={sidebarWidth}
           sidebarWidthMobile={sidebarWidth}
         >
-          <NotesSidebar
-            className={currentView === "chat" ? "pb-3" : "pb-6"}
-            showTranscript={currentView === "transcript"}
-            showQuiz={currentView === "quiz"}
-            showChat={currentView === "chat"}
-            showFlashcards={currentView === "flashcards"}
-            showPodcast={currentView === "podcast"}
-            showMindmap={currentView === "mindmap"}
-            onShowNotes={handleShowNotes}
-            onShowTranscript={handleShowTranscript}
-            onGenerateQuiz={handleGenerateQuiz}
-            onChatWithNote={handleChatWithNote}
-            onGenerateFlashcard={handleGenerateFlashcard}
-            onGeneratePodcast={handleGeneratePodcast}
-            onGenerateMindmap={handleGenerateMindmap}
-            onDeleteNote={handleDeleteNote}
-            quizLoading={false}
-            flashcardsLoading={flashcardsLoading}
-            podcastLoading={podcastLoading}
-            mindmapLoading={mindmapLoading}
-          />
-          <NotesSidebarContent
-            sidebarWidth={sidebarWidth}
-            collapsedWidth={collapsedWidth}
-          >
-            <Navbar title="Notes" />
-            <div className="bg-stone-50 dark:bg-stone-950/50 border-none">
-              {/* Content based on current view */}
+          <div className="flex min-h-screen">
+            <NotesSidebar
+              className={currentView === "chat" ? "pb-3" : "pb-6"}
+              showTranscript={currentView === "transcript"}
+              showQuiz={currentView === "quiz"}
+              showChat={currentView === "chat"}
+              showFlashcards={currentView === "flashcards"}
+              showPodcast={currentView === "podcast"}
+              showMindmap={currentView === "mindmap"}
+              onShowNotes={handleShowNotes}
+              onShowTranscript={handleShowTranscript}
+              onGenerateQuiz={handleGenerateQuiz}
+              onChatWithNote={handleChatWithNote}
+              onGenerateFlashcard={handleGenerateFlashcard}
+              onGeneratePodcast={handleGeneratePodcast}
+              onGenerateMindmap={handleGenerateMindmap}
+              onDeleteNote={handleDeleteNote}
+              quizLoading={false}
+              flashcardsLoading={flashcardsLoading}
+              podcastLoading={podcastLoading}
+              mindmapLoading={mindmapLoading}
+            />
+            <div className="flex-1 min-h-screen bg-background">
+              <div className="sticky top-0 z-40 bg-background/95 backdrop-blur">
+                <Navbar title="Notes" />
+              </div>
+              <main className="flex-1 px-6 py-8">
+                <div className="bg-stone-50 dark:bg-stone-950/50 border-none">
+                  {/* Content based on current view */}
               {currentView === "notes" && <ViewNote note={note} />}
 
               {currentView === "transcript" && (
@@ -534,8 +533,10 @@ export default function NoteViewPage() {
                   )}
                 </div>
               )}
+                </div>
+              </main>
             </div>
-          </NotesSidebarContent>
+          </div>
         </NotesSidebarProvider>
       </AlertDialog>
 
