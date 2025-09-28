@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mic, Trash2 } from "lucide-react";
+import { Mic, Trash2, Brain } from "lucide-react";
 import { toast } from "sonner";
 import { PodcastWithTranscript, PodcastConfigurationInline } from "./";
 import { Podcast, PodcastConfig, PodcastSegment } from "@/lib/types/podcast.types";
@@ -29,6 +29,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPodcastConfig, setShowPodcastConfig] = useState(false);
+  const [showPodcastForm, setShowPodcastForm] = useState(false);
 
   const generatePodcast = async (config: PodcastConfig) => {
     setLoading(true);
@@ -181,29 +182,57 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
 
   // Show configuration form inline
   return (
-    <div className="px-6 py-4 my-6 max-w-6xl mx-auto">
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
-            Generate Podcast
-          </h2>
-          <p className="text-stone-600 dark:text-stone-400 text-base max-w-2xl mx-auto">
-            Configure your podcast settings to transform your notes into an engaging conversation between two AI hosts.
-          </p>
+    <div className="px-6 py-8 my-8 max-w-6xl mx-auto min-h-[70vh]">
+      <div className="space-y-8">
+        {/* Generate Podcast Section */}
+        <div className="text-center min-h-[78vh] flex items-center justify-center">
+          <Card className="bg-transparent border-none w-full">
+            <CardContent className="flex flex-col items-center justify-center py-12 px-8">
+              <h3 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
+                Generate Podcast
+              </h3>
+              <p className="text-stone-600 dark:text-stone-400 text-base text-center mb-6 max-w-md">
+                Transform your notes into an engaging podcast that helps you understand the relationships between key concepts.
+              </p>
+              
+              <Button
+                onClick={() => setShowPodcastForm(true)}
+                disabled={loading}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 cursor-pointer text-white text-base px-6 py-3"
+              >
+                <Brain className="h-4 w-4" />
+                Generate Podcast
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
-        {error && (
-          <div className="text-red-600 text-base mb-4 text-center bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-            {error}
-          </div>
-        )}
+        {/* Generate Podcast Section - Only show when button is clicked */}
+        {showPodcastForm && (
+          <>
+            <div className="text-center">
+              <h2 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
+                Generate Podcast
+              </h2>
+              <p className="text-stone-600 dark:text-stone-400 text-base max-w-2xl mx-auto">
+                Configure your podcast settings to transform your notes into an engaging conversation between two AI hosts.
+              </p>
+            </div>
 
-        {/* Show the inline configuration form */}
-        <PodcastConfigurationInline
-          noteId={noteId}
-          onGenerate={generatePodcast}
-          loading={loading}
-        />
+            {error && (
+              <div className="text-red-600 text-base mb-4 text-center bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            {/* Show the inline configuration form */}
+            <PodcastConfigurationInline
+              noteId={noteId}
+              onGenerate={generatePodcast}
+              loading={loading}
+            />
+          </>
+        )}
       </div>
     </div>
   );
