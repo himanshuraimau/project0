@@ -113,7 +113,7 @@ export function NewNoteSection() {
   };
 
   return (
-    <div className={`w-full mx-auto ${inter.className}`}>
+    <div className={`w-full ${inter.className}`}>
       <div className="mb-8">
         <h2
           className={`text-xl leading-8 font-semibold text-stone-900 dark:text-stone-100 mb-2 ${jakarta.className}`}
