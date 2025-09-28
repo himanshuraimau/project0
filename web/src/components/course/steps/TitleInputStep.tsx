@@ -67,10 +67,10 @@ export function TitleInputStep({
   return (
     <div className="space-y-10">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-stone-900 dark:text-white mb-2">
+        <h2 className="text-2xl font-bold text-foreground mb-2">
           Create Your Course
         </h2>
-        <p className="text-stone-600">
+        <p className="text-muted-foreground">
           Start by entering a course title. Our AI will generate a complete
           course structure for you.
         </p>
@@ -87,18 +87,18 @@ export function TitleInputStep({
             placeholder="e.g., Introduction to Machine Learning"
             value={title}
             onChange={handleTitleChange}
-            className={`w-full bg-stone-50 dark:bg-stone-800/50 border placeholder:text-stone-600 border-stone-200 dark:border-stone-800 ${
-              error ? "border-red-500" : ""
+            className={`w-full ${
+              error ? "border-destructive" : ""
             }`}
             disabled={isLoading}
           />
-          <div className="flex justify-between items-center text-xs text-stone-500">
+          <div className="flex justify-between items-center text-xs text-muted-foreground">
             <span>2-100 characters</span>
-            <span className={title.length > 100 ? "text-red-500" : ""}>
+            <span className={title.length > 100 ? "text-destructive" : ""}>
               {title.length}/100
             </span>
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         <Button
