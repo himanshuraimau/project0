@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Link2, FileText, Upload, Mic, Globe, CloudUpload } from "lucide-react";
+import { CloudUpload } from "lucide-react";
 import { SimplePDFProcessor } from "@/components/pdf";
 import { checkCreditsAndRedirect } from "@/lib/client/credits-api";
 import { AudioRecorder, RecordAudio } from "@/components/audio";
@@ -17,6 +17,7 @@ import { YouTubeProcessor } from "@/components/transcript";
 import { WebpageProcessor } from "@/components/webpage";
 import { Inter } from "next/font/google";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import Image from "next/image";
 
 const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700"],
@@ -116,24 +117,24 @@ export function NewNoteSection() {
     <div className={`w-full ${inter.className}`}>
       <div className="mb-8">
         <h2
-          className={`text-xl leading-8 font-semibold text-stone-900 dark:text-stone-100 mb-2 ${jakarta.className}`}
+          className={`text-2xl leading-8 font-semibold text-foreground mb-3 ${jakarta.className}`}
         >
           New Note
         </h2>
         <p
-          className={`text-stone-600 text-sm font-medium leading-6 dark:text-stone-400 ${jakarta.className}`}
+          className={`text-muted-foreground text-base font-medium leading-6 ${jakarta.className}`}
         >
           Record audio, upload files, or process YouTube videos and websites
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
         {/* YouTube Video Links */}
         <Dialog open={showYouTubeDialog} onOpenChange={setShowYouTubeDialog}>
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 dark:hover:bg-stone-800/80  hover:bg-stone-100 cursor-pointer hover:border-stone-300 rounded-lg transition-all duration-200 group"
+              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-card dark:bg-card border border-border hover:bg-muted/50 cursor-pointer hover:border-primary/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -141,28 +142,28 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="size-10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                <img src="/youtube.png" className="size-8" alt="YouTube" />
+              <div className="size-12 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                <Image src="/youtube.png" width={40} height={40} className="size-10" alt="YouTube" />
               </div>
               <div className="flex flex-col items-start">
-                <div className="font-semibold text-base leading-6 text-stone-900 dark:text-stone-100">
+                <div className="font-semibold text-lg leading-6 text-foreground">
                   YouTube Links
                 </div>
-                <div className="font-medium text-sm leading-5 text-stone-500 dark:text-stone-400">
+                <div className="font-medium text-sm leading-5 text-muted-foreground">
                   Extract from videos
                 </div>
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-900 shadow-2xl">
-            <DialogHeader className="border-b border-stone-100 dark:border-stone-800 pb-4">
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-card border border-border shadow-2xl">
+            <DialogHeader className="border-b border-border pb-4">
               <DialogTitle
-                className={`text-left text-xl font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
+                className={`text-left text-xl font-semibold text-card-foreground ${jakarta.className}`}
               >
                 YouTube Transcript & Notes
               </DialogTitle>
               <DialogDescription
-                className={`text-stone-600 dark:text-stone-400 mt-1 ${jakarta.className}`}
+                className={`text-muted-foreground mt-1 ${jakarta.className}`}
               >
                 Extract transcript from YouTube videos and generate AI-powered
                 notes automatically.
@@ -185,7 +186,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 dark:hover:bg-stone-800/80  hover:bg-stone-100 cursor-pointer hover:border-stone-300 rounded-lg transition-all duration-200 group"
+              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-card dark:bg-card border border-border hover:bg-muted/50 cursor-pointer hover:border-primary/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -193,28 +194,28 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="size-10 border border-stone-300 dark:border-stone-700 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200 group-hover:border-red-400 dark:group-hover:border-red-500">
-                <div className="size-4 rounded-full bg-red-500 group-hover:bg-red-600 transition-colors duration-200" />
+              <div className="size-12 border border-border rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200 group-hover:border-red-400">
+                <div className="size-5 rounded-full bg-red-500 group-hover:bg-red-600 transition-colors duration-200" />
               </div>
               <div className="flex flex-col items-start">
-                <div className="font-semibold text-base leading-6 text-stone-900 dark:text-stone-100">
+                <div className="font-semibold text-lg leading-6 text-foreground">
                   Record Audio
                 </div>
-                <div className="font-medium text-sm leading-5 text-stone-500 dark:text-stone-400">
+                <div className="font-medium text-sm leading-5 text-muted-foreground">
                   Live recording
                 </div>
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-2xl">
-            <DialogHeader className="border-b border-stone-100 dark:border-stone-800 pb-4">
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-card border border-border shadow-2xl">
+            <DialogHeader className="border-b border-border pb-4">
               <DialogTitle
-                className={`text-left text-xl font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
+                className={`text-left text-xl font-semibold text-card-foreground ${jakarta.className}`}
               >
                 Record Audio & Generate Notes
               </DialogTitle>
               <DialogDescription
-                className={`text-stone-600 dark:text-stone-400 mt-1 ${jakarta.className}`}
+                className={`text-muted-foreground mt-1 ${jakarta.className}`}
               >
                 Record audio content and automatically generate AI-powered notes
                 from the transcription.
@@ -233,7 +234,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 dark:hover:bg-stone-800/80  hover:bg-stone-100 cursor-pointer hover:border-stone-300 rounded-lg transition-all duration-200 group"
+              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-card dark:bg-card border border-border hover:bg-muted/50 cursor-pointer hover:border-primary/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -241,28 +242,28 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="size-10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                <img src="/pdf.png" className="size-8" alt="PDF" />
+              <div className="size-12 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                <Image src="/pdf.png" width={40} height={40} className="size-10" alt="PDF" />
               </div>
               <div className="flex flex-col items-start">
-                <div className="font-semibold text-base leading-6 text-stone-900 dark:text-stone-100">
+                <div className="font-semibold text-lg leading-6 text-foreground">
                   PDF Documents
                 </div>
-                <div className="font-medium text-sm leading-5 text-stone-500 dark:text-stone-400">
+                <div className="font-medium text-sm leading-5 text-muted-foreground">
                   Upload & extract
                 </div>
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 shadow-2xl">
-            <DialogHeader className="border-b border-stone-100 dark:border-stone-800 pb-4">
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-card border border-border shadow-2xl">
+            <DialogHeader className="border-b border-border pb-4">
               <DialogTitle
-                className={`text-left text-xl font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
+                className={`text-left text-xl font-semibold text-card-foreground ${jakarta.className}`}
               >
                 Upload PDF & Generate Notes
               </DialogTitle>
               <DialogDescription
-                className={`text-stone-600 dark:text-stone-400 mt-1 ${jakarta.className}`}
+                className={`text-muted-foreground mt-1 ${jakarta.className}`}
               >
                 Upload PDF documents and extract content to generate
                 comprehensive AI-powered notes.
@@ -282,7 +283,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-20 px-6 py-4 w-full flex items-center justify-start gap-4 bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 dark:hover:bg-stone-800/80  hover:bg-stone-100 cursor-pointer hover:border-stone-300 rounded-lg transition-all duration-200 group"
+              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-card dark:bg-card border border-border hover:bg-muted/50 cursor-pointer hover:border-primary/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -290,28 +291,28 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="size-10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                <CloudUpload className="size-8 text-stone-600 dark:text-stone-400 group-hover:text-stone-800 dark:group-hover:text-stone-300 transition-colors duration-200" />
+              <div className="size-12 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                <CloudUpload className="size-10 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
               </div>
               <div className="flex flex-col items-start">
-                <div className="font-semibold text-base leading-6 text-stone-900 dark:text-stone-100">
+                <div className="font-semibold text-lg leading-6 text-foreground">
                   Upload Audio
                 </div>
-                <div className="font-medium text-sm leading-5 text-stone-500 dark:text-stone-400">
+                <div className="font-medium text-sm leading-5 text-muted-foreground">
                   From your device
                 </div>
               </div>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 shadow-2xl">
-            <DialogHeader className="border-b border-stone-100 dark:border-stone-800 pb-4">
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-card border border-border shadow-2xl">
+            <DialogHeader className="border-b border-border pb-4">
               <DialogTitle
-                className={`text-left text-xl font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
+                className={`text-left text-xl font-semibold text-card-foreground ${jakarta.className}`}
               >
                 Upload Audio File & Generate Notes
               </DialogTitle>
               <DialogDescription
-                className={`text-stone-600 dark:text-stone-400 mt-1 ${jakarta.className}`}
+                className={`text-muted-foreground mt-1 ${jakarta.className}`}
               >
                 Upload audio files from your device and automatically generate
                 AI-powered notes from the transcription.
@@ -328,15 +329,15 @@ export function NewNoteSection() {
 
       {/* Webpage URL Dialog (Hidden in DOM) */}
       <Dialog open={showWebpageDialog} onOpenChange={setShowWebpageDialog}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden bg-white dark:bg-stone-950 border border-stone-100 dark:border-stone-900 shadow-2xl">
-          <DialogHeader className="border-b border-stone-100 dark:border-stone-800 pb-4">
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden bg-card border border-border shadow-2xl">
+          <DialogHeader className="border-b border-border pb-4">
             <DialogTitle
-              className={`text-left text-xl font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
+              className={`text-left text-xl font-semibold text-card-foreground ${jakarta.className}`}
             >
               Process Webpage & Generate Notes
             </DialogTitle>
             <DialogDescription
-              className={`text-stone-600 dark:text-stone-400 mt-1 ${jakarta.className}`}
+              className={`text-muted-foreground mt-1 ${jakarta.className}`}
             >
               Extract content from any webpage and generate comprehensive
               AI-powered educational notes.
