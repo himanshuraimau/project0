@@ -162,9 +162,9 @@ export function ChaptersReviewStep({
       </div>
 
       <Card className="max-w-4xl mx-auto">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+        <CardHeader className="bg-gradient-to-r from-accent/10 to-accent/20 border-b">
           <CardTitle className="flex items-center space-x-3">
-            <BookOpen className="w-6 h-6 text-blue-600" />
+            <BookOpen className="w-6 h-6 text-accent" />
             <div>
               <h3 className="text-xl font-bold text-gray-900">{courseTitle}</h3>
               <p className="text-sm text-gray-600 font-normal">
@@ -182,7 +182,7 @@ export function ChaptersReviewStep({
             <CardHeader className="bg-gray-50 border-b">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="flex-shrink-0 w-8 h-8 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold">
                     {unitIndex + 1}
                   </div>
                   <div className="flex-1">
@@ -236,7 +236,7 @@ export function ChaptersReviewStep({
                       variant="ghost"
                       size="sm"
                       disabled={isLoading}
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      className="text-accent hover:text-accent/80 hover:bg-accent/10"
                     >
                       <Edit3 className="w-4 h-4" />
                     </Button>
@@ -315,7 +315,7 @@ export function ChaptersReviewStep({
                             variant="ghost"
                             size="sm"
                             disabled={isLoading}
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            className="text-accent hover:text-accent/80 hover:bg-accent/10"
                           >
                             <Edit3 className="w-4 h-4" />
                           </Button>

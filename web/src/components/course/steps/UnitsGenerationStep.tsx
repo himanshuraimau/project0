@@ -268,7 +268,7 @@ export function UnitsGenerationStep({
                           variant="ghost"
                           size="sm"
                           disabled={isLoading}
-                          className="text-stone-600 hover:text-stone-700 cursor-pointer dark:hover:bg-blue-50 hover:bg-blue-50"
+                          className="text-stone-600 hover:text-stone-700 cursor-pointer hover:bg-accent/10"
                         >
                           <Edit3 className="w-4 h-4" />
                         </Button>
@@ -277,7 +277,7 @@ export function UnitsGenerationStep({
                           variant="ghost"
                           size="sm"
                           disabled={isLoading || units.length <= 1}
-                          className="text-red-600 hover:text-red-700 cursor-pointer dark:hover:bg-blue-50 hover:bg-blue-50 disabled:text-stone-400"
+                          className="text-red-600 hover:text-red-700 cursor-pointer hover:bg-red-50 disabled:text-stone-400"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
