@@ -178,31 +178,31 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
 
   // Show generation UI
   return (
-    <div className="space-y-4 h-screen flex items-center justify-center bg-transparent">
+    <div className="h-[92vh] flex items-center justify-center bg-transparent">
       <Card className="bg-transparent border-none">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <h3 className="text-2xl font-medium text-stone-900 dark:text-stone-100 mb-2">
+        <CardContent className="flex flex-col items-center justify-center py-8">
+          <h3 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
             Generate Quiz
           </h3>
-          <p className="text-stone-600 dark:text-stone-400 text-sm text-center mb-6 max-w-md">
+          <p className="text-stone-600 dark:text-stone-400 text-base text-center mb-6 max-w-md">
             Create an interactive quiz from your notes to test your
             understanding and reinforce key concepts.
           </p>
 
           {error && (
-            <div className="text-red-600 text-sm mb-4 text-center">{error}</div>
+            <div className="text-red-600 text-base mb-4 text-center">{error}</div>
           )}
 
           <Button
             onClick={generateQuiz}
             disabled={loading}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-600 cursor-pointer text-white"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-600 cursor-pointer text-white text-base px-6 py-3"
           >
             {loading ? "Generating Quiz..." : "Generate Quiz"}
           </Button>
 
           {loading && (
-            <p className="text-xs text-stone-500 mt-2">
+            <p className="text-sm text-stone-500 mt-2">
               This may take a few moments...
             </p>
           )}
