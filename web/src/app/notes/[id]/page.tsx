@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FlashcardViewer, useFlashcardKeyboard } from "@/components/flashcards";
+import { FlashcardViewer, useFlashcardKeyboard, FlashcardGenerator } from "@/components/flashcards";
 import { QuizGenerator } from "@/components/quiz";
 import {
   PodcastConfigurationModal,
@@ -209,17 +209,7 @@ export default function NoteViewPage() {
   const handleGenerateFlashcard = async () => {
     if (!noteId) return;
 
-    try {
-      setCurrentView("flashcards");
-      const existingFlashcards = await getFlashcards(noteId);
-      if (!existingFlashcards || existingFlashcards.length === 0) {
-        await generateFlashcards(noteId);
-      }
-    } catch (error) {
-      console.error("Error with flashcards:", error);
-      setCurrentView("notes");
-      toast.error("Failed to generate flashcards");
-    }
+    setCurrentView("flashcards");
   };
 
   const handleCloseFlashcards = () => {
@@ -425,30 +415,7 @@ export default function NoteViewPage() {
                 </div>
               )}
 
-              {currentView === "flashcards" && (
-                <div>
-                  {flashcardsLoading && (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-stone-600">
-                        Generating flashcards...
-                      </p>
-                    </div>
-                  )}
-                  {flashcards && flashcards.length > 0 && (
-                    <FlashcardViewer
-                      flashcards={flashcards}
-                      onClose={handleCloseFlashcards}
-                    />
-                  )}
-                  {flashcardsError && (
-                    <div className="text-center text-red-600">
-                      <p className="font-medium">Error generating flashcards</p>
-                      <p className="text-sm mt-1">{flashcardsError}</p>
-                    </div>
-                  )}
-                </div>
-              )}
+              {currentView === "flashcards" && <FlashcardGenerator noteId={noteId} />}
 
               {currentView === "quiz" && <QuizGenerator noteId={noteId} />}
 

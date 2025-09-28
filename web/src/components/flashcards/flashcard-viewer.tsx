@@ -7,25 +7,37 @@ import { FlashcardViewerProps } from "@/lib/types";
 export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   flashcards,
   onClose,
+  onGenerate,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
 
   if (flashcards.length === 0) {
     return (
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Flashcards</span>
-            <Button onClick={onClose} variant="outline" size="sm">
-              <X className="h-4 w-4" />
+      <div className="h-[92vh] flex items-center justify-center bg-transparent">
+        <Card className="bg-transparent border-none">
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <h3 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
+              Generate Flashcards
+            </h3>
+            <p className="text-stone-600 dark:text-stone-400 text-base text-center mb-6 max-w-md">
+              Create interactive flashcards from your notes to enhance memory
+              retention and support active recall learning.
+            </p>
+
+            <Button
+              onClick={onGenerate}
+              className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 cursor-pointer text-white text-base px-6 py-3"
+            >
+              Generate Flashcards
             </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-stone-600">No flashcards available</p>
-        </CardContent>
-      </Card>
+
+            <p className="text-sm text-stone-500 mt-2">
+              This may take a few moments...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 

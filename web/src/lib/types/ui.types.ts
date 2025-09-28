@@ -147,6 +147,7 @@ export interface QuizViewerProps extends BaseComponentProps {
 export interface FlashcardViewerProps extends BaseComponentProps {
   flashcards: FlashcardItem[];
   onClose: () => void;
+  onGenerate?: () => void;
 }
 
 // MDX renderer props
