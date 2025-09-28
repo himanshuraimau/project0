@@ -1,20 +1,17 @@
 import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/dashboard/sidebar";
+import { AppSidebar } from "@/components/shared/AppSidebar";
 import { Toaster } from "sonner";
 import { Navbar } from "@/components/shared/navbar";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className={`
-        flex-1 h-full bg-white dark:bg-stone-950 overflow-y-scroll
-        transition-all duration-300 ease-in-out
-      `}
-    >
-      <div className="">
+    <div className="flex-1 min-h-screen bg-background overflow-y-auto">
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <Navbar title="Dashboard" />
-        <div className="transition-all duration-300">{children}</div>
+      </div>
+      <div className="px-6 py-6 sm:px-8 lg:px-12">
+        {children}
       </div>
     </div>
   );
@@ -26,9 +23,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen bg-stone-50 dark:bg-stone-950">
+    <div className="min-h-screen bg-background">
       <SidebarProvider defaultOpen={true}>
-        <div className="flex flex-1 h-full">
+        <div className="flex min-h-screen">
           <AppSidebar />
           <DashboardContent>
             {children}

@@ -167,7 +167,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
           <LexicalViewer
             content={chapterData.notes}
             title={chapterData.name}
-            showToolbar={true}
+            showToolbar={false}
             minHeight="400px"
           />
         </div>
