@@ -384,7 +384,7 @@ export default function NoteViewPage() {
                 <Navbar title="Notes" />
               </div>
               <main className="flex-1">
-                <div className="bg-stone-50 dark:bg-stone-950/50 border-none px-6">
+                <div className="bg-stone-50 dark:bg-stone-950/50 border-none">
                   {/* Content based on current view */}
               {currentView === "notes" && <ViewNote note={note} />}
 
@@ -453,7 +453,7 @@ export default function NoteViewPage() {
               {currentView === "quiz" && <QuizGenerator noteId={noteId} />}
 
               {currentView === "chat" && (
-                <Card className="border-0 overflow-hidden h-screen flex flex-col bg-transparent">
+                <Card className="border-0 overflow-hidden h-[90vh] flex flex-col bg-transparent">
                   <CardHeader className="p-5 border-b border-stone-100 dark:border-stone-900 bg-muted/5">
                     <div className="flex items-center gap-4">
                       <CardTitle className="font-normal">
