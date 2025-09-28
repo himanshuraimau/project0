@@ -10,14 +10,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur">
         <Navbar title="Dashboard" />
       </div>
-      <div className="flex">
-        {/* Content area with full width utilization */}
-        <main className="flex-1 px-6 py-8 lg:px-12 xl:px-16">
-          <div className="max-w-none w-full">
-            {children}
-          </div>
-        </main>
-      </div>
+      {/* Content area with full width utilization */}
+      <main className="flex-1 px-6 py-8">
+        <div className="max-w-none w-full">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

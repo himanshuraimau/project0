@@ -131,14 +131,14 @@ export function CourseCreationWizard({
 
   return (
     <ErrorBoundary>
-      <div className="max-w-6xl mx-auto mt-10 p-6">
+      <div className="w-full">
         {/* Back button */}
         {canGoBack && (
-          <div className="mb-4">
+          <div className="mb-6">
             <Button
               onClick={goBack}
               variant="ghost"
-              className="text-stone-600 hover:text-stone-800"
+              className="text-muted-foreground hover:text-foreground"
               disabled={isGeneratingUnits || isGeneratingChapters || isSaving}
             >
               ← Back
@@ -153,33 +153,33 @@ export function CourseCreationWizard({
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
                   currentStep === "title"
-                    ? "bg-stone-800 text-white shadow-lg scale-110"
+                    ? "bg-accent text-accent-foreground shadow-lg scale-110"
                     : ["units", "chapters"].includes(currentStep)
-                    ? "bg-stone-800 text-white"
-                    : "bg-stone-300 text-stone-600"
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
                 {["units", "chapters"].includes(currentStep) ? (
                   "✓"
                 ) : (
-                  <span className="size-4 rounded-3xl bg-stone-400"></span>
+                  <span className="size-4 rounded-3xl bg-accent/60"></span>
                 )}
               </div>
-              <p className="text-sm text-stone-600 mt-1">Step 1</p>
+              <p className="text-sm text-muted-foreground mt-1">Step 1</p>
               <div>
                 <span
                   className={`text-lg font-semibold transition-colors duration-300 ${
                     currentStep === "title"
-                      ? "text-stone-800"
+                      ? "text-foreground"
                       : ["units", "chapters"].includes(currentStep)
-                      ? "text-stone-600"
-                      : "text-stone-500"
+                      ? "text-muted-foreground"
+                      : "text-muted-foreground/60"
                   }`}
                 >
                   Course Title
                 </span>
                 {courseTitle && (
-                  <p className="text-xs text-stone-500 truncate max-w-32">
+                  <p className="text-xs text-muted-foreground truncate max-w-32">
                     {courseTitle}
                   </p>
                 )}
@@ -190,8 +190,8 @@ export function CourseCreationWizard({
             <div
               className={`flex-1 h-0.5 mx-2 transition-colors duration-300  ${
                 ["units", "chapters"].includes(currentStep)
-                  ? "bg-stone-800"
-                  : "bg-stone-600"
+                  ? "bg-accent"
+                  : "bg-muted"
               }`}
             />
 
@@ -200,34 +200,34 @@ export function CourseCreationWizard({
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
                   currentStep === "units"
-                    ? "bg-stone-300 text-white shadow-lg scale-110"
+                    ? "bg-accent text-accent-foreground shadow-lg scale-110"
                     : currentStep === "chapters"
-                    ? "bg-stone-800 text-white"
-                    : "bg-gray-300 text-stone-600"
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
                 {currentStep === "chapters" ? (
                   "✓"
                 ) : (
-                  <span className="size-4 rounded-3xl bg-stone-800"></span>
+                  <span className="size-4 rounded-3xl bg-accent/60"></span>
                 )}
               </div>
-              <p className="text-sm text-stone-600 mt-1">Step 2</p>
+              <p className="text-sm text-muted-foreground mt-1">Step 2</p>
 
               <div>
                 <span
                   className={`text-lg font-semibold transition-colors duration-300 ${
                     currentStep === "units"
-                      ? "text-stone-800"
+                      ? "text-foreground"
                       : currentStep === "chapters"
-                      ? "text-stone-800"
-                      : "text-gray-500"
+                      ? "text-muted-foreground"
+                      : "text-muted-foreground/60"
                   }`}
                 >
                   Generate Units
                 </span>
                 {units.length > 0 && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     {units.length} units created
                   </p>
                 )}
@@ -237,7 +237,7 @@ export function CourseCreationWizard({
             {/* Connector line */}
             <div
               className={`flex-1 h-0.5 mx-2  transition-colors duration-300 ${
-                currentStep === "chapters" ? "bg-stone-800" : "bg-gray-300"
+                currentStep === "chapters" ? "bg-accent" : "bg-muted"
               }`}
             />
 
@@ -246,25 +246,25 @@ export function CourseCreationWizard({
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
                   currentStep === "chapters"
-                    ? "bg-stone-400 text-white shadow-lg scale-110"
-                    : "bg-stone-300 text-stone-600"
+                    ? "bg-accent text-accent-foreground shadow-lg scale-110"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
-                <span className="size-4 rounded-3xl bg-stone-800"></span>
+                <span className="size-4 rounded-3xl bg-accent/60"></span>
               </div>
-              <p className="text-sm text-stone-600 mt-1">Step 3</p>
+              <p className="text-sm text-muted-foreground mt-1">Step 3</p>
               <div>
                 <span
                   className={`text-lg font-semibold transition-colors duration-300 ${
                     currentStep === "chapters"
-                      ? "text-stone-800"
-                      : "text-stone-500"
+                      ? "text-foreground"
+                      : "text-muted-foreground/60"
                   }`}
                 >
                   Review
                 </span>
                 {chapters.length > 0 && (
-                  <p className="text-xs text-stone-500">
+                  <p className="text-xs text-muted-foreground">
                     {chapters.reduce(
                       (total, unit) => total + unit.chapters.length,
                       0
@@ -300,7 +300,7 @@ export function CourseCreationWizard({
 
         {/* Recovery Banner */}
         {showRecoveryBanner && hasRecoveryData && recoveryStateSummary && (
-          <div className="max-w-4xl mx-auto mb-6">
+          <div className="w-full mx-auto mb-6">
             <RecoveryBanner
               stateSummary={recoveryStateSummary}
               onRestore={handleRestoreRecovery}
@@ -311,7 +311,7 @@ export function CourseCreationWizard({
 
         {/* Error Display */}
         {errorState.hasError && errorState.error && (
-          <div className="max-w-4xl mx-auto mb-6">
+          <div className="w-full mx-auto mb-6">
             <ErrorMessage
               error={errorState.error}
               onRetry={
@@ -326,7 +326,7 @@ export function CourseCreationWizard({
         )}
 
         {/* Step content */}
-        <div className="bg-white dark:bg-stone-900/50 border border-stone-100 dark:border-stone-900 mt-16 rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-card/60 backdrop-blur-sm border border-border/60 rounded-2xl shadow-sm overflow-hidden w-full">
           <div className="relative">
             <div
               className={`transition-all duration-500 ease-in-out ${
