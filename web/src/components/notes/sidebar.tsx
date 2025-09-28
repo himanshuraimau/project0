@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   FileText,
@@ -79,6 +80,7 @@ export function NotesSidebar({
   mindmapLoading,
 }: NotesSidebarProps) {
   const { state, toggleSidebar } = useSidebar();
+  const router = useRouter();
   const isCollapsed = state === "collapsed";
 
   const menuItems = [
@@ -203,9 +205,10 @@ export function NotesSidebar({
               <div className="flex flex-col">
                 <span
                   className={cn(
-                    " font-medium text-stone-900 dark:text-stone-100",
+                    " font-medium text-stone-900 dark:text-stone-100 cursor-pointer hover:text-blue-600 transition-colors duration-200",
                     jakarta.className
                   )}
+                  onClick={() => router.push('/dashboard')}
                 >
                   SonicLearn
                 </span>

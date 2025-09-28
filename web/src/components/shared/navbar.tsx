@@ -29,7 +29,7 @@ export function Navbar({ title, className = "" }: NavbarProps) {
 
   return (
     <div
-      className={`${jakarta.className} py-6 flex bg-background items-center justify-between px-6 transition-all duration-300 ${className}`}
+      className={`${jakarta.className} py-4 flex bg-background items-center justify-between px-6 transition-all duration-300 ${className}`}
     >
       <div className="flex items-center gap-4">
         <h1 className="text-xl font-semibold text-foreground">
