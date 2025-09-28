@@ -210,7 +210,7 @@ const ConfirmChapters = ({ course }: Props) => {
           {/* Progress Display */}
           {loading && (
             <div className="ml-4 mr-4 text-center">
-              <div className="text-sm font-medium text-blue-600">
+              <div className="text-sm font-medium text-accent">
                 Generating Course Content...
               </div>
               <div className="text-xs text-gray-500">
@@ -221,11 +221,11 @@ const ConfirmChapters = ({ course }: Props) => {
               </div>
               <div className="w-48 bg-gray-200 rounded-full h-2 mt-1">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                  className="bg-accent h-2 rounded-full transition-all duration-300" 
                   style={{ width: `${(processedCount / totalChaptersCount) * 100}%` }}
                 />
               </div>
-              <div className="text-xs text-blue-500 mt-1">
+              <div className="text-xs text-accent/80 mt-1">
                 Processing 4 chapters at a time
               </div>
             </div>

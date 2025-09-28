@@ -132,10 +132,10 @@ export function TitleInputStep({
 
       {title && !isLoading && (
         <div className="mt-8 ">
-          <p className="text-blue-800 dark:text-blue-500">
+          <p className="text-accent dark:text-accent">
             Course: <span className="font-medium">{title}</span>
           </p>
-          <p className="text-sm text-blue-600 dark:text-blue-400">
+          <p className="text-sm text-accent/80 dark:text-accent/80">
             AI will generate 5-7 relevant units for this course topic.
           </p>
         </div>

@@ -80,7 +80,7 @@ const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
         key={chapter.id}
         className={cn("px-4 py-2 mt-2 rounded flex justify-between cursor-pointer hover:opacity-80 transition-opacity", {
           "bg-secondary": success === null && !isCurrentlyProcessing && !hasFailed,
-          "bg-blue-100 border-2 border-blue-400": isCurrentlyProcessing,
+          "bg-accent/20 border-2 border-accent": isCurrentlyProcessing,
           "bg-red-500": success === false || hasFailed,
           "bg-green-500": success === true,
         })}
@@ -99,7 +99,7 @@ const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
         <div className="flex items-center gap-2">
           <h5>{chapter.name}</h5>
           {isCurrentlyProcessing && (
-            <span className="text-xs text-blue-600 font-medium">Processing...</span>
+            <span className="text-xs text-accent font-medium">Processing...</span>
           )}
           {hasFailed && (
             <span className="text-xs text-white font-medium">Failed - Click to retry</span>
