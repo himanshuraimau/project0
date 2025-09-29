@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { NoteService } from '@/lib/note-service';
 import { prisma } from '@/lib/prisma';
 import { ApiErrorResponse, ApiSuccessResponse } from '@/lib/types';
-import { Podcast } from '@/lib/types/podcast.types';
+import { Podcast, PodcastSegment } from '@/lib/types/podcast.types';
 
 const noteService = new NoteService();
 
@@ -48,6 +48,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Pa
       where: {
         noteId: noteId
       },
+      include: {
+        segments: {
+          orderBy: {
+            sequenceOrder: 'asc'
+          }
+        }
+      },
       orderBy: {
         createdAt: 'desc' // Get the most recent podcast if multiple exist
       }
@@ -78,12 +85,25 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Pa
       host2VoiceName: podcast.host2VoiceName,
       customInstructions: podcast.customInstructions || undefined,
       audioUrl: podcast.audioUrl || undefined,
-      transcriptData: podcast.transcriptData as any || undefined,
+      transcriptData: podcast.transcriptData ? JSON.parse(JSON.stringify(podcast.transcriptData)) : undefined,
       generationStatus: podcast.generationStatus as 'pending' | 'generating' | 'completed' | 'failed',
       generationError: podcast.generationError || undefined,
       createdAt: podcast.createdAt,
       updatedAt: podcast.updatedAt
     };
+
+    // Transform segments to match PodcastSegment interface
+    const segments: PodcastSegment[] = podcast.segments.map(segment => ({
+      id: segment.id,
+      podcastId: segment.podcastId,
+      speaker: segment.speaker as 'host1' | 'host2',
+      content: segment.content,
+      startTime: segment.startTime ? Number(segment.startTime) : undefined,
+      endTime: segment.endTime ? Number(segment.endTime) : undefined,
+      audioUrl: segment.audioUrl || undefined,
+      sequenceOrder: segment.sequenceOrder,
+      createdAt: segment.createdAt
+    }));
 
     // Add caching headers for completed podcasts
     const headers: Record<string, string> = {};
@@ -104,7 +124,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Pa
 
     const response: ApiSuccessResponse = {
       success: true,
-      data: podcastData
+      data: {
+        podcast: podcastData,
+        segments: segments
+      }
     };
 
     return NextResponse.json(response, { headers });
@@ -180,6 +203,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const response: ApiSuccessResponse = {
       success: true,
+      data: null,
       message: 'Podcast deleted successfully'
     };
 

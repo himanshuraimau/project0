@@ -1,13 +1,13 @@
 import { NextRequest } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { openai } from '@ai-sdk/openai';
+import { streamText } from 'ai';
 import { z } from 'zod';
 import { queryChapterSimilarChunks } from '@/lib/course/chapter-embedding-service';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
 // Environment variables
-const CHAT_MODEL = process.env.CHAT_MODEL || 'models/gemini-pro';
-const API_KEY = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.OPENAI_API_KEY || process.env.VERCEL_AI_API_KEY;
+const CHAT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
 // Validation schema for the request body
 const RequestSchema = z.object({
@@ -16,13 +16,14 @@ const RequestSchema = z.object({
   topK: z.number().int().positive().default(6).optional(),
 });
 
-// Initialize the Google AI client
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || API_KEY || '');
+interface ChunkResult {
+  chunk_text: string;
+}
 
 /**
  * Maps our embedding service results to the format expected by createContextString
  */
-function mapChunkResults(results: any[]): Array<{ chunkText: string }> {
+function mapChunkResults(results: ChunkResult[]): Array<{ chunkText: string }> {
   return results.map((result) => ({
     chunkText: result.chunk_text
   }));
@@ -53,55 +54,39 @@ function createContextString(chunks: Array<{ chunkText: string }>): string {
 }
 
 /**
- * Generates a streaming response from the model
+ * Generates a streaming response from OpenAI using the AI SDK
  */
 async function generateResponse(context: string, question: string, chapterName: string) {
-  try {
-    // Use GoogleGenerativeAI with ReadableStream conversion
-    const model = genAI.getGenerativeModel({ model: CHAT_MODEL });
-    
-    const systemPrompt = `You are an AI teaching assistant for the chapter "${chapterName}". 
-    You must ONLY use information from the provided chapter context (notes and transcript). 
-    If the context doesn't contain the information needed to answer the question, say "I don't have that information in this chapter content." 
-    
-    Your role is to help students understand the chapter content by:
-    1. Answering questions based on the chapter's notes and transcript
-    2. Explaining concepts in a clear, educational manner
-    3. Providing examples and clarifications when needed
-    4. Encouraging deeper learning and critical thinking
-    
-    Provide clear, helpful answers based on the context without including any source references or citations.
-    
-    DO NOT make up information or hallucinate facts not present in the context.`;
+  const systemPrompt = `You are an AI teaching assistant for the chapter "${chapterName}". 
+  You must ONLY use information from the provided chapter context (notes and transcript). 
+  If the context doesn't contain the information needed to answer the question, say "I don't have that information in this chapter content." 
+  
+  Your role is to help students understand the chapter content by:
+  1. Answering questions based on the chapter's notes and transcript
+  2. Explaining concepts in a clear, educational manner
+  3. Providing examples and clarifications when needed
+  4. Encouraging deeper learning and critical thinking
+  
+  Provide clear, helpful answers based on the context without including any source references or citations.
+  
+  DO NOT make up information or hallucinate facts not present in the context.`;
 
-    // Create a generative response with stream option
-    const result = await model.generateContentStream({
-      contents: [
-        { role: 'user', parts: [{ text: systemPrompt }] },
-        { role: 'user', parts: [{ text: `Context:\n${context}\n\nQuestion: ${question}` }] }
-      ],
-    });
-    
-    // Convert to a ReadableStream
-    return new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of result.stream) {
-            const text = chunk.text();
-            if (text) {
-              controller.enqueue(new TextEncoder().encode(text));
-            }
-          }
-          controller.close();
-        } catch (error) {
-          controller.error(error);
-        }
+  const result = await streamText({
+    model: openai(CHAT_MODEL),
+    messages: [
+      {
+        role: 'system',
+        content: systemPrompt
+      },
+      {
+        role: 'user',
+        content: `Context:\n${context}\n\nQuestion: ${question}`
       }
-    });
-  } catch (error) {
-    console.error('Error generating response:', error);
-    throw error;
-  }
+    ],
+    temperature: 0.7,
+  });
+
+  return result.toTextStreamResponse();
 }
 
 /**
@@ -157,16 +142,10 @@ export async function POST(
     const context = createContextString(mappedChunks);
     
     // Generate a streaming response
-    const stream = await generateResponse(context, message, chapter.name);
+    const response = await generateResponse(context, message, chapter.name);
     
-    // Return the streaming response
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache, no-transform',
-        'X-Content-Type-Options': 'nosniff',
-      },
-    });
+    // Return the streaming response from AI SDK
+    return response;
   } catch (error) {
     console.error('Error handling chapter chatbot request:', error);
     

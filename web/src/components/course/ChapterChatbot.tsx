@@ -145,8 +145,8 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
           )
         );
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
         // Handle aborted request
         setMessages(prev => 
           prev.map(msg => 
@@ -157,7 +157,8 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
         );
       } else {
         // Handle other errors
-        setError(err.message || 'An error occurred');
+        const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+        setError(errorMessage);
         setMessages(prev => 
           prev.filter(msg => msg.id !== assistantMessageId)
         );
@@ -181,26 +182,26 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
   };
 
   return (
-    <div className="flex flex-col h-[600px] bg-background border rounded-lg">
+    <div className="flex flex-col h-[600px] bg-background border rounded-lg shadow-sm">
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b bg-muted/50">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <Bot className="w-4 h-4 text-primary" />
+      <div className="flex items-center gap-3 p-6 border-b bg-muted/30 rounded-t-lg">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+          <Bot className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h3 className="font-semibold text-sm">Chapter Assistant</h3>
-          <p className="text-xs text-muted-foreground">{chapterName}</p>
+          <h3 className="font-semibold text-base">Chapter Assistant</h3>
+          <p className="text-sm text-muted-foreground">{chapterName}</p>
         </div>
       </div>
       
       {/* Messages container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <Bot className="h-12 w-12 text-primary/50 mb-4" />
             <h3 className="text-xl font-semibold mb-2">How can I help you?</h3>
             <p className="text-muted-foreground">
-              Ask me about this chapter and I'll try to answer your questions.
+              Ask me about this chapter and I&apos;ll try to answer your questions.
             </p>
           </div>
         ) : (
@@ -208,7 +209,7 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
             <div
               key={message.id}
               className={cn(
-                "flex items-start gap-3",
+                "flex items-start gap-4",
                 message.role === 'user' ? "justify-end" : "justify-start"
               )}
             >
@@ -217,7 +218,7 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
                   <Bot size={16} className="text-primary" />
                 </div>
               )}
-              <div className="space-y-2 max-w-[80%]">
+              <div className="space-y-2 max-w-[75%]">
                 <Card className={cn(
                   "rounded-2xl px-4 py-3",
                   message.role === 'user' 
@@ -225,7 +226,7 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
                     : "bg-muted border-0"
                 )}>
                   <div className="space-y-2">
-                    <div className="whitespace-pre-wrap">{message.text}</div>
+                    <div className="whitespace-pre-wrap leading-relaxed">{message.text}</div>
                     {message.role === 'assistant' && message.text && (
                       <div className="flex justify-end">
                         <Button
@@ -270,7 +271,7 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
       </div>
       
       {/* Input form */}
-      <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2">
+      <form onSubmit={handleSubmit} className="p-6 border-t bg-muted/10 rounded-b-lg flex gap-3">
         <Input
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
@@ -280,7 +281,7 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
           }}
           placeholder="Ask a question about this chapter..."
           disabled={isStreaming}
-          className="flex-1 rounded-2xl border-2 border-muted focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0"
+          className="flex-1 rounded-2xl border-2 border-muted py-3 px-4 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0"
         />
         
         {isStreaming ? (
@@ -288,7 +289,7 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
             type="button" 
             variant="destructive" 
             onClick={abortStream}
-            className="rounded-full px-4"
+            className="rounded-full px-4 py-3"
           >
             <Loader2 className="animate-spin" size={18} />
           </Button>
@@ -296,7 +297,7 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
           <Button 
             type="submit" 
             disabled={!inputValue.trim()}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-4"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-4 py-3"
           >
             <Send size={18} />
           </Button>

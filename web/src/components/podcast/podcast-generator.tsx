@@ -26,6 +26,7 @@ interface PodcastGeneratorProps {
 
 export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
   const [podcast, setPodcast] = useState<Podcast | null>(null);
+  const [segments, setSegments] = useState<PodcastSegment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPodcastConfig, setShowPodcastConfig] = useState(false);
@@ -52,7 +53,8 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
       }
 
       if (data.success) {
-        setPodcast(data.data);
+        // Fetch the updated podcast with segments
+        fetchExistingPodcast();
         toast.success("Podcast generated successfully!");
       } else {
         throw new Error(data.error || "Failed to generate podcast");
@@ -75,7 +77,8 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
-          setPodcast(data.data);
+          setPodcast(data.data.podcast);
+          setSegments(data.data.segments || []);
         }
         // Don't automatically show config modal - let user click Generate button
       }
@@ -101,6 +104,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
       }
 
       setPodcast(null);
+      setSegments([]);
       toast.success("Podcast deleted successfully");
     } catch (error) {
       console.error("Error deleting podcast:", error);
@@ -118,9 +122,9 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
   // If we have a podcast, show the player
   if (podcast && podcast.audioUrl) {
     return (
-      <div className="space-y-4 px-6 py-4 mx-4 my-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Podcast</h2>
+      <div className="h-screen flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Podcast</h2>
           <div className="flex items-center gap-2">
             <Button
               onClick={() => setShowPodcastConfig(true)}
@@ -164,17 +168,30 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
           </div>
         </div>
 
-        <PodcastWithTranscript
-          podcast={podcast}
-          segments={[]} // You might need to fetch segments separately
-        />
+        <div className="flex-1">
+          <PodcastWithTranscript
+            podcast={podcast}
+            segments={segments}
+          />
+        </div>
 
         {showPodcastConfig && (
-          <PodcastConfigurationInline
-            noteId={noteId}
-            onGenerate={generatePodcast}
-            loading={loading}
-          />
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+              <PodcastConfigurationInline
+                noteId={noteId}
+                onGenerate={generatePodcast}
+                loading={loading}
+              />
+              <Button
+                onClick={() => setShowPodcastConfig(false)}
+                variant="outline"
+                className="mt-4 w-full"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     );
