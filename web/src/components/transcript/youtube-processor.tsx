@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 const jakarta = Plus_Jakarta_Sans({
   weight: "200",
+  subsets: ["latin"],
 });
 import { Input } from "@/components/ui/input";
 import {

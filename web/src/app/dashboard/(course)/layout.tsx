@@ -12,6 +12,7 @@ import { ArrowLeft } from "lucide-react";
 
 const jakarta = Plus_Jakarta_Sans({
   weight: "600",
+  subsets: ["latin"],
 });
 
 interface CourseData {

@@ -156,7 +156,8 @@ export function VoiceSelectionInterface({
       if (!audio) {
         // Generate preview audio
         const previewBuffer = await elevenLabsService.getVoicePreview(voiceId)
-        const blob = new Blob([previewBuffer], { type: 'audio/mpeg' })
+        const uint8Array = new Uint8Array(previewBuffer)
+        const blob = new Blob([uint8Array], { type: 'audio/mpeg' })
         const audioUrl = URL.createObjectURL(blob)
         
         audio = new Audio(audioUrl)

@@ -4,7 +4,10 @@ import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Check, ChevronRight, Circle } from "lucide-react";
 import { Plus_Jakarta_Sans } from "next/font/google";
-const jakarta = Plus_Jakarta_Sans({ weight: "200" });
+const jakarta = Plus_Jakarta_Sans({ 
+  weight: "200",
+  subsets: ["latin"],
+});
 import { cn } from "@/lib/utils";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;

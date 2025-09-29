@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
                 break;
             
             case 'temp':
-                result = await storageManagementService.cleanupTemporaryFiles(tempFileAge);
+                result = await storageManagementService.cleanupOldFiles(tempFileAge);
                 break;
             
             case 'old':

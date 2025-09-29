@@ -157,7 +157,7 @@ export class StorageCleanupScheduler {
      */
     private async runTempFileCleanup(): Promise<void> {
         try {
-            const result = await storageManagementService.cleanupTemporaryFiles(6);
+            const result = await storageManagementService.cleanupOldFiles(6);
             console.log('Temp file cleanup completed:', {
                 filesDeleted: result.filesDeleted,
                 spaceFreed: this.formatBytes(result.spaceFreed)

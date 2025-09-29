@@ -330,7 +330,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     // Note: UploadThing files are managed in the cloud and don't need explicit deletion
     // from this API route. They can be managed separately through UploadThing dashboard.
 
-    const response: ApiSuccessResponse = {
+    const response = {
       success: true,
       message: 'Podcast deleted successfully'
     };

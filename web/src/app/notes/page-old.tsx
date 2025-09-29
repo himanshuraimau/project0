@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNotes } from "@/hooks/use-notes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,16 +12,16 @@ export default function NotesPage() {
   const { getNotes, loading } = useNotes();
   const [notes, setNotes] = useState<Note[]>([]);
 
-  useEffect(() => {
-    const fetchNotes = async () => {
-      const fetchedNotes = await getNotes();
-      if (fetchedNotes) {
-        setNotes(fetchedNotes);
-      }
-    };
-
-    fetchNotes();
+  const fetchNotes = useCallback(async () => {
+    const fetchedNotes = await getNotes();
+    if (fetchedNotes) {
+      setNotes(fetchedNotes);
+    }
   }, [getNotes]);
+
+  useEffect(() => {
+    fetchNotes();
+  }, [fetchNotes]);
 
   if (loading) {
     return (

@@ -298,10 +298,7 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({
   host1Name = 'Host 1',
   host2Name = 'Host 2'
 }) => {
-  // Show skeleton if segments are not available
-  if (!segments || segments.length === 0) {
-    return <TranscriptViewerSkeleton />;
-  }
+  // Initialize all hooks first
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(-1);
@@ -318,7 +315,7 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({
     includeSpeakerNames: true
   });
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   // Generate topics from segments using advanced extraction
   const topics = useMemo(() => extractTopicsAdvanced(segments), [segments]);
   
@@ -334,6 +331,11 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({
     setSearchResults(results);
     setCurrentSearchIndex(results.length > 0 ? 0 : -1);
   }, [searchTerm, segments, searchOptions]);
+
+  // Show skeleton if segments are not available
+  if (!segments || segments.length === 0) {
+    return <TranscriptViewerSkeleton />;
+  }
   
   // Navigate search results
   const navigateSearch = (direction: 'next' | 'prev') => {

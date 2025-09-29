@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNotes } from "@/hooks/use-notes";
 import { Note } from "@/lib/types";
 import { NoteCard } from "./note-card";
@@ -30,17 +30,17 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Load notes on component mount
-  useEffect(() => {
-    loadNotes();
-  }, [transcriptId, searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadNotes = async () => {
+  const loadNotes = useCallback(async () => {
     const result = await getNotes(transcriptId);
     if (result) {
       setNotes(result);
     }
-  };
+  }, [transcriptId, getNotes]);
+
+  // Load notes on component mount
+  useEffect(() => {
+    loadNotes();
+  }, [loadNotes, searchQuery]);
 
   const handleDeleteNote = (id: string) => {
     setNoteToDelete(id);

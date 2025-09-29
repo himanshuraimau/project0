@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { 
   Note, 
   ProcessPDFResult, 
@@ -178,7 +178,7 @@ export function useNotes() {
   };
 
   // Get all notes for the current user
-  const getNotes = async (transcriptId?: string): Promise<Note[] | null> => {
+  const getNotes = useCallback(async (transcriptId?: string): Promise<Note[] | null> => {
     setLoading(true);
     setError(null);
 
@@ -224,7 +224,7 @@ export function useNotes() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Get a specific note by ID
   const getNote = async (id: string): Promise<Note | null> => {

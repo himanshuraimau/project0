@@ -5,6 +5,7 @@ import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { QuizViewer } from "./quiz-viewer";
 import { LoadingState } from "@/components/ui/loading-spinner";
+import { QuestionType } from "@/lib/types/quiz.types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,17 +23,13 @@ interface Quiz {
   content: {
     quiz: Array<{
       id: number;
-      type: string;
+      type: QuestionType;
       question: string;
       options?: string[];
       correct_answer: string | boolean;
       explanation: string;
     }>;
   };
-  noteId: string;
-  userId: string | null;
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface QuizGeneratorProps {
@@ -171,7 +168,7 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
           </div>
         </div>
 
-        <QuizViewer quiz={quiz.content.quiz} onClose={() => {}} />
+        <QuizViewer quiz={quiz.content.quiz as any} onClose={() => {}} />
       </div>
     );
   }

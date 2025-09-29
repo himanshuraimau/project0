@@ -10,6 +10,7 @@ import { ChevronLeft } from "lucide-react";
 
 const jakarta = Plus_Jakarta_Sans({
   weight: "600",
+  subsets: ["latin"],
 });
 
 interface NavbarProps {
