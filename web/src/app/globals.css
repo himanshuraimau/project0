@@ -75,8 +75,8 @@
   --card-foreground: oklch(0 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0 0 0);
-  --primary: oklch(0.5106 0.2301 276.9656);
-  --primary-foreground: oklch(1 0 0);
+  --primary: oklch(0.7686 0.1647 70.0804);
+  --primary-foreground: oklch(0 0 0);
   --secondary: oklch(0.7038 0.123 182.5025);
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.9551 0 0);
@@ -136,7 +136,7 @@
   --card-foreground: oklch(1 0 0);
   --popover: oklch(0.2455 0.0217 257.2823);
   --popover-foreground: oklch(1 0 0);
-  --primary: oklch(0.6801 0.1583 276.9349);
+  --primary: oklch(0.879 0.1534 91.6054);
   --primary-foreground: oklch(0 0 0);
   --secondary: oklch(0.7845 0.1325 181.912);
   --secondary-foreground: oklch(0 0 0);
@@ -235,6 +235,66 @@
     50% {
       transform: translateY(-10px);
     }
+  }
+
+  /* Enhanced card animations */
+  .card-hover {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Loading spinner with brand color */
+  .loader-accent {
+    border-color: hsl(var(--accent) / 0.2);
+    border-top-color: hsl(var(--accent));
+  }
+
+  /* Enhanced prose styling */
+  .prose-enhanced h1,
+  .prose-enhanced h2,
+  .prose-enhanced h3 {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .prose-enhanced h1 {
+    border-bottom: 2px solid hsl(var(--accent) / 0.2);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .prose-enhanced p {
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .prose-enhanced ul,
+  .prose-enhanced ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .prose-enhanced li {
+    margin-bottom: 0.5rem;
+  }
+
+  /* Button enhancements */
+  .btn-accent {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  .btn-accent:hover {
+    background-color: hsl(var(--accent) / 0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px hsl(var(--accent) / 0.3);
   }
 
   /* Accordion animations */

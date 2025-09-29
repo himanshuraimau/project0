@@ -207,7 +207,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
                   }, 100); // Small delay to ensure the form is rendered
                 }}
                 disabled={loading}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 cursor-pointer text-white text-base px-6 py-3"
+                className="flex items-center gap-2 bg-accent hover:bg-accent/90 cursor-pointer text-accent-foreground text-base px-6 py-3 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
               >
                 <Brain className="h-4 w-4" />
                 Generate Podcast
