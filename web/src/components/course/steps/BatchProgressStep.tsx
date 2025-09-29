@@ -35,7 +35,7 @@ export function BatchProgressStep({
 
     const processNextIfReady = async () => {
       if (batchState.currentBatchIndex < batchState.totalBatches && 
-          batchState.processingUnits.length === 0) {
+          batchState.processingChapters.length === 0) {
         try {
           await onProcessNextBatch();
         } catch (error) {
@@ -54,7 +54,7 @@ export function BatchProgressStep({
   }, [
     batchState.currentBatchIndex, 
     batchState.isProcessing, 
-    batchState.processingUnits.length,
+    batchState.processingChapters.length,
     batchState.totalBatches,
     errorState.hasError,
     onProcessNextBatch,
