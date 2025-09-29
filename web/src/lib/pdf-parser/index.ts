@@ -1,4 +1,4 @@
-import { writeFile, readFile, unlink, mkdir } from 'fs/promises';
+import { writeFile, unlink, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { DocumentService } from '../document-service';
@@ -45,19 +45,6 @@ export class PDFParser {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error occurred';
       throw new Error(`PDF parsing failed: ${message}`);
-    }
-  }
-
-  /**
-   * Extract text from PDF file path
-   */
-  async parseFromFile(filePath: string, options: PDFParseOptions = {}): Promise<PDFParseResult> {
-    try {
-      const buffer = await readFile(filePath);
-      return await this.parseFromBuffer(buffer, options);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
-      throw new Error(`Failed to read PDF file: ${message}`);
     }
   }
 
