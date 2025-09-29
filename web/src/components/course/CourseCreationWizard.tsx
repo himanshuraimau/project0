@@ -43,6 +43,8 @@ export function CourseCreationWizard({
     discardRecoveryData,
     processNextBatch,
     resetBatchState,
+    generateChaptersBatchwise,
+    savedCourseId,
     reset,
   } = useCourseCreationStore();
 
@@ -125,11 +127,17 @@ export function CourseCreationWizard({
 
   const handleSaveCourse = async () => {
     try {
+      // First save the course structure to the database
       const courseId = await saveCourseWithRetry();
-      onComplete(courseId);
+      
+      // Then start batch content generation
+      setStep('content-generation');
+      await generateChaptersBatchwise();
+      
+      // Navigation will happen in handleBatchComplete after content generation
     } catch (error) {
       // Error is already handled by the store and displayed via errorState
-      console.error("Failed to save course:", error);
+      console.error("Failed to save course or generate content:", error);
     }
   };
 
@@ -145,7 +153,14 @@ export function CourseCreationWizard({
 
   const handleBatchComplete = () => {
     resetBatchState();
-    setStep('chapters');
+    // Navigate to the course when batch processing is complete
+    if (savedCourseId) {
+      onComplete(savedCourseId);
+    } else {
+      console.error("No course ID available for navigation");
+      // Fallback - this shouldn't happen in normal flow
+      onComplete("course-ready");
+    }
   };
 
   const handleBatchRetry = () => {
@@ -389,10 +404,10 @@ export function CourseCreationWizard({
               </div>
             </div>
 
-            {/* Batch Progress Step (shown when generating chapters) */}
+            {/* Batch Progress Step (shown during content-generation step) */}
             <div
               className={`transition-all duration-500 ease-in-out ${
-                isGeneratingChapters && batchState.isProcessing
+                currentStep === "content-generation"
                   ? "opacity-100 translate-x-0 relative"
                   : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
               }`}
@@ -400,7 +415,7 @@ export function CourseCreationWizard({
               <div className="p-6">
                 <BatchProgressStep
                   courseTitle={courseTitle}
-                  units={units}
+                  units={chapters}
                   batchState={batchState}
                   errorState={errorState}
                   onProcessNextBatch={handleProcessNextBatch}

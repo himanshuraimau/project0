@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { BatchProgressStepProps, Unit } from "@/lib/types/course.types";
+import { BatchProgressStepProps, UnitWithChapters, Chapter } from "@/lib/types/course.types";
 import { 
   BookOpen, 
   CheckCircle, 
@@ -61,12 +61,27 @@ export function BatchProgressStep({
     onComplete
   ]);
 
-  // Helper function to get unit status
-  const getUnitStatus = (unitId: string) => {
-    if (batchState.completedUnits.includes(unitId)) return 'completed';
-    if (batchState.processingUnits.includes(unitId)) return 'processing';
+  // Helper function to get chapter status
+  const getChapterStatus = (chapterId: string) => {
+    if (batchState.completedChapters.includes(chapterId)) return 'completed';
+    if (batchState.processingChapters.includes(chapterId)) return 'processing';
     return 'pending';
   };
+
+  // Get all chapters across all units
+  const allChapters: Array<{ chapter: Chapter; unitName: string; unitIndex: number; chapterIndex: number }> = [];
+  units.forEach((unit, unitIndex) => {
+    unit.chapters.forEach((chapter, chapterIndex) => {
+      allChapters.push({
+        chapter,
+        unitName: unit.name,
+        unitIndex,
+        chapterIndex
+      });
+    });
+  });
+
+  const totalChapters = allChapters.length;
 
   // Helper function to get status icon
   const getStatusIcon = (status: string) => {
@@ -99,10 +114,10 @@ export function BatchProgressStep({
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-foreground mb-2">
-          Generating Course Content
+          Generating Chapter Content
         </h2>
         <p className="text-muted-foreground">
-          Creating chapters for your course units in batches for optimal performance
+          Fetching YouTube videos and generating content for your chapters in batches
         </p>
       </div>
 
@@ -114,7 +129,7 @@ export function BatchProgressStep({
             <div>
               <h3 className="text-xl font-bold text-foreground">{courseTitle}</h3>
               <p className="text-sm text-muted-foreground font-normal">
-                {units.length} units • Processing in batches of {batchState.batchSize}
+                {units.length} units • {totalChapters} chapters • Processing in batches of {batchState.batchSize}
               </p>
             </div>
           </CardTitle>
@@ -125,7 +140,7 @@ export function BatchProgressStep({
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Progress Overview</h3>
+            <h3 className="text-lg font-semibold">Content Generation Progress</h3>
             <div className="text-sm text-muted-foreground">
               {isCompleted ? 'Completed!' : `Batch ${currentBatchText} of ${batchState.totalBatches}`}
             </div>
@@ -143,19 +158,19 @@ export function BatchProgressStep({
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="space-y-1">
               <div className="text-2xl font-bold text-green-600">
-                {batchState.completedUnits.length}
+                {batchState.completedChapters.length}
               </div>
               <div className="text-sm text-muted-foreground">Completed</div>
             </div>
             <div className="space-y-1">
               <div className="text-2xl font-bold text-blue-600">
-                {batchState.processingUnits.length}
+                {batchState.processingChapters.length}
               </div>
               <div className="text-sm text-muted-foreground">Processing</div>
             </div>
             <div className="space-y-1">
               <div className="text-2xl font-bold text-muted-foreground">
-                {units.length - batchState.completedUnits.length - batchState.processingUnits.length}
+                {totalChapters - batchState.completedChapters.length - batchState.processingChapters.length}
               </div>
               <div className="text-sm text-muted-foreground">Pending</div>
             </div>
@@ -169,7 +184,7 @@ export function BatchProgressStep({
           <CardContent className="pt-6">
             <LoadingState
               message={`Processing Batch ${currentBatchText}`}
-              submessage={`Generating chapters for ${batchState.processingUnits.length} units...`}
+              submessage={`Generating content for ${batchState.processingChapters.length} chapters...`}
               variant="ai"
               className="bg-blue-50 border border-blue-200 rounded-lg"
             />
@@ -177,40 +192,43 @@ export function BatchProgressStep({
         </Card>
       )}
 
-      {/* Units List with Status */}
+      {/* Chapters List with Status */}
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
-          <h3 className="text-lg font-semibold">Unit Status</h3>
+          <h3 className="text-lg font-semibold">Chapter Content Status</h3>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-border">
-            {units.map((unit: Unit, index: number) => {
-              const status = getUnitStatus(unit.id);
-              const estimatedChapters = status === 'completed' ? '3-5' : '3-5';
+            {allChapters.map((item, index) => {
+              const status = getChapterStatus(item.chapter.id);
+              const chapterNumber = `${item.unitIndex + 1}.${item.chapterIndex + 1}`;
               
               return (
                 <div
-                  key={unit.id}
+                  key={item.chapter.id}
                   className={`flex items-center justify-between p-4 transition-colors ${
                     status === 'processing' ? 'bg-blue-50' : 
                     status === 'completed' ? 'bg-green-50' : 'hover:bg-muted/50'
                   }`}
                 >
                   <div className="flex items-center space-x-4 flex-1">
-                    <div className="flex-shrink-0 w-8 h-8 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                      {index + 1}
+                    <div className="flex-shrink-0 w-12 h-8 bg-muted text-muted-foreground rounded flex items-center justify-center text-sm font-medium">
+                      {chapterNumber}
                     </div>
                     
                     <div className="flex-1">
                       <h5 className="font-medium text-foreground">
-                        Unit {index + 1}: {unit.name}
+                        {item.chapter.name}
                       </h5>
-                      <div className="flex items-center space-x-2 mt-1">
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Unit: {item.unitName}
+                      </p>
+                      <div className="flex items-center space-x-2">
                         <PlayCircle className="w-3 h-3 text-muted-foreground" />
                         <span className="text-xs text-muted-foreground">
                           {status === 'completed' 
-                            ? 'Chapters generated successfully' 
-                            : `Estimated ${estimatedChapters} chapters`
+                            ? 'Content generated successfully' 
+                            : `Search: ${item.chapter.youtubeSearchQuery}`
                           }
                         </span>
                       </div>
@@ -270,11 +288,11 @@ export function BatchProgressStep({
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto" />
               <div>
                 <h3 className="text-lg font-semibold text-green-700 mb-2">
-                  Chapter Generation Complete!
+                  Chapter Content Generation Complete!
                 </h3>
                 <p className="text-green-600">
-                  All {units.length} units have been processed successfully. 
-                  Ready to proceed to the next step.
+                  All {totalChapters} chapters have been processed successfully. 
+                  Your course is ready to navigate!
                 </p>
               </div>
               <Button 
@@ -282,7 +300,7 @@ export function BatchProgressStep({
                 className="bg-green-600 hover:bg-green-700 text-white"
                 size="lg"
               >
-                Continue to Review
+                Go to Course
               </Button>
             </div>
           </CardContent>

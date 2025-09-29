@@ -13,14 +13,14 @@ import {
 } from '@/lib/utils/state-recovery';
 
 /**
- * Batch processing state for chapter generation
+ * Batch processing state for chapter content generation (YouTube videos, etc.)
  */
 interface BatchProcessingState {
   isProcessing: boolean;
   currentBatchIndex: number;
   totalBatches: number;
-  completedUnits: string[];
-  processingUnits: string[];
+  completedChapters: string[];
+  processingChapters: string[];
   batchSize: number;
   processingProgress: number; // 0-100
 }
@@ -38,6 +38,9 @@ interface ExtendedCourseCreationState extends CourseCreationState {
 
   // Batch processing state
   batchState: BatchProcessingState;
+
+  // Course ID after saving
+  savedCourseId: string | null;
 
   // Error actions
   setError: (error: CourseCreationErrorInfo | null) => void;
@@ -94,11 +97,14 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
     isProcessing: false,
     currentBatchIndex: 0,
     totalBatches: 0,
-    completedUnits: [],
-    processingUnits: [],
+    completedChapters: [],
+    processingChapters: [],
     batchSize: 4,
     processingProgress: 0
   },
+
+  // Course ID after saving
+  savedCourseId: null,
 
   // Basic setters with state preservation
   setStep: (step: WizardStep) => {
@@ -191,6 +197,9 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
   setGeneratingUnits: (loading: boolean) => set({ isGeneratingUnits: loading }),
   setGeneratingChapters: (loading: boolean) => set({ isGeneratingChapters: loading }),
   setSaving: (loading: boolean) => set({ isSaving: loading }),
+
+  // Course ID setter
+  setSavedCourseId: (courseId: string | null) => set({ savedCourseId: courseId }),
 
   // Error actions
   setError: (error: CourseCreationErrorInfo | null) => {
@@ -386,6 +395,7 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
 
       clearError(); // Clear error on success
       clearStoredState(); // Clear recovery data on successful save
+      set({ savedCourseId: data.courseId }); // Store the course ID
       return data.courseId;
     } catch (error) {
       console.error('Error saving course:', error);
@@ -404,17 +414,19 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
 
   // Batch processing methods
   initializeBatchProcessing: () => {
-    const { units } = get();
-    const batchSize = 4; // Process 4 units at a time for optimal performance
-    const totalBatches = Math.ceil(units.length / batchSize);
+    const { chapters } = get();
+    // Count total chapters across all units
+    const totalChapters = chapters.reduce((total, unit) => total + unit.chapters.length, 0);
+    const batchSize = 4; // Process 4 chapters at a time for optimal performance
+    const totalBatches = Math.ceil(totalChapters / batchSize);
     
     set({
       batchState: {
         isProcessing: true,
         currentBatchIndex: 0,
         totalBatches,
-        completedUnits: [],
-        processingUnits: [],
+        completedChapters: [],
+        processingChapters: [],
         batchSize,
         processingProgress: 0
       }
@@ -422,7 +434,7 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
   },
 
   processNextBatch: async () => {
-    const { courseTitle, units, batchState, setError, clearError } = get();
+    const { courseTitle, chapters, batchState, setError, clearError } = get();
     
     if (!batchState.isProcessing || batchState.currentBatchIndex >= batchState.totalBatches) {
       return;
@@ -431,30 +443,47 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
     // Clear any previous errors
     clearError();
 
-    const startIndex = batchState.currentBatchIndex * batchState.batchSize;
-    const endIndex = Math.min(startIndex + batchState.batchSize, units.length);
-    const currentBatchUnits = units.slice(startIndex, endIndex);
-    const unitIds = currentBatchUnits.map(u => u.id);
+    // Flatten all chapters and get the current batch
+    const allChapters: Array<{ chapterId: string; unitId: string; chapter: any }> = [];
+    chapters.forEach(unit => {
+      unit.chapters.forEach(chapter => {
+        allChapters.push({
+          chapterId: chapter.id,
+          unitId: unit.id,
+          chapter: chapter
+        });
+      });
+    });
 
-    // Update processing units
+    const startIndex = batchState.currentBatchIndex * batchState.batchSize;
+    const endIndex = Math.min(startIndex + batchState.batchSize, allChapters.length);
+    const currentBatchChapters = allChapters.slice(startIndex, endIndex);
+    const chapterIds = currentBatchChapters.map(c => c.chapterId);
+
+    // Update processing chapters
     set({
       batchState: {
         ...batchState,
-        processingUnits: unitIds
+        processingChapters: chapterIds
       }
     });
 
     try {
-      // Call the API to generate chapters for this batch
+      // Call the API to generate content for this batch of chapters
       const response = await withRetry(async () => {
-        return await fetchWithRetry('/api/course/generate-chapters-batch', {
+        return await fetchWithRetry('/api/course/generate-chapter-content-batch', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ 
-            title: courseTitle, 
-            units: currentBatchUnits,
+            courseTitle, 
+            chapters: currentBatchChapters.map(c => ({
+              id: c.chapterId,
+              name: c.chapter.name,
+              youtubeSearchQuery: c.chapter.youtubeSearchQuery,
+              unitId: c.unitId
+            })),
             batchIndex: batchState.currentBatchIndex 
           }),
         });
@@ -466,21 +495,16 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
         throw new Error(data.error);
       }
 
-      // Update the chapters state with the new batch results
-      const { chapters } = get();
-      const updatedChapters = [...chapters, ...data.unitsWithChapters];
-      
       // Calculate progress
-      const newCompletedUnits = [...batchState.completedUnits, ...unitIds];
-      const progress = Math.round((newCompletedUnits.length / units.length) * 100);
+      const newCompletedChapters = [...batchState.completedChapters, ...chapterIds];
+      const progress = Math.round((newCompletedChapters.length / allChapters.length) * 100);
       
       set({
-        chapters: updatedChapters,
         batchState: {
           ...batchState,
           currentBatchIndex: batchState.currentBatchIndex + 1,
-          completedUnits: newCompletedUnits,
-          processingUnits: [],
+          completedChapters: newCompletedChapters,
+          processingChapters: [],
           processingProgress: progress
         }
       });
@@ -497,15 +521,15 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
       clearError(); // Clear error on successful batch
 
     } catch (error) {
-      console.error('Error processing batch:', error);
+      console.error('Error processing chapter content batch:', error);
       const errorInfo = classifyError(error);
       setError(errorInfo);
       
-      // Reset processing units on error
+      // Reset processing chapters on error
       set({
         batchState: {
           ...batchState,
-          processingUnits: []
+          processingChapters: []
         }
       });
       
@@ -514,21 +538,21 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
   },
 
   generateChaptersBatchwise: async () => {
-    const { units, setGeneratingChapters, setStep, setError, clearError } = get();
+    const { chapters, setSaving, setStep, setError, clearError } = get();
 
     // Clear any previous errors
     clearError();
 
-    if (!units.length) {
-      const error = classifyError(new Error('Units are required to generate chapters'));
+    if (!chapters.length) {
+      const error = classifyError(new Error('Chapters are required for content generation'));
       setError(error);
       throw error;
     }
 
     try {
-      setGeneratingChapters(true);
+      setSaving(true); // Use saving state for content generation
       
-      // Initialize batch processing
+      // Initialize batch processing for chapter content
       get().initializeBatchProcessing();
       
       // Process batches sequentially
@@ -538,17 +562,17 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
 
       // All batches completed successfully
       get().resetBatchState();
-      setStep('chapters');
+      setStep('content-generation'); // Move to content generation complete
       clearError();
 
     } catch (error) {
-      console.error('Error in batch chapter generation:', error);
+      console.error('Error in batch chapter content generation:', error);
       get().resetBatchState();
       const errorInfo = classifyError(error);
       setError(errorInfo);
       throw errorInfo;
     } finally {
-      setGeneratingChapters(false);
+      setSaving(false);
     }
   },
 
@@ -558,14 +582,15 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
         isProcessing: false,
         currentBatchIndex: 0,
         totalBatches: 0,
-        completedUnits: [],
-        processingUnits: [],
+        completedChapters: [],
+        processingChapters: [],
         batchSize: 4,
         processingProgress: 0
       }
     });
   },
 
+  // Reset store to initial state
   // Reset store to initial state
   reset: () => set({
     currentStep: 'title',
@@ -582,6 +607,16 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
       maxRetries: DEFAULT_RETRY_CONFIG.maxRetries
     },
     hasRecoveryData: false,
-    recoveryStateSummary: null
+    recoveryStateSummary: null,
+    batchState: {
+      isProcessing: false,
+      currentBatchIndex: 0,
+      totalBatches: 0,
+      completedChapters: [],
+      processingChapters: [],
+      batchSize: 4,
+      processingProgress: 0
+    },
+    savedCourseId: null
   }),
 }));

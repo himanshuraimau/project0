@@ -29,7 +29,7 @@ export interface CourseStructure {
 }
 
 // Wizard step types
-export type WizardStep = 'title' | 'units' | 'chapters';
+export type WizardStep = 'title' | 'units' | 'chapters' | 'content-generation';
 
 // Wizard state interface
 export interface WizardState {
@@ -70,13 +70,13 @@ export interface ChaptersReviewStepProps {
 
 export interface BatchProgressStepProps {
   courseTitle: string;
-  units: Unit[];
+  units: UnitWithChapters[]; // Now contains full chapter structure
   batchState: {
     isProcessing: boolean;
     currentBatchIndex: number;
     totalBatches: number;
-    completedUnits: string[];
-    processingUnits: string[];
+    completedChapters: string[];
+    processingChapters: string[];
     batchSize: number;
     processingProgress: number;
   };
