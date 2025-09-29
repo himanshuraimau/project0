@@ -20,13 +20,11 @@ import {
 
 interface Flashcard {
   id: string;
-  content: {
-    flashcards: Array<{
-      id: number;
-      question: string;
-      answer: string;
-    }>;
-  };
+  content: Array<{
+    id: number;
+    question: string;
+    answer: string;
+  }>;
   noteId: string;
   userId: string | null;
   createdAt: string;
@@ -126,7 +124,7 @@ export function FlashcardGenerator({ noteId }: FlashcardGeneratorProps) {
   }, [fetchExistingFlashcards]);
 
   // If we have flashcards, show the viewer
-  if (flashcard && flashcard.content?.flashcards) {
+  if (flashcard && flashcard.content && flashcard.content.length > 0) {
     return (
       <div className="space-y-4 p-6 mb-5">
         <div className="flex items-center justify-between">
@@ -169,7 +167,7 @@ export function FlashcardGenerator({ noteId }: FlashcardGeneratorProps) {
           </div>
         </div>
 
-        <FlashcardViewer flashcards={flashcard.content.flashcards} onClose={() => {}} />
+        <FlashcardViewer flashcards={flashcard.content} onClose={() => {}} />
       </div>
     );
   }

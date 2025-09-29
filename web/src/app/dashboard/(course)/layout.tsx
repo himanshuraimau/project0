@@ -8,6 +8,7 @@ import { Course, Unit, Chapter } from "@prisma/client";
 import { usePathname } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 const jakarta = Plus_Jakarta_Sans({
   weight: "600",
@@ -71,8 +72,9 @@ export default function CourseLayout({
             <div className="flex items-center gap-4">
               <Link
                 href="/dashboard/course"
-                className="text-xl font-semibold text-foreground hover:text-accent transition-colors"
+                className="flex items-center gap-2 text-xl font-semibold text-foreground hover:text-accent transition-colors"
               >
+                <ArrowLeft className="h-5 w-5" />
                 Back to Courses
               </Link>
             </div>

@@ -181,20 +181,20 @@ export function NotesSidebar({
                 <path
                   d="M1.5 9C1.5 6.23315 1.5 4.84973 2.11036 3.86908C2.33617 3.50627 2.61668 3.1907 2.93918 2.93665C3.81087 2.25 5.04058 2.25 7.5 2.25H10.5C12.9594 2.25 14.1891 2.25 15.0608 2.93665C15.3833 3.1907 15.6638 3.50627 15.8896 3.86908C16.5 4.84973 16.5 6.23315 16.5 9C16.5 11.7668 16.5 13.1503 15.8896 14.1309C15.6638 14.4937 15.3833 14.8093 15.0608 15.0634C14.1891 15.75 12.9594 15.75 10.5 15.75H7.5C5.04058 15.75 3.81087 15.75 2.93918 15.0634C2.61668 14.8093 2.33617 14.4937 2.11036 14.1309C1.5 13.1503 1.5 11.7668 1.5 9Z"
                   stroke="#4E4E4E"
-                  stroke-width="1.4"
+                  strokeWidth="1.4"
                 />
                 <path
                   d="M7.125 2.25V15.75"
                   stroke="#4E4E4E"
-                  stroke-width="1.4"
-                  stroke-linejoin="round"
+                  strokeWidth="1.4"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M3.75 5.25H4.5M3.75 7.5H4.5"
                   stroke="#4E4E4E"
-                  stroke-width="1.125"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.125"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </button>
@@ -228,20 +228,20 @@ export function NotesSidebar({
                 <path
                   d="M1.5 9C1.5 6.23315 1.5 4.84973 2.11036 3.86908C2.33617 3.50627 2.61668 3.1907 2.93918 2.93665C3.81087 2.25 5.04058 2.25 7.5 2.25H10.5C12.9594 2.25 14.1891 2.25 15.0608 2.93665C15.3833 3.1907 15.6638 3.50627 15.8896 3.86908C16.5 4.84973 16.5 6.23315 16.5 9C16.5 11.7668 16.5 13.1503 15.8896 14.1309C15.6638 14.4937 15.3833 14.8093 15.0608 15.0634C14.1891 15.75 12.9594 15.75 10.5 15.75H7.5C5.04058 15.75 3.81087 15.75 2.93918 15.0634C2.61668 14.8093 2.33617 14.4937 2.11036 14.1309C1.5 13.1503 1.5 11.7668 1.5 9Z"
                   stroke="#4E4E4E"
-                  stroke-width="1.4"
+                  strokeWidth="1.4"
                 />
                 <path
                   d="M7.125 2.25V15.75"
                   stroke="#4E4E4E"
-                  stroke-width="1.4"
-                  stroke-linejoin="round"
+                  strokeWidth="1.4"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M3.75 5.25H4.5M3.75 7.5H4.5"
                   stroke="#4E4E4E"
-                  stroke-width="1.125"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.125"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </button>

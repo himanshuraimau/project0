@@ -1,11 +1,11 @@
 import { NextRequest } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { openai } from '@ai-sdk/openai';
+import { streamText } from 'ai';
 import { z } from 'zod';
 import { querySimilarChunks } from '../../../lib/course/embedding-service';
 
 // Environment variables
-const CHAT_MODEL = process.env.CHAT_MODEL || 'models/gemini-pro';
-const API_KEY = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.OPENAI_API_KEY || process.env.VERCEL_AI_API_KEY;
+const CHAT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
 // Validation schema for the request body
 const RequestSchema = z.object({
@@ -14,19 +14,27 @@ const RequestSchema = z.object({
   topK: z.number().int().positive().default(6).optional(),
 });
 
-// Initialize the Google AI client
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || API_KEY || '');
+interface PodcastMetadata {
+  podcastId: string | null;
+  speakers: string[];
+  timeRange: string | null;
+  sequenceRange: string | null;
+}
+
+interface ChunkResult {
+  chunk_text: string;
+}
 
 /**
  * Maps our embedding service results to the format expected by createContextString
  * Handles both regular note chunks and podcast transcript chunks
  */
-function mapChunkResults(results: any[]): Array<{ chunkText: string; isPodcast: boolean; podcastMetadata?: any }> {
+function mapChunkResults(results: ChunkResult[]): Array<{ chunkText: string; isPodcast: boolean; podcastMetadata?: PodcastMetadata }> {
   return results.map((result) => {
     const chunkText = result.chunk_text;
     const isPodcast = chunkText.includes('[PODCAST:');
     
-    let podcastMetadata = null;
+    let podcastMetadata: PodcastMetadata | undefined = undefined;
     if (isPodcast) {
       // Extract podcast metadata from chunk text
       const podcastMatch = chunkText.match(/\[PODCAST:([^\]]+)\]/);
@@ -54,7 +62,7 @@ function mapChunkResults(results: any[]): Array<{ chunkText: string; isPodcast: 
  * Creates a context string from retrieved chunks
  * Handles both regular note content and podcast transcript chunks
  */
-function createContextString(chunks: Array<{ chunkText: string; isPodcast: boolean; podcastMetadata?: any }>): string {
+function createContextString(chunks: Array<{ chunkText: string; isPodcast: boolean; podcastMetadata?: PodcastMetadata }>): string {
   // If no chunks were found, return a message
   if (chunks.length === 0) {
     return "No relevant information found in this note.";
@@ -108,58 +116,42 @@ function createContextString(chunks: Array<{ chunkText: string; isPodcast: boole
   return context;
 }
 /**
- * Generates a streaming response from the model
+ * Generates a streaming response from OpenAI using the AI SDK
  */
 async function generateResponse(context: string, question: string) {
-  try {
-    // Use GoogleGenerativeAI with ReadableStream conversion
-    const model = genAI.getGenerativeModel({ model: CHAT_MODEL });
-    
-    const systemPrompt = `You are a helpful assistant answering questions about a note and its associated content. 
-    You must ONLY use information from the provided context. If the context doesn't contain 
-    the information needed to answer the question, say "I don't know — check the note." 
-    
-    The context may include:
-    - NOTE CONTENT: Original note text and documents
-    - PODCAST TRANSCRIPT: AI-generated podcast conversations about the note content with timestamps
-    
-    When referencing podcast content:
-    - You can mention which host (HOST1 or HOST2) said something
-    - Include timestamp references when available (e.g., "at 2:30 in the podcast")
-    - Clarify when information comes from the podcast discussion vs. the original note
-    
-    Provide clear, concise answers based on the context without including source references or citations.
-    
-    DO NOT make up information or hallucinate facts not present in the context.`;
+  const systemPrompt = `You are a helpful assistant answering questions about a note and its associated content. 
+  You must ONLY use information from the provided context. If the context doesn't contain 
+  the information needed to answer the question, say "I don't know — check the note." 
+  
+  The context may include:
+  - NOTE CONTENT: Original note text and documents
+  - PODCAST TRANSCRIPT: AI-generated podcast conversations about the note content with timestamps
+  
+  When referencing podcast content:
+  - You can mention which host (HOST1 or HOST2) said something
+  - Include timestamp references when available (e.g., "at 2:30 in the podcast")
+  - Clarify when information comes from the podcast discussion vs. the original note
+  
+  Provide clear, concise answers based on the context without including source references or citations.
+  
+  DO NOT make up information or hallucinate facts not present in the context.`;
 
-    // Create a generative response with stream option
-    const result = await model.generateContentStream({
-      contents: [
-        { role: 'user', parts: [{ text: systemPrompt }] },
-        { role: 'user', parts: [{ text: `Context:\n${context}\n\nQuestion: ${question}` }] }
-      ],
-    });
-    
-    // Convert to a ReadableStream
-    return new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of result.stream) {
-            const text = chunk.text();
-            if (text) {
-              controller.enqueue(new TextEncoder().encode(text));
-            }
-          }
-          controller.close();
-        } catch (error) {
-          controller.error(error);
-        }
+  const result = await streamText({
+    model: openai(CHAT_MODEL),
+    messages: [
+      {
+        role: 'system',
+        content: systemPrompt
+      },
+      {
+        role: 'user',
+        content: `Context:\n${context}\n\nQuestion: ${question}`
       }
-    });
-  } catch (error) {
-    console.error('Error generating response:', error);
-    throw error;
-  }
+    ],
+    temperature: 0.7,
+  });
+
+  return result.toTextStreamResponse();
 }
 
 
@@ -188,16 +180,10 @@ export async function POST(req: NextRequest) {
     const context = createContextString(mappedChunks);
     
     // Generate a streaming response
-    const stream = await generateResponse(context, message);
+    const response = await generateResponse(context, message);
     
-    // Return the streaming response
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache, no-transform',
-        'X-Content-Type-Options': 'nosniff',
-      },
-    });
+    // Return the streaming response from AI SDK
+    return response;
   } catch (error) {
     console.error('Error handling chatbot request:', error);
     

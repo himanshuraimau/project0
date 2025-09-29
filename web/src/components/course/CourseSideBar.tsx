@@ -74,7 +74,7 @@ function ChapterItem({
             <div className={cn(
               "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0",
               progress.isCompleted 
-                ? "bg-accent text-accent-foreground" 
+                ? "bg-green-500 text-white" 
                 : isCurrentChapter 
                 ? "bg-accent text-accent-foreground" 
                 : "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-400"
@@ -86,7 +86,7 @@ function ChapterItem({
               <div className={cn(
                 "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0",
                 progress.isCompleted 
-                  ? "bg-accent text-accent-foreground" 
+                  ? "bg-green-500 text-white" 
                   : isCurrentChapter 
                   ? "bg-accent text-accent-foreground" 
                   : "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-400"
@@ -118,7 +118,7 @@ function ChapterItem({
           {updating ? (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
           ) : progress.isCompleted ? (
-            <CheckCircle className="h-4 w-4 text-accent" />
+            <CheckCircle className="h-4 w-4 text-green-500" />
           ) : (
             <Circle className="h-4 w-4 text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200 transition-colors" />
           )}
