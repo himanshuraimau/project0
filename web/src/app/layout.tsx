@@ -6,8 +6,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
-import { ClerkDebug } from "./clerk-debug";
-
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -32,7 +30,6 @@ export default function RootLayout({
     >
       <html lang="en" suppressHydrationWarning>
         <body className={`${inter.variable} font-sans antialiased`}>
-          <ClerkDebug />
           <NextSSRPlugin
             routerConfig={extractRouterConfig(ourFileRouter)}
           />

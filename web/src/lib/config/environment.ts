@@ -68,7 +68,29 @@ const envSchema = z.object({
 // Parse and validate environment variables
 function parseEnvironment() {
   try {
-    return envSchema.parse(process.env);
+    const parsed = envSchema.parse(process.env);
+    
+    // Production environment checks
+    if (parsed.NODE_ENV === 'production') {
+      // Check for development keys in production
+      if (parsed.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.includes('pk_test_')) {
+        console.warn('⚠️  WARNING: Using Clerk development keys in production environment!');
+        console.warn('Please update to production keys: https://clerk.com/docs/deployments/overview');
+      }
+      
+      // Check for localhost URLs in production
+      if (parsed.NEXT_PUBLIC_APP_URL?.includes('localhost')) {
+        console.warn('⚠️  WARNING: Using localhost URL in production environment!');
+        console.warn('Please set NEXT_PUBLIC_APP_URL to your production domain');
+      }
+      
+      // Check if required production variables are set
+      if (!parsed.NEXT_PUBLIC_APP_URL) {
+        console.warn('⚠️  WARNING: NEXT_PUBLIC_APP_URL not set in production');
+      }
+    }
+    
+    return parsed;
   } catch (error) {
     console.error('Environment configuration error:', error);
     
