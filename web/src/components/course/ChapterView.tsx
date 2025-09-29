@@ -114,7 +114,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Error State */}
       {error && (
         <InlineErrorDisplay
@@ -124,77 +124,90 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
         />
       )}
 
-      {/* Video Player */}
+      {/* Video Player - Centered and responsive */}
       {chapterData.videoId && (
-        <YouTubePlayer videoId={chapterData.videoId} />
+        <div className="w-full mx-auto">
+          <YouTubePlayer videoId={chapterData.videoId} />
+        </div>
       )}
 
       {/* Chapter Notes */}
       {chapterData.notes && (
-        <div>
+        <div className="max-full mx-auto">
           <div className="mb-4">
-            <h3 className="flex items-center gap-2 text-lg font-semibold">
-              <FileText className="h-4 w-4" />
+            <h3 className="flex items-center gap-3 text-xl font-semibold">
+              <FileText className="h-5 w-5" />
               Chapter Notes
             </h3>
           </div>
-          <LexicalViewer
-            content={chapterData.notes}
-            title={chapterData.name}
-            showToolbar={false}
-            minHeight="400px"
-          />
+          <div className="bg-card rounded-2xl shadow-sm border p-2">
+            <LexicalViewer
+              content={chapterData.notes}
+              title={chapterData.name}
+              showToolbar={false}
+              minHeight="400px"
+            />
+          </div>
         </div>
       )}
 
       {/* Completion Button */}
       {chapterData.videoId && chapterData.notes && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">
+        <div className="max-full mx-auto">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-lg">
+                    {chapterProgress.isCompleted
+                      ? "Chapter Completed!"
+                      : "Ready to continue?"}
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {chapterProgress.isCompleted
+                      ? "You can undo completion if needed."
+                      : "Mark this chapter as completed to track your progress."}
+                  </p>
+                </div>
+                <Button
+                  onClick={markAsCompleted}
+                  disabled={chapterUpdating}
+                  variant={chapterProgress.isCompleted ? "outline" : "default"}
+                  size="lg"
+                  className={chapterProgress.isCompleted 
+                    ? "border-accent text-accent hover:bg-accent hover:text-accent-foreground" 
+                    : "bg-accent text-accent-foreground hover:bg-accent/90"
+                  }
+                >
+                  {chapterUpdating ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                  ) : chapterProgress.isCompleted ? (
+                    <CheckCircle className="h-4 w-4 mr-2 text-accent" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                  )}
                   {chapterProgress.isCompleted
-                    ? "Chapter Completed!"
-                    : "Ready to continue?"}
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  {chapterProgress.isCompleted
-                    ? "You can undo completion if needed."
-                    : "Mark this chapter as completed to track your progress."}
-                </p>
+                    ? "Undo Complete"
+                    : "Mark Complete"}
+                </Button>
               </div>
-              <Button
-                onClick={markAsCompleted}
-                disabled={chapterUpdating}
-                variant={chapterProgress.isCompleted ? "outline" : "default"}
-              >
-                {chapterUpdating ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-                ) : chapterProgress.isCompleted ? (
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                ) : (
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                )}
-                {chapterProgress.isCompleted
-                  ? "Undo Complete"
-                  : "Mark Complete"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Loading State for Missing Content */}
       {!chapterData.videoId && !error && !isLoading && (
-        <Card className="border-dashed">
-          <CardContent className="p-6 text-center">
-            <Play className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-            <p className="text-muted-foreground">
-              Video content will be loaded automatically
-            </p>
-          </CardContent>
-        </Card>
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-dashed">
+            <CardContent className="p-8 text-center">
+              <Play className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground text-lg">
+                Video content will be loaded automatically
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );
