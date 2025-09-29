@@ -7,6 +7,7 @@ import { CourseCreationWizardProps } from "@/lib/types/course.types";
 import { TitleInputStep } from "./steps/TitleInputStep";
 import { UnitsGenerationStep } from "./steps/UnitsGenerationStep";
 import { ChaptersReviewStep } from "./steps/ChaptersReviewStep";
+import { BatchProgressStep } from "./steps/BatchProgressStep";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { RecoveryBanner } from "@/components/ui/recovery-dialog";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
@@ -25,6 +26,7 @@ export function CourseCreationWizard({
     errorState,
     hasRecoveryData,
     recoveryStateSummary,
+    batchState,
     setStep,
     setCourseTitle,
     setUnits,
@@ -39,6 +41,8 @@ export function CourseCreationWizard({
     checkForRecoveryData,
     restoreFromRecovery,
     discardRecoveryData,
+    processNextBatch,
+    resetBatchState,
     reset,
   } = useCourseCreationStore();
 
@@ -127,6 +131,26 @@ export function CourseCreationWizard({
       // Error is already handled by the store and displayed via errorState
       console.error("Failed to save course:", error);
     }
+  };
+
+  // Batch processing handlers
+  const handleProcessNextBatch = async () => {
+    try {
+      await processNextBatch();
+    } catch (error) {
+      // Error is already handled by the store and displayed via errorState
+      console.error("Failed to process batch:", error);
+    }
+  };
+
+  const handleBatchComplete = () => {
+    resetBatchState();
+    setStep('chapters');
+  };
+
+  const handleBatchRetry = () => {
+    clearError();
+    handleProcessNextBatch();
   };
 
   return (
@@ -348,7 +372,7 @@ export function CourseCreationWizard({
             {/* Units Step */}
             <div
               className={`transition-all duration-500 ease-in-out ${
-                currentStep === "units"
+                currentStep === "units" && !isGeneratingChapters
                   ? "opacity-100 translate-x-0 relative"
                   : currentStep === "title"
                   ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
@@ -360,7 +384,28 @@ export function CourseCreationWizard({
                   units={units}
                   onUnitsChange={handleUnitsChange}
                   onFinalize={handleFinalizeUnits}
-                  isLoading={isGeneratingChapters}
+                  isLoading={false}
+                />
+              </div>
+            </div>
+
+            {/* Batch Progress Step (shown when generating chapters) */}
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                isGeneratingChapters && batchState.isProcessing
+                  ? "opacity-100 translate-x-0 relative"
+                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+              }`}
+            >
+              <div className="p-6">
+                <BatchProgressStep
+                  courseTitle={courseTitle}
+                  units={units}
+                  batchState={batchState}
+                  errorState={errorState}
+                  onProcessNextBatch={handleProcessNextBatch}
+                  onRetry={handleBatchRetry}
+                  onComplete={handleBatchComplete}
                 />
               </div>
             </div>

@@ -68,6 +68,27 @@ export interface ChaptersReviewStepProps {
   isLoading: boolean;
 }
 
+export interface BatchProgressStepProps {
+  courseTitle: string;
+  units: Unit[];
+  batchState: {
+    isProcessing: boolean;
+    currentBatchIndex: number;
+    totalBatches: number;
+    completedUnits: string[];
+    processingUnits: string[];
+    batchSize: number;
+    processingProgress: number;
+  };
+  errorState: {
+    hasError: boolean;
+    error: any;
+  };
+  onProcessNextBatch: () => Promise<void>;
+  onRetry: () => void;
+  onComplete: () => void;
+}
+
 // Store state interface
 export interface CourseCreationState {
   // Wizard state
