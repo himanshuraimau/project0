@@ -256,8 +256,8 @@ export default function NoteViewPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-sm text-stone-600">Loading note...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-2"></div>
+          <p className="text-sm text-muted-foreground">Loading note...</p>
         </div>
       </div>
     );
@@ -365,34 +365,52 @@ export default function NoteViewPage() {
               {currentView === "notes" && <ViewNote note={note} />}
 
               {currentView === "transcript" && (
-                <div className="max-w-6xl w-full mx-auto bg-transparent">
-                  <Card className="rounded-lg border-none bg-transparent">
-                    <div>
-                      <p className="text-2xl font-medium">Transcript</p>
-                    </div>
-                    <CardContent>
+                <div className="max-w-4xl w-full mx-auto bg-transparent p-6">
+                  <Card className="rounded-xl border shadow-sm bg-white dark:bg-stone-900">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                          <span className="text-lg">📝</span>
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-semibold text-foreground">Transcript</h2>
+                          <p className="text-sm text-muted-foreground">Audio transcript from your uploaded content</p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
                       {transcriptLoading && (
-                        <div className="flex items-center justify-center">
+                        <div className="flex items-center justify-center py-12">
                           <div className="text-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                            <p className="text-sm text-gray-600">
-                              Loading transcript...
-                            </p>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-3"></div>
+                            <p className="text-sm text-muted-foreground">Loading transcript...</p>
                           </div>
                         </div>
                       )}
                       {transcriptError && (
-                        <div className="text-center text-red-600 py-8">
-                          <p className="font-medium">
-                            Error loading transcript
-                          </p>
-                          <p className="text-sm mt-1">{transcriptError}</p>
+                        <div className="text-center text-red-600 py-12">
+                          <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-3">
+                            <span className="text-xl">⚠️</span>
+                          </div>
+                          <p className="font-medium mb-1">Error loading transcript</p>
+                          <p className="text-sm">{transcriptError}</p>
                         </div>
                       )}
                       {transcript && !transcriptLoading && (
-                        <div className="">
-                          <div className="text-stone-500 text-sm leading-relaxed mt-2.5">
-                            {transcript}
+                        <div className="prose prose-stone dark:prose-invert max-w-none">
+                          <div className="sticky top-0 bg-accent/5 dark:bg-accent/10 border border-accent/20 rounded-lg p-3 mb-6">
+                            <h3 className="text-sm font-medium text-accent mb-1 flex items-center gap-2">
+                              <span>🎧</span>
+                              Lecture Transcript
+                            </h3>
+                            <p className="text-xs text-muted-foreground">Use Ctrl+F to search for specific topics</p>
+                          </div>
+                          <div className="text-stone-700 dark:text-stone-300 leading-relaxed text-base space-y-4">
+                            {transcript.split('\n\n').map((paragraph, index) => (
+                              <p key={index} className="mb-4 last:mb-0">
+                                {paragraph}
+                              </p>
+                            ))}
                           </div>
                         </div>
                       )}
@@ -425,18 +443,23 @@ export default function NoteViewPage() {
               {currentView === "mindmap" && (
                 <div>
                   {mindmapLoading && (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-stone-600">
-                        Generating mindmap...
-                      </p>
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-3"></div>
+                        <p className="text-sm text-muted-foreground">
+                          Generating mindmap...
+                        </p>
+                      </div>
                     </div>
                   )}
                   <MindmapGenerator noteId={noteId} />
                   {mindmapError && (
-                    <div className="text-center text-red-600">
-                      <p className="font-medium">Error generating mindmap</p>
-                      <p className="text-sm mt-1">{mindmapError}</p>
+                    <div className="text-center text-red-600 py-8">
+                      <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-3">
+                        <span className="text-xl">⚠️</span>
+                      </div>
+                      <p className="font-medium mb-1">Error generating mindmap</p>
+                      <p className="text-sm">{mindmapError}</p>
                     </div>
                   )}
                 </div>

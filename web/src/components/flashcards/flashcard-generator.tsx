@@ -135,7 +135,8 @@ export function FlashcardGenerator({ noteId }: FlashcardGeneratorProps) {
             <Button
               onClick={generateFlashcards}
               disabled={loading}
-              className="bg-stone-100 p-4 text-black hover:bg-stone-200 dark:bg-stone-900 dark:text-white dark:hover:bg-stone-800 flex items-center"
+              variant="outline"
+              className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent flex items-center px-4 py-2 transition-all duration-200"
             >
               Regenerate
             </Button>
@@ -193,7 +194,7 @@ export function FlashcardGenerator({ noteId }: FlashcardGeneratorProps) {
           <Button
             onClick={generateFlashcards}
             disabled={loading}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 cursor-pointer text-white text-base px-6 py-3"
+            className="flex items-center gap-2 bg-accent hover:bg-accent/90 cursor-pointer text-accent-foreground text-base px-6 py-3 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
           >
             {loading ? "Generating Flashcards..." : "Generate Flashcards"}
           </Button>

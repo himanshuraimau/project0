@@ -205,7 +205,7 @@ export function NotesSidebar({
               <div className="flex flex-col">
                 <span
                   className={cn(
-                    " font-medium text-stone-900 dark:text-stone-100 cursor-pointer hover:text-blue-600 transition-colors duration-200",
+                    " font-medium text-stone-900 dark:text-stone-100 cursor-pointer hover:text-accent transition-colors duration-200",
                     jakarta.className
                   )}
                   onClick={() => router.push('/dashboard')}
@@ -289,10 +289,10 @@ export function NotesSidebar({
                           ? "w-12 h-12 justify-center hover:w-14 hover:h-14"
                           : "w-full px-4 py-4",
                         item.isActive
-                          ? " text-black bg-white dark:bg-stone-900/50 dark:text-white"
+                          ? " text-accent-foreground bg-accent/10 dark:bg-accent/20 border border-accent/20"
                           : item.disabled
                           ? "text-stone-400 dark:text-stone-600 cursor-not-allowed opacity-60"
-                          : "text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100 hover:shadow-md hover:scale-[1.01]",
+                          : "text-stone-600 dark:text-stone-300 hover:bg-accent/5 dark:hover:bg-accent/10 hover:text-accent hover:border-accent/20 hover:shadow-sm hover:scale-[1.01] transition-all duration-200",
                         isGenerative && !item.disabled && !item.isActive
                           ? ""
                           : ""

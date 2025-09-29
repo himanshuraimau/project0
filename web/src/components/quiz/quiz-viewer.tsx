@@ -127,10 +127,10 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
           </CardHeader>
           <CardContent className="text-center space-y-6">
             <div className=" flex items-center gap-10">
-              <div className="text-6xl font-bold text-blue-600">
+              <div className="text-6xl font-bold text-accent">
                 {score.totalPoints}
               </div>
-              <div className="text-lg text-stone-600">
+              <div className="text-lg text-stone-600 dark:text-stone-400">
                 out of {score.maxTotalPoints} points
               </div>
               <div className="text-3xl font-semibold text-green-600">
@@ -204,25 +204,27 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <span className="text-sm text-stone-600 bg-stone-100 dark:text-stone-500 dark:bg-stone-900 px-5 py-2 rounded-md">
+          <span className="text-accent bg-accent/10 text-sm font-medium px-3 py-1.5 rounded-full border border-accent/20">
             Question {currentIndex + 1} of {quiz.length}
           </span>
-          <span className="text-sm text-blue-600">
+          <span className="text-sm text-accent font-medium">
             Score: {score.totalPoints}/{score.maxTotalPoints} pts
           </span>
         </div>
         <div className="flex items-center gap-2.5">
           <Button
             onClick={handleReset}
-            className="text-stone-600 bg-stone-100 cursor-pointer dark:text-stone-500 dark:bg-stone-900 px-5 py-2 rounded-md"
+            variant="outline"
+            className="border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800"
             size="sm"
           >
-            <RotateCcw className="h-4 w-4 mr-1s" />
+            <RotateCcw className="h-4 w-4 mr-2" />
             Reset
           </Button>
           <Button
             onClick={onClose}
-            className="text-stone-600 bg-stone-100 cursor-pointer dark:text-stone-500 dark:bg-stone-900 px-5 py-2 rounded-md"
+            variant="outline"
+            className="border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800"
             size="sm"
           >
             <X className="h-4 w-4" />
@@ -231,9 +233,9 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-stone-200 dark:bg-stone-800 rounded-full h-2">
+      <div className="w-full bg-stone-200 dark:bg-stone-800 rounded-full h-2.5">
         <div
-          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+          className="bg-accent h-2.5 rounded-full transition-all duration-300 shadow-sm"
           style={{ width: `${((currentIndex + 1) / quiz.length) * 100}%` }}
         />
       </div>
@@ -281,24 +283,24 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
                       isAnswered && !isCorrect && isCorrectAnswer;
 
                     let buttonClass =
-                      "w-full text-left px-6 py-2.5 rounded-md border-none bg-stone-100 dark:bg-stone-900/50 text-stone-600 dark:text-stone-500 transition-colors cusror-pointer";
+                      "w-full text-left px-6 py-3 rounded-lg border transition-all duration-200 cursor-pointer shadow-sm";
 
                     if (isSelected) {
                       // User selected this option
                       if (isCorrect) {
                         buttonClass +=
-                          "border-green-500 bg-green-50 text-green-800 cusror-pointe";
+                          " border-green-500 bg-green-50 text-green-800 shadow-green-100 dark:bg-green-950/20 dark:text-green-400 dark:border-green-600";
                       } else {
                         buttonClass +=
-                          "border-red-500 bg-red-50 text-red-800 cusror-pointe";
+                          " border-red-500 bg-red-50 text-red-800 shadow-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-600";
                       }
                     } else if (showCorrect) {
                       // Show correct answer in green when user was wrong
                       buttonClass +=
-                        "border-green-500 bg-green-100 text-green-800 cusror-pointe";
+                        " border-green-500 bg-green-100 text-green-800 shadow-green-100 dark:bg-green-950/30 dark:text-green-400 dark:border-green-600";
                     } else {
                       buttonClass +=
-                        "border-gray-200 hover:border-gray-300 cusror-pointe";
+                        " bg-stone-50 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-accent hover:bg-accent/5 hover:shadow-md";
                     }
 
                     return (
@@ -335,22 +337,24 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
                     isAnswered && !isCorrect && isCorrectAnswer;
 
                   let buttonClass =
-                    "flex-1 p-3 rounded-lg border transition-colors ";
+                    "flex-1 p-4 rounded-lg border transition-all duration-200 cursor-pointer shadow-sm";
 
                   if (isSelected) {
                     // User selected this option
                     if (isCorrect) {
                       buttonClass +=
-                        "border-green-500 bg-green-50 text-green-800";
+                        " border-green-500 bg-green-50 text-green-800 shadow-green-100 dark:bg-green-950/20 dark:text-green-400 dark:border-green-600";
                     } else {
-                      buttonClass += "border-red-500 bg-red-50 text-red-800";
+                      buttonClass += 
+                        " border-red-500 bg-red-50 text-red-800 shadow-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-600";
                     }
                   } else if (showCorrect) {
                     // Show correct answer in green when user was wrong
                     buttonClass +=
-                      "border-green-500 bg-green-100 text-green-800";
+                      " border-green-500 bg-green-100 text-green-800 shadow-green-100 dark:bg-green-950/30 dark:text-green-400 dark:border-green-600";
                   } else {
-                    buttonClass += "border-gray-200 hover:border-gray-300";
+                    buttonClass += 
+                      " bg-stone-50 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-accent hover:bg-accent/5 hover:shadow-md";
                   }
 
                   return (
@@ -358,7 +362,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
                       key={value.toString()}
                       onClick={() => handleAnswerSelect(value)}
                       disabled={isAnswered}
-                      className={`${buttonClass} border-none bg-stone-100 dark:bg-stone-900/50 text-stone-600 dark:text-stone-500 cusror-pointer`}
+                      className={buttonClass}
                     >
                       <div className="text-center">
                         <div className="">{value ? "True" : "False"}</div>
@@ -377,9 +381,12 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
 
           {/* Explanation */}
           {isAnswered && showExplanation[currentIndex] && (
-            <div className="mt-4 p-4 bg-white dark:bg-stone-900/50 rounded-md">
-              <div className="font-medium text-blue-800 mb-1">Explanation:</div>
-              <div className="text-stone-700 dark:text-stone-500">
+            <div className="mt-4 p-4 bg-accent/5 dark:bg-accent/10 border border-accent/20 rounded-lg">
+              <div className="font-medium text-accent mb-2 flex items-center gap-2">
+                <span className="text-sm">💡</span>
+                Explanation:
+              </div>
+              <div className="text-stone-700 dark:text-stone-300 leading-relaxed">
                 {currentQuestion.explanation}
               </div>
             </div>
@@ -389,7 +396,8 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
           {isAnswered && !showExplanation[currentIndex] && (
             <Button
               onClick={handleShowExplanation}
-              className="text-sm text-stone-600 bg-stone-100 dark:text-stone-500 dark:bg-stone-900 px-5 py-2.5 rounded-md"
+              variant="outline"
+              className="text-sm border-accent/30 text-accent hover:bg-accent/10 hover:border-accent px-5 py-2.5 rounded-lg transition-all duration-200"
             >
               Show Explanation
             </Button>
@@ -402,7 +410,8 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
         <Button
           onClick={handlePrevious}
           disabled={currentIndex === 0}
-          className="flex items-center gap-2 cursor-pointer text-sm text-stone-600 bg-stone-100 dark:text-stone-500 dark:bg-stone-900 px-5 py-2 rounded-md"
+          variant="outline"
+          className="flex items-center gap-2 border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
         >
           <ChevronLeft className="h-4 w-4" />
           Previous
@@ -413,14 +422,14 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
             <div>
               {Object.keys(selectedAnswers).length} of {quiz.length} answered
             </div>
-            <div className="text-xs text-blue-600 font-medium">
+            <div className="text-xs text-accent font-medium">
               Current: {score.correct} correct • {score.totalPoints} points
             </div>
           </div>
           {allAnswered && (
             <Button
               onClick={handleFinishQuiz}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
             >
               View Final Score
             </Button>
@@ -430,7 +439,8 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
         <Button
           onClick={handleNext}
           disabled={currentIndex === quiz.length - 1}
-          className="flex items-center gap-2 text-sm cursor-pointer text-stone-600 bg-stone-100 dark:text-stone-500 dark:bg-stone-900 px-5 py-2 rounded-md"
+          variant="outline"
+          className="flex items-center gap-2 border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
         >
           Next
           <ChevronRight className="h-4 w-4" />
