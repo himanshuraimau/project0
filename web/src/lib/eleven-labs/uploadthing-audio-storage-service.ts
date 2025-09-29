@@ -5,7 +5,7 @@
  */
 
 import { UTApi } from "uploadthing/server";
-import { PodcastGenerationError } from './types/podcast.types';
+import { PodcastGenerationError } from '../types/podcast.types';
 
 interface AudioFile {
     id: string;
