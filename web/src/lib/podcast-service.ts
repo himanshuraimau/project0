@@ -199,7 +199,7 @@ export class PodcastService {
      */
     async savePodcast(audioBuffer: Buffer, metadata: PodcastMetadata, noteId: string, userId?: string): Promise<Podcast> {
         try {
-            const { uploadThingAudioStorageService } = await import('./uploadthing-audio-storage-service');
+            const { uploadThingAudioStorageService } = await import('./eleven-labs/uploadthing-audio-storage-service');
             const { prisma } = await import('./prisma');
 
             // Validate audio buffer before upload
@@ -398,7 +398,7 @@ export class PodcastService {
      */
     async saveAudioSegments(segments: AudioSegment[], podcastId: string): Promise<void> {
         try {
-            const { uploadThingAudioStorageService } = await import('./uploadthing-audio-storage-service');
+            const { uploadThingAudioStorageService } = await import('./eleven-labs/uploadthing-audio-storage-service');
             const { prisma } = await import('./prisma');
 
             // Upload each segment to storage
@@ -444,7 +444,7 @@ export class PodcastService {
      */
     async deletePodcast(podcastId: string): Promise<void> {
         try {
-            const { uploadThingAudioStorageService } = await import('./uploadthing-audio-storage-service');
+            const { uploadThingAudioStorageService } = await import('./eleven-labs/uploadthing-audio-storage-service');
             const { prisma } = await import('./prisma');
 
             // Delete from UploadThing storage (note: requires file keys to be stored in database)

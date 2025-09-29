@@ -85,10 +85,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
     // Check if podcast already exists for this note
     const existingPodcast = await prisma.podcast.findFirst({
       where: {
-        noteId: noteId,
-        generationStatus: {
-          in: ['pending', 'generating', 'completed']
-        }
+        noteId: noteId
       }
     });
 
@@ -102,7 +99,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
             'Try generating a podcast for a different note'
           ]
         );
-      } else {
+      } else if (existingPodcast.generationStatus === 'pending' || existingPodcast.generationStatus === 'generating') {
         return PodcastApiErrorHandler.createConflictResponse(
           'A podcast is currently being generated for this note',
           [
@@ -111,6 +108,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
             'Cancel the current generation if possible'
           ]
         );
+      } else if (existingPodcast.generationStatus === 'failed') {
+        // For failed podcasts, delete the old record and allow retry
+        await prisma.podcast.delete({
+          where: { id: existingPodcast.id }
+        });
+        console.log(`Deleted failed podcast record ${existingPodcast.id} to allow retry for note ${noteId}`);
       }
     }
 
@@ -350,7 +353,7 @@ async function generatePodcastInBackground(
 
     // Upload the audio using UploadThing
     currentStage = 'audio_upload';
-    const { uploadThingAudioStorageService } = await import('@/lib/uploadthing-audio-storage-service');
+    const { uploadThingAudioStorageService } = await import('@/lib/eleven-labs/uploadthing-audio-storage-service');
     
     try {
       const audioUrl = await uploadThingAudioStorageService.uploadPodcastAudio(finalAudioBuffer, {
