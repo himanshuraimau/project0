@@ -8,8 +8,6 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
-    "test-pdf": "bun run test-pdf.ts",
-    "test-workflow": "bun run test-pdf-workflow.ts",
     "db:studio": "bun prisma studio",
     "db:generate": "bun prisma generate",
     "db:migrate": "bun prisma migrate dev",
