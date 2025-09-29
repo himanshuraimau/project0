@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Brain, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { MindmapViewer } from "./MindmapViewer";
+import { LoadingState } from "@/components/ui/loading-spinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -198,11 +199,21 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
               disabled={loading}
               className="flex items-center gap-2 bg-accent hover:bg-accent/90 cursor-pointer text-accent-foreground text-base px-6 py-3 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
             >
+              <Brain className="h-4 w-4" />
               {loading ? "Generating..." : "Generate Mindmap"}
             </Button>
 
-  
             {loading && (
+              <div className="mt-4">
+                <LoadingState
+                  message="Generating Mindmap"
+                  submessage="Analyzing your notes and creating visual connections..."
+                  variant="ai"
+                />
+              </div>
+            )}
+  
+            {!loading && (
               <p className="text-sm text-stone-500 mt-2">
                 This may take a few moments...
               </p>

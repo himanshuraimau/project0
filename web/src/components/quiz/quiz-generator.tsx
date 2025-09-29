@@ -1,11 +1,10 @@
-"use client";
-
 import React, { useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Brain, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { QuizViewer } from "./quiz-viewer";
+import { LoadingState } from "@/components/ui/loading-spinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -203,9 +202,12 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
           </Button>
 
           {loading && (
-            <p className="text-sm text-stone-500 mt-2">
-              This may take a few moments...
-            </p>
+            <div className="mt-4">
+              <LoadingState
+                message="Generating..."
+                submessage="Creating quiz questions and answers based on your notes"
+              />
+            </div>
           )}
         </CardContent>
       </Card>

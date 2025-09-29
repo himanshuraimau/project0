@@ -7,6 +7,7 @@ import { Mic, Trash2, Brain } from "lucide-react";
 import { toast } from "sonner";
 import { PodcastWithTranscript, PodcastConfigurationInline } from "./";
 import { Podcast, PodcastConfig, PodcastSegment } from "@/lib/types/podcast.types";
+import { LoadingState } from "@/components/ui/loading-spinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -227,8 +228,18 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
                 className="flex items-center gap-2 bg-accent hover:bg-accent/90 cursor-pointer text-accent-foreground text-base px-6 py-3 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
               >
                 <Brain className="h-4 w-4" />
-                Generate Podcast
+                {loading ? "Generating..." : "Generate Podcast"}
               </Button>
+
+              {loading && (
+                <div className="mt-4">
+                  <LoadingState
+                    message="Generating Podcast"
+                    submessage="This may take a few minutes. Creating script, synthesizing voices, and processing audio..."
+                    variant="ai"
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

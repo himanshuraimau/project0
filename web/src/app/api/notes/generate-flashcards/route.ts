@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { google } from '@ai-sdk/google';
+import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 import { prisma } from '@/lib/prisma';
-import { UserService } from '@/lib/user-service';
 import { auth } from '@clerk/nextjs/server';
 import { ApiSuccessResponse, ApiErrorResponse, FlashcardItem, GenerateFlashcardRequest } from '@/lib/types';
-
-const model = google('models/gemini-1.5-flash-latest');
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     // Generate flashcards using AI
     const result = await generateText({
-      model,
+      model: openai('gpt-4o-mini'),
       prompt: `
 🎯 **MASTER FLASHCARD CREATOR & LEARNING SPECIALIST** 📚
 
