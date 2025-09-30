@@ -12,7 +12,7 @@ datasource db {
 model User {
   id            String     @id
   email         String?
-  creditBalance Int        @default(10)
+  creditBalance Int        @default(1000)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   purchases     Purchase[]
