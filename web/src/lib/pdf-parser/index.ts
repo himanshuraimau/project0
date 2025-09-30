@@ -24,6 +24,19 @@ export class PDFParser {
    * Parse PDF from buffer using PDF.co API
    */
   async parseFromBuffer(buffer: Buffer): Promise<PDFParseResult> {
+    try {
+      // Try inline mode first (more likely to work)
+      return await this.parseWithInlineMode(buffer, true);
+    } catch (error) {
+      console.log('Inline mode failed, trying with URL mode...');
+      return await this.parseWithInlineMode(buffer, false);
+    }
+  }
+
+  /**
+   * Internal method to parse PDF with specific inline mode
+   */
+  private async parseWithInlineMode(buffer: Buffer, inline: boolean): Promise<PDFParseResult> {
     if (!this.apiKey) {
       throw new Error(
         'PDF.co API key not configured. Please set PDFCO_API_KEY in your environment variables. ' +
@@ -31,7 +44,7 @@ export class PDFParser {
       );
     }
 
-    console.log('Starting PDF parsing with PDF.co API...');
+    console.log(`Starting PDF parsing with PDF.co API (inline: ${inline})...`);
     console.log('Buffer length:', buffer.length);
 
     try {
@@ -68,15 +81,13 @@ export class PDFParser {
       const extractResponse = await fetch('https://api.pdf.co/v1/pdf/convert/to/text', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'x-api-key': this.apiKey,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           url: fileUrl,
+          inline: inline,
           async: false,
-          inline: true,
-          pages: '', // Extract all pages
-          password: '', // No password
         }),
       });
 
@@ -86,20 +97,60 @@ export class PDFParser {
       }
 
       const extractData = await extractResponse.json();
+      console.log('Extract response data:', JSON.stringify(extractData, null, 2));
 
-      if (extractData.error) {
+      // Check for API errors
+      if (extractData.error === true || extractData.error === 'true') {
         throw new Error(`PDF.co API error: ${extractData.message || 'Unknown error'}`);
       }
 
-      if (!extractData.url) {
-        throw new Error('PDF.co did not return text URL');
+      // Handle inline mode (text returned directly)
+      if (inline) {
+        // When inline=true, the text should be in extractData.body
+        const textContent = extractData.body;
+        
+        if (!textContent || typeof textContent !== 'string') {
+          throw new Error(`PDF.co inline mode did not return text content. Response: ${JSON.stringify(extractData)}`);
+        }
+
+        console.log('✓ Text extraction completed (inline mode)');
+        console.log('Raw text length:', textContent.length);
+
+        const cleanText = this.cleanExtractedText(textContent);
+        console.log('Clean text length:', cleanText.length);
+        
+        if (!cleanText || cleanText.length < 10) {
+          throw new Error('No text content extracted from PDF - it may be image-based or empty');
+        }
+
+        const pageCount = extractData.pageCount || extractData.pages || 1;
+        
+        console.log('✓ PDF parsing completed successfully');
+
+        return {
+          text: cleanText,
+          cleanText: cleanText,
+          pages: pageCount,
+          metadata: {
+            Title: 'PDF Document',
+            ExtractedBy: 'PDF.co API',
+            ExtractedAt: new Date().toISOString(),
+          },
+        };
       }
 
-      console.log('✓ Text extraction completed');
+      // Handle URL mode (text needs to be downloaded)
+      const textUrl = extractData.url;
+      
+      if (!textUrl) {
+        throw new Error(`PDF.co did not return text URL. Response: ${JSON.stringify(extractData)}`);
+      }
+
+      console.log('✓ Text extraction completed (URL mode)');
 
       // Step 3: Download extracted text
       console.log('Step 3: Downloading extracted text...');
-      const textResponse = await fetch(extractData.url);
+      const textResponse = await fetch(textUrl);
       
       if (!textResponse.ok) {
         throw new Error(`Failed to download extracted text: ${textResponse.statusText}`);
