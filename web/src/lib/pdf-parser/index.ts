@@ -1,5 +1,5 @@
 import { DocumentService } from '../document-service';
-import { PDFParseResult, PDFParseOptions } from '../types/documents.types';
+import { PDFParseResult } from '../types/documents.types';
 
 export class PDFParser {
   private readonly documentService: DocumentService;
@@ -16,14 +16,11 @@ export class PDFParser {
       console.log('Starting PDF parsing with pdfjs-dist...');
       console.log('Buffer length:', buffer.length);
 
-      // Import pdfjs-dist dynamically
-      const pdfjsLib = await import('pdfjs-dist');
+      // Import pdfjs-dist legacy build for Node.js
+      const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
 
-      // Set worker source for Node.js environment
-      if (typeof window === 'undefined') {
-        // Server-side: disable worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '';
-      }
+      // Disable worker in Node.js environment
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
 
       // Load PDF document from buffer
       const uint8Array = new Uint8Array(buffer);
@@ -32,6 +29,9 @@ export class PDFParser {
         useSystemFonts: true,
         disableFontFace: true,
         verbosity: 0, // Reduce logging
+        isEvalSupported: false, // Disable eval for security
+        disableAutoFetch: true,
+        disableStream: true,
       });
 
       const pdfDocument = await loadingTask.promise;
@@ -65,14 +65,15 @@ export class PDFParser {
           const page = await pdfDocument.getPage(pageNum);
           const textContent = await page.getTextContent();
 
-          // Combine text items from the page
+          // Combine text items from the page with proper spacing
           const pageText = textContent.items
             .map((item: any) => {
-              if ('str' in item) {
-                return item.str;
+              if ('str' in item && item.str) {
+                return item.str.trim();
               }
               return '';
             })
+            .filter(text => text.length > 0)
             .join(' ');
 
           if (pageText.trim()) {
