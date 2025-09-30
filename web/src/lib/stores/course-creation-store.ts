@@ -109,6 +109,12 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
   // Basic setters with state preservation
   setStep: (step: WizardStep) => {
     set({ currentStep: step });
+    
+    // Initialize batch processing when transitioning to content-generation
+    if (step === 'content-generation') {
+      get().initializeBatchProcessing();
+    }
+    
     const state = get();
     saveStateToStorage({
       currentStep: step,
@@ -344,8 +350,53 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
   },
 
   generateChaptersWithRetry: async () => {
-    // Use the new batch processing approach for better UX
-    return get().generateChaptersBatchwise();
+    const { courseTitle, units, setGeneratingChapters, setChapters, setStep, setError, clearError } = get();
+
+    // Clear any previous errors
+    clearError();
+
+    if (!courseTitle.trim()) {
+      const error = classifyError(new Error('Course title is required'));
+      setError(error);
+      throw error;
+    }
+
+    if (!units.length) {
+      const error = classifyError(new Error('Units are required to generate chapters'));
+      setError(error);
+      throw error;
+    }
+
+    try {
+      setGeneratingChapters(true);
+
+      const response = await withRetry(async () => {
+        return await fetchWithRetry('/api/course/generate-chapters', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ title: courseTitle, units }),
+        });
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setChapters(data.unitsWithChapters);
+      setStep('chapters');
+      clearError(); // Clear error on success
+    } catch (error) {
+      console.error('Error generating chapters:', error);
+      const errorInfo = classifyError(error);
+      setError(errorInfo);
+      throw errorInfo;
+    } finally {
+      setGeneratingChapters(false);
+    }
   },
 
   // Legacy method for backward compatibility
@@ -392,6 +443,30 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
 
       // Handle the enhanced response wrapper
       const data = responseData.success ? responseData.data : responseData;
+
+      // Update chapter IDs with the actual database IDs
+      if (data.chapters && data.chapters.length > 0) {
+        const { chapters } = get();
+        const updatedChapters = [...chapters];
+        
+        // Map the database chapters back to the frontend structure
+        let chapterIndex = 0;
+        for (let unitIndex = 0; unitIndex < updatedChapters.length; unitIndex++) {
+          const unit = updatedChapters[unitIndex];
+          for (let i = 0; i < unit.chapters.length; i++) {
+            if (data.chapters[chapterIndex]) {
+              // Update the chapter with the real database ID
+              unit.chapters[i] = {
+                ...unit.chapters[i],
+                id: data.chapters[chapterIndex].id
+              };
+              chapterIndex++;
+            }
+          }
+        }
+        
+        set({ chapters: updatedChapters });
+      }
 
       clearError(); // Clear error on success
       clearStoredState(); // Clear recovery data on successful save

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { isValidUserId } from "@/lib/utils/validation";
+import { searchYoutube, getTranscript, getQuestionsFromTranscript } from "@/lib/course/youtube";
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { prisma } from "@/lib/prisma";
+import { indexChapterContent } from "@/lib/course/chapter-embedding-service";
 
 /**
  * Batch chapter content generation endpoint - processes chapter content (YouTube videos, etc.) in batches
@@ -76,37 +81,182 @@ export async function POST(request: NextRequest) {
 
     console.log(`Processing content batch ${batchIndex} with ${chapters.length} chapters`);
 
-    // For now, simulate the content generation process
-    // In a real implementation, this would:
-    // 1. Search for YouTube videos based on youtubeSearchQuery
-    // 2. Extract transcripts
-    // 3. Generate chapter content, summaries, etc.
-    // 4. Store the content in the database
+    // Process each chapter in the batch
+    const processedChapters = [];
     
-    // Simulate processing time (remove this in production)
-    await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
+    for (const chapter of chapters) {
+      try {
+        console.log(`Processing chapter: ${chapter.name}`);
+        
+        // 1. Search for YouTube video
+        const videoId = await searchYoutube(chapter.youtubeSearchQuery);
+        if (!videoId) {
+          console.log(`No video found for: ${chapter.youtubeSearchQuery}`);
+          processedChapters.push({
+            id: chapter.id,
+            name: chapter.name,
+            youtubeSearchQuery: chapter.youtubeSearchQuery,
+            unitId: chapter.unitId,
+            status: 'failed',
+            error: 'No suitable video found'
+          });
+          continue;
+        }
 
-    // Simulate successful processing
-    const processedChapters = chapters.map(chapter => ({
-      id: chapter.id,
-      name: chapter.name,
-      youtubeSearchQuery: chapter.youtubeSearchQuery,
-      unitId: chapter.unitId,
-      status: 'completed',
-      videoUrl: `https://youtube.com/watch?v=example_${chapter.id}`, // Simulated
-      transcript: `Generated transcript for ${chapter.name}...`, // Simulated
-      summary: `Generated summary for ${chapter.name}...` // Simulated
-    }));
+        // 2. Get transcript
+        const transcript = await getTranscript(videoId);
+        if (!transcript || transcript.trim().length === 0) {
+          console.log(`No transcript available for video: ${videoId}`);
+          processedChapters.push({
+            id: chapter.id,
+            name: chapter.name,
+            youtubeSearchQuery: chapter.youtubeSearchQuery,
+            unitId: chapter.unitId,
+            status: 'failed',
+            error: 'No transcript available'
+          });
+          continue;
+        }
+
+        // Limit transcript for processing
+        const processedTranscript = transcript.split(" ").slice(0, 500).join(" ");
+
+        // 3. Generate educational notes
+        const result = await generateText({
+          model: openai("gpt-4o"),
+          prompt: `🎓 You are an advanced AI educational content specialist and master educator! Your mission is to transform YouTube video transcripts into engaging, comprehensive, and interactive learning materials that captivate students and ensure deep understanding.
+
+✨ **YOUR ROLE:** Create educational notes that are not just informative, but FUN, ENGAGING, and MEMORABLE! Think of yourself as the coolest teacher who makes learning exciting and accessible.
+
+🎯 **TRANSFORMATION GOAL:** Convert this YouTube transcript into interactive educational notes that enable deep understanding and retention.
+
+📚 **REQUIRED STRUCTURE WITH EMOJIS:**
+
+## 🌟 Learning Overview (100-150 words)
+- 🎯 What you'll master in this chapter
+- 💡 Why this knowledge is game-changing
+- 🚀 How it connects to the bigger picture
+- ⭐ Key skills you'll develop
+
+## 🧠 Core Concepts Explained (200-400 words)
+- 🔍 Detailed explanations with crystal-clear reasoning
+- 📖 Break down complex topics into digestible parts
+- 🔗 Show connections between different concepts
+- 💭 Use analogies and examples for clarity
+- ⚡ Highlight "Aha!" moments
+
+## 🛠️ Practical Applications (100-200 words)
+- 🌍 Real-world examples and use cases
+- 🏗️ How professionals use these concepts
+- 💼 Industry applications and scenarios
+- 🎮 Interactive examples where possible
+- 🔥 Cool tricks and best practices
+
+## 🎯 Key Takeaways (50-100 words)
+- ✅ Essential points for long-term retention
+- 💎 Golden nuggets of wisdom
+- 🔑 Critical concepts to remember
+- 📌 Quick reference points
+
+## 🚀 Next Steps & Action Items (50-100 words)
+- 📝 Practical exercises to try
+- 🔍 What to explore next
+- 🏃‍♂️ Immediate action steps
+- 🌱 How to continue growing
+
+**STYLE GUIDELINES:**
+- Use emojis throughout to make content visually appealing 🎨
+- Write in an enthusiastic, encouraging tone 💪
+- Include bullet points and clear formatting 📋
+- Add emphasis with **bold** and *italics* when appropriate ✨
+- Make technical concepts accessible and fun 🎪
+- Use action words and engaging language 🎯
+- Add occasional "Pro Tips 💡" or "Quick Notes 📝" callouts
+
+Focus on the main educational content and ignore sponsors, ads, or unrelated material. Make learning an adventure! 🎊
+
+Transcript: ${processedTranscript}`,
+        });
+
+        const notes = result.text;
+
+        // 4. Generate quiz questions
+        const questions = await getQuestionsFromTranscript(processedTranscript, chapter.name);
+
+        // 5. Save to database
+        await prisma.chapter.update({
+          where: { id: chapter.id },
+          data: {
+            videoId,
+            notes,
+            transcript: processedTranscript,
+          },
+        });
+
+        // 6. Save questions to database
+        if (questions && questions.length > 0) {
+          await prisma.question.createMany({
+            data: questions.map((q) => {
+              const options = [q.answer, q.option1, q.option2, q.option3].filter(Boolean);
+              return {
+                question: q.question,
+                answer: q.answer,
+                options: JSON.stringify(options.sort(() => Math.random() - 0.5)),
+                chapterId: chapter.id,
+              };
+            }),
+          });
+        }
+
+        // 7. Index content for search
+        try {
+          await indexChapterContent(chapter.id, notes, processedTranscript);
+        } catch (indexError) {
+          console.error(`Failed to index chapter ${chapter.id}:`, indexError);
+          // Don't fail the request if indexing fails
+        }
+
+        processedChapters.push({
+          id: chapter.id,
+          name: chapter.name,
+          youtubeSearchQuery: chapter.youtubeSearchQuery,
+          unitId: chapter.unitId,
+          status: 'completed',
+          videoUrl: `https://youtube.com/watch?v=${videoId}`,
+          notesLength: notes.length,
+          questionsCount: questions?.length || 0
+        });
+
+        console.log(`Successfully processed chapter: ${chapter.name}`);
+        
+      } catch (error) {
+        console.error(`Error processing chapter ${chapter.name}:`, error);
+        processedChapters.push({
+          id: chapter.id,
+          name: chapter.name,
+          youtubeSearchQuery: chapter.youtubeSearchQuery,
+          unitId: chapter.unitId,
+          status: 'failed',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+
+    // Calculate batch statistics
+    const successfulChapters = processedChapters.filter(c => c.status === 'completed');
+    const failedChapters = processedChapters.filter(c => c.status === 'failed');
 
     // Return successful response with batch information
     const response = {
       processedChapters,
       batchIndex,
       batchSize: chapters.length,
-      status: 'success'
+      successCount: successfulChapters.length,
+      failureCount: failedChapters.length,
+      status: failedChapters.length === 0 ? 'success' : 'partial_success'
     };
 
-    console.log(`Successfully processed content batch ${batchIndex} with ${chapters.length} chapters`);
+    console.log(`Successfully processed content batch ${batchIndex}: ${successfulChapters.length}/${chapters.length} chapters completed successfully`);
 
     return NextResponse.json(response, { 
       status: 200

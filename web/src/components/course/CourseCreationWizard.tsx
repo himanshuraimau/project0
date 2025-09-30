@@ -130,14 +130,14 @@ export function CourseCreationWizard({
       // First save the course structure to the database
       const courseId = await saveCourseWithRetry();
       
-      // Then start batch content generation
+      // Then transition to content generation step
       setStep('content-generation');
-      await generateChaptersBatchwise();
       
-      // Navigation will happen in handleBatchComplete after content generation
+      // Note: Content generation will be handled by the BatchProgressStep component
+      // which will automatically process all batches and then show navigation
     } catch (error) {
       // Error is already handled by the store and displayed via errorState
-      console.error("Failed to save course or generate content:", error);
+      console.error("Failed to save course:", error);
     }
   };
 
@@ -186,131 +186,183 @@ export function CourseCreationWizard({
         )}
         {/* Progress indicator */}
         <div className="mb-8">
-          <div className="flex items-baseline  justify-between mb-4">
-            {/* Step 1: Course Title */}
-            <div className="flex flex-col  items-left space-y-1">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
-                  currentStep === "title"
-                    ? "bg-accent text-accent-foreground shadow-lg scale-110"
-                    : ["units", "chapters"].includes(currentStep)
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {["units", "chapters"].includes(currentStep) ? (
-                  "✓"
-                ) : (
-                  <span className="size-4 rounded-3xl bg-accent/60"></span>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">Step 1</p>
-              <div>
-                <span
-                  className={`text-lg font-semibold transition-colors duration-300 ${
+          <div className="bg-card/50 backdrop-blur-sm border border-border/40 rounded-xl p-6">
+            <div className="flex items-baseline justify-between mb-4">
+              {/* Step 1: Course Title */}
+              <div className="flex flex-col items-center space-y-2">
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 border-2 ${
                     currentStep === "title"
-                      ? "text-foreground"
-                      : ["units", "chapters"].includes(currentStep)
-                      ? "text-muted-foreground"
-                      : "text-muted-foreground/60"
+                      ? "bg-accent text-accent-foreground border-accent shadow-lg scale-110"
+                      : ["units", "chapters", "content-generation"].includes(currentStep)
+                      ? "bg-accent/90 text-accent-foreground border-accent"
+                      : "bg-background border-border text-muted-foreground hover:border-accent/50"
                   }`}
                 >
-                  Course Title
-                </span>
-                {courseTitle && (
-                  <p className="text-xs text-muted-foreground truncate max-w-32">
-                    {courseTitle}
-                  </p>
-                )}
+                  {["units", "chapters", "content-generation"].includes(currentStep) ? (
+                    <span className="text-base">✓</span>
+                  ) : (
+                    <span className="w-3 h-3 rounded-full bg-current"></span>
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Step 1</p>
+                  <span
+                    className={`text-sm font-medium transition-colors duration-300 ${
+                      currentStep === "title"
+                        ? "text-foreground"
+                        : ["units", "chapters", "content-generation"].includes(currentStep)
+                        ? "text-accent"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Course Title
+                  </span>
+                  {courseTitle && (
+                    <p className="text-xs text-muted-foreground truncate max-w-32 mt-1">
+                      {courseTitle}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Connector line */}
-            <div
-              className={`flex-1 h-0.5 mx-2 transition-colors duration-300  ${
-                ["units", "chapters"].includes(currentStep)
-                  ? "bg-accent"
-                  : "bg-muted"
-              }`}
-            />
-
-            {/* Step 2: Generate Units */}
-            <div className="flex flex-col items-center space-y-1">
+              {/* Connector line */}
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
-                  currentStep === "units"
-                    ? "bg-accent text-accent-foreground shadow-lg scale-110"
-                    : currentStep === "chapters"
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-muted text-muted-foreground"
+                className={`flex-1 h-1 mx-4 rounded-full transition-colors duration-300 ${
+                  ["units", "chapters", "content-generation"].includes(currentStep)
+                    ? "bg-accent/60"
+                    : "bg-border"
                 }`}
-              >
-                {currentStep === "chapters" ? (
-                  "✓"
-                ) : (
-                  <span className="size-4 rounded-3xl bg-accent/60"></span>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">Step 2</p>
+              />
 
-              <div>
-                <span
-                  className={`text-lg font-semibold transition-colors duration-300 ${
+              {/* Step 2: Generate Units */}
+              <div className="flex flex-col items-center space-y-2">
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 border-2 ${
                     currentStep === "units"
-                      ? "text-foreground"
-                      : currentStep === "chapters"
-                      ? "text-muted-foreground"
-                      : "text-muted-foreground/60"
+                      ? "bg-accent text-accent-foreground border-accent shadow-lg scale-110"
+                      : ["chapters", "content-generation"].includes(currentStep)
+                      ? "bg-accent/90 text-accent-foreground border-accent"
+                      : "bg-background border-border text-muted-foreground hover:border-accent/50"
                   }`}
                 >
-                  Generate Units
-                </span>
-                {units.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    {units.length} units created
-                  </p>
-                )}
+                  {["chapters", "content-generation"].includes(currentStep) ? (
+                    <span className="text-base">✓</span>
+                  ) : (
+                    <span className="w-3 h-3 rounded-full bg-current"></span>
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Step 2</p>
+                  <span
+                    className={`text-sm font-medium transition-colors duration-300 ${
+                      currentStep === "units"
+                        ? "text-foreground"
+                        : ["chapters", "content-generation"].includes(currentStep)
+                        ? "text-accent"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Generate Units
+                  </span>
+                  {units.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {units.length} units created
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Connector line */}
-            <div
-              className={`flex-1 h-0.5 mx-2  transition-colors duration-300 ${
-                currentStep === "chapters" ? "bg-accent" : "bg-muted"
-              }`}
-            />
-
-            {/* Step 3: Review Structure */}
-            <div className="flex flex-col items-end space-y-1">
+              {/* Connector line */}
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
-                  currentStep === "chapters"
-                    ? "bg-accent text-accent-foreground shadow-lg scale-110"
-                    : "bg-muted text-muted-foreground"
+                className={`flex-1 h-1 mx-4 rounded-full transition-colors duration-300 ${
+                  ["chapters", "content-generation"].includes(currentStep)
+                    ? "bg-accent/60"
+                    : "bg-border"
                 }`}
-              >
-                <span className="size-4 rounded-3xl bg-accent/60"></span>
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">Step 3</p>
-              <div>
-                <span
-                  className={`text-lg font-semibold transition-colors duration-300 ${
+              />
+
+              {/* Step 3: Review Structure */}
+              <div className="flex flex-col items-center space-y-2">
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 border-2 ${
                     currentStep === "chapters"
-                      ? "text-foreground"
-                      : "text-muted-foreground/60"
+                      ? "bg-accent text-accent-foreground border-accent shadow-lg scale-110"
+                      : currentStep === "content-generation"
+                      ? "bg-accent/90 text-accent-foreground border-accent"
+                      : "bg-background border-border text-muted-foreground hover:border-accent/50"
                   }`}
                 >
-                  Review
-                </span>
-                {chapters.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    {chapters.reduce(
-                      (total, unit) => total + unit.chapters.length,
-                      0
-                    )}{" "}
-                    chapters
-                  </p>
-                )}
+                  {currentStep === "content-generation" ? (
+                    <span className="text-base">✓</span>
+                  ) : (
+                    <span className="w-3 h-3 rounded-full bg-current"></span>
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Step 3</p>
+                  <span
+                    className={`text-sm font-medium transition-colors duration-300 ${
+                      currentStep === "chapters"
+                        ? "text-foreground"
+                        : currentStep === "content-generation"
+                        ? "text-accent"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Review
+                  </span>
+                  {chapters.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {chapters.reduce(
+                        (total, unit) => total + unit.chapters.length,
+                        0
+                      )}{" "}
+                      chapters
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Connector line */}
+              <div
+                className={`flex-1 h-1 mx-4 rounded-full transition-colors duration-300 ${
+                  currentStep === "content-generation" ? "bg-accent/60" : "bg-border"
+                }`}
+              />
+
+              {/* Step 4: Content Generation */}
+              <div className="flex flex-col items-center space-y-2">
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 border-2 ${
+                    currentStep === "content-generation"
+                      ? "bg-accent text-accent-foreground border-accent shadow-lg scale-110"
+                      : "bg-background border-border text-muted-foreground hover:border-accent/50"
+                  }`}
+                >
+                  {batchState.processingProgress >= 100 ? (
+                    <span className="text-base">✓</span>
+                  ) : (
+                    <span className="w-3 h-3 rounded-full bg-current"></span>
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Step 4</p>
+                  <span
+                    className={`text-sm font-medium transition-colors duration-300 ${
+                      currentStep === "content-generation"
+                        ? "text-foreground"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Generate Content
+                  </span>
+                  {currentStep === "content-generation" && batchState.isProcessing && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {batchState.processingProgress}% complete
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

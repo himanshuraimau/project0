@@ -122,10 +122,12 @@ export function BatchProgressStep({
       </div>
 
       {/* Course Info Header */}
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader className="bg-gradient-to-r from-accent/10 to-accent/20 border-b">
+      <Card className="max-w-4xl mx-auto border-border/60 bg-card/80 backdrop-blur-sm">
+        <CardHeader className="bg-gradient-to-r from-accent/5 to-accent/10 border-b border-border/40">
           <CardTitle className="flex items-center space-x-3">
-            <BookOpen className="w-6 h-6 text-accent" />
+            <div className="p-2 bg-accent/10 rounded-lg">
+              <BookOpen className="w-6 h-6 text-accent" />
+            </div>
             <div>
               <h3 className="text-xl font-bold text-foreground">{courseTitle}</h3>
               <p className="text-sm text-muted-foreground font-normal">
@@ -137,12 +139,16 @@ export function BatchProgressStep({
       </Card>
 
       {/* Progress Overview */}
-      <Card className="max-w-4xl mx-auto">
+      <Card className="max-w-4xl mx-auto border-border/40 bg-card/60 backdrop-blur-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Content Generation Progress</h3>
+            <h3 className="text-lg font-semibold text-foreground">Content Generation Progress</h3>
             <div className="text-sm text-muted-foreground">
-              {isCompleted ? 'Completed!' : `Batch ${currentBatchText} of ${batchState.totalBatches}`}
+              {isCompleted ? (
+                <span className="text-green-600 font-medium">Completed!</span>
+              ) : (
+                `Batch ${currentBatchText} of ${batchState.totalBatches}`
+              )}
             </div>
           </div>
         </CardHeader>
@@ -282,22 +288,24 @@ export function BatchProgressStep({
 
       {/* Completion State */}
       {isCompleted && (
-        <Card className="max-w-4xl mx-auto border-green-200 bg-green-50">
+        <Card className="max-w-4xl mx-auto border-green-200/50 bg-gradient-to-br from-green-50/20 to-green-100/20 backdrop-blur-sm">
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
-              <CheckCircle className="w-12 h-12 text-green-500 mx-auto" />
+              <div className="p-3 bg-green-100/20 rounded-full w-fit mx-auto">
+                <CheckCircle className="w-12 h-12 text-green-500" />
+              </div>
               <div>
-                <h3 className="text-lg font-semibold text-green-700 mb-2">
+                <h3 className="text-lg font-semibold text-green-700 dark:text-green-400 mb-2">
                   Chapter Content Generation Complete!
                 </h3>
-                <p className="text-green-600">
+                <p className="text-green-600 dark:text-green-300">
                   All {totalChapters} chapters have been processed successfully. 
                   Your course is ready to navigate!
                 </p>
               </div>
               <Button 
                 onClick={onComplete}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                 size="lg"
               >
                 Go to Course

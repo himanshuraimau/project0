@@ -149,4 +149,5 @@ export interface CreateCourseRequest {
 
 export interface CreateCourseResponse {
   courseId: string;
+  chapters?: any[];
 }

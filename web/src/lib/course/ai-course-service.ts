@@ -644,7 +644,7 @@ Each chapter should include a YouTube search query that would help find relevant
    * Save the complete course structure to the database
    * Requirements: 5.1, 5.2, 5.3
    */
-  async saveCourseStructure(courseData: CourseStructure): Promise<string> {
+  async saveCourseStructure(courseData: CourseStructure): Promise<{ courseId: string; chapters: any[] }> {
     try {
       if (!courseData.title || !courseData.userId || !courseData.units || courseData.units.length === 0) {
         throw new Error("Course title, user ID, and units are required");
@@ -715,19 +715,19 @@ Each chapter should include a YouTube search query that would help find relevant
           });
         });
 
-        // Create all chapters at once
-        await Promise.all(
+        // Create all chapters at once and collect their IDs
+        const createdChapters = await Promise.all(
           chaptersData.map((chapterData) =>
             tx.chapter.create({ data: chapterData })
           )
         );
 
-        return newCourse;
+        return { course: newCourse, chapters: createdChapters };
       }, {
         timeout: 15000, // Increase timeout to 15 seconds
       });
 
-      return course.id;
+      return { courseId: course.course.id, chapters: course.chapters };
     } catch (error) {
       console.error("Error saving course structure:", error);
       if (error instanceof Error) {
@@ -757,7 +757,7 @@ export async function generateChaptersForUnits(title: string, units: Unit[]): Pr
   return courseService.generateChaptersForUnits(title, units);
 }
 
-export async function saveCourseStructure(courseData: CourseStructure): Promise<string> {
+export async function saveCourseStructure(courseData: CourseStructure): Promise<{ courseId: string; chapters: any[] }> {
   const courseService = new CourseService();
   return courseService.saveCourseStructure(courseData);
 }

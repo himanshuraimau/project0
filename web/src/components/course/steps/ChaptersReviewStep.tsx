@@ -161,10 +161,12 @@ export function ChaptersReviewStep({
         </p>
       </div>
 
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader className="bg-gradient-to-r from-accent/10 to-accent/20 border-b">
+      <Card className="max-w-4xl mx-auto border-border/60 bg-card/80 backdrop-blur-sm">
+        <CardHeader className="bg-gradient-to-r from-accent/5 to-accent/10 border-b border-border/40">
           <CardTitle className="flex items-center space-x-3">
-            <BookOpen className="w-6 h-6 text-accent" />
+            <div className="p-2 bg-accent/10 rounded-lg">
+              <BookOpen className="w-6 h-6 text-accent" />
+            </div>
             <div>
               <h3 className="text-xl font-bold text-foreground">{courseTitle}</h3>
               <p className="text-sm text-muted-foreground font-normal">
@@ -178,11 +180,11 @@ export function ChaptersReviewStep({
       {/* Hierarchical Course Structure */}
       <div className="max-w-4xl mx-auto space-y-4">
         {units.map((unit, unitIndex) => (
-          <Card key={unit.id} className="overflow-hidden">
-            <CardHeader className="bg-muted/30 border-b">
+          <Card key={unit.id} className="overflow-hidden border-border/40 bg-card/60 backdrop-blur-sm">
+            <CardHeader className="bg-muted/20 border-b border-border/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="flex-shrink-0 w-10 h-10 bg-accent/90 text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold shadow-sm">
                     {unitIndex + 1}
                   </div>
                   <div className="flex-1">
@@ -246,14 +248,14 @@ export function ChaptersReviewStep({
             </CardHeader>
 
             <CardContent className="p-0">
-              <div className="divide-y divide-border">
+              <div className="divide-y divide-border/20">
                 {unit.chapters.map((chapter, chapterIndex) => (
                   <div
                     key={chapter.id}
-                    className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
                   >
                     <div className="flex items-center space-x-4 flex-1">
-                      <div className="flex-shrink-0 w-12 h-8 bg-muted text-muted-foreground rounded flex items-center justify-center text-sm font-medium">
+                      <div className="flex-shrink-0 w-12 h-8 bg-muted/50 text-foreground rounded-md flex items-center justify-center text-sm font-medium border border-border/30">
                         {getChapterNumber(unitIndex, chapterIndex)}
                       </div>
 
@@ -358,13 +360,13 @@ export function ChaptersReviewStep({
 
       {/* Save Button */}
       <div className="max-w-4xl mx-auto">
-        <div className="bg-accent/10 border border-accent/20 rounded-lg p-6">
+        <div className="bg-gradient-to-r from-accent/5 to-accent/10 border border-accent/20 rounded-xl p-6 backdrop-blur-sm">
           <div className="text-center space-y-4">
             <div>
               <h3 className="text-lg font-semibold text-accent mb-2">
                 Ready to Create Your Course?
               </h3>
-              <p className="text-accent/80">
+              <p className="text-muted-foreground">
                 Your course structure looks great! Click below to save and start
                 building your content.
               </p>
@@ -374,7 +376,7 @@ export function ChaptersReviewStep({
               onClick={onSave}
               disabled={isLoading || editingItem !== null}
               size="lg"
-              className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-200"
             >
               {isLoading ? (
                 <InlineLoading
