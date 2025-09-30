@@ -9,9 +9,28 @@ export class PDFParser {
   }
 
   /**
+   * Suppress canvas warnings that are expected in serverless environment
+   */
+  private suppressCanvasWarnings() {
+    const originalWarn = console.warn;
+    console.warn = function (...args: any[]) {
+      const msg = args[0]?.toString() || '';
+      if (msg.includes('@napi-rs/canvas') ||
+        msg.includes('DOMMatrix') ||
+        msg.includes('ImageData') ||
+        msg.includes('Path2D')) {
+        return; // Suppress these warnings - they're expected on Vercel
+      }
+      originalWarn.apply(console, args);
+    };
+  }
+
+  /**
    * PDF parsing using pdfjs-dist library
    */
   async parseFromBuffer(buffer: Buffer): Promise<PDFParseResult> {
+    this.suppressCanvasWarnings();
+
     try {
       console.log('Starting PDF parsing with pdfjs-dist...');
       console.log('Buffer length:', buffer.length);
@@ -26,12 +45,15 @@ export class PDFParser {
       const uint8Array = new Uint8Array(buffer);
       const loadingTask = pdfjsLib.getDocument({
         data: uint8Array,
-        useSystemFonts: true,
+        useSystemFonts: false,
         disableFontFace: true,
-        verbosity: 0, // Reduce logging
-        isEvalSupported: false, // Disable eval for security
+        verbosity: 0,
+        isEvalSupported: false,
         disableAutoFetch: true,
         disableStream: true,
+        standardFontDataUrl: undefined,
+        cMapUrl: undefined,
+        cMapPacked: false,
       });
 
       const pdfDocument = await loadingTask.promise;
@@ -65,20 +87,39 @@ export class PDFParser {
           const page = await pdfDocument.getPage(pageNum);
           const textContent = await page.getTextContent();
 
-          // Combine text items from the page with proper spacing
-          const pageText = textContent.items
-            .map((item: any) => {
-              if ('str' in item && item.str) {
-                return item.str.trim();
-              }
-              return '';
-            })
-            .filter(text => text.length > 0)
-            .join(' ');
+          // Build text with proper spacing and line breaks
+          let pageText = '';
+          let lastY: number | null = null;
 
-          if (pageText.trim()) {
+          for (const item of textContent.items) {
+            const textItem = item as any;
+            if (textItem.str) {
+              // Add line break if Y position changed significantly
+              const currentY = textItem.transform ? textItem.transform[5] : null;
+              if (lastY !== null && currentY !== null && Math.abs(currentY - lastY) > 5) {
+                pageText += '\n';
+              }
+
+              // Add the text
+              pageText += textItem.str;
+
+              // Add space if item has width (word boundary)
+              if (textItem.width && textItem.width > 0) {
+                pageText += ' ';
+              }
+
+              lastY = currentY;
+            }
+          }
+
+          // Clean up page text
+          pageText = pageText.replace(/\s+/g, ' ').replace(/\n\s+/g, '\n').trim();
+
+          if (pageText.length > 0) {
             fullText += pageText + '\n\n';
           }
+
+          console.log(`Page ${pageNum}/${pdfDocument.numPages} extracted, length: ${pageText.length}`);
 
           // Clean up page resources
           page.cleanup();
@@ -93,12 +134,21 @@ export class PDFParser {
 
       console.log('PDF parsing completed');
       console.log('Raw text length:', fullText.length);
-      console.log('Number of pages:', pdfDocument.numPages);
 
       // Clean up the extracted text
       const cleanText = this.cleanExtractedText(fullText);
 
       console.log('Final clean text length:', cleanText.length);
+
+      // Validate extraction was successful
+      if (!cleanText || cleanText.length < 10) {
+        throw new Error('No text content extracted from PDF');
+      }
+
+      // Check if we got PDF structure instead of text
+      if (cleanText.includes('endstream') || cleanText.includes('endobj') || cleanText.includes('/Type')) {
+        throw new Error('Extracted PDF structure instead of text content');
+      }
 
       return {
         text: cleanText,
@@ -110,87 +160,10 @@ export class PDFParser {
     } catch (error) {
       console.error('Error parsing PDF with pdfjs-dist:', error);
 
-      // Try fallback extraction
-      return this.fallbackTextExtraction(buffer);
-    }
-  }
-
-  /**
-   * Fallback text extraction method for when pdfjs-dist fails
-   */
-  private fallbackTextExtraction(buffer: Buffer): PDFParseResult {
-    try {
-      console.log('Using fallback text extraction...');
-
-      // Convert buffer to string and extract readable text patterns
-      const text = buffer.toString('latin1');
-
-      // Simple text extraction patterns for PDFs
-      const textPatterns = [
-        // Text in parentheses (most common in PDFs)
-        /\(([^)]*)\)/g,
-        // Text after Tj operators
-        /\((.*?)\)\s*Tj/g,
-      ];
-
-      let extractedTexts: string[] = [];
-
-      for (const pattern of textPatterns) {
-        const matches = text.match(pattern);
-        if (matches && matches.length > 0) {
-          const patternTexts = matches
-            .map(match => {
-              const parenMatch = match.match(/\(([^)]*)\)/);
-              return parenMatch ? parenMatch[1] : '';
-            })
-            .map(text => {
-              return text
-                .replace(/[^\x20-\x7E]/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
-            })
-            .filter(text => text.length > 2 && /[a-zA-Z]/.test(text));
-
-          extractedTexts.push(...patternTexts);
-        }
-      }
-
-      // Combine extracted text
-      let finalText = '';
-      if (extractedTexts.length > 0) {
-        const uniqueTexts = [...new Set(extractedTexts)];
-        finalText = uniqueTexts.join(' ').replace(/\s+/g, ' ').trim();
-      }
-
-      if (!finalText || finalText.length < 10) {
-        finalText = 'PDF processed successfully. Text extraction was limited - the document may contain images or complex formatting.';
-      }
-
-      console.log('Fallback extraction completed, text length:', finalText.length);
-
-      return {
-        text: finalText,
-        cleanText: finalText,
-        pages: 1,
-        metadata: {
-          Title: 'PDF Document',
-          ExtractedBy: 'Fallback Method'
-        },
-      };
-
-    } catch (error) {
-      console.error('Fallback extraction failed:', error);
-
-      const errorText = 'PDF uploaded successfully but text extraction was limited. The document may be image-based or encrypted.';
-      return {
-        text: errorText,
-        cleanText: errorText,
-        pages: 1,
-        metadata: {
-          Title: 'PDF Document',
-          ProcessingNote: 'Limited extraction due to document format'
-        },
-      };
+      // DO NOT use fallback - it extracts garbage
+      // Instead, throw a proper error
+      throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}. ` +
+        'The PDF may be image-based, encrypted, or corrupted.');
     }
   }
 
@@ -199,7 +172,7 @@ export class PDFParser {
    */
   private cleanExtractedText(text: string): string {
     if (!text || text.trim().length === 0) {
-      return 'PDF processed successfully. No readable text content found.';
+      return '';
     }
 
     return text
@@ -213,34 +186,44 @@ export class PDFParser {
       // Trim each line
       .split('\n')
       .map(line => line.trim())
+      .filter(line => line.length > 0)
       .join('\n')
       .trim();
   }
 
   /**
-   * Save PDF content to database - simplified
+   * Save PDF content to database
    */
-
   async extractToDatabase(buffer: Buffer, originalName: string, userId?: string): Promise<PDFParseResult> {
-    // Parse PDF - simple and direct
-    const parseResult = await this.parseFromBuffer(buffer);
+    try {
+      // Parse PDF
+      const parseResult = await this.parseFromBuffer(buffer);
 
-    // Save to database - simple
-    const document = await this.documentService.saveDocument({
-      fileName: `${Date.now()}_${originalName}`,
-      originalName: originalName,
-      content: parseResult.text,
-      cleanContent: parseResult.cleanText,
-      pages: parseResult.pages,
-      metadata: parseResult.metadata,
-      userId: userId,
-    });
+      // Validate we have actual content
+      if (!parseResult.text || parseResult.text.length < 10) {
+        throw new Error('No text content found in PDF');
+      }
 
-    return {
-      ...parseResult,
-      documentId: document.id,
-    };
+      // Save to database
+      const document = await this.documentService.saveDocument({
+        fileName: `${Date.now()}_${originalName}`,
+        originalName: originalName,
+        content: parseResult.text,
+        cleanContent: parseResult.cleanText,
+        pages: parseResult.pages,
+        metadata: parseResult.metadata,
+        userId: userId,
+      });
+
+      console.log('✓ Document saved successfully, ID:', document.id);
+
+      return {
+        ...parseResult,
+        documentId: document.id,
+      };
+    } catch (error) {
+      console.error('Error in extractToDatabase:', error);
+      throw error;
+    }
   }
-
-
 }
