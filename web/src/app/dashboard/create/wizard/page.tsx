@@ -40,8 +40,8 @@ export default function CourseWizardPage() {
   }, []);
 
   const handleComplete = (courseId: string) => {
-    // Redirect to course management interface after successful creation
-    router.push(`/dashboard/create/${courseId}`);
+    // Redirect to the first chapter of the course after successful creation
+    router.push(`/dashboard/course/${courseId}/0/0`);
   };
 
   const handleGetCredits = () => {

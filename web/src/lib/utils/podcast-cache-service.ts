@@ -196,7 +196,7 @@ export class PodcastCacheService {
   async preloadCommonData(): Promise<void> {
     try {
       // Preload common voices for supported languages
-      const { elevenLabsService } = await import('../elevenlabs-service');
+      const { elevenLabsService } = await import('../eleven-labs/elevenlabs-service');
       const languages = ['en', 'es', 'fr', 'de'];
       
       const preloadPromises = languages.map(async (language) => {

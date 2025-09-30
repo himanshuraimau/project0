@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useNotes } from "@/hooks/use-notes";
 import { Note } from "@/lib/types";
@@ -42,31 +42,17 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Load notes on component mount
-  useEffect(() => {
-    loadNotes();
-  }, [transcriptId]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      if (showNoteTypeOptions) {
-        setShowNoteTypeOptions(false);
-      }
-    };
-
-    if (showNoteTypeOptions) {
-      document.addEventListener("click", handleClickOutside);
-      return () => document.removeEventListener("click", handleClickOutside);
-    }
-  }, [showNoteTypeOptions]);
-
-  const loadNotes = async () => {
+  const loadNotes = useCallback(async () => {
     const result = await getNotes(transcriptId);
     if (result) {
       setNotes(result);
     }
-  };
+  }, [transcriptId, getNotes]);
+
+  // Load notes on component mount
+  useEffect(() => {
+    loadNotes();
+  }, [loadNotes]);
 
   const handleGenerateNotes = async () => {
     if (!transcriptId) return;

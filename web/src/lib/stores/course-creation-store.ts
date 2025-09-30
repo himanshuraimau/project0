@@ -13,6 +13,19 @@ import {
 } from '@/lib/utils/state-recovery';
 
 /**
+ * Batch processing state for chapter content generation (YouTube videos, etc.)
+ */
+interface BatchProcessingState {
+  isProcessing: boolean;
+  currentBatchIndex: number;
+  totalBatches: number;
+  completedChapters: string[];
+  processingChapters: string[];
+  batchSize: number;
+  processingProgress: number; // 0-100
+}
+
+/**
  * Extended course creation state with error handling and state recovery
  */
 interface ExtendedCourseCreationState extends CourseCreationState {
@@ -22,6 +35,12 @@ interface ExtendedCourseCreationState extends CourseCreationState {
   // Recovery state
   hasRecoveryData: boolean;
   recoveryStateSummary: string | null;
+
+  // Batch processing state
+  batchState: BatchProcessingState;
+
+  // Course ID after saving
+  savedCourseId: string | null;
 
   // Error actions
   setError: (error: CourseCreationErrorInfo | null) => void;
@@ -33,9 +52,15 @@ interface ExtendedCourseCreationState extends CourseCreationState {
   restoreFromRecovery: () => boolean;
   discardRecoveryData: () => void;
 
+  // Batch processing actions
+  initializeBatchProcessing: () => void;
+  processNextBatch: () => Promise<void>;
+  resetBatchState: () => void;
+
   // Enhanced actions with error handling and state preservation
   generateUnitsWithRetry: () => Promise<void>;
   generateChaptersWithRetry: () => Promise<void>;
+  generateChaptersBatchwise: () => Promise<void>;
   saveCourseWithRetry: () => Promise<string>;
 }
 
@@ -67,9 +92,29 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
   hasRecoveryData: false,
   recoveryStateSummary: null,
 
+  // Batch processing state
+  batchState: {
+    isProcessing: false,
+    currentBatchIndex: 0,
+    totalBatches: 0,
+    completedChapters: [],
+    processingChapters: [],
+    batchSize: 4,
+    processingProgress: 0
+  },
+
+  // Course ID after saving
+  savedCourseId: null,
+
   // Basic setters with state preservation
   setStep: (step: WizardStep) => {
     set({ currentStep: step });
+    
+    // Initialize batch processing when transitioning to content-generation
+    if (step === 'content-generation') {
+      get().initializeBatchProcessing();
+    }
+    
     const state = get();
     saveStateToStorage({
       currentStep: step,
@@ -158,6 +203,9 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
   setGeneratingUnits: (loading: boolean) => set({ isGeneratingUnits: loading }),
   setGeneratingChapters: (loading: boolean) => set({ isGeneratingChapters: loading }),
   setSaving: (loading: boolean) => set({ isSaving: loading }),
+
+  // Course ID setter
+  setSavedCourseId: (courseId: string | null) => set({ savedCourseId: courseId }),
 
   // Error actions
   setError: (error: CourseCreationErrorInfo | null) => {
@@ -307,16 +355,14 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
     // Clear any previous errors
     clearError();
 
-    if (!units.length) {
-      const error = classifyError(new Error('Units are required to generate chapters'));
+    if (!courseTitle.trim()) {
+      const error = classifyError(new Error('Course title is required'));
       setError(error);
       throw error;
     }
 
-    // Validate that no units are empty
-    const hasEmptyUnits = units.some(unit => !unit.name.trim());
-    if (hasEmptyUnits) {
-      const error = classifyError(new Error('All units must have names'));
+    if (!units.length) {
+      const error = classifyError(new Error('Units are required to generate chapters'));
       setError(error);
       throw error;
     }
@@ -398,8 +444,33 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
       // Handle the enhanced response wrapper
       const data = responseData.success ? responseData.data : responseData;
 
+      // Update chapter IDs with the actual database IDs
+      if (data.chapters && data.chapters.length > 0) {
+        const { chapters } = get();
+        const updatedChapters = [...chapters];
+        
+        // Map the database chapters back to the frontend structure
+        let chapterIndex = 0;
+        for (let unitIndex = 0; unitIndex < updatedChapters.length; unitIndex++) {
+          const unit = updatedChapters[unitIndex];
+          for (let i = 0; i < unit.chapters.length; i++) {
+            if (data.chapters[chapterIndex]) {
+              // Update the chapter with the real database ID
+              unit.chapters[i] = {
+                ...unit.chapters[i],
+                id: data.chapters[chapterIndex].id
+              };
+              chapterIndex++;
+            }
+          }
+        }
+        
+        set({ chapters: updatedChapters });
+      }
+
       clearError(); // Clear error on success
       clearStoredState(); // Clear recovery data on successful save
+      set({ savedCourseId: data.courseId }); // Store the course ID
       return data.courseId;
     } catch (error) {
       console.error('Error saving course:', error);
@@ -416,6 +487,185 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
     return get().saveCourseWithRetry();
   },
 
+  // Batch processing methods
+  initializeBatchProcessing: () => {
+    const { chapters } = get();
+    // Count total chapters across all units
+    const totalChapters = chapters.reduce((total, unit) => total + unit.chapters.length, 0);
+    const batchSize = 4; // Process 4 chapters at a time for optimal performance
+    const totalBatches = Math.ceil(totalChapters / batchSize);
+    
+    set({
+      batchState: {
+        isProcessing: true,
+        currentBatchIndex: 0,
+        totalBatches,
+        completedChapters: [],
+        processingChapters: [],
+        batchSize,
+        processingProgress: 0
+      }
+    });
+  },
+
+  processNextBatch: async () => {
+    const { courseTitle, chapters, batchState, setError, clearError } = get();
+    
+    if (!batchState.isProcessing || batchState.currentBatchIndex >= batchState.totalBatches) {
+      return;
+    }
+
+    // Clear any previous errors
+    clearError();
+
+    // Flatten all chapters and get the current batch
+    const allChapters: Array<{ chapterId: string; unitId: string; chapter: any }> = [];
+    chapters.forEach(unit => {
+      unit.chapters.forEach(chapter => {
+        allChapters.push({
+          chapterId: chapter.id,
+          unitId: unit.id,
+          chapter: chapter
+        });
+      });
+    });
+
+    const startIndex = batchState.currentBatchIndex * batchState.batchSize;
+    const endIndex = Math.min(startIndex + batchState.batchSize, allChapters.length);
+    const currentBatchChapters = allChapters.slice(startIndex, endIndex);
+    const chapterIds = currentBatchChapters.map(c => c.chapterId);
+
+    // Update processing chapters
+    set({
+      batchState: {
+        ...batchState,
+        processingChapters: chapterIds
+      }
+    });
+
+    try {
+      // Call the API to generate content for this batch of chapters
+      const response = await withRetry(async () => {
+        return await fetchWithRetry('/api/course/generate-chapter-content-batch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            courseTitle, 
+            chapters: currentBatchChapters.map(c => ({
+              id: c.chapterId,
+              name: c.chapter.name,
+              youtubeSearchQuery: c.chapter.youtubeSearchQuery,
+              unitId: c.unitId
+            })),
+            batchIndex: batchState.currentBatchIndex 
+          }),
+        });
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Calculate progress
+      const newCompletedChapters = [...batchState.completedChapters, ...chapterIds];
+      const progress = Math.round((newCompletedChapters.length / allChapters.length) * 100);
+      
+      set({
+        batchState: {
+          ...batchState,
+          currentBatchIndex: batchState.currentBatchIndex + 1,
+          completedChapters: newCompletedChapters,
+          processingChapters: [],
+          processingProgress: progress
+        }
+      });
+
+      // Save progress to recovery storage
+      const state = get();
+      saveStateToStorage({
+        courseTitle: state.courseTitle,
+        currentStep: state.currentStep,
+        units: state.units,
+        chapters: state.chapters
+      });
+
+      clearError(); // Clear error on successful batch
+
+    } catch (error) {
+      console.error('Error processing chapter content batch:', error);
+      const errorInfo = classifyError(error);
+      setError(errorInfo);
+      
+      // Reset processing chapters on error
+      set({
+        batchState: {
+          ...batchState,
+          processingChapters: []
+        }
+      });
+      
+      throw errorInfo;
+    }
+  },
+
+  generateChaptersBatchwise: async () => {
+    const { chapters, setSaving, setStep, setError, clearError } = get();
+
+    // Clear any previous errors
+    clearError();
+
+    if (!chapters.length) {
+      const error = classifyError(new Error('Chapters are required for content generation'));
+      setError(error);
+      throw error;
+    }
+
+    try {
+      setSaving(true); // Use saving state for content generation
+      
+      // Initialize batch processing for chapter content
+      get().initializeBatchProcessing();
+      
+      // Process batches sequentially
+      while (get().batchState.currentBatchIndex < get().batchState.totalBatches) {
+        await get().processNextBatch();
+      }
+
+      // All batches completed successfully
+      get().resetBatchState();
+      setStep('content-generation'); // Move to content generation complete
+      clearError();
+
+    } catch (error) {
+      console.error('Error in batch chapter content generation:', error);
+      get().resetBatchState();
+      const errorInfo = classifyError(error);
+      setError(errorInfo);
+      throw errorInfo;
+    } finally {
+      setSaving(false);
+    }
+  },
+
+  resetBatchState: () => {
+    set({
+      batchState: {
+        isProcessing: false,
+        currentBatchIndex: 0,
+        totalBatches: 0,
+        completedChapters: [],
+        processingChapters: [],
+        batchSize: 4,
+        processingProgress: 0
+      }
+    });
+  },
+
+  // Reset store to initial state
   // Reset store to initial state
   reset: () => set({
     currentStep: 'title',
@@ -432,6 +682,16 @@ export const useCourseCreationStore = create<ExtendedCourseCreationState>((set, 
       maxRetries: DEFAULT_RETRY_CONFIG.maxRetries
     },
     hasRecoveryData: false,
-    recoveryStateSummary: null
+    recoveryStateSummary: null,
+    batchState: {
+      isProcessing: false,
+      currentBatchIndex: 0,
+      totalBatches: 0,
+      completedChapters: [],
+      processingChapters: [],
+      batchSize: 4,
+      processingProgress: 0
+    },
+    savedCourseId: null
   }),
 }));

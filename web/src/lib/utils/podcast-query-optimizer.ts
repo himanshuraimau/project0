@@ -58,8 +58,10 @@ export class PodcastQueryOptimizer {
       }
 
       // Transform and cache result
+      const { note, ...podcastData } = podcast;
+      
       const result: PodcastWithSegments = {
-        ...podcast,
+        ...podcastData,
         userId: podcast.userId ?? undefined,
         description: podcast.description ?? undefined,
         estimatedDuration: podcast.estimatedDuration ?? undefined,
@@ -239,8 +241,10 @@ export class PodcastQueryOptimizer {
         return null;
       }
 
+      const { note, ...podcastData } = podcast;
+      
       const result: PodcastWithSegments = {
-        ...podcast,
+        ...podcastData,
         userId: podcast.userId ?? undefined,
         description: podcast.description ?? undefined,
         estimatedDuration: podcast.estimatedDuration ?? undefined,

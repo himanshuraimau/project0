@@ -1,257 +1,229 @@
-import { writeFile, readFile, unlink, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import { DocumentService } from '../document-service';
-import { PDFParseResult, PDFParseOptions } from '../types/documents.types';
+import { PDFParseResult } from '../types/documents.types';
 
 export class PDFParser {
-  private readonly uploadDir: string;
   private readonly documentService: DocumentService;
 
-  constructor(uploadDir: string = './storage/uploads') {
-    this.uploadDir = uploadDir;
+  constructor() {
     this.documentService = new DocumentService();
   }
 
   /**
-   * Extract text and metadata from PDF buffer
+   * Suppress canvas warnings that are expected in serverless environment
    */
-  async parseFromBuffer(buffer: Buffer, options: PDFParseOptions = {}): Promise<PDFParseResult> {
-    try {
-      // Dynamic import of pdf-parse
-      const pdf = (await import('pdf-parse')).default;
+  private suppressCanvasWarnings() {
+    const originalWarn = console.warn;
+    console.warn = function (...args: any[]) {
+      const msg = args[0]?.toString() || '';
+      if (msg.includes('@napi-rs/canvas') ||
+        msg.includes('DOMMatrix') ||
+        msg.includes('ImageData') ||
+        msg.includes('Path2D')) {
+        return; // Suppress these warnings - they're expected on Vercel
+      }
+      originalWarn.apply(console, args);
+    };
+  }
 
-      const data = await pdf(buffer, {
-        max: options.maxPages || 0, // 0 means no limit
+  /**
+   * PDF parsing using pdfjs-dist library
+   */
+  async parseFromBuffer(buffer: Buffer): Promise<PDFParseResult> {
+    this.suppressCanvasWarnings();
+
+    try {
+      console.log('Starting PDF parsing with pdfjs-dist...');
+      console.log('Buffer length:', buffer.length);
+
+      // Import pdfjs-dist legacy build for Node.js
+      const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
+
+      // Disable worker in Node.js environment
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+
+      // Load PDF document from buffer
+      const uint8Array = new Uint8Array(buffer);
+      const loadingTask = pdfjsLib.getDocument({
+        data: uint8Array,
+        useSystemFonts: false,
+        disableFontFace: true,
+        verbosity: 0,
+        isEvalSupported: false,
+        disableAutoFetch: true,
+        disableStream: true,
+        standardFontDataUrl: undefined,
+        cMapUrl: undefined,
+        cMapPacked: false,
       });
 
-      // Log raw text statistics for debugging
-      const nullByteCount = (data.text.match(/\x00/g) || []).length;
-      const controlCharCount = (data.text.match(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g) || []).length;
+      const pdfDocument = await loadingTask.promise;
+      console.log('PDF loaded successfully, pages:', pdfDocument.numPages);
 
-      if (nullByteCount > 0 || controlCharCount > 0) {
-        console.warn(`PDF text contains ${nullByteCount} null bytes and ${controlCharCount} control characters - cleaning...`);
+      // Extract text from all pages
+      let fullText = '';
+      const metadata: any = {};
+
+      // Get document metadata
+      try {
+        const info = await pdfDocument.getMetadata();
+        if (info.info) {
+          const infoObj = info.info as any;
+          metadata.Title = infoObj.Title || 'PDF Document';
+          metadata.Author = infoObj.Author || '';
+          metadata.Subject = infoObj.Subject || '';
+          metadata.Creator = infoObj.Creator || '';
+          metadata.Producer = infoObj.Producer || '';
+          metadata.CreationDate = infoObj.CreationDate || '';
+          metadata.ModDate = infoObj.ModDate || '';
+        }
+      } catch (metaError) {
+        console.log('Could not extract metadata:', metaError);
+        metadata.Title = 'PDF Document';
       }
 
-      const cleanText = this.cleanExtractedText(data.text);
+      // Extract text from each page
+      for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
+        try {
+          const page = await pdfDocument.getPage(pageNum);
+          const textContent = await page.getTextContent();
+
+          // Build text with proper spacing and line breaks
+          let pageText = '';
+          let lastY: number | null = null;
+
+          for (const item of textContent.items) {
+            const textItem = item as any;
+            if (textItem.str) {
+              // Add line break if Y position changed significantly
+              const currentY = textItem.transform ? textItem.transform[5] : null;
+              if (lastY !== null && currentY !== null && Math.abs(currentY - lastY) > 5) {
+                pageText += '\n';
+              }
+
+              // Add the text
+              pageText += textItem.str;
+
+              // Add space if item has width (word boundary)
+              if (textItem.width && textItem.width > 0) {
+                pageText += ' ';
+              }
+
+              lastY = currentY;
+            }
+          }
+
+          // Clean up page text
+          pageText = pageText.replace(/\s+/g, ' ').replace(/\n\s+/g, '\n').trim();
+
+          if (pageText.length > 0) {
+            fullText += pageText + '\n\n';
+          }
+
+          console.log(`Page ${pageNum}/${pdfDocument.numPages} extracted, length: ${pageText.length}`);
+
+          // Clean up page resources
+          page.cleanup();
+        } catch (pageError) {
+          console.error(`Error processing page ${pageNum}:`, pageError);
+          // Continue with other pages
+        }
+      }
+
+      // Clean up document resources
+      pdfDocument.destroy();
+
+      console.log('PDF parsing completed');
+      console.log('Raw text length:', fullText.length);
+
+      // Clean up the extracted text
+      const cleanText = this.cleanExtractedText(fullText);
+
+      console.log('Final clean text length:', cleanText.length);
+
+      // Validate extraction was successful
+      if (!cleanText || cleanText.length < 10) {
+        throw new Error('No text content extracted from PDF');
+      }
+
+      // Check if we got PDF structure instead of text
+      if (cleanText.includes('endstream') || cleanText.includes('endobj') || cleanText.includes('/Type')) {
+        throw new Error('Extracted PDF structure instead of text content');
+      }
 
       return {
-        text: data.text,
+        text: cleanText,
         cleanText: cleanText,
-        pages: data.numpages,
-        metadata: data.info,
-        images: options.extractImages ? await this.extractImagesFromBuffer(buffer) : undefined,
+        pages: pdfDocument.numPages,
+        metadata: metadata,
       };
+
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
-      throw new Error(`PDF parsing failed: ${message}`);
+      console.error('Error parsing PDF with pdfjs-dist:', error);
+
+      // DO NOT use fallback - it extracts garbage
+      // Instead, throw a proper error
+      throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}. ` +
+        'The PDF may be image-based, encrypted, or corrupted.');
     }
   }
 
   /**
-   * Extract text from PDF file path
-   */
-  async parseFromFile(filePath: string, options: PDFParseOptions = {}): Promise<PDFParseResult> {
-    try {
-      const buffer = await readFile(filePath);
-      return await this.parseFromBuffer(buffer, options);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
-      throw new Error(`Failed to read PDF file: ${message}`);
-    }
-  }
-
-  /**
-   * Save uploaded PDF and return the file path
-   */
-  async savePDF(buffer: Buffer, originalName: string): Promise<string> {
-    const timestamp = Date.now();
-    const fileName = `${timestamp}_${originalName}`;
-    const filePath = join(this.uploadDir, fileName);
-    
-    await writeFile(filePath, buffer);
-    return filePath;
-  }
-
-  /**
-   * Clean up temporary files
-   */
-  async cleanup(filePath: string): Promise<void> {
-    try {
-      await unlink(filePath);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
-      console.warn(`Failed to cleanup file ${filePath}:`, message);
-    }
-  }
-
-  /**
-   * Clean extracted text similar to the original extract.js
+   * Clean and normalize extracted text
    */
   private cleanExtractedText(text: string): string {
+    if (!text || text.trim().length === 0) {
+      return '';
+    }
+
     return text
-      // Remove null bytes and other control characters that can cause database issues
-      .replace(/\x00/g, '') // Remove null bytes
-      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove other control characters
+      // Normalize whitespace
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .replace(/\t/g, ' ')
+      // Remove excessive whitespace
+      .replace(/[ ]{2,}/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      // Trim each line
       .split('\n')
       .map(line => line.trim())
-      .filter((line, index, array) => {
-        // Remove empty lines at the beginning
-        if (index === 0 || array.slice(0, index).every(l => l === '')) {
-          return line !== '';
-        }
-        return true;
-      })
+      .filter(line => line.length > 0)
       .join('\n')
-      .replace(/\n{3,}/g, '\n\n') // Replace 3 or more consecutive newlines with just 2
-      .replace(/\n+$/, '') // Remove trailing newlines
-      .trim(); // Remove leading/trailing whitespace
+      .trim();
   }
 
   /**
-   * Extract images from PDF buffer using pdfjs-dist (advanced version)
+   * Save PDF content to database
    */
-  private async extractImagesFromBuffer(_buffer: Buffer): Promise<string[]> {
+  async extractToDatabase(buffer: Buffer, originalName: string, userId?: string): Promise<PDFParseResult> {
     try {
-      console.log('⚠️ Image extraction is currently disabled due to server-side DOM limitations');
-      console.log('💡 To enable image extraction, please implement server-side PDF image processing');
-      
-      // TODO: Implement server-side image extraction using alternative libraries
-      // Alternative approaches:
-      // 1. Use pdf-poppler or pdf2pic (requires system dependencies)
-      // 2. Use puppeteer with headless browser
-      // 3. Use ImageMagick with pdf support
-      
-      return [];
-    } catch (error) {
-      console.error('Error in image extraction placeholder:', error);
-      return [];
-    }
-  }
+      // Parse PDF
+      const parseResult = await this.parseFromBuffer(buffer);
 
-  /**
-   * Extract images from PDF (placeholder - legacy method)
-   */
-  private async extractImages(buffer: Buffer): Promise<string[]> {
-    return this.extractImagesFromBuffer(buffer);
-  }
+      // Validate we have actual content
+      if (!parseResult.text || parseResult.text.length < 10) {
+        throw new Error('No text content found in PDF');
+      }
 
-  /**
-   * Save PDF content to database instead of files
-   */
-  async extractToDatabase(buffer: Buffer, originalName: string, options: PDFParseOptions = {}, userId?: string): Promise<PDFParseResult> {
-    try {
-      // Parse the PDF
-      const parseResult = await this.parseFromBuffer(buffer, options);
-      
-      // Generate filename
-      const timestamp = Date.now();
-      const fileName = `${timestamp}_${originalName}`;
-      
       // Save to database
       const document = await this.documentService.saveDocument({
-        fileName,
-        originalName,
+        fileName: `${Date.now()}_${originalName}`,
+        originalName: originalName,
         content: parseResult.text,
         cleanContent: parseResult.cleanText,
         pages: parseResult.pages,
         metadata: parseResult.metadata,
-        userId,
+        userId: userId,
       });
+
+      console.log('✓ Document saved successfully, ID:', document.id);
 
       return {
         ...parseResult,
         documentId: document.id,
       };
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
-      throw new Error(`PDF extraction to database failed: ${message}`);
+      console.error('Error in extractToDatabase:', error);
+      throw error;
     }
   }
-
-  /**
-   * Save PDF and extract content to files (comprehensive extraction)
-   */
-  async extractToFiles(buffer: Buffer, originalName: string, options: PDFParseOptions = {}): Promise<PDFParseResult> {
-    try {
-      // Create output directory based on PDF name
-      const timestamp = Date.now();
-      const baseName = originalName.replace('.pdf', '');
-      const outputDir = join(this.uploadDir, `${timestamp}_${baseName}`);
-      
-      if (!existsSync(outputDir)) {
-        await mkdir(outputDir, { recursive: true });
-      }
-
-      // Parse the PDF
-      const parseResult = await this.parseFromBuffer(buffer, options);
-      
-      // Save cleaned text to file
-      const textFile = join(outputDir, 'extracted_text.txt');
-      await writeFile(textFile, parseResult.cleanText);
-      
-      // Extract images if requested
-      let imagesDir: string | undefined;
-      if (options.extractImages) {
-        imagesDir = join(outputDir, 'images');
-        if (!existsSync(imagesDir)) {
-          await mkdir(imagesDir, { recursive: true });
-        }
-        // Images are already saved during extraction
-      }
-
-      return {
-        ...parseResult,
-        extractedFiles: {
-          textFile,
-          imagesDir: options.extractImages ? imagesDir : undefined,
-        },
-      };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
-      throw new Error(`PDF extraction failed: ${message}`);
-    }
-  }
-
-  /**
-   * Generate summary using AI (placeholder)
-   */
-  async generateSummary(_text: string): Promise<string> {
-    // TODO: Integrate with Gemini AI for summary generation
-    // This is a placeholder
-    const words = _text.split(' ');
-    const summary = words.slice(0, 100).join(' ') + '...';
-    return summary;
-  }
-
-  /**
-   * Generate quiz questions (placeholder)
-   */
-  async generateQuiz(_text: string): Promise<Array<{ question: string; options: string[]; correct: number }>> {
-    // TODO: Integrate with Gemini AI for quiz generation
-    // This is a placeholder
-    return [
-      {
-        question: "Sample question based on the document",
-        options: ["A", "B", "C", "D"],
-        correct: 0
-      }
-    ];
-  }
-
-  /**
-   * Generate flashcards (placeholder)
-   */
-  async generateFlashcards(_text: string): Promise<Array<{ front: string; back: string }>> {
-    // TODO: Integrate with Gemini AI for flashcard generation
-    // This is a placeholder
-    return [
-      {
-        front: "Sample concept",
-        back: "Sample explanation"
-      }
-    ];
-  }
-
-
 }

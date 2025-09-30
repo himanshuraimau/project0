@@ -6,6 +6,7 @@ import { ProcessPDFResult } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Upload, CheckCircle, AlertCircle, Type } from "lucide-react";
 
 import { MarkdownRenderer } from "@/components/mdx-renderer";
@@ -29,14 +30,43 @@ export function SimplePDFProcessor({
   const [mode, setMode] = useState<"pdf" | "text">("pdf");
   const [textInput, setTextInput] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleFileSelect = (file: File) => {
-    if (file.type === "application/pdf") {
-      setSelectedFile(file);
-      setProcessResult(null);
-    } else {
-      alert("Please select a valid PDF file");
+    // Reset previous state
+    setProcessResult(null);
+    setValidationError(null);
+    
+    // Validate file type
+    const allowedMimeTypes = ['application/pdf'];
+    const allowedExtensions = ['.pdf'];
+    
+    if (!allowedMimeTypes.includes(file.type)) {
+      setValidationError("Only PDF files are allowed. Please select a PDF file.");
+      return;
     }
+    
+    // Check file extension as backup
+    const fileExtension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+    if (!allowedExtensions.includes(fileExtension)) {
+      setValidationError("File must have a .pdf extension.");
+      return;
+    }
+    
+    // Check file size (10MB limit)
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxFileSize) {
+      setValidationError(`File size must be less than ${maxFileSize / 1024 / 1024}MB. Please choose a smaller file.`);
+      return;
+    }
+    
+    // Check if file name is valid
+    if (!file.name || file.name.trim().length === 0) {
+      setValidationError("File must have a valid name.");
+      return;
+    }
+    
+    setSelectedFile(file);
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,6 +125,71 @@ export function SimplePDFProcessor({
     setProcessResult(null);
     setTextInput("");
     setNoteTitle("");
+    setValidationError(null);
+  };
+
+  // Helper function to get user-friendly error messages
+  const getErrorMessage = (error: string): string => {
+    const errorLower = error.toLowerCase();
+    
+    if (errorLower.includes("overloaded") || errorLower.includes("capacity")) {
+      return "AI service is currently at capacity";
+    }
+    if (errorLower.includes("insufficient_credits") || errorLower.includes("insufficient credits")) {
+      return "Insufficient credits to process PDF";
+    }
+    if (errorLower.includes("invalid pdf") || errorLower.includes("corrupted")) {
+      return "Invalid or corrupted PDF file";
+    }
+    if (errorLower.includes("password")) {
+      return "Password-protected PDFs are not supported";
+    }
+    if (errorLower.includes("timeout")) {
+      return "PDF processing timed out";
+    }
+    if (errorLower.includes("file too large") || errorLower.includes("size limit")) {
+      return "File size exceeds the 10MB limit";
+    }
+    if (errorLower.includes("invalid file type") || errorLower.includes("invalid file extension")) {
+      return "Only PDF files are supported";
+    }
+    if (errorLower.includes("unauthorized") || errorLower.includes("sign in")) {
+      return "Please sign in to continue";
+    }
+    if (errorLower.includes("database") || errorLower.includes("network")) {
+      return "Server error occurred";
+    }
+    
+    return `Error: ${error}`;
+  };
+
+  // Helper function to get additional help text for errors
+  const getErrorHelpText = (error: string): string | null => {
+    const errorLower = error.toLowerCase();
+    
+    if (errorLower.includes("overloaded") || errorLower.includes("capacity")) {
+      return "Your document was processed and saved. You can view it in your notes or try generating AI notes later.";
+    }
+    if (errorLower.includes("insufficient_credits")) {
+      return "Please purchase more credits to continue processing PDF files.";
+    }
+    if (errorLower.includes("invalid pdf") || errorLower.includes("corrupted")) {
+      return "Please try uploading a different PDF file that is not corrupted.";
+    }
+    if (errorLower.includes("password")) {
+      return "Please remove the password protection from your PDF and try again.";
+    }
+    if (errorLower.includes("timeout")) {
+      return "The file may be too large or complex. Please try a smaller PDF file.";
+    }
+    if (errorLower.includes("file too large")) {
+      return "Please choose a smaller PDF file (maximum 10MB).";
+    }
+    if (errorLower.includes("database") || errorLower.includes("network")) {
+      return "Please try again in a few minutes. If the problem persists, contact support.";
+    }
+    
+    return null;
   };
 
   return (
@@ -157,11 +252,14 @@ export function SimplePDFProcessor({
                     <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
                       Drag and drop your PDF file here, or click to browse
                     </p>
+                    <p className="text-sm text-muted-foreground/70">
+                      Maximum file size: 10MB • Maximum pages: 50
+                    </p>
                   </div>
 
                   <Input
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,application/pdf"
                     onChange={handleInputChange}
                     className="hidden"
                     id="pdf-upload"
@@ -291,26 +389,35 @@ export function SimplePDFProcessor({
             </>
           )}
 
-          {/* Error Display */}
-          {error && (
-            <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/30 rounded-2xl p-6">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400 flex-shrink-0" />
-                <div>
-                  <p className="text-red-600 dark:text-red-400 font-semibold">
-                    {error.includes("overloaded")
-                      ? "AI service is currently at capacity. Your document was processed, but AI notes could not be generated. Please try again in a few minutes."
-                      : `Error: ${error}`}
+          {/* Validation Error Display */}
+          {validationError && (
+            <Card className="border-red-200 dark:border-red-800/30 bg-red-50 dark:bg-red-950/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                  <p className="text-red-600 dark:text-red-400 font-medium">
+                    {validationError}
                   </p>
-                  {error.includes("overloaded") && (
-                    <p className="text-sm text-red-500 dark:text-red-300 mt-2">
-                      The document was successfully processed and saved. You can
-                      view it in your notes or try generating AI notes later.
-                    </p>
-                  )}
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Processing Error Display */}
+          {error && (
+            <Card className="border-red-200 dark:border-red-800/30 bg-red-50 dark:bg-red-950/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-red-600 dark:text-red-400">
+                  <AlertCircle className="h-5 w-5" />
+                  {getErrorMessage(error)}
+                </CardTitle>
+                {getErrorHelpText(error) && (
+                  <CardDescription className="text-red-500 dark:text-red-300">
+                    {getErrorHelpText(error)}
+                  </CardDescription>
+                )}
+              </CardHeader>
+            </Card>
           )}
         </>
       ) : (

@@ -156,7 +156,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
 /**
  * Map database generation status to progress stage
  */
-function mapDatabaseStatusToStage(status: string): string {
+function mapDatabaseStatusToStage(status: string): 'pending' | 'script_generation' | 'voice_synthesis' | 'audio_processing' | 'storage' | 'indexing' | 'completed' | 'failed' {
   switch (status) {
     case 'pending':
       return 'pending';

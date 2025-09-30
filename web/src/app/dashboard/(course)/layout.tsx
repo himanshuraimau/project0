@@ -12,6 +12,7 @@ import { ArrowLeft } from "lucide-react";
 
 const jakarta = Plus_Jakarta_Sans({
   weight: "600",
+  subsets: ["latin"],
 });
 
 interface CourseData {
@@ -71,7 +72,7 @@ export default function CourseLayout({
           >
             <div className="flex items-center gap-4">
               <Link
-                href="/dashboard/course"
+                href="/dashboard/generate-course"
                 className="flex items-center gap-2 text-xl font-semibold text-foreground hover:text-accent transition-colors"
               >
                 <ArrowLeft className="h-5 w-5" />

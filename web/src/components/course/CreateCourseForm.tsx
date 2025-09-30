@@ -54,7 +54,7 @@ const CreateCourseForm = () => {
       setIsLoading(true);
       const result = await createChapters(data);
       toast("Course created successfully");
-      router.push(`/dashboard/create/${result.course_id}`);
+      router.push(`/dashboard/course/${result.course_id}/0/0`);
     } catch (error) {
       console.error(error);
       toast("Something went wrong");

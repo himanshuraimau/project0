@@ -3,24 +3,75 @@ import { PDFParser } from '@/lib/pdf-parser';
 import { join } from 'path';
 import { auth } from '@clerk/nextjs/server';
 
-const uploadDir = join(process.cwd(), 'storage', 'uploads');
-const parser = new PDFParser(uploadDir);
+const parser = new PDFParser();
 
 export async function POST(request: NextRequest) {
   try {
+     // Parse form data with size limit
     const formData = await request.formData();
     const file = formData.get('file') as File;
     
+    // Validate file presence
     if (!file) {
       return NextResponse.json(
-        { error: 'No file provided' },
+        { 
+          success: false,
+          error: 'No file provided',
+          message: 'Please select a PDF file to upload.'
+        },
         { status: 400 }
       );
     }
 
-    if (file.type !== 'application/pdf') {
+    // Validate file type more thoroughly
+    const allowedMimeTypes = ['application/pdf'];
+    const allowedExtensions = ['.pdf'];
+    
+    if (!allowedMimeTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'File must be a PDF' },
+        { 
+          success: false,
+          error: 'Invalid file type',
+          message: 'Only PDF files are allowed.'
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check file extension as backup validation
+    const fileExtension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+    if (!allowedExtensions.includes(fileExtension)) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Invalid file extension',
+          message: 'File must have a .pdf extension.'
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate file size (10MB limit)
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxFileSize) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'File too large',
+          message: `File size must be less than ${maxFileSize / 1024 / 1024}MB.`
+        },
+        { status: 413 }
+      );
+    }
+
+    // Validate filename
+    if (!file.name || file.name.trim().length === 0) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Invalid filename',
+          message: 'File must have a valid name.'
+        },
         { status: 400 }
       );
     }
@@ -28,12 +79,25 @@ export async function POST(request: NextRequest) {
     // Get user ID from authentication
     const { userId } = await auth();
 
-    // Convert file to buffer
-    const buffer = Buffer.from(await file.arrayBuffer());
+    // Convert file to buffer with error handling
+    let buffer: Buffer;
+    try {
+      buffer = Buffer.from(await file.arrayBuffer());
+    } catch (error) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'File processing failed',
+          message: 'Unable to read the uploaded file. Please try again.'
+        },
+        { status: 400 }
+      );
+    }
     
-    // Parse options from form data
+    // Parse and validate options from form data
     const extractImages = formData.get('extractImages') === 'true';
-    const maxPages = formData.get('maxPages') ? parseInt(formData.get('maxPages') as string) : undefined;
+    const maxPagesParam = formData.get('maxPages');
+    const maxPages = maxPagesParam ? Math.min(parseInt(maxPagesParam as string) || 50, 50) : undefined;
     const saveToDatabase = formData.get('saveToDatabase') !== 'false'; // Default to true
     const saveToFiles = formData.get('saveToFiles') === 'true';
 
@@ -41,22 +105,10 @@ export async function POST(request: NextRequest) {
     
     if (saveToDatabase) {
       // Use database storage (default behavior)
-      result = await parser.extractToDatabase(buffer, file.name, {
-        extractImages,
-        maxPages,
-      }, userId || undefined);
-    } else if (saveToFiles) {
-      // Use file system storage (legacy behavior)
-      result = await parser.extractToFiles(buffer, file.name, {
-        extractImages,
-        maxPages,
-      });
+      result = await parser.extractToDatabase(buffer, file.name, userId || undefined);
     } else {
       // Use in-memory parsing only
-      result = await parser.parseFromBuffer(buffer, {
-        extractImages,
-        maxPages,
-      });
+      result = await parser.parseFromBuffer(buffer);
     }
 
     return NextResponse.json({
@@ -75,10 +127,71 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('PDF parsing error:', error);
     
+    // Provide specific error responses based on error type
+    if (error instanceof Error) {
+      const errorMessage = error.message.toLowerCase();
+      
+      if (errorMessage.includes('invalid pdf') || errorMessage.includes('corrupted')) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Invalid PDF file',
+            message: 'The uploaded file is not a valid PDF or is corrupted. Please try a different file.'
+          },
+          { status: 400 }
+        );
+      }
+      
+      if (errorMessage.includes('timeout')) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Processing timeout',
+            message: 'PDF processing timed out. The file may be too large or complex. Please try a smaller file.'
+          },
+          { status: 408 }
+        );
+      }
+      
+      if (errorMessage.includes('password')) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Password protected PDF',
+            message: 'Password-protected PDFs are not supported. Please upload an unprotected PDF file.'
+          },
+          { status: 400 }
+        );
+      }
+      
+      if (errorMessage.includes('database') || errorMessage.includes('prisma')) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Database error',
+            message: 'Unable to save PDF content. Please try again later.'
+          },
+          { status: 500 }
+        );
+      }
+      
+      if (errorMessage.includes('null bytes') || errorMessage.includes('invalid characters')) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Invalid PDF content',
+            message: 'This PDF contains characters that cannot be processed. Please try a different file.'
+          },
+          { status: 400 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { 
-        error: 'Failed to parse PDF',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        success: false,
+        error: 'PDF processing failed',
+        message: 'An unexpected error occurred while processing the PDF. Please try again.'
       },
       { status: 500 }
     );

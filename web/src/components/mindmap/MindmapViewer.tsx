@@ -42,8 +42,6 @@ export function MindmapViewer({ mermaidCode, title }: MindmapViewerProps) {
       },
       mindmap: {
         padding: 20,
-        maxNodeSizeX: 200,
-        maxNodeSizeY: 100,
         useMaxWidth: false,
       },
       themeVariables: isDarkMode ? {

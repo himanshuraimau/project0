@@ -371,14 +371,15 @@ export const extractTopicsAdvanced = (segments: PodcastSegment[]): TopicSection[
 
   // Add final topic
   if (currentTopic) {
-    if (currentTopic.segments.length > 0) {
-      const lastSegment = currentTopic.segments[currentTopic.segments.length - 1];
-      currentTopic.endTime = lastSegment.endTime || lastSegment.startTime || 0;
+    const topic = currentTopic as TopicSection;
+    if (topic.segments.length > 0) {
+      const lastSegment = topic.segments[topic.segments.length - 1];
+      topic.endTime = lastSegment.endTime || lastSegment.startTime || 0;
 
-      const allText = currentTopic.segments.map(s => s.content).join(' ');
-      currentTopic.keywords = extractKeywords(allText);
+      const allText = topic.segments.map(s => s.content).join(' ');
+      topic.keywords = extractKeywords(allText);
 
-      topics.push(currentTopic);
+      topics.push(topic);
     }
   }
 

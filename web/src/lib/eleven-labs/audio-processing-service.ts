@@ -44,14 +44,15 @@ export class AudioProcessingService {
         // 5. Compress and optimize the final audio
         // 6. Export as high-quality MP3
 
-        const totalSize = sortedSegments.reduce((sum, segment) => sum + segment.audioBuffer.length, 0);
+        const totalSize = sortedSegments.reduce((sum, segment) => sum + (segment.audioBuffer?.length || 0), 0);
 
         if (totalSize > this.maxFileSize) {
           throw new Error(`Combined audio size (${totalSize} bytes) exceeds maximum limit (${this.maxFileSize} bytes)`);
         }
 
         // Placeholder: concatenate buffers (in real implementation, this would be proper audio mixing)
-        const combinedBuffer = Buffer.concat(sortedSegments.map(segment => segment.audioBuffer));
+        const validBuffers = sortedSegments.map(segment => segment.audioBuffer).filter(buffer => buffer !== undefined);
+        const combinedBuffer = Buffer.concat(validBuffers);
 
         return combinedBuffer;
       }, 3, 'combineAudioSegments');

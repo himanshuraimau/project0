@@ -126,9 +126,9 @@ export const POST = Webhooks({
       console.log('Payment failed:', payload);
       
       // Update purchase status to failed
-      if (payload.payment_id) {
+      if (payload.data?.payment_id) {
         // You could implement a method to mark purchase as failed
-        console.log('Payment failed for payment ID:', payload.payment_id);
+        console.log('Payment failed for payment ID:', payload.data.payment_id);
       }
     } catch (error) {
       console.error('Error processing payment failed webhook:', error);
@@ -139,8 +139,8 @@ export const POST = Webhooks({
       console.log('Payment cancelled:', payload);
       
       // Handle cancelled payment
-      if (payload.payment_id) {
-        console.log('Payment cancelled for payment ID:', payload.payment_id);
+      if (payload.data?.payment_id) {
+        console.log('Payment cancelled for payment ID:', payload.data.payment_id);
       }
     } catch (error) {
       console.error('Error processing payment cancelled webhook:', error);

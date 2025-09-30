@@ -123,9 +123,9 @@ export async function POST(request: NextRequest) {
     };
 
     // Save course structure using AI service
-    let courseId: string;
+    let courseResult: { courseId: string; chapters: any[] };
     try {
-      courseId = await saveCourseStructure(courseStructure);
+      courseResult = await saveCourseStructure(courseStructure);
     } catch (error) {
       throw createAppError(
         AppErrorType.COURSE_SAVE_FAILED,
@@ -135,13 +135,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate that course was created successfully
-    if (!courseId || typeof courseId !== "string") {
+    if (!courseResult.courseId || typeof courseResult.courseId !== "string") {
       throw createAppError(
         AppErrorType.COURSE_SAVE_FAILED,
-        { courseId },
+        { courseId: courseResult.courseId },
         "Invalid course ID returned from database"
       );
     }
+
+    const courseId = courseResult.courseId;
 
     // Deduct 2 credits for course generation
     try {
@@ -157,9 +159,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Return successful response
+    // Return successful response with chapter information
     const response: CreateCourseResponse = {
-      courseId
+      courseId,
+      chapters: courseResult.chapters
     };
 
     return createSuccessResponse(response);

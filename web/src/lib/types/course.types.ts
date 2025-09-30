@@ -29,7 +29,7 @@ export interface CourseStructure {
 }
 
 // Wizard step types
-export type WizardStep = 'title' | 'units' | 'chapters';
+export type WizardStep = 'title' | 'units' | 'chapters' | 'content-generation';
 
 // Wizard state interface
 export interface WizardState {
@@ -66,6 +66,27 @@ export interface ChaptersReviewStepProps {
   onEdit: (unitId: string, chapterId: string, newName: string) => void;
   onDeleteChapter: (unitId: string, chapterId: string) => void;
   isLoading: boolean;
+}
+
+export interface BatchProgressStepProps {
+  courseTitle: string;
+  units: UnitWithChapters[]; // Now contains full chapter structure
+  batchState: {
+    isProcessing: boolean;
+    currentBatchIndex: number;
+    totalBatches: number;
+    completedChapters: string[];
+    processingChapters: string[];
+    batchSize: number;
+    processingProgress: number;
+  };
+  errorState: {
+    hasError: boolean;
+    error: any;
+  };
+  onProcessNextBatch: () => Promise<void>;
+  onRetry: () => void;
+  onComplete: () => void;
 }
 
 // Store state interface
@@ -128,4 +149,5 @@ export interface CreateCourseRequest {
 
 export interface CreateCourseResponse {
   courseId: string;
+  chapters?: any[];
 }

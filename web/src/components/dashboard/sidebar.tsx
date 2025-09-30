@@ -37,7 +37,7 @@ const sidebarItems = [
     section: "Main",
     items: [
       { title: "Dashboard", icon: Home, href: "/dashboard" },
-      { title: "My Courses", icon: BookOpen, href: "/dashboard/course" },
+      { title: "My Courses", icon: BookOpen, href: "/dashboard/generate-course" },
     ]
   },
   {
