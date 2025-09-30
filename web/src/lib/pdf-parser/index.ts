@@ -1,172 +1,156 @@
 import { DocumentService } from '../document-service';
 import { PDFParseResult } from '../types/documents.types';
 
+/**
+ * PDF Parser using PDF.co API for reliable text extraction
+ * Works perfectly on Vercel serverless environment
+ */
 export class PDFParser {
   private readonly documentService: DocumentService;
+  private readonly apiKey: string;
 
   constructor() {
     this.documentService = new DocumentService();
+    
+    // Get API key from environment
+    this.apiKey = process.env.PDFCO_API_KEY || '';
+    
+    if (!this.apiKey) {
+      console.warn('⚠️  PDFCO_API_KEY not set in environment variables');
+    }
   }
 
   /**
-   * Suppress canvas warnings that are expected in serverless environment
-   */
-  private suppressCanvasWarnings() {
-    const originalWarn = console.warn;
-    console.warn = function (...args: any[]) {
-      const msg = args[0]?.toString() || '';
-      if (msg.includes('@napi-rs/canvas') ||
-        msg.includes('DOMMatrix') ||
-        msg.includes('ImageData') ||
-        msg.includes('Path2D')) {
-        return; // Suppress these warnings - they're expected on Vercel
-      }
-      originalWarn.apply(console, args);
-    };
-  }
-
-  /**
-   * PDF parsing using pdfjs-dist library
+   * Parse PDF from buffer using PDF.co API
    */
   async parseFromBuffer(buffer: Buffer): Promise<PDFParseResult> {
-    this.suppressCanvasWarnings();
+    if (!this.apiKey) {
+      throw new Error(
+        'PDF.co API key not configured. Please set PDFCO_API_KEY in your environment variables. ' +
+        'Sign up at https://pdf.co to get your free API key.'
+      );
+    }
+
+    console.log('Starting PDF parsing with PDF.co API...');
+    console.log('Buffer length:', buffer.length);
 
     try {
-      console.log('Starting PDF parsing with pdfjs-dist...');
-      console.log('Buffer length:', buffer.length);
-
-      // Import pdfjs-dist legacy build for Node.js
-      const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
-
-      // Set worker source for Node.js environment
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/legacy/build/pdf.worker.mjs',
-        import.meta.url
-      ).href;
-
-      // Load PDF document from buffer
-      const uint8Array = new Uint8Array(buffer);
-      const loadingTask = pdfjsLib.getDocument({
-        data: uint8Array,
-        useSystemFonts: false,
-        disableFontFace: true,
-        verbosity: 0,
-        isEvalSupported: false,
-        disableAutoFetch: true,
-        disableStream: true,
-        standardFontDataUrl: undefined,
-        cMapUrl: undefined,
-        cMapPacked: false,
+      // Step 1: Upload PDF to PDF.co
+      console.log('Step 1: Uploading PDF...');
+      const uploadResponse = await fetch('https://api.pdf.co/v1/file/upload/base64', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+        },
+        body: JSON.stringify({
+          file: buffer.toString('base64'),
+          name: 'document.pdf',
+        }),
       });
 
-      const pdfDocument = await loadingTask.promise;
-      console.log('PDF loaded successfully, pages:', pdfDocument.numPages);
-
-      // Extract text from all pages
-      let fullText = '';
-      const metadata: any = {};
-
-      // Get document metadata
-      try {
-        const info = await pdfDocument.getMetadata();
-        if (info.info) {
-          const infoObj = info.info as any;
-          metadata.Title = infoObj.Title || 'PDF Document';
-          metadata.Author = infoObj.Author || '';
-          metadata.Subject = infoObj.Subject || '';
-          metadata.Creator = infoObj.Creator || '';
-          metadata.Producer = infoObj.Producer || '';
-          metadata.CreationDate = infoObj.CreationDate || '';
-          metadata.ModDate = infoObj.ModDate || '';
-        }
-      } catch (metaError) {
-        console.log('Could not extract metadata:', metaError);
-        metadata.Title = 'PDF Document';
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        throw new Error(`PDF.co upload failed (${uploadResponse.status}): ${errorText}`);
       }
 
-      // Extract text from each page
-      for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
-        try {
-          const page = await pdfDocument.getPage(pageNum);
-          const textContent = await page.getTextContent();
-
-          // Build text with proper spacing and line breaks
-          let pageText = '';
-          let lastY: number | null = null;
-
-          for (const item of textContent.items) {
-            const textItem = item as any;
-            if (textItem.str) {
-              // Add line break if Y position changed significantly
-              const currentY = textItem.transform ? textItem.transform[5] : null;
-              if (lastY !== null && currentY !== null && Math.abs(currentY - lastY) > 5) {
-                pageText += '\n';
-              }
-
-              // Add the text
-              pageText += textItem.str;
-
-              // Add space if item has width (word boundary)
-              if (textItem.width && textItem.width > 0) {
-                pageText += ' ';
-              }
-
-              lastY = currentY;
-            }
-          }
-
-          // Clean up page text
-          pageText = pageText.replace(/\s+/g, ' ').replace(/\n\s+/g, '\n').trim();
-
-          if (pageText.length > 0) {
-            fullText += pageText + '\n\n';
-          }
-
-          console.log(`Page ${pageNum}/${pdfDocument.numPages} extracted, length: ${pageText.length}`);
-
-          // Clean up page resources
-          page.cleanup();
-        } catch (pageError) {
-          console.error(`Error processing page ${pageNum}:`, pageError);
-          // Continue with other pages
-        }
+      const uploadData = await uploadResponse.json();
+      
+      if (!uploadData.url) {
+        throw new Error('PDF.co did not return file URL after upload');
       }
 
-      // Clean up document resources
-      pdfDocument.destroy();
+      const fileUrl = uploadData.url;
+      console.log('✓ PDF uploaded successfully');
 
-      console.log('PDF parsing completed');
-      console.log('Raw text length:', fullText.length);
+      // Step 2: Extract text from PDF
+      console.log('Step 2: Extracting text...');
+      const extractResponse = await fetch('https://api.pdf.co/v1/pdf/convert/to/text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+        },
+        body: JSON.stringify({
+          url: fileUrl,
+          async: false,
+          inline: true,
+          pages: '', // Extract all pages
+          password: '', // No password
+        }),
+      });
 
-      // Clean up the extracted text
-      const cleanText = this.cleanExtractedText(fullText);
+      if (!extractResponse.ok) {
+        const errorText = await extractResponse.text();
+        throw new Error(`PDF.co text extraction failed (${extractResponse.status}): ${errorText}`);
+      }
 
-      console.log('Final clean text length:', cleanText.length);
+      const extractData = await extractResponse.json();
 
-      // Validate extraction was successful
+      if (extractData.error) {
+        throw new Error(`PDF.co API error: ${extractData.message || 'Unknown error'}`);
+      }
+
+      if (!extractData.url) {
+        throw new Error('PDF.co did not return text URL');
+      }
+
+      console.log('✓ Text extraction completed');
+
+      // Step 3: Download extracted text
+      console.log('Step 3: Downloading extracted text...');
+      const textResponse = await fetch(extractData.url);
+      
+      if (!textResponse.ok) {
+        throw new Error(`Failed to download extracted text: ${textResponse.statusText}`);
+      }
+
+      const rawText = await textResponse.text();
+      console.log('Raw text length:', rawText.length);
+
+      // Clean the extracted text
+      const cleanText = this.cleanExtractedText(rawText);
+      console.log('Clean text length:', cleanText.length);
+
+      // Validate extraction
       if (!cleanText || cleanText.length < 10) {
-        throw new Error('No text content extracted from PDF');
+        throw new Error('No text content extracted from PDF - it may be image-based or empty');
       }
 
-      // Check if we got PDF structure instead of text
-      if (cleanText.includes('endstream') || cleanText.includes('endobj') || cleanText.includes('/Type')) {
-        throw new Error('Extracted PDF structure instead of text content');
-      }
+      // Get page count from response
+      const pageCount = extractData.pageCount || 1;
+
+      console.log('✓ PDF parsing completed successfully');
 
       return {
         text: cleanText,
         cleanText: cleanText,
-        pages: pdfDocument.numPages,
-        metadata: metadata,
+        pages: pageCount,
+        metadata: {
+          Title: 'PDF Document',
+          ExtractedBy: 'PDF.co API',
+          ExtractedAt: new Date().toISOString(),
+        },
       };
 
-    } catch (error) {
-      console.error('Error parsing PDF with pdfjs-dist:', error);
+    } catch (error: any) {
+      console.error('Error parsing PDF with PDF.co:', error);
+      
+      // Provide helpful error messages
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        throw new Error(
+          'PDF.co API key is invalid. Please check your PDFCO_API_KEY environment variable. ' +
+          'Get your API key at https://pdf.co'
+        );
+      }
+      
+      if (error.message?.includes('429') || error.message?.includes('quota')) {
+        throw new Error(
+          'PDF.co API quota exceeded. Please check your account limits at https://pdf.co/dashboard'
+        );
+      }
 
-      // DO NOT use fallback - it extracts garbage
-      // Instead, throw a proper error
-      throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}. ` +
-        'The PDF may be image-based, encrypted, or corrupted.');
+      throw new Error(`Failed to parse PDF: ${error.message}`);
     }
   }
 
@@ -195,17 +179,25 @@ export class PDFParser {
   }
 
   /**
-   * Save PDF content to database
+   * Extract PDF and save to database
    */
-  async extractToDatabase(buffer: Buffer, originalName: string, userId?: string): Promise<PDFParseResult> {
+  async extractToDatabase(
+    buffer: Buffer,
+    originalName: string,
+    userId?: string
+  ): Promise<PDFParseResult> {
     try {
-      // Parse PDF
+      console.log('Starting PDF extraction to database...');
+      
+      // Parse PDF using PDF.co
       const parseResult = await this.parseFromBuffer(buffer);
 
-      // Validate we have actual content
+      // Validate content
       if (!parseResult.text || parseResult.text.length < 10) {
         throw new Error('No text content found in PDF');
       }
+
+      console.log('Saving document to database...');
 
       // Save to database
       const document = await this.documentService.saveDocument({
@@ -224,7 +216,8 @@ export class PDFParser {
         ...parseResult,
         documentId: document.id,
       };
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Error in extractToDatabase:', error);
       throw error;
     }
