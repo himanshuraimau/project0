@@ -38,8 +38,11 @@ export class PDFParser {
       // Import pdfjs-dist legacy build for Node.js
       const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
 
-      // Disable worker in Node.js environment
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+      // Set worker source for Node.js environment
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+        'pdfjs-dist/legacy/build/pdf.worker.mjs',
+        import.meta.url
+      ).href;
 
       // Load PDF document from buffer
       const uint8Array = new Uint8Array(buffer);
