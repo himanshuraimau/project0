@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import { useNotes } from "@/hooks/use-notes";
 import { Note } from "@/lib/types";
 import { NoteCard } from "./note-card";
@@ -23,24 +23,34 @@ interface NotesListProps {
   transcriptId?: string;
 }
 
-export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
-  const { getNotes, deleteNote, loading, error } = useNotes();
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+export interface NotesListRef {
+  refreshNotes: () => Promise<void>;
+}
 
-  const loadNotes = useCallback(async () => {
-    const result = await getNotes(transcriptId);
-    if (result) {
-      setNotes(result);
-    }
-  }, [transcriptId, getNotes]);
+export const NotesList = forwardRef<NotesListRef, NotesListProps>(
+  ({ searchQuery, transcriptId }, ref) => {
+    const { getNotes, deleteNote, loading, error } = useNotes();
+    const [notes, setNotes] = useState<Note[]>([]);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-  // Load notes on component mount
-  useEffect(() => {
-    loadNotes();
-  }, [loadNotes, searchQuery]);
+    const loadNotes = useCallback(async () => {
+      const result = await getNotes(transcriptId);
+      if (result) {
+        setNotes(result);
+      }
+    }, [transcriptId, getNotes]);
+
+    // Expose refresh method to parent component
+    useImperativeHandle(ref, () => ({
+      refreshNotes: loadNotes
+    }), [loadNotes]);
+
+    // Load notes on component mount
+    useEffect(() => {
+      loadNotes();
+    }, [loadNotes, searchQuery]);
 
   const handleDeleteNote = (id: string) => {
     setNoteToDelete(id);
@@ -217,5 +227,8 @@ export function NotesList({ searchQuery, transcriptId }: NotesListProps) {
         </AlertDialogContent>
       </AlertDialog>
     </>
-  );
-}
+    );
+  }
+);
+
+NotesList.displayName = "NotesList";

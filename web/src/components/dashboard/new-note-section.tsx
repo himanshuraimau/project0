@@ -12,12 +12,14 @@ import {
 import { CloudUpload } from "lucide-react";
 import { SimplePDFProcessor } from "@/components/pdf";
 import { checkCreditsAndRedirect } from "@/lib/client/credits-api";
+import { ProcessPDFResult } from "@/lib/types";
 import { AudioRecorder, RecordAudio } from "@/components/audio";
 import { YouTubeProcessor } from "@/components/transcript";
 import { WebpageProcessor } from "@/components/webpage";
 import { Inter } from "next/font/google";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Image from "next/image";
+import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 
 const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700"],
@@ -27,6 +29,7 @@ const jakarta = Plus_Jakarta_Sans({
 const inter = Inter({ subsets: ["latin"] });
 
 export function NewNoteSection() {
+  const { refreshNotes } = useDashboardRefresh();
   const [showPDFDialog, setShowPDFDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
   const [showRecordAudioDialog, setShowRecordAudioDialog] = useState(false);
@@ -45,6 +48,10 @@ export function NewNoteSection() {
   }) => {
     console.log("Webpage processing completed:", result);
     setShowWebpageDialog(false);
+    // Refresh dashboard if a note was created
+    if (result.note?.id) {
+      refreshNotes();
+    }
   };
 
   const handleCloseWebpageDialog = () => {
@@ -69,6 +76,9 @@ export function NewNoteSection() {
         "Audio transcribed successfully, but note creation failed: " +
           (result.note.message || "Unknown error")
       );
+    } else if (result.note?.id) {
+      // Refresh dashboard if a note was created successfully
+      refreshNotes();
     }
   };
 
@@ -90,11 +100,19 @@ export function NewNoteSection() {
         "Audio recorded and transcribed successfully, but note creation failed: " +
           (result.note.message || "Unknown error")
       );
+    } else if (result.note?.id) {
+      // Refresh dashboard if a note was created successfully
+      refreshNotes();
     }
   };
 
-  const handlePDFProcessComplete = () => {
+  const handlePDFProcessComplete = (result: ProcessPDFResult) => {
+    console.log("PDF processing completed:", result);
     setShowPDFDialog(false);
+    // Refresh dashboard if a note was created successfully
+    if (result.note && 'id' in result.note) {
+      refreshNotes();
+    }
   };
 
   const handleClosePDFDialog = () => {
@@ -107,6 +125,10 @@ export function NewNoteSection() {
   }) => {
     console.log("YouTube transcript completed:", result);
     setShowYouTubeDialog(false);
+    // Refresh dashboard if a note was created
+    if (result.note?.id) {
+      refreshNotes();
+    }
   };
 
   const handleCloseYouTubeDialog = () => {

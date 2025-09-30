@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,8 +25,9 @@ import {
   Folder,
   Trash2,
 } from "lucide-react";
-import { NotesList } from "@/components/notes/notes-list";
+import { NotesList, NotesListRef } from "@/components/notes/notes-list";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 
 const inter = Inter({ subsets: ["latin"] });
 const jakarta = Plus_Jakarta_Sans({
@@ -35,6 +36,9 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export function MyNotesSection() {
+  const { setRefreshHandler } = useDashboardRefresh();
+  const notesListRef = useRef<NotesListRef>(null);
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolder, setSelectedFolder] = useState("All Notes");
   const [folders, setFolders] = useState<string[]>(["Work", "Personal"]);
@@ -43,6 +47,16 @@ export function MyNotesSection() {
   const [newFolderName, setNewFolderName] = useState("");
   const [editingFolder, setEditingFolder] = useState("");
   const [editFolderName, setEditFolderName] = useState("");
+
+  // Register refresh handler when component mounts
+  useEffect(() => {
+    const refreshHandler = async () => {
+      if (notesListRef.current?.refreshNotes) {
+        await notesListRef.current.refreshNotes();
+      }
+    };
+    setRefreshHandler(refreshHandler);
+  }, [setRefreshHandler]);
 
   const handleCreateFolder = () => {
     if (newFolderName.trim() && !folders.includes(newFolderName.trim())) {
@@ -182,7 +196,10 @@ export function MyNotesSection() {
 
       {/* Notes Display */}
       <div className="w-full">
-        <NotesList searchQuery={searchQuery} />
+        <NotesList 
+          ref={notesListRef}
+          searchQuery={searchQuery} 
+        />
       </div>
 
       {/* Create Folder Dialog */}
