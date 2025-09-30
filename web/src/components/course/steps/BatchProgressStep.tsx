@@ -87,9 +87,9 @@ export function BatchProgressStep({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return <CheckCircle className="w-5 h-5 text-primary" />;
       case 'processing':
-        return <RefreshCw className="w-5 h-5 text-blue-500 animate-spin" />;
+        return <RefreshCw className="w-5 h-5 text-accent animate-spin" />;
       default:
         return <Clock className="w-5 h-5 text-muted-foreground" />;
     }
@@ -99,9 +99,9 @@ export function BatchProgressStep({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'text-green-600';
+        return 'text-primary';
       case 'processing':
-        return 'text-blue-600';
+        return 'text-accent';
       default:
         return 'text-muted-foreground';
     }
@@ -145,7 +145,7 @@ export function BatchProgressStep({
             <h3 className="text-lg font-semibold text-foreground">Content Generation Progress</h3>
             <div className="text-sm text-muted-foreground">
               {isCompleted ? (
-                <span className="text-green-600 font-medium">Completed!</span>
+                <span className="text-primary font-medium">Completed!</span>
               ) : (
                 `Batch ${currentBatchText} of ${batchState.totalBatches}`
               )}
@@ -163,13 +163,13 @@ export function BatchProgressStep({
 
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-primary">
                 {batchState.completedChapters.length}
               </div>
               <div className="text-sm text-muted-foreground">Completed</div>
             </div>
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-accent">
                 {batchState.processingChapters.length}
               </div>
               <div className="text-sm text-muted-foreground">Processing</div>
@@ -186,25 +186,25 @@ export function BatchProgressStep({
 
       {/* Current Processing Status */}
       {batchState.isProcessing && !isCompleted && (
-        <Card className="max-w-4xl mx-auto">
+        <Card className="max-w-4xl mx-auto border-border/40 bg-card">
           <CardContent className="pt-6">
             <LoadingState
               message={`Processing Batch ${currentBatchText}`}
               submessage={`Generating content for ${batchState.processingChapters.length} chapters...`}
               variant="ai"
-              className="bg-blue-50 border border-blue-200 rounded-lg"
+              className="bg-accent/5 border border-accent/20 rounded-lg"
             />
           </CardContent>
         </Card>
       )}
 
       {/* Chapters List with Status */}
-      <Card className="max-w-4xl mx-auto">
+      <Card className="max-w-4xl mx-auto border-border/40 bg-card">
         <CardHeader>
-          <h3 className="text-lg font-semibold">Chapter Content Status</h3>
+          <h3 className="text-lg font-semibold text-foreground">Chapter Content Status</h3>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border/20">
             {allChapters.map((item, index) => {
               const status = getChapterStatus(item.chapter.id);
               const chapterNumber = `${item.unitIndex + 1}.${item.chapterIndex + 1}`;
@@ -213,12 +213,12 @@ export function BatchProgressStep({
                 <div
                   key={item.chapter.id}
                   className={`flex items-center justify-between p-4 transition-colors ${
-                    status === 'processing' ? 'bg-blue-50' : 
-                    status === 'completed' ? 'bg-green-50' : 'hover:bg-muted/50'
+                    status === 'processing' ? 'bg-accent/10' : 
+                    status === 'completed' ? 'bg-primary/10' : 'hover:bg-muted/30'
                   }`}
                 >
                   <div className="flex items-center space-x-4 flex-1">
-                    <div className="flex-shrink-0 w-12 h-8 bg-muted text-muted-foreground rounded flex items-center justify-center text-sm font-medium">
+                    <div className="flex-shrink-0 w-12 h-8 bg-muted/50 text-foreground rounded-md flex items-center justify-center text-sm font-medium border border-border/30">
                       {chapterNumber}
                     </div>
                     
@@ -288,24 +288,24 @@ export function BatchProgressStep({
 
       {/* Completion State */}
       {isCompleted && (
-        <Card className="max-w-4xl mx-auto border-green-200/50 bg-gradient-to-br from-green-50/20 to-green-100/20 backdrop-blur-sm">
+        <Card className="max-w-4xl mx-auto border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 backdrop-blur-sm">
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
-              <div className="p-3 bg-green-100/20 rounded-full w-fit mx-auto">
-                <CheckCircle className="w-12 h-12 text-green-500" />
+              <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto">
+                <CheckCircle className="w-12 h-12 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-green-700 dark:text-green-400 mb-2">
+                <h3 className="text-lg font-semibold text-primary mb-2">
                   Chapter Content Generation Complete!
                 </h3>
-                <p className="text-green-600 dark:text-green-300">
+                <p className="text-muted-foreground">
                   All {totalChapters} chapters have been processed successfully. 
                   Your course is ready to navigate!
                 </p>
               </div>
               <Button 
                 onClick={onComplete}
-                className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200"
                 size="lg"
               >
                 Go to Course

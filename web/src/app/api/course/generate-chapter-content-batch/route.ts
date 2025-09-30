@@ -81,10 +81,10 @@ export async function POST(request: NextRequest) {
 
     console.log(`Processing content batch ${batchIndex} with ${chapters.length} chapters`);
 
-    // Process each chapter in the batch
-    const processedChapters = [];
+    // Process all chapters in parallel for true batch processing
+    console.log(`Processing ${chapters.length} chapters in parallel...`);
     
-    for (const chapter of chapters) {
+    const processChapter = async (chapter: any) => {
       try {
         console.log(`Processing chapter: ${chapter.name}`);
         
@@ -92,30 +92,28 @@ export async function POST(request: NextRequest) {
         const videoId = await searchYoutube(chapter.youtubeSearchQuery);
         if (!videoId) {
           console.log(`No video found for: ${chapter.youtubeSearchQuery}`);
-          processedChapters.push({
+          return {
             id: chapter.id,
             name: chapter.name,
             youtubeSearchQuery: chapter.youtubeSearchQuery,
             unitId: chapter.unitId,
             status: 'failed',
             error: 'No suitable video found'
-          });
-          continue;
+          };
         }
 
         // 2. Get transcript
         const transcript = await getTranscript(videoId);
         if (!transcript || transcript.trim().length === 0) {
           console.log(`No transcript available for video: ${videoId}`);
-          processedChapters.push({
+          return {
             id: chapter.id,
             name: chapter.name,
             youtubeSearchQuery: chapter.youtubeSearchQuery,
             unitId: chapter.unitId,
             status: 'failed',
             error: 'No transcript available'
-          });
-          continue;
+          };
         }
 
         // Limit transcript for processing
@@ -216,7 +214,9 @@ Transcript: ${processedTranscript}`,
           // Don't fail the request if indexing fails
         }
 
-        processedChapters.push({
+        console.log(`Successfully processed chapter: ${chapter.name}`);
+        
+        return {
           id: chapter.id,
           name: chapter.name,
           youtubeSearchQuery: chapter.youtubeSearchQuery,
@@ -225,22 +225,23 @@ Transcript: ${processedTranscript}`,
           videoUrl: `https://youtube.com/watch?v=${videoId}`,
           notesLength: notes.length,
           questionsCount: questions?.length || 0
-        });
-
-        console.log(`Successfully processed chapter: ${chapter.name}`);
+        };
         
       } catch (error) {
         console.error(`Error processing chapter ${chapter.name}:`, error);
-        processedChapters.push({
+        return {
           id: chapter.id,
           name: chapter.name,
           youtubeSearchQuery: chapter.youtubeSearchQuery,
           unitId: chapter.unitId,
           status: 'failed',
           error: error instanceof Error ? error.message : 'Unknown error'
-        });
+        };
       }
-    }
+    };
+
+    // Process all chapters in parallel using Promise.all
+    const processedChapters = await Promise.all(chapters.map(processChapter));
 
     // Calculate batch statistics
     const successfulChapters = processedChapters.filter(c => c.status === 'completed');

@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
-import { Moon, Sun, Menu, X } from "lucide-react"
+import { Moon, Sun, Menu, X, LayoutDashboard } from "lucide-react"
 import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs"
 import { UserControl } from "../user-control"
+import Link from "next/link"
 
 export function Header() {
   const [mounted, setMounted] = useState(false)
@@ -86,7 +87,18 @@ export function Header() {
                 </SignedOut>
 
                 <SignedIn>
-                    <UserControl showName />
+                    <div className="flex items-center gap-3">
+                        <Link href="/dashboard">
+                            <Button 
+                                size="sm" 
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-4 py-2 font-medium transition-all duration-200 hover:shadow-lg"
+                            >
+                                <LayoutDashboard className="w-4 h-4 mr-2" />
+                                Dashboard
+                            </Button>
+                        </Link>
+                        <UserControl showName />
+                    </div>
                 </SignedIn>
 
             {/* Mobile menu button */}
@@ -119,10 +131,20 @@ export function Header() {
                   {item.name}
                 </a>
               ))}
-              <div className="pt-4 border-t border-border/40">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl py-3 font-medium">
-                  Get Started
-                </Button>
+              <div className="pt-4 border-t border-border/40 space-y-3">
+                <SignedIn>
+                  <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl py-3 font-medium">
+                      <LayoutDashboard className="w-4 h-4 mr-2" />
+                      Go to Dashboard
+                    </Button>
+                  </Link>
+                </SignedIn>
+                <SignedOut>
+                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl py-3 font-medium">
+                    Get Started
+                  </Button>
+                </SignedOut>
               </div>
             </nav>
           </div>

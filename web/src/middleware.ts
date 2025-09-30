@@ -19,9 +19,16 @@ const isAuthRoute = createRouteMatcher([
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth()
+  const pathname = req.nextUrl.pathname
   
-  // If user is authenticated and visiting auth pages or home, redirect to dashboard
-  if (userId && (isAuthRoute(req) || req.nextUrl.pathname === '/')) {
+  // If user is authenticated and visiting auth pages, redirect to dashboard
+  if (userId && isAuthRoute(req)) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
+  
+  // If user is authenticated and visiting home page, redirect to dashboard
+  // Add a check to prevent redirect loops
+  if (userId && pathname === '/' && !req.nextUrl.searchParams.has('stay')) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
   
