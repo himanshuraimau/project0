@@ -9,86 +9,152 @@ export class PDFParser {
   }
 
   /**
-   * Simple PDF parsing - just extract text and return it
+   * Simple and reliable PDF parsing using pdf-parse library with proper isolation
    */
-
   async parseFromBuffer(buffer: Buffer): Promise<PDFParseResult> {
-    // Use basic text extraction - simple and reliable
-    return this.basicTextExtraction(buffer);
-  }
-
-  private basicTextExtraction(buffer: Buffer): PDFParseResult {
     try {
-      // Convert buffer to string and look for text patterns
-      const text = buffer.toString('latin1');
+      console.log('Starting PDF parsing...');
+      console.log('Buffer length:', buffer.length);
       
-      // Look for text between parentheses (common PDF text encoding)
-      const textMatches = text.match(/\((.*?)\)/g);
-      let extractedText = '';
+      // Use a try-catch approach to handle pdf-parse gracefully
+      let result: any;
       
-      if (textMatches && textMatches.length > 0) {
-        extractedText = textMatches
-          .map(match => match.slice(1, -1)) // Remove parentheses
-          .filter(text => text.length > 1 && /[a-zA-Z0-9]/.test(text)) // Only keep meaningful text
-          .join(' ');
+      try {
+        // Import pdf-parse dynamically and call it immediately
+        const pdfParse = (await import('pdf-parse')).default;
+        console.log('pdf-parse imported successfully');
+        
+        // Call pdf-parse with just the buffer - no external options that might cause issues
+        result = await pdfParse(buffer);
+        console.log('pdf-parse completed successfully');
+        
+      } catch (parseError) {
+        console.log('pdf-parse failed, trying fallback approach...');
+        console.error('Parse error:', parseError);
+        
+        // If pdf-parse fails, try a more basic approach
+        return this.fallbackTextExtraction(buffer);
       }
       
-      // Also try to extract text using different patterns
-      if (!extractedText || extractedText.length < 50) {
-        // Look for text after 'Tj' operators (PDF text showing operators)
-        const tjMatches = text.match(/\[(.*?)\]\s*TJ/g);
-        if (tjMatches) {
-          const tjText = tjMatches
-            .map(match => match.replace(/\[(.*?)\]\s*TJ/, '$1'))
-            .filter(text => text.length > 1)
+      console.log('PDF parsing completed');
+      console.log('Raw text length:', result.text?.length || 0);
+      console.log('Number of pages:', result.numpages);
+      
+      // Clean up the extracted text
+      const cleanText = this.cleanExtractedText(result.text || '');
+      
+      console.log('Final clean text length:', cleanText.length);
+      
+      return {
+        text: cleanText,
+        cleanText: cleanText,
+        pages: result.numpages || 1,
+        metadata: {
+          Title: result.info?.Title || 'PDF Document',
+          Author: result.info?.Author || '',
+          Subject: result.info?.Subject || '',
+          Creator: result.info?.Creator || '',
+          Producer: result.info?.Producer || '',
+          CreationDate: result.info?.CreationDate || '',
+          ModDate: result.info?.ModDate || '',
+        },
+      };
+    } catch (error) {
+      console.error('Error parsing PDF:', error);
+      
+      // Try fallback extraction
+      return this.fallbackTextExtraction(buffer);
+    }
+  }
+
+  /**
+   * Fallback text extraction method for when pdf-parse fails
+   */
+  private fallbackTextExtraction(buffer: Buffer): PDFParseResult {
+    try {
+      console.log('Using fallback text extraction...');
+      
+      // Convert buffer to string and extract readable text patterns
+      const text = buffer.toString('latin1');
+      
+      // Look for text between common PDF text markers
+      const textPatterns = [
+        /\((.*?)\)/g,  // Text in parentheses
+        /\[(.*?)\]/g,  // Text in brackets
+        />([^<]*)</g,  // Text between angle brackets
+      ];
+      
+      let extractedText = '';
+      
+      for (const pattern of textPatterns) {
+        const matches = text.match(pattern);
+        if (matches && matches.length > 0) {
+          const patternText = matches
+            .map(match => {
+              // Remove the brackets/parentheses and clean up
+              return match.slice(1, -1).replace(/[^\x20-\x7E]/g, ' ');
+            })
+            .filter(text => text.length > 2 && /[a-zA-Z]/.test(text))
             .join(' ');
-          if (tjText.length > extractedText.length) {
-            extractedText = tjText;
+          
+          if (patternText.length > extractedText.length) {
+            extractedText = patternText;
           }
         }
       }
       
-      // Clean up the extracted text
+      // Clean up extracted text
       if (extractedText) {
         extractedText = extractedText
-          .replace(/\\n/g, '\n')
-          .replace(/\\t/g, '\t')
-          .replace(/\\r/g, '\r')
-          .replace(/\\/g, '')
           .replace(/\s+/g, ' ')
           .trim();
       }
       
-      // If still no text, provide a default message
-      if (!extractedText || extractedText.length < 10) {
-        extractedText = 'PDF content extracted successfully. The document may contain primarily images or complex formatting.';
-      }
+      const finalText = extractedText || 'PDF content processed. Text extraction may be limited for this document format.';
       
-      // Aggressive cleaning - remove ALL problematic characters
-      const cleanText = extractedText
-        .split('')
-        .filter(char => char.charCodeAt(0) > 31 && char.charCodeAt(0) < 127) // Only printable ASCII
-        .join('')
-        .trim();
-      
-      const finalCleanText = cleanText || 'PDF processed successfully';
+      console.log('Fallback extraction completed, text length:', finalText.length);
       
       return {
-        text: finalCleanText,
-        cleanText: finalCleanText,
+        text: finalText,
+        cleanText: finalText,
         pages: 1,
-        metadata: { Title: 'Extracted PDF Document' },
+        metadata: { Title: 'PDF Document' },
       };
+      
     } catch (error) {
-      // If everything fails, return a basic result
-      const safeText = 'PDF file processed successfully.';
+      console.error('Fallback extraction failed:', error);
+      
+      const errorText = 'Unable to extract text from PDF. The document may be image-based or encrypted.';
       return {
-        text: safeText,
-        cleanText: safeText,
+        text: errorText,
+        cleanText: errorText,
         pages: 1,
         metadata: { Title: 'PDF Document' },
       };
     }
+  }
+
+  /**
+   * Clean and normalize extracted text
+   */
+  private cleanExtractedText(text: string): string {
+    if (!text || text.trim().length === 0) {
+      return 'PDF processed successfully. No readable text content found.';
+    }
+
+    return text
+      // Normalize whitespace
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .replace(/\t/g, ' ')
+      // Remove excessive whitespace
+      .replace(/[ ]{2,}/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      // Trim each line
+      .split('\n')
+      .map(line => line.trim())
+      .join('\n')
+      .trim();
   }
 
   /**

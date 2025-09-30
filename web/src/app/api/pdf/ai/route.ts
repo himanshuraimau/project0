@@ -1,9 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PDFParser } from '@/lib/pdf-parser';
-import { join } from 'path';
-
-const uploadDir = join(process.cwd(), 'storage', 'uploads');
-const parser = new PDFParser(uploadDir);
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,17 +11,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // For now, return a simple response indicating the feature is not implemented
+    // This can be extended later with actual AI processing
     let result;
     
     switch (action) {
       case 'summary':
-        result = await parser.generateSummary(text);
+        result = { summary: 'AI summary generation is not yet implemented.' };
         break;
       case 'quiz':
-        result = await parser.generateQuiz(text);
+        result = { quiz: 'AI quiz generation is not yet implemented.' };
         break;
       case 'flashcards':
-        result = await parser.generateFlashcards(text);
+        result = { flashcards: 'AI flashcard generation is not yet implemented.' };
         break;
       default:
         return NextResponse.json(
