@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useNotes } from "@/hooks/use-notes";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 
 interface YouTubeProcessorProps {
   onProcessComplete?: (result: {
@@ -29,6 +30,7 @@ export function YouTubeProcessor({
   onProcessComplete,
   onClose,
 }: YouTubeProcessorProps) {
+  const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
   const [videoUrl, setVideoUrl] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isGeneratingNotes, setIsGeneratingNotes] = useState(false);
@@ -44,6 +46,7 @@ export function YouTubeProcessor({
     content: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentTempId, setCurrentTempId] = useState<string | null>(null);
   const { generateNotesFromTranscript } = useNotes();
 
   const validateYouTubeUrl = (url: string): boolean => {
@@ -92,6 +95,16 @@ export function YouTubeProcessor({
     setIsProcessing(true);
     setError(null);
 
+    // Add loading note immediately when processing starts
+    const tempId = `youtube-${Date.now()}`;
+    setCurrentTempId(tempId);
+    addLoadingNote(tempId, "youtube");
+
+    // Close modal immediately after starting
+    if (onClose) {
+      onClose();
+    }
+
     try {
       const response = await fetch("/api/transcripts", {
         method: "POST",
@@ -106,6 +119,11 @@ export function YouTubeProcessor({
       const data = await response.json();
 
       if (!response.ok) {
+        // Remove loading note on error
+        if (currentTempId) {
+          removeLoadingNote(currentTempId);
+        }
+
         // Handle specific error cases with better user feedback
         if (response.status === 400) {
           if (
@@ -167,6 +185,12 @@ export function YouTubeProcessor({
       }
     } catch (error) {
       console.error("Error processing YouTube transcript:", error);
+      
+      // Remove loading note on error
+      if (currentTempId) {
+        removeLoadingNote(currentTempId);
+      }
+      
       setError(
         error instanceof Error ? error.message : "An unexpected error occurred"
       );

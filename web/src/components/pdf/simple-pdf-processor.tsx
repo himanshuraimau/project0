@@ -103,6 +103,11 @@ export function SimplePDFProcessor({
     const tempId = `${mode}-${Date.now()}`;
     addLoadingNote(tempId, mode === "pdf" ? "pdf" : "pdf");
 
+    // Close modal immediately after starting
+    if (onClose) {
+      onClose();
+    }
+
     let result;
 
     if (mode === "pdf") {
@@ -119,11 +124,6 @@ export function SimplePDFProcessor({
 
     if (result) {
       setProcessResult(result);
-      
-      // Close modal immediately
-      if (onClose) {
-        onClose();
-      }
       
       // Call completion with result that includes temp ID for tracking
       onProcessComplete?.({

@@ -108,6 +108,10 @@ export function NewNoteSection() {
     }
   };
 
+  const handleCloseAudioDialog = () => {
+    setShowAudioDialog(false);
+  };
+
   const handleRecordAudioComplete = (result: {
     transcript: { id: string; content: string };
     note: {
@@ -137,6 +141,10 @@ export function NewNoteSection() {
       });
       refreshNotes();
     }
+  };
+
+  const handleCloseRecordAudioDialog = () => {
+    setShowRecordAudioDialog(false);
   };
 
   const handlePDFProcessComplete = (result: ProcessPDFResult) => {
@@ -344,6 +352,7 @@ export function NewNoteSection() {
             <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <RecordAudio
                 onTranscriptionComplete={handleRecordAudioComplete}
+                onClose={handleCloseRecordAudioDialog}
               />
             </div>
           </DialogContent>
@@ -441,6 +450,7 @@ export function NewNoteSection() {
             <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <AudioRecorder
                 onTranscriptionComplete={handleAudioTranscriptionComplete}
+                onClose={handleCloseAudioDialog}
               />
             </div>
           </DialogContent>

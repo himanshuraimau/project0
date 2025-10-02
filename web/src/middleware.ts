@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)', 
   '/sign-up(.*)',
+  '/api/webhooks/clerk', // Clerk webhook endpoint
 ])
 
 const isProtectedApiRoute = createRouteMatcher([
