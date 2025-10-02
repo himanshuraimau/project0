@@ -122,6 +122,7 @@ export function YouTubeProcessor({
         // Remove loading note on error
         if (currentTempId) {
           removeLoadingNote(currentTempId);
+          setCurrentTempId(null);
         }
 
         // Handle specific error cases with better user feedback
@@ -159,9 +160,10 @@ export function YouTubeProcessor({
       if (data.success && data.data) {
         setResult(data.data);
 
-        // Remove loading note using the temp ID
+        // Remove loading note using the temp ID BEFORE processing further
         if (currentTempId) {
           removeLoadingNote(currentTempId);
+          setCurrentTempId(null);
         }
 
         // Automatically generate notes from the transcript
@@ -194,6 +196,7 @@ export function YouTubeProcessor({
       // Remove loading note on error
       if (currentTempId) {
         removeLoadingNote(currentTempId);
+        setCurrentTempId(null);
       }
       
       setError(

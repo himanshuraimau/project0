@@ -60,8 +60,8 @@ export function NewNoteSection() {
         description: `Extracted content from "${result.transcript.title}"`,
         duration: 4000,
       });
-      // Add small delay to ensure loading note is removed before refresh
-      setTimeout(() => refreshNotes(), 100);
+      // Refresh notes immediately - shimmer should already be removed by processor
+      refreshNotes();
     } else {
       toast.success("🌐 Webpage content extracted successfully!", {
         description: "Content saved as transcript",
@@ -99,8 +99,8 @@ export function NewNoteSection() {
         description: "Audio transcribed and notes created",
         duration: 4000,
       });
-      // Add small delay to ensure loading note is removed before refresh
-      setTimeout(() => refreshNotes(), 100);
+      // Refresh notes immediately - shimmer should already be removed by processor
+      refreshNotes();
     }
   };
 
@@ -132,8 +132,8 @@ export function NewNoteSection() {
         description: "Recording transcribed and notes created",
         duration: 4000,
       });
-      // Add small delay to ensure loading note is removed before refresh
-      setTimeout(() => refreshNotes(), 100);
+      // Refresh notes immediately - shimmer should already be removed by processor
+      refreshNotes();
     }
   };
 
@@ -152,8 +152,8 @@ export function NewNoteSection() {
         description: "PDF content extracted and notes created",
         duration: 4000,
       });
-      // Add small delay to ensure loading note is removed before refresh
-      setTimeout(() => refreshNotes(), 100);
+      // Refresh notes immediately - shimmer should already be removed by processor
+      refreshNotes();
     } else {
       toast.success("📄 PDF content extracted successfully!", {
         description: "Content saved as transcript",
@@ -181,8 +181,8 @@ export function NewNoteSection() {
         description: `Extracted content from "${result.transcript.originalName}"`,
         duration: 4000,
       });
-      // Add small delay to ensure loading note is removed before refresh
-      setTimeout(() => refreshNotes(), 100);
+      // Refresh notes immediately - shimmer should already be removed by processor
+      refreshNotes();
     } else {
       toast.success("🎥 YouTube transcript extracted successfully!", {
         description: "Content saved as transcript",

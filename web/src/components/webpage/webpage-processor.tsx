@@ -137,9 +137,10 @@ export function WebpageProcessor({
         setSuccess(true);
         setProcessingStage("Complete!");
 
-        // Remove loading note using temp ID
+        // Remove loading note using temp ID BEFORE calling completion callback
         if (currentTempId) {
           removeLoadingNote(currentTempId);
+          setCurrentTempId(null);
         }
 
         // Call the completion callback with actual transcript ID
@@ -164,6 +165,7 @@ export function WebpageProcessor({
       // Remove loading note on error
       if (currentTempId) {
         removeLoadingNote(currentTempId);
+        setCurrentTempId(null);
       }
 
       setError(

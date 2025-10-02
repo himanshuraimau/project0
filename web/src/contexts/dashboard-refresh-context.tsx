@@ -30,6 +30,12 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
       }
       return [...prev, { id: tempId, type }];
     });
+
+    // Auto-cleanup loading note after 5 minutes as a safety measure
+    setTimeout(() => {
+      console.log(`Auto-removing loading note after timeout: ${tempId}`);
+      setLoadingNotes(prev => prev.filter(note => note.id !== tempId));
+    }, 5 * 60 * 1000); // 5 minutes
   }, []);
 
   const removeLoadingNote = useCallback((tempId: string) => {

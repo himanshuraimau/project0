@@ -124,9 +124,10 @@ export default function RecordAudio({
       if (response.ok) {
         const result = await response.json();
         
-        // Remove loading note using temp ID
+        // Remove loading note using temp ID BEFORE calling completion callback
         if (currentTempId) {
           removeLoadingNote(currentTempId);
+          setCurrentTempId(null);
         }
         
         // Call completion with result that includes temp ID for tracking
@@ -146,6 +147,7 @@ export default function RecordAudio({
         // Remove loading note on error
         if (currentTempId) {
           removeLoadingNote(currentTempId);
+          setCurrentTempId(null);
         }
 
         const error = await response.json();
@@ -157,6 +159,7 @@ export default function RecordAudio({
       // Remove loading note on error
       if (currentTempId) {
         removeLoadingNote(currentTempId);
+        setCurrentTempId(null);
       }
       
       alert(

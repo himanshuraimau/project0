@@ -110,7 +110,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
     });
   };
 
-  if (loading) {
+  if (loading && notes.length === 0) {
     return (
       <div className="flex items-center justify-center p-12">
         <div className="text-center">
