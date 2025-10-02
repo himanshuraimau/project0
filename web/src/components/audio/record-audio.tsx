@@ -124,6 +124,11 @@ export default function RecordAudio({
       if (response.ok) {
         const result = await response.json();
         
+        // Remove loading note using temp ID
+        if (currentTempId) {
+          removeLoadingNote(currentTempId);
+        }
+        
         // Call completion with result that includes temp ID for tracking
         onTranscriptionComplete({
           ...result,

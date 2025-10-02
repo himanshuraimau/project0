@@ -22,7 +22,7 @@ export function SimplePDFProcessor({
   onClose,
 }: SimplePDFProcessorProps) {
   const { processPDFWithNotes, generateNotesFromText, loading, error } = useNotes();
-  const { addLoadingNote } = useDashboardRefresh();
+  const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [processResult, setProcessResult] = useState<ProcessPDFResult | null>(null);
@@ -30,6 +30,7 @@ export function SimplePDFProcessor({
   const [textInput, setTextInput] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [currentTempId, setCurrentTempId] = useState<string | null>(null);
 
   const handleFileSelect = (file: File) => {
     // Reset previous state
@@ -101,6 +102,7 @@ export function SimplePDFProcessor({
 
     // Generate temp ID and add loading note
     const tempId = `${mode}-${Date.now()}`;
+    setCurrentTempId(tempId);
     addLoadingNote(tempId, mode === "pdf" ? "pdf" : "pdf");
 
     // Close modal immediately after starting
@@ -110,29 +112,43 @@ export function SimplePDFProcessor({
 
     let result;
 
-    if (mode === "pdf") {
-      // Use simplified options - always generate notes, no images
-      const options = {
-        extractImages: false,
-        generateNotes: true,
-      };
-      result = await processPDFWithNotes(selectedFile!, options);
-    } else {
-      // Generate notes from text
-      result = await generateNotesFromText(textInput, noteTitle || "Text Note");
-    }
+    try {
+      if (mode === "pdf") {
+        // Use simplified options - always generate notes, no images
+        const options = {
+          extractImages: false,
+          generateNotes: true,
+        };
+        result = await processPDFWithNotes(selectedFile!, options);
+      } else {
+        // Generate notes from text
+        result = await generateNotesFromText(textInput, noteTitle || "Text Note");
+      }
 
-    if (result) {
-      setProcessResult(result);
-      
-      // Call completion with result that includes temp ID for tracking
-      onProcessComplete?.({
-        ...result,
-        transcript: {
-          ...result.transcript,
-          id: result.transcript.id || tempId
+      if (result) {
+        setProcessResult(result);
+        
+        // Remove loading note using temp ID
+        if (currentTempId) {
+          removeLoadingNote(currentTempId);
         }
-      });
+        
+        // Call completion with result that includes temp ID for tracking
+        onProcessComplete?.({
+          ...result,
+          transcript: {
+            ...result.transcript,
+            id: result.transcript.id || tempId
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error processing:", error);
+      
+      // Remove loading note on error
+      if (currentTempId) {
+        removeLoadingNote(currentTempId);
+      }
     }
   };
 

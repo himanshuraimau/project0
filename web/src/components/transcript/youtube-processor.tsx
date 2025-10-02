@@ -159,6 +159,11 @@ export function YouTubeProcessor({
       if (data.success && data.data) {
         setResult(data.data);
 
+        // Remove loading note using the temp ID
+        if (currentTempId) {
+          removeLoadingNote(currentTempId);
+        }
+
         // Automatically generate notes from the transcript
         const note = await handleGenerateNotes(data.data.id);
 

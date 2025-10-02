@@ -51,9 +51,6 @@ export function NewNoteSection() {
   }) => {
     console.log("Webpage processing completed:", result);
     
-    // Remove loading state
-    removeLoadingNote(result.transcript.id);
-    
     setShowWebpageDialog(false);
     setShowLinkDialog(false);
     
@@ -63,7 +60,8 @@ export function NewNoteSection() {
         description: `Extracted content from "${result.transcript.title}"`,
         duration: 4000,
       });
-      refreshNotes();
+      // Add small delay to ensure loading note is removed before refresh
+      setTimeout(() => refreshNotes(), 100);
     } else {
       toast.success("🌐 Webpage content extracted successfully!", {
         description: "Content saved as transcript",
@@ -89,9 +87,6 @@ export function NewNoteSection() {
   }) => {
     console.log("Audio transcription completed:", result);
     
-    // Remove loading state
-    removeLoadingNote(result.transcript.id);
-    
     setShowAudioDialog(false);
 
     if (result.note?.error) {
@@ -104,7 +99,8 @@ export function NewNoteSection() {
         description: "Audio transcribed and notes created",
         duration: 4000,
       });
-      refreshNotes();
+      // Add small delay to ensure loading note is removed before refresh
+      setTimeout(() => refreshNotes(), 100);
     }
   };
 
@@ -124,9 +120,6 @@ export function NewNoteSection() {
   }) => {
     console.log("Record audio completed:", result);
     
-    // Remove loading state
-    removeLoadingNote(result.transcript.id);
-    
     setShowRecordAudioDialog(false);
 
     if (result.note?.error) {
@@ -139,7 +132,8 @@ export function NewNoteSection() {
         description: "Recording transcribed and notes created",
         duration: 4000,
       });
-      refreshNotes();
+      // Add small delay to ensure loading note is removed before refresh
+      setTimeout(() => refreshNotes(), 100);
     }
   };
 
@@ -150,11 +144,6 @@ export function NewNoteSection() {
   const handlePDFProcessComplete = (result: ProcessPDFResult) => {
     console.log("PDF processing completed:", result);
     
-    // Remove loading state (using transcript ID from result)
-    if (result.transcript?.id) {
-      removeLoadingNote(result.transcript.id);
-    }
-    
     setShowPDFDialog(false);
     
     // Show success toast
@@ -163,7 +152,8 @@ export function NewNoteSection() {
         description: "PDF content extracted and notes created",
         duration: 4000,
       });
-      refreshNotes();
+      // Add small delay to ensure loading note is removed before refresh
+      setTimeout(() => refreshNotes(), 100);
     } else {
       toast.success("📄 PDF content extracted successfully!", {
         description: "Content saved as transcript",
@@ -182,9 +172,6 @@ export function NewNoteSection() {
   }) => {
     console.log("YouTube transcript completed:", result);
     
-    // Remove loading state
-    removeLoadingNote(result.transcript.id);
-    
     setShowYouTubeDialog(false);
     setShowLinkDialog(false);
     
@@ -194,7 +181,8 @@ export function NewNoteSection() {
         description: `Extracted content from "${result.transcript.originalName}"`,
         duration: 4000,
       });
-      refreshNotes();
+      // Add small delay to ensure loading note is removed before refresh
+      setTimeout(() => refreshNotes(), 100);
     } else {
       toast.success("🎥 YouTube transcript extracted successfully!", {
         description: "Content saved as transcript",

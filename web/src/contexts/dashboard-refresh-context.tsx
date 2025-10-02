@@ -9,6 +9,7 @@ interface DashboardRefreshContextType {
   addLoadingNote: (tempId: string, type: 'pdf' | 'audio' | 'youtube' | 'webpage') => void;
   removeLoadingNote: (tempId: string) => void;
   loadingNotes: Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage' }>;
+  clearAllLoadingNotes: () => void;
 }
 
 const DashboardRefreshContext = createContext<DashboardRefreshContextType | null>(null);
@@ -19,11 +20,31 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
   const [loadingNotes, setLoadingNotes] = useState<Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage' }>>([]);
 
   const addLoadingNote = useCallback((tempId: string, type: 'pdf' | 'audio' | 'youtube' | 'webpage') => {
-    setLoadingNotes(prev => [...prev, { id: tempId, type }]);
+    console.log(`Adding loading note: ${tempId} (${type})`);
+    setLoadingNotes(prev => {
+      // Check if note already exists to prevent duplicates
+      const exists = prev.some(note => note.id === tempId);
+      if (exists) {
+        console.log(`Loading note ${tempId} already exists, skipping`);
+        return prev;
+      }
+      return [...prev, { id: tempId, type }];
+    });
   }, []);
 
   const removeLoadingNote = useCallback((tempId: string) => {
-    setLoadingNotes(prev => prev.filter(note => note.id !== tempId));
+    console.log(`Removing loading note: ${tempId}`);
+    setLoadingNotes(prev => {
+      const filtered = prev.filter(note => note.id !== tempId);
+      console.log(`Loading notes after removal:`, filtered);
+      return filtered;
+    });
+  }, []);
+
+  // Add function to clear all loading notes (useful for debugging)
+  const clearAllLoadingNotes = useCallback(() => {
+    console.log('Clearing all loading notes');
+    setLoadingNotes([]);
   }, []);
 
   const refreshNotes = useCallback(async () => {
@@ -51,7 +72,8 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
         setRefreshHandler: setRefreshHandlerCallback,
         addLoadingNote,
         removeLoadingNote,
-        loadingNotes
+        loadingNotes,
+        clearAllLoadingNotes
       }}
     >
       {children}

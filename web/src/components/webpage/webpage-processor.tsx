@@ -137,6 +137,11 @@ export function WebpageProcessor({
         setSuccess(true);
         setProcessingStage("Complete!");
 
+        // Remove loading note using temp ID
+        if (currentTempId) {
+          removeLoadingNote(currentTempId);
+        }
+
         // Call the completion callback with actual transcript ID
         if (onProcessComplete) {
           onProcessComplete({
