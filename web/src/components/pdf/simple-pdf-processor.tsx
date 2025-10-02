@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Upload, CheckCircle, AlertCircle, Type } from "lucide-react";
+import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 
 import { MarkdownRenderer } from "@/components/mdx-renderer";
 
@@ -20,13 +21,11 @@ export function SimplePDFProcessor({
   onProcessComplete,
   onClose,
 }: SimplePDFProcessorProps) {
-  const { processPDFWithNotes, generateNotesFromText, loading, error } =
-    useNotes();
+  const { processPDFWithNotes, generateNotesFromText, loading, error } = useNotes();
+  const { addLoadingNote } = useDashboardRefresh();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [processResult, setProcessResult] = useState<ProcessPDFResult | null>(
-    null
-  );
+  const [processResult, setProcessResult] = useState<ProcessPDFResult | null>(null);
   const [mode, setMode] = useState<"pdf" | "text">("pdf");
   const [textInput, setTextInput] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
@@ -100,6 +99,10 @@ export function SimplePDFProcessor({
     if (mode === "pdf" && !selectedFile) return;
     if (mode === "text" && !textInput.trim()) return;
 
+    // Generate temp ID and add loading note
+    const tempId = `${mode}-${Date.now()}`;
+    addLoadingNote(tempId, mode === "pdf" ? "pdf" : "pdf");
+
     let result;
 
     if (mode === "pdf") {
@@ -116,7 +119,20 @@ export function SimplePDFProcessor({
 
     if (result) {
       setProcessResult(result);
-      onProcessComplete?.(result);
+      
+      // Close modal immediately
+      if (onClose) {
+        onClose();
+      }
+      
+      // Call completion with result that includes temp ID for tracking
+      onProcessComplete?.({
+        ...result,
+        transcript: {
+          ...result.transcript,
+          id: result.transcript.id || tempId
+        }
+      });
     }
   };
 

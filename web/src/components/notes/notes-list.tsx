@@ -17,6 +17,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { NoteCardShimmer } from "@/components/ui/shimmer";
+import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 
 interface NotesListProps {
   searchQuery?: string;
@@ -30,6 +32,7 @@ export interface NotesListRef {
 export const NotesList = forwardRef<NotesListRef, NotesListProps>(
   ({ searchQuery, transcriptId }, ref) => {
     const { getNotes, deleteNote, loading, error } = useNotes();
+    const { loadingNotes } = useDashboardRefresh();
     const [notes, setNotes] = useState<Note[]>([]);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
@@ -178,6 +181,12 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* Show shimmer cards for loading notes */}
+        {loadingNotes.map((loadingNote) => (
+          <NoteCardShimmer key={loadingNote.id} />
+        ))}
+        
+        {/* Show actual notes */}
         {filteredNotes.map((note) => (
           <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} />
         ))}

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2, Globe, Loader2, ExternalLink } from "lucide-react";
+import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 
 interface WebpageProcessorProps {
   onProcessComplete?: (result: {
@@ -26,6 +27,7 @@ interface WebpageProcessorProps {
 }
 
 export function WebpageProcessor({ onProcessComplete, onClose }: WebpageProcessorProps) {
+  const { addLoadingNote } = useDashboardRefresh();
   const [url, setUrl] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,23 +100,31 @@ export function WebpageProcessor({ onProcessComplete, onClose }: WebpageProcesso
       setProcessingStage("Generating AI notes...");
 
       if (data.success && data.data) {
+        // Add loading note immediately after successful start
+        const tempId = `webpage-${Date.now()}`;
+        addLoadingNote(tempId, 'webpage');
+        
         setSuccess(true);
         setProcessingStage("Complete!");
         
-        // Call the completion callback
+        // Close modal immediately
+        if (onClose) {
+          onClose();
+        }
+        
+        // Call the completion callback with temp ID
         if (onProcessComplete) {
-          onProcessComplete(data.data);
+          onProcessComplete({
+            ...data.data,
+            transcript: {
+              ...data.data.transcript,
+              id: data.data.transcript.id || tempId // Use actual ID or fallback to temp
+            }
+          });
         }
 
         // Reset form
         setUrl("");
-        
-        // Auto-close after a short delay
-        setTimeout(() => {
-          if (onClose) {
-            onClose();
-          }
-        }, 2000);
       } else {
         throw new Error("Processing completed but no data received");
       }
@@ -250,13 +260,7 @@ export function WebpageProcessor({ onProcessComplete, onClose }: WebpageProcesso
             </div>
           </form>
 
-          <div className="pt-4 border-t">
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p><strong>Cost:</strong> 1 credit per webpage processed</p>
-              <p><strong>Supported:</strong> Most public websites with readable content</p>
-              <p><strong>Processing time:</strong> Usually 10-30 seconds depending on page size</p>
-            </div>
-          </div>
+
         </CardContent>
       </Card>
     </div>

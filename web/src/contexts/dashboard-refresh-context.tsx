@@ -6,6 +6,9 @@ interface DashboardRefreshContextType {
   refreshNotes: () => void;
   isRefreshing: boolean;
   setRefreshHandler: (handler: () => Promise<void>) => void;
+  addLoadingNote: (tempId: string, type: 'pdf' | 'audio' | 'youtube' | 'webpage') => void;
+  removeLoadingNote: (tempId: string) => void;
+  loadingNotes: Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage' }>;
 }
 
 const DashboardRefreshContext = createContext<DashboardRefreshContextType | null>(null);
@@ -13,6 +16,15 @@ const DashboardRefreshContext = createContext<DashboardRefreshContextType | null
 export function DashboardRefreshProvider({ children }: { children: React.ReactNode }) {
   const [refreshHandler, setRefreshHandler] = useState<(() => Promise<void>) | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loadingNotes, setLoadingNotes] = useState<Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage' }>>([]);
+
+  const addLoadingNote = useCallback((tempId: string, type: 'pdf' | 'audio' | 'youtube' | 'webpage') => {
+    setLoadingNotes(prev => [...prev, { id: tempId, type }]);
+  }, []);
+
+  const removeLoadingNote = useCallback((tempId: string) => {
+    setLoadingNotes(prev => prev.filter(note => note.id !== tempId));
+  }, []);
 
   const refreshNotes = useCallback(async () => {
     if (refreshHandler && !isRefreshing) {
@@ -36,7 +48,10 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
       value={{ 
         refreshNotes, 
         isRefreshing, 
-        setRefreshHandler: setRefreshHandlerCallback 
+        setRefreshHandler: setRefreshHandlerCallback,
+        addLoadingNote,
+        removeLoadingNote,
+        loadingNotes
       }}
     >
       {children}
