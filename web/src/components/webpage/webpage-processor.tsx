@@ -61,6 +61,15 @@ export function WebpageProcessor({ onProcessComplete, onClose }: WebpageProcesso
     setSuccess(false);
     setProcessingStage("Validating URL...");
 
+    // Add loading note immediately when processing starts
+    const tempId = `webpage-${Date.now()}`;
+    addLoadingNote(tempId, 'webpage');
+
+    // Close modal immediately after starting
+    if (onClose) {
+      onClose();
+    }
+
     try {
       setProcessingStage("Crawling webpage...");
       
@@ -100,19 +109,10 @@ export function WebpageProcessor({ onProcessComplete, onClose }: WebpageProcesso
       setProcessingStage("Generating AI notes...");
 
       if (data.success && data.data) {
-        // Add loading note immediately after successful start
-        const tempId = `webpage-${Date.now()}`;
-        addLoadingNote(tempId, 'webpage');
-        
         setSuccess(true);
         setProcessingStage("Complete!");
         
-        // Close modal immediately
-        if (onClose) {
-          onClose();
-        }
-        
-        // Call the completion callback with temp ID
+        // Call the completion callback with actual transcript ID
         if (onProcessComplete) {
           onProcessComplete({
             ...data.data,

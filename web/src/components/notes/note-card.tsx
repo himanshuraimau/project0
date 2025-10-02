@@ -1,11 +1,18 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Trash2, Calendar, FileText } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { Note } from "@/lib/types";
 import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { MarkdownRenderer } from "@/components/mdx-renderer";
 
 interface NoteCardProps {
   note: Note;
@@ -14,6 +21,7 @@ interface NoteCardProps {
 
 export function NoteCard({ note, onDelete }: NoteCardProps) {
   const router = useRouter();
+  const [showPreview, setShowPreview] = useState(false);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -27,91 +35,118 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
     router.push(`/notes/${note.id}`);
   };
 
+  const handlePreviewNote = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowPreview(true);
+  };
+
   const handleDeleteNote = (e: React.MouseEvent) => {
     e.stopPropagation();
     onDelete(note.id);
   };
 
-  // Truncate content for preview
-  const getContentPreview = (content: string, maxLength: number = 120) => {
+  // Get plain text preview from markdown content
+  const getTextPreview = (content: string, maxLength: number = 150) => {
     if (!content) return "No content available";
-    if (content.length <= maxLength) return content;
-    return content.substring(0, maxLength).trim() + "...";
+    
+    // Remove markdown formatting for preview
+    const plainText = content
+      .replace(/#{1,6}\s+/g, '') // Remove headers
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+      .replace(/\*(.*?)\*/g, '$1') // Remove italic
+      .replace(/`(.*?)`/g, '$1') // Remove inline code
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links, keep text
+      .replace(/\n+/g, ' ') // Replace newlines with spaces
+      .trim();
+    
+    if (plainText.length <= maxLength) return plainText;
+    return plainText.substring(0, maxLength).trim() + "...";
   };
 
   return (
-    <Card
-      className="group h-[280px] w-full rounded-2xl border border-border bg-card hover:border-primary/20 hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col"
-      onClick={handleViewNote}
-    >
-      {/* Header Section */}
-      <CardContent className="p-6 flex-1 flex flex-col">
-        <div className="flex items-start gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <FileText className="h-5 w-5 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
+    <>
+      <Card className="h-[320px] w-full bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col">
+        <CardContent className="p-6 flex flex-col h-full">
+          {/* Title - Centered and Bold */}
+          <div className="text-center mb-3">
             <h3 
-              className="font-semibold text-lg leading-6 text-foreground mb-1 line-clamp-2"
+              className="font-bold text-lg leading-tight text-slate-900 dark:text-slate-100 line-clamp-2 min-h-[3.5rem] flex items-center justify-center"
               title={note.title}
             >
               {note.title}
             </h3>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Calendar className="h-3 w-3" />
-              <span>
-                {formatDate(
-                  note.updatedAt instanceof Date
-                    ? note.updatedAt.toISOString()
-                    : note.updatedAt
-                )}
-              </span>
-            </div>
           </div>
-        </div>
 
-        {/* Content Preview */}
-        <div className="flex-1">
-          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
-            {getContentPreview(note.content || "")}
-          </p>
-        </div>
-      </CardContent>
-
-      {/* Footer Section - Always Visible Buttons */}
-      <CardFooter className="p-6 pt-0 border-t border-border/50 mt-auto">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="px-2 py-1 bg-muted rounded-lg">
-              Note
+          {/* Date - Centered and Muted */}
+          <div className="text-center mb-4">
+            <span className="text-sm text-slate-500 dark:text-slate-400">
+              {formatDate(
+                note.updatedAt instanceof Date
+                  ? note.updatedAt.toISOString()
+                  : note.updatedAt
+              )}
             </span>
           </div>
-          
-          <div className="flex items-center gap-2">
+
+          {/* Content Preview - Rendered Markdown (truncated) */}
+          <div className="flex-1 mb-4 overflow-hidden min-h-[4.5rem]">
+            <div className="text-sm text-slate-700 dark:text-slate-300 line-clamp-3 leading-relaxed">
+              {getTextPreview(note.content || "")}
+            </div>
+          </div>
+
+          {/* Fixed Action Buttons */}
+          <div className="flex gap-2 justify-center mt-auto">
             <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewNote();
-              }}
-              variant="outline"
+              onClick={handlePreviewNote}
               size="sm"
-              className="h-8 px-3 text-xs border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
+              className="h-8 px-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors duration-200"
             >
               <Eye className="h-3 w-3 mr-1.5" />
               View
             </Button>
             <Button
               onClick={handleDeleteNote}
-              variant="outline"
               size="sm"
-              className="h-8 px-3 text-xs border-border hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-all duration-200"
+              variant="outline"
+              className="h-8 px-4 rounded-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950 text-xs font-medium transition-colors duration-200"
             >
               <Trash2 className="h-3 w-3 mr-1.5" />
               Delete
             </Button>
           </div>
-        </div>
-      </CardFooter>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Full Content Preview Modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">{note.title}</DialogTitle>
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>
+                Created: {formatDate(
+                  note.updatedAt instanceof Date
+                    ? note.updatedAt.toISOString()
+                    : note.updatedAt
+                )}
+              </span>
+              <Button
+                onClick={handleViewNote}
+                size="sm"
+                className="ml-4"
+              >
+                Open Full Note
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="overflow-y-auto max-h-[60vh] pt-4">
+            <div className="prose prose-slate dark:prose-invert max-w-none">
+              <MarkdownRenderer content={note.content || "No content available"} />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
