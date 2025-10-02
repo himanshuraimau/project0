@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mic, MicOff, Loader2, Play, Square } from "lucide-react";
+import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 
 interface RecordAudioProps {
   onTranscriptionComplete: (result: {
@@ -16,16 +17,20 @@ interface RecordAudioProps {
       message?: string;
     };
   }) => void;
+  onClose?: () => void;
 }
 
 export default function RecordAudio({
   onTranscriptionComplete,
+  onClose,
 }: RecordAudioProps) {
+  const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [fileName, setFileName] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTempId, setCurrentTempId] = useState<string | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -95,6 +100,17 @@ export default function RecordAudio({
     if (!audioBlob) return;
 
     setIsProcessing(true);
+    
+    // Add loading note immediately when processing starts
+    const tempId = `audio-record-${Date.now()}`;
+    setCurrentTempId(tempId);
+    addLoadingNote(tempId, "audio");
+
+    // Close modal immediately after starting
+    if (onClose) {
+      onClose();
+    }
+
     try {
       const formData = new FormData();
       formData.append("audio", audioBlob);
@@ -107,18 +123,45 @@ export default function RecordAudio({
 
       if (response.ok) {
         const result = await response.json();
-        onTranscriptionComplete(result);
+        
+        // Remove loading note using temp ID BEFORE calling completion callback
+        if (currentTempId) {
+          removeLoadingNote(currentTempId);
+          setCurrentTempId(null);
+        }
+        
+        // Call completion with result that includes temp ID for tracking
+        onTranscriptionComplete({
+          ...result,
+          transcript: {
+            ...result.transcript,
+            id: result.transcript.id || tempId
+          }
+        });
 
         // Reset form
         setAudioBlob(null);
         setFileName("");
         setIsPlaying(false);
       } else {
+        // Remove loading note on error
+        if (currentTempId) {
+          removeLoadingNote(currentTempId);
+          setCurrentTempId(null);
+        }
+
         const error = await response.json();
         throw new Error(error.error || "Failed to transcribe audio");
       }
     } catch (error) {
       console.error("Transcription error:", error);
+      
+      // Remove loading note on error
+      if (currentTempId) {
+        removeLoadingNote(currentTempId);
+        setCurrentTempId(null);
+      }
+      
       alert(
         "Failed to transcribe audio. Please try again. Error: " +
           (error instanceof Error ? error.message : "Unknown error")

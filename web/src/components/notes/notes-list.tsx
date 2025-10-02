@@ -17,6 +17,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { NoteCardShimmer } from "@/components/ui/shimmer";
+import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 
 interface NotesListProps {
   searchQuery?: string;
@@ -30,6 +32,7 @@ export interface NotesListRef {
 export const NotesList = forwardRef<NotesListRef, NotesListProps>(
   ({ searchQuery, transcriptId }, ref) => {
     const { getNotes, deleteNote, loading, error } = useNotes();
+    const { loadingNotes } = useDashboardRefresh();
     const [notes, setNotes] = useState<Note[]>([]);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
@@ -107,7 +110,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
     });
   };
 
-  if (loading) {
+  if (loading && notes.length === 0) {
     return (
       <div className="flex items-center justify-center p-12">
         <div className="text-center">
@@ -145,15 +148,15 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
   if (notes.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-          <FileText className="h-8 w-8 text-muted-foreground" />
+      <div className="text-center py-16">
+        <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <FileText className="h-10 w-10 text-slate-400 dark:text-slate-500" />
         </div>
-        <h3 className="font-semibold text-foreground mb-2">
+        <h3 className="font-semibold text-xl text-slate-900 dark:text-slate-100 mb-3">
           No notes found
         </h3>
-        <p className="text-muted-foreground mb-6">
-          Create your first note to get started
+        <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md mx-auto">
+          Create your first note by uploading a PDF, recording audio, or processing a YouTube video or webpage.
         </p>
       </div>
     );
@@ -161,15 +164,15 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
   if (filteredNotes.length === 0 && searchQuery) {
     return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-          <FileText className="h-8 w-8 text-muted-foreground" />
+      <div className="text-center py-16">
+        <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <FileText className="h-10 w-10 text-slate-400 dark:text-slate-500" />
         </div>
-        <h3 className="font-semibold text-foreground mb-2">
+        <h3 className="font-semibold text-xl text-slate-900 dark:text-slate-100 mb-3">
           No notes match your search
         </h3>
-        <p className="text-muted-foreground">
-          Try adjusting your search terms
+        <p className="text-slate-500 dark:text-slate-400">
+          Try adjusting your search terms or create a new note.
         </p>
       </div>
     );
@@ -177,7 +180,13 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Show shimmer cards for loading notes */}
+        {loadingNotes.map((loadingNote) => (
+          <NoteCardShimmer key={loadingNote.id} />
+        ))}
+        
+        {/* Show actual notes */}
         {filteredNotes.map((note) => (
           <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} />
         ))}

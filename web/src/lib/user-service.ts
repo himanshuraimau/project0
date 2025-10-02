@@ -52,15 +52,47 @@ export class UserService {
           data: {
             id: userId,
             email: email,
-            creditBalance: 10 // Free credits for new users
+            creditBalance: 1000 // Free credits for new users
           }
         })
+        console.log(`Created new user in database: ${userId} with ${user.creditBalance} credits`)
       }
 
       return user
     } catch (error) {
       console.error('Error getting or creating user:', error)
       throw new Error('Failed to get or create user')
+    }
+  }
+
+  /**
+   * Update user email
+   */
+  static async updateUserEmail(userId: string, email: string) {
+    try {
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: { email }
+      })
+      return user
+    } catch (error) {
+      console.error('Error updating user email:', error)
+      throw new Error('Failed to update user email')
+    }
+  }
+
+  /**
+   * Delete user and all associated data
+   */
+  static async deleteUser(userId: string) {
+    try {
+      // Delete user and cascade to all related data
+      await prisma.user.delete({
+        where: { id: userId }
+      })
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      throw new Error('Failed to delete user')
     }
   }
 

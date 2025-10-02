@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/shared/AppSidebar";
 import { Toaster } from "sonner";
 import { Navbar } from "@/components/shared/navbar";
 import { usePathname } from "next/navigation";
+import { DashboardRefreshProvider } from "@/contexts/dashboard-refresh-context";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -35,15 +36,17 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="min-h-screen bg-background">
-      <SidebarProvider defaultOpen={true}>
-        <div className="flex min-h-screen">
-          <AppSidebar />
-          <DashboardContent>
-            {children}
-            <Toaster />
-          </DashboardContent>
-        </div>
-      </SidebarProvider>
+      <DashboardRefreshProvider>
+        <SidebarProvider defaultOpen={true}>
+          <div className="flex min-h-screen">
+            <AppSidebar />
+            <DashboardContent>
+              {children}
+              <Toaster />
+            </DashboardContent>
+          </div>
+        </SidebarProvider>
+      </DashboardRefreshProvider>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Trash2, Calendar } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { Note } from "@/lib/types";
 import { useRouter } from "next/navigation";
 
@@ -32,19 +32,40 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
     onDelete(note.id);
   };
 
-  return (
-    <Card
-      className="group rounded-2xl p-6 hover:shadow-xl transition-all duration-300 cursor-pointer bg-card border border-border hover:border-primary/20"
-      onClick={handleViewNote}
-    >
-      <CardContent className="">
-        <h3 className="font-semibold text-lg text-card-foreground line-clamp-2 mb-2">{note.title}</h3>
-      </CardContent>
+  // Get plain text preview from markdown content
+  const getTextPreview = (content: string, maxLength: number = 150) => {
+    if (!content) return "No content available";
+    
+    // Remove markdown formatting for preview
+    const plainText = content
+      .replace(/#{1,6}\s+/g, '') // Remove headers
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+      .replace(/\*(.*?)\*/g, '$1') // Remove italic
+      .replace(/`(.*?)`/g, '$1') // Remove inline code
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links, keep text
+      .replace(/\n+/g, ' ') // Replace newlines with spaces
+      .trim();
+    
+    if (plainText.length <= maxLength) return plainText;
+    return plainText.substring(0, maxLength).trim() + "...";
+  };
 
-      <CardFooter className="flex items-center justify-between pl-2">
-        <div className="flex items-center gap-2 text-sm font-normal leading-5 text-muted-foreground">
-          <Calendar className="h-3 w-3" />
-          <span>
+  return (
+    <Card className="h-[320px] w-full bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col">
+      <CardContent className="p-6 flex flex-col h-full">
+        {/* Title - Centered and Bold */}
+        <div className="text-center mb-3">
+          <h3 
+            className="font-bold text-lg leading-tight text-slate-900 dark:text-slate-100 line-clamp-2 min-h-[3.5rem] flex items-center justify-center"
+            title={note.title}
+          >
+            {note.title}
+          </h3>
+        </div>
+
+        {/* Date - Centered and Muted */}
+        <div className="text-center mb-4">
+          <span className="text-sm text-slate-500 dark:text-slate-400">
             {formatDate(
               note.updatedAt instanceof Date
                 ? note.updatedAt.toISOString()
@@ -53,30 +74,34 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
           </span>
         </div>
 
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Content Preview - Rendered Markdown (truncated) */}
+        <div className="flex-1 mb-4 overflow-hidden min-h-[4.5rem]">
+          <div className="text-sm text-slate-700 dark:text-slate-300 line-clamp-3 leading-relaxed">
+            {getTextPreview(note.content || "")}
+          </div>
+        </div>
+
+        {/* Fixed Action Buttons */}
+        <div className="flex gap-2 justify-center mt-auto">
           <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleViewNote();
-            }}
-            variant="outline"
+            onClick={handleViewNote}
             size="sm"
-            className="h-8 px-3 text-xs cursor-pointer border-border bg-muted/50 hover:bg-muted rounded-xl"
+            className="h-8 px-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors duration-200"
           >
-            <Eye className="h-3 w-3 mr-1" />
+            <Eye className="h-3 w-3 mr-1.5" />
             View
           </Button>
           <Button
             onClick={handleDeleteNote}
-            variant="outline"
             size="sm"
-            className="h-8 px-3 text-xs cursor-pointer border-border bg-muted/50 hover:bg-destructive/10 rounded-xl"
+            variant="outline"
+            className="h-8 px-4 rounded-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950 text-xs font-medium transition-colors duration-200"
           >
-            <Trash2 className="h-3 w-3 mr-1 text-destructive" />
+            <Trash2 className="h-3 w-3 mr-1.5" />
             Delete
           </Button>
         </div>
-      </CardFooter>
+      </CardContent>
     </Card>
   );
 }

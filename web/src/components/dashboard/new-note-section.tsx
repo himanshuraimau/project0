@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CloudUpload } from "lucide-react";
+import { CloudUpload, Globe, Link } from "lucide-react";
 import { SimplePDFProcessor } from "@/components/pdf";
 import { checkCreditsAndRedirect } from "@/lib/client/credits-api";
 import { ProcessPDFResult } from "@/lib/types";
@@ -20,6 +20,7 @@ import { Inter } from "next/font/google";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Image from "next/image";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
+import { toast } from "sonner";
 
 const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700"],
@@ -29,12 +30,14 @@ const jakarta = Plus_Jakarta_Sans({
 const inter = Inter({ subsets: ["latin"] });
 
 export function NewNoteSection() {
-  const { refreshNotes } = useDashboardRefresh();
+  const { refreshNotes, addLoadingNote, removeLoadingNote } = useDashboardRefresh();
   const [showPDFDialog, setShowPDFDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
   const [showRecordAudioDialog, setShowRecordAudioDialog] = useState(false);
   const [showYouTubeDialog, setShowYouTubeDialog] = useState(false);
   const [showWebpageDialog, setShowWebpageDialog] = useState(false);
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [linkType, setLinkType] = useState<'youtube' | 'webpage'>('youtube');
 
   const handleWebpageProcessComplete = (result: {
     transcript: {
@@ -47,15 +50,29 @@ export function NewNoteSection() {
     note?: { id: string; title: string; content: string };
   }) => {
     console.log("Webpage processing completed:", result);
+    
     setShowWebpageDialog(false);
-    // Refresh dashboard if a note was created
+    setShowLinkDialog(false);
+    
+    // Show success toast
     if (result.note?.id) {
+      toast.success("🌐 Webpage processed successfully! Notes generated.", {
+        description: `Extracted content from "${result.transcript.title}"`,
+        duration: 4000,
+      });
+      // Refresh notes immediately - shimmer should already be removed by processor
       refreshNotes();
+    } else {
+      toast.success("🌐 Webpage content extracted successfully!", {
+        description: "Content saved as transcript",
+        duration: 4000,
+      });
     }
   };
 
   const handleCloseWebpageDialog = () => {
     setShowWebpageDialog(false);
+    setShowLinkDialog(false);
   };
 
   const handleAudioTranscriptionComplete = (result: {
@@ -69,17 +86,26 @@ export function NewNoteSection() {
     };
   }) => {
     console.log("Audio transcription completed:", result);
+    
     setShowAudioDialog(false);
 
     if (result.note?.error) {
-      alert(
-        "Audio transcribed successfully, but note creation failed: " +
-          (result.note.message || "Unknown error")
-      );
+      toast.error("🎵 Audio transcribed but note creation failed", {
+        description: result.note.message || "Unknown error occurred",
+        duration: 5000,
+      });
     } else if (result.note?.id) {
-      // Refresh dashboard if a note was created successfully
+      toast.success("🎵 Audio processed successfully! Notes generated.", {
+        description: "Audio transcribed and notes created",
+        duration: 4000,
+      });
+      // Refresh notes immediately - shimmer should already be removed by processor
       refreshNotes();
     }
+  };
+
+  const handleCloseAudioDialog = () => {
+    setShowAudioDialog(false);
   };
 
   const handleRecordAudioComplete = (result: {
@@ -93,25 +119,46 @@ export function NewNoteSection() {
     };
   }) => {
     console.log("Record audio completed:", result);
+    
     setShowRecordAudioDialog(false);
 
     if (result.note?.error) {
-      alert(
-        "Audio recorded and transcribed successfully, but note creation failed: " +
-          (result.note.message || "Unknown error")
-      );
+      toast.error("🎤 Audio recorded but note creation failed", {
+        description: result.note.message || "Unknown error occurred",
+        duration: 5000,
+      });
     } else if (result.note?.id) {
-      // Refresh dashboard if a note was created successfully
+      toast.success("🎤 Audio recorded successfully! Notes generated.", {
+        description: "Recording transcribed and notes created",
+        duration: 4000,
+      });
+      // Refresh notes immediately - shimmer should already be removed by processor
       refreshNotes();
     }
   };
 
+  const handleCloseRecordAudioDialog = () => {
+    setShowRecordAudioDialog(false);
+  };
+
   const handlePDFProcessComplete = (result: ProcessPDFResult) => {
     console.log("PDF processing completed:", result);
+    
     setShowPDFDialog(false);
-    // Refresh dashboard if a note was created successfully
+    
+    // Show success toast
     if (result.note && 'id' in result.note) {
+      toast.success("📄 PDF processed successfully! Notes generated.", {
+        description: "PDF content extracted and notes created",
+        duration: 4000,
+      });
+      // Refresh notes immediately - shimmer should already be removed by processor
       refreshNotes();
+    } else {
+      toast.success("📄 PDF content extracted successfully!", {
+        description: "Content saved as transcript",
+        duration: 4000,
+      });
     }
   };
 
@@ -124,15 +171,29 @@ export function NewNoteSection() {
     note?: { id: string; title: string; content: string };
   }) => {
     console.log("YouTube transcript completed:", result);
+    
     setShowYouTubeDialog(false);
-    // Refresh dashboard if a note was created
+    setShowLinkDialog(false);
+    
+    // Show success toast
     if (result.note?.id) {
+      toast.success("🎥 YouTube video processed successfully! Notes generated.", {
+        description: `Extracted content from "${result.transcript.originalName}"`,
+        duration: 4000,
+      });
+      // Refresh notes immediately - shimmer should already be removed by processor
       refreshNotes();
+    } else {
+      toast.success("🎥 YouTube transcript extracted successfully!", {
+        description: "Content saved as transcript",
+        duration: 4000,
+      });
     }
   };
 
   const handleCloseYouTubeDialog = () => {
     setShowYouTubeDialog(false);
+    setShowLinkDialog(false);
   };
 
   return (
@@ -151,8 +212,8 @@ export function NewNoteSection() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
-        {/* YouTube Video Links */}
-        <Dialog open={showYouTubeDialog} onOpenChange={setShowYouTubeDialog}>
+        {/* Link Processor (YouTube + Webpage) */}
+        <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
           <DialogTrigger asChild>
             <Button
               variant="outline"
@@ -160,19 +221,19 @@ export function NewNoteSection() {
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
-                  setShowYouTubeDialog(true);
+                  setShowLinkDialog(true);
                 }
               }}
             >
               <div className="size-12 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                <Image src="/youtube.png" width={40} height={40} className="size-10" alt="YouTube" />
+                <Link className="size-10 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
               </div>
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-lg leading-6 text-foreground">
-                  YouTube Links
+                  Process Links
                 </div>
                 <div className="font-medium text-sm leading-5 text-muted-foreground">
-                  Extract from videos
+                  YouTube & websites
                 </div>
               </div>
             </Button>
@@ -182,20 +243,53 @@ export function NewNoteSection() {
               <DialogTitle
                 className={`text-left ${jakarta.className}`}
               >
-                YouTube Transcript & Notes
+                Process Links & Generate Notes
               </DialogTitle>
               <DialogDescription
                 className={`${jakarta.className}`}
               >
-                Extract transcript from YouTube videos and generate AI-powered
-                notes automatically.
+                Extract content from YouTube videos or websites and generate AI-powered notes.
               </DialogDescription>
             </DialogHeader>
             <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <YouTubeProcessor
-                onProcessComplete={handleYouTubeTranscriptComplete}
-                onClose={handleCloseYouTubeDialog}
-              />
+              {/* Tab Selector */}
+              <div className="flex items-center justify-center mb-6">
+                <div className="flex bg-muted rounded-lg p-1">
+                  <button
+                    onClick={() => setLinkType('youtube')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                      linkType === 'youtube'
+                        ? 'bg-background text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    YouTube
+                  </button>
+                  <button
+                    onClick={() => setLinkType('webpage')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                      linkType === 'webpage'
+                        ? 'bg-background text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Website
+                  </button>
+                </div>
+              </div>
+
+              {/* Content based on selected tab */}
+              {linkType === 'youtube' ? (
+                <YouTubeProcessor
+                  onProcessComplete={handleYouTubeTranscriptComplete}
+                  onClose={handleCloseYouTubeDialog}
+                />
+              ) : (
+                <WebpageProcessor
+                  onProcessComplete={handleWebpageProcessComplete}
+                  onClose={handleCloseWebpageDialog}
+                />
+              )}
             </div>
           </DialogContent>
         </Dialog>
@@ -246,6 +340,7 @@ export function NewNoteSection() {
             <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <RecordAudio
                 onTranscriptionComplete={handleRecordAudioComplete}
+                onClose={handleCloseRecordAudioDialog}
               />
             </div>
           </DialogContent>
@@ -343,36 +438,12 @@ export function NewNoteSection() {
             <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <AudioRecorder
                 onTranscriptionComplete={handleAudioTranscriptionComplete}
+                onClose={handleCloseAudioDialog}
               />
             </div>
           </DialogContent>
         </Dialog>
       </div>
-
-      {/* Webpage URL Dialog (Hidden in DOM) */}
-      <Dialog open={showWebpageDialog} onOpenChange={setShowWebpageDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle
-              className={`text-left ${jakarta.className}`}
-            >
-              Process Webpage & Generate Notes
-            </DialogTitle>
-            <DialogDescription
-              className={`${jakarta.className}`}
-            >
-              Extract content from any webpage and generate comprehensive
-              AI-powered educational notes.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-            <WebpageProcessor
-              onProcessComplete={handleWebpageProcessComplete}
-              onClose={handleCloseWebpageDialog}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
