@@ -38,6 +38,22 @@ export default function AudioRecorder({
   ) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Check file size (25MB limit for OpenAI Whisper)
+      const maxFileSize = 25 * 1024 * 1024; // 25MB
+      if (file.size > maxFileSize) {
+        alert(`File too large! Maximum size is 25MB. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB. Please compress or choose a smaller file.`);
+        event.target.value = ''; // Clear the input
+        return;
+      }
+
+      // Check file type
+      const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/flac', 'audio/m4a', 'audio/ogg', 'audio/webm', 'audio/mp4'];
+      if (!allowedTypes.includes(file.type)) {
+        alert(`Unsupported audio format: ${file.type}. Please use MP3, WAV, FLAC, M4A, OGG, WebM, or MP4.`);
+        event.target.value = ''; // Clear the input
+        return;
+      }
+
       setAudioBlob(file);
       setFileName(file.name.replace(/\.[^/.]+$/, "")); // Remove extension
     }
@@ -121,8 +137,18 @@ export default function AudioRecorder({
           setCurrentTempId(null);
         }
 
-        const error = await response.json();
-        throw new Error(error.error || "Failed to transcribe audio");
+        const errorData = await response.json();
+        
+        // Handle specific error types
+        if (response.status === 413) {
+          throw new Error(`File too large: ${errorData.error || 'Audio file exceeds 25MB limit'}`);
+        } else if (response.status === 402) {
+          throw new Error('Insufficient credits to process audio');
+        } else if (response.status === 400) {
+          throw new Error(errorData.error || 'Invalid audio file format');
+        } else {
+          throw new Error(errorData.error || "Failed to transcribe audio");
+        }
       }
     } catch (error) {
       console.error("Transcription error:", error);
@@ -150,7 +176,10 @@ export default function AudioRecorder({
           <div className="space-y-3">
             <h3 className="text-xl font-bold text-foreground">Upload Audio File</h3>
             <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
-              Upload an audio file to generate transcripts and summaries
+              Upload an audio file to generate transcripts and summaries (25MB limit)
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Supported formats: MP3, WAV, FLAC, M4A, OGG, WebM, MP4
             </p>
           </div>
 
@@ -174,6 +203,15 @@ export default function AudioRecorder({
             {/* Audio Preview */}
             {audioBlob && (
               <div className="space-y-4 p-6 rounded-xl bg-accent/10 border border-accent/20">
+                <div className="text-sm text-muted-foreground text-center">
+                  File size: {(audioBlob.size / 1024 / 1024).toFixed(2)}MB 
+                  {audioBlob.size > 20 * 1024 * 1024 && (
+                    <span className="text-amber-600 dark:text-amber-400 font-medium"> (approaching 25MB limit)</span>
+                  )}
+                  {audioBlob.size > 25 * 1024 * 1024 && (
+                    <span className="text-red-600 dark:text-red-400 font-medium"> (exceeds 25MB limit!)</span>
+                  )}
+                </div>
                 <div className="flex gap-3">
                   {!isPlaying ? (
                     <Button 
