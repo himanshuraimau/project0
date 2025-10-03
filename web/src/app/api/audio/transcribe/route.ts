@@ -1,18 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { experimental_transcribe as transcribe } from 'ai';
+import { openai } from '@ai-sdk/openai';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
-import { NoteService } from '@/lib/note-service';
 import { UserService } from '@/lib/user-service';
-
-// Initialize OpenAI for Whisper transcription and GPT for summary
-const openaiApiKey = process.env.OPENAI_API_KEY;
-
-if (!openaiApiKey) {
-  throw new Error('OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.');
-}
-
-const openai = new OpenAI({ apiKey: openaiApiKey });
+import { NoteService } from '@/lib/note-service';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +22,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
     }
 
+    // Check file size limit (OpenAI Whisper has a 25MB limit)
+    const maxFileSize = 25 * 1024 * 1024; // 25MB in bytes
+    if (audioFile.size > maxFileSize) {
+      return NextResponse.json({ 
+        error: `Audio file is too large. Maximum size allowed is 25MB. Your file is ${(audioFile.size / 1024 / 1024).toFixed(2)}MB.`,
+        maxSizeMB: 25,
+        currentSizeMB: Number((audioFile.size / 1024 / 1024).toFixed(2))
+      }, { status: 413 });
+    }
+
+    // Validate file type
+    const allowedMimeTypes = [
+      'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/flac', 
+      'audio/m4a', 'audio/ogg', 'audio/webm', 'audio/mp4'
+    ];
+    
+    if (!allowedMimeTypes.includes(audioFile.type)) {
+      return NextResponse.json({ 
+        error: `Unsupported audio format: ${audioFile.type}. Supported formats: MP3, WAV, FLAC, M4A, OGG, WebM, MP4.` 
+      }, { status: 400 });
+    }
+
     // Check if user has enough credits (1 credit for audio transcription + notes)
     const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
     if (!hasEnoughCredits) {
@@ -39,64 +53,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Step 1: Use OpenAI Whisper for audio transcription
-    console.log('Transcribing audio with OpenAI Whisper...');
+    // Step 1: Use AI SDK for audio transcription with Whisper
+    console.log('Transcribing audio with AI SDK Whisper...');
     
-    const transcriptionResponse = await openai.audio.transcriptions.create({
-      file: audioFile,
-      model: "whisper-1",
-      response_format: "text",
-      temperature: 0.0, // More deterministic transcription
+    // Convert File to Buffer for AI SDK
+    const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
+    
+    const transcriptionResult = await transcribe({
+      model: openai.transcription('whisper-1'),
+      audio: audioBuffer,
     });
 
-    const transcriptText = transcriptionResponse;
+    const transcriptText = transcriptionResult.text;
     console.log('Transcription completed successfully');
 
-    // Step 2: Use OpenAI GPT to generate a comprehensive summary
-    console.log('Generating summary with OpenAI GPT...');
-    
-    const summaryPrompt = `You are an expert content analyst. Based on the following audio transcription, create a comprehensive, detailed summary.
-
-TRANSCRIPTION:
-${transcriptText}
-
-SUMMARY REQUIREMENTS:
-- Create a thorough, multi-paragraph summary that captures all key points
-- MINIMUM 200 WORDS PER TOPIC/SUBTOPIC: Ensure each major topic and subtopic receives at least 200 words of detailed analysis and explanation
-- Include the main topic, subtopics, and supporting details with extensive elaboration
-- Describe the speaker's tone, mood, and communication style with specific examples
-- Identify the purpose/intent of the recording (lecture, meeting, interview, etc.) with detailed context
-- Extract actionable items, key insights, or important conclusions with comprehensive explanations
-- Note any specific terminology, names, dates, or technical details mentioned with background context
-- If content seems brief, expand significantly with contextual analysis, implications, and related concepts
-- Structure the summary with clear sections and detailed bullet points where appropriate
-- Include potential applications or follow-up actions based on the content with thorough justification
-- Provide deep analysis of underlying themes, concepts, and broader implications
-- Add relevant background information and context that would help readers understand the full scope
-- Ensure the total summary is substantial and informative, treating each point with academic-level depth
-- MINIMUM FINAL OUTPUT LENGTH: The complete summary must be at least 1,500-2,000 words to ensure thorough coverage and analysis
-
-Provide a comprehensive, structured summary with multiple paragraphs covering all aspects of the audio content.`;
-
-    const summaryResponse = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Using a cost-effective but capable model
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert content analyst specializing in creating comprehensive summaries from audio transcriptions."
-        },
-        {
-          role: "user",
-          content: summaryPrompt
-        }
-      ],
-      temperature: 0.3, // Slightly creative but focused
-      max_tokens: 4000, // Allow for comprehensive summaries
-    });
-
-    const summaryText = summaryResponse.choices[0]?.message?.content || 'Summary generation failed';
-    console.log('Summary generation completed successfully');    // Save to database
-    const transcript = await prisma.transcript.create({
+    // Save transcript to database
+    const transcriptRecord = await prisma.transcript.create({
       data: {
         fileName: `${fileName}.${audioFile.name.split('.').pop()}`,
         originalName: audioFile.name,
@@ -113,27 +85,17 @@ Provide a comprehensive, structured summary with multiple paragraphs covering al
     });
 
     // Deduct 1 credit for audio transcription + notes generation
-    await UserService.deductCredits('audio_transcription', 1, transcript.id);
+    await UserService.deductCredits('audio_transcription', 1, transcriptRecord.id);
 
-    // Create an instance of NoteService to use its saveNote method which handles indexing
+    // Initialize NoteService
     const noteService = new NoteService();
-    
     let noteResult = null;
     
     try {
-      // Create the note using the service to ensure it gets indexed
-      const note = await noteService.saveNote({
-        title: `Audio Summary: ${fileName}`,
-        content: summaryText,
-        transcriptId: transcript.id,
-        userId: userId
-      });
-      
-      noteResult = {
-        id: note.id,
-        title: note.title,
-        content: note.content
-      };
+      // Use the NoteService directly (same pattern as PDF and webpage processing)
+      console.log('Generating notes using NoteService...');
+      noteResult = await noteService.generateAINote(transcriptRecord.id, userId);
+      console.log('Notes generation completed successfully');
     } catch (error) {
       console.error('Failed to generate AI notes:', error);
       noteResult = {
@@ -142,11 +104,11 @@ Provide a comprehensive, structured summary with multiple paragraphs covering al
       };
     }
     
-    // Return the transcript even if note creation failed
+    // Return the transcript and note results
     return NextResponse.json({
       success: true,
       transcript: {
-        id: transcript.id,
+        id: transcriptRecord.id,
         content: transcriptText
       },
       note: noteResult
