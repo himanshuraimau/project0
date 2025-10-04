@@ -166,34 +166,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
         className
       )}
     >
-      <SidebarHeader className="border-b border-sidebar-border py-4 px-6 bg-sidebar">
-        {isCollapsed ? (
-          <div className="flex flex-col items-center gap-3">
-            <button
-              onClick={toggleSidebar}
-              className="p-2 hover:bg-sidebar-accent rounded-md transition-colors"
-            >
-              <BookOpen className="w-5 h-5 text-sidebar-foreground" />
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span
-                className={`text-xl font-semibold text-sidebar-foreground ${jakarta.className}`}
-              >
-                SonicLearn
-              </span>
-            </div>
-            <button
-              onClick={toggleSidebar}
-              className="p-2 hover:bg-sidebar-accent rounded-md transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4 text-sidebar-foreground" />
-            </button>
-          </div>
-        )}
-      </SidebarHeader>
+      
 
       <SidebarContent className="flex-1 py-4 px-4 overflow-y-auto">
         {isCoursePage && courseData ? (

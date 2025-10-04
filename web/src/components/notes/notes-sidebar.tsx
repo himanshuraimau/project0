@@ -47,41 +47,6 @@ export function NotesAppSidebar({ className }: NotesAppSidebarProps) {
         className
       )}
     >
-      {/* Sidebar Header */}
-      <SidebarHeader className="border-b py-6 border-stone-200 dark:border-stone-800">
-        {isCollapsed ? (
-          <div className="flex flex-col items-center gap-3 px-4">
-            <div className="flex items-center justify-center size-10 rounded-lg bg-stone-900 dark:bg-stone-100">
-              <Zap className="size-6 text-stone-50 dark:text-stone-900" />
-            </div>
-            <button
-              onClick={toggleSidebar}
-              className="p-3 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md transition-colors"
-            >
-              <Menu className="size-7" />
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between px-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-10 rounded-lg bg-stone-900 dark:bg-white">
-                <Zap className="size-6 text-stone-50 dark:text-stone-900" />
-              </div>
-              <span
-                className={`text-2xl leading-[36px] font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
-              >
-                SonicLearn
-              </span>
-            </div>
-            <button
-              onClick={toggleSidebar}
-              className="p-3 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md transition-colors"
-            >
-              <ChevronLeft className="size-7" />
-            </button>
-          </div>
-        )}
-      </SidebarHeader>
 
       {/* Sidebar Content */}
       <SidebarContent

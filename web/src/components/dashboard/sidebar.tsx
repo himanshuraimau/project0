@@ -73,7 +73,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
         className
       )}
     >
-      <SidebarHeader className="border-b py-6 bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-900">
+      {/* <SidebarHeader className="border-b py-6 bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-900">
         {isCollapsed ? (
           <div className="flex flex-col items-center gap-3 px-4">
             <button
@@ -118,7 +118,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
               <span
                 className={`text-2xl leading-[32px] font-bold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
               >
-                SonicLearn
+                apple
               </span>
             </div>
             <button
@@ -155,7 +155,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
             </button>
           </div>
         )}
-      </SidebarHeader>
+      </SidebarHeader> */}
 
       <SidebarContent
         className={cn(
