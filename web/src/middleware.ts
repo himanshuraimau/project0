@@ -51,7 +51,7 @@ export default clerkMiddleware(async (auth, req) => {
   response.headers.set('X-Frame-Options', 'SAMEORIGIN') // Allow same-origin framing for YouTube embeds
   response.headers.set('X-XSS-Protection', '1; mode=block')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(self), geolocation=()')
   
   // Content Security Policy for additional XSS protection - updated to allow YouTube iframe API, Clerk, and UploadThing
   response.headers.set(
