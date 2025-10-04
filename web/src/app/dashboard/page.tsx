@@ -13,7 +13,10 @@ export default async function DashboardPage() {
   return (
     <DashboardRefreshProvider>
       <div className="w-full space-y-12">
+        {/* Top - New Note Section */}
         <NewNoteSection />
+        
+        {/* Bottom - My Notes Section */}
         <MyNotesSection />
       </div>
     </DashboardRefreshProvider>

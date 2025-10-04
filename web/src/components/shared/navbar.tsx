@@ -14,7 +14,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 interface NavbarProps {
-  title: string;
+  title: React.ReactNode;
   className?: string;
   showBackToDashboard?: boolean;
 }

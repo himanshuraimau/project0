@@ -14,11 +14,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex-1 min-h-screen bg-background">
-      {!isCoursePage && (
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur">
-          <Navbar title="Dashboard" />
-        </div>
-      )}
       {/* Content area with conditional padding */}
       <main className={`flex-1 ${!isCoursePage ? 'px-6 py-8' : ''}`}>
         <div className="max-w-none w-full">
@@ -34,12 +29,33 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isCoursePage = pathname.includes("/course/") && !pathname.includes("/create/");
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardRefreshProvider>
+        {/* Navbar at the top */}
+        {!isCoursePage && (
+          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
+            <Navbar
+              title={
+                <span>
+                  <span className="font-bold">SonicLearn</span>{" "}
+                  <span className="font-normal">AI notes</span>
+                </span>
+              }
+            />
+
+          </div>
+        )}
+
         <SidebarProvider defaultOpen={true}>
-          <div className="flex min-h-screen">
+          <div className="flex min-h-[calc(100vh-64px)]">
+            {/* Sidebar on the left */}
             <AppSidebar />
+
+            {/* Main content area */}
             <DashboardContent>
               {children}
               <Toaster />
