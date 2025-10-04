@@ -341,7 +341,7 @@ export default function NoteViewPage() {
           >
             <div className="flex min-h-[calc(100vh-64px)]">
               <NotesSidebar
-                className={`${currentView === "chat" ? "pb-3" : "pb-6"} relative z-10`}
+                className={`${currentView === "chat" ? "pb-3" : "pb-6"} fixed top-16 left-0 h-[calc(100vh-64px)] z-10 overflow-y-auto`}
                 showTranscript={currentView === "transcript"}
                 showQuiz={currentView === "quiz"}
                 showChat={currentView === "chat"}
@@ -361,7 +361,7 @@ export default function NoteViewPage() {
                 podcastLoading={podcastLoading}
                 mindmapLoading={mindmapLoading}
               />
-              <div className="flex-1 bg-background">
+              <div className="flex-1 bg-background ml-[280px]">
                 <main className="flex-1">
                   <div className="bg-stone-50 dark:bg-stone-950/50 border-none min-h-[calc(100vh-64px)]">
                   {/* Content based on current view */}
