@@ -162,13 +162,13 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "border-r border-sidebar-border bg-sidebar sticky top-0 h-screen",
+        "border-r border-sidebar-border bg-sidebar",
         className
       )}
     >
       
 
-      <SidebarContent className="flex-1 py-4 px-4 overflow-y-auto">
+      <SidebarContent className="flex-1 py-20 px-4 ">
         {isCoursePage && courseData ? (
           // Course Navigation
           <>
