@@ -280,7 +280,12 @@ export default function NoteViewPage() {
   }
 
   return (
-    <div className="flex w-full border-none h-full relative bg-transparent">
+    <div className="min-h-screen w-full bg-background">
+      {/* Navbar at the very top */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
+        <Navbar title="Notes" />
+      </div>
+
       <AlertDialog>
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
@@ -327,40 +332,38 @@ export default function NoteViewPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
 
-        {/* Main Content with Notes Sidebar */}
-        <NotesSidebarProvider
-          defaultOpen={true}
-          sidebarWidth={sidebarWidth}
-          sidebarWidthMobile={sidebarWidth}
-        >
-          <div className="flex min-h-screen">
-            <NotesSidebar
-              className={currentView === "chat" ? "pb-3" : "pb-6"}
-              showTranscript={currentView === "transcript"}
-              showQuiz={currentView === "quiz"}
-              showChat={currentView === "chat"}
-              showFlashcards={currentView === "flashcards"}
-              showPodcast={currentView === "podcast"}
-              showMindmap={currentView === "mindmap"}
-              onShowNotes={handleShowNotes}
-              onShowTranscript={handleShowTranscript}
-              onGenerateQuiz={handleGenerateQuiz}
-              onChatWithNote={handleChatWithNote}
-              onGenerateFlashcard={handleGenerateFlashcard}
-              onGeneratePodcast={handleGeneratePodcast}
-              onGenerateMindmap={handleGenerateMindmap}
-              onDeleteNote={handleDeleteNote}
-              quizLoading={false}
-              flashcardsLoading={flashcardsLoading}
-              podcastLoading={podcastLoading}
-              mindmapLoading={mindmapLoading}
-            />
-            <div className="flex-1 min-h-screen bg-background">
-              <div className="sticky top-0 z-40 bg-background/95 backdrop-blur">
-                <Navbar title="Notes" />
-              </div>
-              <main className="flex-1">
-                <div className="bg-stone-50 dark:bg-stone-950/50 border-none">
+        {/* Main Content with Notes Sidebar - below navbar */}
+        <div className="pt-0">
+          <NotesSidebarProvider
+            defaultOpen={true}
+            sidebarWidth={sidebarWidth}
+            sidebarWidthMobile={sidebarWidth}
+          >
+            <div className="flex min-h-[calc(100vh-64px)]">
+              <NotesSidebar
+                className={`${currentView === "chat" ? "pb-3" : "pb-6"} relative z-10`}
+                showTranscript={currentView === "transcript"}
+                showQuiz={currentView === "quiz"}
+                showChat={currentView === "chat"}
+                showFlashcards={currentView === "flashcards"}
+                showPodcast={currentView === "podcast"}
+                showMindmap={currentView === "mindmap"}
+                onShowNotes={handleShowNotes}
+                onShowTranscript={handleShowTranscript}
+                onGenerateQuiz={handleGenerateQuiz}
+                onChatWithNote={handleChatWithNote}
+                onGenerateFlashcard={handleGenerateFlashcard}
+                onGeneratePodcast={handleGeneratePodcast}
+                onGenerateMindmap={handleGenerateMindmap}
+                onDeleteNote={handleDeleteNote}
+                quizLoading={false}
+                flashcardsLoading={flashcardsLoading}
+                podcastLoading={podcastLoading}
+                mindmapLoading={mindmapLoading}
+              />
+              <div className="flex-1 bg-background">
+                <main className="flex-1">
+                  <div className="bg-stone-50 dark:bg-stone-950/50 border-none min-h-[calc(100vh-64px)]">
                   {/* Content based on current view */}
               {currentView === "notes" && <ViewNote note={note} />}
 
@@ -464,14 +467,13 @@ export default function NoteViewPage() {
                   )}
                 </div>
               )}
-                </div>
-              </main>
+                  </div>
+                </main>
+              </div>
             </div>
-          </div>
-        </NotesSidebarProvider>
+          </NotesSidebarProvider>
+        </div>
       </AlertDialog>
-
-
     </div>
   );
 }
