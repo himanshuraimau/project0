@@ -78,11 +78,11 @@ export function AppSidebar({ className }: AppSidebarProps) {
           <div className="flex flex-col items-center gap-3 px-4">
             <button
               onClick={toggleSidebar}
-              className="p-3 hover:bg-stone-100 cursor-pointer dark:hover:bg-stone-800 rounded-xl transition-all duration-200 hover:shadow-sm"
+              className="p-4 hover:bg-stone-100 cursor-pointer dark:hover:bg-stone-800 rounded-xl transition-all duration-200 hover:shadow-sm"
             >
               <svg
-                width="20"
-                height="20"
+                width="24"
+                height="24"
                 viewBox="0 0 18 18"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -112,22 +112,22 @@ export function AppSidebar({ className }: AppSidebarProps) {
         ) : (
           <div className="flex items-center justify-between px-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-                <span className="text-accent-foreground font-bold text-sm">S</span>
+              <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+                <span className="text-accent-foreground font-bold text-lg">S</span>
               </div>
               <span
-                className={`text-xl leading-[28px] font-bold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
+                className={`text-2xl leading-[32px] font-bold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
               >
                 SonicLearn
               </span>
             </div>
             <button
               onClick={toggleSidebar}
-              className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer rounded-lg transition-all duration-200 hover:shadow-sm"
+              className="p-3 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer rounded-lg transition-all duration-200 hover:shadow-sm"
             >
               <svg
-                width="18"
-                height="18"
+                width="22"
+                height="22"
                 viewBox="0 0 18 18"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -173,7 +173,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           >
             {!isCollapsed && (
               <div className="px-4 pb-4">
-                <h3 className="text-xs uppercase tracking-wider text-stone-500 dark:text-stone-400 font-semibold">
+                <h3 className="text-sm uppercase tracking-wider text-stone-500 dark:text-stone-400 font-semibold">
                   {section.section}
                 </h3>
               </div>
@@ -200,7 +200,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         isActive={isActive}
                         className={cn(
                           "group flex items-center rounded-xl transition-all duration-200 ease-in-out",
-                          isCollapsed ? "w-12 h-12 justify-center" : "px-5 py-4",
+                          isCollapsed ? "w-14 h-14 justify-center" : "px-6 py-5",
                           isActive
                             ? "!bg-accent !text-accent-foreground shadow-sm border-l-4 border-accent"
                             : "text-stone-600 dark:text-stone-400 hover:bg-stone-100 hover:text-stone-900 dark:hover:bg-stone-800 dark:hover:text-stone-100 hover:shadow-sm"
@@ -209,18 +209,18 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         <Link
                           href={item.href}
                           className={cn(
-                            "flex items-center gap-5",
+                            "flex items-center gap-6",
                             isCollapsed ? "w-full justify-center" : "w-full"
                           )}
                         >
                           <Icon
                             className={cn(
                               "flex-shrink-0 transition-transform group-hover:scale-110",
-                              isCollapsed ? "w-6 h-6" : "w-6 h-6"
+                              isCollapsed ? "w-7 h-7" : "w-7 h-7"
                             )}
                           />
                           {!isCollapsed && (
-                            <span className="text-base font-medium leading-relaxed">
+                            <span className="text-lg font-medium leading-relaxed">
                               {item.title}
                             </span>
                           )}
@@ -238,20 +238,20 @@ export function AppSidebar({ className }: AppSidebarProps) {
       <SidebarFooter className="mt-auto w-full px-4 py-6 border-t border-stone-200 bg-white dark:border-stone-900 dark:bg-stone-950">
         <div
           className={cn(
-            "flex items-center gap-3 px-4 py-3 rounded-xl shadow-sm transition-all duration-200 ease-in-out",
+            "flex items-center gap-4 px-5 py-4 rounded-xl shadow-sm transition-all duration-200 ease-in-out",
             "bg-gradient-to-r from-accent/10 to-accent/5 hover:from-accent/20 hover:to-accent/10 border border-accent/20",
-            isCollapsed ? "mx-auto justify-center w-12 h-12" : "mx-auto"
+            isCollapsed ? "mx-auto justify-center w-14 h-14" : "mx-auto"
           )}
         >
-          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
-            <span className="text-accent-foreground text-lg font-bold">⚡</span>
+          <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
+            <span className="text-accent-foreground text-xl font-bold">⚡</span>
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <span className="font-semibold text-sm text-stone-900 dark:text-stone-100">
+              <span className="font-semibold text-base text-stone-900 dark:text-stone-100">
                 Unlimited Notes
               </span>
-              <span className="text-xs text-stone-500 dark:text-stone-400">
+              <span className="text-sm text-stone-500 dark:text-stone-400">
                 Premium plan active
               </span>
             </div>

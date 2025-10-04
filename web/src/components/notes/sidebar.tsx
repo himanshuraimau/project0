@@ -168,12 +168,11 @@ export function NotesSidebar({
           <div className="flex flex-col items-center gap-3 px-3">
             <button
               onClick={toggleSidebar}
-              className="cursor-pointer
-						"
+              className="cursor-pointer p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
             >
               <svg
-                width="18"
-                height="18"
+                width="22"
+                height="22"
                 viewBox="0 0 18 18"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -205,7 +204,7 @@ export function NotesSidebar({
               <div className="flex flex-col">
                 <span
                   className={cn(
-                    " font-medium text-stone-900 dark:text-stone-100 cursor-pointer hover:text-accent transition-colors duration-200",
+                    "text-lg font-medium text-stone-900 dark:text-stone-100 cursor-pointer hover:text-accent transition-colors duration-200",
                     jakarta.className
                   )}
                   onClick={() => router.push('/dashboard')}
@@ -216,11 +215,11 @@ export function NotesSidebar({
             </div>
             <button
               onClick={toggleSidebar}
-              className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-all duration-200 hover:scale-105"
+              className="p-3 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-all duration-200 hover:scale-105"
             >
               <svg
-                width="18"
-                height="18"
+                width="22"
+                height="22"
                 viewBox="0 0 18 18"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -286,8 +285,8 @@ export function NotesSidebar({
                       className={cn(
                         "flex items-center rounded-xl cursor-pointer transition-all duration-200 group relative overflow-hidden",
                         isCollapsed
-                          ? "w-12 h-12 justify-center hover:w-14 hover:h-14"
-                          : "w-full px-4 py-4",
+                          ? "w-14 h-14 justify-center hover:w-16 hover:h-16"
+                          : "w-full px-5 py-5",
                         item.isActive
                           ? " text-accent-foreground bg-accent/10 dark:bg-accent/20 border border-accent/20"
                           : item.disabled
@@ -302,15 +301,15 @@ export function NotesSidebar({
                       <div
                         className={cn(
                           "flex items-center w-full",
-                          isCollapsed ? "justify-center" : "gap-3"
+                          isCollapsed ? "justify-center" : "gap-4"
                         )}
                       >
                         {item.loading ? (
-                          <Loader2 className="size-4 animate-spin flex-shrink-0" />
+                          <Loader2 className="size-6 animate-spin flex-shrink-0" />
                         ) : (
                           <Icon
                             className={cn(
-                              "size-4 flex-shrink-0 transition-transform duration-200",
+                              "size-6 flex-shrink-0 transition-transform duration-200",
                               item.isActive
                                 ? "scale-110"
                                 : "group-hover:scale-105"
@@ -322,7 +321,7 @@ export function NotesSidebar({
                           <div className="flex flex-col items-start flex-1 min-w-0">
                             <span
                               className={cn(
-                                " leading-tight truncate",
+                                "text-base leading-tight truncate",
                                 jakarta.className,
                                 item.loading ? "opacity-70" : ""
                               )}

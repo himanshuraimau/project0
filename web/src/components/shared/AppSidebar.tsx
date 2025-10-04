@@ -98,7 +98,7 @@ function ChapterItem({
               : "bg-sidebar-foreground/40"
           )} />
           {!isCollapsed && (
-            <span className="text-sm leading-relaxed truncate">
+            <span className="text-base leading-relaxed truncate">
               {chapter.name}
             </span>
           )}
@@ -117,11 +117,11 @@ function ChapterItem({
           )}
         >
           {updating ? (
-            <div className="h-4 w-4 animate-spin rounded-full border border-current border-t-transparent" />
+            <div className="h-5 w-5 animate-spin rounded-full border border-current border-t-transparent" />
           ) : progress.isCompleted ? (
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-5 w-5 text-green-500" />
           ) : (
-            <Circle className="h-4 w-4 text-sidebar-foreground/60" />
+            <Circle className="h-5 w-5 text-sidebar-foreground/60" />
           )}
         </SidebarMenuAction>
       )}
@@ -204,12 +204,12 @@ export function AppSidebar({ className }: AppSidebarProps) {
               <div className="px-2 py-3 mb-6">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-2 text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors mb-4"
+                  className="inline-flex items-center gap-3 text-base text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors mb-4"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-5 w-5" />
                   Back to Dashboard
                 </Link>
-                <h2 className="text-lg font-semibold text-sidebar-foreground truncate">
+                <h2 className="text-xl font-semibold text-sidebar-foreground truncate">
                   {courseData.course.name}
                 </h2>
               </div>
@@ -220,7 +220,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
               {courseData.course.units.map((unit, unitIndex) => (
                 <SidebarGroup key={unit.id} className={unitIndex > 0 ? "mt-4" : ""}>
                   {!isCollapsed && (
-                    <SidebarGroupLabel className="text-xs uppercase tracking-wider px-2 py-2 text-sidebar-foreground/60 font-semibold">
+                    <SidebarGroupLabel className="text-sm uppercase tracking-wider px-3 py-3 text-sidebar-foreground/60 font-semibold">
                       Unit {unitIndex + 1}: {unit.name}
                     </SidebarGroupLabel>
                   )}
@@ -258,15 +258,15 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         asChild
                         isActive={isActive}
                         className={cn(
-                          "flex items-center rounded-lg transition-all py-2 px-4",
-                          "text-sm font-medium hover:bg-sidebar-accent/60 text-sidebar-foreground",
+                          "flex items-center rounded-lg transition-all py-3 px-5",
+                          "text-base font-medium hover:bg-sidebar-accent/60 text-sidebar-foreground",
                           isActive && "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
                         )}
                       >
-                        <Link href={item.href} className="flex items-center gap-3 w-full">
-                          <Icon className="w-5 h-5 flex-shrink-0" />
+                        <Link href={item.href} className="flex items-center gap-4 w-full">
+                          <Icon className="w-6 h-6 flex-shrink-0" />
                           {!isCollapsed && (
-                            <span className="leading-relaxed font-medium">
+                            <span className="text-base leading-relaxed font-medium">
                               {item.title}
                             </span>
                           )}
@@ -298,9 +298,9 @@ export function AppSidebar({ className }: AppSidebarProps) {
             </div>
           ) : (
             // Dashboard Footer
-            <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-sidebar-accent/30">
-              <span className="text-xl">⚡</span>
-              <span className="font-medium text-sm text-sidebar-foreground">Unlimited Notes</span>
+            <div className="flex items-center gap-4 px-5 py-4 rounded-lg bg-sidebar-accent/30">
+              <span className="text-2xl">⚡</span>
+              <span className="font-medium text-base text-sidebar-foreground">Unlimited Notes</span>
             </div>
           )}
         </SidebarFooter>

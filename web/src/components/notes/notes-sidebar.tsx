@@ -51,33 +51,33 @@ export function NotesAppSidebar({ className }: NotesAppSidebarProps) {
       <SidebarHeader className="border-b py-6 border-stone-200 dark:border-stone-800">
         {isCollapsed ? (
           <div className="flex flex-col items-center gap-3 px-4">
-            <div className="flex items-center justify-center size-8 rounded-lg bg-stone-900 dark:bg-stone-100">
-              <Zap className="size-5 text-stone-50 dark:text-stone-900" />
+            <div className="flex items-center justify-center size-10 rounded-lg bg-stone-900 dark:bg-stone-100">
+              <Zap className="size-6 text-stone-50 dark:text-stone-900" />
             </div>
             <button
               onClick={toggleSidebar}
-              className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md transition-colors"
+              className="p-3 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md transition-colors"
             >
-              <Menu className="size-6" />
+              <Menu className="size-7" />
             </button>
           </div>
         ) : (
           <div className="flex items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-stone-900 dark:bg-white">
-                <Zap className="size-5 text-stone-50 dark:text-stone-900" />
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center size-10 rounded-lg bg-stone-900 dark:bg-white">
+                <Zap className="size-6 text-stone-50 dark:text-stone-900" />
               </div>
               <span
-                className={`text-xl leading-[32px] font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
+                className={`text-2xl leading-[36px] font-semibold text-stone-900 dark:text-stone-100 ${jakarta.className}`}
               >
                 SonicLearn
               </span>
             </div>
             <button
               onClick={toggleSidebar}
-              className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md transition-colors"
+              className="p-3 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md transition-colors"
             >
-              <ChevronLeft className="size-6" />
+              <ChevronLeft className="size-7" />
             </button>
           </div>
         )}
@@ -113,10 +113,10 @@ export function NotesAppSidebar({ className }: NotesAppSidebarProps) {
                       asChild
                       isActive={isActive}
                       className={cn(
-                        "flex items-center gap-3 rounded-lg transition-colors",
+                        "flex items-center gap-4 rounded-lg transition-colors",
                         isCollapsed
-                          ? "w-16 h-16 justify-center"
-                          : "px-3 py-2 my-2",
+                          ? "w-18 h-18 justify-center"
+                          : "px-4 py-3 my-2",
                         isActive
                           ? "!bg-gray-300 !text-black dark:!bg-gray-900 dark:!text-white"
                           : "text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
@@ -125,18 +125,18 @@ export function NotesAppSidebar({ className }: NotesAppSidebarProps) {
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex items-center gap-3",
+                          "flex items-center gap-4",
                           isCollapsed ? "w-full justify-center" : "w-full"
                         )}
                       >
                         <Icon
                           className={cn(
-                            "!size-5 flex-shrink-0",
+                            "!size-6 flex-shrink-0",
                             isCollapsed ? "" : ""
                           )}
                         />
                         {!isCollapsed && (
-                          <span className="leading-[24px] font-normal">
+                          <span className="text-base leading-[28px] font-normal">
                             {item.title}
                           </span>
                         )}
