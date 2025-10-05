@@ -363,7 +363,7 @@ export default function NoteViewPage() {
               />
               <div className="bg-background ml-[280px]">
                 <main className="flex-1">
-                  <div className="bg-background dark:bg-stone-950/50 border-none min-h-[calc(100vh-64px)]">
+                  <div className="bg-background dark:bg-stone-950/50 border-none min-h-[calc(100vh-64px)] pl-5">
                   {/* Content based on current view */}
               {currentView === "notes" && <ViewNote note={note} />}
 
