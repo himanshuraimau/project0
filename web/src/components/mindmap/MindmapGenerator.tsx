@@ -212,12 +212,6 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
                 />
               </div>
             )}
-  
-            {!loading && (
-              <p className="text-sm text-stone-500 mt-2">
-                This may take a few moments...
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>

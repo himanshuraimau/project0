@@ -127,7 +127,7 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
   // If we have a quiz, show the viewer
   if (quiz && quiz.content?.quiz) {
     return (
-      <div className="space-y-4 p-6 mb-5">
+      <div className="space-y-4 p-16 mb-5">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold">Quiz</h2>
           <div className="flex items-center gap-2">

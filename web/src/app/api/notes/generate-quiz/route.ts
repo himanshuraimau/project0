@@ -63,13 +63,13 @@ export async function POST(request: NextRequest) {
     // Generate quiz using AI with simplified prompt
     const result = await generateText({
       model: openai('gpt-4o-mini'),
-      prompt: `Create a quiz with exactly 10 questions from this content:
+      prompt: `Create a quiz with exactly 20 questions from this content:
 
 CONTENT:
 ${note.content.substring(0, 3000)}
 
 REQUIREMENTS:
-1. Create exactly 10 questions (8 multiple choice, 2 true/false)
+1. Create exactly 20 questions (16 multiple choice, 4 true/false)
 2. Test understanding of key concepts
 3. Include clear explanations for each answer
 4. Return ONLY valid JSON in this format:
@@ -119,7 +119,7 @@ Generate ONLY the JSON, no other text:`,
     const quizData: QuizData = JSON.parse(cleanedText);
     console.log('Parsed quiz data:', { questionCount: quizData.quiz?.length, firstQuestion: quizData.quiz?.[0] });
     
-    if (!quizData.quiz || !Array.isArray(quizData.quiz) || quizData.quiz.length < 5) {
+    if (!quizData.quiz || !Array.isArray(quizData.quiz) || quizData.quiz.length < 10) {
       throw new Error('Invalid quiz structure or insufficient questions');
     }
 
