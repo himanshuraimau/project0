@@ -339,7 +339,7 @@ export default function NoteViewPage() {
             sidebarWidth={sidebarWidth}
             sidebarWidthMobile={sidebarWidth}
           >
-            <div className="flex min-h-[calc(100vh-64px)]">
+            <div className="min-h-[calc(100vh-64px)]">
               <NotesSidebar
                 className={`${currentView === "chat" ? "pb-3" : "pb-6"} fixed top-16 left-0 h-[calc(100vh-64px)] z-10 overflow-y-auto`}
                 showTranscript={currentView === "transcript"}

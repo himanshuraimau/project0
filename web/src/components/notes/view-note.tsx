@@ -83,8 +83,8 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="max-w-5xl mx-auto p-8">
+    <div className="min-h-screen bg-background">
+      <div className="w-full mx-auto p-8">
         {/* Main Content Card */}
         <Card className="rounded-3xl border-0 shadow-xl bg-card hover:shadow-2xl transition-all duration-300">
           {/* Header Section */}
@@ -212,7 +212,6 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
             </div>
           </CardHeader>
 
-          <Separator className="mx-8" />
 
           {/* Content Section */}
           <CardContent className="p-8 pt-8">
