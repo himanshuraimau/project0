@@ -14,7 +14,9 @@ import {
   Calendar,
   FileText,
   MoreHorizontal,
-  Bot
+  Bot,
+  Minimize2,
+  Maximize2
 } from "lucide-react";
 import { toast } from "sonner";
 import { MDXRenderer } from "@/components/mdx-renderer";
@@ -40,6 +42,7 @@ interface ViewNoteProps {
 
 export function ViewNote({ note, onSave }: ViewNoteProps) {
   const [viewMode, setViewMode] = useState<'preview' | 'edit'>('preview');
+  const [isChatbotMinimized, setIsChatbotMinimized] = useState(false);
 
   const handleCopy = async () => {
     if (note.content) {
@@ -93,9 +96,9 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
     <div className="min-h-screen bg-background">
       <div className="w-full mx-auto p-8">
         {/* Two Column Layout - Responsive Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Main Content - Takes 2/3 of the width on lg+ screens */}
-          <div className="lg:col-span-2">
+        <div className={`grid grid-cols-1 gap-6 lg:gap-8 ${!isChatbotMinimized ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
+          {/* Main Content - Takes 2/3 of the width on lg+ screens when chatbot is open, full width when minimized */}
+          <div className={!isChatbotMinimized ? "lg:col-span-2" : "lg:col-span-1"}>
             {/* Main Content Card */}
             <Card className="rounded-3xl border-0 shadow-xl bg-card hover:shadow-2xl transition-all duration-300">
           {/* Header Section */}
@@ -244,27 +247,49 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
 
           {/* Chatbot Sidebar - Takes 1/3 of the width on lg+ screens */}
           <div className="lg:col-span-1">
-            <Card className="rounded-3xl border-0 shadow-xl bg-card hover:shadow-2xl transition-all duration-300 fixed mr-[3.1vw]">
-              <CardHeader className="p-6 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-full">
-                    <Bot className="h-5 w-5 text-primary" />
+            {!isChatbotMinimized ? (
+              <Card className="rounded-3xl border-0 shadow-xl bg-card hover:shadow-2xl transition-all duration-300 fixed mr-[3.1vw]">
+                <CardHeader className="p-6 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-full">
+                        <Bot className="h-5 w-5 text-primary" />
+                      </div>
+                      <h3 className="text-xl font-semibold">AI Assistant</h3>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsChatbotMinimized(true)}
+                      className="hover:bg-primary/10 rounded-full"
+                      title="Minimize chatbot"
+                    >
+                      <Minimize2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <h3 className="text-xl font-semibold">AI Assistant</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Ask questions about your note content
-                </p>
-              </CardHeader>
-              <CardContent className="p-0 pb-6">
-                <div className="h-[500px] lg:h-[600px] overflow-hidden">
-                  <DynamicInlineChatbot 
-                    noteId={note.id} 
-                    className="h-full"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Ask questions about your note content
+                  </p>
+                </CardHeader>
+                <CardContent className="p-0 pb-6">
+                  <div className="h-[500px] lg:h-[600px] overflow-hidden">
+                    <DynamicInlineChatbot 
+                      noteId={note.id} 
+                      className="h-full"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => setIsChatbotMinimized(false)}
+                className="fixed top-4 right-4 z-50 rounded-full p-3 shadow-lg bg-background border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300"
+                title="Show AI Assistant"
+              >
+                <Bot className="h-5 w-5 text-primary" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
