@@ -60,7 +60,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
       onClick={handleCardClick}
     >
       <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           {/* Left section - Title and Content */}
           <div className="flex-1 min-w-0">
             {/* Title */}
@@ -89,7 +89,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
           </div>
 
           {/* Right section - Action Buttons */}
-          <div className="flex flex-col gap-2 flex-shrink-0">
+          <div className="flex flex-col gap-3 flex-shrink-0 justify-center">
             <Button
               onClick={(e) => {
                 e.stopPropagation();
