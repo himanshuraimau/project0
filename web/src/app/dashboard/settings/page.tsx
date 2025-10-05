@@ -1,7 +1,11 @@
-import { redirect } from "next/navigation"
-import { auth } from "@clerk/nextjs/server"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useAuth } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard"
 import { Card } from "@/components/ui/card"
+import { toast } from "sonner"
 import {
   User,
   Globe,
@@ -10,11 +14,45 @@ import {
   LogOut,
 } from "lucide-react"
 
-export default async function SettingsPage() {
-  const { userId } = await auth()
+export default function SettingsPage() {
+  const { userId } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!userId) {
+      router.push("/sign-in")
+    }
+  }, [userId, router])
+
+  const handleShareClick = async () => {
+    try {
+      await navigator.clipboard.writeText("www.soniclearn.ai")
+      toast.success("Link copied to clipboard!", {
+        duration: 3000,
+        style: {
+          minWidth: '400px',
+          padding: '20px 24px',
+          fontSize: '18px',
+          fontWeight: '600',
+          borderRadius: '12px',
+        },
+      })
+    } catch (error) {
+      toast.error("Failed to copy link", {
+        duration: 3000,
+        style: {
+          minWidth: '400px',
+          padding: '20px 24px',
+          fontSize: '18px',
+          fontWeight: '600',
+          borderRadius: '12px',
+        },
+      })
+    }
+  }
 
   if (!userId) {
-    redirect("/sign-in")
+    return null
   }
 
   const settings: {
@@ -22,8 +60,14 @@ export default async function SettingsPage() {
     label: string
     subtext?: string
     color?: string
+    onClick?: () => void
   }[] = [
-    { icon: <Globe className="h-7 w-7 text-foreground" />, label: "Share with a friend", color: "text-foreground" },
+    { 
+      icon: <Globe className="h-7 w-7 text-foreground" />, 
+      label: "Share with a friend", 
+      color: "text-foreground",
+      onClick: handleShareClick
+    },
     { icon: <Shield className="h-7 w-7 text-foreground" />, label: "Privacy Policy", color: "text-foreground" },
     { icon: <User className="h-7 w-7 text-foreground" />, label: "Manage Account", color: "text-foreground" },
     { icon: <LogOut className="h-7 w-7 text-foreground" />, label: "Sign out", subtext: "jiskhar011@gmail.com", color: "text-foreground" },
@@ -39,6 +83,7 @@ export default async function SettingsPage() {
             <Card
               key={i}
               className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl transition cursor-pointer border border-gray-300 hover:border-gray-500"
+              onClick={item.onClick}
             >
               <div className="flex items-center gap-5">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">

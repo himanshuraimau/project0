@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Toaster } from "sonner";
 
 export default function NotesLayout({
   children,
@@ -11,7 +10,6 @@ export default function NotesLayout({
   return (
     <div className="">
       {children}
-      <Toaster />
     </div>
   );
 }

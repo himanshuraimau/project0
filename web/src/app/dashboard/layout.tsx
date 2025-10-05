@@ -3,7 +3,6 @@
 import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/AppSidebar";
-import { Toaster } from "sonner";
 import { Navbar } from "@/components/shared/navbar";
 import { usePathname } from "next/navigation";
 import { DashboardRefreshProvider } from "@/contexts/dashboard-refresh-context";
@@ -58,7 +57,6 @@ export default function DashboardLayout({
             {/* Main content area */}
             <DashboardContent>
               {children}
-              <Toaster />
             </DashboardContent>
           </div>
         </SidebarProvider>
