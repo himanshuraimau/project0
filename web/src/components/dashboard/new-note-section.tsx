@@ -217,7 +217,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-card dark:bg-card border border-border hover:bg-muted/50 cursor-pointer hover:border-primary/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
+              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-white dark:bg-white border border-white hover:bg-white cursor-pointer hover:border-gray-300 rounded-2xl transition-all duration-200 group hover:shadow-lg"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -302,7 +302,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-card dark:bg-card border border-border hover:bg-muted/50 cursor-pointer hover:border-primary/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
+              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-white dark:bg-white border border-white hover:bg-white cursor-pointer hover:border-gray-300 rounded-2xl transition-all duration-200 group hover:shadow-lg"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -351,7 +351,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-card dark:bg-card border border-border hover:bg-muted/50 cursor-pointer hover:border-primary/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
+              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-white dark:bg-white border border-white hover:bg-white cursor-pointer hover:border-gray-300 rounded-2xl transition-all duration-200 group hover:shadow-lg"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -400,7 +400,7 @@ export function NewNoteSection() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-card dark:bg-card border border-border hover:bg-muted/50 cursor-pointer hover:border-primary/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
+              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-white dark:bg-white border border-white hover:bg-white cursor-pointer hover:border-gray-300 rounded-2xl transition-all duration-200 group hover:shadow-lg"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
