@@ -112,7 +112,7 @@ export function MyNotesSection() {
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-6 mb-8">
+      <div className="flex flex-col mx-7 sm:flex-row gap-6 mb-8 sm:justify-between">
         <div className="flex-shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -183,7 +183,7 @@ export function MyNotesSection() {
           </DropdownMenu>
         </div>
 
-        <div className="relative flex-1 max-w-lg">
+        <div className="relative min-w-xl">
           <Input
             placeholder="Search notes..."
             value={searchQuery}
