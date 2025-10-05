@@ -39,11 +39,7 @@ const jakarta = Plus_Jakarta_Sans({
 
 const dashboardItems = [
   { title: "Dashboard", icon: Home, href: "/dashboard" },
-  {
-    title: "Create Course",
-    icon: BookOpen,
-    href: "/dashboard/generate-course",
-  },
+  { title: "Create Course", icon: BookOpen, href: "/dashboard/generate-course"},
   { title: "How to use", icon: HelpCircle, href: "/dashboard/how-to-use" },
   { title: "Support", icon: HeadphonesIcon, href: "/dashboard/support" },
   { title: "Settings", icon: Settings, href: "/dashboard/settings" },
@@ -232,14 +228,26 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         isActive={isActive}
                         className={cn(
                           "flex items-center rounded-lg transition-all py-3 px-5",
-                          "text-base font-medium hover:bg-sidebar-accent/60 text-sidebar-foreground",
-                          isActive && "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                          "text-base font-medium !bg-transparent hover:!bg-transparent",
+                          "data-[state=open]:!bg-transparent data-[active=true]:!bg-transparent",
+                          isActive 
+                            ? "text-black" 
+                            : "text-gray-500"
                         )}
                       >
-                        <Link href={item.href} className="flex items-center gap-4 w-full">
-                          <Icon className="w-6 h-6 flex-shrink-0" />
+                        <Link 
+                          href={item.href} 
+                          className="flex items-center gap-4 w-full hover:text-black"
+                        >
+                          <Icon className={cn(
+                            "w-6 h-6 flex-shrink-0 transition-colors",
+                            isActive ? "text-black" : "text-gray-500 hover:text-black"
+                          )} />
                           {!isCollapsed && (
-                            <span className="text-base leading-relaxed font-medium">
+                            <span className={cn(
+                              "text-base leading-relaxed font-medium transition-colors",
+                              isActive ? "text-black" : "text-gray-500 hover:text-black"
+                            )}>
                               {item.title}
                             </span>
                           )}
