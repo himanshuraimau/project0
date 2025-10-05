@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useAuth } from "@clerk/nextjs"
+import { useAuth, useClerk } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard"
 import { Card } from "@/components/ui/card"
@@ -17,6 +17,7 @@ import {
 
 export default function SettingsPage() {
   const { userId } = useAuth()
+  const { openUserProfile, signOut } = useClerk()
   const router = useRouter()
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false)
 
@@ -57,6 +58,14 @@ export default function SettingsPage() {
     setShowPrivacyPolicy(true)
   }
 
+  const handleManageAccountClick = () => {
+    openUserProfile()
+  }
+
+  const handleSignOutClick = () => {
+    signOut(() => router.push("/"))
+  }
+
   if (!userId) {
     return null
   }
@@ -75,8 +84,8 @@ export default function SettingsPage() {
       onClick: handleShareClick
     },
     { icon: <Shield className="h-7 w-7 text-foreground" />, label: "Privacy Policy", color: "text-foreground", onClick: handlePrivacyPolicyClick },
-    { icon: <User className="h-7 w-7 text-foreground" />, label: "Manage Account", color: "text-foreground" },
-    { icon: <LogOut className="h-7 w-7 text-foreground" />, label: "Sign out", subtext: "jiskhar011@gmail.com", color: "text-foreground" },
+    { icon: <User className="h-7 w-7 text-foreground" />, label: "Manage Account", color: "text-foreground", onClick: handleManageAccountClick },
+    { icon: <LogOut className="h-7 w-7 text-foreground" />, label: "Sign out", subtext: "jiskhar011@gmail.com", color: "text-foreground", onClick: handleSignOutClick },
   ]
 
   return (
