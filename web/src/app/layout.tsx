@@ -30,7 +30,7 @@ export default function RootLayout({
       signUpFallbackRedirectUrl="/dashboard"
     >
       <html lang="en" suppressHydrationWarning>
-        <body className={`${inter.variable} font-sans antialiased`}>
+        <body className={`${inter.variable} font-sans antialiased bg-background`}>
           <NextSSRPlugin
             routerConfig={extractRouterConfig(ourFileRouter)}
           />

@@ -4,7 +4,7 @@ import { brutalistShadowFactory } from './shadow'
 import type { BrutalistTheme, SemanticColors, ThemeMode } from './types'
 
 const lightColors: SemanticColors = {
-  background: palette.white,
+  background: '#f2f2f7',
   surface: palette.white,
   surfaceAlt: palette.white,
   text: palette.nearBlack,
@@ -20,7 +20,7 @@ const lightColors: SemanticColors = {
 }
 
 const darkColors: SemanticColors = {
-  background: '#0F0F10' as const,
+  background: '#1e1e23' as const,
   surface: '#161618' as const,
   surfaceAlt: '#121214' as const,
   text: '#F7F7F7' as const,
