@@ -20,6 +20,8 @@ export default function SettingsPage() {
   const { openUserProfile, signOut } = useClerk()
   const router = useRouter()
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false)
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     if (!userId) {
@@ -66,6 +68,59 @@ export default function SettingsPage() {
     signOut(() => router.push("/"))
   }
 
+  const handleDeleteAccountClick = () => {
+    setShowDeleteConfirmation(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true)
+    try {
+      const response = await fetch('/api/user/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        toast.success("Account and all data deleted successfully. You will be redirected to the sign-in page.", {
+          duration: 5000,
+          style: {
+            minWidth: '400px',
+            padding: '20px 24px',
+            fontSize: '18px',
+            fontWeight: '600',
+            borderRadius: '12px',
+          },
+        })
+        
+        // Give a moment for the toast to show, then sign out and redirect
+        setTimeout(() => {
+          signOut(() => {
+            window.location.href = "/sign-in"
+          })
+        }, 2000)
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete account')
+      }
+    } catch (error) {
+      console.error('Account deletion error:', error)
+      toast.error("Failed to delete account. Please try again.", {
+        duration: 3000,
+        style: {
+          minWidth: '400px',
+          padding: '20px 24px',
+          fontSize: '18px',
+          fontWeight: '600',
+          borderRadius: '12px',
+        },
+      })
+      setIsDeleting(false)
+      setShowDeleteConfirmation(false)
+    }
+  }
+
   if (!userId) {
     return null
   }
@@ -85,7 +140,7 @@ export default function SettingsPage() {
     },
     { icon: <Shield className="h-7 w-7 text-foreground" />, label: "Privacy Policy", color: "text-foreground", onClick: handlePrivacyPolicyClick },
     { icon: <User className="h-7 w-7 text-foreground" />, label: "Manage Account", color: "text-foreground", onClick: handleManageAccountClick },
-    { icon: <LogOut className="h-7 w-7 text-foreground" />, label: "Sign out", subtext: "jiskhar011@gmail.com", color: "text-foreground", onClick: handleSignOutClick },
+    { icon: <LogOut className="h-7 w-7 text-foreground" />, label: "Sign out", color: "text-foreground", onClick: handleSignOutClick },
   ]
 
   return (
@@ -120,7 +175,10 @@ export default function SettingsPage() {
             </Card>
           ))}
 
-          <Card className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl hover:bg-destructive/10 transition cursor-pointer border border-gray-300 hover:border-gray-500">
+          <Card 
+            className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl hover:bg-destructive/10 transition cursor-pointer border border-gray-300 hover:border-gray-500"
+            onClick={handleDeleteAccountClick}
+          >
             <div className="flex items-center gap-5">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
                 <Shield className="h-7 w-7 text-destructive" />
@@ -194,6 +252,62 @@ export default function SettingsPage() {
     </div>
   </div>
 )}
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg max-w-md w-full overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-2xl font-bold text-destructive">Delete Account</h2>
+              <button
+                onClick={() => setShowDeleteConfirmation(false)}
+                className="p-2 hover:bg-muted rounded-full transition"
+                disabled={isDeleting}
+              >
+                <X className="h-6 w-6 text-muted-foreground" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-foreground mb-4">
+                Are you sure you want to delete your account? This action cannot be undone and will permanently remove:
+              </p>
+              <ul className="text-foreground mb-4 ml-4 space-y-1 text-sm">
+                <li>• All your notes and transcripts</li>
+                <li>• All courses, quizzes, and flashcards</li>
+                <li>• All mindmaps and podcasts</li>
+                <li>• Your credit balance and purchase history</li>
+                <li>• Your entire account from our system</li>
+              </ul>
+              <p className="text-destructive text-sm font-medium mb-4">
+                This deletion is permanent and cannot be recovered.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowDeleteConfirmation(false)}
+                  className="px-4 py-2 text-foreground bg-muted hover:bg-muted/80 rounded-lg transition"
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="px-4 py-2 text-white bg-destructive hover:bg-destructive/90 rounded-lg transition flex items-center gap-2"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete Account'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </DashboardLayout>
   )

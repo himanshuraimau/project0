@@ -86,13 +86,82 @@ export class UserService {
    */
   static async deleteUser(userId: string) {
     try {
-      // Delete user and cascade to all related data
-      await prisma.user.delete({
+      console.log(`Starting deletion process for user: ${userId}`)
+
+      // First check if user exists in our database
+      const existingUser = await prisma.user.findUnique({
         where: { id: userId }
       })
+
+      if (!existingUser) {
+        console.log(`User ${userId} not found in database, but proceeding to clean up any orphaned data`)
+      } else {
+        console.log(`Found user ${userId} in database, proceeding with full deletion`)
+      }
+
+      // Use a transaction with increased timeout to ensure all deletions happen atomically
+      await prisma.$transaction(async (tx) => {
+        // Delete in batches and optimize order to reduce foreign key constraint issues
+        
+        // 1. Delete progress records first (no foreign key dependencies)
+        const [creditUsageCount, courseProgressCount, chapterProgressCount] = await Promise.all([
+          tx.creditUsage.deleteMany({ where: { userId } }),
+          tx.userCourseProgress.deleteMany({ where: { userId } }),
+          tx.userChapterProgress.deleteMany({ where: { userId } })
+        ])
+        console.log(`Deleted progress records: ${creditUsageCount.count + courseProgressCount.count + chapterProgressCount.count}`)
+
+        // 2. Delete study materials that depend on notes (in parallel for efficiency)
+        const [podcastCount, mindmapCount, quizCount, flashcardCount] = await Promise.all([
+          tx.podcast.deleteMany({ where: { userId } }),
+          tx.mindMap.deleteMany({ where: { userId } }),
+          tx.quiz.deleteMany({ where: { userId } }),
+          tx.flashcard.deleteMany({ where: { userId } })
+        ])
+        console.log(`Deleted study materials: ${podcastCount.count + mindmapCount.count + quizCount.count + flashcardCount.count}`)
+
+        // 3. Delete notes (this will cascade to note chunks)
+        const noteCount = await tx.note.deleteMany({
+          where: { userId }
+        })
+        console.log(`Deleted notes: ${noteCount.count}`)
+
+        // 4. Delete transcripts
+        const transcriptCount = await tx.transcript.deleteMany({
+          where: { userId }
+        })
+        console.log(`Deleted transcripts: ${transcriptCount.count}`)
+
+        // 5. Delete courses (this will cascade to units, chapters, questions, etc.)
+        const courseCount = await tx.course.deleteMany({
+          where: { userId }
+        })
+        console.log(`Deleted courses: ${courseCount.count}`)
+
+        // 6. Finally, delete the user if it exists (this will cascade to purchases)
+        if (existingUser) {
+          await tx.user.delete({
+            where: { id: userId }
+          })
+          console.log(`Deleted user: ${userId}`)
+        } else {
+          // Clean up any orphaned purchases that might exist
+          const purchaseCount = await tx.purchase.deleteMany({
+            where: { userId }
+          })
+          console.log(`Cleaned up orphaned purchases: ${purchaseCount.count}`)
+        }
+      }, {
+        timeout: 30000 // Increase timeout to 30 seconds
+      })
+
+      console.log(`Successfully deleted all data for user: ${userId}`)
     } catch (error) {
       console.error('Error deleting user:', error)
-      throw new Error('Failed to delete user')
+      if (error instanceof Error) {
+        throw new Error(`Failed to delete user and associated data: ${error.message}`)
+      }
+      throw new Error('Failed to delete user and associated data')
     }
   }
 
