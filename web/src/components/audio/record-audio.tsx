@@ -38,6 +38,7 @@ export default function RecordAudio({
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const mimeTypeRef = useRef<string>("audio/webm");
 
   // Check microphone permission on component mount
   useEffect(() => {
@@ -137,7 +138,23 @@ export default function RecordAudio({
         return;
       }
 
-      const mediaRecorder = new MediaRecorder(stream);
+      // Determine the best supported MIME type for recording
+      let mimeType = "audio/webm";
+      if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+        mimeType = "audio/webm;codecs=opus";
+      } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+        mimeType = "audio/webm";
+      } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+        mimeType = "audio/mp4";
+      } else if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) {
+        mimeType = "audio/ogg;codecs=opus";
+      }
+      
+      // Store the MIME type for later use
+      mimeTypeRef.current = mimeType;
+      console.log("Using MIME type for recording:", mimeType);
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
       setRecordingTime(0);
@@ -152,9 +169,11 @@ export default function RecordAudio({
       };
 
       mediaRecorder.onstop = () => {
+        // Use the actual MIME type that was used for recording
         const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/wav",
+          type: mimeTypeRef.current,
         });
+        console.log("Created audio blob with type:", mimeTypeRef.current, "size:", audioBlob.size);
         setAudioBlob(audioBlob);
         stream.getTracks().forEach((track) => track.stop());
         
