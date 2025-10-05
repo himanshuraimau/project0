@@ -13,7 +13,8 @@ import {
   Eye, 
   Calendar,
   FileText,
-  MoreHorizontal
+  MoreHorizontal,
+  Bot
 } from "lucide-react";
 import { toast } from "sonner";
 import { MDXRenderer } from "@/components/mdx-renderer";
@@ -24,6 +25,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import dynamic from "next/dynamic";
+
+const DynamicInlineChatbot = dynamic(
+  () => import("@/components/chatbot/inline-chatbot"),
+  { ssr: false }
+);
 
 interface ViewNoteProps {
   note: Note;
@@ -85,8 +92,12 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="w-full mx-auto p-8">
-        {/* Main Content Card */}
-        <Card className="rounded-3xl border-0 shadow-xl bg-card hover:shadow-2xl transition-all duration-300">
+        {/* Two Column Layout - Responsive Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Main Content - Takes 2/3 of the width on lg+ screens */}
+          <div className="lg:col-span-2">
+            {/* Main Content Card */}
+            <Card className="rounded-3xl border-0 shadow-xl bg-card hover:shadow-2xl transition-all duration-300">
           {/* Header Section */}
           <CardHeader className="p-8 pb-6">
             <div className="space-y-6">
@@ -111,10 +122,6 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
                     <Separator orientation="vertical" className="h-4" />
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
-                      <span>{getWordCount(note.content || "")} words</span>
-                    </div>
-                    <Separator orientation="vertical" className="h-4" />
-                    <div className="flex items-center gap-2">
                       <span>{getReadingTime(note.content || "")} min read</span>
                     </div>
                   </div>
@@ -233,6 +240,33 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
             </div>
           </CardContent>
         </Card>
+          </div>
+
+          {/* Chatbot Sidebar - Takes 1/3 of the width on lg+ screens */}
+          <div className="lg:col-span-1">
+            <Card className="rounded-3xl border-0 shadow-xl bg-card hover:shadow-2xl transition-all duration-300 fixed mr-[3.1vw]">
+              <CardHeader className="p-6 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <Bot className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold">AI Assistant</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Ask questions about your note content
+                </p>
+              </CardHeader>
+              <CardContent className="p-0 pb-6">
+                <div className="h-[500px] lg:h-[600px] overflow-hidden">
+                  <DynamicInlineChatbot 
+                    noteId={note.id} 
+                    className="h-full"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
 
       {/* Custom Prose Styling */}
