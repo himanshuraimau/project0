@@ -95,12 +95,15 @@ export function YouTubeProcessor({
     setIsProcessing(true);
     setError(null);
 
-    // Add loading note immediately when processing starts
+    // Add loading note BEFORE closing modal
     const tempId = `youtube-${Date.now()}`;
     setCurrentTempId(tempId);
     addLoadingNote(tempId, "youtube");
 
-    // Close modal immediately after starting
+    // Longer delay to ensure state update propagates and UI re-renders
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Close modal after adding loading note
     if (onClose) {
       onClose();
     }
@@ -119,12 +122,6 @@ export function YouTubeProcessor({
       const data = await response.json();
 
       if (!response.ok) {
-        // Remove loading note on error
-        if (currentTempId) {
-          removeLoadingNote(currentTempId);
-          setCurrentTempId(null);
-        }
-
         // Handle specific error cases with better user feedback
         if (response.status === 400) {
           if (
@@ -169,6 +166,9 @@ export function YouTubeProcessor({
         // Automatically generate notes from the transcript
         const note = await handleGenerateNotes(data.data.id);
 
+        // Wait for shimmer removal to propagate before triggering refresh
+        await new Promise(resolve => setTimeout(resolve, 200));
+
         // Call the completion callback if provided
         if (onProcessComplete) {
           onProcessComplete({
@@ -193,16 +193,15 @@ export function YouTubeProcessor({
     } catch (error) {
       console.error("Error processing YouTube transcript:", error);
       
-      // Remove loading note on error
-      if (currentTempId) {
-        removeLoadingNote(currentTempId);
-        setCurrentTempId(null);
-      }
-      
       setError(
         error instanceof Error ? error.message : "An unexpected error occurred"
       );
     } finally {
+      // Always remove loading note in finally block
+      if (currentTempId) {
+        removeLoadingNote(currentTempId);
+        setCurrentTempId(null);
+      }
       setIsProcessing(false);
     }
   };

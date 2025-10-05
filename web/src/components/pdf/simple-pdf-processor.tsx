@@ -100,14 +100,21 @@ export function SimplePDFProcessor({
     if (mode === "pdf" && !selectedFile) return;
     if (mode === "text" && !textInput.trim()) return;
 
-    // Generate temp ID and add loading note
+    // Generate temp ID and add loading note BEFORE closing modal
     const tempId = `${mode}-${Date.now()}`;
+    console.log('[PDF Processor] Starting process with tempId:', tempId);
     setCurrentTempId(tempId);
     addLoadingNote(tempId, mode === "pdf" ? "pdf" : "pdf");
+    console.log('[PDF Processor] Added loading note, waiting for state update...');
 
-    // Close modal immediately after starting
+    // Longer delay to ensure state update propagates and UI re-renders
+    await new Promise(resolve => setTimeout(resolve, 300));
+    console.log('[PDF Processor] State update delay complete, closing modal...');
+
+    // Close modal after adding loading note
     if (onClose) {
       onClose();
+      console.log('[PDF Processor] Modal closed');
     }
 
     let result;
@@ -134,6 +141,9 @@ export function SimplePDFProcessor({
           setCurrentTempId(null);
         }
         
+        // Wait for shimmer removal to propagate before triggering refresh
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
         // Call completion with result that includes temp ID for tracking
         onProcessComplete?.({
           ...result,
@@ -145,8 +155,8 @@ export function SimplePDFProcessor({
       }
     } catch (error) {
       console.error("Error processing:", error);
-      
-      // Remove loading note on error
+    } finally {
+      // Always remove loading note in finally block
       if (currentTempId) {
         removeLoadingNote(currentTempId);
         setCurrentTempId(null);

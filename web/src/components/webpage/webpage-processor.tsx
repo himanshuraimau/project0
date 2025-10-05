@@ -77,12 +77,15 @@ export function WebpageProcessor({
     setSuccess(false);
     setProcessingStage("Validating URL...");
 
-    // Add loading note immediately when processing starts
+    // Add loading note BEFORE closing modal
     const tempId = `webpage-${Date.now()}`;
     setCurrentTempId(tempId);
     addLoadingNote(tempId, "webpage");
 
-    // Close modal immediately after starting
+    // Longer delay to ensure state update propagates and UI re-renders
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Close modal after adding loading note
     if (onClose) {
       onClose();
     }
@@ -143,6 +146,9 @@ export function WebpageProcessor({
           setCurrentTempId(null);
         }
 
+        // Wait for shimmer removal to propagate before triggering refresh
+        await new Promise(resolve => setTimeout(resolve, 200));
+
         // Call the completion callback with actual transcript ID
         if (onProcessComplete) {
           onProcessComplete({
@@ -162,17 +168,16 @@ export function WebpageProcessor({
     } catch (error) {
       console.error("Webpage processing error:", error);
 
-      // Remove loading note on error
-      if (currentTempId) {
-        removeLoadingNote(currentTempId);
-        setCurrentTempId(null);
-      }
-
       setError(
         error instanceof Error ? error.message : "An unexpected error occurred"
       );
       setProcessingStage("");
     } finally {
+      // Always remove loading note in finally block
+      if (currentTempId) {
+        removeLoadingNote(currentTempId);
+        setCurrentTempId(null);
+      }
       setIsProcessing(false);
     }
   };
