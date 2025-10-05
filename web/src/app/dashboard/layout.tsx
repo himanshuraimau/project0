@@ -39,9 +39,9 @@ export default function DashboardLayout({
           <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
             <Navbar
               title={
-                <span>
+                <span className="text-2xl">
                   <span className="font-bold">SonicLearn</span>{" "}
-                  <span className="font-normal">AI notes</span>
+                  <span className="font-normal text-gray-400">AI notes</span>
                 </span>
               }
             />

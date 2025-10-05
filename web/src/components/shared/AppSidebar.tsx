@@ -164,7 +164,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
     >
 
 
-      <SidebarContent className="flex-1 py-20 px-4">
+      <SidebarContent className="flex-1 my-28 px-4">
         {isCoursePage && courseData ? (
           // Course Navigation
           <>
