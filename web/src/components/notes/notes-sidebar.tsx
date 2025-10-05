@@ -114,8 +114,6 @@ export function NotesAppSidebar({ className }: NotesAppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      {/* Removed Notes Hub footer - dashboard handles all notes functionality */}
     </Sidebar>
   );
 }
