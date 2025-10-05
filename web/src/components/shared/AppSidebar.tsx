@@ -66,12 +66,12 @@ interface ChapterItemProps {
   isCurrentChapter: boolean;
 }
 
-function ChapterItem({ 
-  chapter, 
-  courseId, 
-  unitIndex, 
-  chapterIndex, 
-  isCurrentChapter 
+function ChapterItem({
+  chapter,
+  courseId,
+  unitIndex,
+  chapterIndex,
+  isCurrentChapter
 }: ChapterItemProps) {
   const { progress, updating, toggleCompletion } = useChapterProgress(chapter.id);
   const { state } = useSidebar();
@@ -79,8 +79,8 @@ function ChapterItem({
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton 
-        asChild 
+      <SidebarMenuButton
+        asChild
         isActive={isCurrentChapter}
         className={cn(
           "group relative py-2 px-4 transition-all hover:bg-sidebar-accent/60",
@@ -91,11 +91,11 @@ function ChapterItem({
         <Link href={`/dashboard/course/${courseId}/${unitIndex}/${chapterIndex}`}>
           <div className={cn(
             "w-2 h-2 rounded-full flex-shrink-0 mr-3",
-            progress.isCompleted 
-              ? "bg-green-500" 
-              : isCurrentChapter 
-              ? "bg-sidebar-primary" 
-              : "bg-sidebar-foreground/40"
+            progress.isCompleted
+              ? "bg-green-500"
+              : isCurrentChapter
+                ? "bg-sidebar-primary"
+                : "bg-sidebar-foreground/40"
           )} />
           {!isCollapsed && (
             <span className="text-base leading-relaxed truncate">
@@ -104,7 +104,7 @@ function ChapterItem({
           )}
         </Link>
       </SidebarMenuButton>
-      
+
       {!isCollapsed && (
         <SidebarMenuAction
           onClick={(e) => {
@@ -138,7 +138,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const isCoursePage = pathname.includes("/course/");
-  
+
   const [courseData, setCourseData] = useState<CourseData | null>(null);
 
   // Check for course data in DOM when on course pages
@@ -166,7 +166,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
         className
       )}
     >
-      
+
 
       <SidebarContent className="flex-1 py-20 px-4 ">
         {isCoursePage && courseData ? (
@@ -187,7 +187,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 </h2>
               </div>
             )}
-            
+
             {/* Course Units and Chapters */}
             <div className="space-y-4">
               {courseData.course.units.map((unit, unitIndex) => (
@@ -197,7 +197,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                       Unit {unitIndex + 1}: {unit.name}
                     </SidebarGroupLabel>
                   )}
-                  
+
                   <SidebarGroupContent>
                     <SidebarMenu className="space-y-0.5">
                       {unit.chapters.map((chapter, chapterIndex) => (
@@ -271,9 +271,9 @@ export function AppSidebar({ className }: AppSidebarProps) {
             </div>
           ) : (
             // Dashboard Footer
-            <div className="flex items-center gap-4 px-5 py-4 rounded-lg bg-sidebar-accent/30">
+            <div className="flex items-center gap-4 px-5 py-4 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500">
               <span className="text-2xl">⚡</span>
-              <span className="font-medium text-base text-sidebar-foreground">Unlimited Notes</span>
+              <span className="font-bold text-lg text-white">Unlimited Notes</span>
             </div>
           )}
         </SidebarFooter>
