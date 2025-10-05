@@ -56,7 +56,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
 
   return (
     <Card 
-      className="w-full bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+      className="w-full bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 cursor-pointer rounded-2xl"
       onClick={handleCardClick}
     >
       <CardContent className="p-6">
