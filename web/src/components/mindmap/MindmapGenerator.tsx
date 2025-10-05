@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Brain, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { MindmapViewer } from "./MindmapViewer";
+import { MarkmapViewer } from "./MarkmapViewer";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import {
   AlertDialog,
@@ -170,8 +170,8 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
           </div>
         </div>
 
-        <MindmapViewer
-          mermaidCode={mindmap.mermaidCode}
+        <MarkmapViewer
+          markdownContent={mindmap.mermaidCode}
           title={mindmap.title}
         />
       </div>
@@ -187,7 +187,7 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
               Generate Mindmap
             </h3>
             <p className="text-stone-600 dark:text-stone-400 text-base text-center mb-6 max-w-md">
-              Transform your notes into a visual mindmap that helps you understand the relationships between key concepts.
+              Transform your notes into a visual mindmap using Markmap technology. This helps you understand the relationships between key concepts in your notes.
             </p>
   
             {error && (
