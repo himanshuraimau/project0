@@ -18,22 +18,20 @@ export default async function HowToUsePage() {
           <h1 className="text-4xl font-bold text-foreground mb-2">
             How to Use
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <h2 className="text-xl font-bold text-foreground mb-4">
             Get started in 20 seconds
-          </p>
+          </h2>
         </div>
 
         <Card className="rounded-3xl border-0 p-8 shadow-xl bg-card">
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-foreground mb-4">
-              Get started in 20 seconds
-            </h2>
-            
-            <YouTubePlayer
-              videoId="dQw4w9WgXcQ"
-              title="How to use Project0"
-              className="rounded-2xl overflow-hidden"
-            />
+          <div className="space-y-6">    
+            <div className="max-w-6xl mx-auto">
+              <YouTubePlayer
+                videoId="dQw4w9WgXcQ"
+                title="How to use Project0"
+                className="rounded-2xl overflow-hidden"
+              />
+            </div>
             
             <div className="prose prose-neutral max-w-none">
               <p className="text-muted-foreground">
