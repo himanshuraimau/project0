@@ -159,7 +159,7 @@ export function NotesSidebar({
     <Sidebar
       collapsible="icon"
       className={cn(
-        "border-r h-screen border-stone-200 bg-white dark:border-stone-900 dark:bg-stone-950",
+        "h-screen bg-white dark:bg-stone-950",
         className
       )}
     >

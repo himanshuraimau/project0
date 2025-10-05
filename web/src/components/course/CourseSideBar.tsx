@@ -133,7 +133,7 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="icon" className="border-r h-screen bg-white border-stone-200 dark:border-stone-900 dark:bg-stone-900">
+    <Sidebar collapsible="icon" className="h-screen bg-white dark:bg-stone-900">
       <SidebarHeader className="border-b py-[16px] bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-900">
         {isCollapsed ? (
           <div className="flex flex-col items-center gap-3 px-4">

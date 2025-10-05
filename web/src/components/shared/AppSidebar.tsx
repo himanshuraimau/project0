@@ -162,7 +162,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "border-r border-sidebar-border bg-sidebar",
+        "bg-sidebar",
         className
       )}
     >

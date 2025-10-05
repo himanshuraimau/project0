@@ -69,7 +69,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "border-r h-screen bg-white border-stone-200 dark:border-stone-900 dark:bg-stone-900",
+        "h-screen bg-white dark:bg-stone-900",
         className
       )}
     >
