@@ -232,7 +232,7 @@ export function MyCourses({ courses }: MyCoursesProps) {
       </div>
 
       {courses.length === 0 ? (
-        <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/60 p-12 text-center">
+        <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-white hover:border-gray-300 p-12 text-center">
           <div className="size-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-6">
             <BookOpen className="size-8 text-accent" />
           </div>
@@ -243,7 +243,7 @@ export function MyCourses({ courses }: MyCoursesProps) {
             Start your learning journey by creating your first AI-powered course
           </p>
           <Link href="/dashboard/create/wizard">
-            <Button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-accent-foreground font-medium hover:bg-accent/90 transition-colors">
+            <Button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors">
               <Plus className="size-4" />
               Create Your First Course
             </Button>
