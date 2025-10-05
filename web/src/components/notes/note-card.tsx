@@ -32,6 +32,10 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
     onDelete(note.id);
   };
 
+  const handleCardClick = () => {
+    router.push(`/notes/${note.id}`);
+  };
+
   // Get plain text preview from markdown content
   const getTextPreview = (content: string, maxLength: number = 150) => {
     if (!content) return "No content available";
@@ -51,7 +55,10 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
   };
 
   return (
-    <Card className="w-full bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+    <Card 
+      className="w-full bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+      onClick={handleCardClick}
+    >
       <CardContent className="p-6">
         <div className="flex items-start justify-between gap-4">
           {/* Left section - Title and Content */}
@@ -84,7 +91,10 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
           {/* Right section - Action Buttons */}
           <div className="flex flex-col gap-2 flex-shrink-0">
             <Button
-              onClick={handleViewNote}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewNote();
+              }}
               size="sm"
               className="h-8 px-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors duration-200 whitespace-nowrap"
             >
