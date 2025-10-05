@@ -112,7 +112,7 @@ export function MyNotesSection() {
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col mx-7 sm:flex-row gap-6 mb-8 sm:justify-between">
+      <div className="flex flex-col sm:flex-row gap-6 mb-8 sm:justify-between">
         <div className="flex-shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -195,7 +195,7 @@ export function MyNotesSection() {
       </div>
 
       {/* Notes Display */}
-      <div className="w-full bg-slate-25/50 dark:bg-slate-950/30 rounded-2xl p-6 border border-slate-100/80 dark:border-slate-800/60">
+      <div className="w-full bg-slate-25/50 dark:bg-slate-950/30 rounded-2xl pt-6 border border-slate-100/80 dark:border-slate-800/60">
         <NotesList 
           ref={notesListRef}
           searchQuery={searchQuery} 
