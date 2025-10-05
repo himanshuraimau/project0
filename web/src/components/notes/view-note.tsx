@@ -198,17 +198,6 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
                   </div>
                 </div>
               </div>
-
-              {/* Status Badge */}
-              <div className="flex items-center gap-3">
-                <Badge 
-                  variant="secondary" 
-                  className="bg-primary/10 text-primary border-primary/20 rounded-full px-4 py-1 text-sm font-medium"
-                >
-                  <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
-                  Published
-                </Badge>
-              </div>
             </div>
           </CardHeader>
 
