@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { experimental_transcribe as transcribe } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import OpenAI from 'openai';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { UserService } from '@/lib/user-service';
 import { NoteService } from '@/lib/note-service';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,8 +38,11 @@ export async function POST(req: NextRequest) {
     // Validate file type
     const allowedMimeTypes = [
       'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/flac', 
-      'audio/m4a', 'audio/ogg', 'audio/webm', 'audio/mp4'
+      'audio/m4a', 'audio/ogg', 'audio/webm', 'audio/mp4',
+      'audio/webm;codecs=opus', 'audio/ogg;codecs=opus'
     ];
+    
+    console.log('Received audio file with MIME type:', audioFile.type);
     
     if (!allowedMimeTypes.includes(audioFile.type)) {
       return NextResponse.json({ 
@@ -53,15 +59,55 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Step 1: Use AI SDK for audio transcription with Whisper
-    console.log('Transcribing audio with AI SDK Whisper...');
+    // Step 1: Use OpenAI Whisper for audio transcription
+    console.log('Transcribing audio with OpenAI Whisper...');
+    console.log('Audio file MIME type:', audioFile.type);
+    console.log('Audio file name:', audioFile.name);
+    console.log('Audio file size:', audioFile.size);
     
-    // Convert File to Buffer for AI SDK
-    const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
+    // Map MIME type to file extension for OpenAI
+    const mimeToExtension: Record<string, string> = {
+      'audio/mpeg': 'mp3',
+      'audio/mp3': 'mp3',
+      'audio/wav': 'wav',
+      'audio/wave': 'wav',
+      'audio/flac': 'flac',
+      'audio/m4a': 'm4a',
+      'audio/x-m4a': 'm4a',
+      'audio/ogg': 'ogg',
+      'audio/ogg;codecs=opus': 'ogg',
+      'audio/webm': 'webm',
+      'audio/webm;codecs=opus': 'webm',
+      'audio/mp4': 'mp4',
+    };
     
-    const transcriptionResult = await transcribe({
-      model: openai.transcription('whisper-1'),
-      audio: audioBuffer,
+    // Get file extension from MIME type or filename
+    let fileExtension = mimeToExtension[audioFile.type.toLowerCase()];
+    if (!fileExtension) {
+      // Fallback to extracting from filename
+      const fileNameParts = audioFile.name.split('.');
+      fileExtension = fileNameParts[fileNameParts.length - 1].toLowerCase();
+    }
+    
+    console.log('Using file extension for transcription:', fileExtension);
+    
+    // Create proper filename with extension for OpenAI to detect format
+    const properFileName = audioFile.name.includes('.') 
+      ? audioFile.name 
+      : `audio.${fileExtension}`;
+    
+    console.log('Sending to OpenAI with filename:', properFileName);
+    
+    // OpenAI SDK expects a File object with proper name
+    const audioFileWithName = new File(
+      [await audioFile.arrayBuffer()],
+      properFileName,
+      { type: audioFile.type }
+    );
+    
+    const transcriptionResult = await openai.audio.transcriptions.create({
+      file: audioFileWithName,
+      model: 'whisper-1',
     });
 
     const transcriptText = transcriptionResult.text;
