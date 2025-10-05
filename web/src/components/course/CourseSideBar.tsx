@@ -133,8 +133,8 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="icon" className="h-screen bg-white dark:bg-stone-900">
-      <SidebarHeader className="border-b py-[16px] bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-900">
+    <Sidebar collapsible="icon" className="h-scree dark:bg-stone-900">
+      <SidebarHeader className="border-b py-[16px] dark:bg-stone-950 border-stone-200 dark:border-stone-900">
         {isCollapsed ? (
           <div className="flex flex-col items-center gap-3 px-4">
             <button
@@ -188,7 +188,7 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
       </SidebarHeader>
 
       <SidebarContent className={cn(
-        "flex-1 pt-2 bg-white dark:bg-stone-950",
+        "flex-1 pt-2 dark:bg-stone-950",
         isCollapsed ? "px-1 flex flex-col items-center" : "px-2"
       )}>
         {(() => {
@@ -252,7 +252,7 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
         })()}
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto w-full px-3 py-4 border-t border-stone-200 bg-white dark:border-stone-900 dark:bg-stone-950">
+      <SidebarFooter className="mt-auto w-full px-3 py-4 border-t border-stone-200 dark:border-stone-900 dark:bg-stone-950">
         {!isCollapsed ? (
           <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 px-3 py-3">
             <div className="flex items-center gap-2">

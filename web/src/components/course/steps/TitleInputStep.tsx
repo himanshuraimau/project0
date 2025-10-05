@@ -25,23 +25,15 @@ export function TitleInputStep({
   const [error, setError] = useState<string>("");
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let newTitle = e.target.value;
+  const newTitle = e.target.value;
 
-    // Basic input sanitization to prevent XSS
-    try {
-      newTitle = sanitizeString(newTitle);
-    } catch (sanitizeError) {
-      // If sanitization fails, use the original value but show warning
-      console.warn("Title sanitization failed:", sanitizeError);
-    }
+  onTitleChange(newTitle);
 
-    onTitleChange(newTitle);
-
-    // Clear error when user starts typing
-    if (error) {
-      setError("");
-    }
-  };
+  // Clear error when user starts typing
+  if (error) {
+    setError("");
+  }
+};
 
   const handleGenerateUnits = () => {
     // Enhanced validation using validation utilities
@@ -104,7 +96,7 @@ export function TitleInputStep({
         <Button
           onClick={handleGenerateUnits}
           disabled={!isValidTitle || isLoading}
-          className="w-full cursor-pointer"
+          className="w-full cursor-pointer bg-accent hover:bg-accent/60 text-white"
           size="lg"
         >
           {isLoading ? (

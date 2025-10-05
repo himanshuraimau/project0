@@ -183,7 +183,7 @@ export function UnitsGenerationStep({
               onClick={addUnit}
               size="sm"
               disabled={isLoading}
-              className="flex cursor-pointer items-center space-x-2"
+              className="flex cursor-pointer items-center space-x-2 bg-accent text-white hover:bg-accent/90"
             >
               <Plus className="w-4 h-4" />
               <span>Add Unit</span>
@@ -312,7 +312,7 @@ export function UnitsGenerationStep({
           <Button
             onClick={handleFinalize}
             disabled={!canFinalize}
-            className="w-full cursor-pointer"
+            className="w-full cursor-pointer bg-accent text-white hover:bg-accent/90"
             size="lg"
           >
             {isLoading ? (
