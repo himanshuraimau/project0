@@ -363,13 +363,13 @@ export default function NoteViewPage() {
               />
               <div className="bg-background ml-[280px]">
                 <main className="flex-1">
-                  <div className="bg-stone-50 dark:bg-stone-950/50 border-none min-h-[calc(100vh-64px)]">
+                  <div className="bg-background dark:bg-stone-950/50 border-none min-h-[calc(100vh-64px)]">
                   {/* Content based on current view */}
               {currentView === "notes" && <ViewNote note={note} />}
 
               {currentView === "transcript" && (
-                <div className="max-w-4xl w-full mx-auto bg-transparent p-6">
-                  <Card className="rounded-xl border shadow-sm bg-white dark:bg-stone-900">
+                <div className="w-full bg-transparent ml-4 p-10">
+                  <Card className="rounded-xl border shadow-sm bg-white dark:bg-stone-900 px-16 py-7">
                     <CardHeader className="pb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
@@ -402,11 +402,9 @@ export default function NoteViewPage() {
                       {transcript && !transcriptLoading && (
                         <div className="prose prose-stone dark:prose-invert max-w-none">
                           <div className="sticky top-0 bg-accent/5 dark:bg-accent/10 border border-accent/20 rounded-lg p-3 mb-6">
-                            <h3 className="text-sm font-medium text-accent mb-1 flex items-center gap-2">
-                              <span>🎧</span>
-                              Lecture Transcript
-                            </h3>
-                            <p className="text-xs text-muted-foreground">Use Ctrl+F to search for specific topics</p>
+                            <h1 className="text-lg font-medium text-accent mb-1 flex items-center gap-2">
+                              {note.title || "Untitled Note"} - Transcript
+                            </h1>
                           </div>
                           <div className="text-stone-700 dark:text-stone-300 leading-relaxed text-base space-y-4">
                             {transcript.split('\n\n').map((paragraph, index) => (
