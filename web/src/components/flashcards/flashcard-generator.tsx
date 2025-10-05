@@ -34,9 +34,10 @@ interface Flashcard {
 interface FlashcardGeneratorProps {
   noteId: string;
   onClose?: () => void;
+  noteTitle?: string;
 }
 
-export function FlashcardGenerator({ noteId }: FlashcardGeneratorProps) {
+export function FlashcardGenerator({ noteId, noteTitle }: FlashcardGeneratorProps) {
   const [flashcard, setFlashcard] = useState<Flashcard | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -167,7 +168,7 @@ export function FlashcardGenerator({ noteId }: FlashcardGeneratorProps) {
           </div>
         </div>
 
-        <FlashcardViewer flashcards={flashcard.content} onClose={() => {}} />
+        <FlashcardViewer flashcards={flashcard.content} onClose={() => {}} noteTitle={noteTitle} />
       </div>
     );
   }

@@ -420,7 +420,7 @@ export default function NoteViewPage() {
                 </div>
               )}
 
-              {currentView === "flashcards" && <FlashcardGenerator noteId={noteId} />}
+              {currentView === "flashcards" && <FlashcardGenerator noteId={noteId} noteTitle={note?.title} />}
 
               {currentView === "quiz" && <QuizGenerator noteId={noteId} />}
 

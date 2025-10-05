@@ -8,6 +8,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   flashcards,
   onClose,
   onGenerate,
+  noteTitle,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -65,11 +66,11 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4 p-4">
+    <div className="w-full mx-auto space-y-4 p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold">Flashcards</h2>
+          <h2 className="text-2xl font-medium">{noteTitle || "Flashcards"}</h2>
           <span className="text-accent bg-accent/10 text-xs font-medium px-3 py-1.5 rounded-full border border-accent/20">
             {currentIndex + 1} of {flashcards.length}
           </span>
@@ -104,9 +105,9 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
       </div>
 
       {/* Flashcard */}
-      <div className="perspective-1000 mx-auto max-w-2xl">
+      <div className="perspective-1000 w-full">
         <Card
-          className={`min-h-[420px] p-6 rounded-xl my-6 bg-white dark:bg-stone-900 cursor-pointer transition-all duration-500 transform hover:scale-[1.02] shadow-lg hover:shadow-xl border border-stone-200 dark:border-stone-700 ${showAnswer ? 'animate-pulse-slow' : ''}`}
+          className={`min-h-[420px] p-6 rounded-xl my-6 bg-white dark:bg-stone-900 cursor-pointer transition-all duration-500 transform hover:scale-[1.02] shadow-lg hover:shadow-xl border border-stone-200 dark:border-stone-700`}
           onClick={handleFlip}
         >
           <CardContent className="flex flex-col items-center justify-center min-h-[320px] space-y-6">
@@ -120,7 +121,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
               <div className={`text-sm font-medium tracking-wide uppercase ${showAnswer ? 'text-accent' : 'text-accent/70 dark:text-accent/80'}`}>
                 {showAnswer ? "Answer" : "Question"}
               </div>
-              <div className="text-lg text-stone-700 dark:text-stone-300 leading-relaxed max-w-md">
+              <div className="text-lg text-stone-700 dark:text-stone-300 leading-relaxed max-w-4xl">
                 {showAnswer ? currentFlashcard.answer : currentFlashcard.question}
               </div>
             </div>
@@ -141,28 +142,17 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           onClick={handlePrevious}
           disabled={flashcards.length <= 1}
           variant="outline"
-          className="flex items-center gap-2 border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
+          className="flex items-center gap-2 bg-accent/10 border border-accent/20 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
         >
           <ChevronLeft className="h-4 w-4" />
           Previous
         </Button>
 
         <Button
-          onClick={handleFlip}
-          className={`px-8 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md ${
-            showAnswer 
-              ? 'bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700' 
-              : 'bg-accent hover:bg-accent/90 text-accent-foreground'
-          }`}
-        >
-          {showAnswer ? "Show Question" : "Show Answer"}
-        </Button>
-
-        <Button
           onClick={handleNext}
           disabled={flashcards.length <= 1}
           variant="outline"
-          className="flex items-center gap-2 border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
+          className="flex items-center gap-2 bg-accent/10 border border-accent/20 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
         >
           Next
           <ChevronRight className="h-4 w-4" />

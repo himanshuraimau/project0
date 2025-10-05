@@ -148,6 +148,7 @@ export interface FlashcardViewerProps extends BaseComponentProps {
   flashcards: FlashcardItem[];
   onClose: () => void;
   onGenerate?: () => void;
+  noteTitle?: string;
 }
 
 // MDX renderer props
