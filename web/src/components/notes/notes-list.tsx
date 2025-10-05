@@ -38,6 +38,11 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
     const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    // Debug: Log loading notes changes
+    useEffect(() => {
+      console.log('[NotesList] Loading notes updated:', loadingNotes);
+    }, [loadingNotes]);
+
     const loadNotes = useCallback(async () => {
       const result = await getNotes(transcriptId);
       if (result) {
@@ -146,7 +151,8 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
   const filteredNotes = filterNotes(notes, searchQuery || "");
 
-  if (notes.length === 0) {
+  // Show shimmer if we're loading the first note (empty state with loading notes)
+  if (notes.length === 0 && loadingNotes.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">

@@ -88,12 +88,15 @@ export default function AudioRecorder({
 
     setIsProcessing(true);
     
-    // Add loading note immediately when processing starts
+    // Add loading note BEFORE closing modal
     const tempId = `audio-upload-${Date.now()}`;
     setCurrentTempId(tempId);
     addLoadingNote(tempId, "audio");
 
-    // Close modal immediately after starting
+    // Longer delay to ensure state update propagates and UI re-renders
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Close modal after adding loading note
     if (onClose) {
       onClose();
     }
@@ -117,6 +120,9 @@ export default function AudioRecorder({
           setCurrentTempId(null);
         }
         
+        // Wait for shimmer removal to propagate before triggering refresh
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
         // Call completion with result that includes temp ID for tracking
         onTranscriptionComplete({
           ...result,
@@ -131,12 +137,6 @@ export default function AudioRecorder({
         setFileName("");
         setIsPlaying(false);
       } else {
-        // Remove loading note on error
-        if (currentTempId) {
-          removeLoadingNote(currentTempId);
-          setCurrentTempId(null);
-        }
-
         const errorData = await response.json();
         
         // Handle specific error types
@@ -152,15 +152,13 @@ export default function AudioRecorder({
       }
     } catch (error) {
       console.error("Transcription error:", error);
-      
-      // Remove loading note on error
+      alert("Failed to transcribe audio. Please try again.");
+    } finally {
+      // Always remove loading note in finally block
       if (currentTempId) {
         removeLoadingNote(currentTempId);
         setCurrentTempId(null);
       }
-      
-      alert("Failed to transcribe audio. Please try again.");
-    } finally {
       setIsProcessing(false);
     }
   };
