@@ -49,70 +49,73 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Generate mindmap using proper Mermaid mindmap syntax
-    const prompt = `Create a simple Mermaid mindmap from this content:
+    // Generate mindmap using Markmap markdown format
+    const prompt = `Generate a comprehensive mind map in Markmap markdown format that visually represents the key concepts, relationships, and hierarchies in this content:
 
 Title: ${sourceTitle}
-Content: ${sourceContent.substring(0, 1000)}
+Content: ${sourceContent.substring(0, 2000)}
 
-Use EXACTLY this format:
-mindmap
-  root((${sourceTitle}))
-    Concept 1
-      Detail 1
-      Detail 2
-    Concept 2
-      Detail 3
-      Detail 4
-    Concept 3
-      Detail 5
+Follow these rules strictly:
+1. Create a rich, detailed mind map with proper hierarchy using markdown heading syntax (# ## ### ####)
+2. # is the root node (use the title), ## for main branches, ### for sub-branches, #### for details
+3. Create at least 5-8 main branches (level 2 headings) covering different aspects/themes
+4. Each main branch should have 3-5 sub-branches (level 3 headings)
+5. Use bullet points (-) for additional details under any heading level
+6. Make the mind map comprehensive and information-rich - don't oversimplify
+7. Use **bold** for emphasis on important terms and *italic* for definitions or explanations
+8. Use markdown syntax properly - headings for hierarchy and bullets for lists
+9. Focus on showing relationships between concepts, not just listing them
+10. DO NOT use any code blocks, triple backticks, or non-markdown syntax
+11. Start directly with the root heading (# ${sourceTitle})
 
-Replace "Concept 1", "Concept 2", "Concept 3" with main concepts from the content.
-Replace "Detail 1", "Detail 2", etc. with specific details from the content.
-Keep labels short (2-4 words max).
-Generate ONLY the mermaid mindmap code:`;
+The goal is to create a detailed, well-structured visual representation that helps understand the content deeply.
+
+Generate ONLY the markdown content for the mind map:`;
 
     const result = await generateText({
-      model: openai('gpt-4o-mini'),
+      model: openai('gpt-4o'),
       prompt: prompt,
+      temperature: 0.7,
     });
 
-    let mermaidCode = result.text.trim();
+    let markdownContent = result.text.trim();
 
-    console.log('Raw AI response:', mermaidCode.substring(0, 200) + '...');
+    console.log('Raw AI response:', markdownContent.substring(0, 200) + '...');
 
-    // Clean up the mermaid mindmap code
-    if (mermaidCode.startsWith('```')) {
-      mermaidCode = mermaidCode.replace(/^```[\w]*\n?/, '').replace(/\n?```$/, '');
+    // Clean up the markdown content
+    if (markdownContent.startsWith('```')) {
+      markdownContent = markdownContent.replace(/^```[\w]*\n?/, '').replace(/\n?```$/, '');
     }
 
     // Remove any extra whitespace and normalize line endings
-    mermaidCode = mermaidCode.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    markdownContent = markdownContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-    // Fix common syntax issues for mindmap
-    mermaidCode = mermaidCode
+    // Fix common syntax issues for markdown
+    markdownContent = markdownContent
       .replace(/[\u201C\u201D]/g, '"')  // Replace smart quotes
       .replace(/[\u2018\u2019]/g, "'")  // Replace smart apostrophes
       .trim();
 
-    // Ensure it starts with 'mindmap'
-    if (!mermaidCode.startsWith('mindmap')) {
-      mermaidCode = 'mindmap\n' + mermaidCode;
+    // Ensure it starts with a top-level heading
+    if (!markdownContent.startsWith('# ')) {
+      markdownContent = `# ${sourceTitle}\n` + markdownContent;
     }
 
-    console.log('Final mermaid code:', mermaidCode);
+    console.log('Final markdown content:', markdownContent);
 
-    // Create or update the mindmap record using upsert
+    // Store markdown content in the existing mermaidCode field
     const mindmap = await prisma.mindMap.upsert({
       where: { noteId: noteId },
       update: {
         title: `${note.title} - Mindmap`,
-        mermaidCode: mermaidCode,
+        // Store markdown in mermaidCode field
+        mermaidCode: markdownContent,
         updatedAt: new Date(),
       },
       create: {
         title: `${note.title} - Mindmap`,
-        mermaidCode: mermaidCode,
+        // Store markdown in mermaidCode field
+        mermaidCode: markdownContent,
         noteId: noteId,
         userId: userId,
       }
