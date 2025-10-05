@@ -361,7 +361,7 @@ export default function NoteViewPage() {
                 podcastLoading={podcastLoading}
                 mindmapLoading={mindmapLoading}
               />
-              <div className="flex-1 bg-background ml-[280px]">
+              <div className="bg-background ml-[280px]">
                 <main className="flex-1">
                   <div className="bg-stone-50 dark:bg-stone-950/50 border-none min-h-[calc(100vh-64px)]">
                   {/* Content based on current view */}

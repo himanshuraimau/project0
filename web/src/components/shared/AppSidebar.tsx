@@ -158,13 +158,13 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "bg-sidebar",
+        "bg-sidebar mx-[5vw]",
         className
       )}
     >
 
 
-      <SidebarContent className="flex-1 py-20 px-4 ">
+      <SidebarContent className="flex-1 py-20 px-4">
         {isCoursePage && courseData ? (
           // Course Navigation
           <>
@@ -240,12 +240,12 @@ export function AppSidebar({ className }: AppSidebarProps) {
                           className="flex items-center gap-4 w-full hover:text-black"
                         >
                           <Icon className={cn(
-                            "w-6 h-6 flex-shrink-0 transition-colors",
+                            "w-10 h-10 flex-shrink-0 transition-colors",
                             isActive ? "text-black" : "text-gray-500 hover:text-black"
                           )} />
                           {!isCollapsed && (
                             <span className={cn(
-                              "text-base leading-relaxed font-medium transition-colors",
+                              "text-[1.2rem] leading-relaxed font-medium transition-colors",
                               isActive ? "text-black" : "text-gray-500 hover:text-black"
                             )}>
                               {item.title}
@@ -264,7 +264,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
 
       {/* Footer */}
       {!isCollapsed && (
-        <SidebarFooter className="py-4 px-4 bg-sidebar">
+        <SidebarFooter className="py-4 px-4 bg-sidebar ">
           {isCoursePage ? (
             // Course Footer
             <div className="flex items-center justify-between text-xs text-sidebar-foreground/60">
