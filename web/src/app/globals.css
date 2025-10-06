@@ -411,3 +411,14 @@
   color: hsl(var(--destructive));
   font-size: 0.875rem;
 }
+
+/* Custom shimmer colors for My Notes section */
+.shimmer-element {
+  /* Light mode - use black with low opacity */
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark .shimmer-element {
+  /* Dark mode - use white with low opacity */
+  background-color: rgba(255, 255, 255, 0.1);
+}
