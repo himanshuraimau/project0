@@ -172,7 +172,7 @@ export function PodcastConfigurationInline({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Language Selection */}
-          <Card>
+          <Card className="border border-gray-300 rounded-2xl p-5">
             <CardHeader>
               <CardTitle className="text-lg">Language</CardTitle>
             </CardHeader>
@@ -207,7 +207,7 @@ export function PodcastConfigurationInline({
           </Card>
 
           {/* Duration Selection */}
-          <Card>
+          <Card className="border border-gray-300 rounded-2xl p-5">
             <CardHeader>
               <CardTitle className="text-lg">Podcast Length</CardTitle>
             </CardHeader>
@@ -245,7 +245,7 @@ export function PodcastConfigurationInline({
           </Card>
 
           {/* Voice Selection */}
-          <Card>
+          <Card className="border border-gray-300 rounded-2xl p-5">
             <CardHeader>
               <CardTitle className="text-lg">Voice Selection</CardTitle>
             </CardHeader>
@@ -266,7 +266,7 @@ export function PodcastConfigurationInline({
           </Card>
 
           {/* Custom Instructions */}
-          <Card>
+          <Card className="border border-gray-300 rounded-2xl p-5">
             <CardHeader>
               <CardTitle className="text-lg">Style & Instructions</CardTitle>
             </CardHeader>

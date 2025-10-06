@@ -217,7 +217,7 @@ export function VoiceSelectionInterface({
   if (error) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md border border-gray-300 rounded-2xl p-5">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-destructive mb-4">
               <AlertCircle className="h-5 w-5" />
@@ -325,7 +325,7 @@ export function VoiceSelectionInterface({
               Host 1 Voice
             </h4>
             <div className="space-y-3">
-              {voices.map((voice) => (
+              {voices.slice(0, 3).map((voice) => (
                 <VoiceCard
                   key={`host1-${voice.id}`}
                   voice={voice}
@@ -349,7 +349,7 @@ export function VoiceSelectionInterface({
               Host 2 Voice
             </h4>
             <div className="space-y-3">
-              {voices.map((voice) => (
+              {voices.slice(4, 7).map((voice) => (
                 <VoiceCard
                   key={`host2-${voice.id}`}
                   voice={voice}
@@ -390,7 +390,7 @@ function VoiceCard({
 }: VoiceCardProps) {
   return (
     <Card
-      className={`cursor-pointer transition-all ${
+      className={`cursor-pointer transition-all h-32 ${
         isSelected
           ? "border-primary bg-primary/5 shadow-md"
           : isDisabled

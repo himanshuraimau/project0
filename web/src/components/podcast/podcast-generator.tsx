@@ -31,7 +31,6 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPodcastConfig, setShowPodcastConfig] = useState(false);
-  const [showPodcastForm, setShowPodcastForm] = useState(false);
 
   const generatePodcast = async (config: PodcastConfig) => {
     setLoading(true);
@@ -177,20 +176,24 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
         </div>
 
         {showPodcastConfig && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-              <PodcastConfigurationInline
-                noteId={noteId}
-                onGenerate={generatePodcast}
-                loading={loading}
-              />
-              <Button
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-hidden">
+            <div className="bg-white dark:bg-gray-900 rounded-lg max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative">
+              <button
                 onClick={() => setShowPodcastConfig(false)}
-                variant="outline"
-                className="mt-4 w-full"
+                className="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                aria-label="Close popup"
               >
-                Cancel
-              </Button>
+                <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div className="p-6 overflow-y-auto max-h-[80vh]">
+                <PodcastConfigurationInline
+                  noteId={noteId}
+                  onGenerate={generatePodcast}
+                  loading={loading}
+                />
+              </div>
             </div>
           </div>
         )}
@@ -214,16 +217,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
               </p>
               
               <Button
-                onClick={() => {
-                  setShowPodcastForm(true);
-                  // Scroll down to show the podcast configuration form
-                  setTimeout(() => {
-                    window.scrollBy({
-                      top: window.innerHeight * 0.8, // Scroll down by 80% of viewport height
-                      behavior: 'smooth'
-                    });
-                  }, 100); // Small delay to ensure the form is rendered
-                }}
+                onClick={() => setShowPodcastConfig(true)}
                 disabled={loading}
                 className="flex items-center gap-2 bg-accent hover:bg-accent/90 cursor-pointer text-accent-foreground text-base px-6 py-3 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
               >
@@ -244,33 +238,31 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
           </Card>
         </div>
 
-        {/* Generate Podcast Section - Only show when button is clicked */}
-        {showPodcastForm && (
-          <>
-            <div className="text-center">
-              <h2 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
-                Generate Podcast
-              </h2>
-              <p className="text-stone-600 dark:text-stone-400 text-base max-w-2xl mx-auto">
-                Configure your podcast settings to transform your notes into an engaging conversation between two AI hosts.
-              </p>
-            </div>
-
-            {error && (
-              <div className="text-red-600 text-base mb-4 text-center bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-                {error}
-              </div>
-            )}
-
-            {/* Show the inline configuration form */}
-            <PodcastConfigurationInline
-              noteId={noteId}
-              onGenerate={generatePodcast}
-              loading={loading}
-            />
-          </>
-        )}
       </div>
+
+      {/* Podcast Configuration Popup */}
+      {showPodcastConfig && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-hidden">
+          <div className="bg-white dark:bg-gray-900 rounded-lg max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative">
+            <button
+              onClick={() => setShowPodcastConfig(false)}
+              className="absolute top-2 right-4 z-10 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              aria-label="Close popup"
+            >
+              <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-6 overflow-y-auto max-h-[80vh]">
+              <PodcastConfigurationInline
+                noteId={noteId}
+                onGenerate={generatePodcast}
+                loading={loading}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
