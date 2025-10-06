@@ -157,7 +157,7 @@ export default async function SupportPage() {
         <Card className="rounded-3xl border-0 p-8 shadow-xl bg-card">
           <h2 className="text-2xl font-bold text-foreground mb-6">Support Email</h2>
           <div className="flex items-start gap-4 p-6 bg-muted/30 rounded-2xl">
-            <Mail className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+            <Mail className="h-6 w-6 text-accent flex-shrink-0 mt-1" />
             <div>
               <p className="font-medium text-foreground mb-2">support@project0.com</p>
               <p className="text-muted-foreground text-sm">
@@ -194,8 +194,8 @@ export default async function SupportPage() {
                 className="w-full p-3 border border-border rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background text-foreground"
               />
             </div>
-            
-            <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-8 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-300">
+
+            <Button className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground rounded-2xl px-8 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-300">
               <Send className="h-4 w-4 mr-2" />
               Send Message
             </Button>
