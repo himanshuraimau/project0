@@ -159,14 +159,14 @@ export function NotesSidebar({
     <Sidebar
       collapsible="icon"
       className={cn(
-        "h-screen dark:bg-stone-950 ml-[5vw] mt-16",
+        "h-screen ml-[5vw] mt-16",
         className
       )}
     >
 
       <SidebarContent
         className={cn(
-          "flex-1 dark:bg-stone-900/50",
+          "flex-1",
           isCollapsed ? "px-2 flex flex-col items-center" : "px-3"
         )}
       >
@@ -199,7 +199,7 @@ export function NotesSidebar({
                       isActive={item.isActive}
                       disabled={item.disabled}
                       className={cn(
-                        "flex items-center rounded-xl cursor-pointer group relative overflow-hidden",
+                        "flex items-center rounded-xl cursor-pointer group relative overflow-hidden hover:bg-[#0a0b0d]",
                         isCollapsed
                           ? "w-16 h-16 justify-center"
                           : "w-full px-5 py-6",
@@ -269,11 +269,11 @@ export function NotesSidebar({
                 <AlertDialogTrigger asChild>
                   <SidebarMenuButton
                     className={cn(
-                      "flex items-center rounded-xl cursor-pointer group relative overflow-hidden border-none",
+                      "flex items-center rounded-xl cursor-pointer group relative overflow-hidden border-none hover:bg-[#0a0b0d]",
                       isCollapsed
                         ? "w-14 h-14 justify-center"
                         : "w-full px-4 py-6",
-                      "text-red-600 dark:bg-red-950/20"
+                      "text-red-600 hover:text-red-500"
                     )}
                     title={isCollapsed ? "Delete Notes" : undefined}
                   >
