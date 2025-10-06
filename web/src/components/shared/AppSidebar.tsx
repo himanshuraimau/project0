@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { useTheme } from "next-themes";
 import { useChapterProgress } from "@/hooks/use-chapter-progress";
 import { Course, Unit, Chapter } from "@prisma/client";
 import {
@@ -132,8 +133,10 @@ interface AppSidebarProps {
 export function AppSidebar({ className }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
+  const { theme } = useTheme();
   const isCollapsed = state === "collapsed";
   const isCoursePage = pathname.includes("/course/");
+  const isDark = theme === "dark";
 
   const [courseData, setCourseData] = useState<CourseData | null>(null);
 
@@ -231,22 +234,29 @@ export function AppSidebar({ className }: AppSidebarProps) {
                           "text-base font-medium !bg-transparent hover:!bg-transparent",
                           "data-[state=open]:!bg-transparent data-[active=true]:!bg-transparent",
                           isActive 
-                            ? "text-black" 
+                            ? (isDark ? "text-white" : "text-black")
                             : "text-gray-500"
                         )}
                       >
                         <Link 
                           href={item.href} 
-                          className="flex items-center gap-4 w-full hover:text-black"
+                          className={cn(
+                            "flex items-center gap-4 w-full",
+                            isDark ? "hover:text-white" : "hover:text-black"
+                          )}
                         >
                           <Icon className={cn(
                             "w-10 h-10 flex-shrink-0 transition-colors",
-                            isActive ? "text-black" : "text-gray-500 hover:text-black"
+                            isActive 
+                              ? (isDark ? "text-white" : "text-black")
+                              : (isDark ? "text-gray-500 hover:text-white" : "text-gray-500 hover:text-black")
                           )} />
                           {!isCollapsed && (
                             <span className={cn(
                               "text-[1.2rem] leading-relaxed font-medium transition-colors",
-                              isActive ? "text-black" : "text-gray-500 hover:text-black"
+                              isActive 
+                                ? (isDark ? "text-white" : "text-black")
+                                : (isDark ? "text-gray-500 hover:text-white" : "text-gray-500 hover:text-black")
                             )}>
                               {item.title}
                             </span>
