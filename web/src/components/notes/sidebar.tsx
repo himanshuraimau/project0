@@ -199,7 +199,7 @@ export function NotesSidebar({
                       isActive={item.isActive}
                       disabled={item.disabled}
                       className={cn(
-                        "flex items-center rounded-xl cursor-pointer group relative overflow-hidden hover:bg-[#0a0b0d]",
+                        "flex items-center rounded-xl cursor-pointer group relative overflow-hidden dark:hover:bg-[#0a0b0d]",
                         isCollapsed
                           ? "w-16 h-16 justify-center"
                           : "w-full px-5 py-6",
@@ -269,7 +269,7 @@ export function NotesSidebar({
                 <AlertDialogTrigger asChild>
                   <SidebarMenuButton
                     className={cn(
-                      "flex items-center rounded-xl cursor-pointer group relative overflow-hidden border-none hover:bg-[#0a0b0d]",
+                      "flex items-center rounded-xl cursor-pointer group relative overflow-hidden border-none dark:hover:bg-[#0a0b0d]",
                       isCollapsed
                         ? "w-14 h-14 justify-center"
                         : "w-full px-4 py-6",
