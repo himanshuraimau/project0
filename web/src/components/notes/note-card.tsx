@@ -56,7 +56,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
 
   return (
     <Card 
-      className="w-full bg-white dark:bg-white border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 cursor-pointer rounded-2xl"
+      className="w-full bg-background hover:bg-muted/50 border border-border hover:border-muted-foreground/20 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer rounded-2xl"
       onClick={handleCardClick}
     >
       <CardContent className="p-6">
@@ -65,7 +65,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
           <div className="flex-1 min-w-0">
             {/* Title */}
             <h3 
-              className="font-bold text-lg leading-tight text-slate-900 dark:text-slate-100 line-clamp-2 mb-2"
+              className="font-bold text-lg leading-tight text-foreground line-clamp-2 mb-2"
               title={note.title}
             >
               {note.title}
@@ -73,7 +73,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
             
             {/* Date */}
             <div className="mb-3">
-              <span className="text-sm text-slate-500 dark:text-slate-400">
+              <span className="text-sm text-muted-foreground">
                 {formatDate(
                   note.updatedAt instanceof Date
                     ? note.updatedAt.toISOString()
@@ -83,7 +83,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
             </div>
 
             {/* Content Preview */}
-            <div className="text-sm text-slate-700 dark:text-slate-300 line-clamp-2 leading-relaxed">
+            <div className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
               {getTextPreview(note.content || "", 200)}
             </div>
           </div>
@@ -104,8 +104,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
             <Button
               onClick={handleDeleteNote}
               size="sm"
-              variant="outline"
-              className="h-8 px-4 rounded-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950 text-xs font-medium transition-colors duration-200 whitespace-nowrap"
+              className="h-8 px-4 rounded-full bg-gray-500 hover:bg-gray-600 text-white text-xs font-medium transition-colors duration-200 whitespace-nowrap"
             >
               <Trash2 className="h-3 w-3 mr-1.5" />
               Delete

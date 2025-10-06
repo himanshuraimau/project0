@@ -195,7 +195,7 @@ export function MyNotesSection() {
       </div>
 
       {/* Notes Display */}
-      <div className="w-full bg-slate-25/50 dark:bg-slate-950/30 rounded-2xl pt-6 border border-slate-100/80 dark:border-slate-800/60">
+      <div className="w-full rounded-2xl pt-5">
         <NotesList 
           ref={notesListRef}
           searchQuery={searchQuery} 

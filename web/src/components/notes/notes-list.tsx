@@ -155,13 +155,13 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
   if (notes.length === 0 && loadingNotes.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
-          <FileText className="h-10 w-10 text-slate-400 dark:text-slate-500" />
+        <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <FileText className="h-10 w-10 text-muted-foreground" />
         </div>
-        <h3 className="font-semibold text-xl text-slate-900 dark:text-slate-100 mb-3">
+        <h3 className="font-semibold text-xl text-foreground mb-3">
           No notes found
         </h3>
-        <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md mx-auto">
+        <p className="text-muted-foreground mb-8 max-w-md mx-auto">
           Create your first note by uploading a PDF, recording audio, or processing a YouTube video or webpage.
         </p>
       </div>
@@ -171,13 +171,13 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
   if (filteredNotes.length === 0 && searchQuery) {
     return (
       <div className="text-center py-16">
-        <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
-          <FileText className="h-10 w-10 text-slate-400 dark:text-slate-500" />
+        <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <FileText className="h-10 w-10 text-muted-foreground" />
         </div>
-        <h3 className="font-semibold text-xl text-slate-900 dark:text-slate-100 mb-3">
+        <h3 className="font-semibold text-xl text-foreground mb-3">
           No notes match your search
         </h3>
-        <p className="text-slate-500 dark:text-slate-400">
+        <p className="text-muted-foreground">
           Try adjusting your search terms or create a new note.
         </p>
       </div>
