@@ -85,8 +85,14 @@ export type {
   NoteWithTranscript as NotesNoteWithTranscript,
   NoteWithFlashcard as NotesNoteWithFlashcard,
   NoteWithQuiz as NotesNoteWithQuiz,
-  NoteWithRelations as NotesNoteWithRelations
+  NoteWithRelations as NotesNoteWithRelations,
+  NoteTranslation,
+  LanguageCode,
+  TranslateNoteRequest,
+  TranslationResponse
 } from './notes.types';
+
+export { SUPPORTED_LANGUAGES } from './notes.types';
 
 // Documents types - document and transcript types
 export type {

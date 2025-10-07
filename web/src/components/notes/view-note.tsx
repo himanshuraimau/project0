@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { Note } from "@/lib/types";
+import React, { useState, useRef, useEffect } from "react";
+import { Note, LanguageCode, NoteTranslation } from "@/lib/types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,8 @@ import { toast } from "sonner";
 import { MDXRenderer } from "@/components/mdx-renderer";
 import { LexicalViewer } from "@/components/shared/LexicalViewer";
 import { useNotes } from "@/hooks/use-notes";
+import { useTranslations } from "@/hooks/use-translations";
+import { LanguageSelector } from "@/components/notes/language-selector";
 import dynamic from "next/dynamic";
 
 const DynamicInlineChatbot = dynamic(
@@ -54,7 +56,66 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   const [editedContent, setEditedContent] = useState(note.content || "");
   const [editedTitle, setEditedTitle] = useState(note.title || "");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  
+  // Translation state
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode | 'en'>('en');
+  const [currentTranslation, setCurrentTranslation] = useState<NoteTranslation | null>(null);
+  const [availableTranslations, setAvailableTranslations] = useState<LanguageCode[]>([]);
+  
   const { updateNote } = useNotes();
+  const { getTranslation } = useTranslations();
+
+  // Load available translations on mount
+  useEffect(() => {
+    const loadTranslations = async () => {
+      const languages: LanguageCode[] = ['es', 'fr', 'de', 'zh', 'hi'];
+      const available: LanguageCode[] = [];
+
+      for (const lang of languages) {
+        const translation = await getTranslation(note.id, lang);
+        if (translation) {
+          available.push(lang);
+        }
+      }
+
+      setAvailableTranslations(available);
+    };
+
+    loadTranslations();
+  }, [note.id, getTranslation]);
+
+  // Load translation when language changes
+  useEffect(() => {
+    const loadTranslation = async () => {
+      if (currentLanguage === 'en') {
+        setCurrentTranslation(null);
+        return;
+      }
+
+      const translation = await getTranslation(note.id, currentLanguage);
+      if (translation) {
+        setCurrentTranslation(translation);
+      }
+    };
+
+    loadTranslation();
+  }, [currentLanguage, note.id, getTranslation]);
+
+  const handleLanguageChange = (language: LanguageCode | 'en') => {
+    setCurrentLanguage(language);
+    if (language !== 'en' && !availableTranslations.includes(language)) {
+      setAvailableTranslations([...availableTranslations, language]);
+    }
+  };
+
+  // Get current content based on language
+  const getCurrentTitle = () => {
+    return currentLanguage === 'en' ? note.title : (currentTranslation?.title || note.title);
+  };
+
+  const getCurrentContent = () => {
+    return currentLanguage === 'en' ? note.content : (currentTranslation?.content || note.content);
+  };
 
   const handleSaveNote = async () => {
     if (!hasUnsavedChanges || isSaving) return;
@@ -133,8 +194,9 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   };
 
   const handleCopy = async () => {
-    if (note.content) {
-      await navigator.clipboard.writeText(note.content);
+    const contentToCopy = getCurrentContent();
+    if (contentToCopy) {
+      await navigator.clipboard.writeText(contentToCopy);
       toast.success("Content copied to clipboard", {
         duration: 2000,
         position: "top-center",
@@ -143,11 +205,13 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   };
 
   const handleDownload = () => {
-    if (note.content) {
+    const contentToDownload = getCurrentContent();
+    const titleToUse = getCurrentTitle();
+    if (contentToDownload) {
       const element = document.createElement("a");
-      const file = new Blob([note.content], { type: "text/markdown" });
+      const file = new Blob([contentToDownload], { type: "text/markdown" });
       element.href = URL.createObjectURL(file);
-      element.download = `${note.title || "note"}.md`;
+      element.download = `${titleToUse || "note"}.md`;
       document.body.appendChild(element);
       element.click();
       document.body.removeChild(element);
@@ -195,9 +259,16 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
               {/* Title and Controls Row */}
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
                 <div className="flex-1 space-y-3">
-                  <h1 className="text-3xl lg:text-4xl font-bold text-foreground leading-tight">
-                    {note.title || "Untitled Note"}
-                  </h1>
+                  <div className="flex items-start gap-3">
+                    <h1 className="text-3xl lg:text-4xl font-bold text-foreground leading-tight flex-1">
+                      {getCurrentTitle() || "Untitled Note"}
+                    </h1>
+                    {currentLanguage !== 'en' && (
+                      <Badge variant="secondary" className="mt-1">
+                        Translated
+                      </Badge>
+                    )}
+                  </div>
                   
                   {/* Metadata */}
                   <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -213,7 +284,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                     <Separator orientation="vertical" className="h-4" />
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
-                      <span>{getReadingTime(note.content || "")} min read</span>
+                      <span>{getReadingTime(getCurrentContent() || "")} min read</span>
                     </div>
                   </div>
                 </div>
@@ -294,6 +365,13 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-2">
+                        <LanguageSelector
+                          noteId={note.id}
+                          currentLanguage={currentLanguage}
+                          onLanguageChange={handleLanguageChange}
+                          availableTranslations={availableTranslations}
+                        />
+                        
                         <Button
                           variant="outline"
                           size="sm"
@@ -341,7 +419,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
               {viewMode === 'preview' && !isEditMode ? (
                 <div className="prose-custom">
                   <MDXRenderer 
-                    content={note.content || "# No Content\n\nThis note has no content yet."} 
+                    content={getCurrentContent() || "# No Content\n\nThis note has no content yet."} 
                     className="leading-relaxed"
                   />
                 </div>
