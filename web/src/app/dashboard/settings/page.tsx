@@ -152,7 +152,7 @@ export default function SettingsPage() {
           {settings.map((item, i) => (
             <Card
               key={i}
-              className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl transition cursor-pointer border border-gray-300 hover:border-gray-500"
+              className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl transition cursor-pointer border border-gray-600 hover:border-gray-300"
               onClick={item.onClick}
             >
               <div className="flex items-center gap-5">
@@ -176,7 +176,7 @@ export default function SettingsPage() {
           ))}
 
           <Card 
-            className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl hover:bg-destructive/10 transition cursor-pointer border border-gray-300 hover:border-gray-500"
+            className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl hover:bg-destructive/10 transition cursor-pointer border border-gray-600 hover:border-gray-300"
             onClick={handleDeleteAccountClick}
           >
             <div className="flex items-center gap-5">

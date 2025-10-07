@@ -369,7 +369,7 @@ export default function NoteViewPage() {
 
               {currentView === "transcript" && (
                 <div className="w-full bg-transparent ml-4 p-10">
-                  <Card className="rounded-xl border shadow-sm bg-white dark:bg-stone-900 px-16 py-7">
+                  <Card className="rounded-xl border shadow-sm bg-white dark:bg-card px-16 py-7">
                     <CardHeader className="pb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
