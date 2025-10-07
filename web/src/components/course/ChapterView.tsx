@@ -8,6 +8,7 @@ import { LoadingState } from "@/components/ui/loading-spinner";
 import { Play, FileText, CheckCircle } from "lucide-react";
 import { Chapter } from "@prisma/client";
 import { useChapterProgress } from "@/hooks/use-chapter-progress";
+import { useCourseProgress } from "@/contexts/course-progress-context";
 import {
   displayError,
   fetchWithErrorHandling,
@@ -35,6 +36,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
     updating: chapterUpdating,
     toggleCompletion,
   } = useChapterProgress(chapter.id);
+  const { refreshProgress } = useCourseProgress();
 
   const loadChapterContent = useCallback(async () => {
     if (chapterData.videoId && chapterData.notes) {
@@ -96,6 +98,8 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
 
   const markAsCompleted = async () => {
     await toggleCompletion();
+    // Refresh the overall course progress
+    await refreshProgress();
     onComplete?.();
   };
 
@@ -134,20 +138,38 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
       {/* Chapter Notes */}
       {chapterData.notes && (
         <div className="max-full mx-auto">
-          <div className="mb-4">
-            <h3 className="flex items-center gap-3 text-xl font-semibold">
-              <FileText className="h-5 w-5" />
+          <div className="mb-6">
+            <h3 className="flex items-center gap-3 text-2xl font-bold">
+              <FileText className="h-6 w-6" />
               Chapter Notes
             </h3>
           </div>
-          <div className="bg-card rounded-2xl shadow-sm border p-2">
-            <LexicalViewer
-              content={chapterData.notes}
-              title={chapterData.name}
-              showToolbar={false}
-              minHeight="400px"
-            />
-          </div>
+          <Card className="bg-card rounded-2xl shadow-sm border">
+            <CardContent className="p-8">
+              <LexicalViewer
+                content={chapterData.notes}
+                title={chapterData.name}
+                showToolbar={false}
+                minHeight="400px"
+                contentClassName="prose prose-lg dark:prose-invert max-w-none
+                  prose-headings:font-bold prose-headings:tracking-tight
+                  prose-h1:text-4xl prose-h1:mb-6 prose-h1:mt-8 prose-h1:border-b prose-h1:pb-4
+                  prose-h2:text-3xl prose-h2:mb-5 prose-h2:mt-7 prose-h2:border-b prose-h2:pb-3
+                  prose-h3:text-2xl prose-h3:mb-4 prose-h3:mt-6
+                  prose-h4:text-xl prose-h4:mb-3 prose-h4:mt-5
+                  prose-p:text-base prose-p:leading-7 prose-p:mb-4
+                  prose-ul:my-6 prose-ul:space-y-2
+                  prose-ol:my-6 prose-ol:space-y-2
+                  prose-li:text-base prose-li:leading-7
+                  prose-code:bg-muted prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+                  prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-pre:rounded-xl prose-pre:p-6 prose-pre:my-6 prose-pre:overflow-x-auto
+                  prose-blockquote:border-l-4 prose-blockquote:border-accent prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:my-6
+                  prose-strong:font-bold prose-strong:text-foreground
+                  prose-a:text-primary prose-a:underline prose-a:font-medium
+                  prose-img:rounded-lg prose-img:shadow-md prose-img:my-8"
+              />
+            </CardContent>
+          </Card>
         </div>
       )}
 

@@ -5,6 +5,7 @@ import { UserControl } from "@/components/user-control";
 import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
 import CourseSideBar from "@/components/course/CourseSideBar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { CourseProgressProvider } from "@/contexts/course-progress-context";
 import { Course, Unit, Chapter } from "@prisma/client";
 import { usePathname } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -66,41 +67,51 @@ export default function CourseLayout({
   if (isActualCoursePage) {
     return (
       <SidebarProvider defaultOpen={true}>
-        <div className="min-h-screen bg-background">
-          {/* Course navbar at the top */}
-          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-            <div
-              className={`${jakarta.className} px-6 py-4 flex items-center justify-between`}
-            >
-              <div className="flex items-center gap-4">
-                <Link
-                  href="/dashboard/generate-course"
-                  className="flex items-center gap-2 text-xl font-semibold text-foreground hover:text-accent transition-colors"
+        {courseData && (
+          <CourseProgressProvider courseId={courseData.course.id}>
+            <div className="min-h-screen bg-background">
+              {/* Course navbar at the top */}
+              <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
+                <div
+                  className={`${jakarta.className} px-6 py-4 flex items-center justify-between`}
                 >
-                  <ArrowLeft className="h-5 w-5" />
-                  Back to Courses
-                </Link>
+                  <div className="flex items-center gap-4">
+                    <Link
+                      href="/dashboard/generate-course"
+                      className="flex items-center gap-2 text-xl font-semibold text-foreground hover:text-accent transition-colors"
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                      Back to Courses
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <ThemeToggleButton />
+                    <UserControl showName />
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-4">
-                <ThemeToggleButton />
-                <UserControl showName />
-              </div>
+
+              {/* Fixed sidebar */}
+              <CourseSideBar
+                course={courseData.course}
+                currentChapterId={courseData.currentChapterId}
+              />
+
+              {/* Main content area with left margin to account for fixed sidebar */}
+              <main className="min-h-screen ml-80">
+                <div className="max-w-6xl mx-auto px-8 py-8">{children}</div>
+              </main>
+            </div>
+          </CourseProgressProvider>
+        )}
+        {!courseData && (
+          <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-sm text-muted-foreground">Loading course...</p>
             </div>
           </div>
-
-          {/* Fixed sidebar */}
-          {courseData && (
-            <CourseSideBar
-              course={courseData.course}
-              currentChapterId={courseData.currentChapterId}
-            />
-          )}
-
-          {/* Main content area with left margin to account for fixed sidebar */}
-          <main className="min-h-screen ml-80">
-            <div className="max-w-6xl mx-auto px-8 py-8">{children}</div>
-          </main>
-        </div>
+        )}
       </SidebarProvider>
     );
   }
