@@ -109,7 +109,7 @@ export function NotesSidebar({
       description: "Audio transcript",
     },
     {
-      title: "Generate Quiz",
+      title: "Quiz",
       icon: HelpCircle,
       onClick: onGenerateQuiz,
       isActive: showQuiz,
