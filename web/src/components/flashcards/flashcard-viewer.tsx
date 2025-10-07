@@ -113,7 +113,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           <CardContent className="flex flex-col items-center justify-center min-h-[320px] space-y-6">
             <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${showAnswer ? 'bg-accent/20' : 'bg-accent/10 dark:bg-accent/20'}`}>
               <span className="text-xl">
-                {showAnswer ? '💡' : '❓'}
+                {showAnswer ? 'Answer' : 'Question'}
               </span>
             </div>
             

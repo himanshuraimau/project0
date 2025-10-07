@@ -223,34 +223,42 @@ function ToolbarPlugin({
   }, [editor, updateToolbar]);
 
   const formatBold = () => {
+    editor.focus();
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
   };
 
   const formatItalic = () => {
+    editor.focus();
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
   };
 
   const formatUnderline = () => {
+    editor.focus();
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline");
   };
 
   const formatAlignLeft = () => {
+    editor.focus();
     editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "left");
   };
 
   const formatAlignCenter = () => {
+    editor.focus();
     editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "center");
   };
 
   const formatAlignRight = () => {
+    editor.focus();
     editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "right");
   };
 
   const insertBulletList = () => {
+    editor.focus();
     editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
   };
 
   const insertNumberedList = () => {
+    editor.focus();
     editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
   };
 
@@ -346,6 +354,7 @@ function ToolbarPlugin({
             className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
             size="sm"
             onClick={decreaseFontSize}
+            onMouseDown={(e) => e.preventDefault()}
           >
             <Minus className="h-4 w-4" />
           </Button>
@@ -370,6 +379,7 @@ function ToolbarPlugin({
             className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
             size="sm"
             onClick={increaseFontSize}
+            onMouseDown={(e) => e.preventDefault()}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -381,6 +391,7 @@ function ToolbarPlugin({
           size="sm"
           className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           onClick={formatBold}
+          onMouseDown={(e) => e.preventDefault()}
         >
           <Bold className="h-4 w-4" />
         </Button>
@@ -388,6 +399,7 @@ function ToolbarPlugin({
           className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={formatItalic}
+          onMouseDown={(e) => e.preventDefault()}
         >
           <Italic className="h-4 w-4" />
         </Button>
@@ -395,12 +407,14 @@ function ToolbarPlugin({
           className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={formatUnderline}
+          onMouseDown={(e) => e.preventDefault()}
         >
           <Underline className="h-4 w-4" />
         </Button>
         <Button
           className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
         >
           <Type className="h-4 w-4" />
         </Button>
@@ -411,6 +425,7 @@ function ToolbarPlugin({
           className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={formatAlignLeft}
+          onMouseDown={(e) => e.preventDefault()}
         >
           <AlignLeft className="h-4 w-4" />
         </Button>
@@ -418,6 +433,7 @@ function ToolbarPlugin({
           className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={formatAlignCenter}
+          onMouseDown={(e) => e.preventDefault()}
         >
           <AlignCenter className="h-4 w-4" />
         </Button>
@@ -425,6 +441,7 @@ function ToolbarPlugin({
           className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={formatAlignRight}
+          onMouseDown={(e) => e.preventDefault()}
         >
           <AlignRight className="h-4 w-4" />
         </Button>
@@ -435,6 +452,7 @@ function ToolbarPlugin({
           className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={insertBulletList}
+          onMouseDown={(e) => e.preventDefault()}
         >
           <List className="h-4 w-4" />
         </Button>
@@ -442,6 +460,7 @@ function ToolbarPlugin({
           className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
           size="sm"
           onClick={insertNumberedList}
+          onMouseDown={(e) => e.preventDefault()}
         >
           <ListOrdered className="h-4 w-4" />
         </Button>

@@ -6,6 +6,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Copy, 
   Download, 
@@ -45,6 +52,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [editedContent, setEditedContent] = useState(note.content || "");
   const [editedTitle, setEditedTitle] = useState(note.title || "");
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const { updateNote } = useNotes();
 
   const handleSaveNote = async () => {
@@ -82,8 +90,8 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
 
   const handleCancelEdit = () => {
     if (hasUnsavedChanges) {
-      const confirmCancel = window.confirm("You have unsaved changes. Are you sure you want to cancel?");
-      if (!confirmCancel) return;
+      setShowCancelDialog(true);
+      return;
     }
     
     setEditedContent(note.content || "");
@@ -91,6 +99,15 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
     setHasUnsavedChanges(false);
     setIsEditMode(false);
     setViewMode('preview');
+  };
+
+  const confirmCancelEdit = () => {
+    setEditedContent(note.content || "");
+    setEditedTitle(note.title || "");
+    setHasUnsavedChanges(false);
+    setIsEditMode(false);
+    setViewMode('preview');
+    setShowCancelDialog(false);
   };
 
   const handleContentChange = (content: string) => {
@@ -208,7 +225,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                       <Button
                         onClick={handleSaveNote}
                         disabled={!hasUnsavedChanges || isSaving}
-                        className="rounded-xl px-4 py-2 bg-green-600 hover:bg-green-700 text-white transition-all duration-200"
+                        className="rounded-xl px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
                         size="sm"
                       >
                         {isSaving ? (
@@ -227,13 +244,13 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                         onClick={handleCancelEdit}
                         variant="outline"
                         size="sm"
-                        className="rounded-xl px-4 py-2 hover:bg-red-50 border-border hover:border-red-200 transition-all duration-200"
+                        className="rounded-xl px-4 py-2 hover:bg-muted border-border hover:border-muted-foreground/20 transition-all duration-200"
                       >
                         <X className="h-4 w-4 mr-2" />
                         Cancel
                       </Button>
                       {hasUnsavedChanges && (
-                        <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                        <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/5">
                           Unsaved changes
                         </Badge>
                       )}
@@ -295,6 +312,19 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                           <Download className="h-4 w-4 mr-2" />
                           Download
                         </Button>
+
+                        {isChatbotMinimized && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsChatbotMinimized(false)}
+                            className="rounded-xl px-4 py-2 hover:bg-primary/5 border-border hover:border-primary/20 transition-all duration-200"
+                            title="Show AI Assistant"
+                          >
+                            <Bot className="h-4 w-4 mr-2" />
+                            AI Chat
+                          </Button>
+                        )}
                       </div>
                     </>
                   )}
@@ -375,16 +405,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                   </div>
                 </CardContent>
               </Card>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={() => setIsChatbotMinimized(false)}
-                className="fixed top-4 right-4 z-50 rounded-full p-3 shadow-lg bg-background border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300"
-                title="Show AI Assistant"
-              >
-                <Bot className="h-5 w-5 text-primary" />
-              </Button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -483,6 +504,43 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
           @apply bg-muted/30 transition-colors;
         }
       `}</style>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <div className="p-2 bg-destructive/10 rounded-full">
+                <X className="h-4 w-4 text-destructive" />
+              </div>
+              Discard Changes?
+            </DialogTitle>
+            <div className="space-y-3 mt-4 text-base text-muted-foreground/80 leading-relaxed">
+              <div>You have unsaved changes to your note.</div>
+              <div className="p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
+                <div className="text-sm text-destructive font-medium">
+                  If you cancel now, all your changes will be lost and cannot be recovered.
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelDialog(false)}
+              className="font-medium"
+            >
+              Keep Editing
+            </Button>
+            <Button
+              onClick={confirmCancelEdit}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium"
+            >
+              Discard Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

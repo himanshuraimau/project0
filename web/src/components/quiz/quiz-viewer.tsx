@@ -176,12 +176,12 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
                 {score.percentage >= 90
                   ? "🏆 Excellent!"
                   : score.percentage >= 80
-                  ? "🎉 Great Job!"
+                  ? "Great Job!"
                   : score.percentage >= 70
                   ? "👍 Good Work!"
                   : score.percentage >= 60
                   ? "📚 Keep Studying!"
-                  : "💪 Try Again!"}
+                  : "Try Again!"}
               </div>
             </div>
             <div className="flex justify-center gap-4">
@@ -383,7 +383,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
           {isAnswered && showExplanation[currentIndex] && (
             <div className="mt-4 p-4 bg-accent/5 dark:bg-accent/10 border border-accent/20 rounded-lg">
               <div className="font-medium text-accent mb-2 flex items-center gap-2">
-                <span className="text-sm">💡</span>
+                <span className="text-sm">Tip</span>
                 Explanation:
               </div>
               <div className="text-stone-700 dark:text-stone-300 leading-relaxed">
