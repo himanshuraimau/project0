@@ -175,8 +175,8 @@ export function FlashcardGenerator({ noteId, noteTitle }: FlashcardGeneratorProp
 
   // Show generation UI
   return (
-    <div className="h-[92vh] flex items-center justify-center bg-[#0A0B0D]">
-      <Card className="bg-[#0A0B0D] border-none">
+    <div className="h-[92vh] flex items-center justify-center">
+      <Card className="bg-transparent border-none">
         <CardContent className="flex flex-col items-center justify-center py-8">
           <h3 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
             Generate Flashcards
