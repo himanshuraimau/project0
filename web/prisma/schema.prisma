@@ -10,39 +10,56 @@ datasource db {
 }
 
 model User {
-  id            String     @id
-  email         String?
-  creditBalance Int        @default(1000)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  purchases     Purchase[]
+  id           String        @id
+  email        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  subscription Subscription?
 
   @@map("users")
 }
 
-model Purchase {
-  id            String   @id @default(cuid())
-  userId        String
-  plan          String
-  credits       Int
-  amountPaid    Int
-  dodoPaymentId String?  @unique
-  status        String   @default("pending")
-  createdAt     DateTime @default(now())
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+// Subscription System - New Models
+model Subscription {
+  id                 String             @id @default(cuid())
+  userId             String             @unique
+  dodoSubscriptionId String             @unique // Dodo Payments subscription ID
+  productId          String // Dodo product ID
+  status             SubscriptionStatus @default(PENDING)
 
-  @@map("purchases")
+  // Billing period information
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  nextBillingDate    DateTime?
+
+  // Cancellation information
+  cancelAtPeriodEnd Boolean   @default(false)
+  cancelledAt       DateTime?
+
+  // Trial information
+  trialEnd DateTime?
+
+  // Metadata
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([dodoSubscriptionId])
+  @@index([status])
+  @@map("subscriptions")
 }
 
-model CreditUsage {
-  id         String   @id @default(cuid())
-  userId     String
-  action     String
-  credits    Int      @default(1)
-  resourceId String?
-  createdAt  DateTime @default(now())
-
-  @@map("credit_usage")
+enum SubscriptionStatus {
+  PENDING // Subscription created, payment pending
+  ACTIVE // Subscription is active and user has access
+  ON_HOLD // Payment failed, subscription on hold
+  CANCELLED // Subscription has been cancelled
+  FAILED // Subscription creation failed
+  EXPIRED // Subscription expired (past due without recovery)
 }
 
 model Transcript {
@@ -125,9 +142,9 @@ model MindMap {
   userId      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  
+
   @@map("mind_maps")
 }
 
