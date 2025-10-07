@@ -65,7 +65,7 @@ export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
       </div>
 
 
-      <div className="relative w-full border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-slate-900" style={{ height: '700px' }}>
+      <div className="relative w-full border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-slate-100" style={{ height: '700px' }}>
         <svg
           ref={refSvg}
           className="w-full h-full"
