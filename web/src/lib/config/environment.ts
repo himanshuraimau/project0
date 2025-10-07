@@ -25,8 +25,8 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   
   // AI Model Configuration
-  EMBEDDING_MODEL: z.string().default('models/gemini-embedding-001'),
-  CHAT_MODEL: z.string().default('models/gemini-2.5-flash'),
+  EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
+  CHAT_MODEL: z.string().default('gpt-4o-mini'),
   EMBEDDING_DIM: z.coerce.number().default(1536),
   
   // Podcast Generation (ElevenLabs)

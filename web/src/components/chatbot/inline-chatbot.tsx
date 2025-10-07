@@ -231,9 +231,16 @@ export default function InlineChatbot({
                 >
                   <div className="space-y-1">
                     {message.role === "assistant" ? (
-                      <div className="prose max-w-none text-sm leading-relaxed">
-                        <MarkdownRenderer content={message.text} />
-                      </div>
+                      message.text ? (
+                        <div className="prose max-w-none text-sm leading-relaxed">
+                          <MarkdownRenderer content={message.text} />
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="animate-spin" size={14} />
+                          <span>Generating response...</span>
+                        </div>
+                      )
                     ) : (
                       <div className="text-sm whitespace-pre-wrap">{message.text}</div>
                     )}

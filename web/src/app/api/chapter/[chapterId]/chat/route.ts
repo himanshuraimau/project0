@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
 // Environment variables
-const CHAT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
 
 // Validation schema for the request body
 const RequestSchema = z.object({

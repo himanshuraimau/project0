@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { querySimilarChunks } from '../../../lib/course/embedding-service';
 
 // Environment variables
-const CHAT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
 
 // Validation schema for the request body
 const RequestSchema = z.object({
@@ -119,44 +119,34 @@ function createContextString(chunks: Array<{ chunkText: string; isPodcast: boole
  * Generates a streaming response from OpenAI using the AI SDK
  */
 async function generateResponse(context: string, question: string) {
-  const systemPrompt = `You are a helpful assistant answering questions about a note and its associated content. 
-  You must ONLY use information from the provided context. If the context doesn't contain 
-  the information needed to answer the question, say "I don't know — check the note." 
-  
-  The context may include:
-  - NOTE CONTENT: Original note text and documents
-  - PODCAST TRANSCRIPT: AI-generated podcast conversations about the note content with timestamps
-  
-  When referencing podcast content:
-  - You can mention which host (HOST1 or HOST2) said something
-  - Include timestamp references when available (e.g., "at 2:30 in the podcast")
-  - Clarify when information comes from the podcast discussion vs. the original note
-  
-  IMPORTANT FORMATTING INSTRUCTIONS:
-  - Provide responses in plain text format only
-  - DO NOT use markdown formatting (no **, *, #, -, etc.)
-  - DO NOT use special symbols or formatting characters
-  - Use simple, clean text with natural line breaks
-  - Keep responses conversational and easy to read
-  - You can use numbered lists with regular numbers (1. 2. 3.) if needed
-  - You can use bullet points with simple dashes (-) if absolutely necessary
-  
-  Provide clear, concise answers based on the context without including source references or citations.
-  
-  DO NOT make up information or hallucinate facts not present in the context.`;
+  const systemPrompt = `You are a helpful AI assistant answering questions about a user's note. 
+
+IMPORTANT: You MUST use the information provided in the context below to answer questions. The context contains relevant excerpts from the user's note content.
+
+Your responsibilities:
+1. Answer questions based ONLY on the provided context
+2. If the context contains relevant information, provide a helpful and detailed answer
+3. If the context doesn't contain enough information to answer the question, say "I need more specific information from your note to answer that question properly."
+4. Be conversational and helpful
+5. Don't make up information not present in the context
+
+The context may include:
+- NOTE CONTENT: Original note text and documents  
+- PODCAST TRANSCRIPT: AI-generated podcast conversations about the note content
+
+When referencing information, you can mention it comes from "your note" or "the content you provided."
+
+Provide clear, helpful responses that make use of the available context.`;
 
   const result = await streamText({
     model: openai(CHAT_MODEL),
-    messages: [
-      {
-        role: 'system',
-        content: systemPrompt
-      },
-      {
-        role: 'user',
-        content: `Context:\n${context}\n\nQuestion: ${question}`
-      }
-    ],
+    system: systemPrompt,
+    prompt: `Context from the user's note:
+${context}
+
+User question: ${question}
+
+Please provide a helpful answer based on the context above.`,
     temperature: 0.7,
   });
 
@@ -182,11 +172,20 @@ export async function POST(req: NextRequest) {
     // Use our enhanced embedding service to find similar chunks
     const similarChunks = await querySimilarChunks(message, noteId, topK);
     
+    // Debug logging to understand what's happening
+    console.log('🔍 Similar chunks found:', similarChunks.length);
+    if (similarChunks.length > 0) {
+      console.log('📄 First chunk preview:', similarChunks[0].chunk_text?.substring(0, 200) + '...');
+    }
+    
     // Map results to the expected format
     const mappedChunks = mapChunkResults(similarChunks);
     
     // Create a context string from the chunks
     const context = createContextString(mappedChunks);
+    
+    console.log('📝 Context length:', context.length);
+    console.log('📝 Context preview:', context.substring(0, 300) + '...');
     
     // Generate a streaming response
     const response = await generateResponse(context, message);

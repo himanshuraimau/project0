@@ -1,26 +1,16 @@
 import { Pool } from 'pg';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { embed } from 'ai';
+import { openai } from '@ai-sdk/openai';
 
 // Constants
-const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || 'models/embedding-001';
-const EMBEDDING_DIM = 768;
+const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || 'text-embedding-3-small';
+const EMBEDDING_DIM = 1536; // OpenAI text-embedding-3-small dimensions
 const CHUNK_SIZE = parseInt(process.env.CHUNK_SIZE || '1000', 10);
 const CHUNK_OVERLAP = parseInt(process.env.CHUNK_OVERLAP || '200', 10);
 
-// Load API key from environment variables
-const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-
-// Initialize Google Generative AI
-let genAI: GoogleGenerativeAI | null = null;
-try {
-  if (apiKey && apiKey.length > 10) {
-    genAI = new GoogleGenerativeAI(apiKey);
-  } else {
-    console.warn('Missing or invalid Google API key - using mock embeddings');
-  }
-} catch (error) {
-  console.error('Failed to initialize Google Generative AI:', error);
-}
+// Check if OpenAI API key is available
+const openaiApiKey = process.env.OPENAI_API_KEY;
+const hasValidApiKey = openaiApiKey && openaiApiKey.length > 10;
 
 // Initialize PostgreSQL pool
 const pool = new Pool({
@@ -70,44 +60,30 @@ export function generateMockEmbeddings(count: number): number[][] {
 }
 
 /**
- * Generate embeddings for text chunks
+ * Generate embeddings for text chunks using OpenAI's AI SDK
  */
 export async function generateEmbeddings(chunks: string[]): Promise<number[][]> {
   try {
-    if (!genAI) {
+    if (!hasValidApiKey) {
       return generateMockEmbeddings(chunks.length);
     }
 
     const embeddings: number[][] = [];
-    const embeddingModel = genAI.getGenerativeModel({ model: EMBEDDING_MODEL });
 
     for (let i = 0; i < chunks.length; i++) {
       try {
-        const result = await embeddingModel.embedContent(chunks[i]);
-        const embedding = result.embedding.values;
+        const { embedding } = await embed({
+          model: openai.textEmbeddingModel(EMBEDDING_MODEL),
+          value: chunks[i],
+        });
         
-        // Process embedding to match our storage dimension
-        let processedEmbedding = embedding;
+        // Validate embedding dimensions
         if (embedding.length !== EMBEDDING_DIM) {
-          if (embedding.length > EMBEDDING_DIM) {
-            const compressionFactor = Math.floor(embedding.length / EMBEDDING_DIM);
-            if (compressionFactor > 1) {
-              processedEmbedding = [];
-              for (let j = 0; j < EMBEDDING_DIM; j++) {
-                const start = j * compressionFactor;
-                const group = embedding.slice(start, start + compressionFactor);
-                const avg = group.reduce((sum, val) => sum + val, 0) / group.length;
-                processedEmbedding.push(avg);
-              }
-            } else {
-              processedEmbedding = embedding.slice(0, EMBEDDING_DIM);
-            }
-          } else {
-            processedEmbedding = [...embedding, ...Array(EMBEDDING_DIM - embedding.length).fill(0)];
-          }
+          console.warn(`Embedding dimension mismatch: expected ${EMBEDDING_DIM}, got ${embedding.length}. Using mock embedding.`);
+          embeddings.push(generateMockEmbeddings(1)[0]);
+        } else {
+          embeddings.push(embedding);
         }
-        
-        embeddings.push(processedEmbedding);
       } catch (error) {
         console.error(`Error generating embedding for chunk ${i}:`, error);
         embeddings.push(generateMockEmbeddings(1)[0]);
@@ -203,18 +179,20 @@ export async function indexChapterContent(chapterId: string, notes?: string, tra
 }
 
 /**
- * Query similar chunks for a chapter
+ * Query similar chunks for a chapter using OpenAI embeddings
  */
 export async function queryChapterSimilarChunks(query: string, chapterId: string, topK: number = 5): Promise<any[]> {
   try {
     let embedding: number[] = [];
 
-    // Generate embedding for query
-    if (genAI) {
+    // Generate embedding for query using OpenAI
+    if (hasValidApiKey) {
       try {
-        const embeddingModel = genAI.getGenerativeModel({ model: EMBEDDING_MODEL });
-        const result = await embeddingModel.embedContent(query);
-        embedding = result.embedding.values;
+        const { embedding: queryEmbedding } = await embed({
+          model: openai.textEmbeddingModel(EMBEDDING_MODEL),
+          value: query,
+        });
+        embedding = queryEmbedding;
       } catch (error) {
         console.error('Error generating query embedding:', error);
         embedding = generateMockEmbeddings(1)[0];
@@ -223,28 +201,13 @@ export async function queryChapterSimilarChunks(query: string, chapterId: string
       embedding = generateMockEmbeddings(1)[0];
     }
 
-    // Process the embedding to match our storage dimension
-    let processedEmbedding = embedding;
+    // Validate embedding dimensions
     if (embedding.length !== EMBEDDING_DIM) {
-      if (embedding.length > EMBEDDING_DIM) {
-        const compressionFactor = Math.floor(embedding.length / EMBEDDING_DIM);
-        if (compressionFactor > 1) {
-          processedEmbedding = [];
-          for (let j = 0; j < EMBEDDING_DIM; j++) {
-            const start = j * compressionFactor;
-            const group = embedding.slice(start, start + compressionFactor);
-            const avg = group.reduce((sum, val) => sum + val, 0) / group.length;
-            processedEmbedding.push(avg);
-          }
-        } else {
-          processedEmbedding = embedding.slice(0, EMBEDDING_DIM);
-        }
-      } else {
-        processedEmbedding = [...embedding, ...Array(EMBEDDING_DIM - embedding.length).fill(0)];
-      }
+      console.warn(`Query embedding dimension mismatch: expected ${EMBEDDING_DIM}, got ${embedding.length}`);
+      embedding = generateMockEmbeddings(1)[0];
     }
 
-    const vectorString = `[${processedEmbedding.join(',')}]`;
+    const vectorString = `[${embedding.join(',')}]`;
 
     // Query database for similar chunks
     const client = await pool.connect();
