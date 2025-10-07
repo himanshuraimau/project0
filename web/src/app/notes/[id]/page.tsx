@@ -37,7 +37,6 @@ import dynamic from "next/dynamic";
 import { ViewNote } from "@/components/notes/view-note";
 import { Navbar } from "@/components/shared/navbar";
 import { NoteDetailSkeleton } from "@/components/notes/notes-skeleton";
-import { NoteProgressProvider } from "@/contexts/note-progress-context";
 
 const DynamicInlineChatbot = dynamic(
   () => import("@/components/chatbot/inline-chatbot"),
@@ -341,7 +340,6 @@ export default function NoteViewPage() {
 
         {/* Main Content with Notes Sidebar - below navbar */}
         <div className="pt-0">
-          <NoteProgressProvider noteId={noteId}>
             <NotesSidebarProvider
               defaultOpen={true}
               sidebarWidth={sidebarWidth}
@@ -479,7 +477,6 @@ export default function NoteViewPage() {
               </div>
             </div>
           </NotesSidebarProvider>
-          </NoteProgressProvider>
           </div>
         </AlertDialog>
     </div>

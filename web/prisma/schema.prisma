@@ -93,7 +93,6 @@ model Note {
   podcast      Podcast?
   quiz         Quiz?
   mindmap      MindMap?
-  progress     NoteProgress?
 
   @@map("notes")
 }
@@ -120,18 +119,6 @@ model Quiz {
   note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
 
   @@map("quizzes")
-}
-
-model NoteProgress {
-  id          String    @id @default(cuid())
-  noteId      String    @unique
-  isCompleted Boolean   @default(false)
-  completedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  note        Note      @relation(fields: [noteId], references: [id], onDelete: Cascade)
-
-  @@map("note_progress")
 }
 
 model MindMap {
