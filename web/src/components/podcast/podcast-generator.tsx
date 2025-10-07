@@ -37,6 +37,10 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
     setError(null);
     setShowPodcastConfig(false);
 
+    const loadingToast = toast.loading("Generating podcast...", {
+      description: "This may take a few minutes. Creating script, synthesizing voices, and processing audio...",
+    });
+
     try {
       const response = await fetch(`/api/notes/${noteId}/podcast/generate`, {
         method: "POST",
@@ -53,9 +57,12 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
       }
 
       if (data.success) {
-        // Fetch the updated podcast with segments
-        fetchExistingPodcast();
-        toast.success("Podcast generated successfully!");
+     
+        await fetchExistingPodcast();
+        toast.dismiss(loadingToast);
+        toast.success("Podcast generated successfully!", {
+          description: "Your podcast is ready to play!",
+        });
       } else {
         throw new Error(data.error || "Failed to generate podcast");
       }
@@ -64,6 +71,9 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to generate podcast";
       setError(errorMessage);
+      
+      // Dismiss loading toast and show error
+      toast.dismiss(loadingToast);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -80,12 +90,11 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
           setPodcast(data.data.podcast);
           setSegments(data.data.segments || []);
         }
-        // Don't automatically show config modal - let user click Generate button
+   
       }
-      // If no podcast exists, just show the generation UI without opening modal
+      
     } catch (error) {
       console.error("Error fetching existing podcast:", error);
-      // Don't show error for this - just means no podcast exists yet
     }
   }, [noteId]);
 

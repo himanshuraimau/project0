@@ -36,6 +36,7 @@ import { Trash2, MessageCircle, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ViewNote } from "@/components/notes/view-note";
 import { Navbar } from "@/components/shared/navbar";
+import { NoteDetailSkeleton } from "@/components/notes/notes-skeleton";
 
 const DynamicInlineChatbot = dynamic(
   () => import("@/components/chatbot/inline-chatbot"),
@@ -254,11 +255,12 @@ export default function NoteViewPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-2"></div>
-          <p className="text-sm text-muted-foreground">Loading note...</p>
+      <div className="min-h-screen w-full bg-background">
+        {/* Navbar at the very top */}
+        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
+          <Navbar title="Notes" />
         </div>
+        <NoteDetailSkeleton />
       </div>
     );
   }
