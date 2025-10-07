@@ -21,10 +21,6 @@ export function NoteCard({ note }: NoteCardProps) {
     });
   };
 
-
-
-
-
   const handleCardClick = () => {
     router.push(`/notes/${note.id}`);
   };
@@ -48,8 +44,8 @@ export function NoteCard({ note }: NoteCardProps) {
   };
 
   return (
-    <Card 
-      className="w-full bg-white dark:bg-background dark:hover:bg-muted/50 border border-muted hover:border-border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer rounded-2xl"
+    <div 
+      className="w-full bg-white hover:bg-muted/50 dark:bg-background dark:hover:bg-muted/50 border border-border hover:border-border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer rounded-2xl"
       onClick={handleCardClick}
     >
       <CardContent className="p-6">
@@ -87,6 +83,6 @@ export function NoteCard({ note }: NoteCardProps) {
           </div>
         </div>
       </CardContent>
-    </Card>
+    </div>
   );
 }
