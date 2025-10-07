@@ -30,7 +30,7 @@ export function YouTubeIframePlayer({ videoId, title, className }: YouTubeIframe
   return (
     <Card className={className}>
       <CardContent className="p-0">
-        <div className="relative aspect-video bg-gray-100 rounded-t-lg overflow-hidden">
+        <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
           <iframe
             src={embedUrl}
             title={title || "YouTube video"}

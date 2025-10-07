@@ -165,7 +165,7 @@ export function YouTubePlayer({ videoId, title, className }: YouTubePlayerProps)
 
   return (
     <Card className={className}>
-      <CardContent className="p-0">
+      <div className="p-0">
         <div className="relative aspect-video bg-gray-100 rounded-t-lg overflow-hidden">
           {!isReady && apiLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
@@ -208,7 +208,7 @@ export function YouTubePlayer({ videoId, title, className }: YouTubePlayerProps)
             </div>
           </div>
         )}
-      </CardContent>
+      </div>
     </Card>
   );
 }
