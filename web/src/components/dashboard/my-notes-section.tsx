@@ -117,8 +117,8 @@ export function MyNotesSection() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="outline"
-                className="justify-between min-w-[180px] h-12 px-4 bg-card border border-border rounded-2xl hover:bg-muted/50 text-foreground font-medium transition-all duration-200"
+                variant="ghost"
+                className="neomorphic justify-between min-w-[180px] h-12 px-4 border-0 rounded-2xl text-foreground font-medium transition-all duration-300"
               >
                 <div className="flex items-center gap-3">
                   <Folder className="h-4 w-4 text-accent" />
@@ -188,9 +188,9 @@ export function MyNotesSection() {
             placeholder="Search notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-4 pr-12 h-12 bg-card border border-border rounded-2xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+            className="neomorphic pl-4 pr-12 h-12 border-0 rounded-2xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 transition-all duration-300"
           />
-          <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
         </div>
       </div>
 

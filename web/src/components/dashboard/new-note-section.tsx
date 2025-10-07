@@ -216,8 +216,8 @@ export function NewNoteSection() {
         <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
           <DialogTrigger asChild>
             <Button
-              variant="outline"
-              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border bg-white dark:bg-black hover:bg-background cursor-pointer border-border hover:border-muted-foreground/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
+              variant="ghost"
+              className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -225,8 +225,8 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="size-12 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                <Link className="size-10 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
+              <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Link className="size-6 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
               </div>
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-lg leading-6 text-foreground">
@@ -301,8 +301,8 @@ export function NewNoteSection() {
         >
           <DialogTrigger asChild>
             <Button
-              variant="outline"
-              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-white dark:bg-black hover:bg-background cursor-pointer border-border hover:border-muted-foreground/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
+              variant="ghost"
+              className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -310,8 +310,8 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="size-12 border border-border dark:border-white rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200 group-hover:border-red-400">
-                <div className="size-5 rounded-full bg-red-500 group-hover:bg-red-600 transition-colors duration-200" />
+              <div className="neomorphic-record-indicator size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <div className="size-5 rounded-full bg-red-500 group-hover:bg-red-600 transition-colors duration-300" />
               </div>
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-lg leading-6 text-foreground">
@@ -350,8 +350,8 @@ export function NewNoteSection() {
         <Dialog open={showPDFDialog} onOpenChange={setShowPDFDialog}>
           <DialogTrigger asChild>
             <Button
-              variant="outline"
-              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-white dark:bg-black hover:bg-background cursor-pointer border-border hover:border-muted-foreground/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
+              variant="ghost"
+              className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -359,8 +359,8 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="size-12 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                <Image src="/pdf.png" width={40} height={40} className="size-10" alt="PDF" />
+              <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Image src="/pdf.png" width={36} height={36} className="size-9 transition-transform duration-300" alt="PDF" />
               </div>
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-lg leading-6 text-foreground">
@@ -399,8 +399,8 @@ export function NewNoteSection() {
         <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>
           <DialogTrigger asChild>
             <Button
-              variant="outline"
-              className="h-24 px-6 py-6 w-full flex items-center justify-start gap-6 bg-white dark:bg-black hover:bg-background cursor-pointer border-border hover:border-muted-foreground/20 rounded-2xl transition-all duration-200 group hover:shadow-lg"
+              variant="ghost"
+              className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
               onClick={async () => {
                 const hasCredits = await checkCreditsAndRedirect();
                 if (hasCredits) {
@@ -408,8 +408,8 @@ export function NewNoteSection() {
                 }
               }}
             >
-              <div className="size-12 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                <CloudUpload className="size-10 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
+              <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <CloudUpload className="size-6 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
               </div>
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-lg leading-6 text-foreground">
