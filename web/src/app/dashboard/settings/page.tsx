@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState, Suspense } from "react"
 import { useAuth, useClerk } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard"
@@ -151,6 +151,7 @@ export default function SettingsPage() {
   ]
 
   return (
+    <Suspense fallback={null}>
     <DashboardLayout>
       <div className="min-h-screen bg-background p-8">
         <h1 className="text-3xl font-bold mb-8 text-foreground">Settings</h1>
@@ -317,5 +318,6 @@ export default function SettingsPage() {
       )}
 
     </DashboardLayout>
+    </Suspense>
   )
 }

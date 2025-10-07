@@ -5,7 +5,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/AppSidebar";
 import CourseSideBar from "@/components/course/CourseSideBar";
 import { Navbar } from "@/components/shared/navbar";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { DashboardRefreshProvider } from "@/contexts/dashboard-refresh-context";
 import { PaymentSuccessHandler } from "@/components/subscription/payment-success-handler";
 import { Course, Unit, Chapter } from "@prisma/client";
@@ -84,7 +84,6 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const isCoursePage = pathname.includes("/course/") && !pathname.includes("/create/");
   const isNotesPage = pathname.includes("/notes/");
 
@@ -92,22 +91,21 @@ export default function DashboardLayout({
   // payment providers or external redirects may append. We intentionally
   // leave `payment=success` alone because `PaymentSuccessHandler` needs it.
   React.useEffect(() => {
-    if (!searchParams) return;
+    try {
+      if (typeof window === 'undefined') return;
 
-    const hasStatus = searchParams.has('status');
-    const hasSubscriptionId = searchParams.has('subscription_id');
+      const params = new URLSearchParams(window.location.search);
+      const hasStatus = params.has('status');
+      const hasSubscriptionId = params.has('subscription_id');
 
-    if (hasStatus || hasSubscriptionId) {
-      // Replace URL to same pathname without query string
-      // Use router.replace so it's a client-side navigation (no history entry)
-      try {
+      if (hasStatus || hasSubscriptionId) {
+        // Replace URL to same pathname without query string
         router.replace(window.location.pathname);
-      } catch (e) {
-        // Fallback: set location.href (this will add a history entry)
-        window.location.href = window.location.pathname;
       }
+    } catch (e) {
+      // ignore
     }
-  }, [searchParams, router]);
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-background">
