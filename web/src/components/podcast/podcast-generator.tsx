@@ -31,6 +31,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPodcastConfig, setShowPodcastConfig] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const generatePodcast = async (config: PodcastConfig) => {
     setLoading(true);
@@ -81,6 +82,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
   };
 
   const fetchExistingPodcast = useCallback(async () => {
+    setInitialLoading(true);
     try {
       const response = await fetch(`/api/notes/${noteId}/podcast`);
 
@@ -95,6 +97,8 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
       
     } catch (error) {
       console.error("Error fetching existing podcast:", error);
+    } finally {
+      setInitialLoading(false);
     }
   }, [noteId]);
 
@@ -128,8 +132,125 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
     fetchExistingPodcast();
   }, [fetchExistingPodcast]);
 
-  // If we have a podcast, show the player
-  if (podcast && podcast.audioUrl) {
+  // Show loading state while checking for existing podcast
+  if (initialLoading) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-6">
+          {/* Animated Icon */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+            <div className="relative bg-card border border-border rounded-full p-8 shadow-lg">
+              <Mic className="h-12 w-12 text-primary animate-pulse" />
+            </div>
+          </div>
+
+          {/* Loading Text */}
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold text-foreground">Loading Podcast</h3>
+            <p className="text-sm text-muted-foreground">Checking for existing content...</p>
+          </div>
+
+          {/* Loading Bar */}
+          <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
+            <div className="h-full bg-primary rounded-full animate-loading-bar" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state if podcast is generating
+  if (podcast && podcast.generationStatus === 'generating') {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <LoadingState
+            message="Generating Podcast"
+            submessage="This may take a few minutes. Creating script, synthesizing voices, and processing audio..."
+            variant="ai"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if podcast generation failed
+  if (podcast && podcast.generationStatus === 'failed') {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto">
+                <span className="text-xl">⚠️</span>
+              </div>
+              <h3 className="text-xl font-semibold">Podcast Generation Failed</h3>
+              <p className="text-muted-foreground">
+                {podcast.generationError || "An error occurred while generating the podcast"}
+              </p>
+              <div className="flex gap-2 justify-center">
+                <Button onClick={() => setShowPodcastConfig(true)} disabled={loading}>
+                  Try Again
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="text-red-600">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Failed Podcast</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this failed podcast attempt?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={deletePodcast}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {showPodcastConfig && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-hidden">
+            <div className="bg-white dark:bg-[#0A0B0D] rounded-lg max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative">
+              <button
+                onClick={() => setShowPodcastConfig(false)}
+                className="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                aria-label="Close popup"
+              >
+                <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div className="p-6 overflow-y-auto max-h-[80vh]">
+                <PodcastConfigurationInline
+                  noteId={noteId}
+                  onGenerate={generatePodcast}
+                  loading={loading}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // If we have a completed podcast with audio, show the player
+  if (podcast && podcast.audioUrl && podcast.generationStatus === 'completed') {
     return (
       <div className="h-screen flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">

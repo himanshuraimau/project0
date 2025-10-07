@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -14,7 +15,9 @@ import {
   Download,
   RotateCcw,
   Clock,
-  User
+  User,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { Podcast, PodcastSegment } from '@/lib/types/podcast.types';
 

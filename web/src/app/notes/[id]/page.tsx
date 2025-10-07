@@ -422,9 +422,9 @@ export default function NoteViewPage() {
                 </div>
               )}
 
-              {currentView === "flashcards" && <FlashcardGenerator noteId={noteId} noteTitle={note?.title} />}
+              {currentView === "flashcards" && <FlashcardGenerator key={`flashcards-${noteId}`} noteId={noteId} noteTitle={note?.title} />}
 
-              {currentView === "quiz" && <QuizGenerator noteId={noteId} />}
+              {currentView === "quiz" && <QuizGenerator key={`quiz-${noteId}`} noteId={noteId} />}
 
               {currentView === "chat" && (
                 <Card className="overflow-hidden h-[80vh] ml-10 mt-8 flex flex-col bg-transparent border border-black/20 dark:border-white/20 rounded-3xl shadow-lg">
@@ -441,7 +441,7 @@ export default function NoteViewPage() {
                 </Card>
               )}
 
-              {currentView === "podcast" && <PodcastGenerator noteId={noteId} />}
+              {currentView === "podcast" && <PodcastGenerator key={`podcast-${noteId}`} noteId={noteId} />}
 
               {currentView === "mindmap" && (
                 <div>
@@ -455,7 +455,7 @@ export default function NoteViewPage() {
                       </div>
                     </div>
                   )}
-                  <MindmapGenerator noteId={noteId} />
+                  <MindmapGenerator key={`mindmap-${noteId}`} noteId={noteId} />
                   {mindmapError && (
                     <div className="text-center text-red-600 py-8">
                       <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-3">

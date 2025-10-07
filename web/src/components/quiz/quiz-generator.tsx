@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, FileQuestion } from "lucide-react";
 import { toast } from "sonner";
 import { QuizViewer } from "./quiz-viewer";
 import { LoadingState } from "@/components/ui/loading-spinner";
@@ -41,6 +41,7 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const generateQuiz = async () => {
     setLoading(true);
@@ -79,6 +80,7 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
   };
 
   const fetchExistingQuiz = useCallback(async () => {
+    setInitialLoading(true);
     try {
       const response = await fetch(`/api/notes/${noteId}/quiz`);
 
@@ -92,6 +94,8 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
     } catch (error) {
       console.error("Error fetching existing quiz:", error);
       // Don't show error for this - just means no quiz exists yet
+    } finally {
+      setInitialLoading(false);
     }
   }, [noteId]);
 
@@ -123,6 +127,34 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
   React.useEffect(() => {
     fetchExistingQuiz();
   }, [fetchExistingQuiz]);
+
+  // Show loading state while checking for existing quiz
+  if (initialLoading) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-6">
+          {/* Animated Icon */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+            <div className="relative bg-card border border-border rounded-full p-8 shadow-lg">
+              <FileQuestion className="h-12 w-12 text-primary animate-pulse" />
+            </div>
+          </div>
+
+          {/* Loading Text */}
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold text-foreground">Loading Quiz</h3>
+            <p className="text-sm text-muted-foreground">Checking for existing content...</p>
+          </div>
+
+          {/* Loading Bar */}
+          <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
+            <div className="h-full bg-primary rounded-full animate-loading-bar" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // If we have a quiz, show the viewer
   if (quiz && quiz.content?.quiz) {
