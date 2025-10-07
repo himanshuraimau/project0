@@ -293,8 +293,8 @@ export function AppSidebar({ className }: AppSidebarProps) {
               href="/pricing"
               className="flex items-center gap-4 px-5 py-4 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl"
             >
-              <span className="text-2xl">⚡</span>
-              <span className="font-bold text-lg text-white">Unlimited Notes</span>
+              <span className="text-2xl">🚀</span>
+                <span className="font-bold text-lg text-white">Go Unlimited — Get Pro</span>
             </Link>
           )}
         </SidebarFooter>

@@ -132,6 +132,13 @@ export default function SettingsPage() {
     color?: string
     onClick?: () => void
   }[] = [
+    {
+      icon: <span className="text-foreground font-bold text-xl">🚀</span>,
+      label: "Go Unlimited — Get Pro",
+      subtext: "Unlimited notes, transcripts & features",
+      color: "text-foreground",
+      onClick: () => router.push('/pricing'),
+    },
     { 
       icon: <Globe className="h-7 w-7 text-foreground" />, 
       label: "Share with a friend", 

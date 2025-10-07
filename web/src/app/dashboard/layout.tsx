@@ -5,7 +5,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/AppSidebar";
 import CourseSideBar from "@/components/course/CourseSideBar";
 import { Navbar } from "@/components/shared/navbar";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { DashboardRefreshProvider } from "@/contexts/dashboard-refresh-context";
 import { PaymentSuccessHandler } from "@/components/subscription/payment-success-handler";
 import { Course, Unit, Chapter } from "@prisma/client";
@@ -83,8 +83,31 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const isCoursePage = pathname.includes("/course/") && !pathname.includes("/create/");
   const isNotesPage = pathname.includes("/notes/");
+
+  // Clean up ephemeral query params (e.g. status, subscription_id) that
+  // payment providers or external redirects may append. We intentionally
+  // leave `payment=success` alone because `PaymentSuccessHandler` needs it.
+  React.useEffect(() => {
+    if (!searchParams) return;
+
+    const hasStatus = searchParams.has('status');
+    const hasSubscriptionId = searchParams.has('subscription_id');
+
+    if (hasStatus || hasSubscriptionId) {
+      // Replace URL to same pathname without query string
+      // Use router.replace so it's a client-side navigation (no history entry)
+      try {
+        router.replace(window.location.pathname);
+      } catch (e) {
+        // Fallback: set location.href (this will add a history entry)
+        window.location.href = window.location.pathname;
+      }
+    }
+  }, [searchParams, router]);
 
   return (
     <div className="min-h-screen bg-background">
