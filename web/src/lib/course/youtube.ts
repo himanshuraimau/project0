@@ -152,19 +152,19 @@ export async function getQuestionsFromTranscript(
     const result = await generateObject({
       model: openai("gpt-4o"),
       schema: questionSchema,
-      prompt: `🧠 You are a master quiz creator and educational assessment expert! Your mission is to craft engaging, challenging, and thought-provoking multiple choice questions that test real understanding.
+      prompt: `You are a master quiz creator and educational assessment expert. Your mission is to craft engaging, challenging, and thought-provoking multiple choice questions that test real understanding.
 
-🎯 **QUIZ MISSION:** Create 3 stellar MCQ questions about "${course_title}" that make students think critically!
+QUIZ MISSION: Create 3 stellar MCQ questions about "${course_title}" that make students think critically.
 
-📝 **QUESTION CRAFTING RULES:**
-- 🔥 Make questions challenging but fair - test understanding, not just memorization
-- 💡 Focus on "why" and "how" rather than just "what"
-- 🎯 All answer options should be plausible to make students think
-- ⚡ Keep answers snappy and under 15 words each
-- 🧩 Cover the most important concepts from the transcript
-- 🎪 Make questions engaging and relevant to real-world scenarios
+QUESTION CRAFTING RULES:
+- Make questions challenging but fair - test understanding, not just memorization
+- Focus on "why" and "how" rather than just "what"
+- All answer options should be plausible to make students think
+- Keep answers snappy and under 15 words each
+- Cover the most important concepts from the transcript
+- Make questions engaging and relevant to real-world scenarios
 
-🎊 **STYLE GUIDELINES:**
+STYLE GUIDELINES:
 - Write clear, direct questions without unnecessary complexity
 - Ensure one option is clearly correct when you understand the material
 - Make incorrect options believable but definitely wrong
@@ -174,7 +174,7 @@ Based on this transcript about "${course_title}":
 
 ${transcript}
 
-Create questions that would make a great teacher proud! 🌟`,
+Create questions that would make a great teacher proud.`,
     });
 
     return result.object.questions;

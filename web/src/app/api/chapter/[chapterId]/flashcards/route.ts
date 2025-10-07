@@ -84,54 +84,54 @@ export async function POST(
     const result = await generateObject({
       model: openai("gpt-4o"),
       schema: flashcardSchema,
-      prompt: `🎯 **CHAPTER FLASHCARD MASTER & LEARNING ARCHITECT** 📚
+      prompt: `CHAPTER FLASHCARD MASTER & LEARNING ARCHITECT
 
 You are the ultimate chapter-focused flashcard creator! Your mission is to transform this specific chapter content into 10 powerful, engaging flashcards that make mastering chapter concepts both effective and enjoyable.
 
-✨ **YOUR MISSION:** Create exactly 10 brilliant flashcards that thoroughly test understanding of this chapter's key concepts!
+YOUR MISSION: Create exactly 10 brilliant flashcards that thoroughly test understanding of this chapter's key concepts!
 
-🧠 **FLASHCARD EXCELLENCE STANDARDS:**
+FLASHCARD EXCELLENCE STANDARDS:
 
-**1. 🎯 Test Key Concepts**
+1. Test Key Concepts
 - Focus on most important ideas, definitions, and principles
 - Target concepts that students MUST understand from this chapter
 - Include both explicit facts and implicit connections
 
-**2. 📈 Smart Difficulty Range**
+2. Smart Difficulty Range
 - Mix foundational recall with analytical thinking
 - Progress from basic understanding to application
 - Include questions that test deeper comprehension
 
-**3. 🔍 Crystal Clear Questions**
+3. Crystal Clear Questions
 - Unambiguous wording that tests meaningful understanding
 - Specific enough to have one clear correct answer
 - Avoid trick questions but challenge thinking
 
-**4. 📖 Comprehensive Answers**
+4. Comprehensive Answers
 - Detailed explanations with context and reasoning (2-4 sentences)
 - Include WHY something is true, not just WHAT is true
 - Connect concepts to broader chapter themes
 
-🎪 **STRATEGIC QUESTION TYPES TO INCLUDE:**
+STRATEGIC QUESTION TYPES TO INCLUDE:
 
-- 📝 **Definitional (2-3 cards):** "What is...?" "Define..." "Identify..."
-- 💡 **Explanatory (3-4 cards):** "How does...?" "Why does...?" "Explain the process..."
-- 🛠️ **Application (2-3 cards):** "How would you apply...?" "What would happen if...?" "In what scenario...?"
-- 🧠 **Analytical (1-2 cards):** "What are the implications of...?" "Compare..." "Analyze the relationship..."
+- Definitional (2-3 cards): "What is...?" "Define..." "Identify..."
+- Explanatory (3-4 cards): "How does...?" "Why does...?" "Explain the process..."
+- Application (2-3 cards): "How would you apply...?" "What would happen if...?" "In what scenario...?"
+- Analytical (1-2 cards): "What are the implications of...?" "Compare..." "Analyze the relationship..."
 
-🌟 **QUALITY GUIDELINES:**
-- ✅ Each question should test understanding, not just memorization
-- 🎯 Answers should teach while testing - educational and comprehensive
-- 🔗 Include connections between concepts when relevant
-- 📚 Make answers self-contained with sufficient context
-- 🎪 Use engaging language that makes learning enjoyable
+QUALITY GUIDELINES:
+- Each question should test understanding, not just memorization
+- Answers should teach while testing - educational and comprehensive
+- Include connections between concepts when relevant
+- Make answers self-contained with sufficient context
+- Use engaging language that makes learning enjoyable
 
-**📖 Chapter Title:** ${chapter.name}
+Chapter Title: ${chapter.name}
 
-**📋 Chapter Content to Transform:**
+Chapter Content to Transform:
 ${chapter.notes}
 
-🚀 Create exactly 10 amazing flashcards that help students master this chapter's key concepts! Make each flashcard a powerful learning tool that builds understanding step by step. 🎓`,
+Create exactly 10 amazing flashcards that help students master this chapter's key concepts! Make each flashcard a powerful learning tool that builds understanding step by step.`,
     });
 
     // Save the generated flashcards to the database
