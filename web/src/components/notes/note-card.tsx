@@ -2,17 +2,15 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Eye, Trash2 } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Note } from "@/lib/types";
 import { useRouter } from "next/navigation";
 
 interface NoteCardProps {
   note: Note;
-  onDelete: (id: string) => void;
 }
 
-export function NoteCard({ note, onDelete }: NoteCardProps) {
+export function NoteCard({ note }: NoteCardProps) {
   const router = useRouter();
 
   const formatDate = (dateString: string) => {
@@ -23,14 +21,9 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
     });
   };
 
-  const handleViewNote = () => {
-    router.push(`/notes/${note.id}`);
-  };
 
-  const handleDeleteNote = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onDelete(note.id);
-  };
+
+
 
   const handleCardClick = () => {
     router.push(`/notes/${note.id}`);
@@ -84,31 +77,13 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
 
             {/* Content Preview */}
             <div className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-              {getTextPreview(note.content || "", 200)}
+              {getTextPreview(note.content || "", 130)}
             </div>
           </div>
 
-          {/* Right section - Action Buttons */}
-          <div className="flex flex-col gap-3 flex-shrink-0 justify-center">
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewNote();
-              }}
-              size="sm"
-              className="h-8 px-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors duration-200 whitespace-nowrap"
-            >
-              <Eye className="h-3 w-3 mr-1.5" />
-              View
-            </Button>
-            <Button
-              onClick={handleDeleteNote}
-              size="sm"
-              className="h-8 px-4 rounded-full bg-gray-500 hover:bg-gray-600 text-white text-xs font-medium transition-colors duration-200 whitespace-nowrap"
-            >
-              <Trash2 className="h-3 w-3 mr-1.5" />
-              Delete
-            </Button>
+          {/* Right section - Chevron Button */}
+          <div className="flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 hover:bg-muted/50 group">
+            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
           </div>
         </div>
       </CardContent>

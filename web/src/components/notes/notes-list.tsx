@@ -4,19 +4,8 @@ import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandl
 import { useNotes } from "@/hooks/use-notes";
 import { Note } from "@/lib/types";
 import { NoteCard } from "./note-card";
-import { Loader2, FileText, AlertTriangle, Trash2 } from "lucide-react";
+import { Loader2, FileText, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
 import { NoteCardShimmer } from "@/components/ui/shimmer";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 
@@ -31,14 +20,9 @@ export interface NotesListRef {
 
 export const NotesList = forwardRef<NotesListRef, NotesListProps>(
   ({ searchQuery, transcriptId }, ref) => {
-    const { getNotes, deleteNote, loading, error } = useNotes();
-    const { loadingNotes } = useDashboardRefresh();
-    const [notes, setNotes] = useState<Note[]>([]);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    // Debug: Log loading notes changes
+  const { getNotes, loading, error } = useNotes();
+  const { loadingNotes } = useDashboardRefresh();
+  const [notes, setNotes] = useState<Note[]>([]);    // Debug: Log loading notes changes
     useEffect(() => {
       console.log('[NotesList] Loading notes updated:', loadingNotes);
     }, [loadingNotes]);
@@ -60,35 +44,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       loadNotes();
     }, [loadNotes, searchQuery]);
 
-  const handleDeleteNote = (id: string) => {
-    setNoteToDelete(id);
-    setDeleteDialogOpen(true);
-  };
 
-  const confirmDeleteNote = async () => {
-    if (!noteToDelete) return;
-
-    setIsDeleting(true);
-    try {
-      const success = await deleteNote(noteToDelete);
-      if (success) {
-        await loadNotes();
-        setDeleteDialogOpen(false);
-        setNoteToDelete(null);
-        toast.success("Note deleted successfully");
-      }
-    } catch (error) {
-      console.error("Error deleting note:", error);
-      toast.error("Failed to delete note");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const cancelDeleteNote = () => {
-    setDeleteDialogOpen(false);
-    setNoteToDelete(null);
-  };
 
   // Filter notes based on search query
   const filterNotes = (notes: Note[], query: string): Note[] => {
@@ -194,53 +150,11 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
         
         {/* Show actual notes */}
         {filteredNotes.map((note) => (
-          <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} />
+          <NoteCard key={note.id} note={note} />
         ))}
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="max-w-md bg-card border border-border">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center">
-                <AlertTriangle className="h-5 w-5 text-destructive" />
-              </div>
-              Delete Note
-            </AlertDialogTitle>
-            <AlertDialogDescription className="pt-2">
-              Are you sure you want to delete this note? This action cannot be
-              undone and all content will be permanently removed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 pt-4">
-            <AlertDialogCancel
-              onClick={cancelDeleteNote}
-              disabled={isDeleting}
-              className="flex-1"
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeleteNote}
-              disabled={isDeleting}
-              className="flex-1 bg-destructive hover:bg-destructive/90"
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Note
-                </>
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
     </>
     );
   }
