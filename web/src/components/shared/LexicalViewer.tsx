@@ -44,6 +44,7 @@ import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { CodeHighlightNode, CodeNode } from "@lexical/code";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
+import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import {
   $getSelection,
   $isRangeSelection,
@@ -51,7 +52,9 @@ import {
   SELECTION_CHANGE_COMMAND,
   $getRoot,
   FORMAT_ELEMENT_COMMAND,
+  EditorState,
 } from "lexical";
+import { $convertToMarkdownString } from "@lexical/markdown";
 import {
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
@@ -65,6 +68,9 @@ interface LexicalViewerProps {
   className?: string;
   contentClassName?: string;
   minHeight?: string;
+  onContentChange?: (content: string) => void;
+  onTitleChange?: (title: string) => void;
+  isEditable?: boolean;
 }
 
 // Lexical theme configuration
@@ -480,9 +486,22 @@ export function LexicalViewer({
   showToolbar = true,
   className = "",
   contentClassName = "",
+  onContentChange,
+  onTitleChange,
+  isEditable = false,
 }: LexicalViewerProps) {
   const [selectedFont, setSelectedFont] = useState("font-serif");
   const [fontSize, setFontSize] = useState("15");
+
+  // Handle content changes
+  const handleEditorChange = useCallback((editorState: EditorState) => {
+    if (onContentChange && isEditable) {
+      editorState.read(() => {
+        const markdown = $convertToMarkdownString(TRANSFORMERS);
+        onContentChange(markdown);
+      });
+    }
+  }, [onContentChange, isEditable]);
 
   // Initial editor configuration with content
   const initialConfig = {
@@ -496,6 +515,7 @@ export function LexicalViewer({
         content || "# No Content\n\nThis content has no text.",
         TRANSFORMERS
       ),
+    editable: isEditable,
     nodes: [
       HeadingNode,
       ListNode,
@@ -560,6 +580,9 @@ export function LexicalViewer({
           <LinkPlugin />
           <ListPlugin />
           <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+          {isEditable && onContentChange && (
+            <OnChangePlugin onChange={handleEditorChange} />
+          )}
         </div>
       </LexicalComposer>
     </Card>

@@ -91,6 +91,10 @@ export default function NoteViewPage() {
   const [editedTitle, setEditedTitle] = useState("");
   const [editedContent, setEditedContent] = useState("");
 
+  const handleNoteUpdate = (updatedNote: Note) => {
+    setNote(updatedNote);
+  };
+
   useEffect(() => {
     const fetchNote = async () => {
       if (noteId) {
@@ -367,7 +371,7 @@ export default function NoteViewPage() {
                 <main className="flex-1">
                   <div className="bg-background dark:bg-[#0A0B0D] border-none min-h-[calc(100vh-64px)] pl-5 pt-5">
                   {/* Content based on current view */}
-              {currentView === "notes" && <ViewNote note={note} />}
+              {currentView === "notes" && <ViewNote note={note} onUpdate={handleNoteUpdate} />}
 
               {currentView === "transcript" && (
                 <div className="w-full bg-transparent ml-4 p-10">
