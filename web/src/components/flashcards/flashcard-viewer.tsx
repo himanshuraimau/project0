@@ -142,7 +142,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           onClick={handlePrevious}
           disabled={flashcards.length <= 1}
           variant="outline"
-          className="flex items-center gap-2 bg-accent/10 border border-accent/20 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
+          className="flex items-center gap-2 bg-stone-50 border border-accent/20 text-stone-600 hover:bg-accent/10 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
         >
           <ChevronLeft className="h-4 w-4" />
           Previous
@@ -152,7 +152,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           onClick={handleNext}
           disabled={flashcards.length <= 1}
           variant="outline"
-          className="flex items-center gap-2 bg-accent/10 border border-accent/20 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
+          className="flex items-center gap-2 bg-stone-50 border border-accent/20 text-stone-600 hover:bg-accent/10 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
         >
           Next
           <ChevronRight className="h-4 w-4" />
