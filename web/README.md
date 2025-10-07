@@ -2,7 +2,7 @@
 
 Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, quizzes, and podcasts.
 
-![Project0 Banner](https://via.placeholder.com/1200x400/6366f1/ffffff?text=Project0+-+AI-Powered+Study+Revolution)
+
 
 ## ✨ Features
 
