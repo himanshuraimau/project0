@@ -244,6 +244,20 @@
     }
   }
 
+  /* Shimmer animation for skeleton loaders */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
   /* Enhanced card animations */
   .card-hover {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
