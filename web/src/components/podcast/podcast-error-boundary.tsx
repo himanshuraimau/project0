@@ -1,9 +1,3 @@
-/**
- * Podcast-specific error boundary component
- * Provides specialized error handling for podcast generation and playback
- * Requirements: 4.6, 6.8, 8.8
- */
-
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

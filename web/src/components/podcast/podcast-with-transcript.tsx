@@ -209,15 +209,20 @@ const ModernTranscript: React.FC<{
       const containerRect = container.getBoundingClientRect();
       const activeRect = activeElement.getBoundingClientRect();
       
-      // Check if active element is not fully visible
-      if (activeRect.top < containerRect.top + 100 || activeRect.bottom > containerRect.bottom - 100) {
+      // More lenient check - scroll if element is outside center region
+      const isInCenterRegion = 
+        activeRect.top >= containerRect.top + 80 &&
+        activeRect.bottom <= containerRect.bottom - 80;
+      
+      if (!isInCenterRegion) {
         activeElement.scrollIntoView({
           behavior: 'smooth',
-          block: 'center'
+          block: 'center',
+          inline: 'nearest'
         });
       }
     }
-  }, [activeSegment, userScrolling]);
+  }, [activeSegment?.id, userScrolling]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -230,10 +235,10 @@ const ModernTranscript: React.FC<{
 
   if (!segments || segments.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground bg-card">
+      <div className="flex items-center justify-center h-full text-muted-foreground bg-background rounded-2xl border border-border/50">
         <div className="text-center p-8">
-          <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-            <User className="w-6 h-6" />
+          <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <User className="w-8 h-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">No transcript available</h3>
           <p className="text-sm">The transcript will appear here once the podcast is generated with segments.</p>
@@ -245,24 +250,24 @@ const ModernTranscript: React.FC<{
   return (
     <div 
       ref={containerRef}
-      className="h-full overflow-y-auto bg-card"
+      className="h-full overflow-y-auto bg-background rounded-2xl border border-border/50"
       onScroll={handleScroll}
     >
       {/* Header */}
-      <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border p-6 z-10">
-        <div className="flex items-center justify-between mb-2">
+      <div className="sticky top-0 bg-card/95 backdrop-blur-lg border-b border-border/50 p-4 lg:p-6 z-10">
+        <div className="flex items-center justify-between mb-3">
           <h3 className="text-xl font-bold text-foreground">
             Transcript
           </h3>
-          <div className="text-xs font-mono text-muted-foreground bg-muted px-2 py-1 rounded">
+          <div className="text-xs font-mono text-accent bg-accent/10 px-3 py-1.5 rounded-full border border-accent/20">
             {formatTime(currentTime)}
           </div>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-          Click any line to jump to that timestamp. The current line is highlighted in <span className="text-accent font-medium">yellow</span>.
+          Click any line to jump to that moment. The current line is highlighted with <span className="text-accent font-medium">accent color</span>.
         </p>
         {/* Progress bar in header */}
-        <div className="w-full bg-muted rounded-full h-1 overflow-hidden">
+        <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
           <div 
             className="h-full bg-accent transition-all duration-300 rounded-full"
             style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
@@ -271,7 +276,7 @@ const ModernTranscript: React.FC<{
       </div>
       
       {/* Transcript Lines */}
-      <div className="p-6 space-y-2">
+      <div className="p-4 lg:p-6 space-y-3">
         {segments.map((segment, index) => {
           const isActive = activeSegment?.id === segment.id;
           const speakerName = segment.speaker === 'host1' ? host1Name : host2Name;
@@ -282,12 +287,11 @@ const ModernTranscript: React.FC<{
               key={segment.id || index}
               ref={isActive ? activeSegmentRef : null}
               className={cn(
-                "group p-4 rounded-2xl border-l-4 cursor-pointer transition-all duration-500",
+                "group p-4 rounded-xl border-l-4 cursor-pointer transition-all duration-300",
+                "hover:shadow-md hover:scale-[1.01]",
                 isActive 
-                  ? "bg-accent/15 border-l-accent shadow-lg scale-[1.02] font-semibold" 
-                  : index % 2 === 0 
-                    ? "bg-background border-l-border hover:bg-muted/30 hover:border-l-accent/50" 
-                    : "bg-muted/10 border-l-border hover:bg-muted/40 hover:border-l-accent/50"
+                  ? "bg-accent/10 border-l-accent shadow-lg scale-[1.02] dark:bg-accent/20" 
+                  : "bg-card border-l-border hover:bg-muted/30 hover:border-l-accent/50 dark:bg-card/50"
               )}
               onClick={() => {
                 if (segment.startTime !== undefined) {
@@ -295,7 +299,7 @@ const ModernTranscript: React.FC<{
                 }
               }}
             >
-              <div className="flex gap-4">
+              <div className="flex gap-3 lg:gap-4">
                 {/* Speaker indicator and timestamp */}
                 <div className="flex flex-col items-start gap-2 min-w-0 flex-shrink-0">
                   <div className="flex items-center gap-2">
@@ -320,10 +324,10 @@ const ModernTranscript: React.FC<{
                       }
                     }}
                     className={cn(
-                      "text-xs font-mono px-2 py-1 rounded-lg transition-all duration-300 flex items-center gap-1.5 font-medium",
+                      "text-xs font-mono px-2.5 py-1 rounded-lg transition-all duration-300 flex items-center gap-1.5 font-medium",
                       isActive 
-                        ? "bg-accent/25 text-accent border border-accent/40 shadow-md" 
-                        : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
+                        ? "bg-accent/20 text-accent border border-accent/40 shadow-sm dark:bg-accent/30" 
+                        : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-transparent"
                     )}
                   >
                     <Clock className="w-3 h-3" />
@@ -336,7 +340,7 @@ const ModernTranscript: React.FC<{
                   <p className={cn(
                     "text-sm leading-relaxed transition-all duration-300",
                     isActive 
-                      ? "text-foreground font-bold" 
+                      ? "text-foreground font-semibold" 
                       : "text-muted-foreground hover:text-foreground"
                   )}>
                     {segment.content}
@@ -460,7 +464,7 @@ export const PodcastWithTranscript: React.FC<PodcastWithTranscriptProps> = ({
   const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
   return (
-    <div className={cn("w-full h-screen bg-background", className)}>
+    <div className={cn("w-full min-h-screen bg-background", className)}>
       {/* Audio element */}
       <audio
         ref={audioRef}
@@ -473,9 +477,9 @@ export const PodcastWithTranscript: React.FC<PodcastWithTranscriptProps> = ({
         crossOrigin="anonymous"
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen gap-0">
         {/* Left Column (50%) - Full Transcript */}
-        <div className="border-r border-border bg-background">
+        <div className="border-r border-border bg-background p-4 lg:p-6">
           <ModernTranscript
             segments={segments}
             currentTime={currentTime}
@@ -487,8 +491,8 @@ export const PodcastWithTranscript: React.FC<PodcastWithTranscriptProps> = ({
         </div>
 
         {/* Right Column (50%) - Fixed Player Card at Top */}
-        <div className="bg-background p-6 lg:p-8 flex flex-col">
-          <Card className="w-full bg-card shadow-xl rounded-3xl border border-border/20 overflow-hidden sticky top-6">
+        <div className="bg-background p-4 lg:p-6 flex flex-col">
+          <Card className="w-full bg-card shadow-xl rounded-3xl border border-border/50 overflow-hidden sticky top-6">
             <CardContent className="p-6 lg:p-8">
               {/* Error display */}
               {audioError && (
@@ -509,13 +513,13 @@ export const PodcastWithTranscript: React.FC<PodcastWithTranscriptProps> = ({
                 )}
                 
                 {/* Host Tags */}
-                <div className="flex justify-center gap-2 lg:gap-3 mb-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium border border-primary/20">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                <div className="flex justify-center gap-2 lg:gap-3 mb-4 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs rounded-full font-medium border border-primary/20">
+                    <div className="w-2 h-2 bg-primary rounded-full" />
                     {podcast.host1VoiceName}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary/10 text-secondary text-xs rounded-full font-medium border border-secondary/20">
-                    <div className="w-1.5 h-1.5 bg-secondary rounded-full" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary/10 text-secondary text-xs rounded-full font-medium border border-secondary/20">
+                    <div className="w-2 h-2 bg-secondary rounded-full" />
                     {podcast.host2VoiceName}
                   </span>
                 </div>
@@ -523,7 +527,7 @@ export const PodcastWithTranscript: React.FC<PodcastWithTranscriptProps> = ({
 
               {/* Waveform */}
               <div className="mb-6">
-                <div className="bg-muted/20 rounded-2xl p-3 lg:p-4 mb-3 border border-border/10">
+                <div className="bg-muted/30 dark:bg-muted/20 rounded-2xl p-3 lg:p-4 mb-4 border border-border/30">
                   <ModernWaveform
                     duration={duration}
                     currentTime={currentTime}
@@ -532,19 +536,19 @@ export const PodcastWithTranscript: React.FC<PodcastWithTranscriptProps> = ({
                 </div>
                 
                 {/* Enhanced Time display */}
-                <div className="flex justify-between items-center">
-                  <div className="text-xs lg:text-sm font-mono text-foreground bg-background px-2 lg:px-3 py-1 lg:py-1.5 rounded-lg border border-border">
+                <div className="flex justify-between items-center gap-3">
+                  <div className="text-xs lg:text-sm font-mono text-foreground bg-muted dark:bg-muted/50 px-3 py-1.5 rounded-lg border border-border shadow-sm">
                     {formatTime(currentTime)}
                   </div>
-                  <div className="flex-1 mx-3 lg:mx-4">
-                    <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                  <div className="flex-1 mx-2 lg:mx-3">
+                    <div className="w-full bg-muted dark:bg-muted/50 rounded-full h-2 overflow-hidden shadow-inner">
                       <div 
                         className="h-full bg-accent transition-all duration-300 rounded-full"
                         style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
                       />
                     </div>
                   </div>
-                  <div className="text-xs lg:text-sm font-mono text-muted-foreground bg-muted px-2 lg:px-3 py-1 lg:py-1.5 rounded-lg">
+                  <div className="text-xs lg:text-sm font-mono text-muted-foreground bg-muted dark:bg-muted/50 px-3 py-1.5 rounded-lg shadow-sm">
                     {formatTime(duration)}
                   </div>
                 </div>
@@ -609,19 +613,19 @@ export const PodcastWithTranscript: React.FC<PodcastWithTranscriptProps> = ({
               </div>
 
               {/* Secondary Controls */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {/* Volume Control */}
-                <div className="flex items-center gap-2 lg:gap-3">
+                <div className="flex items-center gap-3">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={toggleMute}
-                    className="text-muted-foreground hover:text-foreground rounded-lg p-1.5 lg:p-2"
+                    className="text-muted-foreground hover:text-foreground rounded-lg p-2"
                   >
                     {isMuted || volume === 0 ? (
-                      <VolumeX className="h-3 w-3 lg:h-4 lg:w-4" />
+                      <VolumeX className="h-4 w-4" />
                     ) : (
-                      <Volume2 className="h-3 w-3 lg:h-4 lg:w-4" />
+                      <Volume2 className="h-4 w-4" />
                     )}
                   </Button>
                   <input
@@ -631,23 +635,23 @@ export const PodcastWithTranscript: React.FC<PodcastWithTranscriptProps> = ({
                     step="0.1"
                     value={isMuted ? 0 : volume}
                     onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                    className="flex-1 h-1.5 lg:h-2 bg-muted rounded-full appearance-none cursor-pointer slider"
+                    className="flex-1 h-2 bg-muted dark:bg-muted/50 rounded-full appearance-none cursor-pointer slider"
                   />
-                  <span className="text-xs text-muted-foreground w-6 lg:w-8 font-medium">
+                  <span className="text-xs text-muted-foreground w-10 font-medium text-right">
                     {Math.round(volume * 100)}%
                   </span>
                 </div>
 
                 {/* Speed Control */}
-                <div className="flex items-center gap-2 lg:gap-3">
-                  <span className="text-xs lg:text-sm text-muted-foreground font-medium min-w-fit">Speed:</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground font-medium min-w-fit">Speed:</span>
                   <select
                     value={playbackRate}
                     onChange={(e) => handleSpeedChange(parseFloat(e.target.value))}
-                    className="flex-1 text-xs lg:text-sm bg-muted border-0 rounded-lg px-2 lg:px-3 py-1 lg:py-1.5 text-foreground font-medium"
+                    className="flex-1 text-sm bg-muted dark:bg-muted/50 border border-border rounded-lg px-3 py-2 text-foreground font-medium cursor-pointer hover:bg-muted/80 transition-colors"
                   >
                     {speedOptions.map(speed => (
-                      <option key={speed} value={speed}>
+                      <option key={speed} value={speed} className="bg-background dark:bg-card">
                         {speed}x
                       </option>
                     ))}
