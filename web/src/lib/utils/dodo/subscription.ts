@@ -9,7 +9,12 @@ import type {
 } from './types';
 
 export class DodoSubscriptionService {
-  private static client = getDodoClient();
+  /**
+   * Get or create the Dodo client (lazy initialization)
+   */
+  private static getClient() {
+    return getDodoClient();
+  }
 
   /**
    * Create a new subscription with Dodo Payments
@@ -18,6 +23,24 @@ export class DodoSubscriptionService {
     params: CreateSubscriptionParams
   ): Promise<SubscriptionManagementResult> {
     try {
+      // Validate configuration before making the request
+      if (!DODO_CONFIG.apiKey) {
+        throw new Error('DODO_PAYMENTS_API_KEY is not configured');
+      }
+      
+      if (!DODO_CONFIG.subscriptionProductId) {
+        throw new Error('NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID is not configured');
+      }
+
+      console.log('Creating Dodo subscription with params:', {
+        email: params.userEmail,
+        productId: DODO_CONFIG.subscriptionProductId,
+        environment: DODO_CONFIG.environment,
+        hasApiKey: !!DODO_CONFIG.apiKey,
+        apiKeyLength: DODO_CONFIG.apiKey?.length,
+        apiKeyPrefix: DODO_CONFIG.apiKey?.substring(0, 15) + '...',
+      });
+
       const createRequest = {
         billing: {
           ...params.billingAddress,
@@ -31,14 +54,23 @@ export class DodoSubscriptionService {
         quantity: 1,
         payment_link: true,
         return_url: DODO_CONFIG.returnUrl,
-        trial_period_days: params.trialDays || SUBSCRIPTION_CONFIG.trialDays,
+        // Only include trial_period_days if it's greater than 0
+        ...(params.trialDays && params.trialDays > 0 ? { trial_period_days: params.trialDays } : {}),
         metadata: {
           userId: params.userId,
           ...params.metadata,
         },
       };
 
-      const response = await this.client.subscriptions.create(createRequest);
+      console.log('Dodo subscription request:', JSON.stringify(createRequest, null, 2));
+
+      const client = this.getClient();
+      const response = await client.subscriptions.create(createRequest);
+
+      console.log('Dodo subscription created successfully:', {
+        subscriptionId: response.subscription_id,
+        hasPaymentLink: !!response.payment_link,
+      });
 
       return {
         success: true,
@@ -48,6 +80,35 @@ export class DodoSubscriptionService {
       };
     } catch (error) {
       console.error('Failed to create Dodo subscription:', error);
+      
+      // Enhanced error logging for debugging
+      if (error && typeof error === 'object') {
+        const err = error as any;
+        console.error('Error details:', {
+          status: err.status,
+          headers: err.headers,
+          message: err.message,
+          stack: err.stack,
+        });
+
+        // Provide helpful error messages based on status code
+        if (err.status === 401) {
+          console.error('\n⚠️  AUTHENTICATION ERROR (401):');
+          console.error('   Your Dodo Payments API key is invalid or expired.');
+          console.error('   Please follow these steps:');
+          console.error('   1. Go to https://dashboard.dodopayments.com/');
+          console.error('   2. Navigate to Settings > API Keys');
+          console.error('   3. Generate a new API key for TEST MODE');
+          console.error('   4. Update DODO_PAYMENTS_API_KEY in your .env file');
+          console.error('   5. Restart your development server\n');
+          
+          return {
+            success: false,
+            error: 'Invalid or expired API key. Please generate a new API key from Dodo Payments dashboard.',
+          };
+        }
+      }
+
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -62,7 +123,8 @@ export class DodoSubscriptionService {
     subscriptionId: string
   ): Promise<any | null> {
     try {
-      const subscription = await this.client.subscriptions.retrieve(subscriptionId);
+      const client = this.getClient();
+      const subscription = await client.subscriptions.retrieve(subscriptionId);
       return subscription;
     } catch (error) {
       console.error('Failed to retrieve Dodo subscription:', error);
@@ -120,7 +182,8 @@ export class DodoSubscriptionService {
     pageSize?: number;
   }): Promise<any[]> {
     try {
-      const response = await this.client.subscriptions.list({
+      const client = this.getClient();
+      const response = await client.subscriptions.list({
         customer_id: params?.customerId,
         status: params?.status,
         page_size: params?.pageSize || 10,

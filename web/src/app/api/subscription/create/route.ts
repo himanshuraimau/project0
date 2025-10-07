@@ -47,9 +47,9 @@ export async function POST() {
     }
 
     // Get product ID from environment
-    const productId = process.env.DODO_PRODUCT_ID;
+    const productId = process.env.NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID;
     if (!productId) {
-      throw new Error('DODO_PRODUCT_ID not configured');
+      throw new Error('NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID not configured');
     }
 
     // Create subscription with Dodo using simple billing address
@@ -66,7 +66,7 @@ export async function POST() {
         street: 'Default Street',
         zipcode: '00000',
       },
-      trialDays: 7, // 7-day trial
+      // No trial - matches Dodo product configuration
     });
 
     if (!dodoSubscription.success || !dodoSubscription.subscriptionId) {

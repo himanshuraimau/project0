@@ -1,56 +1,57 @@
 'use client';
 
 /**
- * Client-side API for checking and managing credits
+ * Client-side API for checking subscription access
+ * (Formerly credit-based system, now subscription-based)
  * 
- * Credit System Rules:
- * - YouTube Video Upload + Transcription + Notes: 1 credit
- * - Audio Upload + Transcription + Notes: 1 credit
- * - PDF Upload + Processing + Notes: 1 credit
- * - Text-to-Notes Generation: 1 credit
- * - Course Generation: 2 credits  
- * - Flashcards, Quizzes, Transcripts: FREE (once content exists)
- * - Notes from existing content: FREE
+ * Access Control Rules:
+ * - All features require an active subscription
+ * - YouTube Video Upload + Transcription + Notes: Requires subscription
+ * - Audio Upload + Transcription + Notes: Requires subscription
+ * - PDF Upload + Processing + Notes: Requires subscription
+ * - Text-to-Notes Generation: Requires subscription
+ * - Course Generation: Requires subscription
+ * - Flashcards, Quizzes, Transcripts: Requires subscription
+ * - Notes from existing content: Requires subscription
  */
 
 /**
- * Checks if the current user has available credits
- * @param requiredCredits Number of credits required (default: 1)
- * @returns Promise resolving to true if user has enough credits, false otherwise
+ * Checks if the current user has an active subscription
+ * @param requiredCredits Ignored (kept for backward compatibility)
+ * @returns Promise resolving to true if user has subscription, false otherwise
  */
 export async function checkUserCredits(requiredCredits: number = 1): Promise<boolean> {
   try {
-    // Check user's credit balance using the existing API
-    const response = await fetch('/api/users/credits');
+    // Check subscription status instead of credits
+    const response = await fetch('/api/subscription/status');
     
     if (!response.ok) {
       return false;
     }
     
     const data = await response.json();
-    return data.success && data.credits >= requiredCredits;
+    return data.hasSubscription && data.access?.hasAccess === true;
   } catch (error) {
-    console.error('Error checking credits:', error);
-    // Default to allowing usage in case of errors
-    return true;
+    console.error('Error checking subscription:', error);
+    // Default to false - redirect to pricing
+    return false;
   }
 }
 
 /**
- * Checks if the user has available credits and redirects to credits page if not.
+ * Checks if the user has an active subscription and redirects to pricing page if not.
  * This is a client-side only function.
- * @param requiredCredits Number of credits required (default: 1)
- * @returns A promise that resolves to true if the user has enough credits, false otherwise
+ * @param requiredCredits Ignored (kept for backward compatibility)
+ * @returns A promise that resolves to true if the user has subscription, false otherwise
  */
 export async function checkCreditsAndRedirect(requiredCredits: number = 1): Promise<boolean> {
   try {
-    const hasCredits = await checkUserCredits(requiredCredits);
+    const hasAccess = await checkUserCredits(requiredCredits);
     
-    if (!hasCredits) {
-      // Redirect to credits page instead of showing alert
+    if (!hasAccess) {
+      // Redirect to pricing page instead of credits page
       if (typeof window !== 'undefined') {
-        const reason = requiredCredits > 1 ? 'insufficient_course' : 'insufficient';
-        window.location.href = `/credits?reason=${reason}&required=${requiredCredits}`;
+        window.location.href = '/pricing?reason=no-subscription';
       }
       
       return false;
@@ -58,28 +59,32 @@ export async function checkCreditsAndRedirect(requiredCredits: number = 1): Prom
     
     return true;
   } catch (error) {
-    console.error('Error checking credits:', error);
-    // If there's an error, allow the user to proceed
-    return true;
+    console.error('Error checking subscription:', error);
+    // If there's an error, redirect to pricing
+    if (typeof window !== 'undefined') {
+      window.location.href = '/pricing?reason=error';
+    }
+    return false;
   }
 }
 
 /**
- * Get current user's credit balance
- * @returns Promise resolving to credit balance number, or 0 if error
+ * Get subscription status (replaces credit balance check)
+ * @returns Promise resolving to large number if subscribed, 0 if not
  */
 export async function getCurrentCredits(): Promise<number> {
   try {
-    const response = await fetch('/api/users/credits');
+    const response = await fetch('/api/subscription/status');
     
     if (!response.ok) {
       return 0;
     }
     
     const data = await response.json();
-    return data.success ? data.credits : 0;
+    // Return high number if subscribed, 0 if not (backward compatibility)
+    return (data.hasSubscription && data.access?.hasAccess) ? 999999 : 0;
   } catch (error) {
-    console.error('Error fetching credits:', error);
+    console.error('Error fetching subscription status:', error);
     return 0;
   }
 }

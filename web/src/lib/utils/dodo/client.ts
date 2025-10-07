@@ -15,8 +15,15 @@ export function getDodoClient(): DodoPayments {
       throw new Error('DODO_PAYMENTS_API_KEY environment variable is required');
     }
 
+    console.log('Initializing Dodo client with:', {
+      environment: DODO_CONFIG.environment,
+      hasApiKey: !!DODO_CONFIG.apiKey,
+      apiKeyLength: DODO_CONFIG.apiKey?.length,
+    });
+
     dodoClientInstance = new DodoPayments({
       bearerToken: DODO_CONFIG.apiKey,
+      environment: DODO_CONFIG.environment as 'test_mode' | 'live_mode',
     });
   }
 

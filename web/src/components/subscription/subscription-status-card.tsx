@@ -3,9 +3,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
 
@@ -40,7 +38,6 @@ export function SubscriptionStatusCard() {
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     fetchSubscriptionStatus();
@@ -122,77 +119,27 @@ export function SubscriptionStatusCard() {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
+      <div className="neomorphic rounded-3xl p-8">
+        <div className="flex items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="py-8">
-          <div className="text-center text-destructive">
-            <XCircle className="mx-auto h-12 w-12 mb-2" />
-            <p>{error}</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="neomorphic rounded-3xl p-8">
+        <div className="text-center text-destructive">
+          <XCircle className="mx-auto h-12 w-12 mb-2" />
+          <p>{error}</p>
+        </div>
+      </div>
     );
   }
 
   if (!status?.hasSubscription) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>No Active Subscription</CardTitle>
-          <CardDescription>
-            Subscribe to access all features with unlimited usage
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="rounded-lg border p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-lg">Pro Plan</h3>
-                <Badge variant="default">$19.99/month</Badge>
-              </div>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  Unlimited PDF processing
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  Unlimited audio transcription
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  Unlimited YouTube processing
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  Unlimited course generation
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  Unlimited webpage processing
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  7-day free trial
-                </li>
-              </ul>
-            </div>
-            <Button onClick={handleSubscribe} className="w-full" size="lg">
-              Subscribe Now - Start Free Trial
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return null; // Don't show anything if no subscription, the pricing card handles it
   }
 
   const { subscription, access } = status;
@@ -224,20 +171,17 @@ export function SubscriptionStatusCard() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Subscription Status</CardTitle>
-          {getStatusBadge()}
-        </div>
-        <CardDescription>
-          Manage your subscription and billing
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="neomorphic rounded-3xl p-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Your Subscription</h2>
+        {getStatusBadge()}
+      </div>
+
+      <div className="space-y-6">
         {access.isTrial && access.daysRemaining !== null && (
-          <div className="rounded-lg bg-blue-50 dark:bg-blue-950 p-4 flex items-start gap-3">
-            <Clock className="h-5 w-5 text-blue-500 mt-0.5" />
+          <div className="neomorphic-inset rounded-2xl p-4 flex items-start gap-3">
+            <Clock className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-medium text-sm">Free Trial Active</p>
               <p className="text-sm text-muted-foreground">
@@ -248,47 +192,44 @@ export function SubscriptionStatusCard() {
         )}
 
         {subscription.cancelAtPeriodEnd && (
-          <div className="rounded-lg bg-yellow-50 dark:bg-yellow-950 p-4">
-            <p className="font-medium text-sm text-yellow-900 dark:text-yellow-100">
+          <div className="neomorphic-inset rounded-2xl p-4">
+            <p className="font-medium text-sm text-yellow-600 dark:text-yellow-400">
               Subscription Cancelled
             </p>
-            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+            <p className="text-sm text-muted-foreground mt-1">
               Your subscription will end on {formatDate(subscription.currentPeriodEnd)}
             </p>
           </div>
         )}
 
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
+        {/* Subscription Details */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center py-2">
             <span className="text-muted-foreground">Plan</span>
-            <span className="font-medium">Pro - $19.99/month</span>
+            <span className="font-semibold">Pro - $19.99/month</span>
           </div>
           
           {subscription.nextBillingDate && !subscription.cancelAtPeriodEnd && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Next billing date</span>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-muted-foreground">Next billing</span>
               <span className="font-medium">{formatDate(subscription.nextBillingDate)}</span>
             </div>
           )}
 
           {subscription.currentPeriodEnd && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Current period ends</span>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-muted-foreground">Period ends</span>
               <span className="font-medium">{formatDate(subscription.currentPeriodEnd)}</span>
             </div>
           )}
-
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Status</span>
-            <span className="font-medium">{subscription.displayStatus}</span>
-          </div>
         </div>
 
-        <div className="flex gap-2 pt-4">
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4">
           <Button
             onClick={handleManageSubscription}
             variant="outline"
-            className="flex-1"
+            className="flex-1 rounded-2xl neomorphic"
           >
             Manage Billing
           </Button>
@@ -297,25 +238,25 @@ export function SubscriptionStatusCard() {
             <Button
               onClick={handleCancelSubscription}
               variant="destructive"
-              className="flex-1"
+              className="flex-1 rounded-2xl"
             >
-              Cancel Subscription
+              Cancel
             </Button>
           )}
         </div>
 
         {access.hasAccess && (
-          <div className="rounded-lg bg-green-50 dark:bg-green-950 p-4 flex items-start gap-3">
-            <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
+          <div className="neomorphic-inset rounded-2xl p-4 flex items-start gap-3">
+            <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium text-sm">Full Access</p>
+              <p className="font-medium text-sm">Full Access Active</p>
               <p className="text-sm text-muted-foreground">
-                You have unlimited access to all features
+                Unlimited access to all features
               </p>
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

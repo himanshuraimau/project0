@@ -56,8 +56,7 @@ export async function POST(req: NextRequest) {
         
         console.log('User created in database:', { 
           id: newUser.id, 
-          email: newUser.email,
-          credits: newUser.creditBalance 
+          email: newUser.email
         })
         break
 
