@@ -161,8 +161,8 @@ export function ChaptersReviewStep({
         </p>
       </div>
 
-      <Card className="max-w-4xl mx-auto border-border/60 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-accent/5 to-accent/10 border-b border-border/40">
+      <div className="max-w-4xl mx-auto border-border/60 bg-card/80 rounded-3xl">
+        <CardHeader className="bg-gradient-to-r from-accent/5 to-accent/10 border-b border-border/40 rounded-3xl pt-5">
           <CardTitle className="flex items-center space-x-3">
             <div className="p-2 bg-accent/10 rounded-lg">
               <BookOpen className="w-6 h-6 text-accent" />
@@ -175,13 +175,13 @@ export function ChaptersReviewStep({
             </div>
           </CardTitle>
         </CardHeader>
-      </Card>
+      </div>
 
       {/* Hierarchical Course Structure */}
       <div className="max-w-4xl mx-auto space-y-4">
         {units.map((unit, unitIndex) => (
-          <Card key={unit.id} className="overflow-hidden border-border/40 bg-card/60 backdrop-blur-sm">
-            <CardHeader className="bg-muted/20 border-b border-border/30">
+          <Card key={unit.id} className="overflow-hidden border-border/40 bg-card/60 backdrop-blur-sm rounded-3xl">
+            <CardHeader className="bg-muted/20 border-b border-border/30 pt-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0 w-10 h-10 bg-accent/90 text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold shadow-sm">
