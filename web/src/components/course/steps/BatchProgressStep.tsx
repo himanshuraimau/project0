@@ -122,10 +122,10 @@ export function BatchProgressStep({
       </div>
 
       {/* Course Info Header */}
-      <Card className="max-w-4xl mx-auto border-border/60 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-accent/5 to-accent/10 border-b border-border/40">
+      <div className="max-w-4xl mx-auto border-border/60 bg-card/80 backdrop-blur-sm rounded-3xl">
+        <CardHeader className="bg-gradient-to-r from-accent/5 to-accent/10 border-b border-border/40 rounded-t-3xl pt-5">
           <CardTitle className="flex items-center space-x-3">
-            <div className="p-2 bg-accent/10 rounded-lg">
+            <div className="p-2 bg-accent/10 rounded-3xl">
               <BookOpen className="w-6 h-6 text-accent" />
             </div>
             <div>
@@ -136,10 +136,10 @@ export function BatchProgressStep({
             </div>
           </CardTitle>
         </CardHeader>
-      </Card>
+      </div>
 
       {/* Progress Overview */}
-      <Card className="max-w-4xl mx-auto border-border/40 bg-card/60 backdrop-blur-sm">
+      <Card className="max-w-4xl mx-auto border-border/40 bg-card/60 backdrop-blur-sm rounded-3xl">
         <CardHeader>
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-foreground">Content Generation Progress</h3>
@@ -186,24 +186,24 @@ export function BatchProgressStep({
 
       {/* Current Processing Status */}
       {batchState.isProcessing && !isCompleted && (
-        <Card className="max-w-4xl mx-auto border-border/40 bg-card">
+        <div className="max-w-4xl mx-auto">
           <CardContent className="pt-6">
             <LoadingState
               message={`Processing Batch ${currentBatchText}`}
               submessage={`Generating content for ${batchState.processingChapters.length} chapters...`}
               variant="ai"
-              className="bg-accent/5 border border-accent/20 rounded-lg"
+              className="bg-accent/5 border border-accent/20 rounded-3xl"
             />
           </CardContent>
-        </Card>
+        </div>
       )}
 
       {/* Chapters List with Status */}
-      <Card className="max-w-4xl mx-auto border-border/40 bg-card">
+      <Card className="max-w-4xl mx-auto border-border/40 bg-card rounded-3xl">
         <CardHeader>
-          <h3 className="text-lg font-semibold text-foreground">Chapter Content Status</h3>
+          <h3 className="text-lg font-semibold text-foreground pt-3 pb-2">Chapter Content Status</h3>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-5">
           <div className="divide-y divide-border/20">
             {allChapters.map((item, index) => {
               const status = getChapterStatus(item.chapter.id);
@@ -218,7 +218,7 @@ export function BatchProgressStep({
                   }`}
                 >
                   <div className="flex items-center space-x-4 flex-1">
-                    <div className="flex-shrink-0 w-12 h-8 bg-muted/50 text-foreground rounded-md flex items-center justify-center text-sm font-medium border border-border/30">
+                    <div className="flex-shrink-0 w-12 h-8 bg-muted/50 text-foreground rounded-3xl flex items-center justify-center text-sm font-medium border border-border/30">
                       {chapterNumber}
                     </div>
                     
@@ -258,7 +258,7 @@ export function BatchProgressStep({
 
       {/* Error State */}
       {errorState.hasError && (
-        <Card className="max-w-4xl mx-auto border-destructive/50">
+        <Card className="max-w-4xl mx-auto border-destructive/50 rounded-3xl">
           <CardContent className="pt-6">
             <div className="flex items-start space-x-3">
               <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
@@ -274,7 +274,7 @@ export function BatchProgressStep({
                     onClick={onRetry}
                     variant="outline" 
                     size="sm"
-                    className="border-destructive text-destructive hover:bg-destructive/10"
+                    className="border-destructive text-destructive hover:bg-destructive/10 rounded-3xl"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Retry Current Batch
@@ -288,10 +288,10 @@ export function BatchProgressStep({
 
       {/* Completion State */}
       {isCompleted && (
-        <Card className="max-w-4xl mx-auto border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 backdrop-blur-sm">
+        <Card className="max-w-4xl mx-auto border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 backdrop-blur-sm rounded-3xl">
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
-              <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto">
+              <div className="p-3 bg-primary/10 rounded-3xl w-fit mx-auto">
                 <CheckCircle className="w-12 h-12 text-primary" />
               </div>
               <div>
@@ -305,7 +305,7 @@ export function BatchProgressStep({
               </div>
               <Button 
                 onClick={onComplete}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 rounded-3xl"
                 size="lg"
               >
                 Go to Course
