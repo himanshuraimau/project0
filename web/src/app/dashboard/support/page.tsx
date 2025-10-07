@@ -110,7 +110,7 @@ export default async function SupportPage() {
                 How can I organize my notes?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                You can create custom folders, use tags, and search through your notes. 
+                You can search through your notes to quickly find what you need. 
                 Our AI also automatically categorizes notes to help you find them later.
               </AccordionContent>
             </AccordionItem>

@@ -53,6 +53,9 @@ import {
   $getRoot,
   FORMAT_ELEMENT_COMMAND,
   EditorState,
+  TextNode,
+  $createTextNode,
+  $isTextNode,
 } from "lexical";
 import { $convertToMarkdownString } from "@lexical/markdown";
 import {
@@ -262,6 +265,49 @@ function ToolbarPlugin({
     editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
   };
 
+  const applyFontFamily = (fontClass: string) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        const nodes = selection.getNodes();
+        const fontFamily = FONT_OPTIONS.find(f => f.value === fontClass)?.family || 'serif';
+        
+        nodes.forEach((node) => {
+          if ($isTextNode(node)) {
+            const writableNode = node.getWritable();
+            const currentStyle = writableNode.getStyle() || '';
+            // Remove existing font-family
+            const styleWithoutFont = currentStyle.replace(/font-family:[^;]+;?/g, '').trim();
+            const newStyle = styleWithoutFont ? `${styleWithoutFont}; font-family: ${fontFamily};` : `font-family: ${fontFamily};`;
+            writableNode.setStyle(newStyle);
+          }
+        });
+      }
+    });
+    setSelectedFont(fontClass);
+  };
+
+  const applyFontSize = (size: string) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        const nodes = selection.getNodes();
+        
+        nodes.forEach((node) => {
+          if ($isTextNode(node)) {
+            const writableNode = node.getWritable();
+            const currentStyle = writableNode.getStyle() || '';
+            // Remove existing font-size
+            const styleWithoutSize = currentStyle.replace(/font-size:[^;]+;?/g, '').trim();
+            const newStyle = styleWithoutSize ? `${styleWithoutSize}; font-size: ${size}px;` : `font-size: ${size}px;`;
+            writableNode.setStyle(newStyle);
+          }
+        });
+      }
+    });
+    setFontSize(size);
+  };
+
   const downloadAsPDF = useCallback(() => {
     editor.getEditorState().read(() => {
       const root = $getRoot();
@@ -314,7 +360,8 @@ function ToolbarPlugin({
     const sizes = FONT_SIZE_OPTIONS.map((s) => Number.parseInt(s.value));
     const currentIndex = sizes.indexOf(currentSize);
     if (currentIndex < sizes.length - 1) {
-      setFontSize(sizes[currentIndex + 1].toString());
+      const newSize = sizes[currentIndex + 1].toString();
+      applyFontSize(newSize);
     }
   };
 
@@ -323,7 +370,8 @@ function ToolbarPlugin({
     const sizes = FONT_SIZE_OPTIONS.map((s) => Number.parseInt(s.value));
     const currentIndex = sizes.indexOf(currentSize);
     if (currentIndex > 0) {
-      setFontSize(sizes[currentIndex - 1].toString());
+      const newSize = sizes[currentIndex - 1].toString();
+      applyFontSize(newSize);
     }
   };
 
@@ -341,7 +389,7 @@ function ToolbarPlugin({
             {FONT_OPTIONS.map((font) => (
               <DropdownMenuItem
                 key={font.value}
-                onClick={() => setSelectedFont(font.value)}
+                onClick={() => applyFontFamily(font.value)}
               >
                 <span className={font.value}>{font.label}</span>
               </DropdownMenuItem>
@@ -368,7 +416,7 @@ function ToolbarPlugin({
               {FONT_SIZE_OPTIONS.map((size) => (
                 <DropdownMenuItem
                   key={size.value}
-                  onClick={() => setFontSize(size.value)}
+                  onClick={() => applyFontSize(size.value)}
                 >
                   {size.label}
                 </DropdownMenuItem>
@@ -587,8 +635,7 @@ export function LexicalViewer({
           <RichTextPlugin
             contentEditable={
               <ContentEditable
-                className={`p-6 outline-none ${selectedFont} ${contentClassName}`}
-                style={{ fontSize: `${fontSize}px` }}
+                className={`p-6 outline-none ${contentClassName}`}
               />
             }
             placeholder={null}
