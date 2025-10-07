@@ -83,12 +83,13 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const isCoursePage = pathname.includes("/course/") && !pathname.includes("/create/");
+  const isNotesPage = pathname.includes("/notes/");
 
   return (
     <div className="min-h-screen bg-background">
       <DashboardRefreshProvider>
-        {/* Navbar at the top - only for non-course pages */}
-        {!isCoursePage && (
+        {/* Navbar at the top - only for non-course pages and non-notes pages */}
+        {!isCoursePage && !isNotesPage && (
           <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
             <Navbar
               title={
@@ -102,13 +103,13 @@ export default function DashboardLayout({
           </div>
         )}
 
-        {/* For course pages, let the course layout handle everything */}
-        {isCoursePage ? (
+        {/* For course pages or notes pages, let them handle their own layout */}
+        {isCoursePage || isNotesPage ? (
           children
         ) : (
           <SidebarProvider defaultOpen={true}>
             <div className="flex min-h-[calc(100vh-64px)]">
-              {/* Sidebar on the left - only for non-course pages */}
+              {/* Sidebar on the left - only for dashboard pages (not course or notes pages) */}
               <AppSidebar />
 
               {/* Main content area */}

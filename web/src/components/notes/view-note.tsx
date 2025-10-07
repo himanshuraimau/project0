@@ -24,12 +24,14 @@ import {
   Minimize2,
   Maximize2,
   Save,
-  X
+  X,
+  CheckCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { MDXRenderer } from "@/components/mdx-renderer";
 import { LexicalViewer } from "@/components/shared/LexicalViewer";
 import { useNotes } from "@/hooks/use-notes";
+import { useNoteProgressContext } from "@/contexts/note-progress-context";
 import dynamic from "next/dynamic";
 
 const DynamicInlineChatbot = dynamic(
@@ -54,6 +56,12 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   const [editedTitle, setEditedTitle] = useState(note.title || "");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const { updateNote } = useNotes();
+  const {
+    progress: noteProgress,
+    loading: progressLoading,
+    updating: progressUpdating,
+    toggleCompletion,
+  } = useNoteProgressContext();
 
   const handleSaveNote = async () => {
     if (!hasUnsavedChanges || isSaving) return;
@@ -367,6 +375,49 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
               )}
             </div>
           </CardContent>
+
+          {/* Completion Section */}
+          {!isEditMode && (
+            <CardContent className="p-8 pt-4">
+              <div className="border-t border-border pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-lg">
+                      {noteProgress.isCompleted
+                        ? "Note Completed!"
+                        : "Ready to mark as complete?"}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {noteProgress.isCompleted
+                        ? `Completed ${noteProgress.completedAt ? new Date(noteProgress.completedAt).toLocaleDateString() : ''}`
+                        : "Track your progress by marking this note as completed."}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={toggleCompletion}
+                    disabled={progressUpdating || progressLoading}
+                    variant={noteProgress.isCompleted ? "outline" : "default"}
+                    size="lg"
+                    className={noteProgress.isCompleted 
+                      ? "border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-950" 
+                      : "bg-green-600 text-white hover:bg-green-700"
+                    }
+                  >
+                    {progressUpdating ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                    ) : noteProgress.isCompleted ? (
+                      <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                    )}
+                    {noteProgress.isCompleted
+                      ? "Undo Complete"
+                      : "Mark Complete"}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          )}
         </Card>
           </div>
 

@@ -142,10 +142,10 @@ export async function getQuestionsFromTranscript(
     const questionSchema = z.object({
       questions: z.array(z.object({
         question: z.string().describe("A challenging multiple choice question"),
-        answer: z.string().max(60).describe("The correct answer (max 15 words)"),
-        option1: z.string().max(60).describe("First incorrect option (max 15 words)"),
-        option2: z.string().max(60).describe("Second incorrect option (max 15 words)"),
-        option3: z.string().max(60).describe("Third incorrect option (max 15 words)")
+        answer: z.string().max(50).describe("The correct answer (max 50 characters)"),
+        option1: z.string().max(50).describe("First incorrect option (max 50 characters)"),
+        option2: z.string().max(50).describe("Second incorrect option (max 50 characters)"),
+        option3: z.string().max(50).describe("Third incorrect option (max 50 characters)")
       })).length(3)
     });
 
@@ -160,7 +160,7 @@ QUESTION CRAFTING RULES:
 - Make questions challenging but fair - test understanding, not just memorization
 - Focus on "why" and "how" rather than just "what"
 - All answer options should be plausible to make students think
-- Keep answers snappy and under 15 words each
+- Keep answers concise and under 50 characters each
 - Cover the most important concepts from the transcript
 - Make questions engaging and relevant to real-world scenarios
 
@@ -169,6 +169,7 @@ STYLE GUIDELINES:
 - Ensure one option is clearly correct when you understand the material
 - Make incorrect options believable but definitely wrong
 - Focus on practical application and conceptual understanding
+- Keep all options SHORT and CONCISE (under 50 characters)
 
 Based on this transcript about "${course_title}":
 
@@ -184,9 +185,9 @@ Create questions that would make a great teacher proud.`,
     return [
       {
         question: `What is the main topic discussed in this ${course_title} content?`,
-        answer: "The core concepts and principles",
+        answer: "Core concepts and principles",
         option1: "Advanced theoretical frameworks",
-        option2: "Historical background information",
+        option2: "Historical background info",
         option3: "Future predictions and trends"
       },
       {
