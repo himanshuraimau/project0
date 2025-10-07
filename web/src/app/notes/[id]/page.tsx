@@ -377,7 +377,7 @@ export default function NoteViewPage() {
                         </div>
                         <div>
                           <h2 className="text-2xl font-semibold text-foreground">Transcript</h2>
-                          <p className="text-sm text-muted-foreground">Audio transcript from your uploaded content</p>
+                          <p className="text-sm text-muted-foreground">Transcript from your uploaded content</p>
                         </div>
                       </div>
                     </CardHeader>
@@ -425,7 +425,7 @@ export default function NoteViewPage() {
               {currentView === "quiz" && <QuizGenerator noteId={noteId} />}
 
               {currentView === "chat" && (
-                <Card className="border-0 overflow-hidden h-[90vh] flex flex-col bg-transparent">
+                <Card className="overflow-hidden h-[80vh] ml-10 mt-8 flex flex-col bg-transparent border border-black/20 dark:border-white/20 rounded-3xl shadow-lg">
                   <CardHeader className="p-5 border-b border-stone-100 dark:border-stone-900 bg-muted/5">
                     <div className="flex items-center gap-4">
                       <CardTitle className="font-normal">
