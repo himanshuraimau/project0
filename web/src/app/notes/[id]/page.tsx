@@ -305,8 +305,8 @@ export default function NoteViewPage() {
                 This action cannot be undone. This will permanently delete this
                 note and all associated content.
               </p>
-              <Card className="bg-amber-50 border-amber-200 mt-2">
-                <CardContent className="p-3 text-sm text-amber-800">
+              <Card className="border-red-800 mt-2" style={{ backgroundColor: '#0A0B0D' }}>
+                <CardContent className="p-3 text-sm text-red-200">
                   <p className="flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-amber-600" />
                     <span>
