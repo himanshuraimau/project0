@@ -136,7 +136,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
   if (initialLoading) {
     return (
       <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-background px-6">
-        <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-lg w-full">
+        <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
           <div className="flex flex-col items-center gap-8">
             {/* Neomorphic Animated Icon */}
             <div className="relative">
@@ -166,7 +166,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
   if (podcast && podcast.generationStatus === 'generating') {
     return (
       <div className="h-screen flex items-center justify-center px-6">
-        <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-lg w-full">
+        <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
           <div className="text-center space-y-8">
             {/* Neomorphic Icon with Animation */}
             <div className="neomorphic-icon w-20 h-20 rounded-2xl flex items-center justify-center mx-auto">
@@ -190,7 +190,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
   if (podcast && podcast.generationStatus === 'failed') {
     return (
       <div className="h-screen flex items-center justify-center px-6">
-        <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-lg w-full">
+        <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
           <div className="text-center space-y-6">
             <div className="neomorphic-icon w-16 h-16 rounded-2xl flex items-center justify-center mx-auto bg-red-50 dark:bg-red-950/20">
               <span className="text-3xl">⚠️</span>
@@ -395,12 +395,12 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
               <Button
                 onClick={() => setShowPodcastConfig(true)}
                 disabled={loading}
-                className="neomorphic border-0 bg-background hover:bg-background text-foreground shadow-none px-8 py-4 h-auto rounded-2xl transition-all duration-300 group"
+                className="neomorphic border-0 bg-background hover:bg-background text-foreground shadow-none px-16 py-6 h-auto rounded-2xl transition-all duration-300 group w-full max-w-xl"
               >
                 <div className="neomorphic-icon w-10 h-10 rounded-xl flex items-center justify-center mr-4 group-hover:scale-105 transition-transform duration-300">
                   <Brain className="h-5 w-5 text-primary" />
                 </div>
-                <span className="text-lg font-medium">
+                <span className="text-xl font-medium">
                   {loading ? "Generating..." : "Generate Podcast"}
                 </span>
               </Button>

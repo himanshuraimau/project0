@@ -131,25 +131,27 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
   // Show loading state while checking for existing quiz
   if (initialLoading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-6">
-          {/* Animated Icon */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-            <div className="relative bg-card border border-border rounded-full p-8 shadow-lg">
-              <FileQuestion className="h-12 w-12 text-primary animate-pulse" />
+      <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-background px-6">
+        <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
+          <div className="flex flex-col items-center gap-8">
+            {/* Neomorphic Animated Icon */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+              <div className="relative neomorphic-icon w-20 h-20 rounded-2xl flex items-center justify-center">
+                <FileQuestion className="h-10 w-10 text-primary animate-pulse" />
+              </div>
             </div>
-          </div>
 
-          {/* Loading Text */}
-          <div className="text-center space-y-2">
-            <h3 className="text-lg font-semibold text-foreground">Loading Quiz</h3>
-            <p className="text-sm text-muted-foreground">Checking for existing content...</p>
-          </div>
+            {/* Loading Text */}
+            <div className="text-center space-y-3">
+              <h3 className="text-2xl font-semibold text-foreground">Loading Quiz</h3>
+              <p className="text-muted-foreground leading-relaxed">Checking for existing content...</p>
+            </div>
 
-          {/* Loading Bar */}
-          <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-primary rounded-full animate-loading-bar" />
+            {/* Neomorphic Loading Bar */}
+            <div className="w-64 h-2 neomorphic rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full animate-loading-bar" />
+            </div>
           </div>
         </div>
       </div>
@@ -207,39 +209,54 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
 
   // Show generation UI
   return (
-    <div className="h-[92vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D]">
-      <Card className="bg-transparent border-none">
-        <CardContent className="flex flex-col items-center justify-center py-8">
-          <h3 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
-            Generate Quiz
-          </h3>
-          <p className="text-stone-600 dark:text-stone-400 text-base text-center mb-6 max-w-md">
-            Create an interactive quiz from your notes to test your
-            understanding and reinforce key concepts.
-          </p>
+    <div className="h-[92vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6">
+      <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
+        <div className="flex flex-col items-center gap-8">
+          {/* Neomorphic Icon */}
+          <div className="neomorphic-icon w-20 h-20 rounded-2xl flex items-center justify-center">
+            <FileQuestion className="h-10 w-10 text-primary" />
+          </div>
+
+          {/* Content */}
+          <div className="text-center space-y-3">
+            <h3 className="text-2xl font-semibold text-foreground">Generate Quiz</h3>
+            <p className="text-muted-foreground leading-relaxed max-w-md">
+              Create an interactive quiz from your notes to test your
+              understanding and reinforce key concepts.
+            </p>
+          </div>
 
           {error && (
-            <div className="text-red-600 text-base mb-4 text-center">{error}</div>
+            <div className="neomorphic rounded-xl p-4 bg-red-50 dark:bg-red-950/20 border-0 w-full">
+              <p className="text-red-600 text-sm text-center">{error}</p>
+            </div>
           )}
 
+          {/* Generate Button */}
           <Button
             onClick={generateQuiz}
             disabled={loading}
-            className="flex items-center gap-2 bg-accent hover:bg-accent/90 cursor-pointer text-accent-foreground text-base px-6 py-3 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
+            className="neomorphic border-0 bg-background hover:bg-background text-foreground shadow-none px-8 py-6 h-auto rounded-xl transition-all duration-300 w-full"
           >
-            {loading ? "Generating Quiz..." : "Generate Quiz"}
+            <div className="neomorphic-icon w-10 h-10 rounded-lg flex items-center justify-center mr-3">
+              <FileQuestion className="h-5 w-5 text-primary" />
+            </div>
+            <span className="font-medium text-lg">
+              {loading ? "Generating Quiz..." : "Generate Quiz"}
+            </span>
           </Button>
 
           {loading && (
-            <div className="mt-4">
+            <div className="w-full">
               <LoadingState
-                message="Generating..."
+                message="Generating Quiz"
                 submessage="Creating quiz questions and answers based on your notes"
+                variant="ai"
               />
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
