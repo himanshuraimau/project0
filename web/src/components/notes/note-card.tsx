@@ -45,7 +45,7 @@ export function NoteCard({ note }: NoteCardProps) {
 
   return (
     <div 
-      className="w-full bg-white hover:bg-muted/50 dark:bg-background dark:hover:bg-muted/50 border border-border hover:border-border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer rounded-2xl"
+      className="neomorphic w-full border-0 cursor-pointer rounded-2xl transition-all duration-300"
       onClick={handleCardClick}
     >
       <CardContent className="p-6">
@@ -78,8 +78,8 @@ export function NoteCard({ note }: NoteCardProps) {
           </div>
 
           {/* Right section - Chevron Button */}
-          <div className="flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 hover:bg-muted/50 group">
-            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
+          <div className="neomorphic-icon flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300">
+            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
           </div>
         </div>
       </CardContent>
