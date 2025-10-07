@@ -175,7 +175,7 @@ export function QuizGenerator({ noteId }: QuizGeneratorProps) {
 
   // Show generation UI
   return (
-    <div className="h-[92vh] flex items-center justify-center bg-transparent">
+    <div className="h-[92vh] flex items-center justify-center bg-[#0A0B0D]">
       <Card className="bg-transparent border-none">
         <CardContent className="flex flex-col items-center justify-center py-8">
           <h3 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
