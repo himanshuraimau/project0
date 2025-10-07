@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { MessageCircle, Send, Copy, X, Loader2, Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MarkdownRenderer } from '@/components/mdx-renderer';
 
 type MessageRole = 'user' | 'assistant' | 'system';
 
@@ -240,7 +241,13 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
                     : "bg-muted border-0"
                 )}>
                   <div className="space-y-2">
-                    <div>{message.text}</div>
+                    {message.role === 'assistant' ? (
+                      <div className="prose max-w-none text-sm leading-relaxed">
+                        <MarkdownRenderer content={message.text} />
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap text-sm">{message.text}</div>
+                    )}
                     {message.role === 'assistant' && message.text && (
                       <div className="flex justify-end">
                         <Button
