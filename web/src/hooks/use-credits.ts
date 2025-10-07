@@ -5,29 +5,43 @@ import { useRouter } from 'next/navigation'
 
 interface UseCreditResult {
   success: boolean
-  creditsRemaining?: number
-  creditsDeducted?: number
+  hasAccess?: boolean
   error?: string
 }
 
+/**
+ * Hook for checking subscription access (formerly credits)
+ * Now checks subscription status instead of credit balance
+ */
 export function useCredits() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
+  /**
+   * Check if user has active subscription
+   * @deprecated Use useSubscription hook instead
+   */
   const checkCredits = useCallback(async (): Promise<number> => {
     try {
-      const response = await fetch('/api/users/credits')
+      const response = await fetch('/api/subscription/status')
       if (!response.ok) {
-        throw new Error('Failed to fetch credits')
+        throw new Error('Failed to fetch subscription status')
       }
       const data = await response.json()
-      return data.credits
+      
+      // Return a high number if user has subscription, 0 if not
+      // This maintains backward compatibility with credit-checking code
+      return data.access?.hasAccess ? 999999 : 0
     } catch (error) {
-      console.error('Error checking credits:', error)
-      throw error
+      console.error('Error checking subscription:', error)
+      return 0 // No access on error
     }
   }, [])
 
+  /**
+   * Check if user has subscription access (replaces credit deduction)
+   * @deprecated Use useSubscription hook instead
+   */
   const useCredits = useCallback(async (
     action: string, 
     credits: number = 1, 
@@ -35,63 +49,64 @@ export function useCredits() {
   ): Promise<UseCreditResult> => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/users/credits', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action,
-          credits,
-          resourceId
-        })
-      })
+      const response = await fetch('/api/subscription/status')
+
+      if (!response.ok) {
+        throw new Error('Failed to check subscription status')
+      }
 
       const data = await response.json()
 
-      if (!response.ok) {
-        if (response.status === 402) {
-          // Insufficient credits - redirect to credits page
-          router.push('/credits?reason=insufficient')
-          return {
-            success: false,
-            error: 'Insufficient credits'
-          }
+      // Check if user has access
+      if (!data.access?.hasAccess) {
+        // No subscription - redirect to pricing
+        router.push('/pricing?reason=no-subscription')
+        return {
+          success: false,
+          hasAccess: false,
+          error: 'Active subscription required'
         }
-        throw new Error(data.error || 'Failed to use credits')
       }
 
+      // User has access
       return {
         success: true,
-        creditsRemaining: data.creditsRemaining,
-        creditsDeducted: data.creditsDeducted
+        hasAccess: true
       }
     } catch (error) {
-      console.error('Error using credits:', error)
+      console.error('Error checking subscription:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to process credit usage'
+        hasAccess: false,
+        error: error instanceof Error ? error.message : 'Failed to check subscription'
       }
     } finally {
       setIsLoading(false)
     }
   }, [router])
 
+  /**
+   * Check subscription and proceed if active
+   * @deprecated Use useSubscription hook instead
+   */
   const checkAndProceed = useCallback(async (
     requiredCredits: number = 1,
     onProceed: () => Promise<void> | void
   ): Promise<void> => {
     try {
-      const currentCredits = await checkCredits()
+      const hasAccess = await checkCredits()
       
-      if (currentCredits < requiredCredits) {
-        router.push(`/credits?reason=insufficient&required=${requiredCredits}`)
+      if (hasAccess === 0) {
+        // No subscription - redirect to pricing
+        router.push('/pricing?reason=no-subscription')
         return
       }
 
+      // User has subscription, proceed
       await onProceed()
     } catch (error) {
-      console.error('Error in credit check and proceed:', error)
+      console.error('Error in subscription check and proceed:', error)
+      router.push('/pricing?reason=error')
     }
   }, [checkCredits, router])
 

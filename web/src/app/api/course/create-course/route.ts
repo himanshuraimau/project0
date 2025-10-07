@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { saveCourseStructure } from "@/lib/course/ai-course-service";
 import type { CreateCourseRequest, CreateCourseResponse } from "@/lib/types/course.types";
 import { ApiValidationSchemas, validateContentSafety, isValidUserId } from "@/lib/utils/validation";
-import { UserService } from "@/lib/user-service";
+import { FeatureGateService } from "@/lib/feature-gate-service";
 import { z } from "zod";
 import { 
   createSuccessResponse, 
@@ -61,10 +61,14 @@ export async function POST(request: NextRequest) {
     const unitNames = units.map(unit => unit.name);
     CourseValidation.units(unitNames);
 
-    // Check if user has enough credits (2 credits for course generation)
-    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 2);
-    if (!hasEnoughCredits) {
-      throw createAppError(AppErrorType.INSUFFICIENT_CREDITS);
+    // Check subscription access
+    const accessCheck = await FeatureGateService.checkAccessForAPI();
+    if (!accessCheck.allowed) {
+      throw createAppError(
+        AppErrorType.INSUFFICIENT_CREDITS,
+        {},
+        accessCheck.message || 'Active subscription required for course generation'
+      );
     }
 
     // Content safety validation for title
@@ -145,19 +149,8 @@ export async function POST(request: NextRequest) {
 
     const courseId = courseResult.courseId;
 
-    // Deduct 2 credits for course generation
-    try {
-      await UserService.deductCredits('course_generation', 2, courseId);
-    } catch (error) {
-      // If credit deduction fails, we should log the error but not fail the request
-      // since the course was already created
-      console.error("Failed to deduct credits after course creation:", error);
-      throw createAppError(
-        AppErrorType.CREDIT_DEDUCTION_FAILED,
-        { courseId, userId, error: error instanceof Error ? error.message : String(error) },
-        "Course created successfully but failed to deduct credits. Please contact support."
-      );
-    }
+    // No credit deduction needed - subscription system handles access
+    // Course created successfully
 
     // Return successful response with chapter information
     const response: CreateCourseResponse = {

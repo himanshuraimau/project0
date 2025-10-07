@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
-import { UserService } from '@/lib/user-service';
+import { FeatureGateService } from '@/lib/feature-gate-service';
 import { NoteService } from '@/lib/note-service';
 
 const openai = new OpenAI({
@@ -50,12 +50,15 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check if user has enough credits (1 credit for audio transcription + notes)
-    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
-    if (!hasEnoughCredits) {
+    // Check subscription access
+    const accessCheck = await FeatureGateService.checkAccessForAPI();
+    if (!accessCheck.allowed) {
       return NextResponse.json(
-        { error: 'Insufficient credits. You need 1 credit to process audio files and generate notes.' },
-        { status: 402 }
+        { 
+          error: accessCheck.message,
+          upgradeUrl: '/dashboard',
+        },
+        { status: accessCheck.statusCode }
       );
     }
 
@@ -130,9 +133,8 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // Deduct 1 credit for audio transcription + notes generation
-    await UserService.deductCredits('audio_transcription', 1, transcriptRecord.id);
-
+    // No credit deduction needed - subscription system handles access
+    
     // Initialize NoteService
     const noteService = new NoteService();
     let noteResult = null;

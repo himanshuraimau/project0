@@ -401,6 +401,22 @@
       inset -4px -4px 8px rgba(255, 255, 255, 0.03);
   }
 
+  /* Neomorphic Inset (Pressed) Style */
+  .neomorphic-inset {
+    background: hsl(var(--background));
+    box-shadow: 
+      inset 4px 4px 8px rgba(0, 0, 0, 0.15),
+      inset -4px -4px 8px rgba(255, 255, 255, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark .neomorphic-inset {
+    background: hsl(var(--background));
+    box-shadow: 
+      inset 4px 4px 8px rgba(0, 0, 0, 0.4),
+      inset -4px -4px 8px rgba(255, 255, 255, 0.03);
+  }
+
   /* Neomorphic Icon Container */
   .neomorphic-icon {
     background: hsl(var(--background));

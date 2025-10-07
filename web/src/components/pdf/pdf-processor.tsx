@@ -46,8 +46,8 @@ export function PDFProcessor({ onProcessComplete }: PDFProcessorProps) {
       }
     } catch (error) {
       if (error instanceof Error && error.message === 'INSUFFICIENT_CREDITS') {
-        // Redirect to credits page
-        router.push('/credits?reason=insufficient');
+        // Redirect to pricing page
+        router.push('/pricing?reason=no-subscription');
         return;
       }
       // Other errors will be shown in the error state of the component
