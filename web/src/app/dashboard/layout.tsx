@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/AppSidebar";
 import CourseSideBar from "@/components/course/CourseSideBar";
@@ -90,7 +90,9 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-background">
       <DashboardRefreshProvider>
         {/* Payment Success Handler - shows loading while webhook processes */}
-        <PaymentSuccessHandler />
+        <Suspense fallback={null}>
+          <PaymentSuccessHandler />
+        </Suspense>
 
         {/* Navbar at the top - only for non-course pages and non-notes pages */}
         {!isCoursePage && !isNotesPage && (
