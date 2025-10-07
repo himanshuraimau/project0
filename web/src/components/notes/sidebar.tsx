@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/sidebar";
 import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { useNoteProgressContext } from "@/contexts/note-progress-context";
 
 const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600"],
@@ -86,12 +85,6 @@ export function NotesSidebar({
   const { state, toggleSidebar } = useSidebar();
   const router = useRouter();
   const isCollapsed = state === "collapsed";
-  
-  // Always call the hook
-  const progressContext = useNoteProgressContext();
-  const noteProgress = progressContext.progress;
-  const progressUpdating = progressContext.updating;
-  const toggleCompletion = progressContext.toggleCompletion;
 
   const menuItems = [
     {
@@ -180,23 +173,6 @@ export function NotesSidebar({
           isCollapsed ? "px-2 flex flex-col items-center" : "px-3"
         )}
       >
-        {/* Progress indicator */}
-        {noteId && !isCollapsed && (
-          <div className="px-3 py-2 mb-2">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <CheckCircle 
-                className={cn(
-                  "h-3 w-3",
-                  noteProgress.isCompleted ? "text-green-500" : "text-muted-foreground"
-                )}
-              />
-              <span>
-                {noteProgress.isCompleted ? "Completed" : "In Progress"}
-              </span>
-            </div>
-          </div>
-        )}
-
         <SidebarGroup
           className={isCollapsed ? "w-full flex flex-col items-center" : ""}
         >
@@ -285,62 +261,6 @@ export function NotesSidebar({
                   </SidebarMenuItem>
                 );
               })}
-
-              {/* Separator */}
-              <div className={`my-2.5`} />
-
-              {/* Completion button */}
-              {noteId && (
-                <SidebarMenuItem
-                  className={isCollapsed ? "flex justify-center w-full" : ""}
-                >
-                  <SidebarMenuButton
-                    onClick={toggleCompletion}
-                    disabled={progressUpdating}
-                    className={cn(
-                      "flex items-center rounded-xl cursor-pointer group relative overflow-hidden border-none dark:hover:bg-[#0a0b0d]",
-                      isCollapsed
-                        ? "w-14 h-14 justify-center"
-                        : "w-full px-4 py-6",
-                      noteProgress.isCompleted
-                        ? "text-green-600 hover:text-green-500"
-                        : "text-primary hover:text-primary/80"
-                    )}
-                    title={isCollapsed ? (noteProgress.isCompleted ? "Undo Complete" : "Mark Complete") : undefined}
-                  >
-                    <div
-                      className={cn(
-                        "flex items-center w-full",
-                        isCollapsed ? "justify-center" : "gap-3"
-                      )}
-                    >
-                      {progressUpdating ? (
-                        <Loader2 className="size-7 animate-spin flex-shrink-0" />
-                      ) : (
-                        <CheckCircle 
-                          className={cn(
-                            "size-7 flex-shrink-0",
-                            noteProgress.isCompleted && "text-green-500"
-                          )} 
-                        />
-                      )}
-                      {!isCollapsed && (
-                        <div className="flex flex-col items-start flex-1">
-                          <span
-                            className={cn(
-                              "text-lg font-medium leading-tight",
-                              jakarta.className,
-                              progressUpdating ? "opacity-70" : ""
-                            )}
-                          >
-                            {noteProgress.isCompleted ? "Undo Complete" : "Mark Complete"}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
 
               {/* Separator */}
               <div className={`my-2.5`} />
