@@ -177,7 +177,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
 
         {showPodcastConfig && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-hidden">
-            <div className="bg-white dark:bg-gray-900 rounded-lg max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative">
+            <div className="bg-white dark:bg-[#0A0B0D] rounded-lg max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative">
               <button
                 onClick={() => setShowPodcastConfig(false)}
                 className="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
@@ -243,7 +243,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
       {/* Podcast Configuration Popup */}
       {showPodcastConfig && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-hidden">
-          <div className="bg-white dark:bg-gray-900 rounded-lg max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative">
+          <div className="bg-white dark:bg-[#0A0B0D] rounded-lg max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative">
             <button
               onClick={() => setShowPodcastConfig(false)}
               className="absolute top-2 right-4 z-10 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
