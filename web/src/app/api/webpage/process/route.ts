@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { WebpageCrawlerService } from '@/lib/webpage-crawler-service';
 import { NoteService } from '@/lib/note-service';
-import { UserService } from '@/lib/user-service';
+import { FeatureGateService } from '@/lib/feature-gate-service';
 import { auth } from '@clerk/nextjs/server';
 
 const webpageCrawlerService = new WebpageCrawlerService();
@@ -38,15 +38,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user has enough credits (1 credit for webpage processing)
-    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
-    if (!hasEnoughCredits) {
+    // Check subscription access
+    const accessCheck = await FeatureGateService.checkAccessForAPI();
+    if (!accessCheck.allowed) {
       return NextResponse.json(
         { 
-          error: 'Insufficient credits. You need 1 credit to process a webpage and generate notes.',
-          code: 'INSUFFICIENT_CREDITS'
+          error: accessCheck.message || 'Active subscription required',
+          code: 'SUBSCRIPTION_REQUIRED',
+          upgradeUrl: '/dashboard',
         },
-        { status: 402 }
+        { status: accessCheck.statusCode }
       );
     }
 
@@ -55,8 +56,7 @@ export async function POST(request: NextRequest) {
     // Step 1: Crawl the webpage and save as transcript
     const crawlResult = await webpageCrawlerService.crawlWebpage(url, userId);
 
-    // Deduct 1 credit for webpage processing
-    await UserService.deductCredits('webpage_processing', 1, crawlResult.documentId);
+    // No credit deduction needed - subscription system handles access
 
     console.log(`Successfully crawled webpage and created transcript: ${crawlResult.documentId}`);
 

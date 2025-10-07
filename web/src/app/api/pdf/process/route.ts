@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PDFParser } from '@/lib/pdf-parser';
 import { NoteService } from '@/lib/note-service';
-import { UserService } from '@/lib/user-service';
+import { FeatureGateService } from '@/lib/feature-gate-service';
 import { join } from 'path';
 import { auth } from '@clerk/nextjs/server';
 
@@ -79,16 +79,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user has enough credits (1 credit for PDF processing)
-    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
-    if (!hasEnoughCredits) {
+    // Check subscription access using FeatureGateService
+    const accessCheck = await FeatureGateService.checkAccessForAPI();
+    if (!accessCheck.allowed) {
       return NextResponse.json(
         { 
           success: false,
-          error: 'Insufficient credits',
-          message: 'You need 1 credit to process a PDF. Please purchase more credits to continue.'
+          error: accessCheck.error,
+          message: accessCheck.message,
+          upgradeUrl: '/dashboard', // Redirect to dashboard to subscribe
         },
-        { status: 402 }
+        { status: accessCheck.statusCode }
       );
     }
 
@@ -169,12 +170,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Only deduct credits after successful parsing
-    try {
-      await UserService.deductCredits(userId, 1);
-    } catch (creditError) {
-      console.error('Failed to deduct credits:', creditError);
-      // Continue processing even if credit deduction fails (we'll handle this separately)
-    }
+    // Note: With subscription system, no credit deduction needed
+    // Access is controlled by active subscription status
 
     let noteResult = null;
 

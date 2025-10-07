@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { TranscriptService } from '@/lib/transcript-service';
 import { auth } from '@clerk/nextjs/server';
 import { ApiResponse, ApiSuccessResponse, ApiErrorResponse, YouTubeProcessRequest } from '@/lib/types';
-import { UserService } from '@/lib/user-service';
+import { FeatureGateService } from '@/lib/feature-gate-service';
 
 const transcriptService = new TranscriptService();
 
@@ -73,14 +73,14 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(errorResponse, { status: 400 });
         }
 
-        // Check if user has enough credits (1 credit for YouTube transcription)
-        const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
-        if (!hasEnoughCredits) {
+        // Check subscription access
+        const accessCheck = await FeatureGateService.checkAccessForAPI();
+        if (!accessCheck.allowed) {
             const errorResponse: ApiErrorResponse = {
                 success: false,
-                error: 'Insufficient credits. You need 1 credit to process YouTube videos.'
+                error: accessCheck.message || 'Subscription required',
             };
-            return NextResponse.json(errorResponse, { status: 402 });
+            return NextResponse.json(errorResponse, { status: accessCheck.statusCode });
         }
 
         // Process and save the transcript
@@ -89,8 +89,7 @@ export async function POST(request: NextRequest) {
             userId
         );
 
-        // Deduct 1 credit for YouTube transcription
-        await UserService.deductCredits('youtube_transcription', 1, transcript.id);
+        // No credit deduction needed - subscription system handles access
 
         const response: ApiSuccessResponse = {
             success: true,

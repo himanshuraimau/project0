@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { generateNotesFromContent, NoteService } from "@/lib/note-service";
-import { UserService } from "@/lib/user-service";
+import { FeatureGateService } from "@/lib/feature-gate-service";
 import { ApiSuccessResponse, ApiErrorResponse, GenerateNotesFromTextRequest } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
@@ -27,14 +27,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    // Check if user has enough credits (1 credit for text-to-notes generation)
-    const hasEnoughCredits = await UserService.hasEnoughCredits(userId, 1);
-    if (!hasEnoughCredits) {
+    // Check subscription access
+    const accessCheck = await FeatureGateService.checkAccessForAPI();
+    if (!accessCheck.allowed) {
       const errorResponse: ApiErrorResponse = {
         success: false,
-        error: 'Insufficient credits. You need 1 credit to generate notes from text.'
+        error: accessCheck.message || 'Active subscription required to generate notes from text'
       };
-      return NextResponse.json(errorResponse, { status: 402 });
+      return NextResponse.json(errorResponse, { status: accessCheck.statusCode });
     }
 
     // Create a transcript record for the text input
@@ -76,8 +76,7 @@ export async function POST(request: NextRequest) {
         userId,
       });
 
-      // Deduct 1 credit for text-to-notes generation
-      await UserService.deductCredits('text_to_notes', 1, note.id);
+      // No credit deduction needed - subscription system handles access
     } catch (error) {
       console.error("Error generating AI notes:", error);
 
