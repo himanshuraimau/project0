@@ -7,6 +7,7 @@ import CourseSideBar from "@/components/course/CourseSideBar";
 import { Navbar } from "@/components/shared/navbar";
 import { usePathname } from "next/navigation";
 import { DashboardRefreshProvider } from "@/contexts/dashboard-refresh-context";
+import { PaymentSuccessHandler } from "@/components/subscription/payment-success-handler";
 import { Course, Unit, Chapter } from "@prisma/client";
 
 interface CourseData {
@@ -88,6 +89,9 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <DashboardRefreshProvider>
+        {/* Payment Success Handler - shows loading while webhook processes */}
+        <PaymentSuccessHandler />
+
         {/* Navbar at the top - only for non-course pages and non-notes pages */}
         {!isCoursePage && !isNotesPage && (
           <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">

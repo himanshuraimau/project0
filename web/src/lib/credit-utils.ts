@@ -1,75 +1,76 @@
 'use client'
 
 /**
- * Helper function to check and deduct credits for user actions
+ * Helper functions for subscription-based access control
+ * (Formerly credit-based system)
  * 
- * Credit System Rules:
- * - YouTube Video Upload + Transcription + Notes: 1 credit
- * - Course Generation: 2 credits  
- * - Flashcards, Quizzes, Transcripts: FREE (once content exists)
- * - Notes from existing content: FREE
+ * Access Control Rules:
+ * - All features require an active subscription
+ * - YouTube Video Upload + Transcription + Notes: Requires subscription
+ * - Course Generation: Requires subscription
+ * - Flashcards, Quizzes, Transcripts: Requires subscription
+ * - Notes from existing content: Requires subscription
+ */
+
+/**
+ * Check if user has subscription access
+ * @deprecated Use subscription status check instead
  */
 export async function useCredits(action: string, credits: number = 1, resourceId?: string) {
   try {
-    const response = await fetch('/api/users/credits', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action,
-        credits,
-        resourceId
-      })
-    })
+    const response = await fetch('/api/subscription/status')
+
+    if (!response.ok) {
+      throw new Error('Failed to check subscription status')
+    }
 
     const data = await response.json()
 
-    if (!response.ok) {
-      if (response.status === 402) {
-        // Insufficient credits
-        throw new Error('INSUFFICIENT_CREDITS')
-      }
-      throw new Error(data.error || 'Failed to use credits')
+    if (!data.access?.hasAccess) {
+      // No active subscription
+      throw new Error('INSUFFICIENT_CREDITS') // Keep error name for backward compatibility
     }
 
     return {
       success: true,
-      creditsRemaining: data.creditsRemaining,
-      creditsDeducted: data.creditsDeducted
+      hasAccess: true
     }
   } catch (error) {
     if (error instanceof Error && error.message === 'INSUFFICIENT_CREDITS') {
       throw error
     }
-    console.error('Error using credits:', error)
-    throw new Error('Failed to process credit usage')
+    console.error('Error checking subscription:', error)
+    throw new Error('Failed to check subscription access')
   }
 }
 
 /**
- * Helper function to get current credit balance
+ * Get subscription status (replaces credit balance check)
+ * @deprecated Use subscription status directly
  */
 export async function getCurrentCredits() {
   try {
-    const response = await fetch('/api/users/credits')
+    const response = await fetch('/api/subscription/status')
     
     if (!response.ok) {
-      throw new Error('Failed to fetch credits')
+      throw new Error('Failed to fetch subscription status')
     }
 
     const data = await response.json()
-    return data.credits
+    
+    // Return a high number if user has subscription, 0 if not
+    // This maintains backward compatibility
+    return data.access?.hasAccess ? 999999 : 0
   } catch (error) {
-    console.error('Error fetching credits:', error)
-    throw error
+    console.error('Error fetching subscription status:', error)
+    return 0
   }
 }
 
 /**
- * Helper function to handle insufficient credits
+ * Handle missing subscription (replaces insufficient credits)
  */
 export function handleInsufficientCredits() {
-  // Redirect to credits page with a reason
-  window.location.href = '/credits?reason=insufficient'
+  // Redirect to pricing page instead of credits page
+  window.location.href = '/pricing?reason=no-subscription'
 }

@@ -45,7 +45,7 @@ export default function CourseWizardPage() {
   };
 
   const handleGetCredits = () => {
-    router.push("/credits?reason=insufficient_course&required=2");
+    router.push("/pricing?reason=no-subscription");
   };
 
   // Show loading state while checking credits

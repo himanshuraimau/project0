@@ -21,9 +21,9 @@ export async function GET() {
       user: {
         id: user.id,
         email: user.email,
-        creditBalance: user.creditBalance,
         createdAt: user.createdAt,
-        updatedAt: user.updatedAt
+        updatedAt: user.updatedAt,
+        hasSubscription: !!user.subscription
       }
     })
   } catch (error) {
@@ -57,9 +57,9 @@ export async function POST(request: NextRequest) {
       user: {
         id: user.id,
         email: user.email,
-        creditBalance: user.creditBalance,
         createdAt: user.createdAt,
-        updatedAt: user.updatedAt
+        updatedAt: user.updatedAt,
+        hasSubscription: !!user.subscription
       }
     })
   } catch (error) {
