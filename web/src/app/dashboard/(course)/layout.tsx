@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { UserControl } from "@/components/user-control";
 import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
 import CourseSideBar from "@/components/course/CourseSideBar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { Course, Unit, Chapter } from "@prisma/client";
 import { usePathname } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -64,45 +65,43 @@ export default function CourseLayout({
   // For course pages, add course-specific navigation and header
   if (isActualCoursePage) {
     return (
-      <>
-        {/* Single unified header for course pages */}
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-          <div
-            className={`${jakarta.className} px-6 py-4 flex items-center justify-between`}
-          >
-            <div className="flex items-center gap-4">
-              <Link
-                href="/dashboard/generate-course"
-                className="flex items-center gap-2 text-xl font-semibold text-foreground hover:text-accent transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5" />
-                Back to Courses
-              </Link>
-            </div>
-            <div className="flex items-center gap-4">
-              <ThemeToggleButton />
-              <UserControl showName />
+      <SidebarProvider defaultOpen={true}>
+        <div className="min-h-screen bg-background">
+          {/* Course navbar at the top */}
+          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
+            <div
+              className={`${jakarta.className} px-6 py-4 flex items-center justify-between`}
+            >
+              <div className="flex items-center gap-4">
+                <Link
+                  href="/dashboard/generate-course"
+                  className="flex items-center gap-2 text-xl font-semibold text-foreground hover:text-accent transition-colors"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                  Back to Courses
+                </Link>
+              </div>
+              <div className="flex items-center gap-4">
+                <ThemeToggleButton />
+                <UserControl showName />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Content area with unified spacing */}
-        <div className="flex">
-          {courseData ? (
+          {/* Fixed sidebar */}
+          {courseData && (
             <CourseSideBar
               course={courseData.course}
               currentChapterId={courseData.currentChapterId}
             />
-          ) : (
-            <div className="w-64 h-full bg-muted/20" />
           )}
-        </div>
 
-        {/* Main content area */}
-        <main className="flex-1 min-h-screen">
-          <div className="max-w-6xl mx-auto px-8 py-8">{children}</div>
-        </main>
-      </>
+          {/* Main content area with left margin to account for fixed sidebar */}
+          <main className="min-h-screen ml-80">
+            <div className="max-w-6xl mx-auto px-8 py-8">{children}</div>
+          </main>
+        </div>
+      </SidebarProvider>
     );
   }
 
