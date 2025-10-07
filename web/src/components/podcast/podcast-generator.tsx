@@ -203,11 +203,11 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
 
   // Show configuration form inline
   return (
-    <div className="px-6 py-8 my-8 max-w-6xl mx-auto min-h-[70vh]">
+    <div className="px-6 py-8 my-8 w-full min-h-[70vh]  bg-transparent dark:bg-[#0A0B0D]">
       <div className="space-y-8">
         {/* Generate Podcast Section */}
         <div className="text-center min-h-[78vh] flex items-center justify-center">
-          <Card className="bg-transparent border-none w-full">
+          <Card className="bg-transparent dark:bg-[#0A0B0D] border-none w-full">
             <CardContent className="flex flex-col items-center justify-center py-12 px-8">
               <h3 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
                 Generate Podcast

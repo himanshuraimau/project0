@@ -180,7 +180,7 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
 
   // Show generation UI
   return (
-      <div className="h-[87vh] flex items-center justify-center bg-transparent px-6 py-4 mx-4 my-6">
+      <div className="h-[87vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6 py-4 mx-4 my-6">
         <Card className="bg-transparent border-none">
           <CardContent className="flex flex-col items-center justify-center py-8 px-6">
             <h3 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
