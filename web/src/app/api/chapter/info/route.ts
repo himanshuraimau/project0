@@ -137,56 +137,56 @@ export async function POST(req: Request) {
     try {
       const result = await generateText({
         model: openai("gpt-4o"),
-        prompt: `🎓 You are an advanced AI educational content specialist and master educator! Your mission is to transform YouTube video transcripts into engaging, comprehensive, and interactive learning materials that captivate students and ensure deep understanding.
+        prompt: `You are an advanced AI educational content specialist and master educator! Your mission is to transform YouTube video transcripts into engaging, comprehensive, and interactive learning materials that captivate students and ensure deep understanding.
 
-✨ **YOUR ROLE:** Create educational notes that are not just informative, but FUN, ENGAGING, and MEMORABLE! Think of yourself as the coolest teacher who makes learning exciting and accessible.
+**YOUR ROLE:** Create educational notes that are not just informative, but FUN, ENGAGING, and MEMORABLE! Think of yourself as the coolest teacher who makes learning exciting and accessible.
 
-🎯 **TRANSFORMATION GOAL:** Convert this YouTube transcript into interactive educational notes that enable deep understanding and retention.
+**TRANSFORMATION GOAL:** Convert this YouTube transcript into interactive educational notes that enable deep understanding and retention.
 
-📚 **REQUIRED STRUCTURE WITH EMOJIS:**
+**REQUIRED STRUCTURE:**
 
-## 🌟 Learning Overview (100-150 words)
-- 🎯 What you'll master in this chapter
-- 💡 Why this knowledge is game-changing
-- 🚀 How it connects to the bigger picture
-- ⭐ Key skills you'll develop
+## Learning Overview (100-150 words)
+- What you'll master in this chapter
+- Why this knowledge is game-changing
+- How it connects to the bigger picture
+- Key skills you'll develop
 
-## 🧠 Core Concepts Explained (200-400 words)
-- 🔍 Detailed explanations with crystal-clear reasoning
-- 📖 Break down complex topics into digestible parts
-- 🔗 Show connections between different concepts
-- 💭 Use analogies and examples for clarity
-- ⚡ Highlight "Aha!" moments
+## Core Concepts Explained (200-400 words)
+- Detailed explanations with crystal-clear reasoning
+- Break down complex topics into digestible parts
+- Show connections between different concepts
+- Use analogies and examples for clarity
+- Highlight "Aha!" moments
 
-## 🛠️ Practical Applications (100-200 words)
-- 🌍 Real-world examples and use cases
-- 🏗️ How professionals use these concepts
-- 💼 Industry applications and scenarios
-- 🎮 Interactive examples where possible
-- 🔥 Cool tricks and best practices
+## Practical Applications (100-200 words)
+- Real-world examples and use cases
+- How professionals use these concepts
+- Industry applications and scenarios
+- Interactive examples where possible
+- Cool tricks and best practices
 
-## 🎯 Key Takeaways (50-100 words)
-- ✅ Essential points for long-term retention
-- 💎 Golden nuggets of wisdom
-- 🔑 Critical concepts to remember
-- 📌 Quick reference points
+## Key Takeaways (50-100 words)
+- Essential points for long-term retention
+- Golden nuggets of wisdom
+- Critical concepts to remember
+- Quick reference points
 
-## 🚀 Next Steps & Action Items (50-100 words)
-- 📝 Practical exercises to try
-- 🔍 What to explore next
-- 🏃‍♂️ Immediate action steps
-- 🌱 How to continue growing
+## Next Steps & Action Items (50-100 words)
+- Practical exercises to try
+- What to explore next
+- Immediate action steps
+- How to continue growing
 
 **STYLE GUIDELINES:**
-- Use emojis throughout to make content visually appealing 🎨
-- Write in an enthusiastic, encouraging tone 💪
-- Include bullet points and clear formatting 📋
-- Add emphasis with **bold** and *italics* when appropriate ✨
-- Make technical concepts accessible and fun 🎪
-- Use action words and engaging language 🎯
-- Add occasional "Pro Tips 💡" or "Quick Notes 📝" callouts
+- Write in an enthusiastic, encouraging tone
+- Include bullet points and clear formatting
+- Add emphasis with **bold** and *italics* when appropriate
+- Make technical concepts accessible and fun
+- Use action words and engaging language
+- Add occasional "Pro Tips" or "Quick Notes" callouts
+- Keep formatting professional and clean without emojis
 
-Focus on the main educational content and ignore sponsors, ads, or unrelated material. Make learning an adventure! 🎊
+Focus on the main educational content and ignore sponsors, ads, or unrelated material. Make learning an adventure!
 
 Transcript: ${transcript}`,
       });

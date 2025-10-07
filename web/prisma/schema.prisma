@@ -63,19 +63,20 @@ model Transcript {
 }
 
 model Note {
-  id           String      @id @default(cuid())
+  id           String        @id @default(cuid())
   title        String
   content      String
   transcriptId String
   userId       String?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   flashcard    Flashcard?
-  chunks       NoteChunk[] @relation("NoteToChunks")
-  transcript   Transcript  @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+  chunks       NoteChunk[]   @relation("NoteToChunks")
+  transcript   Transcript    @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
   podcast      Podcast?
   quiz         Quiz?
   mindmap      MindMap?
+  progress     NoteProgress?
 
   @@map("notes")
 }
@@ -102,6 +103,18 @@ model Quiz {
   note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
 
   @@map("quizzes")
+}
+
+model NoteProgress {
+  id          String    @id @default(cuid())
+  noteId      String    @unique
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  note        Note      @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@map("note_progress")
 }
 
 model MindMap {

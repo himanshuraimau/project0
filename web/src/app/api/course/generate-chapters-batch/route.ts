@@ -63,9 +63,9 @@ export async function POST(request: NextRequest) {
     const batchIndex = body.batchIndex ?? 0;
 
     // Validate batch size (should be reasonable to prevent overload)
-    if (units.length > 6) {
+    if (units.length > 5) {
       return NextResponse.json(
-        { error: "Batch size too large. Maximum 6 units per batch." },
+        { error: "Batch size too large. Maximum 5 units per batch." },
         { status: 400 }
       );
     }

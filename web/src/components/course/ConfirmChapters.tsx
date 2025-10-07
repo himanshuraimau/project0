@@ -119,7 +119,7 @@ const ConfirmChapters = ({ course }: Props) => {
     setLoading(false);
     
     if (failedChapters.size === 0) {
-      toast.success("🎉 All chapters processed successfully!");
+      toast.success("All chapters processed successfully!");
     } else {
       toast.warning(`⚠️ ${failedChapters.size} chapter(s) failed. You can retry them individually.`);
     }
@@ -159,7 +159,7 @@ const ConfirmChapters = ({ course }: Props) => {
 
     // Show retry completion message
     if (newFailed.size === 0) {
-      toast.success("All failed chapters have been successfully retried! 🎉");
+      toast.success("All failed chapters have been successfully retried!");
     } else {
       toast.error(`${newFailed.size} chapters still failed after retry. Please check the console for details.`);
     }

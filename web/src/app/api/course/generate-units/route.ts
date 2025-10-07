@@ -70,9 +70,9 @@ export async function POST(request: NextRequest) {
     const units = await generateUnitsFromTitle(title);
 
     // Validate generated units (Requirements: 1.2)
-    if (!units || units.length !== 6) {
+    if (!units || units.length < 3 || units.length > 5) {
       return NextResponse.json(
-        { error: "Failed to generate appropriate number of units (6 expected)" },
+        { error: "Failed to generate appropriate number of units (3-5 expected)" },
         { status: 500 }
       );
     }

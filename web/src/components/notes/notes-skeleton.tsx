@@ -1,7 +1,11 @@
 import React from "react";
 import { FileText } from "lucide-react";
 
-export function NoteDetailSkeleton() {
+interface NoteDetailSkeletonProps {
+  showChatbot?: boolean;
+}
+
+export function NoteDetailSkeleton({ showChatbot = false }: NoteDetailSkeletonProps) {
   return (
     <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-6">

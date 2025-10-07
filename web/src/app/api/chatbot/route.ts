@@ -132,6 +132,15 @@ async function generateResponse(context: string, question: string) {
   - Include timestamp references when available (e.g., "at 2:30 in the podcast")
   - Clarify when information comes from the podcast discussion vs. the original note
   
+  IMPORTANT FORMATTING INSTRUCTIONS:
+  - Provide responses in plain text format only
+  - DO NOT use markdown formatting (no **, *, #, -, etc.)
+  - DO NOT use special symbols or formatting characters
+  - Use simple, clean text with natural line breaks
+  - Keep responses conversational and easy to read
+  - You can use numbered lists with regular numbers (1. 2. 3.) if needed
+  - You can use bullet points with simple dashes (-) if absolutely necessary
+  
   Provide clear, concise answers based on the context without including source references or citations.
   
   DO NOT make up information or hallucinate facts not present in the context.`;

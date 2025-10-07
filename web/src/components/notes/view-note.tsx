@@ -1,11 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Note } from "@/lib/types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Copy, 
   Download, 
@@ -13,20 +20,18 @@ import {
   Eye, 
   Calendar,
   FileText,
-  MoreHorizontal,
   Bot,
   Minimize2,
-  Maximize2
+  Maximize2,
+  Save,
+  X,
+  CheckCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { MDXRenderer } from "@/components/mdx-renderer";
 import { LexicalViewer } from "@/components/shared/LexicalViewer";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useNotes } from "@/hooks/use-notes";
+import { useNoteProgressContext } from "@/contexts/note-progress-context";
 import dynamic from "next/dynamic";
 
 const DynamicInlineChatbot = dynamic(
@@ -38,11 +43,101 @@ interface ViewNoteProps {
   note: Note;
   onEdit?: () => void;
   onSave?: (content: string) => void;
+  onUpdate?: (updatedNote: Note) => void;
 }
 
-export function ViewNote({ note, onSave }: ViewNoteProps) {
+export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   const [viewMode, setViewMode] = useState<'preview' | 'edit'>('preview');
   const [isChatbotMinimized, setIsChatbotMinimized] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [editedContent, setEditedContent] = useState(note.content || "");
+  const [editedTitle, setEditedTitle] = useState(note.title || "");
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const { updateNote } = useNotes();
+  const {
+    progress: noteProgress,
+    loading: progressLoading,
+    updating: progressUpdating,
+    toggleCompletion,
+  } = useNoteProgressContext();
+
+  const handleSaveNote = async () => {
+    if (!hasUnsavedChanges || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      const updatedNote = await updateNote(note.id, {
+        title: editedTitle,
+        content: editedContent
+      });
+
+      if (updatedNote) {
+        setHasUnsavedChanges(false);
+        setIsEditMode(false);
+        setViewMode('preview');
+        onUpdate?.(updatedNote);
+        toast.success("Note saved successfully", {
+          duration: 2000,
+          position: "top-center",
+        });
+      } else {
+        throw new Error("Failed to update note");
+      }
+    } catch (error) {
+      console.error("Error saving note:", error);
+      toast.error("Failed to save note", {
+        duration: 3000,
+        position: "top-center",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    if (hasUnsavedChanges) {
+      setShowCancelDialog(true);
+      return;
+    }
+    
+    setEditedContent(note.content || "");
+    setEditedTitle(note.title || "");
+    setHasUnsavedChanges(false);
+    setIsEditMode(false);
+    setViewMode('preview');
+  };
+
+  const confirmCancelEdit = () => {
+    setEditedContent(note.content || "");
+    setEditedTitle(note.title || "");
+    setHasUnsavedChanges(false);
+    setIsEditMode(false);
+    setViewMode('preview');
+    setShowCancelDialog(false);
+  };
+
+  const handleContentChange = (content: string) => {
+    setEditedContent(content);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleTitleChange = (title: string) => {
+    setEditedTitle(title);
+    setHasUnsavedChanges(true);
+  };
+
+  const enterEditMode = () => {
+    // Prevent any scrolling behavior
+    const currentScrollPosition = window.scrollY;
+    setIsEditMode(true);
+    setViewMode('edit');
+    // Restore scroll position after state update
+    requestAnimationFrame(() => {
+      window.scrollTo(0, currentScrollPosition);
+    });
+  };
 
   const handleCopy = async () => {
     if (note.content) {
@@ -132,80 +227,115 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
 
                 {/* Controls Toolbar */}
                 <div className="flex items-center gap-3">
-                  {/* Mode Toggle */}
-                  <div className="hidden sm:flex items-center bg-muted rounded-2xl p-1">
-                    <Button
-                      variant={viewMode === 'preview' ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setViewMode('preview')}
-                      className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                        viewMode === 'preview' 
-                          ? "bg-primary text-primary-foreground shadow-md" 
-                          : "hover:bg-background text-muted-foreground"
-                      }`}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Preview
-                    </Button>
-                    <Button
-                      variant={viewMode === 'edit' ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setViewMode('edit')}
-                      className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                        viewMode === 'edit' 
-                          ? "bg-primary text-primary-foreground shadow-md" 
-                          : "hover:bg-background text-muted-foreground"
-                      }`}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopy}
-                      className="rounded-xl px-4 py-2 hover:bg-primary/5 border-border hover:border-primary/20 transition-all duration-200"
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleDownload}
-                      className="rounded-xl px-4 py-2 hover:bg-secondary/5 border-border hover:border-secondary/20 transition-all duration-200"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="outline" 
+                  {isEditMode ? (
+                    /* Edit Mode Controls */
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={handleSaveNote}
+                        disabled={!hasUnsavedChanges || isSaving}
+                        className="rounded-xl px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
+                        size="sm"
+                      >
+                        {isSaving ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4 mr-2" />
+                            Save
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={handleCancelEdit}
+                        variant="outline"
+                        size="sm"
+                        className="rounded-xl px-4 py-2 hover:bg-muted border-border hover:border-muted-foreground/20 transition-all duration-200"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      {hasUnsavedChanges && (
+                        <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/5">
+                          Unsaved changes
+                        </Badge>
+                      )}
+                    </div>
+                  ) : (
+                    /* View Mode Controls */
+                    <>
+                      {/* Mode Toggle */}
+                      <div className="hidden sm:flex items-center bg-muted rounded-2xl p-1">
+                        <Button
+                          variant={viewMode === 'preview' ? "default" : "ghost"}
                           size="sm"
-                          className="rounded-xl px-3 py-2 hover:bg-accent/5 border-border hover:border-accent/20 transition-all duration-200"
+                          onClick={() => setViewMode('preview')}
+                          className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                            viewMode === 'preview' 
+                              ? "bg-primary text-primary-foreground shadow-md" 
+                              : "hover:bg-background text-muted-foreground"
+                          }`}
                         >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="rounded-xl">
-                        <DropdownMenuItem onClick={() => setViewMode('preview')}>
                           <Eye className="h-4 w-4 mr-2" />
-                          Show Preview
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setViewMode('edit')}>
+                          Preview
+                        </Button>
+                        <Button
+                          variant={viewMode === 'edit' ? "default" : "ghost"}
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            enterEditMode();
+                          }}
+                          className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                            viewMode === 'edit' 
+                              ? "bg-primary text-primary-foreground shadow-md" 
+                              : "hover:bg-background text-muted-foreground"
+                          }`}
+                        >
                           <Edit className="h-4 w-4 mr-2" />
-                          Edit Mode
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                          Edit
+                        </Button>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCopy}
+                          className="rounded-xl px-4 py-2 hover:bg-primary/5 border-border hover:border-primary/20 transition-all duration-200"
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownload}
+                          className="rounded-xl px-4 py-2 hover:bg-secondary/5 border-border hover:border-secondary/20 transition-all duration-200"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </Button>
+
+                        {isChatbotMinimized && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsChatbotMinimized(false)}
+                            className="rounded-xl px-4 py-2 hover:bg-primary/5 border-border hover:border-primary/20 transition-all duration-200"
+                            title="Show AI Assistant"
+                          >
+                            <Bot className="h-4 w-4 mr-2" />
+                            AI Chat
+                          </Button>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -215,7 +345,7 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
           {/* Content Section */}
           <CardContent className="p-8 pt-8">
             <div className="min-h-[400px]">
-              {viewMode === 'preview' ? (
+              {viewMode === 'preview' && !isEditMode ? (
                 <div className="prose-custom">
                   <MDXRenderer 
                     content={note.content || "# No Content\n\nThis note has no content yet."} 
@@ -232,16 +362,62 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
                   </div>
                   <div className="px-4 pb-4">
                     <LexicalViewer
-                      content={note.content || ""}
-                      title={note.title || ""}
+                      content={editedContent}
+                      title={editedTitle}
                       showToolbar={true}
                       minHeight="400px"
+                      onContentChange={handleContentChange}
+                      onTitleChange={handleTitleChange}
+                      isEditable={true}
                     />
                   </div>
                 </div>
               )}
             </div>
           </CardContent>
+
+          {/* Completion Section */}
+          {!isEditMode && (
+            <CardContent className="p-8 pt-4">
+              <div className="border-t border-border pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-lg">
+                      {noteProgress.isCompleted
+                        ? "Note Completed!"
+                        : "Ready to mark as complete?"}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {noteProgress.isCompleted
+                        ? `Completed ${noteProgress.completedAt ? new Date(noteProgress.completedAt).toLocaleDateString() : ''}`
+                        : "Track your progress by marking this note as completed."}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={toggleCompletion}
+                    disabled={progressUpdating || progressLoading}
+                    variant={noteProgress.isCompleted ? "outline" : "default"}
+                    size="lg"
+                    className={noteProgress.isCompleted 
+                      ? "border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-950" 
+                      : "bg-green-600 text-white hover:bg-green-700"
+                    }
+                  >
+                    {progressUpdating ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                    ) : noteProgress.isCompleted ? (
+                      <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                    )}
+                    {noteProgress.isCompleted
+                      ? "Undo Complete"
+                      : "Mark Complete"}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          )}
         </Card>
           </div>
 
@@ -280,16 +456,7 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
                   </div>
                 </CardContent>
               </Card>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={() => setIsChatbotMinimized(false)}
-                className="fixed top-4 right-4 z-50 rounded-full p-3 shadow-lg bg-background border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300"
-                title="Show AI Assistant"
-              >
-                <Bot className="h-5 w-5 text-primary" />
-              </Button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -388,6 +555,43 @@ export function ViewNote({ note, onSave }: ViewNoteProps) {
           @apply bg-muted/30 transition-colors;
         }
       `}</style>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <div className="p-2 bg-destructive/10 rounded-full">
+                <X className="h-4 w-4 text-destructive" />
+              </div>
+              Discard Changes?
+            </DialogTitle>
+            <div className="space-y-3 mt-4 text-base text-muted-foreground/80 leading-relaxed">
+              <div>You have unsaved changes to your note.</div>
+              <div className="p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
+                <div className="text-sm text-destructive font-medium">
+                  If you cancel now, all your changes will be lost and cannot be recovered.
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelDialog(false)}
+              className="font-medium"
+            >
+              Keep Editing
+            </Button>
+            <Button
+              onClick={confirmCancelEdit}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium"
+            >
+              Discard Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

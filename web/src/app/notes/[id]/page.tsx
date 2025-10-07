@@ -37,6 +37,7 @@ import dynamic from "next/dynamic";
 import { ViewNote } from "@/components/notes/view-note";
 import { Navbar } from "@/components/shared/navbar";
 import { NoteDetailSkeleton } from "@/components/notes/notes-skeleton";
+import { NoteProgressProvider } from "@/contexts/note-progress-context";
 
 const DynamicInlineChatbot = dynamic(
   () => import("@/components/chatbot/inline-chatbot"),
@@ -90,6 +91,10 @@ export default function NoteViewPage() {
 
   const [editedTitle, setEditedTitle] = useState("");
   const [editedContent, setEditedContent] = useState("");
+
+  const handleNoteUpdate = (updatedNote: Note) => {
+    setNote(updatedNote);
+  };
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -288,62 +293,64 @@ export default function NoteViewPage() {
         <Navbar title="Notes" />
       </div>
 
-      <AlertDialog>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-red-100">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+        <AlertDialog>
+          <AlertDialogContent className="max-w-md">
+            <AlertDialogHeader>
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-full bg-red-100">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <AlertDialogTitle className="text-red-600">
+                  Delete Note
+                </AlertDialogTitle>
               </div>
-              <AlertDialogTitle className="text-red-600">
+              <AlertDialogDescription className="space-y-3 mt-2">
+                <p className="font-medium text-base border-l-4 border-l-red-200 pl-3 py-1">
+                  {note?.title}
+                </p>
+                <p>
+                  This action cannot be undone. This will permanently delete this
+                  note and all associated content.
+                </p>
+                <Card className="border-red-800 mt-2" style={{ backgroundColor: '#0A0B0D' }}>
+                  <CardContent className="p-3 text-sm text-red-200">
+                    <p className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <span>
+                        All flashcards and quizzes generated from this note will
+                        also be deleted.
+                      </span>
+                    </p>
+                  </CardContent>
+                </Card>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="font-medium">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600 hover:bg-red-700 text-white font-medium flex items-center gap-2"
+                onClick={handleDeleteNote}
+              >
+                <Trash2 className="h-4 w-4" />
                 Delete Note
-              </AlertDialogTitle>
-            </div>
-            <AlertDialogDescription className="space-y-3 mt-2">
-              <p className="font-medium text-base border-l-4 border-l-red-200 pl-3 py-1">
-                {note?.title}
-              </p>
-              <p>
-                This action cannot be undone. This will permanently delete this
-                note and all associated content.
-              </p>
-              <Card className="border-red-800 mt-2" style={{ backgroundColor: '#0A0B0D' }}>
-                <CardContent className="p-3 text-sm text-red-200">
-                  <p className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-amber-600" />
-                    <span>
-                      All flashcards and quizzes generated from this note will
-                      also be deleted.
-                    </span>
-                  </p>
-                </CardContent>
-              </Card>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="font-medium">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700 text-white font-medium flex items-center gap-2"
-              onClick={handleDeleteNote}
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete Note
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
 
         {/* Main Content with Notes Sidebar - below navbar */}
         <div className="pt-0">
-          <NotesSidebarProvider
-            defaultOpen={true}
-            sidebarWidth={sidebarWidth}
-            sidebarWidthMobile={sidebarWidth}
-          >
+          <NoteProgressProvider noteId={noteId}>
+            <NotesSidebarProvider
+              defaultOpen={true}
+              sidebarWidth={sidebarWidth}
+              sidebarWidthMobile={sidebarWidth}
+            >
             <div className="min-h-[calc(100vh-64px)]">
               <NotesSidebar
                 className={`${currentView === "chat" ? "pb-3" : "pb-6"} fixed top-16 left-0 h-[calc(100vh-64px)] z-10 overflow-y-auto`}
+                noteId={noteId}
                 showTranscript={currentView === "transcript"}
                 showQuiz={currentView === "quiz"}
                 showChat={currentView === "chat"}
@@ -367,7 +374,7 @@ export default function NoteViewPage() {
                 <main className="flex-1">
                   <div className="bg-background dark:bg-[#0A0B0D] border-none min-h-[calc(100vh-64px)] pl-5 pt-5">
                   {/* Content based on current view */}
-              {currentView === "notes" && <ViewNote note={note} />}
+              {currentView === "notes" && <ViewNote note={note} onUpdate={handleNoteUpdate} />}
 
               {currentView === "transcript" && (
                 <div className="w-full bg-transparent ml-4 p-10">
@@ -422,9 +429,9 @@ export default function NoteViewPage() {
                 </div>
               )}
 
-              {currentView === "flashcards" && <FlashcardGenerator noteId={noteId} noteTitle={note?.title} />}
+              {currentView === "flashcards" && <FlashcardGenerator key={`flashcards-${noteId}`} noteId={noteId} noteTitle={note?.title} />}
 
-              {currentView === "quiz" && <QuizGenerator noteId={noteId} />}
+              {currentView === "quiz" && <QuizGenerator key={`quiz-${noteId}`} noteId={noteId} />}
 
               {currentView === "chat" && (
                 <Card className="overflow-hidden h-[80vh] ml-10 mt-8 flex flex-col bg-transparent border border-black/20 dark:border-white/20 rounded-3xl shadow-lg">
@@ -441,7 +448,7 @@ export default function NoteViewPage() {
                 </Card>
               )}
 
-              {currentView === "podcast" && <PodcastGenerator noteId={noteId} />}
+              {currentView === "podcast" && <PodcastGenerator key={`podcast-${noteId}`} noteId={noteId} />}
 
               {currentView === "mindmap" && (
                 <div>
@@ -455,7 +462,7 @@ export default function NoteViewPage() {
                       </div>
                     </div>
                   )}
-                  <MindmapGenerator noteId={noteId} />
+                  <MindmapGenerator key={`mindmap-${noteId}`} noteId={noteId} />
                   {mindmapError && (
                     <div className="text-center text-red-600 py-8">
                       <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-3">
@@ -472,8 +479,9 @@ export default function NoteViewPage() {
               </div>
             </div>
           </NotesSidebarProvider>
-        </div>
-      </AlertDialog>
+          </NoteProgressProvider>
+          </div>
+        </AlertDialog>
     </div>
   );
 }

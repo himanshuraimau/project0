@@ -387,14 +387,24 @@ async function generatePodcastInBackground(
     // const savedPodcast = await podcastService.savePodcast(finalAudio, metadata, noteId, userId);
 
     // Save podcast segments to database for transcript indexing
-    const segmentPromises = script.segments.map(async (segment) => {
+    // Calculate approximate timings based on word count (150 words per minute average speaking rate)
+    let cumulativeTime = 0;
+    const segmentPromises = script.segments.map(async (segment, index) => {
+      const wordCount = segment.content.split(/\s+/).length;
+      const estimatedDuration = (wordCount / 150) * 60; // Convert to seconds
+      const startTime = cumulativeTime;
+      const endTime = cumulativeTime + estimatedDuration;
+      
+      // Add 1 second pause between segments (except last one)
+      cumulativeTime = endTime + (index < script.segments.length - 1 ? 1 : 0);
+      
       return prisma.podcastSegment.create({
         data: {
           podcastId: podcastId,
           speaker: segment.speaker,
           content: segment.content,
-          startTime: 0, // Will be updated when audio is generated
-          endTime: segment.estimatedDuration || 0,
+          startTime: startTime,
+          endTime: endTime,
           sequenceOrder: segment.sequenceOrder
         }
       });

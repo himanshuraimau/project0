@@ -381,28 +381,27 @@ Generate questions with four options each, the correct answer, and explanations.
       // Use AI SDK directly for better control over the response format
       const aiResponse = await generateText({
         model: this.model,
-        prompt: `You are an expert course designer. Create exactly 6 course units for: "${title.trim()}"
+        prompt: `You are an expert course designer. Create 3-5 course units for: "${title.trim()}"
 
 CRITICAL REQUIREMENTS:
 - Return ONLY valid JSON, no markdown or extra text
-- Generate exactly 6 units in this exact format:
+- Generate 3-5 units in this exact format:
 {
   "units": [
     {"name": "Unit 1 name"},
     {"name": "Unit 2 name"},
-    {"name": "Unit 3 name"},
-    {"name": "Unit 4 name"},
-    {"name": "Unit 5 name"},
-    {"name": "Unit 6 name"}
+    {"name": "Unit 3 name"}
   ]
 }
 
 Guidelines:
+- Generate 3-5 units that cover the essential topics for this subject
 - Each unit should be a distinct subtopic that builds upon previous units
 - Unit names should be descriptive and educational (10-50 characters)
 - Progress from basic foundational concepts to advanced topics
 - Avoid duplicate or overlapping topics
 - Ensure content is appropriate for educational use
+- Focus on the most important and practical aspects of the subject
 
 Analysis ID: ${analysisId}
 Timestamp: ${timestamp}`,
@@ -466,9 +465,9 @@ Timestamp: ${timestamp}`,
       });
 
       // Validate that we have the right number of units
-      if (units.length !== 6) {
-        console.warn(`Expected 6 units, got ${units.length}. Attempting fallback generation.`);
-        throw new Error("Generated units count is not exactly 6");
+      if (units.length < 3 || units.length > 5) {
+        console.warn(`Expected 3-5 units, got ${units.length}. Attempting fallback generation.`);
+        throw new Error("Generated units count is not between 3-5");
       }
 
       return units;
@@ -492,10 +491,8 @@ Timestamp: ${timestamp}`,
     const timestamp = Date.now();
     const baseUnits = [
       "Introduction and Fundamentals",
-      "Core Concepts",
-      "Practical Applications",
+      "Core Concepts", 
       "Advanced Topics",
-      "Real-world Examples",
       "Best Practices and Summary"
     ];
 
@@ -538,22 +535,23 @@ Timestamp: ${timestamp}`,
           chapters: z.array(z.object({
             name: z.string().describe("Chapter title that relates to the unit"),
             youtubeSearchQuery: z.string().describe("Specific search query for finding educational videos about this chapter")
-          })).min(3).max(5).describe("3-5 chapters for this unit")
+          })).min(3).max(4).describe("3-4 chapters for this unit")
         }))
       });
 
       const result = await generateObject({
         model,
         schema: chaptersSchema,
-        prompt: `You are an expert course designer. Create 3-5 chapters for each course unit.
+        prompt: `You are an expert course designer. Create 3-4 chapters for each course unit.
 
 Guidelines:
-- Generate 3-5 chapters per unit that are coherent and build upon each other
+- Generate 3-4 chapters per unit that are coherent and build upon each other
 - Each chapter should have a descriptive title that relates to its parent unit
 - Include a YouTube search query for each chapter to find relevant educational videos
 - Ensure chapters within a unit progress logically from basic to advanced concepts
 - Avoid duplicate or overlapping topics within the same unit
 - Make YouTube search queries specific enough to find relevant educational content
+- Focus on the most essential topics and avoid unnecessary complexity
 
 Analysis ID: ${analysisId}
 Timestamp: ${timestamp}
@@ -563,7 +561,7 @@ Create chapters for each unit in the course: "${title.trim()}"
 Units:
 ${unitsText}
 
-For each unit, generate 3-5 chapters that cover the key topics within that unit.
+For each unit, generate 3-4 chapters that cover the key topics within that unit.
 Each chapter should include a YouTube search query that would help find relevant educational videos.`,
       });
 
@@ -588,8 +586,8 @@ Each chapter should include a YouTube search query that would help find relevant
         })) || [];
 
         // Validate chapter count
-        if (chapters.length < 3 || chapters.length > 5) {
-          console.warn(`Unit "${unit.name}" has ${chapters.length} chapters, expected 3-5`);
+        if (chapters.length < 3 || chapters.length > 4) {
+          console.warn(`Unit "${unit.name}" has ${chapters.length} chapters, expected 3-4`);
         }
 
         return {
