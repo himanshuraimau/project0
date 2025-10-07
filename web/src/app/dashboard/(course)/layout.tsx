@@ -67,51 +67,43 @@ export default function CourseLayout({
   if (isActualCoursePage) {
     return (
       <SidebarProvider defaultOpen={true}>
-        {courseData && (
-          <CourseProgressProvider courseId={courseData.course.id}>
-            <div className="min-h-screen bg-background">
-              {/* Course navbar at the top */}
-              <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-                <div
-                  className={`${jakarta.className} px-6 py-4 flex items-center justify-between`}
+        <div className="min-h-screen bg-background">
+          {/* Course navbar at the top */}
+          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
+            <div
+              className={`${jakarta.className} px-6 py-4 flex items-center justify-between`}
+            >
+              <div className="flex items-center gap-4">
+                <Link
+                  href="/dashboard/generate-course"
+                  className="flex items-center gap-2 text-xl font-semibold text-foreground hover:text-accent transition-colors"
                 >
-                  <div className="flex items-center gap-4">
-                    <Link
-                      href="/dashboard/generate-course"
-                      className="flex items-center gap-2 text-xl font-semibold text-foreground hover:text-accent transition-colors"
-                    >
-                      <ArrowLeft className="h-5 w-5" />
-                      Back to Courses
-                    </Link>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <ThemeToggleButton />
-                    <UserControl showName />
-                  </div>
-                </div>
+                  <ArrowLeft className="h-5 w-5" />
+                  Back to Courses
+                </Link>
               </div>
+              <div className="flex items-center gap-4">
+                <ThemeToggleButton />
+                <UserControl showName />
+              </div>
+            </div>
+          </div>
 
-              {/* Fixed sidebar */}
+          {/* Fixed sidebar - only show when courseData is available */}
+          {courseData && (
+            <CourseProgressProvider courseId={courseData.course.id}>
               <CourseSideBar
                 course={courseData.course}
                 currentChapterId={courseData.currentChapterId}
               />
+            </CourseProgressProvider>
+          )}
 
-              {/* Main content area with left margin to account for fixed sidebar */}
-              <main className="min-h-screen ml-80">
-                <div className="max-w-6xl mx-auto px-8 py-8">{children}</div>
-              </main>
-            </div>
-          </CourseProgressProvider>
-        )}
-        {!courseData && (
-          <div className="min-h-screen bg-background flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-sm text-muted-foreground">Loading course...</p>
-            </div>
-          </div>
-        )}
+          {/* Main content area with left margin to account for fixed sidebar */}
+          <main className="min-h-screen ml-80">
+            <div className="max-w-6xl mx-auto px-8 py-8">{children}</div>
+          </main>
+        </div>
       </SidebarProvider>
     );
   }

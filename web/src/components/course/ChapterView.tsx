@@ -8,7 +8,6 @@ import { LoadingState } from "@/components/ui/loading-spinner";
 import { Play, FileText, CheckCircle } from "lucide-react";
 import { Chapter } from "@prisma/client";
 import { useChapterProgress } from "@/hooks/use-chapter-progress";
-import { useCourseProgress } from "@/contexts/course-progress-context";
 import {
   displayError,
   fetchWithErrorHandling,
@@ -36,7 +35,6 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
     updating: chapterUpdating,
     toggleCompletion,
   } = useChapterProgress(chapter.id);
-  const { refreshProgress } = useCourseProgress();
 
   const loadChapterContent = useCallback(async () => {
     if (chapterData.videoId && chapterData.notes) {
@@ -98,8 +96,6 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
 
   const markAsCompleted = async () => {
     await toggleCompletion();
-    // Refresh the overall course progress
-    await refreshProgress();
     onComplete?.();
   };
 

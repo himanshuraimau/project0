@@ -94,7 +94,13 @@ export function CourseProgressProvider({
 export function useCourseProgress() {
   const context = useContext(CourseProgressContext);
   if (!context) {
-    throw new Error('useCourseProgress must be used within a CourseProgressProvider');
+    // Return a default implementation if context is not available
+    return {
+      chapterProgress: {},
+      unitProgress: {},
+      refreshProgress: async () => {},
+      updateChapterProgress: () => {},
+    };
   }
   return context;
 }
