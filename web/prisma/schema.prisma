@@ -80,21 +80,37 @@ model Transcript {
 }
 
 model Note {
-  id           String        @id @default(cuid())
+  id           String             @id @default(cuid())
   title        String
   content      String
   transcriptId String
   userId       String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
   flashcard    Flashcard?
-  chunks       NoteChunk[]   @relation("NoteToChunks")
-  transcript   Transcript    @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+  chunks       NoteChunk[]        @relation("NoteToChunks")
+  transcript   Transcript         @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
   podcast      Podcast?
   quiz         Quiz?
   mindmap      MindMap?
+  translations NoteTranslation[]
 
   @@map("notes")
+}
+
+model NoteTranslation {
+  id        String   @id @default(cuid())
+  noteId    String
+  language  String // ISO 639-1 code: 'es', 'fr', 'de', 'zh', 'hi'
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, language])
+  @@index([noteId])
+  @@map("note_translations")
 }
 
 model Flashcard {

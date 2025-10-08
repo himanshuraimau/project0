@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Send, Copy, Loader2, Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MarkdownRenderer } from '@/components/mdx-renderer';
 
 type MessageRole = 'user' | 'assistant' | 'system';
 
@@ -226,7 +227,20 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
                     : "bg-muted border-0"
                 )}>
                   <div className="space-y-2">
-                    <div className="whitespace-pre-wrap leading-relaxed">{message.text}</div>
+                    {message.role === 'assistant' ? (
+                      message.text ? (
+                        <div className="prose max-w-none leading-relaxed text-sm">
+                          <MarkdownRenderer content={message.text} />
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="animate-spin" size={14} />
+                          <span>Generating response...</span>
+                        </div>
+                      )
+                    ) : (
+                      <div className="whitespace-pre-wrap leading-relaxed">{message.text}</div>
+                    )}
                     {message.role === 'assistant' && message.text && (
                       <div className="flex justify-end">
                         <Button

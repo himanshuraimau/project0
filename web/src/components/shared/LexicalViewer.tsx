@@ -53,6 +53,9 @@ import {
   $getRoot,
   FORMAT_ELEMENT_COMMAND,
   EditorState,
+  TextNode,
+  $createTextNode,
+  $isTextNode,
 } from "lexical";
 import { $convertToMarkdownString } from "@lexical/markdown";
 import {
@@ -78,69 +81,69 @@ const theme = {
   ltr: "ltr",
   rtl: "rtl",
   placeholder: "text-muted-foreground text-base",
-  paragraph: "mb-2",
-  quote: "border-l-4 border-accent pl-4 italic text-muted-foreground",
+  paragraph: "mb-4 leading-7 text-base",
+  quote: "border-l-4 border-accent pl-6 py-4 my-6 italic text-muted-foreground bg-accent/5 rounded-r-lg",
   heading: {
-    h1: "text-3xl font-sans font-bold mb-4",
-    h2: "text-2xl font-sans font-semibold mb-3",
-    h3: "text-xl font-sans font-semibold mb-2",
-    h4: "text-lg font-sans font-semibold mb-2",
-    h5: "text-base font-sans font-semibold mb-1",
-    h6: "text-sm font-sans font-semibold mb-1",
+    h1: "text-4xl font-bold mb-6 mt-8 pb-4 border-b border-border tracking-tight",
+    h2: "text-3xl font-bold mb-5 mt-7 pb-3 border-b border-border tracking-tight",
+    h3: "text-2xl font-semibold mb-4 mt-6 tracking-tight",
+    h4: "text-xl font-semibold mb-3 mt-5 tracking-tight",
+    h5: "text-lg font-semibold mb-2 mt-4 tracking-tight",
+    h6: "text-base font-semibold mb-2 mt-3 tracking-tight",
   },
   list: {
     nested: {
-      listitem: "list-none",
+      listitem: "list-none ml-4",
     },
-    ol: "list-decimal list-inside mb-2",
-    ul: "list-disc list-inside mb-2",
-    listitem: "mb-1",
+    ol: "list-decimal ml-6 my-6 space-y-2",
+    ul: "list-disc ml-6 my-6 space-y-2",
+    listitem: "leading-7 text-base pl-2",
   },
   text: {
-    bold: "font-semibold",
+    bold: "font-bold",
     italic: "italic",
     underline: "underline",
     strikethrough: "line-through",
     underlineStrikethrough: "underline line-through",
-    code: "bg-muted px-1 py-0.5 rounded text-sm font-mono",
+    code: "bg-muted px-2 py-1 rounded text-sm font-mono before:content-none after:content-none border border-border/50",
   },
-  code: "bg-muted p-4 rounded-lg font-mono text-sm overflow-x-auto",
+  code: "block bg-muted border border-border/50 p-6 rounded-xl my-6 font-mono text-sm overflow-x-auto leading-relaxed",
   codeHighlight: {
-    atrule: "text-purple-600",
+    atrule: "text-purple-600 dark:text-purple-400",
     attr: "text-accent",
-    boolean: "text-red-600",
-    builtin: "text-purple-600",
-    cdata: "text-gray-600",
-    char: "text-green-600",
+    boolean: "text-red-600 dark:text-red-400",
+    builtin: "text-purple-600 dark:text-purple-400",
+    cdata: "text-gray-600 dark:text-gray-400",
+    char: "text-green-600 dark:text-green-400",
     class: "text-accent",
     "class-name": "text-accent",
-    comment: "text-gray-500",
-    constant: "text-red-600",
-    deleted: "text-red-600",
-    doctype: "text-gray-600",
-    entity: "text-red-600",
-    function: "text-purple-600",
-    important: "text-red-600",
-    inserted: "text-green-600",
-    keyword: "text-purple-600",
-    namespace: "text-red-600",
-    number: "text-red-600",
-    operator: "text-gray-700",
-    prolog: "text-gray-600",
+    comment: "text-gray-500 dark:text-gray-400",
+    constant: "text-red-600 dark:text-red-400",
+    deleted: "text-red-600 dark:text-red-400",
+    doctype: "text-gray-600 dark:text-gray-400",
+    entity: "text-red-600 dark:text-red-400",
+    function: "text-purple-600 dark:text-purple-400",
+    important: "text-red-600 dark:text-red-400",
+    inserted: "text-green-600 dark:text-green-400",
+    keyword: "text-purple-600 dark:text-purple-400",
+    namespace: "text-red-600 dark:text-red-400",
+    number: "text-red-600 dark:text-red-400",
+    operator: "text-gray-700 dark:text-gray-300",
+    prolog: "text-gray-600 dark:text-gray-400",
     property: "text-accent",
-    punctuation: "text-gray-700",
-    regex: "text-green-600",
-    selector: "text-green-600",
-    string: "text-green-600",
-    symbol: "text-red-600",
-    tag: "text-red-600",
-    url: "text-accent",
-    variable: "text-red-600",
+    punctuation: "text-gray-700 dark:text-gray-300",
+    regex: "text-green-600 dark:text-green-400",
+    selector: "text-green-600 dark:text-green-400",
+    string: "text-green-600 dark:text-green-400",
+    symbol: "text-red-600 dark:text-red-400",
+    tag: "text-red-600 dark:text-red-400",
+    url: "text-accent underline",
+    variable: "text-red-600 dark:text-red-400",
   },
-  link: "text-accent underline hover:text-accent/80",
-  table: "border-collapse border border-border",
-  tableCell: "border border-border p-2",
-  tableCellHeader: "border border-border p-2 bg-muted font-semibold",
+  link: "text-primary underline hover:text-primary/80 font-medium transition-colors",
+  table: "border-collapse border border-border rounded-lg my-6 overflow-hidden",
+  tableCell: "border border-border p-3",
+  tableCellHeader: "border border-border p-3 bg-muted font-semibold",
 };
 
 // Font options for the editor
@@ -262,6 +265,49 @@ function ToolbarPlugin({
     editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
   };
 
+  const applyFontFamily = (fontClass: string) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        const nodes = selection.getNodes();
+        const fontFamily = FONT_OPTIONS.find(f => f.value === fontClass)?.family || 'serif';
+        
+        nodes.forEach((node) => {
+          if ($isTextNode(node)) {
+            const writableNode = node.getWritable();
+            const currentStyle = writableNode.getStyle() || '';
+            // Remove existing font-family
+            const styleWithoutFont = currentStyle.replace(/font-family:[^;]+;?/g, '').trim();
+            const newStyle = styleWithoutFont ? `${styleWithoutFont}; font-family: ${fontFamily};` : `font-family: ${fontFamily};`;
+            writableNode.setStyle(newStyle);
+          }
+        });
+      }
+    });
+    setSelectedFont(fontClass);
+  };
+
+  const applyFontSize = (size: string) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        const nodes = selection.getNodes();
+        
+        nodes.forEach((node) => {
+          if ($isTextNode(node)) {
+            const writableNode = node.getWritable();
+            const currentStyle = writableNode.getStyle() || '';
+            // Remove existing font-size
+            const styleWithoutSize = currentStyle.replace(/font-size:[^;]+;?/g, '').trim();
+            const newStyle = styleWithoutSize ? `${styleWithoutSize}; font-size: ${size}px;` : `font-size: ${size}px;`;
+            writableNode.setStyle(newStyle);
+          }
+        });
+      }
+    });
+    setFontSize(size);
+  };
+
   const downloadAsPDF = useCallback(() => {
     editor.getEditorState().read(() => {
       const root = $getRoot();
@@ -314,7 +360,8 @@ function ToolbarPlugin({
     const sizes = FONT_SIZE_OPTIONS.map((s) => Number.parseInt(s.value));
     const currentIndex = sizes.indexOf(currentSize);
     if (currentIndex < sizes.length - 1) {
-      setFontSize(sizes[currentIndex + 1].toString());
+      const newSize = sizes[currentIndex + 1].toString();
+      applyFontSize(newSize);
     }
   };
 
@@ -323,7 +370,8 @@ function ToolbarPlugin({
     const sizes = FONT_SIZE_OPTIONS.map((s) => Number.parseInt(s.value));
     const currentIndex = sizes.indexOf(currentSize);
     if (currentIndex > 0) {
-      setFontSize(sizes[currentIndex - 1].toString());
+      const newSize = sizes[currentIndex - 1].toString();
+      applyFontSize(newSize);
     }
   };
 
@@ -341,7 +389,7 @@ function ToolbarPlugin({
             {FONT_OPTIONS.map((font) => (
               <DropdownMenuItem
                 key={font.value}
-                onClick={() => setSelectedFont(font.value)}
+                onClick={() => applyFontFamily(font.value)}
               >
                 <span className={font.value}>{font.label}</span>
               </DropdownMenuItem>
@@ -368,7 +416,7 @@ function ToolbarPlugin({
               {FONT_SIZE_OPTIONS.map((size) => (
                 <DropdownMenuItem
                   key={size.value}
-                  onClick={() => setFontSize(size.value)}
+                  onClick={() => applyFontSize(size.value)}
                 >
                   {size.label}
                 </DropdownMenuItem>
@@ -587,8 +635,7 @@ export function LexicalViewer({
           <RichTextPlugin
             contentEditable={
               <ContentEditable
-                className={`p-6 outline-none ${selectedFont} ${contentClassName}`}
-                style={{ fontSize: `${fontSize}px` }}
+                className={`p-6 outline-none ${contentClassName}`}
               />
             }
             placeholder={null}

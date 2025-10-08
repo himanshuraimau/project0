@@ -1,3 +1,4 @@
+import React, { Suspense } from 'react';
 import { GenerateCourseCard } from "@/components/course/GenerateCourseCard";
 import { MyCourses } from "@/components/course/MyCourses";
 import { auth } from "@clerk/nextjs/server";
@@ -22,9 +23,11 @@ export default async function GenerateCoursePage() {
   });
 
   return (
+    <Suspense fallback={null}>
     <div className="w-full space-y-12">
       <GenerateCourseCard />
       <MyCourses courses={courses} />
     </div>
+    </Suspense>
   );
 }

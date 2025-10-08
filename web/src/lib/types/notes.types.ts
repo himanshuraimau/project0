@@ -17,6 +17,42 @@ export interface Note extends BaseEntity {
     originalName: string;
     createdAt: string;
   };
+  translations?: NoteTranslation[];
+}
+
+// Note translation types
+export interface NoteTranslation {
+  id: string;
+  noteId: string;
+  language: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export const SUPPORTED_LANGUAGES = {
+  es: 'Spanish',
+  fr: 'French',
+  de: 'German',
+  zh: 'Chinese (Simplified)',
+  hi: 'Hindi'
+} as const;
+
+export type LanguageCode = keyof typeof SUPPORTED_LANGUAGES;
+
+export interface TranslateNoteRequest {
+  language: LanguageCode;
+}
+
+export interface TranslationResponse {
+  id: string;
+  noteId: string;
+  language: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Note creation and update types

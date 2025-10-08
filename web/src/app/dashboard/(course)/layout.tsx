@@ -5,6 +5,7 @@ import { UserControl } from "@/components/user-control";
 import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
 import CourseSideBar from "@/components/course/CourseSideBar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { CourseProgressProvider } from "@/contexts/course-progress-context";
 import { Course, Unit, Chapter } from "@prisma/client";
 import { usePathname } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -88,12 +89,14 @@ export default function CourseLayout({
             </div>
           </div>
 
-          {/* Fixed sidebar */}
+          {/* Fixed sidebar - only show when courseData is available */}
           {courseData && (
-            <CourseSideBar
-              course={courseData.course}
-              currentChapterId={courseData.currentChapterId}
-            />
+            <CourseProgressProvider courseId={courseData.course.id}>
+              <CourseSideBar
+                course={courseData.course}
+                currentChapterId={courseData.currentChapterId}
+              />
+            </CourseProgressProvider>
           )}
 
           {/* Main content area with left margin to account for fixed sidebar */}

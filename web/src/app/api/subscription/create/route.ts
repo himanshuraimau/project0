@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { SubscriptionService } from '@/lib/subscription-service';
+import { UserService } from '@/lib/user-service';
 import { DodoSubscriptionService } from '@/lib/utils/dodo/subscription';
 
 export async function POST() {
@@ -72,6 +73,9 @@ export async function POST() {
     if (!dodoSubscription.success || !dodoSubscription.subscriptionId) {
       throw new Error(dodoSubscription.error || 'Failed to create subscription with Dodo');
     }
+
+    // Ensure the user exists in our database (avoid FK constraint issues)
+    await UserService.getOrCreateUser(userId, email);
 
     // Create subscription record in database
     const subscription = await SubscriptionService.createSubscription({

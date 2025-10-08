@@ -226,14 +226,6 @@ export function SubscriptionStatusCard() {
 
         {/* Action Buttons */}
         <div className="flex gap-3 pt-4">
-          <Button
-            onClick={handleManageSubscription}
-            variant="outline"
-            className="flex-1 rounded-2xl neomorphic"
-          >
-            Manage Billing
-          </Button>
-          
           {!subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && (
             <Button
               onClick={handleCancelSubscription}

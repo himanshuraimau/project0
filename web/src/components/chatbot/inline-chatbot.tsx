@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Send, Copy, Loader2, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MarkdownRenderer } from "@/components/mdx-renderer";
 
 type MessageRole = "user" | "assistant" | "system";
 
@@ -229,7 +230,20 @@ export default function InlineChatbot({
                   )}
                 >
                   <div className="space-y-1">
-                    <div className="text-sm">{message.text}</div>
+                    {message.role === "assistant" ? (
+                      message.text ? (
+                        <div className="prose max-w-none text-sm leading-relaxed">
+                          <MarkdownRenderer content={message.text} />
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="animate-spin" size={14} />
+                          <span>Generating response...</span>
+                        </div>
+                      )
+                    ) : (
+                      <div className="text-sm whitespace-pre-wrap">{message.text}</div>
+                    )}
                     {message.role === "assistant" && message.text && (
                       <div className="flex justify-end">
                         <Button

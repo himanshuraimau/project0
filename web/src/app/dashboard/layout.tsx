@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/AppSidebar";
 import CourseSideBar from "@/components/course/CourseSideBar";
 import { Navbar } from "@/components/shared/navbar";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { DashboardRefreshProvider } from "@/contexts/dashboard-refresh-context";
 import { PaymentSuccessHandler } from "@/components/subscription/payment-success-handler";
 import { Course, Unit, Chapter } from "@prisma/client";
@@ -83,14 +83,37 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const isCoursePage = pathname.includes("/course/") && !pathname.includes("/create/");
   const isNotesPage = pathname.includes("/notes/");
+
+  // Clean up ephemeral query params (e.g. status, subscription_id) that
+  // payment providers or external redirects may append. We intentionally
+  // leave `payment=success` alone because `PaymentSuccessHandler` needs it.
+  React.useEffect(() => {
+    try {
+      if (typeof window === 'undefined') return;
+
+      const params = new URLSearchParams(window.location.search);
+      const hasStatus = params.has('status');
+      const hasSubscriptionId = params.has('subscription_id');
+
+      if (hasStatus || hasSubscriptionId) {
+        // Replace URL to same pathname without query string
+        router.replace(window.location.pathname);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-background">
       <DashboardRefreshProvider>
         {/* Payment Success Handler - shows loading while webhook processes */}
-        <PaymentSuccessHandler />
+        <Suspense fallback={null}>
+          <PaymentSuccessHandler />
+        </Suspense>
 
         {/* Navbar at the top - only for non-course pages and non-notes pages */}
         {!isCoursePage && !isNotesPage && (

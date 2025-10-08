@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState, Suspense } from "react"
 import { useAuth, useClerk } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard"
@@ -132,6 +132,13 @@ export default function SettingsPage() {
     color?: string
     onClick?: () => void
   }[] = [
+    {
+      icon: <span className="text-foreground font-bold text-xl">🚀</span>,
+      label: "Go Unlimited — Get Pro",
+      subtext: "Unlimited notes, transcripts & features",
+      color: "text-foreground",
+      onClick: () => router.push('/pricing'),
+    },
     { 
       icon: <Globe className="h-7 w-7 text-foreground" />, 
       label: "Share with a friend", 
@@ -144,6 +151,7 @@ export default function SettingsPage() {
   ]
 
   return (
+    <Suspense fallback={null}>
     <DashboardLayout>
       <div className="min-h-screen bg-background p-8">
         <h1 className="text-3xl font-bold mb-8 text-foreground">Settings</h1>
@@ -310,5 +318,6 @@ export default function SettingsPage() {
       )}
 
     </DashboardLayout>
+    </Suspense>
   )
 }

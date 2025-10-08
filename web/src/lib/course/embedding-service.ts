@@ -1,31 +1,17 @@
 import { Pool } from 'pg';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { embed } from 'ai';
+import { openai } from '@ai-sdk/openai';
 
 // Constants - use the values from the .env file
-const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || 'models/embedding-001';
-// The actual embedding dimension from the Google API is 3072
-// But we're storing a compressed version in our database to save space
-const EMBEDDING_FULL_DIM = 3072; // The actual dimension from the Google API
-const EMBEDDING_DIM = 768; // The dimension we store in our database (compressed)
+const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || 'text-embedding-3-small';
+// OpenAI text-embedding-3-small has 1536 dimensions by default
+const EMBEDDING_DIM = 1536; // The dimension we store in our database
 const CHUNK_SIZE = parseInt(process.env.CHUNK_SIZE || '1000', 10);
 const CHUNK_OVERLAP = parseInt(process.env.CHUNK_OVERLAP || '200', 10);
 
-// Load API key from environment variables
-const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-
-// Initialize Google Generative AI with proper checks
-let genAI: GoogleGenerativeAI | null = null;
-try {
-  if (apiKey && apiKey.length > 10) {
-    genAI = new GoogleGenerativeAI(apiKey);
-    console.log('Google Generative AI initialized successfully with API key');
-  } else {
-    console.warn('Missing or invalid Google API key - embedding service will use mock embeddings');
-    console.log('API Key from env:', process.env.GOOGLE_GENERATIVE_AI_API_KEY ? 'Present but not valid' : 'Missing');
-  }
-} catch (error) {
-  console.error('Failed to initialize Google Generative AI:', error);
-}
+// Check if OpenAI API key is available
+const openaiApiKey = process.env.OPENAI_API_KEY;
+const hasValidApiKey = openaiApiKey && openaiApiKey.length > 10;
 
 // Initialize PostgreSQL pool
 const pool = new Pool({
@@ -183,25 +169,28 @@ export function generateMockEmbeddings(count: number): number[][] {
 }
 
 /**
- * Generate embeddings for text chunks using Google's Generative AI
+ * Generate embeddings for text chunks using OpenAI's AI SDK
  */
 export async function generateEmbeddings(chunks: string[]): Promise<number[][]> {
   try {
-    // If genAI is not initialized or we're in development mode without API key
-    if (!genAI) {
-      console.log('Google AI client not available - using mock embeddings');
+    // If OpenAI API key is not available, use mock embeddings
+    if (!hasValidApiKey) {
+      console.log('OpenAI API key not available - using mock embeddings');
       return generateMockEmbeddings(chunks.length);
     }
 
     const embeddings: number[][] = [];
-    const embeddingModel = genAI.getGenerativeModel({ model: EMBEDDING_MODEL });
 
-    // Process chunks in batches to avoid rate limiting
+    // Process chunks individually using the embed function
     for (let i = 0; i < chunks.length; i++) {
       try {
-        const result = await embeddingModel.embedContent(chunks[i]);
-        const embedding = result.embedding.values;
+        const { embedding } = await embed({
+          model: openai.textEmbeddingModel(EMBEDDING_MODEL),
+          value: chunks[i],
+        });
+        
         embeddings.push(embedding);
+        console.log(`Generated embedding ${i + 1}/${chunks.length}`);
       } catch (error) {
         console.error(`Error generating embedding for chunk ${i}:`, error);
         // In production, rethrow. In development, fallback to mock
@@ -214,7 +203,7 @@ export async function generateEmbeddings(chunks: string[]): Promise<number[][]> 
       }
     }
 
-    console.log(`Successfully generated embeddings for ${chunks.length} chunks`);
+    console.log(`Successfully generated embeddings for ${chunks.length} chunks using OpenAI`);
     return embeddings;
   } catch (error) {
     console.error('Error in generateEmbeddings:', error);
@@ -259,37 +248,14 @@ export async function insertChunks(
       const chunk = chunks[i];
       const embedding = embeddings[i];
 
-      // Compress the embedding if necessary
-      // If the API returns a larger embedding than we want to store
-      let processedEmbedding = embedding;
+      // Validate embedding dimensions
       if (embedding.length !== EMBEDDING_DIM) {
-        if (embedding.length > EMBEDDING_DIM) {
-          // We'll use a simple dimensionality reduction by averaging groups of values
-          // For example, if we have 3072 values and want 768, we average each group of 4
-          const compressionFactor = Math.floor(embedding.length / EMBEDDING_DIM);
-          if (compressionFactor > 1) {
-            processedEmbedding = [];
-            for (let j = 0; j < EMBEDDING_DIM; j++) {
-              const start = j * compressionFactor;
-              const group = embedding.slice(start, start + compressionFactor);
-              const avg = group.reduce((sum, val) => sum + val, 0) / group.length;
-              processedEmbedding.push(avg);
-            }
-            console.log(`Compressed embedding from ${embedding.length} to ${EMBEDDING_DIM} dimensions`);
-          } else {
-            // Simple truncation if compression factor is 1 or less
-            processedEmbedding = embedding.slice(0, EMBEDDING_DIM);
-            console.log(`Truncated embedding from ${embedding.length} to ${EMBEDDING_DIM} dimensions`);
-          }
-        } else {
-          // Pad with zeros if the embedding is smaller than expected
-          processedEmbedding = [...embedding, ...Array(EMBEDDING_DIM - embedding.length).fill(0)];
-          console.log(`Padded embedding from ${embedding.length} to ${EMBEDDING_DIM} dimensions`);
-        }
+        console.warn(`Embedding dimension mismatch: expected ${EMBEDDING_DIM}, got ${embedding.length}. Skipping chunk.`);
+        continue;
       }
 
       // Format embedding for PostgreSQL vector format
-      const vectorString = `[${processedEmbedding.join(',')}]`;
+      const vectorString = `[${embedding.join(',')}]`;
 
       await client.query(query, [
         noteId,
@@ -361,29 +327,14 @@ ${chunk}
 
 [END_PODCAST_CHUNK]`;
 
-      // Process embedding (same logic as regular chunks)
-      let processedEmbedding = embedding;
+      // Validate embedding dimensions
       if (embedding.length !== EMBEDDING_DIM) {
-        if (embedding.length > EMBEDDING_DIM) {
-          const compressionFactor = Math.floor(embedding.length / EMBEDDING_DIM);
-          if (compressionFactor > 1) {
-            processedEmbedding = [];
-            for (let j = 0; j < EMBEDDING_DIM; j++) {
-              const start = j * compressionFactor;
-              const group = embedding.slice(start, start + compressionFactor);
-              const avg = group.reduce((sum, val) => sum + val, 0) / group.length;
-              processedEmbedding.push(avg);
-            }
-          } else {
-            processedEmbedding = embedding.slice(0, EMBEDDING_DIM);
-          }
-        } else {
-          processedEmbedding = [...embedding, ...Array(EMBEDDING_DIM - embedding.length).fill(0)];
-        }
+        console.warn(`Embedding dimension mismatch: expected ${EMBEDDING_DIM}, got ${embedding.length}. Skipping chunk.`);
+        continue;
       }
 
       // Format embedding for PostgreSQL vector format
-      const vectorString = `[${processedEmbedding.join(',')}]`;
+      const vectorString = `[${embedding.join(',')}]`;
 
       await client.query(query, [
         noteId,
@@ -476,12 +427,14 @@ export async function querySimilarChunks(query: string, noteId?: string, topK: n
   try {
     let embedding: number[] = [];
 
-    // Generate embedding for query
-    if (genAI) {
+    // Generate embedding for query using OpenAI
+    if (hasValidApiKey) {
       try {
-        const embeddingModel = genAI.getGenerativeModel({ model: EMBEDDING_MODEL });
-        const result = await embeddingModel.embedContent(query);
-        embedding = result.embedding.values;
+        const { embedding: queryEmbedding } = await embed({
+          model: openai.textEmbeddingModel(EMBEDDING_MODEL),
+          value: query,
+        });
+        embedding = queryEmbedding;
       } catch (error) {
         console.error('Error generating query embedding, using mock embedding instead:', error);
         embedding = generateMockEmbeddings(1)[0];
@@ -491,30 +444,15 @@ export async function querySimilarChunks(query: string, noteId?: string, topK: n
       embedding = generateMockEmbeddings(1)[0];
     }
 
-    // Process the embedding to match our storage dimension
-    let processedEmbedding = embedding;
+    // Validate embedding dimensions
     if (embedding.length !== EMBEDDING_DIM) {
-      if (embedding.length > EMBEDDING_DIM) {
-        // Compress using the same technique as in insertChunks
-        const compressionFactor = Math.floor(embedding.length / EMBEDDING_DIM);
-        if (compressionFactor > 1) {
-          processedEmbedding = [];
-          for (let j = 0; j < EMBEDDING_DIM; j++) {
-            const start = j * compressionFactor;
-            const group = embedding.slice(start, start + compressionFactor);
-            const avg = group.reduce((sum, val) => sum + val, 0) / group.length;
-            processedEmbedding.push(avg);
-          }
-        } else {
-          processedEmbedding = embedding.slice(0, EMBEDDING_DIM);
-        }
-      } else {
-        processedEmbedding = [...embedding, ...Array(EMBEDDING_DIM - embedding.length).fill(0)];
-      }
+      console.warn(`Query embedding dimension mismatch: expected ${EMBEDDING_DIM}, got ${embedding.length}`);
+      // For consistency, if dimensions don't match, use mock embedding
+      embedding = generateMockEmbeddings(1)[0];
     }
 
     // Format embedding for PostgreSQL vector format
-    const vectorString = `[${processedEmbedding.join(',')}]`;
+    const vectorString = `[${embedding.join(',')}]`;
 
     // Query database for similar chunks
     const client = await pool.connect();
