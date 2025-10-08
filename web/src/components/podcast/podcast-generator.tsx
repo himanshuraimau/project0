@@ -250,7 +250,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
 
         {showPodcastConfig && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-hidden">
-            <div className="neomorphic bg-background rounded-3xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative border-0">
+            <div className="neomorphic bg-background/100 rounded-3xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative border-0">
               <button
                 onClick={() => setShowPodcastConfig(false)}
                 className="absolute top-4 right-4 z-10 neomorphic-icon w-10 h-10 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer"
@@ -260,7 +260,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              <div className="p-8 overflow-y-auto max-h-[80vh]">
+              <div className="p-8 overflow-y-auto max-h-[80vh] bg-background">
                 <PodcastConfigurationInline
                   noteId={noteId}
                   onGenerate={generatePodcast}
@@ -346,7 +346,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
 
         {showPodcastConfig && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-hidden">
-            <div className="neomorphic bg-background rounded-3xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative border-0">
+            <div className="neomorphic bg-background/100 rounded-3xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative border-0">
               <button
                 onClick={() => setShowPodcastConfig(false)}
                 className="absolute top-4 right-4 z-10 neomorphic-icon w-10 h-10 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer"
@@ -356,7 +356,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              <div className="p-8 overflow-y-auto max-h-[80vh]">
+              <div className="p-8 overflow-y-auto max-h-[80vh] bg-background">
                 <PodcastConfigurationInline
                   noteId={noteId}
                   onGenerate={generatePodcast}
@@ -423,7 +423,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
       {/* Podcast Configuration Popup */}
       {showPodcastConfig && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-hidden">
-          <div className="neomorphic bg-background rounded-3xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative border-0">
+          <div className="neomorphic bg-background/100 rounded-3xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative border-0">
             <button
               onClick={() => setShowPodcastConfig(false)}
               className="absolute top-4 right-4 z-10 neomorphic-icon w-10 h-10 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer"
@@ -433,7 +433,7 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <div className="p-8 overflow-y-auto max-h-[80vh]">
+            <div className="p-8 overflow-y-auto max-h-[80vh] bg-background">
               <PodcastConfigurationInline
                 noteId={noteId}
                 onGenerate={generatePodcast}

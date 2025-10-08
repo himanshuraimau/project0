@@ -389,13 +389,13 @@ function VoiceCard({
   disabledReason,
 }: VoiceCardProps) {
   return (
-    <Card
-      className={`cursor-pointer transition-all h-32 ${
+    <div
+      className={`cursor-pointer transition-all h-36 border rounded-2xl ${
         isSelected
           ? "border-primary bg-primary/5 shadow-md"
           : isDisabled
           ? "opacity-50 cursor-not-allowed border-muted"
-          : "hover:border-primary/50 hover:shadow-sm"
+          : "border-black dark:border-white hover:border-primary/50 hover:shadow-sm dark:hover:border-primary/50 dark:hover:shadow-sm"
       }`}
       onClick={isDisabled ? undefined : onSelect}
     >
@@ -448,6 +448,6 @@ function VoiceCard({
           </div>
         </div>
       </CardContent>
-    </Card>
+    </div>
   )
 }
