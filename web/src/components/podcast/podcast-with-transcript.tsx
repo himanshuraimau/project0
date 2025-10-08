@@ -184,45 +184,38 @@ const ModernTranscript: React.FC<{
   }, [segments, currentTime]);
 
   const activeSegment = findActiveSegment();
+  const activeSegmentIndex = activeSegment ? segments.findIndex(s => s.id === activeSegment.id) : -1;
 
   // Handle user scrolling detection
   const handleScroll = useCallback(() => {
     setUserScrolling(true);
     
-    // Clear existing timeout
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
     
-    // Reset user scrolling after 3 seconds of no scrolling
     scrollTimeoutRef.current = setTimeout(() => {
       setUserScrolling(false);
     }, 3000);
   }, []);
 
-  // Auto-scroll to active segment (only if user isn't manually scrolling)
+  // Auto-scroll to active segment - keeps it in viewport center
   useEffect(() => {
     if (!userScrolling && activeSegmentRef.current && containerRef.current) {
-      const container = containerRef.current;
-      const activeElement = activeSegmentRef.current;
+      // Small delay to ensure DOM has updated
+      const timeoutId = setTimeout(() => {
+        if (activeSegmentRef.current && containerRef.current) {
+          activeSegmentRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
+      }, 100);
       
-      const containerRect = container.getBoundingClientRect();
-      const activeRect = activeElement.getBoundingClientRect();
-      
-      // More lenient check - scroll if element is outside center region
-      const isInCenterRegion = 
-        activeRect.top >= containerRect.top + 80 &&
-        activeRect.bottom <= containerRect.bottom - 80;
-      
-      if (!isInCenterRegion) {
-        activeElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'nearest'
-        });
-      }
+      return () => clearTimeout(timeoutId);
     }
-  }, [activeSegment?.id, userScrolling]);
+  }, [activeSegmentIndex, userScrolling]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -248,23 +241,37 @@ const ModernTranscript: React.FC<{
   }
 
   return (
-    <div 
-      ref={containerRef}
-      className="h-full overflow-y-auto bg-background rounded-2xl border border-border/50"
-      onScroll={handleScroll}
-    >
+    <div className="h-full overflow-hidden bg-background rounded-2xl border border-border/50 flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 bg-card/95 backdrop-blur-lg border-b border-border/50 p-4 lg:p-6 z-10">
+      <div className="bg-card/95 backdrop-blur-lg border-b border-border/50 p-4 lg:p-6 z-10 flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xl font-bold text-foreground">
             Transcript
           </h3>
-          <div className="text-xs font-mono text-accent bg-accent/10 px-3 py-1.5 rounded-full border border-accent/20">
-            {formatTime(currentTime)}
+          <div className="flex items-center gap-2">
+            <AnimatePresence>
+              {userScrolling && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="text-xs font-medium text-orange-500 bg-orange-500/10 px-3 py-1.5 rounded-full border border-orange-500/20 flex items-center gap-1.5"
+                >
+                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+                  Auto-scroll paused
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <div className="text-xs font-mono text-accent bg-accent/10 px-3 py-1.5 rounded-full border border-accent/20">
+              {formatTime(currentTime)}
+            </div>
           </div>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-          Click any line to jump to that moment. The current line is highlighted with <span className="text-accent font-medium">accent color</span>.
+          Click any line to jump to that moment. The current line is highlighted.
+          {userScrolling && (
+            <span className="text-orange-500 font-medium"> Auto-scroll will resume soon.</span>
+          )}
         </p>
         {/* Progress bar in header */}
         <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
@@ -275,81 +282,109 @@ const ModernTranscript: React.FC<{
         </div>
       </div>
       
-      {/* Transcript Lines */}
-      <div className="p-4 lg:p-6 space-y-3">
-        {segments.map((segment, index) => {
-          const isActive = activeSegment?.id === segment.id;
-          const speakerName = segment.speaker === 'host1' ? host1Name : host2Name;
-          const speakerColor = segment.speaker === 'host1' ? 'primary' : 'secondary';
-          
-          return (
-            <div
-              key={segment.id || index}
-              ref={isActive ? activeSegmentRef : null}
-              className={cn(
-                "group p-4 rounded-xl border-l-4 cursor-pointer transition-all duration-300",
-                "hover:shadow-md hover:scale-[1.01]",
-                isActive 
-                  ? "bg-accent/10 border-l-accent shadow-lg scale-[1.02] dark:bg-accent/20" 
-                  : "bg-card border-l-border hover:bg-muted/30 hover:border-l-accent/50 dark:bg-card/50"
-              )}
-              onClick={() => {
-                if (segment.startTime !== undefined) {
-                  onSeek(segment.startTime);
-                }
-              }}
-            >
-              <div className="flex gap-3 lg:gap-4">
-                {/* Speaker indicator and timestamp */}
-                <div className="flex flex-col items-start gap-2 min-w-0 flex-shrink-0">
-                  <div className="flex items-center gap-2">
-                    <div className={cn(
-                      "w-2.5 h-2.5 rounded-full transition-all duration-300",
-                      speakerColor === 'primary' ? "bg-primary" : "bg-secondary",
-                      isActive && "animate-pulse shadow-lg scale-125"
-                    )} />
-                    <span className={cn(
-                      "text-xs font-semibold transition-colors duration-300",
-                      isActive ? "text-accent" : speakerColor === 'primary' ? "text-primary" : "text-secondary"
-                    )}>
-                      {speakerName}
-                    </span>
+      {/* Scrollable Transcript */}
+      <div 
+        ref={containerRef}
+        className="flex-1 overflow-y-auto px-4 lg:px-6 py-6 scroll-smooth"
+        onScroll={handleScroll}
+      >
+        <div className="space-y-4 max-w-4xl mx-auto py-8">
+          {segments.map((segment, index) => {
+            const isActive = activeSegment?.id === segment.id;
+            const speakerName = segment.speaker === 'host1' ? host1Name : host2Name;
+            const speakerColor = segment.speaker === 'host1' ? 'primary' : 'secondary';
+            
+            return (
+              <motion.div
+                key={segment.id}
+                ref={isActive ? activeSegmentRef : null}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                  scale: isActive ? 1.02 : 1
+                }}
+                transition={{ 
+                  duration: 0.3, 
+                  delay: index * 0.02,
+                  scale: { duration: 0.2 }
+                }}
+                className={cn(
+                  "group p-4 lg:p-6 rounded-2xl border-l-4 cursor-pointer transition-all duration-300",
+                  "hover:shadow-lg",
+                  isActive 
+                    ? "bg-accent/15 border-l-accent shadow-xl dark:bg-accent/25" 
+                    : "bg-card/80 border-l-border hover:bg-card hover:border-l-accent/50 dark:bg-card/60",
+                  isActive && "ring-2 ring-accent/20"
+                )}
+                onClick={() => {
+                  if (segment.startTime !== undefined) {
+                    onSeek(segment.startTime);
+                  }
+                }}
+              >
+                <div className="flex gap-4 lg:gap-6">
+                  {/* Speaker indicator and timestamp */}
+                  <div className="flex flex-col items-start gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                      <motion.div 
+                        className={cn(
+                          "w-3 h-3 rounded-full transition-all duration-300",
+                          speakerColor === 'primary' ? "bg-primary" : "bg-secondary"
+                        )}
+                        animate={isActive ? { 
+                          scale: [1, 1.3, 1]
+                        } : { scale: 1 }}
+                        transition={{ 
+                          duration: 2, 
+                          repeat: isActive ? Infinity : 0 
+                        }}
+                      />
+                      <span className={cn(
+                        "text-sm font-semibold transition-colors duration-300 whitespace-nowrap",
+                        isActive ? "text-accent" : speakerColor === 'primary' ? "text-primary" : "text-secondary"
+                      )}>
+                        {speakerName}
+                      </span>
+                    </div>
+                    
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (segment.startTime !== undefined) {
+                          onSeek(segment.startTime);
+                        }
+                      }}
+                      className={cn(
+                        "text-xs font-mono px-3 py-2 rounded-xl transition-all duration-300 flex items-center gap-2 font-medium whitespace-nowrap",
+                        isActive 
+                          ? "bg-accent/20 text-accent border border-accent/40 shadow-md dark:bg-accent/30" 
+                          : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-transparent"
+                      )}
+                    >
+                      <Clock className="w-3 h-3" />
+                      {formatTime(segment.startTime || 0)}
+                    </button>
                   </div>
                   
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (segment.startTime !== undefined) {
-                        onSeek(segment.startTime);
-                      }
-                    }}
-                    className={cn(
-                      "text-xs font-mono px-2.5 py-1 rounded-lg transition-all duration-300 flex items-center gap-1.5 font-medium",
-                      isActive 
-                        ? "bg-accent/20 text-accent border border-accent/40 shadow-sm dark:bg-accent/30" 
-                        : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-transparent"
-                    )}
-                  >
-                    <Clock className="w-3 h-3" />
-                    {formatTime(segment.startTime || 0)}
-                  </button>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <p 
+                      className={cn(
+                        "text-base lg:text-lg leading-relaxed transition-all duration-300",
+                        isActive 
+                          ? "text-foreground font-semibold" 
+                          : "text-muted-foreground group-hover:text-foreground"
+                      )}
+                    >
+                      {segment.content}
+                    </p>
+                  </div>
                 </div>
-                
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <p className={cn(
-                    "text-sm leading-relaxed transition-all duration-300",
-                    isActive 
-                      ? "text-foreground font-semibold" 
-                      : "text-muted-foreground hover:text-foreground"
-                  )}>
-                    {segment.content}
-                  </p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
