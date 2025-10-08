@@ -12,6 +12,10 @@ import { ApiErrorResponse } from '@/lib/types';
 import { PodcastApiErrorHandler } from '@/lib/utils/podcast-api-error-handler';
 import { podcastErrorHandler } from '@/lib/utils/podcast-error-handler';
 
+// Configure runtime for Vercel
+export const runtime = 'nodejs';
+export const maxDuration = 300; // 5 minutes for Pro plan, will fallback to limits on other plans
+
 const noteService = new NoteService();
 const podcastService = new PodcastService();
 
@@ -173,7 +177,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
           podcastId: podcast.id,
           noteId: noteId,
           userId: userId,
-          config: config
+          config: config,
+          environment: process.env.NODE_ENV,
+          isProduction: process.env.VERCEL === '1'
         });
         
       } catch (cleanupError) {
@@ -283,35 +289,62 @@ async function generatePodcastInBackground(
           throw new Error(`Voice ID not configured for ${segment.speaker}`);
         }
         
-        // Call ElevenLabs TTS API directly
+        // Call ElevenLabs TTS API directly with retry logic
         const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
         if (!ELEVENLABS_API_KEY) {
           throw new Error('ElevenLabs API key not configured');
         }
 
-        const ttsResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-          method: 'POST',
-          headers: {
-            'Accept': 'audio/mpeg',
-            'Content-Type': 'application/json',
-            'xi-api-key': ELEVENLABS_API_KEY,
-          },
-          body: JSON.stringify({
-            text: segment.content,
-            model_id: 'eleven_flash_v2_5',
-            voice_settings: {
-              stability: 0.5,
-              similarity_boost: 0.8,
-              style: 0.0,
-              use_speaker_boost: true
+        // Retry logic for TTS API calls
+        let ttsResponse: Response | null = null;
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+          try {
+            ttsResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+              method: 'POST',
+              headers: {
+                'Accept': 'audio/mpeg',
+                'Content-Type': 'application/json',
+                'xi-api-key': ELEVENLABS_API_KEY,
+              },
+              body: JSON.stringify({
+                text: segment.content,
+                model_id: 'eleven_flash_v2_5',
+                voice_settings: {
+                  stability: 0.5,
+                  similarity_boost: 0.8,
+                  style: 0.0,
+                  use_speaker_boost: true
+                }
+              })
+            });
+            
+            if (ttsResponse.ok) {
+              break; // Success, exit retry loop
+            } else if (retryCount === maxRetries - 1) {
+              // Last retry failed
+              const errorText = await ttsResponse.text();
+              throw new Error(`TTS API error after ${maxRetries} retries: ${ttsResponse.status} - ${errorText}`);
             }
-          })
-        });
+          } catch (fetchError) {
+            if (retryCount === maxRetries - 1) {
+              throw new Error(`TTS API network error after ${maxRetries} retries: ${fetchError}`);
+            }
+          }
+          
+          retryCount++;
+          // Exponential backoff: 1s, 2s, 4s
+          const backoffDelay = Math.pow(2, retryCount) * 1000;
+          console.log(`TTS retry ${retryCount}/${maxRetries} for segment ${segmentNumber}, waiting ${backoffDelay}ms`);
+          await new Promise(resolve => setTimeout(resolve, backoffDelay));
+        }
 
-        if (!ttsResponse.ok) {
-          const errorText = await ttsResponse.text();
-          console.error(`❌ TTS error for segment ${segmentNumber}:`, ttsResponse.status, errorText);
-          throw new Error(`TTS API error for segment ${segmentNumber}: ${ttsResponse.status} - ${errorText}`);
+        if (!ttsResponse || !ttsResponse.ok) {
+          const errorText = ttsResponse ? await ttsResponse.text() : 'No response received';
+          console.error(`❌ TTS error for segment ${segmentNumber}:`, ttsResponse?.status, errorText);
+          throw new Error(`TTS API error for segment ${segmentNumber}: ${ttsResponse?.status || 'unknown'} - ${errorText}`);
         }
 
         const segmentAudioBuffer = Buffer.from(await ttsResponse.arrayBuffer());

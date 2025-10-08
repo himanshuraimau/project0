@@ -58,12 +58,15 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
       }
 
       if (data.success) {
-     
-        await fetchExistingPodcast();
+        // Don't show success immediately - podcast is still generating
+        // Start polling for completion status instead
         toast.dismiss(loadingToast);
-        toast.success("Podcast generated successfully!", {
-          description: "Your podcast is ready to play!",
+        toast.success("Podcast generation started!", {
+          description: "Your podcast is being generated. This may take a few minutes...",
         });
+        
+        // Start polling for status updates
+        pollPodcastStatus(data.data.id);
       } else {
         throw new Error(data.error || "Failed to generate podcast");
       }
@@ -79,6 +82,56 @@ export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const pollPodcastStatus = async (podcastId: string) => {
+    const maxPollingTime = 10 * 60 * 1000; // 10 minutes max
+    const pollInterval = 5000; // 5 seconds
+    const startTime = Date.now();
+    
+    const poll = async () => {
+      try {
+        const response = await fetch(`/api/podcasts/${podcastId}/progress`);
+        const data = await response.json();
+        
+        if (data.success) {
+          const { status, stage, message } = data.data;
+          
+          if (status === 'completed') {
+            await fetchExistingPodcast();
+            toast.success("Podcast generated successfully!", {
+              description: "Your podcast is ready to play!",
+            });
+            return;
+          }
+          
+          if (status === 'failed') {
+            toast.error("Podcast generation failed", {
+              description: data.data.error || "Please try again later",
+            });
+            return;
+          }
+          
+          // Continue polling if still in progress
+          if (status === 'generating' || status === 'pending') {
+            if (Date.now() - startTime < maxPollingTime) {
+              setTimeout(poll, pollInterval);
+            } else {
+              toast.error("Podcast generation timeout", {
+                description: "The generation is taking longer than expected. Please check back later.",
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error polling podcast status:", error);
+        if (Date.now() - startTime < maxPollingTime) {
+          setTimeout(poll, pollInterval);
+        }
+      }
+    };
+    
+    poll();
   };
 
   const fetchExistingPodcast = useCallback(async () => {
