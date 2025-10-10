@@ -14,96 +14,35 @@ const RequestSchema = z.object({
   topK: z.number().int().positive().default(6).optional(),
 });
 
-interface PodcastMetadata {
-  podcastId: string | null;
-  speakers: string[];
-  timeRange: string | null;
-  sequenceRange: string | null;
-}
-
 interface ChunkResult {
   chunk_text: string;
 }
 
 /**
  * Maps our embedding service results to the format expected by createContextString
- * Handles both regular note chunks and podcast transcript chunks
  */
-function mapChunkResults(results: ChunkResult[]): Array<{ chunkText: string; isPodcast: boolean; podcastMetadata?: PodcastMetadata }> {
-  return results.map((result) => {
-    const chunkText = result.chunk_text;
-    const isPodcast = chunkText.includes('[PODCAST:');
-    
-    let podcastMetadata: PodcastMetadata | undefined = undefined;
-    if (isPodcast) {
-      // Extract podcast metadata from chunk text
-      const podcastMatch = chunkText.match(/\[PODCAST:([^\]]+)\]/);
-      const speakersMatch = chunkText.match(/\[SPEAKERS:([^\]]+)\]/);
-      const timeMatch = chunkText.match(/\[TIME:([^\]]+)\]/);
-      const sequenceMatch = chunkText.match(/\[SEQUENCE:([^\]]+)\]/);
-      
-      podcastMetadata = {
-        podcastId: podcastMatch ? podcastMatch[1] : null,
-        speakers: speakersMatch ? speakersMatch[1].split(',') : [],
-        timeRange: timeMatch ? timeMatch[1] : null,
-        sequenceRange: sequenceMatch ? sequenceMatch[1] : null
-      };
-    }
-    
-    return {
-      chunkText,
-      isPodcast,
-      podcastMetadata
-    };
-  });
+function mapChunkResults(results: ChunkResult[]): Array<{ chunkText: string }> {
+  return results.map((result) => ({
+    chunkText: result.chunk_text
+  }));
 }
 
 /**
  * Creates a context string from retrieved chunks
- * Handles both regular note content and podcast transcript chunks
  */
-function createContextString(chunks: Array<{ chunkText: string; isPodcast: boolean; podcastMetadata?: PodcastMetadata }>): string {
+function createContextString(chunks: Array<{ chunkText: string }>): string {
   // If no chunks were found, return a message
   if (chunks.length === 0) {
     return "No relevant information found in this note.";
   }
 
-  // Separate regular chunks from podcast chunks
-  const regularChunks = chunks.filter(chunk => !chunk.isPodcast);
-  const podcastChunks = chunks.filter(chunk => chunk.isPodcast);
-
   let context = '';
 
-  // Add regular note content first
-  if (regularChunks.length > 0) {
+  // Add note content
+  if (chunks.length > 0) {
     context += 'NOTE CONTENT:\n';
-    for (const chunk of regularChunks) {
+    for (const chunk of chunks) {
       context += `${chunk.chunkText}\n\n`;
-    }
-  }
-
-  // Add podcast transcript content with enhanced formatting
-  if (podcastChunks.length > 0) {
-    context += regularChunks.length > 0 ? '\nPODCAST TRANSCRIPT:\n' : 'PODCAST TRANSCRIPT:\n';
-    
-    for (const chunk of podcastChunks) {
-      // Clean up the chunk text by removing metadata markers
-      let cleanText = chunk.chunkText;
-      
-      // Remove metadata headers
-      cleanText = cleanText.replace(/\[PODCAST:[^\]]+\]\s*/, '');
-      cleanText = cleanText.replace(/\[SPEAKERS:[^\]]+\]\s*/, '');
-      cleanText = cleanText.replace(/\[TIME:[^\]]+\]\s*/, '');
-      cleanText = cleanText.replace(/\[SEQUENCE:[^\]]+\]\s*/, '');
-      cleanText = cleanText.replace(/\[END_PODCAST_CHUNK\]\s*/, '');
-      
-      // Add timing information if available
-      if (chunk.podcastMetadata?.timeRange) {
-        const timeRange = chunk.podcastMetadata.timeRange;
-        context += `[Timestamp: ${timeRange}s]\n${cleanText.trim()}\n\n`;
-      } else {
-        context += `${cleanText.trim()}\n\n`;
-      }
     }
   }
   
@@ -115,6 +54,7 @@ function createContextString(chunks: Array<{ chunkText: string; isPodcast: boole
   
   return context;
 }
+
 /**
  * Generates a streaming response from OpenAI using the AI SDK
  */
@@ -130,9 +70,8 @@ Your responsibilities:
 4. Be conversational and helpful
 5. Don't make up information not present in the context
 
-The context may include:
+The context includes:
 - NOTE CONTENT: Original note text and documents  
-- PODCAST TRANSCRIPT: AI-generated podcast conversations about the note content
 
 When referencing information, you can mention it comes from "your note" or "the content you provided."
 
@@ -152,7 +91,6 @@ Please provide a helpful answer based on the context above.`,
 
   return result.toTextStreamResponse();
 }
-
 
 /**
  * POST handler for the chatbot API route

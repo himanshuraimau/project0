@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useNotes } from "@/hooks/use-notes";
 import { Note } from "@/lib/types";
 import { useFlashcards } from "@/hooks/use-flashcards";
-import { usePodcast } from "@/hooks/use-podcast";
+
 import { useMindmap } from "@/hooks/use-mindmap";
 import { Button } from "@/components/ui/button";
 import { NotesSidebar } from "@/components/notes/sidebar";
@@ -26,11 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { FlashcardViewer, useFlashcardKeyboard, FlashcardGenerator } from "@/components/flashcards";
 import { QuizGenerator } from "@/components/quiz";
-import {
-  PodcastConfigurationModal,
-  PodcastWithTranscript,
-  PodcastGenerator,
-} from "@/components/podcast";
+
 import { MindmapGenerator } from "@/components/mindmap";
 import { Trash2, MessageCircle, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -57,14 +53,7 @@ export default function NoteViewPage() {
     getFlashcards,
   } = useFlashcards();
 
-  const {
-    podcast,
-    segments,
-    loading: podcastLoading,
-    error: podcastError,
-    generatePodcast,
-    getPodcast,
-  } = usePodcast();
+
   const {
     loading: mindmapLoading,
     error: mindmapError,
@@ -79,7 +68,6 @@ export default function NoteViewPage() {
     | "quiz"
     | "flashcards"
     | "chat"
-    | "podcast"
     | "mindmap";
 
   const [currentView, setCurrentView] = useState<ViewType>("notes");
@@ -220,16 +208,7 @@ export default function NoteViewPage() {
     setCurrentView("notes");
   };
 
-  const handleGeneratePodcast = async () => {
-    if (!noteId) return;
 
-    if (currentView === "podcast") {
-      setCurrentView("notes");
-      return;
-    }
-
-    setCurrentView("podcast");
-  };
 
 
 
@@ -353,19 +332,19 @@ export default function NoteViewPage() {
                 showQuiz={currentView === "quiz"}
                 showChat={currentView === "chat"}
                 showFlashcards={currentView === "flashcards"}
-                showPodcast={currentView === "podcast"}
+
                 showMindmap={currentView === "mindmap"}
                 onShowNotes={handleShowNotes}
                 onShowTranscript={handleShowTranscript}
                 onGenerateQuiz={handleGenerateQuiz}
                 onChatWithNote={handleChatWithNote}
                 onGenerateFlashcard={handleGenerateFlashcard}
-                onGeneratePodcast={handleGeneratePodcast}
+
                 onGenerateMindmap={handleGenerateMindmap}
                 onDeleteNote={handleDeleteNote}
                 quizLoading={false}
                 flashcardsLoading={flashcardsLoading}
-                podcastLoading={podcastLoading}
+
                 mindmapLoading={mindmapLoading}
               />
               <div className="bg-background ml-[280px]">
@@ -446,7 +425,7 @@ export default function NoteViewPage() {
                 </Card>
               )}
 
-              {currentView === "podcast" && <PodcastGenerator key={`podcast-${noteId}`} noteId={noteId} />}
+
 
               {currentView === "mindmap" && (
                 <div>

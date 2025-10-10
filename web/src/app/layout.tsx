@@ -15,7 +15,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Project0 - AI-Powered Study App",
   description:
-    "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, quizzes, and podcasts.",
+    "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
 };
 
 export default function RootLayout({

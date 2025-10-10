@@ -10,7 +10,6 @@ import {
   MessageCircle,
   Trash2,
   FileIcon,
-  Mic,
   Brain,
   Menu,
   ChevronLeft,
@@ -44,19 +43,19 @@ interface NotesSidebarProps {
   showQuiz: boolean;
   showChat: boolean;
   showFlashcards: boolean;
-  showPodcast: boolean;
+
   showMindmap: boolean;
   onShowNotes: () => void;
   onShowTranscript: () => void;
   onGenerateQuiz: () => void;
   onChatWithNote: () => void;
   onGenerateFlashcard: () => void;
-  onGeneratePodcast: () => void;
+
   onGenerateMindmap: () => void;
   onDeleteNote: () => void;
   quizLoading?: boolean;
   flashcardsLoading?: boolean;
-  podcastLoading?: boolean;
+
   mindmapLoading?: boolean;
 }
 
@@ -67,19 +66,19 @@ export function NotesSidebar({
   showQuiz,
   showChat,
   showFlashcards,
-  showPodcast,
+
   showMindmap,
   onShowNotes,
   onShowTranscript,
   onGenerateQuiz,
   onChatWithNote,
   onGenerateFlashcard,
-  onGeneratePodcast,
+
   onGenerateMindmap,
   onDeleteNote,
   quizLoading,
   flashcardsLoading,
-  podcastLoading,
+
   mindmapLoading,
 }: NotesSidebarProps) {
   const { state, toggleSidebar } = useSidebar();
@@ -96,7 +95,7 @@ export function NotesSidebar({
         !showQuiz &&
         !showChat &&
         !showFlashcards &&
-        !showPodcast &&
+
         !showMindmap,
       disabled: false,
       loading: false,
@@ -147,15 +146,7 @@ export function NotesSidebar({
       loading: mindmapLoading || false,
       description: "Visual mind map",
     },
-    {
-      title: "Podcast",
-      icon: Mic,
-      onClick: onGeneratePodcast,
-      isActive: showPodcast,
-      disabled: podcastLoading || false,
-      loading: podcastLoading || false,
-      description: "Generate audio podcast",
-    },
+
   ];
 
   return (
@@ -184,8 +175,7 @@ export function NotesSidebar({
                 const Icon = item.icon;
                 const isGenerative =
                   item.title.toLowerCase().includes("generate") ||
-                  item.title === "Flashcards" ||
-                  item.title === "Podcast";
+                  item.title === "Flashcards";
 
                 return (
                   <SidebarMenuItem

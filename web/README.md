@@ -1,6 +1,6 @@
 # Project0 - AI-Powered Study App
 
-Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, quizzes, and podcasts.
+Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.
 
 
 
@@ -21,7 +21,7 @@ Transform learning with AI-powered study tools. Convert lectures, videos, and PD
 - **Smart Notes**: AI-generated comprehensive notes from any content
 - **Flashcards**: Automated flashcard generation for active recall learning
 - **Quizzes**: Interactive quizzes created from your study materials
-- **Podcasts**: Convert notes into audio podcasts for on-the-go learning
+
 
 ### 🔍 Advanced Features
 - Vector-based semantic search across all your notes
@@ -233,7 +233,7 @@ The app includes a credit-based usage system:
 1. **Sign up** for an account using Clerk authentication
 2. **Upload content** - PDFs, audio files, or paste YouTube URLs
 3. **Generate notes** - AI automatically processes your content
-4. **Create study materials** - Generate flashcards, quizzes, or podcasts
+4. **Create study materials** - Generate flashcards or quizzes
 5. **Search and organize** - Use semantic search to find information
 6. **Study on-the-go** - Access your materials from any device
 

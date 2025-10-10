@@ -204,27 +204,8 @@ export type {
   SearchError
 } from './search.types';
 
-// Podcast types - podcast generation and management types
-export type {
-  Podcast,
-  PodcastSegment,
-  PodcastConfig,
-  Voice,
-  VoiceSettings,
-  PodcastScript,
-  ScriptSegment,
-  AudioSegment,
-  TranscriptData,
-  TranscriptSegment,
-  PodcastMetadata,
-  AudioMetadata,
-  WaveformData,
-  GeneratePodcastRequest,
-  GeneratePodcastResponse,
-  ChatResponse,
-  ValidationResult,
-  PodcastGenerationError
-} from './podcast.types';
+
+
 
 
 

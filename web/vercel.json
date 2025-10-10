@@ -2,12 +2,5 @@
   "buildCommand": "bun run build",
   "outputDirectory": ".next",
   "installCommand": "bun install",
-  "functions": {
-    "src/app/api/notes/[id]/podcast/generate/route.ts": {
-      "maxDuration": 300
-    },
-    "src/app/api/podcasts/[id]/progress/route.ts": {
-      "maxDuration": 30
-    }
-  }
+  "functions": {}
 }

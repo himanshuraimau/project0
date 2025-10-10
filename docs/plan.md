@@ -1,7 +1,7 @@
 # Project0 - AI-Powered Study App
 ## Project Overview
 
-Project0 is an AI-powered study application designed to revolutionize how students learn by automatically converting various content formats into organized study materials. The app transforms audio recordings, videos, and PDFs into comprehensive study resources including notes, flashcards, quizzes, and podcasts.
+Project0 is an AI-powered study application designed to revolutionize how students learn by automatically converting various content formats into organized study materials. The app transforms audio recordings, videos, and PDFs into comprehensive study resources including notes, flashcards, and quizzes.
 
 ## Key Features
 ### Core Functionality
@@ -9,7 +9,7 @@ Project0 is an AI-powered study application designed to revolutionize how studen
 - **Smart content conversion** from audio, video, and PDF formats
 - **Automated flashcard creation** for active recall learning
 - **Quiz generation** for self-assessment and review
-- **Podcast conversion** for audio-based learning on-the-go
+
 - **Multi-language support** (100+ languages)
 
 ### Platform Availability
@@ -46,7 +46,7 @@ Project0 is an AI-powered study application designed to revolutionize how studen
 - Natural language processing for note generation
 - Content analysis for flashcard creation
 - Quiz question generation algorithms
-- Text-to-speech for podcast creation
+
 
 ## Implementation Roadmap
 ### Phase 1: Core Features
@@ -57,7 +57,7 @@ Project0 is an AI-powered study application designed to revolutionize how studen
 ### Phase 2: Enhanced AI
 - Advanced content analysis
 - Quiz generation
-- Podcast conversion
+
 
 ### Phase 3: Platform Expansion
 - Multi-platform synchronization

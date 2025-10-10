@@ -61,7 +61,7 @@ const nextConfig: NextConfig = {
               "https://challenges.cloudflare.com https://cloudflareinsights.com " +
               "https://www.youtube.com https://s.ytimg.com " +
               "https://utfs.io https://api.uploadthing.com " + // UploadThing API
-              "https://api.elevenlabs.io " + // ElevenLabs TTS API
+
               "ws://localhost:* http://localhost:*; " + // Allow dev server websockets
               "media-src 'self' " +
               "https://utfs.io " + // UploadThing media files

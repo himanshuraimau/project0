@@ -32,7 +32,7 @@ export class NoteService {
       'audio': `## CONTENT TYPE: Audio Recording / Transcription
 
 **Special Focus Areas for Audio Content:**
-- This content comes from spoken audio (lecture, podcast, meeting, or voice recording)
+- This content comes from spoken audio (lecture, meeting, or voice recording)
 - The original format was conversational - translate verbal explanations into clear written concepts
 - Speaker may have used informal language, filler words, or repetition - distill the core message
 - Verbal emphasis and tone cannot be conveyed - ensure critical points are clearly highlighted in text

@@ -282,7 +282,7 @@ export default function SettingsPage() {
               <ul className="text-foreground mb-4 ml-4 space-y-1 text-sm">
                 <li>• All your notes and transcripts</li>
                 <li>• All courses, quizzes, and flashcards</li>
-                <li>• All mindmaps and podcasts</li>
+                <li>• All mindmaps</li>
                 <li>• Your credit balance and purchase history</li>
                 <li>• Your entire account from our system</li>
               </ul>

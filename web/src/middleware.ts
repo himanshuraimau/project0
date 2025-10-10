@@ -73,7 +73,7 @@ export default clerkMiddleware(async (auth, req) => {
       "https://challenges.cloudflare.com https://cloudflareinsights.com " +
       "https://www.youtube.com https://s.ytimg.com " +
       "https://utfs.io https://api.uploadthing.com " + // UploadThing API
-      "https://api.elevenlabs.io; " + // ElevenLabs TTS API
+
     "media-src 'self' " +
       "https://utfs.io " + // UploadThing media files
       "blob: data:; " + // Allow blob URLs for audio playback

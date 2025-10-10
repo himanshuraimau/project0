@@ -83,13 +83,12 @@ export class UserService {
         console.log(`Deleted subscriptions: ${subscriptionCount.count}`)
 
         // 3. Delete study materials that depend on notes (in parallel for efficiency)
-        const [podcastCount, mindmapCount, quizCount, flashcardCount] = await Promise.all([
-          tx.podcast.deleteMany({ where: { userId } }),
+        const [mindmapCount, quizCount, flashcardCount] = await Promise.all([
           tx.mindMap.deleteMany({ where: { userId } }),
           tx.quiz.deleteMany({ where: { userId } }),
           tx.flashcard.deleteMany({ where: { userId } })
         ])
-        console.log(`Deleted study materials: ${podcastCount.count + mindmapCount.count + quizCount.count + flashcardCount.count}`)
+        console.log(`Deleted study materials: ${mindmapCount.count + quizCount.count + flashcardCount.count}`)
 
         // 4. Delete notes (this will cascade to note chunks)
         const noteCount = await tx.note.deleteMany({

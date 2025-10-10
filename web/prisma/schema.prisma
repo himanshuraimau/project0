@@ -90,7 +90,6 @@ model Note {
   flashcard    Flashcard?
   chunks       NoteChunk[]        @relation("NoteToChunks")
   transcript   Transcript         @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
-  podcast      Podcast?
   quiz         Quiz?
   mindmap      MindMap?
   translations NoteTranslation[]
@@ -151,53 +150,7 @@ model MindMap {
   @@map("mind_maps")
 }
 
-model Podcast {
-  id                 String           @id @default(cuid())
-  noteId             String           @unique
-  userId             String?
-  title              String
-  description        String?
-  language           String           @default("en")
-  durationPreset     String
-  estimatedDuration  Int?
-  actualDuration     Int?
-  host1VoiceId       String
-  host1VoiceName     String
-  host2VoiceId       String
-  host2VoiceName     String
-  customInstructions String?
-  audioUrl           String?
-  audioFileKey       String?
-  transcriptData     Json?
-  generationStatus   String           @default("pending")
-  generationError    String?
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  segments           PodcastSegment[]
-  note               Note             @relation(fields: [noteId], references: [id], onDelete: Cascade)
 
-  @@index([noteId])
-  @@index([userId])
-  @@map("podcasts")
-}
-
-model PodcastSegment {
-  id            Int      @id @default(autoincrement())
-  podcastId     String
-  speaker       String
-  content       String
-  startTime     Decimal? @db.Decimal(10, 3)
-  endTime       Decimal? @db.Decimal(10, 3)
-  audioUrl      String?
-  audioFileKey  String?
-  sequenceOrder Int
-  createdAt     DateTime @default(now())
-  podcast       Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
-
-  @@index([podcastId])
-  @@index([podcastId, sequenceOrder])
-  @@map("podcast_segments")
-}
 
 model NoteChunk {
   id         Int                   @id @default(autoincrement())
