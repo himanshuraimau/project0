@@ -149,23 +149,39 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json(errorResponse, { status: 403 });
     }
 
-    // Delete the note
+    // Delete the note (this will also clean up associated podcasts and audio files)
     await noteService.deleteNote(id);
 
     const response: ApiResponse = {
       success: true,
-      message: 'Note deleted successfully',
+      message: 'Note and associated content deleted successfully',
     };
     return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error deleting note:', error);
     
+    // Provide more specific error messages for different failure scenarios
+    let errorMessage = 'Failed to delete note';
+    let statusCode = 500;
+
+    if (error instanceof Error) {
+      if (error.message.includes('Foreign key constraint')) {
+        errorMessage = 'Cannot delete note due to existing dependencies';
+        statusCode = 409;
+      } else if (error.message.includes('Record to delete does not exist')) {
+        errorMessage = 'Note not found or already deleted';
+        statusCode = 404;
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     const errorResponse: ApiErrorResponse = {
       success: false,
-      error: 'Failed to delete note',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage,
+      message: error instanceof Error ? error.message : 'Unknown error occurred during note deletion'
     };
-    return NextResponse.json(errorResponse, { status: 500 });
+    return NextResponse.json(errorResponse, { status: statusCode });
   }
 }

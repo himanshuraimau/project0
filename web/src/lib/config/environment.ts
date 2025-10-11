@@ -24,6 +24,12 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   
+  // ElevenLabs
+  ELEVENLABS_API_KEY: z.string().optional(),
+  ELEVENLABS_BASE_URL: z.string().default('https://api.elevenlabs.io/v1'),
+  ELEVEN_LABS_WEBHOOK_SERCRET: z.string().optional(),
+  ELEVENLABS_CALLBACK_URL: z.string().optional(),
+  
   // AI Model Configuration
   EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
   CHAT_MODEL: z.string().default('gpt-4o-mini'),
@@ -137,6 +143,12 @@ export const config = {
     gemini: {
       apiKey: env.GEMINI_API_KEY || '',
     },
+    elevenlabs: {
+      apiKey: env.ELEVENLABS_API_KEY || '',
+      baseUrl: env.ELEVENLABS_BASE_URL,
+      webhookSecret: env.ELEVEN_LABS_WEBHOOK_SERCRET || '',
+      callbackUrl: env.ELEVENLABS_CALLBACK_URL || `${env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/podcast/callback`,
+    },
   },
   
 
@@ -211,6 +223,8 @@ export const environmentUtils = {
         return config.ai.openai.apiKey;
       case 'google':
         return config.ai.google.apiKey;
+      case 'elevenlabs':
+        return config.ai.elevenlabs.apiKey;
       case 'unsplash':
         return config.external.unsplash.apiKey;
       case 'youtube':
@@ -250,6 +264,7 @@ export const environmentUtils = {
         database: !!config.database.url,
 
         openai: !!config.ai.openai.apiKey && config.ai.openai.apiKey.startsWith('sk-'),
+        elevenlabs: !!config.ai.elevenlabs.apiKey && config.ai.elevenlabs.apiKey.startsWith('sk_'),
         localStorage: true, // Using local storage for development
         clerk: !!config.auth.clerk.publishableKey && !!config.auth.clerk.secretKey,
       },

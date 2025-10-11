@@ -39,6 +39,40 @@ export const ourFileRouter = {
         name: file.name 
       };
     }),
+
+  // Podcast audio upload endpoint
+  podcastAudio: f({
+    audio: {
+      maxFileSize: "64MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      // Authenticate user
+      const { userId } = await auth();
+      
+      if (!userId) throw new UploadThingError("Unauthorized");
+      
+      // Return metadata that will be accessible in onUploadComplete
+      return { userId };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      // This runs on the server after podcast audio upload
+      console.log("Podcast audio upload complete for userId:", metadata.userId);
+      console.log("Audio URL:", file.url);
+      console.log("Audio size:", file.size);
+      console.log("Audio name:", file.name);
+      console.log("File key:", file.key);
+      
+      return { 
+        uploadedBy: metadata.userId,
+        url: file.url,
+        key: file.key,
+        size: file.size,
+        name: file.name,
+        type: 'podcast-audio'
+      };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

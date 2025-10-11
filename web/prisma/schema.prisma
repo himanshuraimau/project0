@@ -93,6 +93,7 @@ model Note {
   quiz         Quiz?
   mindmap      MindMap?
   translations NoteTranslation[]
+  podcasts     Podcast[]
 
   @@map("notes")
 }
@@ -148,6 +149,55 @@ model MindMap {
   note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
 
   @@map("mind_maps")
+}
+
+model Podcast {
+  id                  String        @id @default(cuid())
+  noteId              String
+  userId              String?
+  
+  // ElevenLabs Integration
+  elevenLabsProjectId String?       @unique
+  
+  // Generation Settings
+  mode                PodcastMode
+  hostVoiceId         String
+  guestVoiceId        String?
+  qualityPreset       QualityPreset @default(STANDARD)
+  durationScale       DurationScale @default(DEFAULT)
+  language            String?
+  intro               String?
+  outro               String?
+  
+  // Status and Progress
+  status              PodcastStatus @default(GENERATING)
+  progress            Float?        @default(0)
+  errorMessage        String?
+  
+  // Audio File Information
+  audioUrl            String?       // UploadThing URL
+  audioFileKey        String?       // UploadThing file key for deletion
+  duration            Int?          // Duration in seconds
+  fileSize            Int?          // File size in bytes
+  
+  // Metadata
+  title               String
+  description         String?
+  metadata            Json?
+  
+  // Timestamps
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  completedAt         DateTime?
+  
+  // Relations
+  note                Note          @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  
+  @@index([noteId])
+  @@index([userId])
+  @@index([status])
+  @@index([elevenLabsProjectId])
+  @@map("podcasts")
 }
 
 
@@ -268,4 +318,31 @@ model UserChapterProgress {
   @@index([userId])
   @@index([chapterId])
   @@map("user_chapter_progress")
+}
+
+enum PodcastMode {
+  CONVERSATION
+  BULLETIN
+}
+
+enum PodcastStatus {
+  GENERATING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  SUPERSEDED
+}
+
+enum QualityPreset {
+  STANDARD
+  HIGH
+  HIGHEST
+  ULTRA
+  ULTRA_LOSSLESS
+}
+
+enum DurationScale {
+  SHORT
+  DEFAULT
+  LONG
 }

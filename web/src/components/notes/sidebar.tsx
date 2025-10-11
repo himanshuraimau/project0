@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   Loader2,
   CheckCircle,
+  Mic,
 } from "lucide-react";
 import {
   Sidebar,
@@ -43,19 +44,19 @@ interface NotesSidebarProps {
   showQuiz: boolean;
   showChat: boolean;
   showFlashcards: boolean;
-
+  showPodcast: boolean;
   showMindmap: boolean;
   onShowNotes: () => void;
   onShowTranscript: () => void;
   onGenerateQuiz: () => void;
   onChatWithNote: () => void;
   onGenerateFlashcard: () => void;
-
+  onGeneratePodcast: () => void;
   onGenerateMindmap: () => void;
   onDeleteNote: () => void;
   quizLoading?: boolean;
   flashcardsLoading?: boolean;
-
+  podcastLoading?: boolean;
   mindmapLoading?: boolean;
 }
 
@@ -66,21 +67,22 @@ export function NotesSidebar({
   showQuiz,
   showChat,
   showFlashcards,
-
+  showPodcast,
   showMindmap,
   onShowNotes,
   onShowTranscript,
   onGenerateQuiz,
   onChatWithNote,
   onGenerateFlashcard,
-
+  onGeneratePodcast,
   onGenerateMindmap,
   onDeleteNote,
   quizLoading,
   flashcardsLoading,
-
+  podcastLoading,
   mindmapLoading,
-}: NotesSidebarProps) {
+  ...props
+}: NotesSidebarProps & React.HTMLAttributes<HTMLDivElement>) {
   const { state, toggleSidebar } = useSidebar();
   const router = useRouter();
   const isCollapsed = state === "collapsed";
@@ -95,7 +97,7 @@ export function NotesSidebar({
         !showQuiz &&
         !showChat &&
         !showFlashcards &&
-
+        !showPodcast &&
         !showMindmap,
       disabled: false,
       loading: false,
@@ -138,6 +140,15 @@ export function NotesSidebar({
       description: "Study with flashcards",
     },
     {
+      title: "Podcast",
+      icon: Mic,
+      onClick: onGeneratePodcast,
+      isActive: showPodcast,
+      disabled: podcastLoading || false,
+      loading: podcastLoading || false,
+      description: "Generate audio podcast",
+    },
+    {
       title: "Mind Map",
       icon: Brain,
       onClick: onGenerateMindmap,
@@ -156,6 +167,9 @@ export function NotesSidebar({
         "h-screen ml-[5vw] mt-16",
         className
       )}
+      role="navigation"
+      aria-label="Note features and actions"
+      {...props}
     >
 
       <SidebarContent
@@ -206,6 +220,9 @@ export function NotesSidebar({
                           : ""
                       )}
                       title={isCollapsed ? item.title : undefined}
+                      aria-label={`${item.title}${item.loading ? ' (loading)' : ''}${item.isActive ? ' (active)' : ''}`}
+                      aria-current={item.isActive ? 'page' : undefined}
+                      aria-describedby={isCollapsed ? undefined : `${item.title.toLowerCase().replace(/\s+/g, '-')}-description`}
                     >
                       <div
                         className={cn(
@@ -236,6 +253,12 @@ export function NotesSidebar({
                               )}
                             >
                               {item.title}
+                            </span>
+                            <span 
+                              id={`${item.title.toLowerCase().replace(/\s+/g, '-')}-description`}
+                              className="sr-only"
+                            >
+                              {item.description}
                             </span>
                           </div>
                         )}
@@ -269,6 +292,8 @@ export function NotesSidebar({
                       "text-red-600 hover:text-red-500"
                     )}
                     title={isCollapsed ? "Delete Notes" : undefined}
+                    aria-label="Delete note permanently"
+                    role="button"
                   >
                     <div
                       className={cn(

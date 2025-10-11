@@ -204,6 +204,30 @@ export type {
   SearchError
 } from './search.types';
 
+// Podcast types - podcast generation and management types
+export type {
+  Podcast,
+  PodcastMode,
+  PodcastStatus,
+  QualityPreset,
+  DurationScale,
+  PodcastGenerationOptions,
+  VoiceSettings,
+  PodcastGenerationForm,
+  PodcastGenerationResponse,
+  ElevenLabsWebhookPayload,
+  GenerationStartedPayload,
+  GenerationCompletedPayload,
+  GenerationFailedPayload,
+  AudioPlayerState,
+  TranscriptSyncState,
+  TranscriptSyncData,
+  TimestampData,
+  TextChunk,
+  AudioMetadata,
+  ErrorResponse
+} from './podcast';
+
 
 
 

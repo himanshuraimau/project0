@@ -205,9 +205,8 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
               <FileText className="h-4 w-4" />
               Generate Focused Notes
               <ChevronDown
-                className={`h-4 w-4 transition-transform ${
-                  showNoteTypeOptions ? "rotate-180" : ""
-                }`}
+                className={`h-4 w-4 transition-transform ${showNoteTypeOptions ? "rotate-180" : ""
+                  }`}
               />
             </Button>
 
@@ -258,9 +257,8 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
                   >
                     <div className="flex items-start gap-3">
                       <div
-                        className={`w-3 h-3 rounded-full mt-1 ${
-                          color.split(" ")[0]
-                        } ${color.split(" ")[1]}`}
+                        className={`w-3 h-3 rounded-full mt-1 ${color.split(" ")[0]
+                          } ${color.split(" ")[1]}`}
                       ></div>
                       <div>
                         <div className="font-medium text-gray-900 dark:text-white text-sm">
