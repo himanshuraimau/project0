@@ -90,12 +90,12 @@ export function PricingCard() {
       <Button
         onClick={handleSubscribe}
         disabled={loading}
-        className="w-full h-14 text-lg font-semibold rounded-2xl neomorphic hover:shadow-lg transition-all duration-300"
+        className="w-full h-14 text-lg font-semibold rounded-2xl neomorphic hover:shadow-lg transition-all duration-300 dark:text-white"
         size="lg"
       >
         {loading ? (
           <div className="flex items-center gap-2">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent dark:text-white" />
             <span>Creating subscription...</span>
           </div>
         ) : (
