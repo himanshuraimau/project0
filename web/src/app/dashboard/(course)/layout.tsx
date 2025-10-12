@@ -69,17 +69,17 @@ export default function CourseLayout({
       <SidebarProvider defaultOpen={true}>
         <div className="min-h-screen bg-background">
           {/* Course navbar at the top */}
-          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
+          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border mx-[3vw]">
             <div
-              className={`${jakarta.className} px-6 py-4 flex items-center justify-between`}
+              className={`${jakarta.className} py-4 flex bg-background items-center justify-between px-6 transition-all duration-300`}
             >
-              <div className="flex items-center gap-4">
+              <div className="flex items-center h-16 gap-4">
                 <Link
                   href="/dashboard/generate-course"
-                  className="flex items-center gap-2 text-xl font-semibold text-foreground hover:text-accent transition-colors"
+                  className="flex items-center gap-2 text-foreground hover:text-accent transition-colors"
                 >
                   <ArrowLeft className="h-5 w-5" />
-                  Back to Courses
+                  <span className="text-xl font-semibold">Back to Courses</span>
                 </Link>
               </div>
               <div className="flex items-center gap-4">

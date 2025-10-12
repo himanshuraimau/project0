@@ -115,7 +115,7 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
   const { unitProgress } = useCourseProgress();
 
   return (
-    <Sidebar collapsible="none" className="fixed top-16 left-14 h-[calc(100vh-7vh)] dark:bg-sidebar ml-2 flex justify-start border-r border-black/10 dark:border-white/10 z-30">
+    <Sidebar collapsible="none" className="fixed top-[calc(100vh-89vh)] left-14 h-[calc(100vh-10vh)] dark:bg-sidebar ml-2 flex justify-start z-30">
       <SidebarHeader className="border-b pt-7 pb-5 dark:bg-sidebar border-stone-200 dark:border-stone-900 flex-shrink-0">
         <div className="flex items-center gap-3 min-w-0 px-4">
           <BookOpen className="w-6 h-6 text-accent flex-shrink-0" />
