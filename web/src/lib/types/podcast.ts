@@ -1,10 +1,15 @@
 // Podcast-related TypeScript interfaces and types
 // Re-export Prisma enums and types for consistency
 export { PodcastMode, PodcastStatus, QualityPreset, DurationScale } from '@prisma/client';
-export type { Podcast } from '@prisma/client';
+export type { Podcast, Note } from '@prisma/client';
 
 // Import types for use in interfaces below
-import { PodcastMode, PodcastStatus, QualityPreset, DurationScale, Podcast } from '@prisma/client';
+import { PodcastMode, PodcastStatus, QualityPreset, DurationScale, Podcast, Note } from '@prisma/client';
+
+// Extended Podcast type with related note data
+export type PodcastWithNote = Podcast & {
+  note?: Note | null;
+};
 
 // Podcast generation options for API requests
 export interface PodcastGenerationOptions {
@@ -122,17 +127,4 @@ export interface ErrorResponse {
   code: string;
   retryable: boolean;
   retryAfter?: number;
-}
-
-// Import Note type from existing types (assuming it exists)
-// This will be properly typed when we have access to the generated Prisma types
-export interface Note {
-  id: string;
-  title: string;
-  content: string;
-  transcriptId: string;
-  userId?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  podcasts?: Podcast[];
 }

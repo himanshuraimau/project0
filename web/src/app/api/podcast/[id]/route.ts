@@ -107,7 +107,7 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Authenticate user
@@ -121,7 +121,8 @@ export async function DELETE(
     }
 
     // Validate podcast ID parameter
-    const podcastId = params.id;
+    const resolvedParams = await params;
+    const podcastId = resolvedParams.id;
     if (!podcastId || typeof podcastId !== 'string' || podcastId.trim().length === 0) {
       const errorResponse: ApiErrorResponse = {
         success: false,
