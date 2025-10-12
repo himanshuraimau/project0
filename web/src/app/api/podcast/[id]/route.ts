@@ -10,7 +10,7 @@ import { ApiSuccessResponse, ApiErrorResponse } from '@/lib/types/api.types';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Authenticate user
@@ -24,7 +24,8 @@ export async function GET(
     }
 
     // Validate podcast ID parameter
-    const podcastId = params.id;
+    const resolvedParams = await params;
+    const podcastId = resolvedParams.id;
     if (!podcastId || typeof podcastId !== 'string' || podcastId.trim().length === 0) {
       const errorResponse: ApiErrorResponse = {
         success: false,

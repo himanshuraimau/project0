@@ -10,7 +10,7 @@ import { ApiSuccessResponse, ApiErrorResponse } from '@/lib/types/api.types';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { noteId: string } }
+  { params }: { params: Promise<{ noteId: string }> }
 ) {
   try {
     // Authenticate user
@@ -23,8 +23,8 @@ export async function GET(
       return NextResponse.json(errorResponse, { status: 401 });
     }
 
-    // Validate note ID parameter
-    const noteId = params.noteId;
+    // Await params before accessing properties (Next.js 15+)
+    const { noteId } = await params;
     if (!noteId || typeof noteId !== 'string' || noteId.trim().length === 0) {
       const errorResponse: ApiErrorResponse = {
         success: false,

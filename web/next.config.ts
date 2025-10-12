@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Allow ngrok domain for development
+  allowedDevOrigins: [
+    'binate-nonperceptively-celestina.ngrok-free.dev'
+  ],
   images: {
     remotePatterns: [
       {
