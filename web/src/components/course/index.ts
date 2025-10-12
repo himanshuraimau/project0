@@ -6,6 +6,7 @@ export { default as ChapterCard } from "./ChapterCard";
 export { default as CourseSideBar } from "./CourseSideBar";
 export { default as MainVideoSummary } from "./MainVideoSummary";
 export { default as QuizCards } from "./QuizCards";
+export { ChapterQuizGenerator } from "./ChapterQuizGenerator";
 
 // New AI Course Flow components
 export { CourseCreationWizard } from "./CourseCreationWizard";
