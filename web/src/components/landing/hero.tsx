@@ -39,7 +39,7 @@ export function Hero() {
         {/* Subtitle */}
         <p className="text-xl lg:text-2xl text-muted-foreground leading-relaxed mb-12 max-w-4xl mx-auto">
           One-tap recording, automatic note generation, and intelligent study materials. 
-          Convert lectures, videos, and PDFs into organized flashcards, quizzes, and podcasts.
+          Convert lectures, videos, and PDFs into organized flashcards and quizzes.
         </p>
 
         {/* CTA buttons */}
@@ -103,12 +103,7 @@ export function Hero() {
             <span className="text-sm font-medium text-muted-foreground">Flashcards</span>
           </div>
           
-          <div className="flex flex-col items-center gap-3 group">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
-              <Headphones className="w-8 h-8 text-primary" />
-            </div>
-            <span className="text-sm font-medium text-muted-foreground">Podcasts</span>
-          </div>
+
           
           <div className="flex flex-col items-center gap-3 group">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">

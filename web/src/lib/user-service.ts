@@ -82,34 +82,57 @@ export class UserService {
         const subscriptionCount = await tx.subscription.deleteMany({ where: { userId } })
         console.log(`Deleted subscriptions: ${subscriptionCount.count}`)
 
-        // 3. Delete study materials that depend on notes (in parallel for efficiency)
-        const [podcastCount, mindmapCount, quizCount, flashcardCount] = await Promise.all([
-          tx.podcast.deleteMany({ where: { userId } }),
+        // 3. Clean up podcast audio files before deleting podcasts
+        let podcastFileCleanupCount = 0;
+        try {
+          const userPodcasts = await tx.podcast.findMany({
+            where: { userId },
+            select: { audioFileKey: true }
+          });
+          
+          const audioFileKeys = userPodcasts
+            .filter(podcast => podcast.audioFileKey)
+            .map(podcast => podcast.audioFileKey!);
+
+          if (audioFileKeys.length > 0) {
+            const { uploadThingAudioStorageService } = await import('./uploadthing');
+            await uploadThingAudioStorageService.deleteAudioFiles(audioFileKeys);
+            podcastFileCleanupCount = audioFileKeys.length;
+          }
+        } catch (fileError) {
+          console.warn(`Failed to clean up some podcast audio files for user ${userId}:`, fileError);
+          // Continue with deletion even if file cleanup fails
+        }
+
+        // 4. Delete study materials that depend on notes (in parallel for efficiency)
+        const [mindmapCount, quizCount, flashcardCount, podcastCount] = await Promise.all([
           tx.mindMap.deleteMany({ where: { userId } }),
           tx.quiz.deleteMany({ where: { userId } }),
-          tx.flashcard.deleteMany({ where: { userId } })
+          tx.flashcard.deleteMany({ where: { userId } }),
+          tx.podcast.deleteMany({ where: { userId } })
         ])
-        console.log(`Deleted study materials: ${podcastCount.count + mindmapCount.count + quizCount.count + flashcardCount.count}`)
+        console.log(`Deleted study materials: ${mindmapCount.count + quizCount.count + flashcardCount.count + podcastCount.count}`)
+        console.log(`Cleaned up ${podcastFileCleanupCount} podcast audio files`)
 
-        // 4. Delete notes (this will cascade to note chunks)
+        // 5. Delete notes (this will cascade to note chunks)
         const noteCount = await tx.note.deleteMany({
           where: { userId }
         })
         console.log(`Deleted notes: ${noteCount.count}`)
 
-        // 5. Delete transcripts
+        // 6. Delete transcripts
         const transcriptCount = await tx.transcript.deleteMany({
           where: { userId }
         })
         console.log(`Deleted transcripts: ${transcriptCount.count}`)
 
-        // 6. Delete courses (this will cascade to units, chapters, questions, etc.)
+        // 7. Delete courses (this will cascade to units, chapters, questions, etc.)
         const courseCount = await tx.course.deleteMany({
           where: { userId }
         })
         console.log(`Deleted courses: ${courseCount.count}`)
 
-        // 7. Finally, delete the user if it exists
+        // 8. Finally, delete the user if it exists
         if (existingUser) {
           await tx.user.delete({
             where: { id: userId }

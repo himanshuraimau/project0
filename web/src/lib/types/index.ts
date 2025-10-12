@@ -207,24 +207,29 @@ export type {
 // Podcast types - podcast generation and management types
 export type {
   Podcast,
-  PodcastSegment,
-  PodcastConfig,
-  Voice,
+  PodcastMode,
+  PodcastStatus,
+  QualityPreset,
+  DurationScale,
+  PodcastGenerationOptions,
   VoiceSettings,
-  PodcastScript,
-  ScriptSegment,
-  AudioSegment,
-  TranscriptData,
-  TranscriptSegment,
-  PodcastMetadata,
+  PodcastGenerationForm,
+  PodcastGenerationResponse,
+  ElevenLabsWebhookPayload,
+  GenerationStartedPayload,
+  GenerationCompletedPayload,
+  GenerationFailedPayload,
+  AudioPlayerState,
+  TranscriptSyncState,
+  TranscriptSyncData,
+  TimestampData,
+  TextChunk,
   AudioMetadata,
-  WaveformData,
-  GeneratePodcastRequest,
-  GeneratePodcastResponse,
-  ChatResponse,
-  ValidationResult,
-  PodcastGenerationError
-} from './podcast.types';
+  ErrorResponse
+} from './podcast';
+
+
+
 
 
 

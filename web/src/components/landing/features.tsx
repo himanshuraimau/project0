@@ -37,13 +37,7 @@ const features = [
     badge: "Study Tool",
     gradient: "from-success/20 to-success/5"
   },
-  {
-    icon: Headphones,
-    title: "Podcast Conversion",
-    description: "Convert your study materials into audio podcasts for learning on-the-go.",
-    badge: "Audio Learning",
-    gradient: "from-primary/20 to-primary/5"
-  },
+
   {
     icon: Languages,
     title: "100+ Languages",

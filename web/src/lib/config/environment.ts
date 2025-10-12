@@ -24,14 +24,18 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   
+  // ElevenLabs
+  ELEVENLABS_API_KEY: z.string().optional(),
+  ELEVENLABS_BASE_URL: z.string().default('https://api.elevenlabs.io/v1'),
+  ELEVEN_LABS_WEBHOOK_SERCRET: z.string().optional(),
+  ELEVENLABS_CALLBACK_URL: z.string().optional(),
+  
   // AI Model Configuration
   EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
   CHAT_MODEL: z.string().default('gpt-4o-mini'),
   EMBEDDING_DIM: z.coerce.number().default(1536),
   
-  // Podcast Generation (ElevenLabs)
-  ELEVENLABS_API_KEY: z.string().optional(),
-  ELEVENLABS_BASE_URL: z.string().default('https://api.elevenlabs.io/v1'),
+
   
   // Storage (Vercel Blob) - Optional for local development
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
@@ -55,12 +59,12 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().optional(),
   
   // Optional feature flags
-  ENABLE_PODCAST_GENERATION: z.coerce.boolean().default(true),
+
   ENABLE_COURSE_GENERATION: z.coerce.boolean().default(true),
   ENABLE_ANALYTICS: z.coerce.boolean().default(true),
   
   // Rate limiting and quotas
-  MAX_PODCAST_GENERATIONS_PER_DAY: z.coerce.number().default(10),
+
   MAX_AUDIO_FILE_SIZE_MB: z.coerce.number().default(50),
   MAX_TRANSCRIPT_LENGTH: z.coerce.number().default(50000),
 });
@@ -139,24 +143,15 @@ export const config = {
     gemini: {
       apiKey: env.GEMINI_API_KEY || '',
     },
-  },
-  
-  // Podcast Generation
-  podcast: {
     elevenlabs: {
       apiKey: env.ELEVENLABS_API_KEY || '',
       baseUrl: env.ELEVENLABS_BASE_URL,
+      webhookSecret: env.ELEVEN_LABS_WEBHOOK_SERCRET || '',
+      callbackUrl: env.ELEVENLABS_CALLBACK_URL || `${env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/podcast/callback`,
     },
-    storage: {
-      blobToken: env.BLOB_READ_WRITE_TOKEN || null,
-    },
-    limits: {
-      maxGenerationsPerDay: env.MAX_PODCAST_GENERATIONS_PER_DAY,
-      maxAudioFileSizeMB: env.MAX_AUDIO_FILE_SIZE_MB,
-      maxTranscriptLength: env.MAX_TRANSCRIPT_LENGTH,
-    },
-    enabled: env.ENABLE_PODCAST_GENERATION,
   },
+  
+
   
   // External APIs
   external: {
@@ -190,7 +185,7 @@ export const config = {
   
   // Feature flags
   features: {
-    podcastGeneration: env.ENABLE_PODCAST_GENERATION,
+
     courseGeneration: env.ENABLE_COURSE_GENERATION,
     analytics: env.ENABLE_ANALYTICS,
   },
@@ -223,12 +218,13 @@ export const environmentUtils = {
    */
   getApiKey: (service: string): string => {
     switch (service) {
-      case 'elevenlabs':
-        return config.podcast.elevenlabs.apiKey;
+
       case 'openai':
         return config.ai.openai.apiKey;
       case 'google':
         return config.ai.google.apiKey;
+      case 'elevenlabs':
+        return config.ai.elevenlabs.apiKey;
       case 'unsplash':
         return config.external.unsplash.apiKey;
       case 'youtube':
@@ -244,12 +240,7 @@ export const environmentUtils = {
   validateServiceConfiguration: (): { valid: boolean; missing: string[] } => {
     const missing: string[] = [];
     
-    // Check podcast generation requirements
-    if (config.features.podcastGeneration) {
-      if (!config.podcast.elevenlabs.apiKey || !config.podcast.elevenlabs.apiKey.includes('sk_')) {
-        missing.push('ElevenLabs API key (ELEVENLABS_API_KEY)');
-      }
-    }
+
     
     // Check AI service requirements
     if (!config.ai.openai.apiKey || !config.ai.openai.apiKey.includes('sk-')) {
@@ -271,8 +262,9 @@ export const environmentUtils = {
       features: config.features,
       services: {
         database: !!config.database.url,
-        elevenlabs: !!config.podcast.elevenlabs.apiKey && config.podcast.elevenlabs.apiKey.startsWith('sk_'),
+
         openai: !!config.ai.openai.apiKey && config.ai.openai.apiKey.startsWith('sk-'),
+        elevenlabs: !!config.ai.elevenlabs.apiKey && config.ai.elevenlabs.apiKey.startsWith('sk_'),
         localStorage: true, // Using local storage for development
         clerk: !!config.auth.clerk.publishableKey && !!config.auth.clerk.secretKey,
       },

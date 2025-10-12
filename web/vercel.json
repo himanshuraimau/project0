@@ -1,5 +1,6 @@
 {
   "buildCommand": "bun run build",
   "outputDirectory": ".next",
-  "installCommand": "bun install"
+  "installCommand": "bun install",
+  "functions": {}
 }

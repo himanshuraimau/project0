@@ -1,13 +1,22 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState, useCallback, useEffect } from "react";
+import "./podcast.css";
 import { Button } from "@/components/ui/button";
-import { Mic, Trash2, Brain } from "lucide-react";
+import { Mic, Trash2, Download, FileText, RefreshCw, History, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { PodcastWithTranscript, PodcastConfigurationInline } from "./";
-import { Podcast, PodcastConfig, PodcastSegment } from "@/lib/types/podcast.types";
+import { PodcastForm } from "./podcast-form";
+import { PodcastPlayer } from "./podcast-player";
+import { PodcastLayout } from "./podcast-layout";
+import { PodcastHistory } from "./podcast-history";
 import { LoadingState } from "@/components/ui/loading-spinner";
+import { PodcastSkeleton, PodcastGenerationSkeleton } from "./podcast-skeleton";
+import { PodcastErrorBoundary } from "./podcast-error-boundary";
+import { PodcastGenerationError, PodcastErrorDisplay } from "./podcast-error-components";
+import { usePodcast } from "@/hooks/use-podcast";
+import { usePodcastRetry } from "@/hooks/use-podcast-retry";
+import type { PodcastGenerationForm } from "@/lib/types/podcast";
+import { displayPodcastError, classifyPodcastError } from "@/lib/utils/podcast-error-handler";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,427 +31,604 @@ import {
 
 interface PodcastGeneratorProps {
   noteId: string;
+  noteTitle?: string;
+  noteContent?: string;
   onClose?: () => void;
 }
 
-export function PodcastGenerator({ noteId }: PodcastGeneratorProps) {
-  const [podcast, setPodcast] = useState<Podcast | null>(null);
-  const [segments, setSegments] = useState<PodcastSegment[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showPodcastConfig, setShowPodcastConfig] = useState(false);
+function PodcastGeneratorInner({ noteId, noteTitle, noteContent }: PodcastGeneratorProps) {
+  const [showForm, setShowForm] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  
+  const {
+    podcasts,
+    currentPodcast,
+    loading,
+    error,
+    generating,
+    progress,
+    generatePodcast,
+    getPodcastsByNote,
+    getPodcast,
+    deletePodcast,
+    regeneratePodcast,
+    getLatestPodcast,
+    refreshPodcasts,
+    getPodcastHistory,
+    getLatestCompletedPodcast,
+    hasMultiplePodcasts,
+    getSupersededCount,
+    hasError,
+    isEmpty,
+  } = usePodcast(noteId);
 
-  const generatePodcast = async (config: PodcastConfig) => {
-    setLoading(true);
-    setError(null);
-    setShowPodcastConfig(false);
-
-    const loadingToast = toast.loading("Generating podcast...", {
-      description: "This may take a few minutes. Creating script, synthesizing voices, and processing audio...",
-    });
-
-    try {
-      const response = await fetch(`/api/notes/${noteId}/podcast/generate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(config),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to generate podcast");
+  // Enhanced retry mechanism for podcast operations
+  const retryHook = usePodcastRetry(
+    { operation: 'generate', noteId, timestamp: new Date() },
+    {
+      operation: 'generation',
+      autoRetry: false,
+      showToast: false, // We'll handle toasts manually
+      onRetryStart: (retryCount) => {
+        console.log(`Starting retry attempt ${retryCount} for podcast generation`);
+      },
+      onRetrySuccess: (retryCount) => {
+        toast.success(`Podcast generation succeeded after ${retryCount} retries`);
+      },
+      onRetryFailed: (error, retryCount) => {
+        toast.error(`Retry ${retryCount} failed: ${error.userMessage}`);
+      },
+      onMaxRetriesReached: (error) => {
+        toast.error(`Maximum retries reached. ${error.userMessage}`);
       }
-
-      if (data.success) {
-     
-        await fetchExistingPodcast();
-        toast.dismiss(loadingToast);
-        toast.success("Podcast generated successfully!", {
-          description: "Your podcast is ready to play!",
-        });
-      } else {
-        throw new Error(data.error || "Failed to generate podcast");
-      }
-    } catch (error) {
-      console.error("Error generating podcast:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to generate podcast";
-      setError(errorMessage);
-      
-      // Dismiss loading toast and show error
-      toast.dismiss(loadingToast);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
     }
-  };
+  );
 
-  const fetchExistingPodcast = useCallback(async () => {
+  // State for managing multiple podcasts
+  const [podcastHistory, setPodcastHistory] = useState<{
+    podcasts: any[];
+    latest: any;
+    inProgress: any;
+    completed: any[];
+    failed: any[];
+    superseded: any[];
+  } | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Get the latest completed or in-progress podcast
+  const latestPodcast = podcasts.find(p => 
+    p.status === 'COMPLETED' || p.status === 'IN_PROGRESS' || p.status === 'GENERATING'
+  ) || currentPodcast;
+
+  // Check for existing podcasts on component mount and load history
+  const fetchExistingPodcasts = useCallback(async () => {
     setInitialLoading(true);
     try {
-      const response = await fetch(`/api/notes/${noteId}/podcast`);
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          setPodcast(data.data.podcast);
-          setSegments(data.data.segments || []);
-        }
-   
-      }
-      
+      await getPodcastsByNote(noteId);
+      // Load podcast history for multiple podcast handling
+      const history = await getPodcastHistory(noteId, false);
+      setPodcastHistory(history);
     } catch (error) {
-      console.error("Error fetching existing podcast:", error);
+      console.error("Error fetching existing podcasts:", error);
+      // Don't show error for this - just means no podcasts exist yet
     } finally {
       setInitialLoading(false);
     }
-  }, [noteId]);
+  }, [noteId, getPodcastsByNote, getPodcastHistory]);
 
-  const deletePodcast = async () => {
-    if (!podcast) return;
+  useEffect(() => {
+    fetchExistingPodcasts();
+  }, [fetchExistingPodcasts]);
+
+  // Handle podcast generation with enhanced error handling
+  const handleGeneratePodcast = async (formData: PodcastGenerationForm) => {
+    const context = { 
+      operation: 'generate' as const, 
+      noteId, 
+      timestamp: new Date(),
+      generationOptions: formData as unknown as Record<string, unknown>
+    };
 
     try {
-      const response = await fetch(`/api/notes/${noteId}/podcast`, {
-        method: "DELETE",
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to delete podcast");
+      // Create voice settings object
+      const voiceSettings: any = {
+        hostVoiceId: formData.hostVoiceId,
+      };
+      
+      // Add guest voice only if provided (for conversation mode)
+      if (formData.guestVoiceId) {
+        voiceSettings.guestVoiceId = formData.guestVoiceId;
       }
 
-      setPodcast(null);
-      setSegments([]);
-      toast.success("Podcast deleted successfully");
+      const options = {
+        mode: formData.mode.toUpperCase() as 'CONVERSATION' | 'BULLETIN',
+        voiceSettings,
+        qualityPreset: formData.qualityPreset.toUpperCase() as 'STANDARD' | 'HIGH' | 'HIGHEST' | 'ULTRA' | 'ULTRA_LOSSLESS',
+        durationScale: formData.durationScale.toUpperCase() as 'SHORT' | 'DEFAULT' | 'LONG',
+        ...(formData.language && { language: formData.language }),
+        ...(formData.intro && { intro: formData.intro }),
+        ...(formData.outro && { outro: formData.outro }),
+      };
+
+      const result = await retryHook.executeWithRetry(
+        () => generatePodcast(noteId, options),
+        context
+      );
+      
+      if (result) {
+        setShowForm(false);
+        toast.success("Podcast generation started! You'll be notified when it's ready.");
+      }
+    } catch (error) {
+      // Error is already classified and displayed by the retry hook
+      console.error("Error generating podcast:", error);
+      
+      // Display user-friendly error with recovery options
+      const errorInfo = displayPodcastError(error, context, {
+        showToast: true,
+        onRetry: retryHook.canRetry() ? () => handleGeneratePodcast(formData) : undefined
+      });
+    }
+  };
+
+  // Handle podcast regeneration with enhanced error handling
+  const handleRegeneratePodcast = async () => {
+    if (!latestPodcast) return;
+    
+    const context = { 
+      operation: 'regenerate' as const, 
+      podcastId: latestPodcast.id,
+      noteId, 
+      timestamp: new Date() 
+    };
+    
+    try {
+      // Create voice settings object for regeneration
+      const voiceSettings: any = {
+        hostVoiceId: latestPodcast.hostVoiceId,
+      };
+      
+      // Add guest voice only if it exists
+      if (latestPodcast.guestVoiceId) {
+        voiceSettings.guestVoiceId = latestPodcast.guestVoiceId;
+      }
+
+      // Use the same settings from the latest podcast
+      const options = {
+        mode: latestPodcast.mode,
+        voiceSettings,
+        qualityPreset: latestPodcast.qualityPreset,
+        durationScale: latestPodcast.durationScale,
+        ...(latestPodcast.language && { language: latestPodcast.language }),
+        ...(latestPodcast.intro && { intro: latestPodcast.intro }),
+        ...(latestPodcast.outro && { outro: latestPodcast.outro }),
+      };
+
+      const result = await retryHook.executeWithRetry(
+        () => regeneratePodcast(latestPodcast.id, options),
+        context
+      );
+      
+      if (result) {
+        toast.success("Podcast regeneration started! You'll be notified when it's ready.");
+      }
+    } catch (error) {
+      console.error("Error regenerating podcast:", error);
+      
+      // Display user-friendly error with recovery options
+      displayPodcastError(error, context, {
+        showToast: true,
+        onRetry: retryHook.canRetry() ? handleRegeneratePodcast : undefined
+      });
+    }
+  };
+
+  // Handle podcast deletion
+  const handleDeletePodcast = async () => {
+    if (!latestPodcast) return;
+
+    try {
+      const success = await deletePodcast(latestPodcast.id);
+      if (success) {
+        toast.success("Podcast deleted successfully");
+      }
     } catch (error) {
       console.error("Error deleting podcast:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to delete podcast";
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete podcast";
       toast.error(errorMessage);
     }
   };
 
-  // Check for existing podcast on component mount
-  React.useEffect(() => {
-    fetchExistingPodcast();
-  }, [fetchExistingPodcast]);
+  // Handle audio download
+  const handleDownloadAudio = () => {
+    if (!latestPodcast?.audioUrl) {
+      toast.error("Audio file not available");
+      return;
+    }
 
-  // Show loading state while checking for existing podcast
+    try {
+      const link = document.createElement('a');
+      link.href = latestPodcast.audioUrl;
+      link.download = `${noteTitle || 'podcast'}-${latestPodcast.id}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Download started");
+    } catch (error) {
+      console.error("Error downloading audio:", error);
+      toast.error("Failed to download audio");
+    }
+  };
+
+  // Handle view transcript
+  const handleViewTranscript = () => {
+    // This will be implemented when the transcript viewer component is created
+    toast.info("Transcript viewer coming soon");
+  };
+
+  // Handle refresh
+  const handleRefresh = async () => {
+    try {
+      await refreshPodcasts();
+      // Refresh history as well
+      const history = await getPodcastHistory(noteId, false);
+      setPodcastHistory(history);
+      toast.success("Podcasts refreshed");
+    } catch (error) {
+      console.error("Error refreshing podcasts:", error);
+      toast.error("Failed to refresh podcasts");
+    }
+  };
+
+  // Handle playing a specific podcast from history
+  const handlePlayPodcast = (podcast: any) => {
+    // This will set the current podcast and show the player
+    // We'll need to manually trigger a state update by getting the podcast
+    getPodcast(podcast.id).then(() => {
+      setShowHistory(false);
+    });
+  };
+
+  // Handle downloading a specific podcast from history
+  const handleDownloadPodcastFromHistory = (podcast: any) => {
+    if (!podcast.audioUrl) {
+      toast.error("Audio file not available");
+      return;
+    }
+
+    try {
+      const link = document.createElement('a');
+      link.href = podcast.audioUrl;
+      link.download = `${noteTitle || 'podcast'}-${podcast.id}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Download started");
+    } catch (error) {
+      console.error("Error downloading audio:", error);
+      toast.error("Failed to download audio");
+    }
+  };
+
+  // Handle deleting a specific podcast from history
+  const handleDeletePodcastFromHistory = async (podcast: any) => {
+    try {
+      const success = await deletePodcast(podcast.id);
+      if (success) {
+        // Refresh history
+        const history = await getPodcastHistory(noteId, false);
+        setPodcastHistory(history);
+        toast.success("Podcast deleted successfully");
+      }
+    } catch (error) {
+      console.error("Error deleting podcast:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete podcast";
+      toast.error(errorMessage);
+    }
+  };
+
+  // Handle regenerating a specific podcast from history
+  const handleRegeneratePodcastFromHistory = async (podcast: any) => {
+    // Create voice settings object for regeneration from history
+    const voiceSettings: any = {
+      hostVoiceId: podcast.hostVoiceId,
+    };
+    
+    // Add guest voice only if it exists
+    if (podcast.guestVoiceId) {
+      voiceSettings.guestVoiceId = podcast.guestVoiceId;
+    }
+
+    const options = {
+      mode: podcast.mode,
+      voiceSettings,
+      qualityPreset: podcast.qualityPreset,
+      durationScale: podcast.durationScale,
+      ...(podcast.language && { language: podcast.language }),
+      ...(podcast.intro && { intro: podcast.intro }),
+      ...(podcast.outro && { outro: podcast.outro }),
+    };
+
+    try {
+      const result = await regeneratePodcast(podcast.id, options);
+      if (result) {
+        // Refresh history
+        const history = await getPodcastHistory(noteId, false);
+        setPodcastHistory(history);
+        setShowHistory(false);
+        toast.success("Podcast regeneration started! You'll be notified when it's ready.");
+      }
+    } catch (error) {
+      console.error("Error regenerating podcast:", error);
+      toast.error("Failed to regenerate podcast");
+    }
+  };
+
+  // Show loading state while checking for existing podcasts
   if (initialLoading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-background px-6">
-        <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
-          <div className="flex flex-col items-center gap-8">
-            {/* Neomorphic Animated Icon */}
-            <div className="relative">
-              <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-              <div className="relative neomorphic-icon w-20 h-20 rounded-2xl flex items-center justify-center">
-                <Mic className="h-10 w-10 text-primary animate-pulse" />
-              </div>
-            </div>
+      <PodcastSkeleton 
+        variant="generator" 
+        className="min-h-[calc(100vh-64px)]" 
+      />
+    );
+  }
 
-            {/* Loading Text */}
-            <div className="text-center space-y-3">
-              <h3 className="text-2xl font-semibold text-foreground">Loading Podcast</h3>
-              <p className="text-muted-foreground leading-relaxed">Checking for existing content...</p>
-            </div>
+  // Show form if user clicked generate or regenerate
+  if (showForm) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">Generate Podcast</h2>
+          <Button
+            variant="outline"
+            onClick={() => setShowForm(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+        </div>
+        
+        {loading ? (
+          <PodcastSkeleton variant="form" />
+        ) : (
+          <PodcastForm
+            onSubmit={handleGeneratePodcast}
+            isLoading={loading}
+            disabled={loading}
+          />
+        )}
+      </div>
+    );
+  }
 
-            {/* Neomorphic Loading Bar */}
-            <div className="w-64 h-2 neomorphic rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full animate-loading-bar" />
+  // Show history if user clicked history and there are multiple podcasts
+  if (showHistory && podcastHistory) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">Podcast History</h2>
+          <Button
+            variant="outline"
+            onClick={() => setShowHistory(false)}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        </div>
+        
+        <PodcastHistory
+          history={podcastHistory}
+          onPlayPodcast={handlePlayPodcast}
+          onDownloadPodcast={handleDownloadPodcastFromHistory}
+          onDeletePodcast={handleDeletePodcastFromHistory}
+          onRegeneratePodcast={handleRegeneratePodcastFromHistory}
+        />
+      </div>
+    );
+  }
+
+  // If we have a completed podcast, show the main layout interface
+  if (latestPodcast && latestPodcast.status === 'COMPLETED' && latestPodcast.audioUrl) {
+    return (
+      <div className="p-6">
+        {/* Header with history button if multiple podcasts exist */}
+        {hasMultiplePodcasts() && (
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-semibold">Latest Podcast</h2>
+              {podcastHistory && (
+                <span className="text-sm text-muted-foreground">
+                  ({podcastHistory.completed.length} completed, {podcastHistory.failed.length} failed)
+                </span>
+              )}
             </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowHistory(true)}
+              className="flex items-center gap-2"
+            >
+              <History className="h-4 w-4" />
+              View History
+            </Button>
           </div>
+        )}
+        
+        <PodcastLayout
+          podcast={latestPodcast}
+          noteTitle={noteTitle}
+          noteContent={noteContent}
+          onRegenerateClick={handleRegeneratePodcast}
+          onDownloadClick={handleDownloadAudio}
+          onDeleteClick={handleDeletePodcast}
+        />
+      </div>
+    );
+  }
+
+  // If we have a podcast that's still generating, show progress
+  if (latestPodcast && (latestPodcast.status === 'GENERATING' || latestPodcast.status === 'IN_PROGRESS')) {
+    return (
+      <div className="space-y-6">
+        <PodcastGenerationSkeleton
+          progress={progress}
+          message="Generating Podcast"
+          submessage={`Creating ${latestPodcast.mode.toLowerCase()} mode podcast with AI voices...`}
+        />
+        
+        {/* Refresh Button */}
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={loading}
+            className="mt-4"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh Status
+          </Button>
         </div>
       </div>
     );
   }
 
-  // Show loading state if podcast is generating
-  if (podcast && podcast.generationStatus === 'generating') {
+  // If we have a failed podcast, show enhanced error state
+  if (latestPodcast && latestPodcast.status === 'FAILED') {
+    const errorMessage = latestPodcast.errorMessage || "The podcast generation failed. Please try again.";
+    const context = { 
+      operation: 'generate' as const, 
+      podcastId: latestPodcast.id,
+      noteId, 
+      timestamp: new Date() 
+    };
+
     return (
-      <div className="h-screen flex items-center justify-center px-6">
-        <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
-          <div className="text-center space-y-8">
-            {/* Neomorphic Icon with Animation */}
-            <div className="neomorphic-icon w-20 h-20 rounded-2xl flex items-center justify-center mx-auto">
-              <Brain className="h-10 w-10 text-primary animate-pulse" />
-            </div>
-            
-            <div className="space-y-6">
+      <PodcastErrorBoundary
+        context={context}
+        onRetry={handleRegeneratePodcast}
+        onRegenerate={() => setShowForm(true)}
+        showRecoveryOptions={true}
+      >
+        <div className="h-[87vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6">
+          <PodcastGenerationError
+            error={errorMessage}
+            onRetry={async () => {
+              await handleRegeneratePodcast();
+            }}
+            onRegenerate={() => setShowForm(true)}
+            onChangeSettings={() => setShowForm(true)}
+            isRetrying={retryHook.isRetrying}
+            retryCount={retryHook.retryCount}
+            progress={progress || 0}
+          />
+        </div>
+      </PodcastErrorBoundary>
+    );
+  }
+
+  // Show generation UI (no existing podcasts)
+  return (
+    <div className="h-[87vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6">
+      <div 
+        className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2" 
+        role="region" 
+        aria-label="Podcast generation interface"
+        tabIndex={0}
+      >
+        <div className="flex flex-col items-center gap-8">
+          {/* Neomorphic Icon */}
+          <div className="neomorphic-icon w-20 h-20 rounded-2xl flex items-center justify-center">
+            <Mic className="h-10 w-10 text-primary" />
+          </div>
+
+          {/* Content */}
+          <div className="text-center space-y-3">
+            <h3 className="text-2xl font-semibold text-foreground">Generate Podcast</h3>
+            <p className="text-muted-foreground leading-relaxed max-w-md">
+              Transform your notes into an engaging AI-generated podcast. Choose between conversation mode with multiple voices or bulletin mode with a single narrator.
+            </p>
+          </div>
+
+          {/* Enhanced Error Display */}
+          {hasError && error && (
+            <PodcastErrorDisplay
+              error={error}
+              context={{ operation: 'generate', noteId, timestamp: new Date() }}
+              onRetry={retryHook.canRetry() ? () => fetchExistingPodcasts() : undefined}
+              isRetrying={retryHook.isRetrying}
+              retryCount={retryHook.retryCount}
+              variant="compact"
+              className="w-full max-w-md"
+            />
+          )}
+
+          {/* Action Buttons */}
+          <div className="space-y-4 w-full">
+            <Button
+              onClick={() => setShowForm(true)}
+              disabled={loading || generating}
+              className="neomorphic border-0 bg-background hover:bg-background text-foreground shadow-none px-8 py-6 h-auto rounded-xl transition-all duration-300 w-full focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              aria-label={loading || generating ? "Generating podcast, please wait" : "Start podcast generation"}
+            >
+              <div className="neomorphic-icon w-10 h-10 rounded-lg flex items-center justify-center mr-3">
+                <Mic className="h-5 w-5 text-primary" />
+              </div>
+              <span className="font-medium text-lg">
+                {loading || generating ? "Generating..." : "Generate Podcast"}
+              </span>
+            </Button>
+
+            {/* Show history button if there are existing podcasts */}
+            {hasMultiplePodcasts() && podcastHistory && (
+              <Button
+                onClick={() => setShowHistory(true)}
+                variant="outline"
+                className="w-full flex items-center gap-2"
+              >
+                <History className="h-4 w-4" />
+                View History ({podcastHistory.podcasts.length} podcasts)
+              </Button>
+            )}
+          </div>
+
+          {/* Loading State */}
+          {(loading || generating) && (
+            <div className="w-full">
               <LoadingState
-                message="Generating Podcast"
-                submessage="This may take a few minutes. Creating script, synthesizing voices, and processing audio..."
+                message="Preparing Generation"
+                submessage="Setting up podcast generation with AI voices..."
                 variant="ai"
               />
             </div>
-          </div>
+          )}
         </div>
       </div>
-    );
-  }
-
-  // Show error state if podcast generation failed
-  if (podcast && podcast.generationStatus === 'failed') {
-    return (
-      <div className="h-screen flex items-center justify-center px-6">
-        <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
-          <div className="text-center space-y-6">
-            <div className="neomorphic-icon w-16 h-16 rounded-2xl flex items-center justify-center mx-auto bg-red-50 dark:bg-red-950/20">
-              <span className="text-3xl">⚠️</span>
-            </div>
-            
-            <div className="space-y-3">
-              <h3 className="text-2xl font-semibold text-foreground">Podcast Generation Failed</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {podcast.generationError || "An error occurred while generating the podcast"}
-              </p>
-            </div>
-            
-            <div className="flex gap-4 justify-center pt-4">
-              <Button 
-                onClick={() => setShowPodcastConfig(true)} 
-                disabled={loading}
-                className="neomorphic border-0 bg-background hover:bg-background text-foreground shadow-none px-6 py-3 h-auto rounded-xl transition-all duration-300"
-              >
-                <div className="neomorphic-icon w-8 h-8 rounded-lg flex items-center justify-center mr-3">
-                  <Mic className="h-4 w-4 text-primary" />
-                </div>
-                <span className="font-medium">Try Again</span>
-              </Button>
-              
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    className="neomorphic border-0 bg-background hover:bg-background text-red-600 shadow-none px-6 py-3 h-auto rounded-xl transition-all duration-300"
-                  >
-                    <div className="neomorphic-icon w-8 h-8 rounded-lg flex items-center justify-center mr-3">
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </div>
-                    <span className="font-medium">Delete</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Failed Podcast</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this failed podcast attempt?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={deletePodcast}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-                </AlertDialog>
-            </div>
-          </div>
-        </div>
-
-        {showPodcastConfig && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-hidden">
-            <div className="neomorphic bg-background/100 rounded-3xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative border-0">
-              <button
-                onClick={() => setShowPodcastConfig(false)}
-                className="absolute top-4 right-4 z-10 neomorphic-icon w-10 h-10 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer"
-                aria-label="Close popup"
-              >
-                <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8 overflow-y-auto max-h-[80vh] bg-background">
-                <PodcastConfigurationInline
-                  noteId={noteId}
-                  onGenerate={generatePodcast}
-                  loading={loading}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // If we have a completed podcast with audio, show the player
-  if (podcast && podcast.audioUrl && podcast.generationStatus === 'completed') {
-    return (
-      <div className="h-screen flex flex-col">
-        {/* Neomorphic Header */}
-        <div className="neomorphic mx-6 mt-6 mb-4 rounded-2xl bg-background">
-          <div className="flex items-center justify-between px-8 py-6">
-            <div className="flex items-center gap-4">
-              <div className="neomorphic-icon w-12 h-12 rounded-xl flex items-center justify-center">
-                <Mic className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-semibold text-foreground">Podcast</h2>
-                <p className="text-sm text-muted-foreground mt-1">AI-generated audio content</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={() => setShowPodcastConfig(true)}
-                disabled={loading}
-                className="neomorphic border-0 bg-background hover:bg-background text-foreground shadow-none px-4 py-2 h-auto rounded-xl transition-all duration-300"
-              >
-                <div className="neomorphic-icon w-8 h-8 rounded-lg flex items-center justify-center mr-3">
-                  <Mic className="h-4 w-4 text-primary" />
-                </div>
-                <span className="font-medium">Regenerate</span>
-              </Button>
-              
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    className="neomorphic border-0 bg-background hover:bg-background text-red-600 shadow-none px-4 py-2 h-auto rounded-xl transition-all duration-300"
-                  >
-                    <div className="neomorphic-icon w-8 h-8 rounded-lg flex items-center justify-center mr-3">
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </div>
-                    <span className="font-medium">Delete</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Podcast</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this podcast? This action
-                      cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={deletePodcast}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex-1 px-6 pb-6">
-          <PodcastWithTranscript
-            podcast={podcast}
-            segments={segments}
-          />
-        </div>
-
-        {showPodcastConfig && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-hidden">
-            <div className="neomorphic bg-background/100 rounded-3xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative border-0">
-              <button
-                onClick={() => setShowPodcastConfig(false)}
-                className="absolute top-4 right-4 z-10 neomorphic-icon w-10 h-10 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer"
-                aria-label="Close popup"
-              >
-                <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8 overflow-y-auto max-h-[80vh] bg-background">
-                <PodcastConfigurationInline
-                  noteId={noteId}
-                  onGenerate={generatePodcast}
-                  loading={loading}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Show configuration form inline
-  return (
-    <div className="px-6 py-8 w-full min-h-[70vh] bg-background">
-      <div className="space-y-8">
-        {/* Generate Podcast Section */}
-        <div className="text-center min-h-[78vh] flex items-center justify-center">
-          <div className="neomorphic rounded-3xl p-12 bg-background border-0 w-full max-w-2xl">
-            <div className="flex flex-col items-center justify-center space-y-8">
-              {/* Neomorphic Icon Container */}
-              <div className="neomorphic-icon w-20 h-20 rounded-2xl flex items-center justify-center">
-                <Brain className="h-10 w-10 text-primary" />
-              </div>
-              
-              <div className="text-center space-y-4">
-                <h3 className="text-3xl font-semibold text-foreground">
-                  Generate Podcast
-                </h3>
-                <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
-                  Transform your notes into an engaging podcast that helps you understand the relationships between key concepts.
-                </p>
-              </div>
-              
-              <Button
-                onClick={() => setShowPodcastConfig(true)}
-                disabled={loading}
-                className="neomorphic border-0 bg-background hover:bg-background text-foreground shadow-none px-16 py-6 h-auto rounded-2xl transition-all duration-300 group w-full max-w-xl"
-              >
-                <div className="neomorphic-icon w-10 h-10 rounded-xl flex items-center justify-center mr-4 group-hover:scale-105 transition-transform duration-300">
-                  <Brain className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-xl font-medium">
-                  {loading ? "Generating..." : "Generate Podcast"}
-                </span>
-              </Button>
-
-              {loading && (
-                <div className="mt-6">
-                  <LoadingState
-                    message="Generating Podcast"
-                    submessage="This may take a few minutes. Creating script, synthesizing voices, and processing audio..."
-                    variant="ai"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Podcast Configuration Popup */}
-      {showPodcastConfig && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-hidden">
-          <div className="neomorphic bg-background/100 rounded-3xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden relative border-0">
-            <button
-              onClick={() => setShowPodcastConfig(false)}
-              className="absolute top-4 right-4 z-10 neomorphic-icon w-10 h-10 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer"
-              aria-label="Close popup"
-            >
-              <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 overflow-y-auto max-h-[80vh] bg-background">
-              <PodcastConfigurationInline
-                noteId={noteId}
-                onGenerate={generatePodcast}
-                loading={loading}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
+  );
+}
+
+// Wrap the component with error boundary
+export function PodcastGenerator(props: PodcastGeneratorProps) {
+  const context = { 
+    operation: 'generate' as const, 
+    noteId: props.noteId, 
+    timestamp: new Date() 
+  };
+
+  return (
+    <PodcastErrorBoundary
+      context={context}
+      onRetry={() => window.location.reload()}
+      onRegenerate={() => {
+        // Reset any cached state and show form
+        window.location.reload();
+      }}
+      onGoHome={() => {
+        window.location.href = '/dashboard';
+      }}
+      showRecoveryOptions={true}
+    >
+      <PodcastGeneratorInner {...props} />
+    </PodcastErrorBoundary>
   );
 }

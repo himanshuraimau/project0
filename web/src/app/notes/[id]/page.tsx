@@ -24,15 +24,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FlashcardViewer, useFlashcardKeyboard, FlashcardGenerator } from "@/components/flashcards";
+import { useFlashcardKeyboard, FlashcardGenerator } from "@/components/flashcards";
 import { QuizGenerator } from "@/components/quiz";
-import {
-  PodcastConfigurationModal,
-  PodcastWithTranscript,
-  PodcastGenerator,
-} from "@/components/podcast";
+import { PodcastGenerator } from "@/components/podcast";
+import { memo } from "react";
 import { MindmapGenerator } from "@/components/mindmap";
-import { Trash2, MessageCircle, AlertTriangle } from "lucide-react";
+import { Trash2, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ViewNote } from "@/components/notes/view-note";
 import { Navbar } from "@/components/shared/navbar";
@@ -50,21 +47,15 @@ export default function NoteViewPage() {
   const noteId = params.id as string;
   const { getNote, loading, error } = useNotes();
   const {
-    flashcards,
     loading: flashcardsLoading,
-    error: flashcardsError,
-    generateFlashcards,
-    getFlashcards,
   } = useFlashcards();
 
+
   const {
-    podcast,
-    segments,
     loading: podcastLoading,
-    error: podcastError,
-    generatePodcast,
-    getPodcast,
-  } = usePodcast();
+    generating: podcastGenerating,
+  } = usePodcast(noteId);
+
   const {
     loading: mindmapLoading,
     error: mindmapError,
@@ -88,8 +79,7 @@ export default function NoteViewPage() {
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
 
-  const [editedTitle, setEditedTitle] = useState("");
-  const [editedContent, setEditedContent] = useState("");
+
 
   const handleNoteUpdate = (updatedNote: Note) => {
     setNote(updatedNote);
@@ -101,8 +91,6 @@ export default function NoteViewPage() {
         const fetchedNote = await getNote(noteId);
         if (fetchedNote) {
           setNote(fetchedNote);
-          setEditedTitle(fetchedNote.title || "");
-          setEditedContent(fetchedNote.content || "");
         }
       }
     };
@@ -158,6 +146,14 @@ export default function NoteViewPage() {
 
   const handleShowNotes = () => {
     setCurrentView("notes");
+    
+    // Focus management for accessibility
+    setTimeout(() => {
+      const notesElement = document.querySelector('[data-testid="view-note"]');
+      if (notesElement && notesElement instanceof HTMLElement) {
+        notesElement.focus();
+      }
+    }, 100);
   };
 
   const handleShowTranscript = async () => {
@@ -220,18 +216,22 @@ export default function NoteViewPage() {
     setCurrentView("notes");
   };
 
+
+
+
+
   const handleGeneratePodcast = async () => {
     if (!noteId) return;
-
-    if (currentView === "podcast") {
-      setCurrentView("notes");
-      return;
-    }
-
     setCurrentView("podcast");
+    
+    // Focus management for accessibility
+    setTimeout(() => {
+      const podcastElement = document.querySelector('[data-testid="podcast-generator"]');
+      if (podcastElement && podcastElement instanceof HTMLElement) {
+        podcastElement.focus();
+      }
+    }, 100);
   };
-
-
 
   const handleGenerateMindmap = async () => {
     if (!noteId) return;
@@ -256,6 +256,85 @@ export default function NoteViewPage() {
     () => {},
     handleCloseFlashcards
   );
+
+  // Add keyboard shortcuts for podcast navigation and accessibility
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle shortcuts when not in an input field
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Podcast shortcuts (P key)
+      if (event.key === 'p' || event.key === 'P') {
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          handleGeneratePodcast();
+        }
+      }
+
+      // Escape key to return to notes view
+      if (event.key === 'Escape' && currentView !== 'notes') {
+        event.preventDefault();
+        setCurrentView('notes');
+        
+        // Focus management for accessibility
+        setTimeout(() => {
+          const notesElement = document.querySelector('[data-testid="view-note"]');
+          if (notesElement && notesElement instanceof HTMLElement) {
+            notesElement.focus();
+          }
+        }, 100);
+      }
+
+      // Arrow key navigation between views (Alt + Arrow keys)
+      if (event.altKey) {
+        const views: ViewType[] = ['notes', 'transcript', 'quiz', 'flashcards', 'chat', 'podcast', 'mindmap'];
+        const currentIndex = views.indexOf(currentView);
+        
+        if (event.key === 'ArrowRight' && currentIndex < views.length - 1) {
+          event.preventDefault();
+          const nextView = views[currentIndex + 1];
+          if (nextView === 'podcast') {
+            handleGeneratePodcast();
+          } else if (nextView === 'quiz') {
+            handleGenerateQuiz();
+          } else if (nextView === 'flashcards') {
+            handleGenerateFlashcard();
+          } else if (nextView === 'mindmap') {
+            handleGenerateMindmap();
+          } else if (nextView === 'chat') {
+            handleChatWithNote();
+          } else if (nextView === 'transcript') {
+            handleShowTranscript();
+          } else {
+            setCurrentView(nextView);
+          }
+        } else if (event.key === 'ArrowLeft' && currentIndex > 0) {
+          event.preventDefault();
+          const prevView = views[currentIndex - 1];
+          if (prevView === 'podcast') {
+            handleGeneratePodcast();
+          } else if (prevView === 'quiz') {
+            handleGenerateQuiz();
+          } else if (prevView === 'flashcards') {
+            handleGenerateFlashcard();
+          } else if (prevView === 'mindmap') {
+            handleGenerateMindmap();
+          } else if (prevView === 'chat') {
+            handleChatWithNote();
+          } else if (prevView === 'transcript') {
+            handleShowTranscript();
+          } else {
+            setCurrentView(prevView);
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [currentView]);
 
   if (loading) {
     return (
@@ -287,6 +366,45 @@ export default function NoteViewPage() {
 
   return (
     <div className="min-h-screen w-full bg-background">
+      {/* Skip links for accessibility */}
+      <div className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50">
+        <a 
+          href="#main-content" 
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          Skip to main content
+        </a>
+        <a 
+          href="#sidebar-navigation" 
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-md ml-2 focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          Skip to navigation
+        </a>
+      </div>
+      
+      {/* Screen reader announcements */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {podcastLoading && "Podcast is loading"}
+        {podcastGenerating && "Podcast is being generated"}
+        {currentView === "podcast" && "Podcast view is active. Use Escape to return to notes, or Alt+Arrow keys to navigate between views."}
+        {currentView === "notes" && "Notes view is active. Use Ctrl+P to generate podcast, or Alt+Arrow keys to navigate between views."}
+        {currentView === "quiz" && "Quiz view is active"}
+        {currentView === "flashcards" && "Flashcards view is active"}
+        {currentView === "chat" && "Chat view is active"}
+        {currentView === "transcript" && "Transcript view is active"}
+        {currentView === "mindmap" && "Mindmap view is active"}
+      </div>
+      
+      {/* Keyboard shortcuts help (hidden by default, shown on focus) */}
+      <div className="sr-only focus:not-sr-only focus:absolute focus:top-20 focus:right-4 focus:bg-background focus:border focus:rounded-md focus:p-4 focus:shadow-lg focus:z-50 focus:max-w-sm">
+        <h3 className="font-semibold mb-2">Keyboard Shortcuts</h3>
+        <ul className="text-sm space-y-1">
+          <li><kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl+P</kbd> Generate Podcast</li>
+          <li><kbd className="px-1 py-0.5 bg-muted rounded text-xs">Escape</kbd> Return to Notes</li>
+          <li><kbd className="px-1 py-0.5 bg-muted rounded text-xs">Alt+←/→</kbd> Navigate Views</li>
+        </ul>
+      </div>
+      
       {/* Navbar at the very top */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
         <Navbar title="Notes" />
@@ -316,7 +434,7 @@ export default function NoteViewPage() {
                     <p className="flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-amber-600" />
                       <span>
-                        All flashcards and quizzes generated from this note will
+                        All flashcards, quizzes, podcasts, and other content generated from this note will
                         also be deleted.
                       </span>
                     </p>
@@ -347,6 +465,7 @@ export default function NoteViewPage() {
             >
             <div className="min-h-[calc(100vh-64px)]">
               <NotesSidebar
+                id="sidebar-navigation"
                 className={`${currentView === "chat" ? "pb-3" : "pb-6"} fixed top-16 left-0 h-[calc(100vh-64px)] z-10 overflow-y-auto`}
                 noteId={noteId}
                 showTranscript={currentView === "transcript"}
@@ -365,14 +484,18 @@ export default function NoteViewPage() {
                 onDeleteNote={handleDeleteNote}
                 quizLoading={false}
                 flashcardsLoading={flashcardsLoading}
-                podcastLoading={podcastLoading}
+                podcastLoading={podcastLoading || podcastGenerating}
                 mindmapLoading={mindmapLoading}
               />
-              <div className="bg-background ml-[280px]">
-                <main className="flex-1">
-                  <div className="bg-background dark:bg-[#0A0B0D] border-none min-h-[calc(100vh-64px)] pl-5 pt-5">
+              <div className="bg-background ml-[280px] transition-all duration-300 ease-in-out">
+                <main className="flex-1" id="main-content">
+                  <div className="bg-background dark:bg-[#0A0B0D] border-none min-h-[calc(100vh-64px)] pl-5 pt-5 transition-colors duration-200">
                   {/* Content based on current view */}
-              {currentView === "notes" && <ViewNote note={note} onUpdate={handleNoteUpdate} />}
+              {currentView === "notes" && (
+                <div data-testid="view-note" tabIndex={-1}>
+                  <ViewNote note={note} onUpdate={handleNoteUpdate} />
+                </div>
+              )}
 
               {currentView === "transcript" && (
                 <div className="w-full bg-transparent ml-4 p-10">
@@ -431,6 +554,25 @@ export default function NoteViewPage() {
 
               {currentView === "quiz" && <QuizGenerator key={`quiz-${noteId}`} noteId={noteId} />}
 
+              {currentView === "podcast" && (
+                <div 
+                  className="w-full bg-transparent ml-4 p-6 focus:outline-none transition-all duration-300 ease-in-out" 
+                  data-testid="podcast-generator" 
+                  tabIndex={-1}
+                  role="main"
+                  aria-label="Podcast generation interface"
+                >
+                  <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+                    <PodcastGenerator 
+                      key={`podcast-${noteId}`} 
+                      noteId={noteId} 
+                      noteTitle={note?.title} 
+                      noteContent={note?.content || undefined}
+                    />
+                  </div>
+                </div>
+              )}
+
               {currentView === "chat" && (
                 <Card className="overflow-hidden h-[80vh] ml-10 mt-8 flex flex-col bg-transparent border border-black/20 dark:border-white/20 rounded-3xl shadow-lg">
                   <CardHeader className="p-5 border-b border-stone-100 dark:border-stone-900 bg-muted/5">
@@ -446,7 +588,7 @@ export default function NoteViewPage() {
                 </Card>
               )}
 
-              {currentView === "podcast" && <PodcastGenerator key={`podcast-${noteId}`} noteId={noteId} />}
+
 
               {currentView === "mindmap" && (
                 <div>

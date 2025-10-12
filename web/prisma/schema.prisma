@@ -90,10 +90,10 @@ model Note {
   flashcard    Flashcard?
   chunks       NoteChunk[]        @relation("NoteToChunks")
   transcript   Transcript         @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
-  podcast      Podcast?
   quiz         Quiz?
   mindmap      MindMap?
   translations NoteTranslation[]
+  podcasts     Podcast[]
 
   @@map("notes")
 }
@@ -152,52 +152,55 @@ model MindMap {
 }
 
 model Podcast {
-  id                 String           @id @default(cuid())
-  noteId             String           @unique
-  userId             String?
-  title              String
-  description        String?
-  language           String           @default("en")
-  durationPreset     String
-  estimatedDuration  Int?
-  actualDuration     Int?
-  host1VoiceId       String
-  host1VoiceName     String
-  host2VoiceId       String
-  host2VoiceName     String
-  customInstructions String?
-  audioUrl           String?
-  audioFileKey       String?
-  transcriptData     Json?
-  generationStatus   String           @default("pending")
-  generationError    String?
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  segments           PodcastSegment[]
-  note               Note             @relation(fields: [noteId], references: [id], onDelete: Cascade)
-
+  id                  String        @id @default(cuid())
+  noteId              String
+  userId              String?
+  
+  // ElevenLabs Integration
+  elevenLabsProjectId String?       @unique
+  
+  // Generation Settings
+  mode                PodcastMode
+  hostVoiceId         String
+  guestVoiceId        String?
+  qualityPreset       QualityPreset @default(STANDARD)
+  durationScale       DurationScale @default(DEFAULT)
+  language            String?
+  intro               String?
+  outro               String?
+  
+  // Status and Progress
+  status              PodcastStatus @default(GENERATING)
+  progress            Float?        @default(0)
+  errorMessage        String?
+  
+  // Audio File Information
+  audioUrl            String?       // UploadThing URL
+  audioFileKey        String?       // UploadThing file key for deletion
+  duration            Int?          // Duration in seconds
+  fileSize            Int?          // File size in bytes
+  
+  // Metadata
+  title               String
+  description         String?
+  metadata            Json?
+  
+  // Timestamps
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  completedAt         DateTime?
+  
+  // Relations
+  note                Note          @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  
   @@index([noteId])
   @@index([userId])
+  @@index([status])
+  @@index([elevenLabsProjectId])
   @@map("podcasts")
 }
 
-model PodcastSegment {
-  id            Int      @id @default(autoincrement())
-  podcastId     String
-  speaker       String
-  content       String
-  startTime     Decimal? @db.Decimal(10, 3)
-  endTime       Decimal? @db.Decimal(10, 3)
-  audioUrl      String?
-  audioFileKey  String?
-  sequenceOrder Int
-  createdAt     DateTime @default(now())
-  podcast       Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
 
-  @@index([podcastId])
-  @@index([podcastId, sequenceOrder])
-  @@map("podcast_segments")
-}
 
 model NoteChunk {
   id         Int                   @id @default(autoincrement())
@@ -315,4 +318,31 @@ model UserChapterProgress {
   @@index([userId])
   @@index([chapterId])
   @@map("user_chapter_progress")
+}
+
+enum PodcastMode {
+  CONVERSATION
+  BULLETIN
+}
+
+enum PodcastStatus {
+  GENERATING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  SUPERSEDED
+}
+
+enum QualityPreset {
+  STANDARD
+  HIGH
+  HIGHEST
+  ULTRA
+  ULTRA_LOSSLESS
+}
+
+enum DurationScale {
+  SHORT
+  DEFAULT
+  LONG
 }

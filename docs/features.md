@@ -326,7 +326,7 @@ This modal opens when the **Subscribe** button is clicked and allows users to st
 - **Title**: “Try Coconote **free for 7 days**”
 - **Features Highlighted**:
   - ✅ Unlimited AI notes, recordings, uploads
-  - ✅ Quizzes, videos, podcasts, & more
+  - ✅ Quizzes, videos, & more
   - ✅ YouTube, PDF, audio, files, websites
   - ✅ Chat with your notes
   - ✅ Private and secure usage

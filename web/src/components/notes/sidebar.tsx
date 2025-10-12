@@ -10,12 +10,12 @@ import {
   MessageCircle,
   Trash2,
   FileIcon,
-  Mic,
   Brain,
   Menu,
   ChevronLeft,
   Loader2,
   CheckCircle,
+  Mic,
 } from "lucide-react";
 import {
   Sidebar,
@@ -81,7 +81,8 @@ export function NotesSidebar({
   flashcardsLoading,
   podcastLoading,
   mindmapLoading,
-}: NotesSidebarProps) {
+  ...props
+}: NotesSidebarProps & React.HTMLAttributes<HTMLDivElement>) {
   const { state, toggleSidebar } = useSidebar();
   const router = useRouter();
   const isCollapsed = state === "collapsed";
@@ -139,15 +140,6 @@ export function NotesSidebar({
       description: "Study with flashcards",
     },
     {
-      title: "Mind Map",
-      icon: Brain,
-      onClick: onGenerateMindmap,
-      isActive: showMindmap,
-      disabled: mindmapLoading || false,
-      loading: mindmapLoading || false,
-      description: "Visual mind map",
-    },
-    {
       title: "Podcast",
       icon: Mic,
       onClick: onGeneratePodcast,
@@ -156,6 +148,16 @@ export function NotesSidebar({
       loading: podcastLoading || false,
       description: "Generate audio podcast",
     },
+    {
+      title: "Mind Map",
+      icon: Brain,
+      onClick: onGenerateMindmap,
+      isActive: showMindmap,
+      disabled: mindmapLoading || false,
+      loading: mindmapLoading || false,
+      description: "Visual mind map",
+    },
+
   ];
 
   return (
@@ -165,6 +167,9 @@ export function NotesSidebar({
         "h-screen ml-[5vw] mt-16",
         className
       )}
+      role="navigation"
+      aria-label="Note features and actions"
+      {...props}
     >
 
       <SidebarContent
@@ -184,8 +189,7 @@ export function NotesSidebar({
                 const Icon = item.icon;
                 const isGenerative =
                   item.title.toLowerCase().includes("generate") ||
-                  item.title === "Flashcards" ||
-                  item.title === "Podcast";
+                  item.title === "Flashcards";
 
                 return (
                   <SidebarMenuItem
@@ -216,6 +220,9 @@ export function NotesSidebar({
                           : ""
                       )}
                       title={isCollapsed ? item.title : undefined}
+                      aria-label={`${item.title}${item.loading ? ' (loading)' : ''}${item.isActive ? ' (active)' : ''}`}
+                      aria-current={item.isActive ? 'page' : undefined}
+                      aria-describedby={isCollapsed ? undefined : `${item.title.toLowerCase().replace(/\s+/g, '-')}-description`}
                     >
                       <div
                         className={cn(
@@ -246,6 +253,12 @@ export function NotesSidebar({
                               )}
                             >
                               {item.title}
+                            </span>
+                            <span 
+                              id={`${item.title.toLowerCase().replace(/\s+/g, '-')}-description`}
+                              className="sr-only"
+                            >
+                              {item.description}
                             </span>
                           </div>
                         )}
@@ -279,6 +292,8 @@ export function NotesSidebar({
                       "text-red-600 hover:text-red-500"
                     )}
                     title={isCollapsed ? "Delete Notes" : undefined}
+                    aria-label="Delete note permanently"
+                    role="button"
                   >
                     <div
                       className={cn(
