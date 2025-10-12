@@ -1,8 +1,4 @@
-"use client";
-
-import React from "react";
-
-export default function NotesLayout({
+export default function SuccessLayout({
   children,
 }: {
   children: React.ReactNode;

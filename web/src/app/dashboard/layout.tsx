@@ -24,7 +24,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const isCoursePage = pathname.includes("/course/") && !pathname.includes("/create/");
 
   return (
-    <div className="flex-1 min-h-screen bg-background">
+    <div className="flex-1 min-h-screen bg-background mx-[3vw]">
       {/* Content area with conditional padding */}
       <main className={`flex-1 ${!isCoursePage ? 'px-6 py-8' : 'px-6 py-8'}`}>
         <div className="max-w-none w-full">
@@ -117,7 +117,7 @@ export default function DashboardLayout({
 
         {/* Navbar at the top - only for non-course pages and non-notes pages */}
         {!isCoursePage && !isNotesPage && (
-          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
+          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border mx-[3vw]">
             <Navbar
               title={
                 <span className="text-2xl">
