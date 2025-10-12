@@ -202,7 +202,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                           "group flex items-center rounded-xl transition-all duration-200 ease-in-out",
                           isCollapsed ? "w-14 h-14 justify-center" : "px-6 py-5",
                           isActive
-                            ? "!bg-accent !text-accent-foreground shadow-sm border-l-4 border-accent"
+                            ? "bg-accent text-white dark:text-white shadow-sm border-l-4 border-accent"
                             : "text-stone-600 dark:text-stone-400 hover:bg-stone-100 hover:text-stone-900 dark:hover:bg-stone-800 dark:hover:text-stone-100 hover:shadow-sm"
                         )}
                       >

@@ -133,12 +133,18 @@ interface AppSidebarProps {
 export function AppSidebar({ className }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
   const isCollapsed = state === "collapsed";
   const isCoursePage = pathname.includes("/course/");
-  const isDark = theme === "dark";
+  const [mounted, setMounted] = useState(false);
+  const isDark = (resolvedTheme || theme) === "dark";
 
   const [courseData, setCourseData] = useState<CourseData | null>(null);
+
+  // Handle client-side mounting
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Check for course data in DOM when on course pages
   useEffect(() => {
@@ -242,21 +248,25 @@ export function AppSidebar({ className }: AppSidebarProps) {
                           href={item.href} 
                           className={cn(
                             "flex items-center gap-4 w-full",
-                            isDark ? "hover:text-white" : "hover:text-black"
+                            mounted && (isDark ? "hover:text-white" : "hover:text-black")
                           )}
                         >
                           <Icon className={cn(
                             "w-10 h-10 flex-shrink-0 transition-colors",
-                            isActive 
-                              ? (isDark ? "text-white" : "text-black")
-                              : (isDark ? "text-gray-500 hover:text-white" : "text-gray-500 hover:text-black")
+                            mounted && (
+                              isActive 
+                                ? (isDark ? "text-white" : "text-black")
+                                : (isDark ? "text-gray-500 hover:text-white" : "text-gray-500 hover:text-black")
+                            )
                           )} />
                           {!isCollapsed && (
                             <span className={cn(
                               "text-[1.2rem] leading-relaxed font-medium transition-colors",
-                              isActive 
-                                ? (isDark ? "text-white" : "text-black")
-                                : (isDark ? "text-gray-500 hover:text-white" : "text-gray-500 hover:text-black")
+                              mounted && (
+                                isActive 
+                                  ? (isDark ? "text-white" : "text-black")
+                                  : (isDark ? "text-gray-500 hover:text-white" : "text-gray-500 hover:text-black")
+                              )
                             )}>
                               {item.title}
                             </span>
