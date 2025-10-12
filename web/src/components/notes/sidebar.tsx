@@ -4,19 +4,19 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  FileText,
-  HelpCircle,
-  Layers,
-  MessageCircle,
-  Trash2,
-  FileIcon,
-  Brain,
-  Menu,
-  ChevronLeft,
-  Loader2,
-  CheckCircle,
-  Mic,
-} from "lucide-react";
+  FileScriptIcon,
+  HelpCircleIcon,
+  Layers01Icon,
+  Message01Icon,
+  Delete02Icon,
+  File02Icon,
+  Brain01Icon,
+  Menu01Icon,
+  ArrowLeft01Icon,
+  Loading03Icon,
+  CheckmarkCircle01Icon,
+  Mic01Icon,
+} from "hugeicons-react";
 import {
   Sidebar,
   SidebarContent,
@@ -90,7 +90,7 @@ export function NotesSidebar({
   const menuItems = [
     {
       title: "Notes",
-      icon: FileIcon,
+      icon: File02Icon,
       onClick: onShowNotes,
       isActive:
         !showTranscript &&
@@ -105,7 +105,7 @@ export function NotesSidebar({
     },
     {
       title: "Transcript",
-      icon: FileText,
+      icon: FileScriptIcon,
       onClick: onShowTranscript,
       isActive: showTranscript,
       disabled: false,
@@ -114,7 +114,7 @@ export function NotesSidebar({
     },
     {
       title: "Quiz",
-      icon: HelpCircle,
+      icon: HelpCircleIcon,
       onClick: onGenerateQuiz,
       isActive: showQuiz,
       disabled: quizLoading || false,
@@ -123,7 +123,7 @@ export function NotesSidebar({
     },
     {
       title: "Chat with Note",
-      icon: MessageCircle,
+      icon: Message01Icon,
       onClick: onChatWithNote,
       isActive: showChat,
       disabled: false,
@@ -132,7 +132,7 @@ export function NotesSidebar({
     },
     {
       title: "Flashcards",
-      icon: Layers,
+      icon: Layers01Icon,
       onClick: onGenerateFlashcard,
       isActive: showFlashcards,
       disabled: flashcardsLoading || false,
@@ -141,7 +141,7 @@ export function NotesSidebar({
     },
     // {
     //   title: "Podcast",
-    //   icon: Mic,
+    //   icon: Mic01Icon,
     //   onClick: onGeneratePodcast,
     //   isActive: showPodcast,
     //   disabled: podcastLoading || false,
@@ -150,7 +150,7 @@ export function NotesSidebar({
     // },
     {
       title: "Mind Map",
-      icon: Brain,
+      icon: Brain01Icon,
       onClick: onGenerateMindmap,
       isActive: showMindmap,
       disabled: mindmapLoading || false,
@@ -231,7 +231,7 @@ export function NotesSidebar({
                         )}
                       >
                         {item.loading ? (
-                          <Loader2 className="size-7 animate-spin flex-shrink-0" />
+                          <Loading03Icon className="size-7 animate-spin flex-shrink-0" />
                         ) : (
                           <Icon
                             className={cn(
@@ -301,7 +301,7 @@ export function NotesSidebar({
                         isCollapsed ? "justify-center" : "gap-3"
                       )}
                     >
-                      <Trash2 className="size-7 flex-shrink-0" />
+                      <Delete02Icon className="size-7 flex-shrink-0" />
                       {!isCollapsed && (
                         <div className="flex flex-col items-start flex-1">
                           <span
