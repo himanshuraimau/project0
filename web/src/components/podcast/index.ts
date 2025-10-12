@@ -8,6 +8,10 @@
  */
 
 import React from 'react';
+import type { Podcast, PodcastMode, PodcastStatus, QualityPreset, DurationScale, PodcastWithNote } from '@/lib/types/podcast';
+import type { PodcastGenerationForm, PodcastGenerationOptions, VoiceSettings, TextChunk, TranscriptSyncData, TimestampData } from '@/lib/types/podcast';
+import type { AudioPlayerState, AudioPlayerControls } from '@/lib/hooks/use-audio-player';
+import type { PodcastErrorInfo, PodcastOperationContext } from '@/lib/types/podcast-error.types';
 
 // =============================================================================
 // MAIN COMPONENTS
@@ -337,6 +341,7 @@ export interface CompactPodcastComponentProps extends BasePodcastComponentProps 
  */
 export type {
   Podcast,
+  PodcastWithNote,
   PodcastMode,
   PodcastStatus,
   QualityPreset,
@@ -459,17 +464,28 @@ export const createMockPodcast = (overrides: Partial<Podcast> = {}): Podcast => 
   id: 'mock-podcast-id',
   noteId: 'mock-note-id',
   userId: 'mock-user-id',
+  elevenLabsProjectId: null,
   mode: 'CONVERSATION',
   hostVoiceId: 'mock-host-voice',
   guestVoiceId: 'mock-guest-voice',
   qualityPreset: 'HIGH',
   durationScale: 'DEFAULT',
+  language: null,
+  intro: null,
+  outro: null,
   status: 'COMPLETED',
-  title: 'Mock Podcast',
+  progress: 100,
+  errorMessage: null,
   audioUrl: 'https://example.com/mock-audio.mp3',
+  audioFileKey: 'mock-file-key',
   duration: 600, // 10 minutes
+  fileSize: null,
+  title: 'Mock Podcast',
+  description: null,
+  metadata: null,
   createdAt: new Date(),
   updatedAt: new Date(),
+  completedAt: new Date(),
   ...overrides,
 });
 

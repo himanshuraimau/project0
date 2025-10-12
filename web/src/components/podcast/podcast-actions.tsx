@@ -29,10 +29,10 @@ import {
 } from "@/components/ui/dialog";
 import { RefreshCw, Download, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import type { Podcast, PodcastGenerationOptions } from "@/lib/types/podcast";
+import type { PodcastWithNote, PodcastGenerationOptions } from "@/lib/types/podcast";
 
 interface PodcastActionsProps {
-  podcast: Podcast;
+  podcast: PodcastWithNote;
   onRegenerate?: (options: PodcastGenerationOptions) => Promise<void>;
   onDelete?: () => Promise<void>;
   disabled?: boolean;
@@ -281,7 +281,7 @@ export function RegenerateButton({
   onRegenerate,
   disabled = false,
 }: {
-  podcast: Podcast;
+  podcast: PodcastWithNote;
   onRegenerate: (options: PodcastGenerationOptions) => Promise<void>;
   disabled?: boolean;
 }) {
@@ -333,7 +333,7 @@ export function DownloadButton({
   podcast,
   disabled = false,
 }: {
-  podcast: Podcast;
+  podcast: PodcastWithNote;
   disabled?: boolean;
 }) {
   const handleDownload = () => {
@@ -380,7 +380,7 @@ export function ViewTranscriptButton({
   podcast,
   disabled = false,
 }: {
-  podcast: Podcast;
+  podcast: PodcastWithNote;
   disabled?: boolean;
 }) {
   const [showTranscript, setShowTranscript] = useState(false);
@@ -428,7 +428,7 @@ export function DeletePodcastButton({
   onDelete,
   disabled = false,
 }: {
-  podcast: Podcast;
+  podcast: PodcastWithNote;
   onDelete: () => Promise<void>;
   disabled?: boolean;
 }) {
