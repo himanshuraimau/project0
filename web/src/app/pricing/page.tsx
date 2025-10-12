@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
 import { PricingCard } from "@/components/subscription/pricing-card"
 import { SubscriptionStatusCard } from "@/components/subscription/subscription-status-card"
+import { Navbar } from "@/components/shared/navbar"
 import { Plus_Jakarta_Sans } from "next/font/google"
 
 const jakarta = Plus_Jakarta_Sans({
@@ -18,6 +19,7 @@ export default async function PricingPage() {
 
   return (
     <div className={`min-h-screen bg-background ${jakarta.className}`}>
+      <Navbar title="Pricing" showBackToDashboard={true} />
       <div className="container mx-auto px-4 py-16 max-w-5xl">
         {/* Page Header */}
         <div className="text-center mb-16">
