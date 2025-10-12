@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { ChapterView } from './ChapterView';
 import { Play, HelpCircle, CreditCard, MessageSquare, FileSearch } from 'lucide-react';
 import { FlashcardItem } from '@/lib/types';
-import { QuizGenerator } from '@/components/quiz';
+import { ChapterQuizGenerator } from './ChapterQuizGenerator';
 import dynamic from 'next/dynamic';
 
 // Lazy load components that might be heavy or require server calls
@@ -85,7 +85,7 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
 
         {activeTab === "quiz" && (
           <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
-            <QuizGenerator key={`quiz-${chapter.id}`} noteId={chapter.id} variant="clean" />
+            <ChapterQuizGenerator key={`quiz-${chapter.id}`} chapterId={chapter.id} variant="clean" />
           </div>
         )}
 

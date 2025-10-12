@@ -3,13 +3,13 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import {
-  Home,
-  HelpCircle,
+  Home01Icon,
+  HelpCircleIcon,
   HeadphonesIcon,
-  Settings,
-  BookOpen,
-  Zap,
-} from "lucide-react";
+  Settings01Icon,
+  BookOpen01Icon,
+  FlashIcon,
+} from "hugeicons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -36,22 +36,22 @@ const sidebarItems = [
   {
     section: "Main",
     items: [
-      { title: "Dashboard", icon: Home, href: "/dashboard" },
-      { title: "My Courses", icon: BookOpen, href: "/dashboard/generate-course" },
+      { title: "Dashboard", icon: Home01Icon, href: "/dashboard" },
+      { title: "My Courses", icon: BookOpen01Icon, href: "/dashboard/generate-course" },
     ]
   },
   {
     section: "Learning Tools",
     items: [
-      { title: "Create Notes", icon: Zap, href: "/dashboard/notes" },
+      { title: "Create Notes", icon: FlashIcon, href: "/dashboard/notes" },
     ]
   },
   {
     section: "Support",
     items: [
-      { title: "Help Center", icon: HelpCircle, href: "/dashboard/how-to-use" },
+      { title: "Help Center", icon: HelpCircleIcon, href: "/dashboard/how-to-use" },
       { title: "Contact Support", icon: HeadphonesIcon, href: "/dashboard/support" },
-      { title: "Settings", icon: Settings, href: "/dashboard/settings" },
+      { title: "Settings", icon: Settings01Icon, href: "/dashboard/settings" },
     ]
   }
 ];
