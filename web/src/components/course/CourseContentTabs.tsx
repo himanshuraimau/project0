@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { ChapterView } from './ChapterView';
 import { Play, HelpCircle, CreditCard, MessageSquare, FileSearch } from 'lucide-react';
 import { FlashcardItem } from '@/lib/types';
+import { QuizGenerator } from '@/components/quiz';
 import dynamic from 'next/dynamic';
 
 // Lazy load components that might be heavy or require server calls
@@ -84,7 +85,7 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
 
         {activeTab === "quiz" && (
           <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
-            <QuizTab chapter={chapter} />
+            <QuizGenerator key={`quiz-${chapter.id}`} noteId={chapter.id} variant="clean" />
           </div>
         )}
 
@@ -232,102 +233,6 @@ function FlashcardsTab({ chapterId }: { chapterId: string }) {
         flashcards={flashcards} 
         onClose={resetFlashcards} 
       />
-    </div>
-  );
-}
-
-// Quiz tab component optimized for tab layout
-function QuizTab({ chapter }: { chapter: Chapter & { questions: Question[] } }) {
-  const [answers, setAnswers] = React.useState<Record<string, string>>({});
-  const [questionState, setQuestionState] = React.useState<
-    Record<string, boolean | null>
-  >({});
-  
-  const checkAnswer = React.useCallback(() => {
-    const newQuestionState = { ...questionState };
-    chapter.questions.forEach((question) => {
-      const user_answer = answers[question.id];
-      if (!user_answer) return;
-      if (user_answer === question.answer) {
-        newQuestionState[question.id] = true;
-      } else {
-        newQuestionState[question.id] = false;
-      }
-      setQuestionState(newQuestionState);
-    });
-  }, [answers, questionState, chapter.questions]);
-
-  if (!chapter.questions || chapter.questions.length === 0) {
-    return (
-      <div className="text-center p-8">
-        <HelpCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-lg font-semibold mb-2">No Quiz Available</h3>
-        <p className="text-muted-foreground">
-          Quiz questions will appear here once the chapter content is loaded.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-foreground">Concept Check</h2>
-        <div className="text-sm text-muted-foreground">
-          {chapter.questions.length} question{chapter.questions.length !== 1 ? 's' : ''}
-        </div>
-      </div>
-      
-      <div className="space-y-4">
-        {chapter.questions.map((question) => {
-          const options = JSON.parse(question.options) as string[];
-          const state = questionState[question.id];
-          return (
-            <div
-              key={question.id}
-              className={cn(
-                "p-4 rounded-xl border shadow transition-all duration-200",
-                state === true
-                  ? "bg-green-50 border-green-400 dark:bg-green-900/30 dark:border-green-600"
-                  : state === false
-                  ? "bg-red-50 border-red-400 dark:bg-red-900/30 dark:border-red-600"
-                  : "bg-card border-border dark:bg-muted dark:border-border"
-              )}
-            >
-              <h3 className="text-base font-semibold mb-3 text-foreground flex items-center gap-2">
-                {question.question}
-                {state === true && <span className="text-green-600">✔️</span>}
-                {state === false && <span className="text-red-600">❌</span>}
-              </h3>
-              <div className="space-y-2">
-                {options.map((option, index) => (
-                  <label key={index} className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <input
-                      type="radio"
-                      name={question.id}
-                      value={option}
-                      onChange={(e) => {
-                        setAnswers((prev) => ({ ...prev, [question.id]: e.target.value }));
-                      }}
-                      className="w-4 h-4 text-accent"
-                    />
-                    <span className="text-sm">{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      
-      <div className="flex justify-center">
-        <button
-          onClick={checkAnswer}
-          className="px-6 py-3 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors font-semibold"
-        >
-          Check Answers
-        </button>
-      </div>
     </div>
   );
 }
