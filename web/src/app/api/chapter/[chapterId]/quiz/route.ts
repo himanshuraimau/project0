@@ -5,11 +5,16 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
 interface QuizQuestion {
+  id: number;
+  type: 'multiple_choice' | 'true_false';
   question: string;
-  answer: string;
-  option1: string;
-  option2: string;
-  option3: string;
+  options?: string[];
+  correct_answer: string | boolean;
+  explanation: string;
+}
+
+interface QuizData {
+  quiz: QuizQuestion[];
 }
 
 export async function POST(
@@ -34,7 +39,6 @@ export async function POST(
       );
     }
 
-    // Get the chapter with its content
     const chapter = await prisma.chapter.findUnique({
       where: { id: chapterId },
       include: {
@@ -49,17 +53,29 @@ export async function POST(
       );
     }
 
-    // Check if questions already exist
     if (chapter.questions && chapter.questions.length > 0) {
+      const quizQuestions: QuizQuestion[] = chapter.questions.map((q, index) => {
+        const options = JSON.parse(q.options) as string[];
+        return {
+          id: index + 1,
+          type: 'multiple_choice' as const,
+          question: q.question,
+          options: options,
+          correct_answer: q.answer,
+          explanation: `The correct answer is: ${q.answer}`
+        };
+      });
+
+      const quizData: QuizData = { quiz: quizQuestions };
+      
       return NextResponse.json({
         success: true,
-        data: chapter.questions,
+        data: quizData,
         message: 'Quiz questions already exist for this chapter',
         cached: true
       });
     }
 
-    // Prepare content for quiz generation
     const content = chapter.notes || chapter.transcript || '';
     
     if (!content || content.trim().length < 100) {
@@ -69,10 +85,9 @@ export async function POST(
       );
     }
 
-    // Generate quiz questions using AI
     const result = await generateText({
       model: openai('gpt-4o-mini'),
-      prompt: `Create 3 multiple choice quiz questions from this chapter content:
+      prompt: `Create a quiz with exactly 20 questions from this chapter content:
 
 CHAPTER: ${chapter.name}
 
@@ -80,63 +95,69 @@ CONTENT:
 ${content.substring(0, 3000)}
 
 REQUIREMENTS:
-1. Create exactly 3 multiple choice questions
-2. Each question should have 3 options
-3. Test understanding of key concepts
-4. Return ONLY valid JSON in this exact format:
+1. Create exactly 20 questions (16 multiple choice, 4 true/false)
+2. Test understanding of key concepts
+3. Include clear explanations for each answer
+4. Return ONLY valid JSON in this format:
 
 {
-  "questions": [
+  "quiz": [
     {
+      "id": 1,
+      "type": "multiple_choice",
       "question": "Question text here?",
-      "answer": "Correct answer text",
-      "option1": "First option",
-      "option2": "Second option",
-      "option3": "Third option"
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correct_answer": "Option B",
+      "explanation": "Explanation of why this is correct."
+    },
+    {
+      "id": 2,
+      "type": "true_false",
+      "question": "True or false statement here?",
+      "options": ["True", "False"],
+      "correct_answer": "True",
+      "explanation": "Explanation of the answer."
     }
   ]
 }
 
-IMPORTANT: 
-- One of option1, option2, or option3 MUST match the answer exactly
-- Make questions clear and unambiguous
-- Generate ONLY the JSON, no other text`,
+Generate ONLY the JSON, no other text:`,
     });
 
-    // Parse and validate the generated quiz
     let cleanedText = result.text.trim();
     
-    // Remove markdown code blocks if they exist
     if (cleanedText.startsWith('```json')) {
       cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
     } else if (cleanedText.startsWith('```')) {
       cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
     }
     
-    const quizData: { questions: QuizQuestion[] } = JSON.parse(cleanedText);
+    const quizData: QuizData = JSON.parse(cleanedText);
     
-    if (!quizData.questions || !Array.isArray(quizData.questions) || quizData.questions.length === 0) {
-      throw new Error('Invalid quiz structure');
+    if (!quizData.quiz || !Array.isArray(quizData.quiz) || quizData.quiz.length < 10) {
+      throw new Error('Invalid quiz structure or insufficient questions');
     }
 
-    // Save questions to database
-    const createdQuestions = await Promise.all(
-      quizData.questions.map((q) =>
-        prisma.question.create({
-          data: {
-            chapterId: chapterId,
-            question: q.question,
-            answer: q.answer,
-            options: JSON.stringify([q.option1, q.option2, q.option3]),
-          },
-        })
-      )
-    );
+    const mcQuestions = quizData.quiz.filter(q => q.type === 'multiple_choice').slice(0, 3);
+    if (mcQuestions.length > 0) {
+      await Promise.all(
+        mcQuestions.map((q) =>
+          prisma.question.create({
+            data: {
+              chapterId: chapterId,
+              question: q.question,
+              answer: q.correct_answer as string,
+              options: JSON.stringify(q.options),
+            },
+          })
+        )
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      data: createdQuestions,
-      message: `Successfully generated ${createdQuestions.length} quiz questions`
+      data: quizData,
+      message: `Successfully generated ${quizData.quiz.length} quiz questions`
     });
 
   } catch (error) {
@@ -168,16 +189,37 @@ export async function GET(
       );
     }
 
-    // Get existing questions for the chapter
     const questions = await prisma.question.findMany({
       where: { chapterId },
       orderBy: { createdAt: 'asc' }
     });
 
+    if (questions.length > 0) {
+      const quizQuestions: QuizQuestion[] = questions.map((q, index) => {
+        const options = JSON.parse(q.options) as string[];
+        return {
+          id: index + 1,
+          type: 'multiple_choice' as const,
+          question: q.question,
+          options: options,
+          correct_answer: q.answer,
+          explanation: `The correct answer is: ${q.answer}`
+        };
+      });
+
+      const quizData: QuizData = { quiz: quizQuestions };
+
+      return NextResponse.json({
+        success: true,
+        data: quizData,
+        message: 'Questions found'
+      });
+    }
+
     return NextResponse.json({
       success: true,
-      data: questions,
-      message: questions.length > 0 ? 'Questions found' : 'No questions found'
+      data: null,
+      message: 'No questions found'
     });
 
   } catch (error) {
@@ -208,7 +250,6 @@ export async function DELETE(
       );
     }
 
-    // Delete all questions for the chapter
     await prisma.question.deleteMany({
       where: { chapterId }
     });
