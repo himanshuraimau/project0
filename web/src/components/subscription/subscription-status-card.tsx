@@ -171,20 +171,20 @@ export function SubscriptionStatusCard() {
   };
 
   return (
-    <div className="neomorphic rounded-3xl p-8">
+    <div className="neomorphic rounded-3xl p-10 md:p-12">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Your Subscription</h2>
+      <div className="flex items-center justify-between mb-10">
+        <h2 className="text-4xl font-bold">Your Subscription</h2>
         {getStatusBadge()}
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {access.isTrial && access.daysRemaining !== null && (
-          <div className="neomorphic-inset rounded-2xl p-4 flex items-start gap-3">
-            <Clock className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+          <div className="neomorphic-inset rounded-2xl p-6 flex items-start gap-4">
+            <Clock className="h-6 w-6 text-blue-500 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium text-sm">Free Trial Active</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="font-medium text-lg">Free Trial Active</p>
+              <p className="text-base text-muted-foreground">
                 {access.daysRemaining} days remaining in your trial
               </p>
             </div>
@@ -192,45 +192,45 @@ export function SubscriptionStatusCard() {
         )}
 
         {subscription.cancelAtPeriodEnd && (
-          <div className="neomorphic-inset rounded-2xl p-4">
-            <p className="font-medium text-sm text-yellow-600 dark:text-yellow-400">
+          <div className="neomorphic-inset rounded-2xl p-6">
+            <p className="font-medium text-lg text-yellow-600 dark:text-yellow-400">
               Subscription Cancelled
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-base text-muted-foreground mt-2">
               Your subscription will end on {formatDate(subscription.currentPeriodEnd)}
             </p>
           </div>
         )}
 
         {/* Subscription Details */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center py-2">
-            <span className="text-muted-foreground">Plan</span>
-            <span className="font-semibold">Pro - $19.99/month</span>
+        <div className="space-y-6 mb-10">
+          <div className="flex justify-between items-center py-4">
+            <span className="text-muted-foreground text-lg">Plan</span>
+            <span className="font-semibold text-xl">Pro - $19.99/month</span>
           </div>
           
           {subscription.nextBillingDate && !subscription.cancelAtPeriodEnd && (
-            <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">Next billing</span>
-              <span className="font-medium">{formatDate(subscription.nextBillingDate)}</span>
+            <div className="flex justify-between items-center py-4">
+              <span className="text-muted-foreground text-lg">Next billing</span>
+              <span className="font-medium text-lg">{formatDate(subscription.nextBillingDate)}</span>
             </div>
           )}
 
           {subscription.currentPeriodEnd && (
-            <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">Period ends</span>
-              <span className="font-medium">{formatDate(subscription.currentPeriodEnd)}</span>
+            <div className="flex justify-between items-center py-4">
+              <span className="text-muted-foreground text-lg">Period ends</span>
+              <span className="font-medium text-lg">{formatDate(subscription.currentPeriodEnd)}</span>
             </div>
           )}
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-3 mb-8">
           {!subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && (
             <Button
               onClick={handleCancelSubscription}
               variant="destructive"
-              className="flex-1 rounded-2xl"
+              className="flex-1 rounded-2xl h-16 text-lg font-semibold"
             >
               Cancel
             </Button>
@@ -238,11 +238,11 @@ export function SubscriptionStatusCard() {
         </div>
 
         {access.hasAccess && (
-          <div className="neomorphic-inset rounded-2xl p-4 flex items-start gap-3">
-            <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+          <div className="neomorphic-inset rounded-2xl p-8 flex items-start gap-5">
+            <CheckCircle2 className="h-7 w-7 text-green-500 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium text-sm">Full Access Active</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="font-medium text-lg">Full Access Active</p>
+              <p className="text-lg text-muted-foreground">
                 Unlimited access to all features
               </p>
             </div>
