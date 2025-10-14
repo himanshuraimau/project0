@@ -303,7 +303,7 @@ export function YouTubeProcessor({
       <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8">
         <div className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
-            <Youtube className="h-8 w-8 text-accent-foreground" />
+            <Youtube className="h-8 w-8 text-white" />
           </div>
           
           <div className="space-y-3">
