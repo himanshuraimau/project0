@@ -240,138 +240,124 @@ export function SimplePDFProcessor({
     <div className="space-y-6">
       {!processResult ? (
         <>
-          {/* Mode Toggle */}
-          <div className="flex gap-2 p-2 bg-muted/50 rounded-2xl border border-border/20">
-            <Button
-              variant={mode === "pdf" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setMode("pdf")}
-              className={`flex-1 rounded-xl ${
-                mode === "pdf"
-                  ? "bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
-                  : "hover:bg-muted"
-              }`}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Upload PDF
-            </Button>
-            <Button
-              variant={mode === "text" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setMode("text")}
-              className={`flex-1 rounded-xl ${
-                mode === "text"
-                  ? "bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
-                  : "hover:bg-muted"
-              }`}
-            >
-              <Type className="h-4 w-4 mr-2" />
-              Create from Text
-            </Button>
+          {/* Mode Toggle - match YouTube/Website style */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex bg-muted rounded-lg p-1">
+              <button
+                onClick={() => setMode('pdf')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+                  mode === 'pdf'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                type="button"
+              >
+                <FileText className="h-4 w-4" />
+                Upload PDF
+              </button>
+              <button
+                onClick={() => setMode('text')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+                  mode === 'text'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                type="button"
+              >
+                <Type className="h-4 w-4" />
+                Create from Text
+              </button>
+            </div>
           </div>
 
           {mode === "pdf" ? (
-            <>
-              {/* File Upload Area */}
-              <div
-                className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 ${
-                  dragActive
-                    ? "border-accent/50 bg-accent/10 scale-[1.02]"
-                    : "border-accent/30 hover:border-accent/50 bg-accent/5 hover:scale-[1.01]"
-                }`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-              >
-                <div className="space-y-6">
-                  <div className="mx-auto w-20 h-20 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
-                    <FileText className="h-10 w-10 text-accent-foreground" />
+            <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8 overflow-y-auto max-h-[60vh]">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+                  <FileText className="h-8 w-8 text-white" />
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-xl font-bold text-foreground">PDF Document Processor</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+                    Upload a PDF file to extract content and generate AI-powered notes from the document.
+                  </p>
+                  <p className="text-sm text-muted-foreground/70">
+                    Maximum file size: 10MB • Maximum pages: 50
+                  </p>
+                </div>
+                <div className="space-y-4 max-w-[35vw] mx-auto">
+                  <div className="flex justify-center">
+                    <Input
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      onChange={handleInputChange}
+                      className="hidden"
+                      id="pdf-upload"
+                      disabled={loading}
+                    />
+                    <label
+                      htmlFor="pdf-upload"
+                      className="inline-flex items-center gap-3 px-8 py-4 bg-accent text-accent-foreground rounded-2xl hover:bg-accent/90 transition-all duration-200 cursor-pointer font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105"
+                    >
+                      <Upload className="h-5 w-5" />
+                      Choose PDF File
+                    </label>
                   </div>
 
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold text-foreground">
-                      Upload PDF Document
-                    </h3>
-                    <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
-                      Drag and drop your PDF file here, or click to browse
-                    </p>
-                    <p className="text-sm text-muted-foreground/70">
-                      Maximum file size: 10MB • Maximum pages: 50
-                    </p>
-                  </div>
-
-                  <Input
-                    type="file"
-                    accept=".pdf,application/pdf"
-                    onChange={handleInputChange}
-                    className="hidden"
-                    id="pdf-upload"
-                    disabled={loading}
-                  />
-
-                  <label
-                    htmlFor="pdf-upload"
-                    className="inline-flex items-center gap-3 px-8 py-4 bg-accent text-accent-foreground rounded-2xl hover:bg-accent/90 transition-all duration-200 cursor-pointer font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105"
-                  >
-                    <Upload className="h-5 w-5" />
-                    Choose PDF File
-                  </label>
+                  {/* Selected File Info */}
+                  {selectedFile && (
+                    <div className="bg-accent/10 rounded-2xl border border-accent/30 px-6 py-2 mt-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center shadow-lg">
+                            <FileText className="h-5 w-5 text-accent-foreground" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-foreground text-[1rem]">
+                              {selectedFile.name}
+                            </p>
+                            <p className="text-muted-foreground">
+                              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-3">
+                          <Button
+                            onClick={handleProcess}
+                            disabled={loading}
+                            className="rounded-xl px-6 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
+                          >
+                            {loading ? "Processing..." : "Generate Notes"}
+                          </Button>
+                          <Button
+                            onClick={resetForm}
+                            variant="outline"
+                            disabled={loading}
+                            className="rounded-xl px-4"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {/* Selected File Info */}
-              {selectedFile && (
-                <div className="bg-accent/10 rounded-2xl border border-accent/30 p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl bg-accent flex items-center justify-center shadow-lg">
-                        <FileText className="h-7 w-7 text-accent-foreground" />
-                      </div>
-                      <div>
-                        <p className="font-bold text-foreground text-lg">
-                          {selectedFile.name}
-                        </p>
-                        <p className="text-muted-foreground">
-                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={handleProcess}
-                        disabled={loading}
-                        className="rounded-xl px-6 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
-                      >
-                        {loading ? "Processing..." : "Generate Notes"}
-                      </Button>
-                      <Button
-                        onClick={resetForm}
-                        variant="outline"
-                        disabled={loading}
-                        className="rounded-xl px-4"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
+            </div>
           ) : (
-            <>
-              {/* Text Input Area */}
-              <div className="space-y-6 rounded-2xl border border-accent/30 bg-accent/5 p-8">
-                <div className="text-center space-y-3 mb-6">
-                  <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
-                    <Type className="h-8 w-8 text-accent-foreground" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground">Create from Text</h3>
+            <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8 overflow-y-auto max-h-[60vh]">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+                  <Type className="h-8 w-8 text-white" />
                 </div>
-
-                <div className="space-y-4">
-                  <div>
+                <div className="space-y-3">
+                  <h3 className="text-xl font-bold text-foreground">Text to Notes Generator</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+                    Paste or type your text content below to generate structured notes using AI.
+                  </p>
+                </div>
+                <div className="space-y-4 max-w-lg mx-auto">
+                  <div className="text-left">
                     <label
                       htmlFor="note-title"
                       className="block text-sm font-bold text-foreground mb-3"
@@ -388,49 +374,49 @@ export function SimplePDFProcessor({
                       className="h-12 rounded-xl border-2 border-border/20 bg-background text-foreground placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
                     />
                   </div>
-
-                  <div>
+                  <div className="text-left">
                     <label
                       htmlFor="text-content"
                       className="block text-sm font-bold text-foreground mb-3"
                     >
                       Text Content
                     </label>
+                    {/* Auto-resizing Textarea */}
                     <Textarea
                       id="text-content"
                       placeholder="Paste or type your text content here. AI will generate structured notes from this content..."
                       value={textInput}
                       onChange={(e) => setTextInput(e.target.value)}
                       disabled={loading}
-                      className="min-h-[240px] rounded-xl border-2 border-border/20 bg-background text-foreground placeholder:text-muted-foreground focus:border-accent/50 transition-colors resize-none"
+                      className="min-h-[13vh] rounded-xl border-2 border-border/20 bg-background text-foreground placeholder:text-muted-foreground focus:border-accent/50 transition-colors resize-none scrollbar-hide"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                      ref={el => {
+                        if (el) {
+                          el.style.height = 'auto';
+                          el.style.height = el.scrollHeight + 'px';
+                          // Hide scrollbar for Webkit browsers
+                          el.style.overflow = 'hidden';
+                        }
+                      }}
                     />
                     <p className="text-sm text-muted-foreground mt-2">
                       {textInput.length} characters
                     </p>
                   </div>
-
                   {textInput.trim() && (
                     <div className="flex gap-3 pt-2">
                       <Button
                         onClick={handleProcess}
                         disabled={loading || !textInput.trim()}
-                        className="flex-1 h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg"
+                        className="flex-1 h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                       >
                         {loading ? "Generating Notes..." : "Generate AI Notes"}
-                      </Button>
-                      <Button
-                        onClick={resetForm}
-                        variant="outline"
-                        disabled={loading}
-                        className="rounded-xl px-6"
-                      >
-                        Clear
                       </Button>
                     </div>
                   )}
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           {/* Validation Error Display */}

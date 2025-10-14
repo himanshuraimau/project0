@@ -214,30 +214,23 @@ export function NewNoteSection() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
         {/* Link Processor (YouTube + Webpage) */}
         <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
-              onClick={async () => {
-                const hasCredits = await checkCreditsAndRedirect();
-                if (hasCredits) {
-                  setShowLinkDialog(true);
-                }
-              }}
-            >
-              <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Link className="size-6 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
+          <Button
+            variant="ghost"
+            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
+            onClick={() => setShowLinkDialog(true)}
+          >
+            <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <Link className="size-6 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
+            </div>
+            <div className="flex flex-col items-start">
+              <div className="font-semibold text-lg leading-6 text-foreground">
+                Process Links
               </div>
-              <div className="flex flex-col items-start">
-                <div className="font-semibold text-lg leading-6 text-foreground">
-                  Process Links
-                </div>
-                <div className="font-medium text-sm leading-5 text-muted-foreground">
-                  YouTube & websites
-                </div>
+              <div className="font-medium text-sm leading-5 text-muted-foreground">
+                YouTube & websites
               </div>
-            </Button>
-          </DialogTrigger>
+            </div>
+          </Button>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle
@@ -299,30 +292,23 @@ export function NewNoteSection() {
           open={showRecordAudioDialog}
           onOpenChange={setShowRecordAudioDialog}
         >
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
-              onClick={async () => {
-                const hasCredits = await checkCreditsAndRedirect();
-                if (hasCredits) {
-                  setShowRecordAudioDialog(true);
-                }
-              }}
-            >
-              <div className="neomorphic-record-indicator size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <div className="size-5 rounded-full bg-red-500 group-hover:bg-red-600 transition-colors duration-300" />
+          <Button
+            variant="ghost"
+            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
+            onClick={() => setShowRecordAudioDialog(true)}
+          >
+            <div className="neomorphic-record-indicator size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <div className="size-5 rounded-full bg-red-500 group-hover:bg-red-600 transition-colors duration-300" />
+            </div>
+            <div className="flex flex-col items-start">
+              <div className="font-semibold text-lg leading-6 text-foreground">
+                Record Audio
               </div>
-              <div className="flex flex-col items-start">
-                <div className="font-semibold text-lg leading-6 text-foreground">
-                  Record Audio
-                </div>
-                <div className="font-medium text-sm leading-5 text-muted-foreground">
-                  Live recording
-                </div>
+              <div className="font-medium text-sm leading-5 text-muted-foreground">
+                Live recording
               </div>
-            </Button>
-          </DialogTrigger>
+            </div>
+          </Button>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle
@@ -348,30 +334,23 @@ export function NewNoteSection() {
 
         {/* PDF */}
         <Dialog open={showPDFDialog} onOpenChange={setShowPDFDialog}>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
-              onClick={async () => {
-                const hasCredits = await checkCreditsAndRedirect();
-                if (hasCredits) {
-                  setShowPDFDialog(true);
-                }
-              }}
-            >
-              <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Image src="/pdf.png" width={36} height={36} className="size-9 transition-transform duration-300" alt="PDF" />
+          <Button
+            variant="ghost"
+            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
+            onClick={() => setShowPDFDialog(true)}
+          >
+            <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <Image src="/pdf.png" width={36} height={36} className="size-9 transition-transform duration-300" alt="PDF" />
+            </div>
+            <div className="flex flex-col items-start">
+              <div className="font-semibold text-lg leading-6 text-foreground">
+                PDF Documents
               </div>
-              <div className="flex flex-col items-start">
-                <div className="font-semibold text-lg leading-6 text-foreground">
-                  PDF Documents
-                </div>
-                <div className="font-medium text-sm leading-5 text-muted-foreground">
-                  Upload & extract
-                </div>
+              <div className="font-medium text-sm leading-5 text-muted-foreground">
+                Upload & extract
               </div>
-            </Button>
-          </DialogTrigger>
+            </div>
+          </Button>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle
@@ -397,30 +376,23 @@ export function NewNoteSection() {
 
         {/* Upload Audio */}
         <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
-              onClick={async () => {
-                const hasCredits = await checkCreditsAndRedirect();
-                if (hasCredits) {
-                  setShowAudioDialog(true);
-                }
-              }}
-            >
-              <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <CloudUpload className="size-6 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
+          <Button
+            variant="ghost"
+            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
+            onClick={() => setShowAudioDialog(true)}
+          >
+            <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <CloudUpload className="size-6 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
+            </div>
+            <div className="flex flex-col items-start">
+              <div className="font-semibold text-lg leading-6 text-foreground">
+                Upload Audio
               </div>
-              <div className="flex flex-col items-start">
-                <div className="font-semibold text-lg leading-6 text-foreground">
-                  Upload Audio
-                </div>
-                <div className="font-medium text-sm leading-5 text-muted-foreground">
-                  From your device
-                </div>
+              <div className="font-medium text-sm leading-5 text-muted-foreground">
+                From your device
               </div>
-            </Button>
-          </DialogTrigger>
+            </div>
+          </Button>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle

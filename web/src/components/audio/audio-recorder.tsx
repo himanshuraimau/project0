@@ -194,7 +194,7 @@ export default function AudioRecorder({
                 type="file"
                 accept=".wav,.mp3,.aiff,.aac,.ogg,.flac"
                 onChange={handleFileUpload}
-                className="h-12 rounded-xl border-2 border-border/20 bg-background text-foreground cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-accent/10 file:text-accent hover:file:bg-accent/20 focus:border-accent/50 transition-colors"
+                className="h-10 rounded-xl border-2 border-border/20 bg-background text-foreground cursor-pointer text-center flex items-center justify-center file:mr-4 file:py-1 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-accent/10 file:text-accent hover:file:bg-accent/20 focus:border-accent/50 transition-colors"
               />
             </div>
 
