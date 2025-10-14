@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Enable standalone output for Docker
+  output: 'standalone',
   // Allow ngrok domain for development
   allowedDevOrigins: [
     'binate-nonperceptively-celestina.ngrok-free.dev'
