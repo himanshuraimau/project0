@@ -19,7 +19,7 @@ export function NoteDetailSkeleton({ showChatbot = false }: NoteDetailSkeletonPr
         </div>
 
         {/* Skeleton Card */}
-        <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8 shadow-lg">
+        <div className="rounded-2xl border-2 border-dashed border-black/30 dark:border-muted/30 bg-accent/5 p-8 shadow-lg">
           <div className="text-center space-y-6">
             {/* Avatar Circle */}
             <div className="mx-auto w-20 h-20 rounded-full bg-muted relative overflow-hidden">
