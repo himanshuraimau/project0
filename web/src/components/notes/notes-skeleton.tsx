@@ -1,5 +1,4 @@
 import React from "react";
-import { FileText } from "lucide-react";
 
 interface NoteDetailSkeletonProps {
   showChatbot?: boolean;
@@ -7,27 +6,66 @@ interface NoteDetailSkeletonProps {
 
 export function NoteDetailSkeleton({ showChatbot = false }: NoteDetailSkeletonProps) {
   return (
-    <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-6">
-        {/* Animated Icon */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-          <div className="relative bg-card border border-border rounded-full p-8 shadow-lg">
-            <FileText className="h-12 w-12 text-primary animate-pulse" />
+    <div className="min-h-[calc(100vh-64px)] w-full bg-background p-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Loading Text with Pulse */}
+        <div className="text-center mb-8 space-y-3">
+          <h2 className="text-2xl font-bold text-foreground animate-pulse">
+            Loading Note
+          </h2>
+          <p className="text-muted-foreground animate-pulse" style={{ animationDelay: '0.5s' }}>
+            Please wait a moment...
+          </p>
+        </div>
+
+        {/* Skeleton Card */}
+        <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8 shadow-lg">
+          <div className="text-center space-y-6">
+            {/* Avatar Circle */}
+            <div className="mx-auto w-20 h-20 rounded-full bg-muted relative overflow-hidden">
+              <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            </div>
+
+            {/* Title Bar */}
+            <div className="h-6 w-3/5 bg-muted rounded-xl mx-auto relative overflow-hidden">
+              <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            </div>
+
+            {/* Text Lines */}
+            <div className="space-y-3 pt-4">
+              <div className="h-4 w-full bg-muted rounded-lg relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-11/12 bg-muted rounded-lg mx-auto relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-9/12 bg-muted rounded-lg mx-auto relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-10/12 bg-muted rounded-lg mx-auto relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-7/12 bg-muted rounded-lg mx-auto relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Loading Text */}
-        <div className="text-center space-y-2">
-          <h3 className="text-lg font-semibold text-foreground">Loading Note</h3>
-          <p className="text-sm text-muted-foreground">Please wait a moment...</p>
-        </div>
-
-        {/* Loading Bar */}
-        <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
-          <div className="h-full bg-primary rounded-full animate-loading-bar" />
-        </div>
       </div>
+
+      <style>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }

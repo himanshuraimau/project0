@@ -58,51 +58,85 @@ export function LoadingState({
   progress,
   className = "",
 }: LoadingStateProps) {
-  const variantStyles = {
-    default: "text-blue-600",
-    ai: "text-purple-600",
-    book: "text-green-600",
-    save: "text-orange-600",
-  };
-
   return (
-    <div className={`flex flex-col items-center space-y-4 p-6 ${className}`}>
-      <div className="flex items-center space-x-3">
-        <LoadingSpinner
-          variant={variant}
-          size="lg"
-          className={variantStyles[variant]}
-        />
-        <div className="text-center">
-          <p className={`font-medium ${variantStyles[variant]}`}>{message}</p>
+    <div className={`min-h-[calc(100vh-64px)] w-full bg-background p-6 ${className}`}>
+      <div className="max-w-4xl mx-auto">
+        {/* Loading Text with Pulse */}
+        <div className="text-center mb-8 space-y-3">
+          <h2 className="text-2xl font-bold text-foreground animate-pulse">
+            {message}
+          </h2>
           {submessage && (
-            <p className="text-sm text-gray-600 mt-1">{submessage}</p>
+            <p className="text-muted-foreground animate-pulse" style={{ animationDelay: '0.5s' }}>
+              {submessage}
+            </p>
           )}
+        </div>
+
+        {/* Skeleton Card */}
+        <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8 shadow-lg">
+          <div className="text-center space-y-6">
+            {/* Avatar Circle */}
+            <div className="mx-auto w-20 h-20 rounded-full bg-muted relative overflow-hidden">
+              <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            </div>
+
+            {/* Title Bar */}
+            <div className="h-6 w-3/5 bg-muted rounded-xl mx-auto relative overflow-hidden">
+              <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            </div>
+
+            {/* Text Lines */}
+            <div className="space-y-3 pt-4">
+              <div className="h-4 w-full bg-muted rounded-lg relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-11/12 bg-muted rounded-lg mx-auto relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-9/12 bg-muted rounded-lg mx-auto relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-10/12 bg-muted rounded-lg mx-auto relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-7/12 bg-muted rounded-lg mx-auto relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            {progress !== undefined && (
+              <div className="w-full pt-6">
+                <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                  <span className="font-semibold">Progress</span>
+                  <span className="font-semibold">{Math.round(progress)}%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                  <div
+                    className="h-3 rounded-full transition-all duration-300 bg-accent"
+                    style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {progress !== undefined && (
-        <div className="w-full max-w-xs">
-          <div className="flex justify-between text-xs text-gray-600 mb-1">
-            <span>Progress</span>
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className={`h-2 rounded-full transition-all duration-300 ${
-                variant === "ai"
-                  ? "bg-purple-600"
-                  : variant === "book"
-                  ? "bg-green-600"
-                  : variant === "save"
-                  ? "bg-orange-600"
-                  : "bg-blue-600"
-              }`}
-              style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
-            />
-          </div>
-        </div>
-      )}
+      <style>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }

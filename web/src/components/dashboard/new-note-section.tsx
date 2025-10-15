@@ -216,11 +216,11 @@ export function NewNoteSection() {
         <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
+            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowLinkDialog(true)}
           >
             <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <Link className="size-6 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
+              <Link className="size-6 text-muted-foreground group-hover:text-accent dark:group-hover:text-accent transition-colors duration-300" />
             </div>
             <div className="flex flex-col items-start">
               <div className="font-semibold text-lg leading-6 text-foreground">
@@ -294,11 +294,11 @@ export function NewNoteSection() {
         >
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
+            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowRecordAudioDialog(true)}
           >
             <div className="neomorphic-record-indicator size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <div className="size-5 rounded-full bg-red-500 group-hover:bg-red-600 transition-colors duration-300" />
+              <div className="size-5 rounded-full bg-red-500 group-hover:bg-accent dark:group-hover:bg-accent transition-colors duration-300" />
             </div>
             <div className="flex flex-col items-start">
               <div className="font-semibold text-lg leading-6 text-foreground">
@@ -336,11 +336,11 @@ export function NewNoteSection() {
         <Dialog open={showPDFDialog} onOpenChange={setShowPDFDialog}>
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
+            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowPDFDialog(true)}
           >
             <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <Image src="/pdf.png" width={36} height={36} className="size-9 transition-transform duration-300" alt="PDF" />
+              <Image src="/pdf.png" width={36} height={36} className="size-9 transition-transform duration-300 group-hover:scale-110" alt="PDF" />
             </div>
             <div className="flex flex-col items-start">
               <div className="font-semibold text-lg leading-6 text-foreground">
@@ -378,11 +378,11 @@ export function NewNoteSection() {
         <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group"
+            className="neomorphic h-24 px-6 py-6 w-full flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowAudioDialog(true)}
           >
             <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <CloudUpload className="size-6 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
+              <CloudUpload className="size-6 text-muted-foreground group-hover:text-accent dark:group-hover:text-accent transition-colors duration-300" />
             </div>
             <div className="flex flex-col items-start">
               <div className="font-semibold text-lg leading-6 text-foreground">

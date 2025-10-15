@@ -574,7 +574,7 @@ export default function NoteViewPage() {
               )}
 
               {currentView === "chat" && (
-                <Card className="overflow-hidden h-[80vh] ml-10 mt-8 flex flex-col bg-transparent border border-black/20 dark:border-white/20 rounded-3xl shadow-lg">
+                <Card className="bg-transparent h-[80vh] ml-10 mt-8 flex flex-col border border-black/20 dark:border-white/20 rounded-3xl shadow-lg">
                   <CardHeader className="p-5 border-b border-stone-100 dark:border-stone-900 bg-muted/5">
                     <div className="flex items-center gap-4">
                       <CardTitle className="font-normal">
@@ -582,7 +582,7 @@ export default function NoteViewPage() {
                       </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0 p-0 flex-1 overflow-y-auto">
+                  <CardContent className="pt-0 p-0 flex-1 overflow-y-hidden">
                     <DynamicInlineChatbot noteId={noteId} />
                   </CardContent>
                 </Card>

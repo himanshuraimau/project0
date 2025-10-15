@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Layers } from "lucide-react";
 import { toast } from "sonner";
 import { FlashcardViewer } from "./flashcard-viewer";
+import { LoadingState } from "@/components/ui/loading-spinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -208,6 +209,21 @@ export function FlashcardGenerator({ noteId, noteTitle }: FlashcardGeneratorProp
   }
 
   // Show generation UI
+  // If loading, show LoadingState instead of the card
+  if (loading) {
+    return (
+      <div className="h-[92vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6">
+        <div className="w-full max-w-4xl">
+          <LoadingState
+            message="Generating Flashcards"
+            submessage="Creating interactive flashcards from your notes to enhance memory retention"
+            variant="ai"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-[92vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6">
       <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
@@ -245,16 +261,6 @@ export function FlashcardGenerator({ noteId, noteTitle }: FlashcardGeneratorProp
               {loading ? "Generating Flashcards..." : "Generate Flashcards"}
             </span>
           </Button>
-
-          {loading && (
-            <div className="w-full space-y-4">
-              <div className="neomorphic rounded-xl p-4 bg-background border-0">
-                <p className="text-sm text-muted-foreground text-center">
-                  This may take a few moments...
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

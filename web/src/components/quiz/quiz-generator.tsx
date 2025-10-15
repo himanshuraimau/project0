@@ -219,6 +219,21 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
 
   // Show generation UI
   if (variant === 'neomorphic') {
+    // If loading, show LoadingState instead of the card
+    if (loading) {
+      return (
+        <div className="h-[92vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6">
+          <div className="w-full max-w-4xl">
+            <LoadingState
+              message="Generating Quiz"
+              submessage="Creating quiz questions and answers based on your notes"
+              variant="ai"
+            />
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="h-[92vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6">
         <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
@@ -249,15 +264,6 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
                 {loading ? "Generating Quiz..." : "Generate Quiz"}
               </span>
             </Button>
-            {loading && (
-              <div className="w-full">
-                <LoadingState
-                  message="Generating Quiz"
-                  submessage="Creating quiz questions and answers based on your notes"
-                  variant="ai"
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -213,6 +213,21 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
   }
 
   // Show generation UI
+  // If loading, show LoadingState instead of the card
+  if (loading) {
+    return (
+      <div className="h-[87vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6 py-4 mx-4 my-6">
+        <div className="w-full max-w-4xl">
+          <LoadingState
+            message="Generating Mindmap"
+            submessage="Analyzing your notes and creating visual connections..."
+            variant="ai"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
       <div className="h-[87vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6 py-4 mx-4 my-6">
         <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
@@ -249,16 +264,6 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
                 {loading ? "Generating..." : "Generate Mindmap"}
               </span>
             </Button>
-
-            {loading && (
-              <div className="w-full">
-                <LoadingState
-                  message="Generating Mindmap"
-                  submessage="Analyzing your notes and creating visual connections..."
-                  variant="ai"
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>
