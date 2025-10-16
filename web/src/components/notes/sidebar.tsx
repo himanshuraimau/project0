@@ -172,10 +172,15 @@ export function NotesSidebar({
       aria-label="Note features and actions"
       {...props}
     >
-      <SidebarHeader className="border-b border-sidebar-border p-4">
-        <div className="flex items-center justify-between">
+      <SidebarHeader className="border-b pt-4 pb-4 bg-sidebar border-sidebar-border flex-shrink-0">
+        <div className="flex items-center justify-between px-4">
           {!isCollapsed && (
-            <h2 className="text-lg font-semibold text-sidebar-foreground">Actions</h2>
+            <div className="flex items-center gap-3 min-w-0">
+              <FileText className="w-6 h-6 text-accent flex-shrink-0" />
+              <h1 className="text-lg font-semibold text-sidebar-foreground truncate">
+                Note Actions
+              </h1>
+            </div>
           )}
           <SidebarTrigger className="ml-auto" />
         </div>
