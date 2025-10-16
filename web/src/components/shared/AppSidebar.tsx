@@ -11,6 +11,12 @@ import {
   CheckCircle,
   Circle,
   ChevronLeft,
+  Grid3X3,
+  Moon,
+  Info,
+  ArrowRight,
+  PanelLeft,
+  Sun,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -18,6 +24,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { useTheme } from "next-themes";
 import { useChapterProgress } from "@/hooks/use-chapter-progress";
 import { Course, Unit, Chapter } from "@prisma/client";
+import { UserControl } from "@/components/user-control";
 import {
   Sidebar,
   SidebarContent,
@@ -30,6 +37,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarMenuAction,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -39,12 +47,13 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 const dashboardItems = [
-  { title: "Dashboard", icon: Home, href: "/dashboard" },
+  { title: "Dashboard", icon: Grid3X3, href: "/dashboard" },
   { title: "Create Course", icon: BookOpen, href: "/dashboard/generate-course"},
   { title: "How to use", icon: HelpCircle, href: "/dashboard/how-to-use" },
   { title: "Support", icon: HeadphonesIcon, href: "/dashboard/support" },
   { title: "Settings", icon: Settings, href: "/dashboard/settings" },
 ];
+
 
 interface CourseData {
   course: Course & {
@@ -80,9 +89,9 @@ function ChapterItem({
         asChild
         isActive={isCurrentChapter}
         className={cn(
-          "group relative py-2 px-4 transition-all hover:bg-sidebar-accent/60",
-          "text-sm font-medium rounded-lg my-0.5 text-sidebar-foreground",
-          isCurrentChapter && "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+          "group relative py-2.5 px-3 transition-all hover:bg-accent/50",
+          "text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground",
+          isCurrentChapter && "bg-accent text-accent-foreground shadow-sm"
         )}
       >
         <Link href={`/dashboard/course/${courseId}/${unitIndex}/${chapterIndex}`}>
@@ -91,11 +100,11 @@ function ChapterItem({
             progress.isCompleted
               ? "bg-green-500"
               : isCurrentChapter
-                ? "bg-sidebar-primary"
-                : "bg-sidebar-foreground/40"
+                ? "bg-foreground"
+                : "bg-muted-foreground/40"
           )} />
           {!isCollapsed && (
-            <span className="text-base leading-relaxed truncate">
+            <span className="text-sm font-medium truncate">
               {chapter.name}
             </span>
           )}
@@ -133,7 +142,7 @@ interface AppSidebarProps {
 export function AppSidebar({ className }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
-  const { theme, resolvedTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const isCollapsed = state === "collapsed";
   const isCoursePage = pathname.includes("/course/");
   const [mounted, setMounted] = useState(false);
@@ -167,27 +176,37 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "bg-sidebar mx-[3vw]",
+        "bg-background neomorphic m-4 rounded-2xl border-r border-border",
         className
       )}
     >
+      <SidebarHeader className="px-4 py-6 ">
+        <div className="flex items-center gap-3">
+          <UserControl showName={false} />
+          {!isCollapsed && (
+            <>
+              <span className="text-foreground font-medium flex-1">NotesAI</span>
+            </>
+          )}
+          <SidebarTrigger className="text-muted-foreground hover:text-foreground ml-auto transition-all" />
+        </div>
+      </SidebarHeader>
 
-
-      <SidebarContent className="flex-1 my-28 px-4">
+      <SidebarContent className="flex-1 py-4 px-2">
         {isCoursePage && courseData ? (
           // Course Navigation
           <>
             {/* Course Header */}
             {!isCollapsed && (
-              <div className="px-2 py-3 mb-6">
+              <div className="px-4 py-4 mb-4">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-3 text-base text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors mb-4"
+                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-4 w-4" />
                   Back to Dashboard
                 </Link>
-                <h2 className="text-xl font-semibold text-sidebar-foreground truncate">
+                <h2 className="text-lg font-semibold text-foreground truncate">
                   {courseData.course.name}
                 </h2>
               </div>
@@ -198,13 +217,13 @@ export function AppSidebar({ className }: AppSidebarProps) {
               {courseData.course.units.map((unit, unitIndex) => (
                 <SidebarGroup key={unit.id} className={unitIndex > 0 ? "mt-4" : ""}>
                   {!isCollapsed && (
-                    <SidebarGroupLabel className="text-sm uppercase tracking-wider px-3 py-3 text-sidebar-foreground/60 font-semibold">
+                    <SidebarGroupLabel className="text-xs uppercase tracking-wider px-3 py-2 text-muted-foreground font-semibold">
                       Unit {unitIndex + 1}: {unit.name}
                     </SidebarGroupLabel>
                   )}
 
                   <SidebarGroupContent>
-                    <SidebarMenu className="space-y-0.5">
+                    <SidebarMenu className="space-y-0.5 px-3">
                       {unit.chapters.map((chapter, chapterIndex) => (
                         <ChapterItem
                           key={chapter.id}
@@ -225,7 +244,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           // Dashboard Navigation
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-1">
+              <SidebarMenu className="space-y-1 px-3">
                 {dashboardItems.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
@@ -236,38 +255,20 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         asChild
                         isActive={isActive}
                         className={cn(
-                          "flex items-center rounded-lg transition-all py-3 px-5",
-                          "text-base font-medium !bg-transparent hover:!bg-transparent",
-                          "data-[state=open]:!bg-transparent data-[active=true]:!bg-transparent",
+                          "flex items-center rounded-lg transition-all py-2.5 px-3",
+                          "text-sm font-medium w-full",
                           isActive 
-                            ? (isDark ? "text-white" : "text-black")
-                            : "text-gray-500"
+                            ? "bg-accent text-accent-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                         )}
                       >
                         <Link 
                           href={item.href} 
-                          className={cn(
-                            "flex items-center gap-4 w-full",
-                            mounted && (isDark ? "hover:text-white" : "hover:text-black")
-                          )}
+                          className="flex items-center w-full"
                         >
-                          <Icon className={cn(
-                            "w-10 h-10 flex-shrink-0 transition-colors",
-                            mounted && (
-                              isActive 
-                                ? (isDark ? "text-white" : "text-black")
-                                : (isDark ? "text-gray-500 hover:text-white" : "text-gray-500 hover:text-black")
-                            )
-                          )} />
+                          <Icon className="w-5 h-5 flex-shrink-0 mr-3" />
                           {!isCollapsed && (
-                            <span className={cn(
-                              "text-[1.2rem] leading-relaxed font-medium transition-colors",
-                              mounted && (
-                                isActive 
-                                  ? (isDark ? "text-white" : "text-black")
-                                  : (isDark ? "text-gray-500 hover:text-white" : "text-gray-500 hover:text-black")
-                              )
-                            )}>
+                            <span className="text-sm font-medium truncate">
                               {item.title}
                             </span>
                           )}
@@ -280,35 +281,50 @@ export function AppSidebar({ className }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
       </SidebarContent>
 
       {/* Footer */}
-      {!isCollapsed && (
-        <SidebarFooter className="py-4 px-4 bg-sidebar ">
-          {isCoursePage ? (
-            // Course Footer
-            <div className="flex items-center justify-between text-xs text-sidebar-foreground/60">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <span>Completed</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-sidebar-foreground/40" />
-                <span>In Progress</span>
-              </div>
-            </div>
-          ) : (
-            // Dashboard Footer - Clickable link to pricing
-            <Link 
-              href="/pricing"
-              className="flex items-center gap-4 px-5 py-4 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl"
+      <SidebarFooter className="mx-4 mb-4 p-4">
+        {/* Theme Toggle */}
+        {!isCollapsed && (
+          <div className="mb-3">
+            <button
+              onClick={() => {
+                const newTheme = isDark ? "light" : "dark";
+                setTheme(newTheme);
+              }}
+              className="flex items-center gap-3 w-full rounded-lg transition-all py-2.5 px-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50"
             >
-              <span className="text-2xl">🚀</span>
-                <span className="font-bold text-lg text-white">&nbsp;Go Unlimited — &nbsp;Get Pro</span>
-            </Link>
-          )}
-        </SidebarFooter>
-      )}
+              {mounted && (
+                <>
+                  {isDark ? (
+                    <Sun className="w-5 h-5 flex-shrink-0" />
+                  ) : (
+                    <Moon className="w-5 h-5 flex-shrink-0" />
+                  )}
+                  <span>Switch mode</span>
+                </>
+              )}
+              {!mounted && <div className="w-5 h-5" />}
+            </button>
+          </div>
+        )}
+
+        {/* PRO Upgrade Button */}
+        {!isCollapsed && (
+          <Link 
+            href="/pricing"
+            className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded-lg px-3 py-2.5 hover:bg-primary/90 transition-all duration-200 cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-sm">Upgrade to</span>
+              <span className="bg-background text-foreground px-2 py-1 rounded-full text-xs font-semibold">PRO</span>
+            </div>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 }

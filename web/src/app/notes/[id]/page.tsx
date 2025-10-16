@@ -9,10 +9,10 @@ import { useFlashcards } from "@/hooks/use-flashcards";
 import { usePodcast } from "@/hooks/use-podcast";
 import { useMindmap } from "@/hooks/use-mindmap";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { NotesSidebar } from "@/components/notes/sidebar";
-import {
-  NotesSidebarProvider,
-} from "@/components/notes/sidebar-provider";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -40,7 +40,6 @@ const DynamicInlineChatbot = dynamic(
 );
 
 export default function NoteViewPage() {
-  const sidebarWidth = "280px";
   const params = useParams();
   const router = useRouter();
   const noteId = params.id as string;
@@ -447,48 +446,49 @@ export default function NoteViewPage() {
         </AlertDialogContent>
 
         {/* Full-height sidebar and content layout */}
-        <NotesSidebarProvider
-          defaultOpen={true}
-          sidebarWidth={sidebarWidth}
-          sidebarWidthMobile={sidebarWidth}
-        >
-          {/* Full-height Sidebar */}
-          <NotesSidebar
-            id="sidebar-navigation"
-            className="h-screen overflow-y-auto"
-            noteId={noteId}
-            showTranscript={currentView === "transcript"}
-            showQuiz={currentView === "quiz"}
-            showChat={currentView === "chat"}
-            showFlashcards={currentView === "flashcards"}
-            showPodcast={currentView === "podcast"}
-            showMindmap={currentView === "mindmap"}
-            onShowNotes={handleShowNotes}
-            onShowTranscript={handleShowTranscript}
-            onGenerateQuiz={handleGenerateQuiz}
-            onChatWithNote={handleChatWithNote}
-            onGenerateFlashcard={handleGenerateFlashcard}
-            onGeneratePodcast={handleGeneratePodcast}
-            onGenerateMindmap={handleGenerateMindmap}
-            onDeleteNote={handleDeleteNote}
-            quizLoading={false}
-            flashcardsLoading={flashcardsLoading}
-            podcastLoading={podcastLoading || podcastGenerating}
-            mindmapLoading={mindmapLoading}
-          />
+        <SidebarProvider defaultOpen={true}>
+          <div className="flex min-h-screen w-full bg-background">
+            {/* Full-height Sidebar */}
+            <NotesSidebar
+              noteId={noteId}
+              showTranscript={currentView === "transcript"}
+              showQuiz={currentView === "quiz"}
+              showChat={currentView === "chat"}
+              showFlashcards={currentView === "flashcards"}
+              showPodcast={currentView === "podcast"}
+              showMindmap={currentView === "mindmap"}
+              onShowNotes={handleShowNotes}
+              onShowTranscript={handleShowTranscript}
+              onGenerateQuiz={handleGenerateQuiz}
+              onChatWithNote={handleChatWithNote}
+              onGenerateFlashcard={handleGenerateFlashcard}
+              onGeneratePodcast={handleGeneratePodcast}
+              onGenerateMindmap={handleGenerateMindmap}
+              onDeleteNote={handleDeleteNote}
+              quizLoading={false}
+              flashcardsLoading={flashcardsLoading}
+              podcastLoading={podcastLoading || podcastGenerating}
+              mindmapLoading={mindmapLoading}
+            />
 
-          {/* Main content area - fills remaining space */}
-          <div className="flex-1 flex flex-col">
-            {/* Simplified top navbar - just showing note title */}
-            <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-              <div className="flex h-16 items-center px-6">
-                <h1 className="text-xl font-bold text-foreground">{note?.title || "Notes"}</h1>
+            {/* Main content area - uses SidebarInset for proper spacing */}
+            <SidebarInset className="flex flex-col flex-1">
+            {/* Simplified top navbar - back to dashboard */}
+            <header className="sticky top-0 z-40 bg-background pt-4 pl-4">
+              <div className="flex h-16 items-center px-6 neomorphic mr-4 mb-4 rounded-b-2xl">
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-3 text-foreground hover:text-muted-foreground transition-colors"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                  <h1 className="text-xl font-bold">Notes</h1>
+                </Link>
               </div>
-            </div>
+            </header>
 
             {/* Main content */}
-            <main className="flex-1 overflow-auto" id="main-content">
-                  <div className="bg-background dark:bg-[#0A0B0D] border-none min-h-[calc(100vh-64px)] pl-5 pt-5 transition-colors duration-200">
+            <main className="flex-1 overflow-auto bg-background px-4" id="main-content">
+                  <div className="bg-background border-none min-h-[calc(100vh-64px)] pt-5 transition-colors duration-200">
                   {/* Content based on current view */}
               {currentView === "notes" && (
                 <div data-testid="view-note" tabIndex={-1}>
@@ -615,8 +615,9 @@ export default function NoteViewPage() {
               )}
               </div>
             </main>
+            </SidebarInset>
           </div>
-        </NotesSidebarProvider>
+        </SidebarProvider>
       </AlertDialog>
     </div>
   );

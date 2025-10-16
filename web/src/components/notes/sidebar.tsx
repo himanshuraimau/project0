@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   FileText,
@@ -16,10 +17,15 @@ import {
   Loader2,
   CheckCircle,
   Mic,
+  Info,
+  ArrowRight,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -30,6 +36,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { SidebarFooterControls } from "@/components/shared/sidebar-footer-controls";
+import { UserControl } from "@/components/user-control";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
@@ -87,6 +96,14 @@ export function NotesSidebar({
   const { state, toggleSidebar } = useSidebar();
   const router = useRouter();
   const isCollapsed = state === "collapsed";
+  const { theme, resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted ? (resolvedTheme || theme) === "dark" : false;
 
   const menuItems = [
     {
@@ -102,7 +119,6 @@ export function NotesSidebar({
         !showMindmap,
       disabled: false,
       loading: false,
-      description: "View your notes",
     },
     {
       title: "Transcript",
@@ -111,7 +127,6 @@ export function NotesSidebar({
       isActive: showTranscript,
       disabled: false,
       loading: false,
-      description: "Audio transcript",
     },
     {
       title: "Quiz",
@@ -120,7 +135,6 @@ export function NotesSidebar({
       isActive: showQuiz,
       disabled: quizLoading || false,
       loading: quizLoading || false,
-      description: "Create quiz from notes",
     },
     {
       title: "Chat with Note",
@@ -129,7 +143,6 @@ export function NotesSidebar({
       isActive: showChat,
       disabled: false,
       loading: false,
-      description: "Ask questions about content",
     },
     {
       title: "Flashcards",
@@ -138,7 +151,6 @@ export function NotesSidebar({
       isActive: showFlashcards,
       disabled: flashcardsLoading || false,
       loading: flashcardsLoading || false,
-      description: "Study with flashcards",
     },
     // {
     //   title: "Podcast",
@@ -156,7 +168,6 @@ export function NotesSidebar({
       isActive: showMindmap,
       disabled: mindmapLoading || false,
       loading: mindmapLoading || false,
-      description: "Visual mind map",
     },
 
   ];
@@ -165,40 +176,31 @@ export function NotesSidebar({
     <Sidebar
       collapsible="icon"
       className={cn(
-        "h-screen bg-sidebar border-r border-sidebar-border",
+        "bg-background neomorphic m-4 rounded-2xl border-r border-border",
         className
       )}
       role="navigation"
       aria-label="Note features and actions"
       {...props}
     >
-      <SidebarHeader className="border-b pt-4 pb-4 bg-sidebar border-sidebar-border flex-shrink-0">
-        <div className="flex items-center justify-between px-4">
+      <SidebarHeader className="px-4 py-6">
+        <div className="flex items-center gap-3">
+          <UserControl showName={false} />
           {!isCollapsed && (
-            <div className="flex items-center gap-3 min-w-0">
-              <FileText className="w-6 h-6 text-accent flex-shrink-0" />
-              <h1 className="text-lg font-semibold text-sidebar-foreground truncate">
-                Note Actions
-              </h1>
-            </div>
+            <>
+              <span className="text-foreground font-medium flex-1">NotesAI</span>
+            </>
           )}
-          <SidebarTrigger className="ml-auto" />
+          <SidebarTrigger className="text-muted-foreground hover:text-foreground ml-auto transition-all" />
         </div>
       </SidebarHeader>
 
-      <SidebarContent
-        className={cn(
-          "flex-1",
-          isCollapsed ? "px-2 flex flex-col items-center" : "px-3"
-        )}
-      >
+      <SidebarContent className="flex-1 py-4 px-2">
         <SidebarGroup
           className={isCollapsed ? "w-full flex flex-col items-center" : ""}
         >
           <SidebarGroupContent>
-            <SidebarMenu
-              className={cn(isCollapsed && "flex flex-col items-center w-full")}
-            >
+            <SidebarMenu className="space-y-1 px-3">
               {menuItems.map((item, index) => {
                 const isGenerative =
                   item.title.toLowerCase().includes("generate") ||
@@ -219,18 +221,13 @@ export function NotesSidebar({
                       isActive={item.isActive}
                       disabled={item.disabled}
                       className={cn(
-                        "flex items-center rounded-xl cursor-pointer group relative overflow-hidden dark:hover:bg-[#0a0b0d]",
-                        isCollapsed
-                          ? "w-16 h-16 justify-center"
-                          : "w-full px-5 py-6",
-                        item.isActive
-                          ? ""
+                        "flex items-center rounded-lg transition-all py-2.5 px-3",
+                        "text-sm font-medium w-full cursor-pointer",
+                        item.isActive 
+                          ? "bg-accent text-accent-foreground"
                           : item.disabled
-                          ? "text-stone-400 dark:text-stone-600 cursor-not-allowed opacity-60"
-                          : "text-stone-600 dark:text-stone-300",
-                        isGenerative && !item.disabled && !item.isActive
-                          ? ""
-                          : ""
+                          ? "text-muted-foreground cursor-not-allowed opacity-60"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                       )}
                       title={isCollapsed ? item.title : undefined}
                       aria-label={`${item.title}${item.loading ? ' (loading)' : ''}${item.isActive ? ' (active)' : ''}`}
@@ -244,34 +241,15 @@ export function NotesSidebar({
                         )}
                       >
                         {item.loading ? (
-                          <Loader2 className="w-7 h-7 animate-spin flex-shrink-0" />
+                          <Loader2 className="w-5 h-5 animate-spin flex-shrink-0 mr-3" />
                         ) : (
-                          <item.icon
-                            className={cn(
-                              "w-7 h-7 flex-shrink-0",
-                              item.isActive
-                                ? "scale-110"
-                                : ""
-                            )}
-                          />
+                          <item.icon className="w-5 h-5 flex-shrink-0 mr-3" />
                         )}
 
                         {!isCollapsed && (
                           <div className="flex flex-col items-start flex-1 min-w-0">
-                            <span
-                              className={cn(
-                                "text-[1.1rem] leading-tight truncate font-medium",
-                                jakarta.className,
-                                item.loading ? "opacity-70" : ""
-                              )}
-                            >
+                            <span className="text-sm font-medium truncate">
                               {item.title}
-                            </span>
-                            <span 
-                              id={`${item.title.toLowerCase().replace(/\s+/g, '-')}-description`}
-                              className="sr-only"
-                            >
-                              {item.description}
                             </span>
                           </div>
                         )}
@@ -316,16 +294,9 @@ export function NotesSidebar({
                     >
                       <Trash2 className="w-7 h-7 flex-shrink-0" />
                       {!isCollapsed && (
-                        <div className="flex flex-col items-start flex-1">
-                          <span
-                            className={cn(
-                              "text-lg font-medium leading-tight",
-                              jakarta.className
-                            )}
-                          >
-                            Delete Notes
-                          </span>
-                        </div>
+                        <span className="text-sm font-medium">
+                          Delete Notes
+                        </span>
                       )}
                     </div>
                   </SidebarMenuButton>
@@ -336,7 +307,46 @@ export function NotesSidebar({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooterControls />
+      <SidebarFooter className="mx-4 mb-4 p-4">
+        {/* Theme Toggle */}
+        {!isCollapsed && (
+          <div className="mb-3">
+            <button
+              onClick={() => {
+                const newTheme = isDark ? "light" : "dark";
+                setTheme(newTheme);
+              }}
+              className="flex items-center gap-3 w-full rounded-lg transition-all py-2.5 px-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50"
+            >
+              {mounted && (
+                <>
+                  {isDark ? (
+                    <Sun className="w-5 h-5 flex-shrink-0" />
+                  ) : (
+                    <Moon className="w-5 h-5 flex-shrink-0" />
+                  )}
+                  <span>Switch mode</span>
+                </>
+              )}
+              {!mounted && <div className="w-5 h-5" />}
+            </button>
+          </div>
+        )}
+
+        {/* PRO Upgrade Button */}
+        {!isCollapsed && (
+          <Link 
+            href="/pricing"
+            className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded-lg px-3 py-2.5 hover:bg-primary/90 transition-all duration-200 cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-sm">Upgrade to</span>
+              <span className="bg-background text-foreground px-2 py-1 rounded-full text-xs font-semibold">PRO</span>
+            </div>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 }
