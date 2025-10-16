@@ -3,13 +3,14 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import {
-  Home01Icon,
-  HelpCircleIcon,
-  HeadphonesIcon,
-  Settings01Icon,
-  BookOpen01Icon,
-  FlashIcon,
-} from "hugeicons-react";
+  Home,
+  HelpCircle,
+  Headphones,
+  Settings,
+  BookOpen,
+  Zap,
+  ArrowRight,
+} from 'lucide-react';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -22,36 +23,37 @@ const jakarta = Plus_Jakarta_Sans({
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { SidebarFooterControls } from "@/components/shared/sidebar-footer-controls";
 
 const sidebarItems = [
   {
     section: "Main",
     items: [
-      { title: "Dashboard", icon: Home01Icon, href: "/dashboard" },
-      { title: "My Courses", icon: BookOpen01Icon, href: "/dashboard/generate-course" },
+      { title: "Dashboard", icon: Home, href: "/dashboard" },
+      { title: "My Courses", icon: BookOpen, href: "/dashboard/generate-course" },
     ]
   },
   {
     section: "Learning Tools",
     items: [
-      { title: "Create Notes", icon: FlashIcon, href: "/dashboard/notes" },
+      { title: "Create Notes", icon: Zap, href: "/dashboard/notes" },
     ]
   },
   {
     section: "Support",
     items: [
-      { title: "Help Center", icon: HelpCircleIcon, href: "/dashboard/how-to-use" },
-      { title: "Contact Support", icon: HeadphonesIcon, href: "/dashboard/support" },
-      { title: "Settings", icon: Settings01Icon, href: "/dashboard/settings" },
+      { title: "Help Center", icon: HelpCircle, href: "/dashboard/how-to-use" },
+      { title: "Contact Support", icon: Headphones, href: "/dashboard/support" },
+      { title: "Settings", icon: Settings, href: "/dashboard/settings" },
     ]
   }
 ];
@@ -69,10 +71,18 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "h-screen bg-white dark:bg-stone-900",
+        "h-screen bg-white dark:bg-stone-950 border-r border-sidebar-border",
         className
       )}
     >
+      <SidebarHeader className="border-b border-sidebar-border p-4">
+        <div className="flex items-center justify-between">
+          {!isCollapsed && (
+            <h2 className="text-lg font-semibold text-foreground">Menu</h2>
+          )}
+          <SidebarTrigger className="ml-auto" />
+        </div>
+      </SidebarHeader>
       {/* <SidebarHeader className="border-b py-6 bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-900">
         {isCollapsed ? (
           <div className="flex flex-col items-center gap-3 px-4">
@@ -188,7 +198,6 @@ export function AppSidebar({ className }: AppSidebarProps) {
               >
                 {section.items.map((item) => {
                   const isActive = pathname === item.href;
-                  const Icon = item.icon;
 
                   return (
                     <SidebarMenuItem
@@ -213,12 +222,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                             isCollapsed ? "w-full justify-center" : "w-full"
                           )}
                         >
-                          <Icon
-                            className={cn(
-                              "flex-shrink-0 transition-transform group-hover:scale-110",
-                              isCollapsed ? "w-7 h-7" : "w-7 h-7"
-                            )}
-                          />
+                          <item.icon className="w-7 h-7 flex-shrink-0 transition-transform group-hover:scale-110" />
                           {!isCollapsed && (
                             <span className="text-lg font-medium leading-relaxed">
                               {item.title}
@@ -235,29 +239,30 @@ export function AppSidebar({ className }: AppSidebarProps) {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto w-full px-4 py-6 border-t border-stone-200 bg-white dark:border-stone-900 dark:bg-stone-950">
-        <div
+      <SidebarFooterControls>
+        {/* Upgrade to PRO Button */}
+        <Link 
+          href="/pricing"
           className={cn(
-            "flex items-center gap-4 px-5 py-4 rounded-xl shadow-sm transition-all duration-200 ease-in-out",
-            "bg-gradient-to-r from-accent/10 to-accent/5 hover:from-accent/20 hover:to-accent/10 border border-accent/20",
-            isCollapsed ? "mx-auto justify-center w-14 h-14" : "mx-auto"
+            "flex items-center gap-3 rounded-lg px-4 py-3 transition-all duration-200",
+            "bg-accent/10 hover:bg-accent/20 border border-accent/30",
+            "group cursor-pointer",
+            isCollapsed ? "justify-center" : ""
           )}
         >
-          <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-            <span className="text-accent-foreground text-xl font-bold">⚡</span>
+          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+            <span className="text-accent-foreground text-base font-bold">⚡</span>
           </div>
           {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="font-semibold text-base text-stone-900 dark:text-stone-100">
-                Unlimited Notes
+            <>
+              <span className="text-sm font-semibold text-foreground">
+                Upgrade to PRO
               </span>
-              <span className="text-sm text-stone-500 dark:text-stone-400">
-                Premium plan active
-              </span>
-            </div>
+              <ArrowRight className="w-4 h-4 ml-auto text-accent group-hover:translate-x-1 transition-transform" />
+            </>
           )}
-        </div>
-      </SidebarFooter>
+        </Link>
+      </SidebarFooterControls>
     </Sidebar>
   );
 }

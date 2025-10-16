@@ -24,7 +24,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const isCoursePage = pathname.includes("/course/") && !pathname.includes("/create/");
 
   return (
-    <div className="flex-1 min-h-screen bg-background mx-[3vw]">
+    <div className="flex-1 min-h-screen bg-background">
       {/* Content area with conditional padding */}
       <main className={`flex-1 ${!isCoursePage ? 'px-6 py-8' : 'px-6 py-8'}`}>
         <div className="max-w-none w-full">
@@ -115,34 +115,29 @@ export default function DashboardLayout({
           <PaymentSuccessHandler />
         </Suspense>
 
-        {/* Navbar at the top - only for non-course pages and non-notes pages */}
-        {!isCoursePage && !isNotesPage && (
-          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border mx-[3vw]">
-            <Navbar
-              title={
-                <span className="text-2xl">
-                  <span className="font-bold">SonicLearn</span>{" "}
-                  <span className="font-normal text-gray-400">AI notes</span>
-                </span>
-              }
-            />
-
-          </div>
-        )}
-
         {/* For course pages or notes pages, let them handle their own layout */}
         {isCoursePage || isNotesPage ? (
           children
         ) : (
           <SidebarProvider defaultOpen={true}>
-            <div className="flex min-h-[calc(100vh-64px)]">
-              {/* Sidebar on the left - only for dashboard pages (not course or notes pages) */}
+            <div className="flex min-h-screen">
+              {/* Full-height Sidebar on the left */}
               <AppSidebar />
 
-              {/* Main content area */}
-              <DashboardContent>
-                {children}
-              </DashboardContent>
+              {/* Main content area - fills remaining space */}
+              <div className="flex-1 flex flex-col">
+                {/* Simplified top navbar - just showing title */}
+                <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
+                  <div className="flex h-16 items-center px-6">
+                    <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+                  </div>
+                </div>
+
+                {/* Main content */}
+                <DashboardContent>
+                  {children}
+                </DashboardContent>
+              </div>
             </div>
           </SidebarProvider>
         )}

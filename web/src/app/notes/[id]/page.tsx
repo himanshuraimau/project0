@@ -32,7 +32,6 @@ import { MindmapGenerator } from "@/components/mindmap";
 import { Trash2, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ViewNote } from "@/components/notes/view-note";
-import { Navbar } from "@/components/shared/navbar";
 import { NoteDetailSkeleton } from "@/components/notes/notes-skeleton";
 
 const DynamicInlineChatbot = dynamic(
@@ -339,10 +338,6 @@ export default function NoteViewPage() {
   if (loading) {
     return (
       <div className="min-h-screen w-full bg-background">
-        {/* Navbar at the very top */}
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-          <Navbar title="Notes" />
-        </div>
         <NoteDetailSkeleton />
       </div>
     );
@@ -365,7 +360,7 @@ export default function NoteViewPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-background">
+    <div className="flex min-h-screen w-full bg-background">
       {/* Skip links for accessibility */}
       <div className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50">
         <a 
@@ -404,91 +399,95 @@ export default function NoteViewPage() {
           <li><kbd className="px-1 py-0.5 bg-muted rounded text-xs">Alt+←/→</kbd> Navigate Views</li>
         </ul>
       </div>
-      
-      {/* Navbar at the very top */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-        <Navbar title="Notes" />
-      </div>
 
-        <AlertDialog>
-          <AlertDialogContent className="max-w-md">
-            <AlertDialogHeader>
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-full bg-red-100">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
-                </div>
-                <AlertDialogTitle className="text-red-600">
-                  Delete Note
-                </AlertDialogTitle>
+      <AlertDialog>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-full bg-red-100">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
               </div>
-              <AlertDialogDescription className="space-y-3 mt-2">
-                <p className="font-medium text-base border-l-4 border-l-red-200 pl-3 py-1">
-                  {note?.title}
-                </p>
-                <p>
-                  This action cannot be undone. This will permanently delete this
-                  note and all associated content.
-                </p>
-                <Card className="border-red-800 mt-2 bg-white dark:bg-[#0A0B0D]">
-                  <CardContent className="p-3 text-sm text-red-900 dark:text-red-200">
-                    <p className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-600" />
-                      <span>
-                        All flashcards, quizzes, podcasts, and other content generated from this note will
-                        also be deleted.
-                      </span>
-                    </p>
-                  </CardContent>
-                </Card>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="font-medium">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-red-600 hover:bg-red-700 text-white font-medium flex items-center gap-2"
-                onClick={handleDeleteNote}
-              >
-                <Trash2 className="h-4 w-4" />
+              <AlertDialogTitle className="text-red-600">
                 Delete Note
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-
-        {/* Main Content with Notes Sidebar - below navbar */}
-        <div className="pt-0">
-            <NotesSidebarProvider
-              defaultOpen={true}
-              sidebarWidth={sidebarWidth}
-              sidebarWidthMobile={sidebarWidth}
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="space-y-3 mt-2">
+              <p className="font-medium text-base border-l-4 border-l-red-200 pl-3 py-1">
+                {note?.title}
+              </p>
+              <p>
+                This action cannot be undone. This will permanently delete this
+                note and all associated content.
+              </p>
+              <Card className="border-red-800 mt-2 bg-white dark:bg-[#0A0B0D]">
+                <CardContent className="p-3 text-sm text-red-900 dark:text-red-200">
+                  <p className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <span>
+                      All flashcards, quizzes, podcasts, and other content generated from this note will
+                      also be deleted.
+                    </span>
+                  </p>
+                </CardContent>
+              </Card>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="font-medium">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white font-medium flex items-center gap-2"
+              onClick={handleDeleteNote}
             >
-            <div className="min-h-[calc(100vh-64px)]">
-              <NotesSidebar
-                id="sidebar-navigation"
-                className={`${currentView === "chat" ? "pb-3" : "pb-6"} fixed top-16 left-0 h-[calc(100vh-64px)] z-10 overflow-y-auto`}
-                noteId={noteId}
-                showTranscript={currentView === "transcript"}
-                showQuiz={currentView === "quiz"}
-                showChat={currentView === "chat"}
-                showFlashcards={currentView === "flashcards"}
-                showPodcast={currentView === "podcast"}
-                showMindmap={currentView === "mindmap"}
-                onShowNotes={handleShowNotes}
-                onShowTranscript={handleShowTranscript}
-                onGenerateQuiz={handleGenerateQuiz}
-                onChatWithNote={handleChatWithNote}
-                onGenerateFlashcard={handleGenerateFlashcard}
-                onGeneratePodcast={handleGeneratePodcast}
-                onGenerateMindmap={handleGenerateMindmap}
-                onDeleteNote={handleDeleteNote}
-                quizLoading={false}
-                flashcardsLoading={flashcardsLoading}
-                podcastLoading={podcastLoading || podcastGenerating}
-                mindmapLoading={mindmapLoading}
-              />
-              <div className="bg-background ml-[280px] transition-all duration-300 ease-in-out">
-                <main className="flex-1" id="main-content">
+              <Trash2 className="h-4 w-4" />
+              Delete Note
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+
+        {/* Full-height sidebar and content layout */}
+        <NotesSidebarProvider
+          defaultOpen={true}
+          sidebarWidth={sidebarWidth}
+          sidebarWidthMobile={sidebarWidth}
+        >
+          {/* Full-height Sidebar */}
+          <NotesSidebar
+            id="sidebar-navigation"
+            className="h-screen overflow-y-auto"
+            noteId={noteId}
+            showTranscript={currentView === "transcript"}
+            showQuiz={currentView === "quiz"}
+            showChat={currentView === "chat"}
+            showFlashcards={currentView === "flashcards"}
+            showPodcast={currentView === "podcast"}
+            showMindmap={currentView === "mindmap"}
+            onShowNotes={handleShowNotes}
+            onShowTranscript={handleShowTranscript}
+            onGenerateQuiz={handleGenerateQuiz}
+            onChatWithNote={handleChatWithNote}
+            onGenerateFlashcard={handleGenerateFlashcard}
+            onGeneratePodcast={handleGeneratePodcast}
+            onGenerateMindmap={handleGenerateMindmap}
+            onDeleteNote={handleDeleteNote}
+            quizLoading={false}
+            flashcardsLoading={flashcardsLoading}
+            podcastLoading={podcastLoading || podcastGenerating}
+            mindmapLoading={mindmapLoading}
+          />
+
+          {/* Main content area - fills remaining space */}
+          <div className="flex-1 flex flex-col">
+            {/* Simplified top navbar - just showing note title */}
+            <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
+              <div className="flex h-16 items-center px-6">
+                <h1 className="text-xl font-bold text-foreground">{note?.title || "Notes"}</h1>
+              </div>
+            </div>
+
+            {/* Main content */}
+            <main className="flex-1 overflow-auto" id="main-content">
                   <div className="bg-background dark:bg-[#0A0B0D] border-none min-h-[calc(100vh-64px)] pl-5 pt-5 transition-colors duration-200">
                   {/* Content based on current view */}
               {currentView === "notes" && (
@@ -614,13 +613,11 @@ export default function NoteViewPage() {
                   )}
                 </div>
               )}
-                  </div>
-                </main>
               </div>
-            </div>
-          </NotesSidebarProvider>
+            </main>
           </div>
-        </AlertDialog>
+        </NotesSidebarProvider>
+      </AlertDialog>
     </div>
   );
 }
