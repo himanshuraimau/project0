@@ -18,9 +18,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuAction,
-  SidebarFooter,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { SidebarFooterControls } from "@/components/shared/sidebar-footer-controls";
 
 type Props = {
   course: Course & {
@@ -113,15 +114,22 @@ function ChapterItem({
 
 const CourseSideBar = ({ course, currentChapterId }: Props) => {
   const { unitProgress } = useCourseProgress();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="none" className="fixed top-[calc(100vh-89vh)] left-14 h-[calc(100vh-10vh)] dark:bg-sidebar ml-2 flex justify-start z-30">
-      <SidebarHeader className="border-b pt-7 pb-5 dark:bg-sidebar border-stone-200 dark:border-stone-900 flex-shrink-0">
-        <div className="flex items-center gap-3 min-w-0 px-4">
-          <BookOpen className="w-6 h-6 text-accent flex-shrink-0" />
-          <h1 className="text-xl font-semibold text-black dark:text-stone-100 truncate">
-            {course.name}
-          </h1>
+    <Sidebar collapsible="icon" className="h-screen bg-sidebar border-r border-sidebar-border">
+      <SidebarHeader className="border-b pt-4 pb-4 bg-sidebar border-sidebar-border flex-shrink-0">
+        <div className="flex items-center justify-between px-4">
+          {!isCollapsed && (
+            <div className="flex items-center gap-3 min-w-0">
+              <BookOpen className="w-6 h-6 text-accent flex-shrink-0" />
+              <h1 className="text-lg font-semibold text-sidebar-foreground truncate">
+                {course.name}
+              </h1>
+            </div>
+          )}
+          <SidebarTrigger className="ml-auto" />
         </div>
       </SidebarHeader>
 
@@ -183,18 +191,19 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
         })()}
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto w-full px-3 py-4 dark:bg-sidebar flex-shrink-0">
-        <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 px-3 py-3">
+      <SidebarFooterControls>
+        {/* Course Progress Legend */}
+        <div className="flex items-center justify-between text-xs text-sidebar-foreground/60 px-2 py-2">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500 ring-1 ring-green-500/30" />
             <span>Completed</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-stone-300 dark:bg-stone-700 border border-stone-400 dark:border-stone-600" />
+            <div className="w-2 h-2 rounded-full bg-sidebar-foreground/30 border border-sidebar-foreground/40" />
             <span>Pending</span>
           </div>
         </div>
-      </SidebarFooter>
+      </SidebarFooterControls>
     </Sidebar>
   );
 };

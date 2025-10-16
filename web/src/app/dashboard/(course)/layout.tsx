@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { UserControl } from "@/components/user-control";
-import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
 import CourseSideBar from "@/components/course/CourseSideBar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { CourseProgressProvider } from "@/contexts/course-progress-context";
@@ -67,29 +65,8 @@ export default function CourseLayout({
   if (isActualCoursePage) {
     return (
       <SidebarProvider defaultOpen={true}>
-        <div className="min-h-screen bg-background">
-          {/* Course navbar at the top */}
-          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border mx-[3vw]">
-            <div
-              className={`${jakarta.className} py-4 flex bg-background items-center justify-between px-6 transition-all duration-300`}
-            >
-              <div className="flex items-center h-16 gap-4">
-                <Link
-                  href="/dashboard/generate-course"
-                  className="flex items-center gap-2 text-foreground hover:text-accent transition-colors"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                  <span className="text-xl font-semibold">Back to Courses</span>
-                </Link>
-              </div>
-              <div className="flex items-center gap-4">
-                <ThemeToggleButton />
-                <UserControl showName />
-              </div>
-            </div>
-          </div>
-
-          {/* Fixed sidebar - only show when courseData is available */}
+        <div className="flex min-h-screen bg-background">
+          {/* Full-height sidebar - only show when courseData is available */}
           {courseData && (
             <CourseProgressProvider courseId={courseData.course.id}>
               <CourseSideBar
@@ -99,10 +76,28 @@ export default function CourseLayout({
             </CourseProgressProvider>
           )}
 
-          {/* Main content area with left margin to account for fixed sidebar */}
-          <main className="min-h-screen ml-80">
-            <div className="max-w-6xl mx-auto px-8 py-8">{children}</div>
-          </main>
+          {/* Main content area - fills remaining space */}
+          <div className="flex-1 flex flex-col">
+            {/* Simplified top navbar - just showing course context */}
+            <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
+              <div className={`${jakarta.className} flex h-16 items-center px-6`}>
+                <Link
+                  href="/dashboard/generate-course"
+                  className="flex items-center gap-2 text-foreground hover:text-accent transition-colors"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                  <span className="text-xl font-semibold">
+                    {courseData?.course.name || "Course"}
+                  </span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Main content area */}
+            <main className="flex-1 overflow-auto">
+              <div className="max-w-6xl mx-auto px-8 py-8">{children}</div>
+            </main>
+          </div>
         </div>
       </SidebarProvider>
     );
