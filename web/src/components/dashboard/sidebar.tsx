@@ -10,6 +10,7 @@ import {
   BookOpen,
   Zap,
   ArrowRight,
+  LayoutDashboard,
 } from 'lucide-react';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -75,10 +76,15 @@ export function AppSidebar({ className }: AppSidebarProps) {
         className
       )}
     >
-      <SidebarHeader className="border-b border-sidebar-border p-4">
-        <div className="flex items-center justify-between">
+      <SidebarHeader className="border-b pt-4 pb-4 bg-sidebar border-sidebar-border flex-shrink-0">
+        <div className="flex items-center justify-between px-4">
           {!isCollapsed && (
-            <h2 className="text-lg font-semibold text-foreground">Menu</h2>
+            <div className="flex items-center gap-3 min-w-0">
+              <LayoutDashboard className="w-6 h-6 text-accent flex-shrink-0" />
+              <h1 className="text-lg font-semibold text-sidebar-foreground truncate">
+                Dashboard
+              </h1>
+            </div>
           )}
           <SidebarTrigger className="ml-auto" />
         </div>
