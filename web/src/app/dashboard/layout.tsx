@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/AppSidebar";
 import CourseSideBar from "@/components/course/CourseSideBar";
 import { Navbar } from "@/components/shared/navbar";
@@ -120,24 +120,26 @@ export default function DashboardLayout({
           children
         ) : (
           <SidebarProvider defaultOpen={true}>
-            <div className="flex min-h-screen">
+            <div className="flex min-h-screen w-full bg-background">
               {/* Full-height Sidebar on the left */}
               <AppSidebar />
 
-              {/* Main content area - fills remaining space */}
-              <div className="flex-1 flex flex-col">
+              {/* Main content area - uses SidebarInset for proper spacing */}
+              <SidebarInset className="flex flex-col flex-1">
                 {/* Simplified top navbar - just showing title */}
-                <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
+                <header className="sticky top-0 z-40 bg-gray-800 border-b border-gray-700">
                   <div className="flex h-16 items-center px-6">
-                    <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+                    <h1 className="text-xl font-bold text-white">Dashboard</h1>
                   </div>
-                </div>
+                </header>
 
                 {/* Main content */}
-                <DashboardContent>
-                  {children}
-                </DashboardContent>
-              </div>
+                <main className="flex-1 bg-background">
+                  <DashboardContent>
+                    {children}
+                  </DashboardContent>
+                </main>
+              </SidebarInset>
             </div>
           </SidebarProvider>
         )}
