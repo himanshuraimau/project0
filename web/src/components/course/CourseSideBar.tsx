@@ -4,12 +4,15 @@ import { cn } from "@/lib/utils";
 import { Course, Unit, Chapter } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
-import { CheckCircle, Circle, BookOpen } from "lucide-react";
+import { CheckCircle, Circle, BookOpen, Info, ArrowRight, Moon, Sun, ChevronLeft } from "lucide-react";
+import { useTheme } from "next-themes";
+import { UserControl } from "@/components/user-control";
 import { useChapterProgress } from "@/hooks/use-chapter-progress";
 import { useCourseProgress } from "@/contexts/course-progress-context";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -21,7 +24,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { SidebarFooterControls } from "@/components/shared/sidebar-footer-controls";
 
 type Props = {
   course: Course & {
@@ -64,10 +66,11 @@ function ChapterItem({
         asChild 
         isActive={isCurrentChapter}
         className={cn(
-          "flex items-center rounded-[6px] transition-colors px-4 py-3",
+          "flex items-center rounded-lg transition-all py-2.5 px-3",
+          "text-sm font-medium",
           isCurrentChapter
-            ? "!bg-stone-100 !text-black dark:!bg-stone-900 dark:!text-white"
-            : "text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+            ? "bg-accent text-accent-foreground"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
         )}
       >
         <Link 
@@ -116,24 +119,31 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
   const { unitProgress } = useCourseProgress();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const { theme, resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted ? (resolvedTheme || theme) === "dark" : false;
 
   return (
-    <Sidebar collapsible="icon" className="h-screen bg-sidebar border-r border-sidebar-border">
-      <SidebarHeader className="border-b pt-4 pb-4 bg-sidebar border-sidebar-border flex-shrink-0">
-        <div className="flex items-center justify-between px-4">
+    <Sidebar collapsible="icon" className="bg-background neomorphic m-4 rounded-2xl border-r border-border">
+      <SidebarHeader className="px-4 py-6">
+        <div className="flex items-center gap-3">
+          <UserControl showName={false} />
           {!isCollapsed && (
-            <div className="flex items-center gap-3 min-w-0">
-              <BookOpen className="w-6 h-6 text-accent flex-shrink-0" />
-              <h1 className="text-lg font-semibold text-sidebar-foreground truncate">
-                {course.name}
-              </h1>
-            </div>
+            <>
+              <span className="text-foreground font-medium flex-1">NotesAI</span>
+            </>
           )}
-          <SidebarTrigger className="ml-auto" />
+          <SidebarTrigger className="text-muted-foreground hover:text-foreground ml-auto transition-all" />
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="flex-1 justify-start pt-2 dark:bg-sidebar px-1 overflow-y-auto">
+      <SidebarContent className="flex-1 py-4 px-2">
+
         {(() => {
           let globalChapterNumber = 0; // Track continuous chapter numbering
           
@@ -147,8 +157,8 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
 
             return (
               <SidebarGroup key={unit.id}>
-                <div className="px-3 py-2">
-                  <SidebarGroupLabel className="text-xs uppercase tracking-wider text-stone-500 dark:text-stone-400 font-semibold mb-2">
+                <div className="px-4 py-2">
+                  <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
                     Unit {unitIndex + 1}: {unit.name}
                   </SidebarGroupLabel>
                   {/* Unit Progress Bar */}
@@ -166,7 +176,7 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
                 </div>
               
                 <SidebarGroupContent>
-                  <SidebarMenu className="space-y-1">
+                  <SidebarMenu className="space-y-1 px-3">
                     {unit.chapters.map((chapter, chapterIndex) => {
                       globalChapterNumber++; // Increment for continuous numbering
                       const isCurrentChapter = chapter.id === currentChapterId;
@@ -191,19 +201,46 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
         })()}
       </SidebarContent>
 
-      <SidebarFooterControls>
-        {/* Course Progress Legend */}
-        <div className="flex items-center justify-between text-xs text-sidebar-foreground/60 px-2 py-2">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 ring-1 ring-green-500/30" />
-            <span>Completed</span>
+      <SidebarFooter className="mx-4 mb-4 p-4">
+        {/* Theme Toggle */}
+        {!isCollapsed && (
+          <div className="mb-3">
+            <button
+              onClick={() => {
+                const newTheme = isDark ? "light" : "dark";
+                setTheme(newTheme);
+              }}
+              className="flex items-center gap-3 w-full rounded-lg transition-all py-2.5 px-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50"
+            >
+              {mounted && (
+                <>
+                  {isDark ? (
+                    <Sun className="w-5 h-5 flex-shrink-0" />
+                  ) : (
+                    <Moon className="w-5 h-5 flex-shrink-0" />
+                  )}
+                  <span>Switch mode</span>
+                </>
+              )}
+              {!mounted && <div className="w-5 h-5" />}
+            </button>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-sidebar-foreground/30 border border-sidebar-foreground/40" />
-            <span>Pending</span>
-          </div>
-        </div>
-      </SidebarFooterControls>
+        )}
+
+        {/* PRO Upgrade Button */}
+        {!isCollapsed && (
+          <Link 
+            href="/pricing"
+            className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded-lg px-3 py-2.5 hover:bg-primary/90 transition-all duration-200 cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-sm">Upgrade to</span>
+              <span className="bg-background text-foreground px-2 py-1 rounded-full text-xs font-semibold">PRO</span>
+            </div>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 };

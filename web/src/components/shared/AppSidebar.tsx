@@ -16,6 +16,7 @@ import {
   Info,
   ArrowRight,
   PanelLeft,
+  Sun,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -53,10 +54,6 @@ const dashboardItems = [
   { title: "Settings", icon: Settings, href: "/dashboard/settings" },
 ];
 
-const utilityItems = [
-  { title: "Switch mode", icon: Moon, href: "#" },
-  { title: "Help", icon: Info, href: "/dashboard/how-to-use" },
-];
 
 interface CourseData {
   course: Course & {
@@ -92,9 +89,9 @@ function ChapterItem({
         asChild
         isActive={isCurrentChapter}
         className={cn(
-          "group relative py-2.5 px-3 transition-all hover:bg-gray-700/50",
-          "text-sm font-medium rounded-lg text-gray-400 hover:text-white",
-          isCurrentChapter && "bg-gray-700 text-white shadow-sm"
+          "group relative py-2.5 px-3 transition-all hover:bg-accent/50",
+          "text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground",
+          isCurrentChapter && "bg-accent text-accent-foreground shadow-sm"
         )}
       >
         <Link href={`/dashboard/course/${courseId}/${unitIndex}/${chapterIndex}`}>
@@ -103,8 +100,8 @@ function ChapterItem({
             progress.isCompleted
               ? "bg-green-500"
               : isCurrentChapter
-                ? "bg-white"
-                : "bg-gray-500"
+                ? "bg-foreground"
+                : "bg-muted-foreground/40"
           )} />
           {!isCollapsed && (
             <span className="text-sm font-medium truncate">
@@ -179,39 +176,37 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "bg-gray-800 border-r border-gray-700",
+        "bg-background neomorphic m-4 rounded-2xl border-r border-border",
         className
       )}
     >
-      {/* Profile Section */}
-      <SidebarHeader className="px-3 py-4 border-b border-gray-700">
+      <SidebarHeader className="px-4 py-6 ">
         <div className="flex items-center gap-3">
           <UserControl showName={false} />
           {!isCollapsed && (
             <>
-              <span className="text-white font-medium flex-1">Zedsy</span>
-              <Info className="w-4 h-4 text-gray-400" />
+              <span className="text-foreground font-medium flex-1">NotesAI</span>
             </>
           )}
-          <SidebarTrigger className="text-gray-400 hover:text-white ml-auto" />
+          <SidebarTrigger className="text-muted-foreground hover:text-foreground ml-auto transition-all" />
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="flex-1 py-4">
+      <SidebarContent className="flex-1 py-4 px-2">
         {isCoursePage && courseData ? (
           // Course Navigation
           <>
             {/* Course Header */}
             {!isCollapsed && (
-              <div className="px-3 py-3 mb-4">
+              <div className="px-4 py-4 mb-4">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mb-3"
+                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Back to Dashboard
                 </Link>
-                <h2 className="text-lg font-semibold text-white truncate">
+                <h2 className="text-lg font-semibold text-foreground truncate">
                   {courseData.course.name}
                 </h2>
               </div>
@@ -222,13 +217,13 @@ export function AppSidebar({ className }: AppSidebarProps) {
               {courseData.course.units.map((unit, unitIndex) => (
                 <SidebarGroup key={unit.id} className={unitIndex > 0 ? "mt-4" : ""}>
                   {!isCollapsed && (
-                    <SidebarGroupLabel className="text-xs uppercase tracking-wider px-3 py-2 text-gray-400 font-semibold">
+                    <SidebarGroupLabel className="text-xs uppercase tracking-wider px-3 py-2 text-muted-foreground font-semibold">
                       Unit {unitIndex + 1}: {unit.name}
                     </SidebarGroupLabel>
                   )}
 
                   <SidebarGroupContent>
-                    <SidebarMenu className="space-y-1 px-3">
+                    <SidebarMenu className="space-y-0.5 px-3">
                       {unit.chapters.map((chapter, chapterIndex) => (
                         <ChapterItem
                           key={chapter.id}
@@ -263,15 +258,15 @@ export function AppSidebar({ className }: AppSidebarProps) {
                           "flex items-center rounded-lg transition-all py-2.5 px-3",
                           "text-sm font-medium w-full",
                           isActive 
-                            ? "bg-gray-700 text-white"
-                            : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                            ? "bg-accent text-accent-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                         )}
                       >
                         <Link 
                           href={item.href} 
-                          className="flex items-center gap-3 w-full"
+                          className="flex items-center w-full"
                         >
-                          <Icon className="w-5 h-5 flex-shrink-0" />
+                          <Icon className="w-5 h-5 flex-shrink-0 mr-3" />
                           {!isCollapsed && (
                             <span className="text-sm font-medium truncate">
                               {item.title}
@@ -287,86 +282,47 @@ export function AppSidebar({ className }: AppSidebarProps) {
           </SidebarGroup>
         )}
 
-        {/* Utility Links */}
-        {!isCoursePage && (
-          <div className="mt-auto mb-4">
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu className="space-y-1 px-3">
-                  {utilityItems.map((item) => {
-                    const Icon = item.icon;
-                    const isThemeToggle = item.title === "Switch mode";
-
-                    return (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          asChild={!isThemeToggle}
-                          className="flex items-center rounded-lg transition-all py-2.5 px-3 text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-700/50 w-full"
-                          onClick={isThemeToggle ? () => {
-                            const newTheme = (resolvedTheme || theme) === "dark" ? "light" : "dark";
-                            setTheme(newTheme);
-                          } : undefined}
-                        >
-                          {isThemeToggle ? (
-                            <div className="flex items-center gap-3 w-full">
-                              <Icon className="w-5 h-5 flex-shrink-0" />
-                              {!isCollapsed && (
-                                <span className="text-sm font-medium truncate">
-                                  {item.title}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <Link href={item.href} className="flex items-center gap-3 w-full">
-                              <Icon className="w-5 h-5 flex-shrink-0" />
-                              {!isCollapsed && (
-                                <span className="text-sm font-medium truncate">
-                                  {item.title}
-                                </span>
-                              )}
-                            </Link>
-                          )}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </div>
-        )}
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="p-3">
-        {isCoursePage ? (
-          // Course Footer
-          !isCollapsed && (
-            <div className="flex items-center justify-between text-xs text-gray-400">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <span>Completed</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-gray-500" />
-                <span>In Progress</span>
-              </div>
-            </div>
-          )
-        ) : (
-          // New PRO Upgrade Button
-          !isCollapsed && (
-            <Link 
-              href="/pricing"
-              className="flex items-center justify-between w-full px-3 py-2.5 bg-white rounded-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer"
+      <SidebarFooter className="mx-4 mb-4 p-4">
+        {/* Theme Toggle */}
+        {!isCollapsed && (
+          <div className="mb-3">
+            <button
+              onClick={() => {
+                const newTheme = isDark ? "light" : "dark";
+                setTheme(newTheme);
+              }}
+              className="flex items-center gap-3 w-full rounded-lg transition-all py-2.5 px-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50"
             >
-              <div className="flex items-center gap-2">
-                <span className="text-gray-900 font-medium text-sm">Upgrade to</span>
-                <span className="bg-gray-900 text-white px-2 py-1 rounded-full text-xs font-semibold">PRO</span>
-              </div>
-              <ArrowRight className="w-4 h-4 text-gray-600" />
-            </Link>
-          )
+              {mounted && (
+                <>
+                  {isDark ? (
+                    <Sun className="w-5 h-5 flex-shrink-0" />
+                  ) : (
+                    <Moon className="w-5 h-5 flex-shrink-0" />
+                  )}
+                  <span>Switch mode</span>
+                </>
+              )}
+              {!mounted && <div className="w-5 h-5" />}
+            </button>
+          </div>
+        )}
+
+        {/* PRO Upgrade Button */}
+        {!isCollapsed && (
+          <Link 
+            href="/pricing"
+            className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded-lg px-3 py-2.5 hover:bg-primary/90 transition-all duration-200 cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-sm">Upgrade to</span>
+              <span className="bg-background text-foreground px-2 py-1 rounded-full text-xs font-semibold">PRO</span>
+            </div>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         )}
       </SidebarFooter>
     </Sidebar>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import CourseSideBar from "@/components/course/CourseSideBar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { CourseProgressProvider } from "@/contexts/course-progress-context";
 import { Course, Unit, Chapter } from "@prisma/client";
 import { usePathname } from "next/navigation";
@@ -65,7 +65,7 @@ export default function CourseLayout({
   if (isActualCoursePage) {
     return (
       <SidebarProvider defaultOpen={true}>
-        <div className="flex min-h-screen bg-background">
+        <div className="flex min-h-screen w-full bg-background">
           {/* Full-height sidebar - only show when courseData is available */}
           {courseData && (
             <CourseProgressProvider courseId={courseData.course.id}>
@@ -76,28 +76,26 @@ export default function CourseLayout({
             </CourseProgressProvider>
           )}
 
-          {/* Main content area - fills remaining space */}
-          <div className="flex-1 flex flex-col">
-            {/* Simplified top navbar - just showing course context */}
-            <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
-              <div className={`${jakarta.className} flex h-16 items-center px-6`}>
+          {/* Main content area - uses SidebarInset for proper spacing */}
+          <SidebarInset className="flex flex-col flex-1">
+            {/* Simplified top navbar - back to courses */}
+            <header className="sticky top-0 z-40 bg-background pt-4 pl-4">
+              <div className="flex h-16 items-center px-6 neomorphic mr-4 mb-4 rounded-b-2xl">
                 <Link
                   href="/dashboard/generate-course"
-                  className="flex items-center gap-2 text-foreground hover:text-accent transition-colors"
+                  className="flex items-center gap-3 text-foreground hover:text-muted-foreground transition-colors"
                 >
                   <ArrowLeft className="h-5 w-5" />
-                  <span className="text-xl font-semibold">
-                    {courseData?.course.name || "Course"}
-                  </span>
+                  <h1 className="text-xl font-bold">Course</h1>
                 </Link>
               </div>
-            </div>
+            </header>
 
             {/* Main content area */}
-            <main className="flex-1 overflow-auto">
-              <div className="max-w-6xl mx-auto px-8 py-8">{children}</div>
+            <main className="flex-1 overflow-auto bg-background px-4">
+              <div className="max-w-6xl mx-auto py-8">{children}</div>
             </main>
-          </div>
+          </SidebarInset>
         </div>
       </SidebarProvider>
     );

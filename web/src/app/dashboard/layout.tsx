@@ -4,7 +4,6 @@ import React, { useEffect, useState, Suspense } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/AppSidebar";
 import CourseSideBar from "@/components/course/CourseSideBar";
-import { Navbar } from "@/components/shared/navbar";
 import { usePathname, useRouter } from "next/navigation";
 import { DashboardRefreshProvider } from "@/contexts/dashboard-refresh-context";
 import { PaymentSuccessHandler } from "@/components/subscription/payment-success-handler";
@@ -26,7 +25,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex-1 min-h-screen bg-background">
       {/* Content area with conditional padding */}
-      <main className={`flex-1 ${!isCoursePage ? 'px-6 py-8' : 'px-6 py-8'}`}>
+      <main className={`flex-1 ${!isCoursePage ? 'px-6 py-4' : 'px-6 py-4'}`}>
         <div className="max-w-none w-full">
           {children}
         </div>
@@ -127,14 +126,14 @@ export default function DashboardLayout({
               {/* Main content area - uses SidebarInset for proper spacing */}
               <SidebarInset className="flex flex-col flex-1">
                 {/* Simplified top navbar - just showing title */}
-                <header className="sticky top-0 z-40 bg-gray-800 border-b border-gray-700">
-                  <div className="flex h-16 items-center px-6">
-                    <h1 className="text-xl font-bold text-white">Dashboard</h1>
+                <header className="sticky top-0 z-40 bg-background pt-4 pl-4">
+                <div className="flex h-16 items-center px-6 neomorphic mr-4 mb-4 rounded-b-2xl">
+                    <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
                   </div>
                 </header>
 
                 {/* Main content */}
-                <main className="flex-1 bg-background">
+                <main className="flex-1 bg-background px-4">
                   <DashboardContent>
                     {children}
                   </DashboardContent>
