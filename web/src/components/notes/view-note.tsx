@@ -243,7 +243,6 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
     const minutes = Math.ceil(words / wordsPerMinute);
     return minutes;
   };
-
   return (
     <div className="min-h-screen bg-background">
       <div className="w-full mx-auto p-8">
@@ -297,7 +296,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                       <Button
                         onClick={handleSaveNote}
                         disabled={!hasUnsavedChanges || isSaving}
-                        className="rounded-xl px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
+                        className="rounded-xl px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 cursor-pointer"
                         size="sm"
                       >
                         {isSaving ? (
@@ -316,7 +315,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                         onClick={handleCancelEdit}
                         variant="outline"
                         size="sm"
-                        className="rounded-xl px-4 py-2 hover:bg-muted border-border hover:border-muted-foreground/20 transition-all duration-200"
+                        className="rounded-xl px-4 py-2 hover:bg-muted hover:text-foreground border-border hover:border-muted-foreground/20 transition-all duration-200 cursor-pointer"
                       >
                         <X className="h-4 w-4 mr-2" />
                         Cancel
@@ -336,10 +335,10 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                           variant={viewMode === 'preview' ? "default" : "ghost"}
                           size="sm"
                           onClick={() => setViewMode('preview')}
-                          className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                          className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
                             viewMode === 'preview' 
                               ? "bg-primary text-primary-foreground " 
-                              : "hover:bg-background text-muted-foreground"
+                              : "hover:bg-background text-foreground hover:text-foreground"
                           }`}
                         >
                           <Eye className="h-4 w-4 mr-2" />
@@ -352,10 +351,10 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                             e.preventDefault();
                             enterEditMode();
                           }}
-                          className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                          className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
                             viewMode === 'edit' 
                               ? "bg-primary text-primary-foreground " 
-                              : "hover:bg-background text-muted-foreground"
+                              : "hover:bg-background text-foreground hover:text-foreground"
                           }`}
                         >
                           <Edit className="h-4 w-4 mr-2" />
@@ -376,7 +375,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                           variant="outline"
                           size="sm"
                           onClick={handleCopy}
-                          className="rounded-xl px-4 py-2 hover:bg-primary/5 border-border hover:border-primary/20 transition-all duration-200"
+                          className="rounded-xl px-4 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer"
                         >
                           <Copy className="h-4 w-4 mr-2" />
                           Copy
@@ -386,7 +385,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                           variant="outline"
                           size="sm"
                           onClick={handleDownload}
-                          className="rounded-xl px-4 py-2 hover:bg-secondary/5 border-border hover:border-secondary/20 transition-all duration-200"
+                          className="rounded-xl px-4 py-2 hover:bg-secondary/5 hover:text-foreground border-border hover:border-secondary/20 transition-all duration-200 cursor-pointer"
                         >
                           <Download className="h-4 w-4 mr-2" />
                           Download
@@ -397,7 +396,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                             variant="outline"
                             size="sm"
                             onClick={() => setIsChatbotMinimized(false)}
-                            className="rounded-xl px-4 py-2 hover:bg-primary/5 border-border hover:border-primary/20 transition-all duration-200"
+                            className="rounded-xl px-4 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer"
                             title="Show AI Assistant"
                           >
                             <Bot className="h-4 w-4 mr-2" />

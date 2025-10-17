@@ -98,7 +98,7 @@ export function LanguageSelector({
         <Button
           variant="outline"
           size="sm"
-          className="rounded-xl px-3 py-2 hover:bg-primary/5 border-border hover:border-primary/20 transition-all duration-200 flex items-center gap-2"
+          className="rounded-xl px-3 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 flex items-center gap-2 cursor-pointer"
           disabled={loading}
           title="Translate note to other languages"
         >
