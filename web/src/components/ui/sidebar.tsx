@@ -244,7 +244,7 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:"
+          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-md group-data-[variant=floating]:border"
         >
           {children}
         </div>
@@ -697,6 +697,8 @@ function SidebarMenuSubButton({
     />
   )
 }
+
+const linkStyle = 'border-radius: 4px;'; // Adjust the border radius as needed
 
 export {
   Sidebar,

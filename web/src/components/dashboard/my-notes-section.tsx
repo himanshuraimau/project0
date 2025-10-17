@@ -32,19 +32,19 @@ export function MyNotesSection() {
   }, [setRefreshHandler]);
 
   return (
-    <div className={`w-full ${inter.className}`}>
-      <div className="mb-8">
-        <h2 className={`text-2xl leading-8 font-semibold text-foreground mb-3 ${jakarta.className}`}>
-          My Notes
-        </h2>
-        <p className={`text-muted-foreground text-base font-medium leading-6 ${jakarta.className}`}>
-          Manage and organize your notes
-        </p>
-      </div>
+<div className={`w-full ${inter.className}`}>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h2 className={`text-2xl leading-8 font-semibold text-foreground mb-3 ${jakarta.className}`}>
+            My Notes
+          </h2>
+          <p className={`text-muted-foreground text-base font-medium leading-6 ${jakarta.className}`}>
+            Manage and organize your notes
+          </p>
+        </div>
 
-      {/* Search Control */}
-      <div className="flex flex-col sm:flex-row gap-6 mb-8 sm:justify-end">
-        <div className="relative min-w-xl">
+        {/* Search Control */}
+        <div className="relative min-w-xl sm:mt-1">
           <Input
             placeholder="Search notes..."
             value={searchQuery}
