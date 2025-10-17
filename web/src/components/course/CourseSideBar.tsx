@@ -129,7 +129,7 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
   const isDark = mounted ? (resolvedTheme || theme) === "dark" : false;
 
   return (
-    <Sidebar collapsible="icon" className="bg-background m-4 rounded-2xl">
+    <Sidebar collapsible="icon" className="bg-background rounded-2xl">
       <SidebarHeader className="px-8 py-6">
         <div className="flex items-center gap-2 w-full">
           {isCollapsed ? (
@@ -166,18 +166,26 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
                   <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
                     Unit {unitIndex + 1}: {unit.name}
                   </SidebarGroupLabel>
-                  <div className="flex items-center gap-2 mt-1 mb-2">
-                    <div className="flex-1 h-1.5 bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-accent transition-all duration-500 ease-out"
-                            style={{ width: `${unitProgressData.progressPercentage}%` }}
-                          />
-                        </div>
-                        <span className="text-[10px] text-stone-500 dark:text-stone-400 font-medium">
-                          {unitProgressData.completedChapters}/{unitProgressData.totalChapters}
-                        </span>
+                  <div className={cn(
+                    "flex items-center gap-2 mt-1 mb-2",
+                    isCollapsed && "justify-center"
+                  )}>
+                    {!isCollapsed && (
+                      <div className="flex-1 h-1.5 bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-accent transition-all duration-500 ease-out"
+                          style={{ width: `${unitProgressData.progressPercentage}%` }}
+                        />
                       </div>
-                    </div>
+                    )}
+                    <span className={cn(
+                      "text-stone-500 dark:text-stone-400 font-medium",
+                      isCollapsed ? "text-sm" : "text-[10px]"
+                    )}>
+                      {unitProgressData.completedChapters}/{unitProgressData.totalChapters}
+                    </span>
+                  </div>
+                </div>
                     <SidebarGroupContent>
                       <SidebarMenu className="space-y-1 px-3">
                         {unit.chapters.map((chapter, chapterIndex) => {
