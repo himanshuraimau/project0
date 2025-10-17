@@ -173,22 +173,32 @@ export function AppSidebar({ className }: AppSidebarProps) {
   }, [isCoursePage, pathname]);
 
   return (
+
     <Sidebar
       collapsible="icon"
       className={cn(
-        "bg-background m-4 rounded-2xl border-r border-border",
+        "bg-background m-4 rounded-2xl",
         className
       )}
     >
-      <SidebarHeader className="px-4 py-6 ">
-        <div className="flex items-center gap-3">
-          <UserControl showName={false} />
-          {!isCollapsed && (
+      <SidebarHeader className="px-8 py-6">
+        <div className="flex items-center gap-2 w-full">
+          {isCollapsed ? (
+            <div className="relative group flex items-center w-full justify-center">
+              <div className="transition-opacity duration-200 group-hover:opacity-0 group-hover:pointer-events-none">
+                <UserControl showName={false} />
+              </div>
+              <SidebarTrigger
+                className="absolute right-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto text-muted-foreground hover:text-foreground transition-all text-lg w-8 h-8 p-1.5"
+              />
+            </div>
+          ) : (
             <>
-              <span className="text-foreground font-medium flex-1">NotesAI</span>
+              <UserControl showName={false} />
+              <span className="text-foreground font-semibold flex-1 text-xl">NotesAI</span>
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground ml-auto transition-all text-lg w-8 h-8 p-1.5" />
             </>
           )}
-          <SidebarTrigger className="text-muted-foreground hover:text-foreground ml-auto transition-all" />
         </div>
       </SidebarHeader>
 
@@ -201,12 +211,12 @@ export function AppSidebar({ className }: AppSidebarProps) {
               <div className="px-4 py-4 mb-4">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
+                  className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-foreground transition-colors mb-3"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Back to Dashboard
                 </Link>
-                <h2 className="text-lg font-semibold text-foreground truncate">
+                <h2 className="text-xl font-semibold text-foreground truncate">
                   {courseData.course.name}
                 </h2>
               </div>
@@ -248,7 +258,6 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 {dashboardItems.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
-
                   return (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton
@@ -256,7 +265,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         isActive={isActive}
                         className={cn(
                           "flex items-center rounded-lg transition-all py-2.5 px-3",
-                          "text-sm font-medium w-full",
+                          "text-base font-semibold w-full",
                           isActive 
                             ? "bg-accent text-accent-foreground"
                             : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
@@ -268,7 +277,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         >
                           <Icon className="w-5 h-5 flex-shrink-0 mr-3" />
                           {!isCollapsed && (
-                            <span className="text-sm font-medium truncate">
+                            <span className="text-base font-semibold truncate">
                               {item.title}
                             </span>
                           )}
@@ -281,11 +290,10 @@ export function AppSidebar({ className }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="mx-4 mb-4 p-4">
+  <SidebarFooter className="mx-4 mb-4 p-4">
         {/* Theme Toggle */}
         {!isCollapsed && (
           <div className="mb-3">
@@ -294,7 +302,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 const newTheme = isDark ? "light" : "dark";
                 setTheme(newTheme);
               }}
-              className="flex items-center gap-3 w-full rounded-lg transition-all py-2.5 px-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              className="flex items-center gap-3 w-full rounded-lg transition-all py-2.5 px-3 text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-accent/50"
             >
               {mounted && (
                 <>
@@ -315,13 +323,13 @@ export function AppSidebar({ className }: AppSidebarProps) {
         {!isCollapsed && (
           <Link 
             href="/pricing"
-            className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded-lg px-3 py-2.5 hover:bg-primary/90 transition-all duration-200 cursor-pointer"
+            className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded-lg px-3 py-2.5 hover:bg-primary/90 transition-all duration-200 cursor-pointer text-base font-semibold"
           >
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm">Upgrade to</span>
-              <span className="bg-background text-foreground px-2 py-1 rounded-full text-xs font-semibold">PRO</span>
+              <span className="font-semibold text-base">Upgrade to</span>
+              <span className="bg-background text-foreground px-2 py-1 rounded-full text-sm font-bold">PRO</span>
             </div>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-5 h-5" />
           </Link>
         )}
       </SidebarFooter>

@@ -152,46 +152,37 @@ export function NotesSidebar({
       disabled: flashcardsLoading || false,
       loading: flashcardsLoading || false,
     },
-    // {
-    //   title: "Podcast",
-    //   icon: Mic,
-    //   onClick: onGeneratePodcast,
-    //   isActive: showPodcast,
-    //   disabled: podcastLoading || false,
-    //   loading: podcastLoading || false,
-    //   description: "Generate audio podcast",
-    // },
-    {
-      title: "Mind Map",
-      icon: Brain,
-      onClick: onGenerateMindmap,
-      isActive: showMindmap,
-      disabled: mindmapLoading || false,
-      loading: mindmapLoading || false,
-    },
-
   ];
 
   return (
     <Sidebar
       collapsible="icon"
       className={cn(
-        "bg-background m-4 rounded-2xl border-r border-border",
+        "bg-background m-4 rounded-2xl",
         className
       )}
       role="navigation"
       aria-label="Note features and actions"
       {...props}
     >
-      <SidebarHeader className="px-4 py-6">
-        <div className="flex items-center gap-3">
-          <UserControl showName={false} />
-          {!isCollapsed && (
+      <SidebarHeader className="px-8 py-6">
+        <div className="flex items-center gap-2 w-full">
+          {isCollapsed ? (
+            <div className="relative group flex items-center w-full justify-center">
+              <div className="transition-opacity duration-200 group-hover:opacity-0 group-hover:pointer-events-none">
+                <UserControl showName={false} />
+              </div>
+              <SidebarTrigger
+                className="absolute right-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto text-muted-foreground hover:text-foreground transition-all text-lg w-8 h-8 p-1.5"
+              />
+            </div>
+          ) : (
             <>
-              <span className="text-foreground font-medium flex-1">NotesAI</span>
+              <UserControl showName={false} />
+              <span className="text-foreground font-semibold flex-1 text-xl">NotesAI</span>
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground ml-auto transition-all text-lg w-8 h-8 p-1.5" />
             </>
           )}
-          <SidebarTrigger className="text-muted-foreground hover:text-foreground ml-auto transition-all" />
         </div>
       </SidebarHeader>
 
@@ -221,8 +212,8 @@ export function NotesSidebar({
                       isActive={item.isActive}
                       disabled={item.disabled}
                       className={cn(
-                        "flex items-center rounded-lg transition-all py-2.5 px-3",
-                        "text-sm font-medium w-full cursor-pointer",
+                        "flex text-base font-semibold items-center rounded-lg transition-all py-2.5 px-3",
+                        "text-base font-semibold w-full cursor-pointer",
                         item.isActive 
                           ? "bg-accent text-accent-foreground"
                           : item.disabled
@@ -241,14 +232,14 @@ export function NotesSidebar({
                         )}
                       >
                         {item.loading ? (
-                          <Loader2 className="w-5 h-5 animate-spin flex-shrink-0 mr-3" />
+                          <Loader2 className="w-6 h-6 animate-spin flex-shrink-0 mr-3" />
                         ) : (
-                          <item.icon className="w-5 h-5 flex-shrink-0 mr-3" />
+                          <item.icon className="w-6 h-6 flex-shrink-0 mr-3" />
                         )}
 
                         {!isCollapsed && (
                           <div className="flex flex-col items-start flex-1 min-w-0">
-                            <span className="text-sm font-medium truncate">
+                            <span className="text-base font-semibold truncate">
                               {item.title}
                             </span>
                           </div>
@@ -276,11 +267,9 @@ export function NotesSidebar({
                 <AlertDialogTrigger asChild>
                   <SidebarMenuButton
                     className={cn(
-                      "flex items-center rounded-xl cursor-pointer group relative overflow-hidden border-none dark:hover:bg-[#0a0b0d]",
-                      isCollapsed
-                        ? "w-14 h-14 justify-center"
-                        : "w-full px-4 py-6",
-                      "text-red-600 hover:text-red-500"
+                      "flex items-center rounded-lg cursor-pointer group relative overflow-hidden border-none dark:hover:bg-[#0a0b0d] transition-all py-2.5 px-3",
+                      "text-red-600 hover:text-red-500 text-base font-semibold w-full",
+                      isCollapsed ? "justify-center" : ""
                     )}
                     title={isCollapsed ? "Delete Notes" : undefined}
                     aria-label="Delete note permanently"
@@ -289,12 +278,12 @@ export function NotesSidebar({
                     <div
                       className={cn(
                         "flex items-center w-full",
-                        isCollapsed ? "justify-center" : "gap-3"
+                        isCollapsed ? "justify-center" : "gap-4"
                       )}
                     >
-                      <Trash2 className="w-7 h-7 flex-shrink-0" />
+                      <Trash2 className="w-6 h-6 flex-shrink-0 mr-3" />
                       {!isCollapsed && (
-                        <span className="text-sm font-medium">
+                        <span className="text-base font-medium truncate">
                           Delete Notes
                         </span>
                       )}
@@ -306,7 +295,6 @@ export function NotesSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
       <SidebarFooter className="mx-4 mb-4 p-4">
         {/* Theme Toggle */}
         {!isCollapsed && (
@@ -316,7 +304,7 @@ export function NotesSidebar({
                 const newTheme = isDark ? "light" : "dark";
                 setTheme(newTheme);
               }}
-              className="flex items-center gap-3 w-full rounded-lg transition-all py-2.5 px-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              className="flex items-center gap-3 w-full rounded-lg transition-all py-2.5 px-3 text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-accent/50"
             >
               {mounted && (
                 <>
@@ -337,13 +325,13 @@ export function NotesSidebar({
         {!isCollapsed && (
           <Link 
             href="/pricing"
-            className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded-lg px-3 py-2.5 hover:bg-primary/90 transition-all duration-200 cursor-pointer"
+            className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded-lg px-3 py-2.5 hover:bg-primary/90 transition-all duration-200 cursor-pointer text-base font-semibold"
           >
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm">Upgrade to</span>
-              <span className="bg-background text-foreground px-2 py-1 rounded-full text-xs font-semibold">PRO</span>
+              <span className="font-semibold text-base">Upgrade to</span>
+              <span className="bg-background text-foreground px-2 py-1 rounded-full text-sm font-bold">PRO</span>
             </div>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-5 h-5" />
           </Link>
         )}
       </SidebarFooter>
