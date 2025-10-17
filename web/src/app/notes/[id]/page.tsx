@@ -469,13 +469,14 @@ export default function NoteViewPage() {
               flashcardsLoading={flashcardsLoading}
               podcastLoading={podcastLoading || podcastGenerating}
               mindmapLoading={mindmapLoading}
+              className="w-[18rem] min-w-[16rem]" // Match dashboard sidebar width
             />
 
             {/* Main content area - uses SidebarInset for proper spacing */}
             <SidebarInset className="flex flex-col flex-1">
             {/* Simplified top navbar - back to dashboard */}
-            <header className="sticky top-0 z-40 bg-background pt-4 pl-4">
-              <div className="flex h-16 items-center px-6 mr-4 mb-4 rounded-b-2xl border border-border">
+            <header className="sticky top-0 z-40 bg-background pt-4">
+              <div className="flex h-16 items-center px-6 mb-4 border-b border-border/40 w-full">
                 <Link
                   href="/dashboard"
                   className="flex items-center gap-3 text-foreground hover:text-muted-foreground transition-colors"
@@ -487,8 +488,8 @@ export default function NoteViewPage() {
             </header>
 
             {/* Main content */}
-            <main className="flex-1 overflow-auto bg-background px-4" id="main-content">
-                  <div className="bg-background border-none min-h-[calc(100vh-64px)] pt-5 transition-colors duration-200">
+            <main className="flex-1 overflow-auto bg-background" id="main-content">
+                  <div className="bg-background border-none min-h-[calc(100vh-64px)] pt-5 transition-colors duration-200 w-full">
                   {/* Content based on current view */}
               {currentView === "notes" && (
                 <div data-testid="view-note" tabIndex={-1}>

@@ -191,7 +191,7 @@ export function NotesSidebar({
           className={isCollapsed ? "w-full flex flex-col items-center" : ""}
         >
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1 px-3">
+            <SidebarMenu className="space-y-0.5 px-3">
               {menuItems.map((item, index) => {
                 const isGenerative =
                   item.title.toLowerCase().includes("generate") ||

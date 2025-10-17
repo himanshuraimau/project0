@@ -127,7 +127,7 @@ export default function DashboardLayout({
               <SidebarInset className="flex flex-col flex-1">
                 {/* Simplified top navbar - just showing title */}
                 <header className="sticky top-0 z-40 bg-background pt-4 pl-4">
-                  <div className="flex h-16 items-center px-6 mr-4 mb-4 rounded-b-2xl border border-border">
+                  <div className="flex h-16 items-center px-6 mr-4 mb-4 border-b border-border/40">
                     <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
                   </div>
                 </header>
