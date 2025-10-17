@@ -376,7 +376,7 @@ function ToolbarPlugin({
   };
 
   return (
-    <div className=" bg-white dark:bg-stone-900 fixed top-5 z-50 rounded-lg p-3">
+    <div className=" bg-white dark:bg-stone-900 fixed top-20 z-50 rounded-lg p-3">
       <div className="flex flex-wrap justify-center items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
