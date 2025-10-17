@@ -254,7 +254,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           // Dashboard Navigation
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-1 px-3">
+              <SidebarMenu className="px-3">
                 {dashboardItems.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
