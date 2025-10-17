@@ -252,7 +252,7 @@ export function NewNoteSection() {
                     onClick={() => setLinkType('youtube')}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                       linkType === 'youtube'
-                        ? 'bg-background text-foreground shadow-sm'
+                        ? 'bg-background text-foreground '
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
@@ -262,7 +262,7 @@ export function NewNoteSection() {
                     onClick={() => setLinkType('webpage')}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                       linkType === 'webpage'
-                        ? 'bg-background text-foreground shadow-sm'
+                        ? 'bg-background text-foreground '
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >

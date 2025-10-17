@@ -100,8 +100,8 @@ export function CreditPurchase({ currentCredits = 0 }: CreditPurchaseProps) {
         {CREDIT_PLANS.map((plan) => (
           <Card 
             key={plan.id} 
-            className={`relative transition-all duration-200 hover:shadow-lg ${
-              isPopular(plan) ? 'border-primary shadow-lg scale-105' : ''
+            className={`relative transition-all duration-200 hover: ${
+              isPopular(plan) ? 'border-primary  scale-105' : ''
             } ${selectedPlan?.id === plan.id && isLoading ? 'opacity-75' : ''}`}
           >
             {isPopular(plan) && (

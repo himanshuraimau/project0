@@ -252,7 +252,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
           {/* Main Content - Takes 2/3 of the width on lg+ screens when chatbot is open, full width when minimized */}
           <div className={!isChatbotMinimized ? "lg:col-span-2" : "lg:col-span-1"}>
             {/* Main Content Card */}
-            <Card className="rounded-3xl border-0 shadow-xl bg-card hover:shadow-2xl transition-all duration-300">
+            <Card className="rounded-3xl border-0  bg-card hover: transition-all duration-300">
           {/* Header Section */}
           <CardHeader className="p-8 pb-6">
             <div className="space-y-6">
@@ -338,7 +338,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                           onClick={() => setViewMode('preview')}
                           className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
                             viewMode === 'preview' 
-                              ? "bg-primary text-primary-foreground shadow-md" 
+                              ? "bg-primary text-primary-foreground " 
                               : "hover:bg-background text-muted-foreground"
                           }`}
                         >
@@ -354,7 +354,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                           }}
                           className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
                             viewMode === 'edit' 
-                              ? "bg-primary text-primary-foreground shadow-md" 
+                              ? "bg-primary text-primary-foreground " 
                               : "hover:bg-background text-muted-foreground"
                           }`}
                         >
@@ -458,7 +458,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
           {/* Chatbot Sidebar - Takes 1/3 of the width on lg+ screens */}
           <div className="lg:col-span-1">
             {!isChatbotMinimized ? (
-              <Card className="rounded-3xl border-0 shadow-xl bg-card hover:shadow-2xl transition-all duration-300 fixed mr-[3.1vw]">
+              <Card className="rounded-3xl border-0  bg-card hover: transition-all duration-300 fixed mr-[3.1vw]">
                 <CardHeader className="p-6 pb-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">

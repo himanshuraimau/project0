@@ -19,7 +19,7 @@ export function Shimmer({ className, children }: ShimmerProps) {
 // Note card shimmer component
 export function NoteCardShimmer() {
   return (
-    <div className="w-full bg-slate-50/80 dark:bg-black border border-black/10 dark:border-border/50 shadow-sm rounded-lg">
+    <div className="w-full bg-slate-50/80 dark:bg-black border border-black/10 dark:border-border/50  rounded-lg">
       <Shimmer>
         <div className="p-6">
           <div className="flex items-start justify-between gap-4">

@@ -80,7 +80,7 @@ export default function CourseLayout({
           <SidebarInset className="flex flex-col flex-1">
             {/* Simplified top navbar - back to courses */}
             <header className="sticky top-0 z-40 bg-background pt-4 pl-4">
-              <div className="flex h-16 items-center px-6 neomorphic mr-4 mb-4 rounded-b-2xl">
+              <div className="flex h-16 items-center px-6 mr-4 mb-4 rounded-b-2xl border border-border">
                 <Link
                   href="/dashboard/generate-course"
                   className="flex items-center gap-3 text-foreground hover:text-muted-foreground transition-colors"

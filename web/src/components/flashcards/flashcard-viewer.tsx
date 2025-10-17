@@ -28,7 +28,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
 
             <Button
               onClick={onGenerate}
-              className="flex items-center gap-2 bg-accent hover:bg-accent/90 cursor-pointer text-accent-foreground text-base px-6 py-3 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
+              className="flex items-center gap-2 bg-accent hover:bg-accent/90 cursor-pointer text-accent-foreground text-base px-6 py-3 rounded-lg  transition-all duration-200 hover:"
             >
               Generate Flashcards
             </Button>
@@ -97,7 +97,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
       {/* Progress Bar */}
       <div className="w-full bg-stone-200 dark:bg-stone-800 rounded-full h-2.5">
         <div
-          className="bg-accent h-2.5 rounded-full transition-all duration-300 shadow-sm"
+          className="bg-accent h-2.5 rounded-full transition-all duration-300 "
           style={{
             width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
           }}
@@ -107,7 +107,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
       {/* Flashcard */}
       <div className="perspective-1000 w-full">
         <Card
-          className={`min-h-[420px] p-6 rounded-xl my-6 bg-white dark:bg-stone-900 cursor-pointer transition-all duration-500 transform hover:scale-[1.02] shadow-lg hover:shadow-xl border border-stone-200 dark:border-stone-700`}
+          className={`min-h-[420px] p-6 rounded-xl my-6 bg-white dark:bg-stone-900 cursor-pointer transition-all duration-500 transform hover:scale-[1.02]  hover: border border-stone-200 dark:border-stone-700`}
           onClick={handleFlip}
         >
           <CardContent className="flex flex-col items-center justify-center min-h-[320px] space-y-6">

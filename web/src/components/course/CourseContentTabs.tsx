@@ -58,7 +58,7 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
               className={cn(
                 "flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all duration-200 rounded-lg mr-2 whitespace-nowrap",
                 activeTab === tab.id
-                  ? "bg-accent text-accent-foreground shadow-sm"
+                  ? "bg-accent text-accent-foreground "
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
               )}
             >
@@ -78,25 +78,25 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
         )}
 
                 {activeTab === "content" && (
-          <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
+          <div className="w-full bg-card rounded-2xl  border p-8">
             <ChapterView chapter={chapter} />
           </div>
         )}
 
         {activeTab === "quiz" && (
-          <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
+          <div className="w-full bg-card rounded-2xl  border p-8">
             <ChapterQuizGenerator key={`quiz-${chapter.id}`} chapterId={chapter.id} variant="clean" />
           </div>
         )}
 
         {activeTab === "flashcards" && (
-          <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
+          <div className="w-full bg-card rounded-2xl  border p-8">
             <FlashcardsTab chapterId={chapter.id} />
           </div>
         )}
 
         {activeTab === "transcript" && (
-          <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
+          <div className="w-full bg-card rounded-2xl  border p-8">
             <TranscriptViewer 
               chapterId={chapter.id}
               videoId={chapter.videoId} 
@@ -106,7 +106,7 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
         )}
 
         {activeTab === "chatbot" && (
-          <div className="w-full bg-card rounded-2xl shadow-sm border p-8">
+          <div className="w-full bg-card rounded-2xl  border p-8">
             <ChatbotTab chapterId={chapter.id} chapterName={chapter.name} />
           </div>
         )}

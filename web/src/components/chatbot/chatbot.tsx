@@ -187,7 +187,7 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
     <div 
       ref={chatContainerRef}
       className={cn(
-        "fixed bottom-4 right-4 w-96 max-w-[90vw] max-h-[80vh] flex flex-col rounded-3xl shadow-xl bg-card text-card-foreground border-0",
+        "fixed bottom-4 right-4 w-96 max-w-[90vw] max-h-[80vh] flex flex-col rounded-3xl  bg-card text-card-foreground border-0",
         className
       )}
     >

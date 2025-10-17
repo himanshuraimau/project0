@@ -305,7 +305,7 @@ export function BatchProgressStep({
               </div>
               <Button 
                 onClick={onComplete}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 rounded-3xl"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground  hover: transition-all duration-200 rounded-3xl"
                 size="lg"
               >
                 Go to Course

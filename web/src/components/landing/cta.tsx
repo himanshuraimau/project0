@@ -46,7 +46,7 @@ export function CTA() {
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
           <Button 
             size="lg" 
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-12 py-4 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-12 py-4 text-lg font-medium  hover: transition-all duration-300 hover:-translate-y-1 group"
           >
             <Mic className="w-5 h-5 mr-3 group-hover:animate-pulse" />
             Start Free Trial
@@ -56,7 +56,7 @@ export function CTA() {
           <Button 
             variant="outline" 
             size="lg"
-            className="border-2 border-primary hover:bg-primary/5 text-primary rounded-2xl px-12 py-4 text-lg font-medium hover:shadow-lg transition-all duration-300"
+            className="border-2 border-primary hover:bg-primary/5 text-primary rounded-2xl px-12 py-4 text-lg font-medium hover: transition-all duration-300"
           >
             Learn More
           </Button>

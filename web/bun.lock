@@ -12,8 +12,6 @@
         "@dodopayments/nextjs": "^0.1.8",
         "@google/generative-ai": "^0.24.1",
         "@hookform/resolvers": "^5.2.1",
-        "@hugeicons/core-free-icons": "^1.1.0",
-        "@hugeicons/react": "^1.1.1",
         "@lexical/code": "^0.34.0",
         "@lexical/history": "^0.34.0",
         "@lexical/link": "^0.34.0",
@@ -199,10 +197,6 @@
     "@google/generative-ai": ["@google/generative-ai@0.24.1", "", {}, "sha512-MqO+MLfM6kjxcKoy0p1wRzG3b4ZZXtPI+z2IE26UogS2Cm/XHO+7gGRBh6gcJsOiIVoH93UwKvW4HdgiOZCy9Q=="],
 
     "@hookform/resolvers": ["@hookform/resolvers@5.2.1", "", { "dependencies": { "@standard-schema/utils": "^0.3.0" }, "peerDependencies": { "react-hook-form": "^7.55.0" } }, "sha512-u0+6X58gkjMcxur1wRWokA7XsiiBJ6aK17aPZxhkoYiK5J+HcTx0Vhu9ovXe6H+dVpO6cjrn2FkJTryXEMlryQ=="],
-
-    "@hugeicons/core-free-icons": ["@hugeicons/core-free-icons@1.1.0", "", {}, "sha512-xLLQcIiLKvazXjjhnO2qZ/piOo9yxAFQ5A67XP+HNpvFrO5hVEGv1qebHSHPK1tbSST9dZF3fhH4AfdyumqJsg=="],
-
-    "@hugeicons/react": ["@hugeicons/react@1.1.1", "", { "peerDependencies": { "react": ">=16.0.0" } }, "sha512-BAbFVtx0XZ/yF2poPLFn0N9Ji6ebV/MpI5+WRqooFp3smQDwpL+72m+BBs4KAM5djgWUpg12weyc5SJtTsOwsw=="],
 
     "@humanfs/core": ["@humanfs/core@0.19.1", "", {}, "sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA=="],
 

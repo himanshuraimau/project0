@@ -140,7 +140,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
               Chapter Notes
             </h3>
           </div>
-          <Card className="bg-card rounded-2xl shadow-sm border">
+          <Card className="bg-card rounded-2xl  border">
             <CardContent className="p-8">
               <LexicalViewer
                 content={chapterData.notes}
@@ -162,7 +162,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
                   prose-blockquote:border-l-4 prose-blockquote:border-accent prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:my-6
                   prose-strong:font-bold prose-strong:text-foreground
                   prose-a:text-primary prose-a:underline prose-a:font-medium
-                  prose-img:rounded-lg prose-img:shadow-md prose-img:my-8"
+                  prose-img:rounded-lg prose-img: prose-img:my-8"
               />
             </CardContent>
           </Card>

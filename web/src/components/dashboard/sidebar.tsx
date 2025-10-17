@@ -94,7 +94,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           <div className="flex flex-col items-center gap-3 px-4">
             <button
               onClick={toggleSidebar}
-              className="p-4 hover:bg-stone-100 cursor-pointer dark:hover:bg-stone-800 rounded-xl transition-all duration-200 hover:shadow-sm"
+              className="p-4 hover:bg-stone-100 cursor-pointer dark:hover:bg-stone-800 rounded-xl transition-all duration-200 hover:"
             >
               <svg
                 width="24"
@@ -139,7 +139,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
             </div>
             <button
               onClick={toggleSidebar}
-              className="p-3 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer rounded-lg transition-all duration-200 hover:shadow-sm"
+              className="p-3 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer rounded-lg transition-all duration-200 hover:"
             >
               <svg
                 width="22"
@@ -217,8 +217,8 @@ export function AppSidebar({ className }: AppSidebarProps) {
                           "group flex items-center rounded-xl transition-all duration-200 ease-in-out",
                           isCollapsed ? "w-14 h-14 justify-center" : "px-6 py-5",
                           isActive
-                            ? "bg-accent text-white dark:text-white shadow-sm border-l-4 border-accent"
-                            : "text-stone-600 dark:text-stone-400 hover:bg-stone-100 hover:text-stone-900 dark:hover:bg-stone-800 dark:hover:text-stone-100 hover:shadow-sm"
+                            ? "bg-accent text-white dark:text-white  border-l-4 border-accent"
+                            : "text-stone-600 dark:text-stone-400 hover:bg-stone-100 hover:text-stone-900 dark:hover:bg-stone-800 dark:hover:text-stone-100 hover:"
                         )}
                       >
                         <Link

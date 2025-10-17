@@ -24,7 +24,7 @@ export function ChatWithNoteButton({ noteId, className }: ChatWithNoteButtonProp
       <Button
         variant="outline"
         onClick={() => setShowChat(true)}
-        className="flex items-center gap-4 border-2 border-primary hover:bg-primary/5 text-primary rounded-2xl px-6 py-3 transition-all duration-300 shadow-lg hover:shadow-xl"
+        className="flex items-center gap-4 border-2 border-primary hover:bg-primary/5 text-primary rounded-2xl px-6 py-3 transition-all duration-300  hover:"
       >
         <div className="p-1 bg-primary/10 rounded-full">
           <Bot size={18} className="text-primary" />

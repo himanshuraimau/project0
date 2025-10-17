@@ -345,7 +345,7 @@ export default function RecordAudio({
     <div className="space-y-6">
       <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8">
         <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center ">
             <Mic className="h-8 w-8 text-accent-foreground" />
           </div>
           
@@ -407,7 +407,7 @@ export default function RecordAudio({
                 <Button 
                   onClick={startRecording} 
                   disabled={microphonePermission === 'denied' || microphonePermission === 'checking'}
-                  className="flex-1 h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold  disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Mic className="h-5 w-5 mr-2" />
                   {microphonePermission === 'checking' ? 'Checking Permissions...' : 'Start Recording'}
@@ -416,7 +416,7 @@ export default function RecordAudio({
                 <Button
                   onClick={stopRecording}
                   variant="destructive"
-                  className="flex-1 h-12 rounded-xl font-semibold shadow-lg"
+                  className="flex-1 h-12 rounded-xl font-semibold "
                 >
                   <MicOff className="h-5 w-5 mr-2" />
                   Stop Recording
@@ -480,7 +480,7 @@ export default function RecordAudio({
                 <Button
                   onClick={transcribeAudio}
                   disabled={isProcessing}
-                  className="w-full h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg"
+                  className="w-full h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold "
                 >
                   {isProcessing ? (
                     <>

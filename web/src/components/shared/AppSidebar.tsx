@@ -91,7 +91,7 @@ function ChapterItem({
         className={cn(
           "group relative py-2.5 px-3 transition-all hover:bg-accent/50",
           "text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground",
-          isCurrentChapter && "bg-accent text-accent-foreground shadow-sm"
+          isCurrentChapter && "bg-accent text-accent-foreground "
         )}
       >
         <Link href={`/dashboard/course/${courseId}/${unitIndex}/${chapterIndex}`}>
@@ -176,7 +176,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "bg-background neomorphic m-4 rounded-2xl border-r border-border",
+        "bg-background m-4 rounded-2xl border-r border-border",
         className
       )}
     >

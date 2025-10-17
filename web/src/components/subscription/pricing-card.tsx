@@ -90,7 +90,7 @@ export function PricingCard() {
       <Button
         onClick={handleSubscribe}
         disabled={loading}
-        className="w-full h-14 text-lg font-semibold rounded-2xl neomorphic hover:shadow-lg transition-all duration-300 dark:text-white"
+        className="w-full h-14 text-lg font-semibold rounded-2xl neomorphic hover: transition-all duration-300 dark:text-white"
         size="lg"
       >
         {loading ? (

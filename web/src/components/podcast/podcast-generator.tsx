@@ -567,7 +567,7 @@ function PodcastGeneratorInner({ noteId, noteTitle, noteContent }: PodcastGenera
             <Button
               onClick={() => setShowForm(true)}
               disabled={loading || generating}
-              className="neomorphic border-0 bg-background hover:bg-background text-foreground shadow-none px-8 py-6 h-auto rounded-xl transition-all duration-300 w-full focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              className="neomorphic border-0 bg-background hover:bg-background text-foreground  px-8 py-6 h-auto rounded-xl transition-all duration-300 w-full focus:ring-2 focus:ring-primary focus:ring-offset-2"
               aria-label={loading || generating ? "Generating podcast, please wait" : "Start podcast generation"}
             >
               <div className="neomorphic-icon w-10 h-10 rounded-lg flex items-center justify-center mr-3">

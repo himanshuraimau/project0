@@ -144,7 +144,7 @@ export function ErrorToast({
     : extractErrorInfo(error);
   
   return (
-    <div className="fixed bottom-4 right-4 max-w-sm bg-red-600 text-white p-4 rounded-lg shadow-lg z-50">
+    <div className="fixed bottom-4 right-4 max-w-sm bg-red-600 text-white p-4 rounded-lg  z-50">
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <p className="text-sm font-medium">Error</p>

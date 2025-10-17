@@ -193,7 +193,7 @@ export function CourseCreationWizard({
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 border-2 ${
                     currentStep === "title"
-                      ? "bg-accent text-accent-foreground border-accent shadow-lg scale-110"
+                      ? "bg-accent text-accent-foreground border-accent  scale-110"
                       : ["units", "chapters", "content-generation"].includes(currentStep)
                       ? "bg-accent/90 text-accent-foreground border-accent"
                       : "bg-background border-border text-muted-foreground hover:border-accent/50"
@@ -240,7 +240,7 @@ export function CourseCreationWizard({
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 border-2 ${
                     currentStep === "units"
-                      ? "bg-accent text-accent-foreground border-accent shadow-lg scale-110"
+                      ? "bg-accent text-accent-foreground border-accent  scale-110"
                       : ["chapters", "content-generation"].includes(currentStep)
                       ? "bg-accent/90 text-accent-foreground border-accent"
                       : "bg-background border-border text-muted-foreground hover:border-accent/50"
@@ -287,7 +287,7 @@ export function CourseCreationWizard({
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 border-2 ${
                     currentStep === "chapters"
-                      ? "bg-accent text-accent-foreground border-accent shadow-lg scale-110"
+                      ? "bg-accent text-accent-foreground border-accent  scale-110"
                       : currentStep === "content-generation"
                       ? "bg-accent/90 text-accent-foreground border-accent"
                       : "bg-background border-border text-muted-foreground hover:border-accent/50"
@@ -336,7 +336,7 @@ export function CourseCreationWizard({
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 border-2 ${
                     currentStep === "content-generation"
-                      ? "bg-accent text-accent-foreground border-accent shadow-lg scale-110"
+                      ? "bg-accent text-accent-foreground border-accent  scale-110"
                       : "bg-background border-border text-muted-foreground hover:border-accent/50"
                   }`}
                 >
@@ -417,7 +417,7 @@ export function CourseCreationWizard({
         )}
 
         {/* Step content */}
-        <div className="bg-card/60 backdrop-blur-sm border border-border/60 rounded-2xl shadow-sm overflow-hidden w-full">
+        <div className="bg-card/60 backdrop-blur-sm border border-border/60 rounded-2xl  overflow-hidden w-full">
           <div className="relative">
             <div
               className={`transition-all duration-500 ease-in-out ${

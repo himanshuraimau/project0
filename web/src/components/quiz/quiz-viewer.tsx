@@ -235,7 +235,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
       {/* Progress Bar */}
       <div className="w-full bg-stone-200 dark:bg-stone-800 rounded-full h-2.5">
         <div
-          className="bg-accent h-2.5 rounded-full transition-all duration-300 shadow-sm"
+          className="bg-accent h-2.5 rounded-full transition-all duration-300 "
           style={{ width: `${((currentIndex + 1) / quiz.length) * 100}%` }}
         />
       </div>
@@ -283,24 +283,24 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
                       isAnswered && !isCorrect && isCorrectAnswer;
 
                     let buttonClass =
-                      "w-full text-left px-6 py-3 rounded-lg border transition-all duration-200 cursor-pointer shadow-sm";
+                      "w-full text-left px-6 py-3 rounded-lg border transition-all duration-200 cursor-pointer ";
 
                     if (isSelected) {
                       // User selected this option
                       if (isCorrect) {
                         buttonClass +=
-                          " border-green-500 bg-green-50 text-green-800 shadow-green-100 dark:bg-green-950/20 dark:text-green-400 dark:border-green-600";
+                          " border-green-500 bg-green-50 text-green-800  dark:bg-green-950/20 dark:text-green-400 dark:border-green-600";
                       } else {
                         buttonClass +=
-                          " border-red-500 bg-red-50 text-red-800 shadow-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-600";
+                          " border-red-500 bg-red-50 text-red-800  dark:bg-red-950/20 dark:text-red-400 dark:border-red-600";
                       }
                     } else if (showCorrect) {
                       // Show correct answer in green when user was wrong
                       buttonClass +=
-                        " border-green-500 bg-green-100 text-green-800 shadow-green-100 dark:bg-green-950/30 dark:text-green-400 dark:border-green-600";
+                        " border-green-500 bg-green-100 text-green-800  dark:bg-green-950/30 dark:text-green-400 dark:border-green-600";
                     } else {
                       buttonClass +=
-                        " bg-stone-50 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-accent hover:bg-accent/5 hover:shadow-md";
+                        " bg-stone-50 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-accent hover:bg-accent/5 hover:";
                     }
 
                     return (
@@ -337,24 +337,24 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
                     isAnswered && !isCorrect && isCorrectAnswer;
 
                   let buttonClass =
-                    "flex-1 p-4 rounded-lg border transition-all duration-200 cursor-pointer shadow-sm";
+                    "flex-1 p-4 rounded-lg border transition-all duration-200 cursor-pointer ";
 
                   if (isSelected) {
                     // User selected this option
                     if (isCorrect) {
                       buttonClass +=
-                        " border-green-500 bg-green-50 text-green-800 shadow-green-100 dark:bg-green-950/20 dark:text-green-400 dark:border-green-600";
+                        " border-green-500 bg-green-50 text-green-800  dark:bg-green-950/20 dark:text-green-400 dark:border-green-600";
                     } else {
                       buttonClass += 
-                        " border-red-500 bg-red-50 text-red-800 shadow-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-600";
+                        " border-red-500 bg-red-50 text-red-800  dark:bg-red-950/20 dark:text-red-400 dark:border-red-600";
                     }
                   } else if (showCorrect) {
                     // Show correct answer in green when user was wrong
                     buttonClass +=
-                      " border-green-500 bg-green-100 text-green-800 shadow-green-100 dark:bg-green-950/30 dark:text-green-400 dark:border-green-600";
+                      " border-green-500 bg-green-100 text-green-800  dark:bg-green-950/30 dark:text-green-400 dark:border-green-600";
                   } else {
                     buttonClass += 
-                      " bg-stone-50 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-accent hover:bg-accent/5 hover:shadow-md";
+                      " bg-stone-50 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-accent hover:bg-accent/5 hover:";
                   }
 
                   return (
@@ -429,7 +429,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
           {allAnswered && (
             <Button
               onClick={handleFinishQuiz}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg  transition-all duration-200 hover:"
             >
               View Final Score
             </Button>

@@ -77,7 +77,7 @@ export function CoursePageContent({
             {prevChapter ? (
               <Link
                 href={`/dashboard/course/${course.id}/${unitIndex}/${chapterIndex - 1}`}
-                className="group flex items-center gap-4 rounded-xl bg-muted/50 hover:bg-muted px-6 py-4 text-sm font-medium text-foreground transition-all hover:shadow-sm"
+                className="group flex items-center gap-4 rounded-xl bg-muted/50 hover:bg-muted px-6 py-4 text-sm font-medium text-foreground transition-all hover:"
               >
                 <ChevronLeft className="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
                 <div className="text-left">
@@ -92,7 +92,7 @@ export function CoursePageContent({
             {nextChapter ? (
               <Link
                 href={`/dashboard/course/${course.id}/${unitIndex}/${chapterIndex + 1}`}
-                className="group flex items-center gap-4 rounded-xl bg-accent hover:bg-accent/90 px-6 py-4 text-sm font-medium text-accent-foreground transition-all hover:shadow-sm"
+                className="group flex items-center gap-4 rounded-xl bg-accent hover:bg-accent/90 px-6 py-4 text-sm font-medium text-accent-foreground transition-all hover:"
               >
                 <div className="text-right">
                   <div className="text-xs text-accent-foreground/80 mb-1">Next</div>

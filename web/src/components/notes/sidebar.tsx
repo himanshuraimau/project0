@@ -176,7 +176,7 @@ export function NotesSidebar({
     <Sidebar
       collapsible="icon"
       className={cn(
-        "bg-background neomorphic m-4 rounded-2xl border-r border-border",
+        "bg-background m-4 rounded-2xl border-r border-border",
         className
       )}
       role="navigation"

@@ -20,7 +20,7 @@ export function ChatbotSection({ noteId, className }: ChatbotSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Card className="rounded-3xl border-0 p-6 shadow-xl hover:shadow-2xl transition-all duration-300 bg-card text-card-foreground">
+    <Card className="rounded-3xl border-0 p-6  hover: transition-all duration-300 bg-card text-card-foreground">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <div className="p-2 bg-primary/10 rounded-full">
@@ -36,7 +36,7 @@ export function ChatbotSection({ noteId, className }: ChatbotSectionProps) {
 
       <Button
         onClick={() => setIsOpen(true)}
-        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-8 py-6 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300"
+        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-8 py-6 text-lg font-medium  hover: transition-all duration-300"
       >
         <Bot className="mr-2 h-5 w-5" />
         Chat with AI Assistant

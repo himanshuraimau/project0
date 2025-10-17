@@ -247,7 +247,7 @@ export function SimplePDFProcessor({
                 onClick={() => setMode('pdf')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
                   mode === 'pdf'
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'bg-background text-foreground '
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
                 type="button"
@@ -259,7 +259,7 @@ export function SimplePDFProcessor({
                 onClick={() => setMode('text')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
                   mode === 'text'
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'bg-background text-foreground '
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
                 type="button"
@@ -273,7 +273,7 @@ export function SimplePDFProcessor({
           {mode === "pdf" ? (
             <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8 overflow-y-auto max-h-[60vh]">
               <div className="text-center space-y-4">
-                <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center ">
                   <FileText className="h-8 w-8 text-white" />
                 </div>
                 <div className="space-y-3">
@@ -297,7 +297,7 @@ export function SimplePDFProcessor({
                     />
                     <label
                       htmlFor="pdf-upload"
-                      className="inline-flex items-center gap-3 px-8 py-4 bg-accent text-accent-foreground rounded-2xl hover:bg-accent/90 transition-all duration-200 cursor-pointer font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105"
+                      className="inline-flex items-center gap-3 px-8 py-4 bg-accent text-accent-foreground rounded-2xl hover:bg-accent/90 transition-all duration-200 cursor-pointer font-semibold text-lg  hover: hover:scale-105"
                     >
                       <Upload className="h-5 w-5" />
                       Choose PDF File
@@ -309,7 +309,7 @@ export function SimplePDFProcessor({
                     <div className="bg-accent/10 rounded-2xl border border-accent/30 px-6 py-2 mt-5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center shadow-lg">
+                          <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center ">
                             <FileText className="h-5 w-5 text-accent-foreground" />
                           </div>
                           <div>
@@ -325,7 +325,7 @@ export function SimplePDFProcessor({
                           <Button
                             onClick={handleProcess}
                             disabled={loading}
-                            className="rounded-xl px-6 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
+                            className="rounded-xl px-6 bg-accent hover:bg-accent/90 text-accent-foreground "
                           >
                             {loading ? "Processing..." : "Generate Notes"}
                           </Button>
@@ -347,7 +347,7 @@ export function SimplePDFProcessor({
           ) : (
             <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8 overflow-y-auto max-h-[60vh]">
               <div className="text-center space-y-4">
-                <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center ">
                   <Type className="h-8 w-8 text-white" />
                 </div>
                 <div className="space-y-3">
@@ -408,7 +408,7 @@ export function SimplePDFProcessor({
                       <Button
                         onClick={handleProcess}
                         disabled={loading || !textInput.trim()}
-                        className="flex-1 h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                        className="flex-1 h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold  hover: transition-all duration-200"
                       >
                         {loading ? "Generating Notes..." : "Generate AI Notes"}
                       </Button>
@@ -453,7 +453,7 @@ export function SimplePDFProcessor({
       ) : (
         /* Success State */
         <div className="text-center space-y-6">
-          <div className="w-24 h-24 rounded-full bg-accent mx-auto flex items-center justify-center shadow-lg">
+          <div className="w-24 h-24 rounded-full bg-accent mx-auto flex items-center justify-center ">
             <CheckCircle className="h-12 w-12 text-accent-foreground" />
           </div>
 

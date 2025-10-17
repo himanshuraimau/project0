@@ -141,7 +141,7 @@ function FeatureCard({
 }) {
   return (
     <motion.div 
-      className="bg-gray-50 dark:bg-[#121212] p-8 rounded-2xl text-center shadow-lg shadow-purple-500/10 border border-purple-500/10 dark:border-purple-500/5 hover:border-purple-500/30 dark:hover:border-purple-500/20 transition-all duration-300 hover:-translate-y-1"
+      className="bg-gray-50 dark:bg-[#121212] p-8 rounded-2xl text-center  /10 border border-purple-500/10 dark:border-purple-500/5 hover:border-purple-500/30 dark:hover:border-purple-500/20 transition-all duration-300 hover:-translate-y-1"
       whileHover={{ scale: 1.02 }}
       transition={{ type: "spring", stiffness: 300 }}
     >

@@ -80,7 +80,7 @@ function ChapterItem({
           <div className={cn(
             "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 transition-all duration-200",
             progress.isCompleted 
-              ? "bg-green-500 text-white shadow-lg shadow-green-500/30" 
+              ? "bg-green-500 text-white  /30" 
               : isCurrentChapter 
               ? "bg-accent text-accent-foreground" 
               : "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-400"
@@ -129,7 +129,7 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
   const isDark = mounted ? (resolvedTheme || theme) === "dark" : false;
 
   return (
-    <Sidebar collapsible="icon" className="bg-background neomorphic m-4 rounded-2xl border-r border-border">
+    <Sidebar collapsible="icon" className="bg-background m-4 rounded-2xl border-r border-border">
       <SidebarHeader className="px-4 py-6">
         <div className="flex items-center gap-3">
           <UserControl showName={false} />

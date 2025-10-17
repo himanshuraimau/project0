@@ -167,7 +167,7 @@ export default function AudioRecorder({
     <div className="space-y-6">
       <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8">
         <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center ">
             <Upload className="h-8 w-8 text-accent-foreground" />
           </div>
           
@@ -254,7 +254,7 @@ export default function AudioRecorder({
                 <Button
                   onClick={transcribeAudio}
                   disabled={isProcessing}
-                  className="w-full h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg"
+                  className="w-full h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold "
                 >
                   {isProcessing ? (
                     <>

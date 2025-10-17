@@ -91,7 +91,7 @@ export function Header() {
                         <Link href="/dashboard">
                             <Button 
                                 size="sm" 
-                                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-4 py-2 font-medium transition-all duration-200 hover:shadow-lg"
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-4 py-2 font-medium transition-all duration-200 hover:"
                             >
                                 <LayoutDashboard className="w-4 h-4 mr-2" />
                                 Dashboard

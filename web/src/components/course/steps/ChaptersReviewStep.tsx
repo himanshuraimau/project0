@@ -184,7 +184,7 @@ export function ChaptersReviewStep({
             <CardHeader className="bg-muted/20 border-b border-border/30 pt-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 w-10 h-10 bg-accent/90 text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold shadow-sm">
+                  <div className="flex-shrink-0 w-10 h-10 bg-accent/90 text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold ">
                     {unitIndex + 1}
                   </div>
                   <div className="flex-1">
@@ -376,7 +376,7 @@ export function ChaptersReviewStep({
               onClick={onSave}
               disabled={isLoading || editingItem !== null}
               size="lg"
-              className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-200"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3  hover: transition-all duration-200"
             >
               {isLoading ? (
                 <InlineLoading

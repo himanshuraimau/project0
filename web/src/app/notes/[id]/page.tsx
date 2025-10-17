@@ -390,7 +390,7 @@ export default function NoteViewPage() {
       </div>
       
       {/* Keyboard shortcuts help (hidden by default, shown on focus) */}
-      <div className="sr-only focus:not-sr-only focus:absolute focus:top-20 focus:right-4 focus:bg-background focus:border focus:rounded-md focus:p-4 focus:shadow-lg focus:z-50 focus:max-w-sm">
+      <div className="sr-only focus:not-sr-only focus:absolute focus:top-20 focus:right-4 focus:bg-background focus:border focus:rounded-md focus:p-4 focus: focus:z-50 focus:max-w-sm">
         <h3 className="font-semibold mb-2">Keyboard Shortcuts</h3>
         <ul className="text-sm space-y-1">
           <li><kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl+P</kbd> Generate Podcast</li>
@@ -475,7 +475,7 @@ export default function NoteViewPage() {
             <SidebarInset className="flex flex-col flex-1">
             {/* Simplified top navbar - back to dashboard */}
             <header className="sticky top-0 z-40 bg-background pt-4 pl-4">
-              <div className="flex h-16 items-center px-6 neomorphic mr-4 mb-4 rounded-b-2xl">
+              <div className="flex h-16 items-center px-6 mr-4 mb-4 rounded-b-2xl border border-border">
                 <Link
                   href="/dashboard"
                   className="flex items-center gap-3 text-foreground hover:text-muted-foreground transition-colors"
@@ -498,7 +498,7 @@ export default function NoteViewPage() {
 
               {currentView === "transcript" && (
                 <div className="w-full bg-transparent ml-4 p-10">
-                  <Card className="rounded-xl border shadow-sm bg-white dark:bg-card px-16 py-7">
+                  <Card className="rounded-xl border  bg-white dark:bg-card px-16 py-7">
                     <CardHeader className="pb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
@@ -573,7 +573,7 @@ export default function NoteViewPage() {
               )}
 
               {currentView === "chat" && (
-                <Card className="bg-transparent h-[80vh] ml-10 mt-8 flex flex-col border border-black/20 dark:border-white/20 rounded-3xl shadow-lg">
+                <Card className="bg-transparent h-[80vh] ml-10 mt-8 flex flex-col border border-black/20 dark:border-white/20 rounded-3xl ">
                   <CardHeader className="p-5 border-b border-stone-100 dark:border-stone-900 bg-muted/5">
                     <div className="flex items-center gap-4">
                       <CardTitle className="font-normal">

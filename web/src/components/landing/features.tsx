@@ -100,7 +100,7 @@ export function Features() {
           {features.map((feature, index) => (
             <Card 
               key={index}
-              className="group rounded-3xl border-0 p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-gradient-to-br from-card to-card/95 overflow-hidden relative"
+              className="group rounded-3xl border-0 p-8  hover: transition-all duration-300 hover:-translate-y-2 bg-gradient-to-br from-card to-card/95 overflow-hidden relative"
             >
               {/* Background gradient */}
               <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />

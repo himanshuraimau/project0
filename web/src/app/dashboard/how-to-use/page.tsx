@@ -23,7 +23,7 @@ export default async function HowToUsePage() {
           </h2>
         </div>
 
-        <Card className="rounded-3xl border-0 p-8 shadow-xl">
+        <Card className="rounded-3xl border-0 p-8 ">
           <div className="space-y-6">    
             <div className="max-w-6xl mx-auto">
               <YouTubePlayer

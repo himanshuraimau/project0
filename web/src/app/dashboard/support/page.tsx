@@ -33,7 +33,7 @@ export default async function SupportPage() {
         </div>
 
         {/* Most Popular FAQs */}
-        <Card className="rounded-3xl border-0 p-8 shadow-xl bg-card">
+        <Card className="rounded-3xl border-0 p-8  bg-card">
           <h2 className="text-2xl font-bold text-foreground mb-6">Most Popular</h2>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="family-plan" className="border-border">
@@ -81,7 +81,7 @@ export default async function SupportPage() {
         </Card>
 
         {/* Recording & Notes */}
-        <Card className="rounded-3xl border-0 p-8 shadow-xl bg-card">
+        <Card className="rounded-3xl border-0 p-8  bg-card">
           <h2 className="text-2xl font-bold text-foreground mb-6">Recording & Notes</h2>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="recording-quality" className="border-border">
@@ -118,7 +118,7 @@ export default async function SupportPage() {
         </Card>
 
         {/* Subscription & Payments */}
-        <Card className="rounded-3xl border-0 p-8 shadow-xl bg-card">
+        <Card className="rounded-3xl border-0 p-8  bg-card">
           <h2 className="text-2xl font-bold text-foreground mb-6">Subscription & Payments</h2>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="cancel-subscription" className="border-border">
@@ -154,7 +154,7 @@ export default async function SupportPage() {
         </Card>
 
         {/* Support Email */}
-        <Card className="rounded-3xl border-0 p-8 shadow-xl bg-card">
+        <Card className="rounded-3xl border-0 p-8  bg-card">
           <h2 className="text-2xl font-bold text-foreground mb-6">Support Email</h2>
           <div className="flex items-start gap-4 p-6 bg-muted/30 rounded-2xl">
             <Mail className="h-6 w-6 text-accent flex-shrink-0 mt-1" />
@@ -169,7 +169,7 @@ export default async function SupportPage() {
         </Card>
 
         {/* Contact Us */}
-        <Card className="rounded-3xl border-0 p-8 shadow-xl bg-card">
+        <Card className="rounded-3xl border-0 p-8  bg-card">
           <h2 className="text-2xl font-bold text-foreground mb-6">Contact Us</h2>
           <div className="space-y-6">
             <div>
@@ -195,7 +195,7 @@ export default async function SupportPage() {
               />
             </div>
 
-            <Button className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground rounded-2xl px-8 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-300">
+            <Button className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground rounded-2xl px-8 py-3 font-medium  hover: transition-all duration-300">
               <Send className="h-4 w-4 mr-2" />
               Send Message
             </Button>

@@ -134,7 +134,7 @@ export function PodcastControls({
           
           {/* Progress Handle */}
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 "
             style={{ left: `calc(${progressPercentage}% - 8px)` }}
           />
         </div>

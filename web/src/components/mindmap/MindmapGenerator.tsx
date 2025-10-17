@@ -255,7 +255,7 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
             <Button
               onClick={generateMindmap}
               disabled={loading}
-              className="neomorphic border-0 bg-background hover:bg-background text-foreground shadow-none px-8 py-6 h-auto rounded-xl transition-all duration-300 w-full"
+              className="neomorphic border-0 bg-background hover:bg-background text-foreground  px-8 py-6 h-auto rounded-xl transition-all duration-300 w-full"
             >
               <div className="neomorphic-icon w-10 h-10 rounded-lg flex items-center justify-center mr-3">
                 <Brain className="h-5 w-5 text-primary" />

@@ -47,7 +47,7 @@ export function Hero() {
           <SignedOut>
             <Button 
               size="lg" 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-10 py-4 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-10 py-4 text-lg font-medium  hover: transition-all duration-300 hover:-translate-y-1"
             >
               <Mic className="w-5 h-5 mr-3" />
               Start Recording
@@ -56,7 +56,7 @@ export function Hero() {
             <Button 
               variant="outline" 
               size="lg"
-              className="border-2 border-primary/30 hover:bg-primary/10 rounded-2xl px-10 py-4 text-lg font-medium hover:shadow-lg transition-all duration-300"
+              className="border-2 border-primary/30 hover:bg-primary/10 rounded-2xl px-10 py-4 text-lg font-medium hover: transition-all duration-300"
             >
               <Play className="w-5 h-5 mr-3" />
               Watch Demo
@@ -67,7 +67,7 @@ export function Hero() {
             <Link href="/dashboard">
               <Button 
                 size="lg" 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-10 py-4 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-10 py-4 text-lg font-medium  hover: transition-all duration-300 hover:-translate-y-1"
               >
                 <LayoutDashboard className="w-5 h-5 mr-3" />
                 Go to Dashboard
@@ -78,7 +78,7 @@ export function Hero() {
               <Button 
                 variant="outline" 
                 size="lg"
-                className="border-2 border-primary/30 hover:bg-primary/10 rounded-2xl px-10 py-4 text-lg font-medium hover:shadow-lg transition-all duration-300"
+                className="border-2 border-primary/30 hover:bg-primary/10 rounded-2xl px-10 py-4 text-lg font-medium hover: transition-all duration-300"
               >
                 <Mic className="w-5 h-5 mr-3" />
                 Create Course

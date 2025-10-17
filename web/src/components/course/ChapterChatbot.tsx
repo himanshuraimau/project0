@@ -183,7 +183,7 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
   };
 
   return (
-    <div className="flex flex-col h-[600px] bg-background border rounded-lg shadow-sm">
+    <div className="flex flex-col h-[600px] bg-background border rounded-lg ">
       {/* Header */}
       <div className="flex items-center gap-3 p-6 border-b bg-muted/30 rounded-t-lg">
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">

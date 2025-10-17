@@ -201,7 +201,7 @@ export function WebpageProcessor({
     <div className="space-y-6">
       <div className="rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 p-8">
         <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center ">
             <Globe className="h-8 w-8 text-white" />
           </div>
           <div className="space-y-3">
@@ -245,7 +245,7 @@ export function WebpageProcessor({
               <Button
                 onClick={handleSubmit}
                 disabled={isProcessing || !url.trim()}
-                className="w-full h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full h-12 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold  hover: transition-all duration-200"
                 type="button"
               >
                 {isProcessing ? (
