@@ -69,7 +69,7 @@
 }
 
 :root {
-  --background: oklch(0.955 0.003 264.05);
+  --background: #ffffff;
   --foreground: oklch(0 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0 0 0);
@@ -94,7 +94,7 @@
   --chart-4: oklch(0.6559 0.2118 354.3084);
   --chart-5: oklch(0.7227 0.192 149.5793);
   --radius: 1rem;
-  --sidebar: oklch(0.955 0.003 264.05);
+  --sidebar: #F3F3F3;
   --sidebar-foreground: oklch(0 0 0);
   --sidebar-primary: oklch(0.5106 0.2301 276.9656);
   --sidebar-primary-foreground: oklch(1 0 0);
@@ -193,6 +193,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
 }
 
 @layer utilities {

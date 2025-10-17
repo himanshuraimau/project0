@@ -177,7 +177,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "bg-background m-4 rounded-2xl",
+        "bg-background p-4 rounded-2xl",
         className
       )}
     >
