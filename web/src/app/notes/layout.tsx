@@ -8,7 +8,7 @@ export default function NotesLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mx-[3vw]">
+    <div className="">
       {children}
     </div>
   );

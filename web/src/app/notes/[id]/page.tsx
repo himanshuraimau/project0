@@ -469,30 +469,29 @@ export default function NoteViewPage() {
               flashcardsLoading={flashcardsLoading}
               podcastLoading={podcastLoading || podcastGenerating}
               mindmapLoading={mindmapLoading}
-              className="w-[18rem] min-w-[16rem]" // Match dashboard sidebar width
             />
 
             {/* Main content area - uses SidebarInset for proper spacing */}
             <SidebarInset className="flex flex-col flex-1">
-            {/* Simplified top navbar - back to dashboard */}
-            <header className="sticky top-0 z-40 bg-background pt-4">
-              <div className="flex h-16 items-center px-6 mb-4 border-b border-border/40 w-full">
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-3 text-foreground hover:text-muted-foreground transition-colors"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                  <h1 className="text-xl font-bold">Notes</h1>
-                </Link>
-              </div>
-            </header>
+              {/* Simplified top navbar - back to dashboard */}
+              <header className="sticky top-0 z-40 bg-background pt-4 pl-4">
+                <div className="flex h-16 items-center px-6 mr-4 mb-4 border-b border-border/40">
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center gap-3 text-foreground hover:text-muted-foreground transition-colors"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                    <h1 className="text-xl font-bold">Notes</h1>
+                  </Link>
+                </div>
+              </header>
 
-            {/* Main content */}
-            <main className="flex-1 overflow-auto bg-background" id="main-content">
-                  <div className="bg-background border-none min-h-[calc(100vh-64px)] pt-5 transition-colors duration-200 w-full">
+              {/* Main content */}
+              <main className="flex-1 bg-background px-4">
+                <div className="bg-background border-none transition-colors duration-200 w-full">
                   {/* Content based on current view */}
-              {currentView === "notes" && (
-                <div data-testid="view-note" tabIndex={-1}>
+                  {currentView === "notes" && (
+                    <div data-testid="view-note" tabIndex={-1}>
                   <ViewNote note={note} onUpdate={handleNoteUpdate} />
                 </div>
               )}
@@ -556,7 +555,7 @@ export default function NoteViewPage() {
 
               {currentView === "podcast" && (
                 <div 
-                  className="w-full bg-transparent ml-4 p-6 focus:outline-none transition-all duration-300 ease-in-out" 
+                  className="w-full bg-transparent p-6 focus:outline-none transition-all duration-300 ease-in-out" 
                   data-testid="podcast-generator" 
                   tabIndex={-1}
                   role="main"
@@ -574,7 +573,7 @@ export default function NoteViewPage() {
               )}
 
               {currentView === "chat" && (
-                <Card className="bg-transparent h-[80vh] ml-10 mt-8 flex flex-col border border-black/20 dark:border-white/20 rounded-3xl ">
+                <Card className="bg-transparent h-[80vh] m-10 flex flex-col border border-black/20 dark:border-white/20 rounded-3xl">
                   <CardHeader className="p-5 border-b border-stone-100 dark:border-stone-900 bg-muted/5">
                     <div className="flex items-center gap-4">
                       <CardTitle className="font-normal">
@@ -614,11 +613,11 @@ export default function NoteViewPage() {
                   )}
                 </div>
               )}
-              </div>
-            </main>
-            </SidebarInset>
-          </div>
-        </SidebarProvider>
+            </div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
       </AlertDialog>
     </div>
   );

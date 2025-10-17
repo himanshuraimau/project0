@@ -158,7 +158,7 @@ export function NotesSidebar({
     <Sidebar
       collapsible="icon"
       className={cn(
-        "bg-background m-4 rounded-2xl",
+        "bg-background rounded-2xl",
         className
       )}
       role="navigation"

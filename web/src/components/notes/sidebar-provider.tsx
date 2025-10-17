@@ -21,7 +21,8 @@ export function NotesSidebarProvider({
       defaultOpen={defaultOpen} 
       style={{
         "--sidebar-width": sidebarWidth,
-        "--sidebar-width-mobile": sidebarWidthMobile
+        "--sidebar-width-mobile": sidebarWidthMobile,
+        "--sidebar-width-icon": "6rem"
       } as Record<string, string>}
     >
       {children}
@@ -33,7 +34,7 @@ export function NotesSidebarContent({
   children,
   className,
   sidebarWidth = "240px",
-  collapsedWidth = "4rem"
+  collapsedWidth = "2rem"
 }: {
   children: React.ReactNode
   className?: string
