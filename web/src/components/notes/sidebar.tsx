@@ -275,7 +275,7 @@ export function NotesSidebar({
                         isCollapsed ? "justify-center" : "gap-0"
                       )}
                     >
-                      <Trash2 className="w-6 h-6 flex-shrink-0 mr-3" />
+                      <Trash2 className={cn("w-6 h-6 flex-shrink-0", !isCollapsed && "mr-3")} />
                       {!isCollapsed && (
                         <span className="text-base font-medium truncate">
                           Delete Notes
