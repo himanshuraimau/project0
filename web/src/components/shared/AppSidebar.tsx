@@ -181,7 +181,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
         className
       )}
     >
-      <SidebarHeader className="px-8 py-6">
+      <SidebarHeader className="px-3 py-6">
         <div className="flex items-center gap-2 w-full">
           {isCollapsed ? (
             <div className="relative group flex items-center w-full justify-center">
@@ -202,7 +202,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="flex-1 py-4 px-2">
+      <SidebarContent className="flex-1 py-4">
         {isCoursePage && courseData ? (
           // Course Navigation
           <>
@@ -254,7 +254,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           // Dashboard Navigation
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu className="px-3">
+              <SidebarMenu className="px-2">
                 {dashboardItems.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
@@ -264,7 +264,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         asChild
                         isActive={isActive}
                         className={cn(
-                          "flex items-center transition-all py-2.5 px-3",
+                          "flex items-center transition-all px-3",
                           "text-base font-semibold w-full",
                           isActive 
                             ? "bg-accent text-accent-foreground"
@@ -293,7 +293,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
       </SidebarContent>
 
       {/* Footer */}
-  <SidebarFooter className="mx-4 mb-4">
+      <SidebarFooter className="mx-4 mb-4">
         {/* Theme Toggle */}
         {!isCollapsed && (
           <div>
