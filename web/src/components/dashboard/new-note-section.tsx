@@ -220,7 +220,7 @@ export function NewNoteSection() {
             onClick={() => setShowLinkDialog(true)}
           >
             <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <Link className="size-6 text-muted-foreground group-hover:text-accent dark:group-hover:text-accent transition-colors duration-300" />
+              <Link className="size-6 text-muted-foreground" />
             </div>
             <div className="flex flex-col items-start">
               <div className="font-semibold text-lg leading-6 text-foreground">
@@ -298,7 +298,7 @@ export function NewNoteSection() {
             onClick={() => setShowRecordAudioDialog(true)}
           >
             <div className="neomorphic-record-indicator size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <div className="size-5 rounded-full bg-red-500 group-hover:bg-accent dark:group-hover:bg-accent transition-colors duration-300" />
+              <div className="size-5 rounded-full bg-red-500" />
             </div>
             <div className="flex flex-col items-start">
               <div className="font-semibold text-lg leading-6 text-foreground">
@@ -382,7 +382,7 @@ export function NewNoteSection() {
             onClick={() => setShowAudioDialog(true)}
           >
             <div className="neomorphic-icon size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <CloudUpload className="size-6 text-muted-foreground group-hover:text-accent dark:group-hover:text-accent transition-colors duration-300" />
+              <CloudUpload className="size-6 text-muted-foreground" />
             </div>
             <div className="flex flex-col items-start">
               <div className="font-semibold text-lg leading-6 text-foreground">
