@@ -181,22 +181,22 @@ export function AppSidebar({ className }: AppSidebarProps) {
         className
       )}
     >
-      <SidebarHeader className="px-3 py-6">
-        <div className="flex items-center gap-2 w-full">
+      <SidebarHeader className="px-5 py-6">
+        <div className="flex items-center gap-2 w-full group">
           {isCollapsed ? (
-            <div className="relative group flex items-center w-full justify-center">
+            <div className="relative flex items-center w-full justify-center">
               <div className="transition-opacity duration-200 group-hover:opacity-0 group-hover:pointer-events-none">
                 <UserControl showName={false} />
               </div>
               <SidebarTrigger
-                className="absolute right-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto text-muted-foreground hover:text-foreground transition-all text-lg w-8 h-8 p-1.5"
+                className="absolute opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all text-lg w-8 h-8 pointer-events-none group-hover:pointer-events-auto"
               />
             </div>
           ) : (
             <>
               <UserControl showName={false} />
               <span className="text-foreground font-semibold flex-1 text-xl">NotesAI</span>
-              <SidebarTrigger className="text-muted-foreground hover:text-foreground ml-auto transition-all text-lg w-8 h-8 p-1.5" />
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-all text-lg w-8 h-8" />
             </>
           )}
         </div>
@@ -254,7 +254,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           // Dashboard Navigation
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu className="px-2">
+              <SidebarMenu className={cn("px-2", isCollapsed && "flex flex-col items-center")}>
                 {dashboardItems.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
@@ -273,9 +273,9 @@ export function AppSidebar({ className }: AppSidebarProps) {
                       >
                         <Link 
                           href={item.href} 
-                          className="flex items-center w-full"
+                          className={cn("flex items-center", isCollapsed ? "justify-center w-full" : "w-full")}
                         >
-                          <Icon className="w-5 h-5 flex-shrink-0 mr-3" />
+                          <Icon className="w-5 h-5 flex-shrink-0" />
                           {!isCollapsed && (
                             <span className="text-base font-semibold truncate">
                               {item.title}
