@@ -158,40 +158,40 @@ export function NotesSidebar({
     <Sidebar
       collapsible="icon"
       className={cn(
-        "bg-background rounded-2xl",
+        "bg-background rounded-sm",
         className
       )}
       role="navigation"
       aria-label="Note features and actions"
       {...props}
     >
-      <SidebarHeader className="px-8 py-6">
-        <div className="flex items-center gap-2 w-full">
+      <SidebarHeader className="px-5 py-6">
+        <div className="flex items-center gap-2 w-full group">
           {isCollapsed ? (
-            <div className="relative group flex items-center w-full justify-center">
+            <div className="relative flex items-center w-full justify-center">
               <div className="transition-opacity duration-200 group-hover:opacity-0 group-hover:pointer-events-none">
                 <UserControl showName={false} />
               </div>
               <SidebarTrigger
-                className="absolute right-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto text-muted-foreground hover:text-foreground transition-all text-lg w-8 h-8 p-1.5"
+                className="absolute opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all text-lg w-8 h-8 pointer-events-none group-hover:pointer-events-auto"
               />
             </div>
           ) : (
             <>
               <UserControl showName={false} />
               <span className="text-foreground font-semibold flex-1 text-xl">NotesAI</span>
-              <SidebarTrigger className="text-muted-foreground hover:text-foreground ml-auto transition-all text-lg w-8 h-8 p-1.5" />
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-all text-lg w-8 h-8" />
             </>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="flex-1 py-4 px-2">
+      <SidebarContent className="flex-1 py-4">
         <SidebarGroup
-          className={isCollapsed ? "w-full flex flex-col items-center" : ""}
+          className={cn(isCollapsed && "w-full flex flex-col items-center")}
         >
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5 px-3">
+            <SidebarMenu className={cn("px-2", isCollapsed && "flex flex-col items-center")}>
               {menuItems.map((item, index) => {
                 const isGenerative =
                   item.title.toLowerCase().includes("generate") ||
@@ -201,10 +201,7 @@ export function NotesSidebar({
                   <SidebarMenuItem
                     key={item.title}
                     className={cn(
-                      isCollapsed ? "flex justify-center w-full" : "",
-                      index > 0 && index < menuItems.length && !isCollapsed
-                        ? "relative"
-                        : ""
+                      isCollapsed ? "flex justify-center w-full" : ""
                     )}
                   >
                     <SidebarMenuButton
@@ -212,7 +209,7 @@ export function NotesSidebar({
                       isActive={item.isActive}
                       disabled={item.disabled}
                       className={cn(
-                        "flex text-base font-semibold items-center rounded-lg transition-all py-2.5 px-3",
+                        "flex text-base font-semibold items-center px-3",
                         "text-base font-semibold w-full cursor-pointer",
                         item.isActive 
                           ? "bg-accent text-accent-foreground"
@@ -234,7 +231,7 @@ export function NotesSidebar({
                         {item.loading ? (
                           <Loader2 className="w-6 h-6 animate-spin flex-shrink-0 mr-3" />
                         ) : (
-                          <item.icon className="w-6 h-6 flex-shrink-0 mr-3" />
+                          <item.icon className="w-5 h-5 flex-shrink-0" />
                         )}
 
                         {!isCollapsed && (
@@ -257,9 +254,6 @@ export function NotesSidebar({
                 );
               })}
 
-              {/* Separator */}
-              <div className={`my-2.5`} />
-
               {/* Delete button */}
               <SidebarMenuItem
                 className={isCollapsed ? "flex justify-center w-full" : ""}
@@ -267,7 +261,7 @@ export function NotesSidebar({
                 <AlertDialogTrigger asChild>
                   <SidebarMenuButton
                     className={cn(
-                      "flex items-center rounded-lg cursor-pointer group relative overflow-hidden border-none dark:hover:bg-[#0a0b0d] transition-all py-2.5 px-3",
+                      "flex items-center rounded-sm cursor-pointer group relative overflow-hidden border-none transition-all py-2.5 px-3",
                       "text-red-600 hover:text-red-500 text-base font-semibold w-full",
                       isCollapsed ? "justify-center" : ""
                     )}
@@ -278,7 +272,7 @@ export function NotesSidebar({
                     <div
                       className={cn(
                         "flex items-center w-full",
-                        isCollapsed ? "justify-center" : "gap-4"
+                        isCollapsed ? "justify-center" : "gap-0"
                       )}
                     >
                       <Trash2 className="w-6 h-6 flex-shrink-0 mr-3" />
@@ -295,16 +289,16 @@ export function NotesSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="mx-4 mb-4 p-4">
+      <SidebarFooter className="mx-4 mb-4">
         {/* Theme Toggle */}
         {!isCollapsed && (
-          <div className="mb-3">
+          <div>
             <button
               onClick={() => {
                 const newTheme = isDark ? "light" : "dark";
                 setTheme(newTheme);
               }}
-              className="flex items-center gap-3 w-full rounded-lg transition-all py-2.5 px-3 text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              className="flex items-center gap-3 w-full rounded-sm transition-all py-3 px-3 text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-accent/50"
             >
               {mounted && (
                 <>
@@ -325,13 +319,13 @@ export function NotesSidebar({
         {!isCollapsed && (
           <Link 
             href="/pricing"
-            className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded-lg px-3 py-2.5 hover:bg-primary/90 transition-all duration-200 cursor-pointer text-base font-semibold"
+            className="flex items-center justify-between w-full bg-black dark:bg-[#F3F3F3] text-primary-foreground rounded-sm px-4 py-3 transition-all duration-200 cursor-pointer text-base font-semibold"
           >
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-base">Upgrade to</span>
-              <span className="bg-background text-foreground px-2 py-1 rounded-full text-sm font-bold">PRO</span>
+              <span className="font-semibold text-white dark:text-black">Upgrade to</span>
+              <span className="bg-background text-foreground px-2 py-1 rounded-[0.4rem] text-sm font-bold">PRO</span>
             </div>
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className={cn("w-6 h-6", isDark ? "text-black" : "text-white")} />
           </Link>
         )}
       </SidebarFooter>
