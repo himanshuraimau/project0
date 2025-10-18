@@ -195,7 +195,7 @@ export default async function SupportPage() {
               />
             </div>
 
-            <Button className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground rounded-2xl px-8 py-3 font-medium  hover: transition-all duration-300">
+            <Button className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground rounded-2xl px-8 py-3 font-medium  hover: transition-all hover:scale-105 duration-300 cursor-pointer">
               <Send className="h-4 w-4 mr-2" />
               Send Message
             </Button>
