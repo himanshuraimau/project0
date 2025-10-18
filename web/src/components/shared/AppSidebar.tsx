@@ -14,7 +14,7 @@ import {
   Grid3X3,
   Moon,
   Info,
-  ArrowRight,
+  ArrowUpRight,
   PanelLeft,
   Sun,
 } from "lucide-react";
@@ -90,13 +90,13 @@ function ChapterItem({
         isActive={isCurrentChapter}
         className={cn(
           "group relative py-2.5 px-3 transition-all hover:bg-accent/50",
-          "text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground",
+          "text-sm font-medium rounded-sm text-muted-foreground hover:text-foreground",
           isCurrentChapter && "bg-accent text-accent-foreground "
         )}
       >
         <Link href={`/dashboard/course/${courseId}/${unitIndex}/${chapterIndex}`}>
           <div className={cn(
-            "w-2 h-2 rounded-full flex-shrink-0 mr-3",
+            "w-2 h-2 rounded-sm flex-shrink-0 mr-3",
             progress.isCompleted
               ? "bg-green-500"
               : isCurrentChapter
@@ -123,7 +123,7 @@ function ChapterItem({
           )}
         >
           {updating ? (
-            <div className="h-5 w-5 animate-spin rounded-full border border-current border-t-transparent" />
+            <div className="h-5 w-5 animate-spin rounded-sm border border-current border-t-transparent" />
           ) : progress.isCompleted ? (
             <CheckCircle className="h-5 w-5 text-green-500" />
           ) : (
@@ -177,7 +177,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "bg-background rounded-2xl",
+        "bg-background rounded-sm",
         className
       )}
     >
@@ -264,7 +264,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         asChild
                         isActive={isActive}
                         className={cn(
-                          "flex items-center rounded-lg transition-all py-2.5 px-3",
+                          "flex items-center transition-all py-2.5 px-3",
                           "text-base font-semibold w-full",
                           isActive 
                             ? "bg-accent text-accent-foreground"
@@ -293,16 +293,16 @@ export function AppSidebar({ className }: AppSidebarProps) {
       </SidebarContent>
 
       {/* Footer */}
-  <SidebarFooter className="mx-4 mb-4 p-4">
+  <SidebarFooter className="mx-4 mb-4">
         {/* Theme Toggle */}
         {!isCollapsed && (
-          <div className="mb-3">
+          <div>
             <button
               onClick={() => {
                 const newTheme = isDark ? "light" : "dark";
                 setTheme(newTheme);
               }}
-              className="flex items-center gap-3 w-full rounded-lg transition-all py-2.5 px-3 text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              className="flex items-center gap-3 w-full rounded-sm transition-all py-3 px-3 text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-accent/50"
             >
               {mounted && (
                 <>
@@ -323,13 +323,13 @@ export function AppSidebar({ className }: AppSidebarProps) {
         {!isCollapsed && (
           <Link 
             href="/pricing"
-            className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded-lg px-3 py-2.5 hover:bg-primary/90 transition-all duration-200 cursor-pointer text-base font-semibold"
+            className="flex items-center justify-between w-full bg-black dark:bg-[#F3F3F3] text-primary-foreground rounded-sm px-4 py-3 transition-all duration-200 cursor-pointer text-base font-semibold"
           >
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-base">Upgrade to</span>
-              <span className="bg-background text-foreground px-2 py-1 rounded-full text-sm font-bold">PRO</span>
+              <span className="font-semibold text-white dark:text-black">Upgrade to</span>
+              <span className="bg-background text-foreground px-2 py-1 rounded-[0.4rem] text-sm font-bold">PRO</span>
             </div>
-            <ArrowRight className="w-5 h-5" />
+            <ArrowUpRight className={cn("w-6 h-6", isDark ? "text-black" : "text-white")} />
           </Link>
         )}
       </SidebarFooter>

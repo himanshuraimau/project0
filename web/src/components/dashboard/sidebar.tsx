@@ -77,7 +77,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
       )}
     >
       <SidebarHeader className="border-b pt-4 pb-4 bg-sidebar border-sidebar-border flex-shrink-0">
-        <div className="flex items-center justify-between px-4">
+        <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center gap-3 min-w-0">
               <LayoutDashboard className="w-6 h-6 text-accent flex-shrink-0" />
@@ -176,7 +176,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
       <SidebarContent
         className={cn(
           "flex-1 pt-8 bg-white dark:bg-stone-950",
-          isCollapsed ? "px-3 flex flex-col items-center" : "px-6"
+          isCollapsed ? "flex flex-col items-center" : ""
         )}
       >
         {sidebarItems.map((section) => (
@@ -188,7 +188,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
             )}
           >
             {!isCollapsed && (
-              <div className="px-4 pb-4">
+              <div className="pb-4">
                 <h3 className="text-sm uppercase tracking-wider text-stone-500 dark:text-stone-400 font-semibold">
                   {section.section}
                 </h3>
@@ -214,8 +214,8 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         asChild
                         isActive={isActive}
                         className={cn(
-                          "group flex items-center rounded-xl transition-all duration-200 ease-in-out",
-                          isCollapsed ? "w-14 h-14 justify-center" : "px-6 py-5",
+                          "group flex items-center rounded-xl transition-all duration-200 ease-in-out w-full",
+                          isCollapsed ? "h-14 justify-center" : "",
                           isActive
                             ? "bg-accent text-white dark:text-white  border-l-4 border-accent"
                             : "text-stone-600 dark:text-stone-400 hover:bg-stone-100 hover:text-stone-900 dark:hover:bg-stone-800 dark:hover:text-stone-100 hover:"
@@ -250,7 +250,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
         <Link 
           href="/pricing"
           className={cn(
-            "flex items-center gap-3 rounded-lg px-4 py-3 transition-all duration-200",
+            "flex items-center gap-3 rounded-lg py-3 transition-all duration-200",
             "bg-accent/10 hover:bg-accent/20 border border-accent/30",
             "group cursor-pointer",
             isCollapsed ? "justify-center" : ""

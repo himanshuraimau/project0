@@ -40,7 +40,7 @@ export function SidebarFooterControls({ className, children }: SidebarFooterCont
       {/* Custom content from children (like upgrade button) */}
       {children && (
         <>
-          <div className="px-2 py-2">{children}</div>
+          <div className="py-2">{children}</div>
           <SidebarSeparator />
         </>
       )}
@@ -48,7 +48,7 @@ export function SidebarFooterControls({ className, children }: SidebarFooterCont
       {/* Theme Toggle and User Profile */}
       <div
         className={cn(
-          "flex items-center gap-3 px-3 py-3",
+          "flex items-center gap-3 py-3",
           isCollapsed ? "flex-col" : "flex-row justify-between"
         )}
       >
@@ -58,7 +58,7 @@ export function SidebarFooterControls({ className, children }: SidebarFooterCont
             <button
               onClick={() => setTheme(isDark ? "light" : "dark")}
               className={cn(
-                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-2 rounded-md py-2 text-sm font-medium transition-colors",
                 "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 "text-sidebar-foreground"
               )}
