@@ -179,7 +179,7 @@ export default async function SupportPage() {
               <Input
                 id="subject"
                 placeholder="What can we help you with?"
-                className="rounded-2xl"
+                className="w-full p-3 border border-border rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background dark:bg-[#0a0b0d] text-foreground"
               />
             </div>
             
