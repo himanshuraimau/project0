@@ -4,6 +4,7 @@ import React from "react";
 import { CourseContentTabs } from "@/components/course/CourseContentTabs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useTransition } from "react";
 import { Course, Unit, Chapter, Question } from "@prisma/client";
 
 interface CoursePageContentProps {
@@ -31,6 +32,7 @@ export function CoursePageContent({
   nextChapter, 
   prevChapter 
 }: CoursePageContentProps) {
+  const [isPending, startTransition] = useTransition();
   
   React.useEffect(() => {
     // Scroll to top when chapter changes - use instant to avoid the jarring effect
@@ -39,6 +41,12 @@ export function CoursePageContent({
 
   return (
     <>
+      {isPending && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <LoadingSkeleton />
+        </div>
+      )}
+      
       {/* Unified Course Content Container */}
       <div className="space-y-0">
         {/* Breadcrumb Navigation */}
@@ -77,6 +85,7 @@ export function CoursePageContent({
             {prevChapter ? (
               <Link
                 href={`/dashboard/course/${course.id}/${unitIndex}/${chapterIndex - 1}`}
+                onClick={() => startTransition(() => {})}
                 className="group flex items-center gap-4 rounded-xl bg-muted/50 hover:bg-muted px-6 py-4 text-sm font-medium text-foreground transition-all hover:"
               >
                 <ChevronLeft className="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
@@ -92,6 +101,7 @@ export function CoursePageContent({
             {nextChapter ? (
               <Link
                 href={`/dashboard/course/${course.id}/${unitIndex}/${chapterIndex + 1}`}
+                onClick={() => startTransition(() => {})}
                 className="group flex items-center gap-4 rounded-xl bg-accent hover:bg-accent/90 px-6 py-4 text-sm font-medium text-accent-foreground transition-all hover:"
               >
                 <div className="text-right">
@@ -119,5 +129,97 @@ export function CoursePageContent({
         }}
       />
     </>
+  );
+}
+
+// Loading Skeleton Component
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen w-full bg-background p-6">
+      <div className="max-w-5xl mx-auto">
+        {/* Loading Text with Pulse */}
+        <div className="text-center mb-8 space-y-3">
+          <h2 className="text-2xl font-bold text-foreground animate-pulse">
+            Loading Chapter
+          </h2>
+          <p className="text-muted-foreground animate-pulse" style={{ animationDelay: '0.5s' }}>
+            Please wait a moment...
+          </p>
+        </div>
+
+        {/* Skeleton Card */}
+        <div className="rounded-2xl border-2 border-dashed border-black/30 dark:border-muted/30 bg-accent/5 p-8">
+          <div className="space-y-6">
+            {/* Title Bar */}
+            <div className="h-8 w-3/4 bg-muted rounded-xl relative overflow-hidden">
+              <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            </div>
+
+            {/* Breadcrumb Lines */}
+            <div className="flex gap-2 items-center">
+              <div className="h-4 w-20 bg-muted rounded relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-4 bg-muted rounded" />
+              <div className="h-4 w-24 bg-muted rounded relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+            </div>
+
+            {/* Content Lines */}
+            <div className="space-y-4 pt-6">
+              <div className="h-4 w-full bg-muted rounded-lg relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-11/12 bg-muted rounded-lg relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-9/12 bg-muted rounded-lg relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+
+              {/* Spacing */}
+              <div className="h-8" />
+
+              <div className="h-4 w-full bg-muted rounded-lg relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-10/12 bg-muted rounded-lg relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+              <div className="h-4 w-7/12 bg-muted rounded-lg relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+            </div>
+
+            {/* Tab Skeletons */}
+            <div className="flex gap-3 pt-6">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-12 w-32 bg-muted rounded-lg relative overflow-hidden"
+                >
+                  <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite ease-in-out;
+        }
+      `}</style>
+    </div>
   );
 }

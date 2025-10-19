@@ -56,7 +56,7 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-3 px-8 py-5 transition-all duration-200 rounded-xl mr-3 whitespace-nowrap cursor-pointer",
+                "flex items-center gap-2 px-6 py-3 transition-all duration-200 rounded-xl mr-3 whitespace-nowrap cursor-pointer",
                 activeTab === tab.id
                   ? "bg-accent text-accent-foreground "
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
