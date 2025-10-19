@@ -179,13 +179,13 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
               onClick={generateQuiz}
               disabled={loading}
               variant="outline"
-              className="border-accent text-black hover:text-black dark:hover:bg-slate-400 cursor-pointer dark:text-white hover:bg-accent/10 hover:border-accent flex items-center px-4 py-2 transition-all duration-200"
+              className="border-accent text-black hover:text-black dark:hover:bg-slate-400 cursor-pointer dark:text-white hover:bg-accent/10 hover:border-accent flex items-center px-4 py-2 transition-all duration-200 hover:scale-105"
             >
               Regenerate
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button className="text-red-600 p-4 cursor-pointer bg-red-950/20 hover:bg-red-950/30 flex items-center dark:text-red-600 dark:hover:bg-red-950/30">
+                <Button className="text-red-600 p-4 cursor-pointer bg-red-950/20 hover:bg-red-950/30 flex items-center dark:text-red-600 dark:hover:bg-red-950/30 transition-all duration-200 hover:scale-105">
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </Button>
