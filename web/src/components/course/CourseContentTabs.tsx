@@ -56,14 +56,16 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-3 px-8 py-5 text-lg font-semibold transition-all duration-200 rounded-xl mr-3 whitespace-nowrap",
+                "flex items-center gap-3 px-8 py-5 transition-all duration-200 rounded-xl mr-3 whitespace-nowrap cursor-pointer",
                 activeTab === tab.id
                   ? "bg-accent text-accent-foreground "
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
               )}
             >
-              <Icon className="h-7 w-7" />
-              <span className="text-lg font-semibold">{tab.label}</span>
+              <div className="flex items-center gap-3 hover:scale-105">
+                <Icon className="h-5 w-5" />
+              <span className="text-md font-medium">{tab.label}</span>
+              </div>
             </button>
           );
         })}
