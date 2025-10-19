@@ -86,8 +86,8 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
         )}
 
         {activeTab === "quiz" && (
-          <div className="w-full bg-card rounded-2xl  border p-8">
-            <ChapterQuizGenerator key={`quiz-${chapter.id}`} chapterId={chapter.id} variant="clean" />
+          <div className="w-full bg-card rounded-2xl border p-8">
+            <QuizTab chapterId={chapter.id} />
           </div>
         )}
 
@@ -108,11 +108,73 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
         )}
 
         {activeTab === "chatbot" && (
-          <div className="w-full bg-card rounded-2xl  border p-8">
+          <div className="w-full rounded-2xl">
             <ChatbotTab chapterId={chapter.id} chapterName={chapter.name} />
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// Quiz tab component with generate button
+function QuizTab({ chapterId }: { chapterId: string }) {
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleGenerateQuiz = async () => {
+    setLoading(true);
+    // The ChapterQuizGenerator will handle the actual generation
+    setShowQuiz(true);
+    setLoading(false);
+  };
+
+  const handleReset = () => {
+    setShowQuiz(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+        <h3 className="text-lg font-semibold mb-2">Generating Quiz</h3>
+        <p className="text-muted-foreground text-center">
+          Creating personalized quiz questions from your chapter content...
+        </p>
+      </div>
+    );
+  }
+
+  if (!showQuiz) {
+    return (
+      <div className="text-center p-8">
+        <HelpCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <h3 className="text-lg font-semibold mb-2">Test Your Knowledge</h3>
+        <p className="text-muted-foreground mb-4">
+          Generate AI-powered quiz questions to test your understanding and reinforce the key concepts from this chapter.
+        </p>
+        <button
+          onClick={handleGenerateQuiz}
+          className="px-6 py-3 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors font-semibold"
+        >
+          Generate Quiz
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Quiz Questions</h3>
+        <button
+          onClick={handleReset}
+          className="px-3 py-1 text-xs bg-muted text-muted-foreground rounded hover:bg-muted/80 transition-colors"
+        >
+          Generate New
+        </button>
+      </div>
+      <ChapterQuizGenerator key={`quiz-${chapterId}`} chapterId={chapterId} variant="clean" />
     </div>
   );
 }

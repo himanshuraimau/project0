@@ -193,7 +193,7 @@ export default function TranscriptViewer({ chapterId, videoId, chapterName }: Tr
       </div>
 
       {/* Transcript content */}
-      <div className="max-h-[500px] overflow-y-auto space-y-2 border rounded-lg p-4">
+      <div className="h-fit space-y-2 border rounded-lg p-4">
         {filteredSegments.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             {searchQuery ? 'No transcript segments match your search.' : 'No transcript content available.'}
