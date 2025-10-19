@@ -235,7 +235,7 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
               )}
               <div className="space-y-3">
                 <Card className={cn(
-                  "rounded-2xl px-4 py-3 max-w-[80%]",
+                  "rounded-2xl px-4 py-3 max-w-[80%] w-fit",
                   message.role === 'user' 
                     ? "bg-primary text-primary-foreground" 
                     : "bg-muted border-0"

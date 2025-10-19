@@ -573,7 +573,7 @@ export default function NoteViewPage() {
               )}
 
               {currentView === "chat" && (
-                <Card className="bg-transparent h-[80vh] m-10 flex flex-col border border-black/20 dark:border-white/20 rounded-3xl">
+                <Card className="bg-card h-[80vh] m-10 flex flex-col border border-black/20 dark:border-white/20 rounded-3xl">
                   <CardHeader className="p-5 border-b border-stone-100 dark:border-stone-900 bg-muted/5">
                     <div className="flex items-center gap-4">
                       <CardTitle className="font-normal">
