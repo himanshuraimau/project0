@@ -376,7 +376,7 @@ function ToolbarPlugin({
   };
 
   return (
-    <div className=" bg-white dark:bg-stone-900 fixed top-20 z-50 rounded-lg p-3">
+    <div className=" bg-card dark:bg-stone-900 rounded-lg p-3">
       <div className="flex flex-wrap justify-center items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -408,7 +408,7 @@ function ToolbarPlugin({
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="w-16 justify-center text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800">
+              <Button className="w-16 justify-center text-black bg-white hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer dark:bg-stone-800">
                 {fontSize}
               </Button>
             </DropdownMenuTrigger>

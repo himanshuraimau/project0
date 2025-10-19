@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Note, LanguageCode, NoteTranslation } from "@/lib/types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,8 @@ import {
   FileText,
   Bot,
   Minimize2,
-  Maximize2,
   Save,
-  X,
-  CheckCircle
+  X
 } from "lucide-react";
 import { toast } from "sonner";
 import { MDXRenderer } from "@/components/mdx-renderer";
