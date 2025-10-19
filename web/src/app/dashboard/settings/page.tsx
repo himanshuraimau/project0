@@ -200,7 +200,7 @@ export default function SettingsPage() {
             ))}
 
             <div
-              className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl transition-all duration-300 cursor-pointer neomorphic"
+              className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl transition-all duration-300 cursor-pointer neomorphic hover:bg-destructive/10"
               onClick={handleDeleteAccountClick}
             >
               <div className="flex items-center gap-5">
