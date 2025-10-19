@@ -88,7 +88,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
   const estimatedDuration = getEstimatedDuration(getTotalChapters(course));
 
   return (
-    <Card className="h-[400px] w-full group hover: transition-all duration-300 rounded-xl border border-border/60 bg-card/60 backdrop-blur-sm hover:border-accent/30 overflow-hidden flex flex-col">
+    <div className="h-[400px] w-full group hover:transition-all hover:duration-300 rounded-xl overflow-hidden flex flex-col neomorphic p-8">
       {/* Header with Title and Options */}
       <div className="flex items-start justify-between p-8 pb-6 flex-shrink-0">
         <div className="flex-1 min-w-0">
@@ -215,7 +215,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
           </Button>
         </Link>
       </div>
-    </Card>
+    </div>
   );
 }
 
