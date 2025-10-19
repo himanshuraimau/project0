@@ -200,7 +200,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
   }
 
   return (
-    <div className="w-full mt-5 space-y-4">
+    <div className="w-full p-5 space-y-4 bg-card rounded-2xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
