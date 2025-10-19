@@ -530,8 +530,8 @@ export default function NoteViewPage() {
                       )}
                       {transcript && !transcriptLoading && (
                         <div className="prose prose-stone dark:prose-invert max-w-none">
-                          <div className="sticky top-0 bg-accent/5 dark:bg-accent/10 border border-accent/20 rounded-lg p-3 mb-6">
-                            <h1 className="text-lg font-medium text-accent mb-1 flex items-center gap-2">
+                          <div className="sticky top-0 bg-accent/30 dark:bg-accent/50 border border-accent/20 rounded-lg p-3 mb-6">
+                            <h1 className="text-lg font-medium text-black dark:text-white/80 mb-1 flex items-center gap-2">
                               {note.title || "Untitled Note"} - Transcript
                             </h1>
                           </div>
