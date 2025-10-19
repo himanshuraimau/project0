@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Markmap } from 'markmap-view';
 import { Transformer } from 'markmap-lib';
-import { Toolbar } from 'markmap-toolbar';
 import { useTheme } from 'next-themes';
-import 'markmap-toolbar/dist/style.css';
 
 interface MarkmapViewerProps {
   markdownContent: string;
@@ -14,35 +12,21 @@ interface MarkmapViewerProps {
 
 const transformer = new Transformer();
 
-function renderToolbar(mm: Markmap, wrapper: HTMLElement | null) {
-  if (!wrapper) return;
-
-  while (wrapper?.firstChild) wrapper.firstChild.remove();
-
-  if (mm && wrapper) {
-    const toolbar = new Toolbar();
-    toolbar.attach(mm);
-    toolbar.setItems(Toolbar.defaultItems);
-    wrapper.append(toolbar.render());
-  }
-}
-
-// Helper function to apply theme colors to the SVG elements
 function applyThemeColors(svg: SVGSVGElement, isDark: boolean) {
   const textColor = isDark ? '#ffffff' : '#000000';
   const linkColor = isDark ? '#888888' : '#555555';
+  
   const foreignObjects = svg.querySelectorAll('foreignObject');
   foreignObjects.forEach((foreignObject) => {
     const divElements = foreignObject.querySelectorAll('div');
     divElements.forEach((div) => {
-      div.style.color = textColor;
+      (div as HTMLElement).style.color = textColor;
     });
   });
 
-  // Apply colors to all path elements (the connecting lines)
   const pathElements = svg.querySelectorAll('path');
   pathElements.forEach((path) => {
-    path.style.stroke = linkColor;
+    (path as SVGPathElement).style.stroke = linkColor;
   });
 }
 
@@ -50,11 +34,20 @@ export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
   const [value] = useState(markdownContent);
   const refSvg = useRef<SVGSVGElement>(null);
   const refMm = useRef<Markmap | null>(null);
-  const refToolbar = useRef<HTMLDivElement>(null);
-  const { theme, resolvedTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
+  const colorAppliedRef = useRef(false);
 
-  // Determine if we're in dark mode
-  const isDark = resolvedTheme === 'dark' || theme === 'dark';
+  const isDark = resolvedTheme === 'dark';
+
+  const applyColors = useCallback(() => {
+    if (!refSvg.current) return;
+    
+    requestAnimationFrame(() => {
+      if (refSvg.current) {
+        applyThemeColors(refSvg.current, isDark);
+      }
+    });
+  }, [isDark]);
 
   useEffect(() => {
     if (refMm.current || !refSvg.current) return;
@@ -65,48 +58,65 @@ export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
       paddingX: 20,
       spacingHorizontal: 100,
       spacingVertical: 20,
+      pan: true,
+      zoom: true,
     });
 
     refMm.current = mm;
-    renderToolbar(refMm.current, refToolbar.current);
-  }, [refSvg.current]);
-
-  useEffect(() => {
-    const mm = refMm.current;
-    if (!mm) return;
 
     const { root } = transformer.transform(value);
     mm.setData(root);
-    mm.fit();
 
-    // Wait for the SVG to be fully rendered before applying colors
-    // Use requestAnimationFrame to ensure DOM updates are complete
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        if (refSvg.current) {
-          applyThemeColors(refSvg.current, isDark);
+    // Wait for rendering, then center on the content at 100% zoom
+    setTimeout(() => {
+      if (refSvg.current && mm) {
+        // Find the main <g> element that contains all the mindmap content
+        const mainGroup = refSvg.current.querySelector('g[transform]');
+        
+        if (mainGroup) {
+          // Get the bounding box of the content
+          const bbox = (mainGroup as SVGGraphicsElement).getBBox();
+          const svgRect = refSvg.current.getBoundingClientRect();
+          
+          // Calculate the center of the SVG viewport
+          const svgCenterX = svgRect.width / 1;
+          const svgCenterY = svgRect.height / 1;
+          
+          // Calculate the center of the content at scale 1 (100% zoom)
+          const contentCenterX = bbox.x + bbox.width / 1;
+          const contentCenterY = bbox.y + bbox.height / 1;
+          
+          // Calculate the translation needed to center the content
+          const translateX = svgCenterX - contentCenterX;
+          const translateY = svgCenterY - contentCenterY;
+          
+          // Force scale to 1 (100% zoom, no automatic scaling)
+          mainGroup.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(1)`);
         }
-      }, 100); // Small delay to ensure markmap has finished rendering
-    });
-  }, [refMm.current, value, isDark]);
+      }
+      
+      applyColors();
+      colorAppliedRef.current = true;
+    }, 100);
 
-  // Apply theme colors whenever the theme changes
-  useEffect(() => {
-    if (!refSvg.current) return;
-
-    // Wait for any pending renders to complete
-    const applyColors = () => {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          if (refSvg.current) {
-            applyThemeColors(refSvg.current, isDark);
-          }
-        }, 50);
-      });
+    return () => {
+      if (refMm.current) {
+        refMm.current.destroy();
+        refMm.current = null;
+      }
     };
+  }, []); 
 
-    applyColors();
-  }, [isDark]);
+  
+  useEffect(() => {
+    if (!colorAppliedRef.current || !refSvg.current) return;
+
+    const timeoutId = setTimeout(() => {
+      applyColors();
+    }, 50);
+
+    return () => clearTimeout(timeoutId);
+  }, [isDark, applyColors]);
 
   return (
     <div className="w-full">

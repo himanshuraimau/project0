@@ -59,28 +59,37 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode | 'en'>('en');
   const [currentTranslation, setCurrentTranslation] = useState<NoteTranslation | null>(null);
   const [availableTranslations, setAvailableTranslations] = useState<LanguageCode[]>([]);
+  const [translationsLoaded, setTranslationsLoaded] = useState(false);
   
   const { updateNote } = useNotes();
   const { getTranslation } = useTranslations();
 
-  // Load available translations on mount
+  // Load available translations on mount - ONLY ONCE per note
   useEffect(() => {
+    // Prevent duplicate loading
+    if (translationsLoaded) return;
+
     const loadTranslations = async () => {
       const languages: LanguageCode[] = ['es', 'fr', 'de', 'zh', 'hi'];
       const available: LanguageCode[] = [];
 
-      for (const lang of languages) {
-        const translation = await getTranslation(note.id, lang);
-        if (translation) {
-          available.push(lang);
+      // Use Promise.all to fetch all translations in parallel instead of sequentially
+      const results = await Promise.allSettled(
+        languages.map(lang => getTranslation(note.id, lang))
+      );
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled' && result.value) {
+          available.push(languages[index]);
         }
-      }
+      });
 
       setAvailableTranslations(available);
+      setTranslationsLoaded(true);
     };
 
     loadTranslations();
-  }, [note.id, getTranslation]);
+  }, [note.id]); // Remove getTranslation from dependencies to prevent infinite loop
 
   // Load translation when language changes
   useEffect(() => {
@@ -97,7 +106,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
     };
 
     loadTranslation();
-  }, [currentLanguage, note.id, getTranslation]);
+  }, [currentLanguage, note.id]); // Remove getTranslation from dependencies
 
   const handleLanguageChange = (language: LanguageCode | 'en') => {
     setCurrentLanguage(language);
