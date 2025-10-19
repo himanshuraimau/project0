@@ -326,7 +326,7 @@ export default function InlineChatbot({
         </div>
 
         {/* Input Section */}
-        <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="border-t ">
           <form onSubmit={handleSubmit} className="p-4">
             <div className="flex items-end gap-2">
               <div className="flex-1">
