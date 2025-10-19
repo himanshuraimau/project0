@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Markmap } from 'markmap-view';
 import { Transformer } from 'markmap-lib';
 import { Toolbar } from 'markmap-toolbar';
+import { useTheme } from 'next-themes';
 import 'markmap-toolbar/dist/style.css';
 
 interface MarkmapViewerProps {
@@ -26,11 +27,34 @@ function renderToolbar(mm: Markmap, wrapper: HTMLElement | null) {
   }
 }
 
+// Helper function to apply theme colors to the SVG elements
+function applyThemeColors(svg: SVGSVGElement, isDark: boolean) {
+  const textColor = isDark ? '#ffffff' : '#000000';
+  const linkColor = isDark ? '#888888' : '#555555';
+  const foreignObjects = svg.querySelectorAll('foreignObject');
+  foreignObjects.forEach((foreignObject) => {
+    const divElements = foreignObject.querySelectorAll('div');
+    divElements.forEach((div) => {
+      div.style.color = textColor;
+    });
+  });
+
+  // Apply colors to all path elements (the connecting lines)
+  const pathElements = svg.querySelectorAll('path');
+  pathElements.forEach((path) => {
+    path.style.stroke = linkColor;
+  });
+}
+
 export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
   const [value] = useState(markdownContent);
   const refSvg = useRef<SVGSVGElement>(null);
   const refMm = useRef<Markmap | null>(null);
   const refToolbar = useRef<HTMLDivElement>(null);
+  const { theme, resolvedTheme } = useTheme();
+
+  // Determine if we're in dark mode
+  const isDark = resolvedTheme === 'dark' || theme === 'dark';
 
   useEffect(() => {
     if (refMm.current || !refSvg.current) return;
@@ -54,7 +78,35 @@ export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
     const { root } = transformer.transform(value);
     mm.setData(root);
     mm.fit();
-  }, [refMm.current, value]);
+
+    // Wait for the SVG to be fully rendered before applying colors
+    // Use requestAnimationFrame to ensure DOM updates are complete
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        if (refSvg.current) {
+          applyThemeColors(refSvg.current, isDark);
+        }
+      }, 100); // Small delay to ensure markmap has finished rendering
+    });
+  }, [refMm.current, value, isDark]);
+
+  // Apply theme colors whenever the theme changes
+  useEffect(() => {
+    if (!refSvg.current) return;
+
+    // Wait for any pending renders to complete
+    const applyColors = () => {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (refSvg.current) {
+            applyThemeColors(refSvg.current, isDark);
+          }
+        }, 50);
+      });
+    };
+
+    applyColors();
+  }, [isDark]);
 
   return (
     <div className="w-full">
@@ -68,12 +120,8 @@ export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
       <div className="relative w-full borde border-gray-200 dark:border-gray-700 rounded-lg bg-card dark:bg-card" style={{ height: '700px' }}>
         <svg
           ref={refSvg}
-          className="w-full h-full text-black dark:text-white"
+          className="w-full h-full text-black dark:text-white "
           style={{ fontFamily: 'Arial, sans-serif' }}
-        />
-        <div
-          ref={refToolbar}
-          className="absolute bottom-4 right-4"
         />
       </div>
     </div>
