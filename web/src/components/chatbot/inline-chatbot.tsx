@@ -4,8 +4,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Send, Copy, Loader2, Bot, User } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Send, Copy, Loader2, Bot, User, StopCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "@/components/mdx-renderer";
 
@@ -69,7 +72,11 @@ export default function InlineChatbot({
         ".chat-messages-container"
       );
       if (chatContainer) {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+        // Smooth scroll to bottom
+        chatContainer.scrollTo({
+          top: chatContainer.scrollHeight,
+          behavior: 'smooth'
+        });
       }
     }
   }, [messages]);
@@ -193,129 +200,194 @@ export default function InlineChatbot({
   };
 
   return (
-    <div className={cn("flex flex-col h-full", className)}>
-      {/* Messages container */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 h-[calc(100%-72px)] chat-messages-container">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-4">
-            <Bot className="h-10 w-10 text-primary/50 mb-3" />
-            <h3 className="text-base font-semibold mb-1">
-              How can I help you?
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              Ask me about this note and I'll try to answer your questions.
-            </p>
-          </div>
-        ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex items-start gap-3",
-                message.role === "user" ? "justify-end" : "justify-start"
-              )}
-            >
-              {message.role === "assistant" && (
-                <div className="w-6 h-6 rounded-full bg-sidebar flex items-center justify-center flex-shrink-0">
-                  <Bot size={14} className="text-primary" />
-                </div>
-              )}
-              <div className="space-y-1">
-                <Card
+    <TooltipProvider>
+      <div className={cn("flex flex-col h-full bg-card", className)}>
+        {/* Messages container */}
+        <div className="flex-1 overflow-y-auto p-4 chat-messages-container">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+              <Avatar className="h-16 w-16">
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  <Bot className="h-8 w-8" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-card-foreground">
+                  How can I help you?
+                </h3>
+                <p className="text-muted-foreground text-sm max-w-sm">
+                  Ask me about this note and I'll try to answer your questions using the content.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {messages.map((message, index) => (
+                <div
+                  key={message.id}
                   className={cn(
-                    "rounded-md px-3 py-2 max-w-[85%]",
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-white text-stone-600 dark:text-stone-500 dark:bg-stone-900 border-0"
+                    "flex gap-3 w-full message-enter",
+                    message.role === "user" ? "flex-row-reverse" : "flex-row"
                   )}
                 >
-                  <div className="space-y-1">
-                    {message.role === "assistant" ? (
-                      message.text ? (
-                        <div className="prose max-w-none text-sm leading-relaxed">
-                          <MarkdownRenderer content={message.text} />
-                        </div>
+                  {/* Avatar */}
+                  <Avatar className="h-8 w-8 shrink-0">
+                    <AvatarFallback 
+                      className={cn(
+                        message.role === "user" 
+                          ? "bg-primary text-primary-foreground" 
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {message.role === "user" ? (
+                        <User className="h-4 w-4" />
                       ) : (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Loader2 className="animate-spin" size={14} />
-                          <span>Generating response...</span>
-                        </div>
-                      )
-                    ) : (
-                      <div className="text-sm whitespace-pre-wrap">{message.text}</div>
-                    )}
-                    {message.role === "assistant" && message.text && (
-                      <div className="flex justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 px-2 hover:bg-primary/5 text-xs"
-                          onClick={() => copyMessage(message.text)}
-                        >
-                          <Copy size={10} className="mr-1" />
-                          Copy
-                        </Button>
-                      </div>
-                    )}
-                    {message.incomplete && (
-                      <div className="text-xs italic text-muted-foreground">
-                        Message was cut off
-                      </div>
-                    )}
+                        <Bot className="h-4 w-4" />
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  {/* Message Content */}
+                  <div className={cn(
+                    "flex flex-col space-y-2 max-w-[80%]",
+                    message.role === "user" ? "items-end" : "items-start"
+                  )}>
+                    <div className={cn(
+                      "rounded-2xl px-4 py-3 max-w-full break-words",
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-br-md"
+                        : "bg-muted text-foreground rounded-bl-md"
+                    )}>
+                      {message.role === "assistant" ? (
+                        message.text ? (
+                          <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:mb-2 prose-headings:mt-0 prose-p:mb-2 prose-p:mt-0 prose-li:mb-1 prose-headings:text-inherit prose-p:text-inherit prose-strong:text-inherit prose-code:text-inherit prose-li:text-inherit">
+                            <MarkdownRenderer content={message.text} />
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Loader2 className="animate-spin h-4 w-4" />
+                            <span>Thinking...</span>
+                          </div>
+                        )
+                      ) : (
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap m-0">
+                          {message.text}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Message Actions */}
+                    <div className="flex items-center gap-1">
+                      {message.role === "assistant" && message.text && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                              onClick={() => copyMessage(message.text)}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Copy message</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                      
+                      {message.incomplete && (
+                        <Badge variant="outline" className="text-xs">
+                          Interrupted
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                </Card>
-              </div>
-              {message.role === "user" && (
-                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                  <User size={14} className="text-primary-foreground" />
                 </div>
-              )}
+              ))}
             </div>
-          ))
-        )}
-
-        {/* Error message */}
-        {error && (
-          <div className="flex justify-center">
-            <Card className="bg-destructive/10 border border-destructive/20 text-destructive rounded-2xl p-3 text-sm">
-              {error}
-            </Card>
-          </div>
-        )}
-
-        {/* Dummy div for scrolling to bottom */}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input form */}
-      <form
-        onSubmit={handleSubmit}
-        className="p-3 border-t  border-stone-100 dark:border-stone-900 flex gap-2"
-      >
-        <Input
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            // Stop propagation for all key events when input is focused
-            e.stopPropagation();
-          }}
-          placeholder="Ask a question..."
-          disabled={isStreaming}
-          className="flex-1 rounded-2xl border-2 bg-stone-100 border-none dark:bg-stone-900 border-muted py-4 text-sm focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0"
-        />
-
-        <Button
-          type="submit"
-          disabled={!inputValue.trim() || isStreaming}
-          className="bg-primary cursor-pointer hover:bg-primary/90 text-primary-foreground rounded-full p-2 aspect-square"
-        >
-          {isStreaming ? (
-            <Loader2 className="animate-spin" size={16} />
-          ) : (
-            <Send size={16} />
           )}
-        </Button>
-      </form>
-    </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="mt-4 flex justify-center">
+              <div className="bg-destructive/10 text-destructive rounded-2xl px-4 py-3 text-sm max-w-md">
+                <div className="flex items-center gap-2">
+                  <div className="font-medium">Error</div>
+                  <Separator orientation="vertical" className="h-4" />
+                  <div>{error}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Scroll anchor */}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Section */}
+        <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <form onSubmit={handleSubmit} className="p-4">
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <Input
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                  placeholder="Ask a question about this note..."
+                  disabled={isStreaming}
+                  className="resize-none"
+                />
+              </div>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={!inputValue.trim() || isStreaming}
+                    className={cn(
+                      "shrink-0",
+                      !inputValue.trim() && "opacity-50"
+                    )}
+                  >
+                    {isStreaming ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isStreaming ? "Generating..." : "Send message"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            {/* Stop Generation Button */}
+            {isStreaming && (
+              <div className="flex justify-center mt-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={abortStream}
+                  className="text-xs"
+                >
+                  <StopCircle className="h-3 w-3 mr-1" />
+                  Stop generating
+                </Button>
+              </div>
+            )}
+          </form>
+        </div>
+      </div>
+    </TooltipProvider>
   );
 }
