@@ -167,8 +167,8 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
               disabled={loading}
               variant="outline"
               size="sm"
+              className="cursor-pointer"
             >
-              <Brain className="h-4 w-4 mr-2" />
               Regenerate
             </Button>
             <AlertDialog>
@@ -176,7 +176,7 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-red-600 hover:text-red-700"
+                  className="text-red-600 hover:text-red-700 cursor-pointer"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete

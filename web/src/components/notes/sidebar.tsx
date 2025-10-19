@@ -35,7 +35,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { SidebarFooterControls } from "@/components/shared/sidebar-footer-controls";
 import { UserControl } from "@/components/user-control";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -152,6 +151,23 @@ export function NotesSidebar({
       disabled: flashcardsLoading || false,
       loading: flashcardsLoading || false,
     },
+    {
+      title: "Mind Map",
+      icon: Brain,
+      onClick: onGenerateMindmap,
+      isActive: showMindmap,
+      disabled: mindmapLoading || false,
+      loading: mindmapLoading || false,
+    },
+    // {
+    //   title: "Podcast",
+    //   icon: Mic,
+    //   onClick: onGeneratePodcast,
+    //   isActive: showPodcast,
+    //   disabled: podcastLoading || false,
+    //   loading: podcastLoading || false,
+    //   description: "Generate audio podcast",
+    // }
   ];
 
   return (
