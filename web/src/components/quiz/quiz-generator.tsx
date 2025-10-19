@@ -179,7 +179,7 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
               onClick={generateQuiz}
               disabled={loading}
               variant="outline"
-              className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent flex items-center px-4 py-2 transition-all duration-200"
+              className="border-accent text-black hover:text-black dark:hover:bg-slate-400 cursor-pointer dark:text-white hover:bg-accent/10 hover:border-accent flex items-center px-4 py-2 transition-all duration-200"
             >
               Regenerate
             </Button>

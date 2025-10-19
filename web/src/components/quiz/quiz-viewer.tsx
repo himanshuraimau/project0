@@ -204,10 +204,10 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <span className="text-accent bg-accent/10 text-sm font-medium px-3 py-1.5 rounded-full border border-accent/20">
+          <span className="text-black dark:text-white  bg-accent/10 text-sm font-medium px-3 py-1.5 rounded-full border border-accent/20">
             Question {currentIndex + 1} of {quiz.length}
           </span>
-          <span className="text-sm text-accent font-medium">
+          <span className="text-sm text-black dark:text-white font-medium">
             Score: {score.totalPoints}/{score.maxTotalPoints} pts
           </span>
         </div>
@@ -215,7 +215,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
           <Button
             onClick={handleReset}
             variant="outline"
-            className="border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800"
+            className="border-stone-200 text-stone-600 dark:text-white hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800"
             size="sm"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
@@ -224,7 +224,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
           <Button
             onClick={onClose}
             variant="outline"
-            className="border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800"
+            className="border-stone-200 text-stone-600 hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:text-white dark:hover:bg-stone-800"
             size="sm"
           >
             <X className="h-4 w-4" />
@@ -397,7 +397,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
             <Button
               onClick={handleShowExplanation}
               variant="outline"
-              className="text-sm border-accent/30 text-accent hover:bg-accent/10 hover:border-accent px-5 py-2.5 rounded-lg transition-all duration-200"
+              className="text-sm border-accent/30 text-black dark:text-white hover:bg-accent/10 hover:border-accent px-5 py-2.5 rounded-lg transition-all duration-200"
             >
               Show Explanation
             </Button>
@@ -411,7 +411,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
           onClick={handlePrevious}
           disabled={currentIndex === 0}
           variant="outline"
-          className="flex items-center gap-2 border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
+          className="flex items-center gap-2 border-stone-200 text-stone-600 hover:bg-stone-50 hover:text-black dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
         >
           <ChevronLeft className="h-4 w-4" />
           Previous
@@ -440,7 +440,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
           onClick={handleNext}
           disabled={currentIndex === quiz.length - 1}
           variant="outline"
-          className="flex items-center gap-2 border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
+          className="flex items-center gap-2 border-stone-200 text-stone-600 hover:bg-stone-50 hover:text-black dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
         >
           Next
           <ChevronRight className="h-4 w-4" />
