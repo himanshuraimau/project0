@@ -97,10 +97,17 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
   ]);
 
   const markAsCompleted = async () => {
-    await toggleCompletion();
-    // Refresh the course progress context to update sidebar
-    await refreshProgress();
-    onComplete?.();
+    try {
+      // First call the API to update the chapter completion (handles both mark complete and undo)
+      await toggleCompletion();
+      // Then refresh the course progress context to update sidebar
+      await refreshProgress();
+      onComplete?.();
+    } catch (error) {
+      console.error('Error toggling chapter completion:', error);
+      // Refresh progress to ensure UI is in sync with server state
+      await refreshProgress();
+    }
   };
 
   useEffect(() => {

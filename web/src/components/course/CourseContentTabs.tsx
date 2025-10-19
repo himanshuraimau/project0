@@ -121,6 +121,8 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
 function QuizTab({ chapterId }: { chapterId: string }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [hasExistingQuiz, setHasExistingQuiz] = useState(false);
 
   const handleGenerateQuiz = async () => {
     setLoading(true);
@@ -129,9 +131,44 @@ function QuizTab({ chapterId }: { chapterId: string }) {
     setLoading(false);
   };
 
+  const checkExistingQuiz = async () => {
+    setInitialLoading(true);
+    try {
+      const response = await fetch(`/api/chapter/${chapterId}/quiz`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data && data.data.quiz && data.data.quiz.length > 0) {
+          setHasExistingQuiz(true);
+          setShowQuiz(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking existing quiz:', error);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
   const handleReset = () => {
     setShowQuiz(false);
+    setHasExistingQuiz(false);
   };
+
+  // Check for existing quiz on component mount
+  React.useEffect(() => {
+    checkExistingQuiz();
+  }, [chapterId]);
+
+  if (initialLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+        <h3 className="text-lg font-semibold mb-2">Loading Quiz</h3>
+        <p className="text-muted-foreground text-center">Checking for existing content...</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -151,13 +188,16 @@ function QuizTab({ chapterId }: { chapterId: string }) {
         <HelpCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
         <h3 className="text-lg font-semibold mb-2">Test Your Knowledge</h3>
         <p className="text-muted-foreground mb-4">
-          Generate AI-powered quiz questions to test your understanding and reinforce the key concepts from this chapter.
+          {hasExistingQuiz 
+            ? "Quiz questions are ready! Test your understanding of the key concepts from this chapter."
+            : "Generate AI-powered quiz questions to test your understanding and reinforce the key concepts from this chapter."
+          }
         </p>
         <button
           onClick={handleGenerateQuiz}
           className="px-6 py-3 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors font-semibold"
         >
-          Generate Quiz
+          {hasExistingQuiz ? "View Quiz" : "Generate Quiz"}
         </button>
       </div>
     );
@@ -183,6 +223,7 @@ function QuizTab({ chapterId }: { chapterId: string }) {
 function FlashcardsTab({ chapterId }: { chapterId: string }) {
   const [flashcards, setFlashcards] = useState<FlashcardItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const generateFlashcards = async () => {
@@ -217,10 +258,43 @@ function FlashcardsTab({ chapterId }: { chapterId: string }) {
     }
   };
 
+  const fetchExistingFlashcards = async () => {
+    setInitialLoading(true);
+    try {
+      const response = await fetch(`/api/chapter/${chapterId}/flashcards`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setFlashcards(data.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching existing flashcards:', error);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
   const resetFlashcards = () => {
     setFlashcards([]);
     setError(null);
   };
+
+  // Fetch existing flashcards on component mount
+  React.useEffect(() => {
+    fetchExistingFlashcards();
+  }, [chapterId]);
+
+  if (initialLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+        <h3 className="text-lg font-semibold mb-2">Loading Flashcards</h3>
+        <p className="text-muted-foreground text-center">Checking for existing content...</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -74,15 +74,20 @@ function ChapterItem({
 
   // Use the course progress context as the source of truth, fall back to local progress
   const contextProgress = chapterProgress[chapter.id];
-  const isCompleted = contextProgress?.isCompleted ?? progress.isCompleted;
+  const isCompleted = contextProgress !== undefined ? contextProgress.isCompleted : progress.isCompleted;
 
   const handleToggleCompletion = async (e: React.MouseEvent) => {
     e.preventDefault();
-    await toggleCompletion();
-    // Update the course progress context
-    updateChapterProgress(chapter.id, !isCompleted);
-    // Refresh the full progress to update unit progress and progress bars
-    await refreshProgress();
+    try {
+      // First call the API to update the chapter completion
+      await toggleCompletion();
+      // Then refresh the full progress to get the updated state from server
+      await refreshProgress();
+    } catch (error) {
+      console.error('Error toggling chapter completion:', error);
+      // Refresh progress to ensure UI is in sync with server state
+      await refreshProgress();
+    }
   };
 
   return (
