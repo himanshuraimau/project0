@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, RotateCcw, X } from "lucide-react";
 import { FlashcardViewerProps } from "@/lib/types";
@@ -71,7 +71,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-medium">{noteTitle || "Flashcards"}</h2>
-          <span className="text-accent bg-accent/10 text-xs font-medium px-3 py-1.5 rounded-full border border-accent/20">
+          <span className="text-black dark:text-white bg-accent/10 text-xs font-medium px-3 py-1.5 rounded-full border border-accent/20">
             {currentIndex + 1} of {flashcards.length}
           </span>
         </div>
@@ -79,7 +79,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           <Button
             onClick={handleReset}
             variant="outline"
-            className="border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800"
+            className="border-stone-200 text-black dark:text-white hover:text-black cursor-pointer hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset
@@ -87,7 +87,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           <Button
             onClick={onClose}
             variant="outline"
-            className="border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800"
+            className="border-stone-200 text-black dark:text-white hover:text-black cursor-pointer hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -107,27 +107,24 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
       {/* Flashcard */}
       <div className="perspective-1000 w-full">
         <Card
-          className={`min-h-[420px] p-6 rounded-xl my-6 bg-white dark:bg-stone-900 cursor-pointer transition-all duration-500 transform hover:scale-[1.02]  hover: border border-stone-200 dark:border-stone-700`}
+          className={`min-h-[420px] p-6 rounded-xl my-6 bg-card dark:bg-stone-900 cursor-pointer transition-all duration-500 transform hover:scale-[1.02]  hover: border border-stone-200 dark:border-stone-700`}
           onClick={handleFlip}
         >
           <CardContent className="flex flex-col items-center justify-center min-h-[320px] space-y-6">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${showAnswer ? 'bg-accent/20' : 'bg-accent/10 dark:bg-accent/20'}`}>
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center mb-2 ${showAnswer ? 'bg-accent/20' : 'bg-accent/10 dark:bg-accent/20'}`}>
               <span className="text-xl">
                 {showAnswer ? 'Answer' : 'Question'}
               </span>
             </div>
             
             <div className="text-center space-y-4">
-              <div className={`text-sm font-medium tracking-wide uppercase ${showAnswer ? 'text-accent' : 'text-accent/70 dark:text-accent/80'}`}>
-                {showAnswer ? "Answer" : "Question"}
-              </div>
-              <div className="text-lg text-stone-700 dark:text-stone-300 leading-relaxed max-w-4xl">
+              <div className="text-lg text-black dark:text-white leading-relaxed max-w-4xl">
                 {showAnswer ? currentFlashcard.answer : currentFlashcard.question}
               </div>
             </div>
             
             {!showAnswer && (
-              <div className="flex items-center gap-2 text-sm text-accent/70 animate-bounce">
+              <div className="flex items-center gap-2 text-sm text-black dark:text-white animate-bounce">
                 <span>👆</span>
                 <span>Click to reveal answer</span>
               </div>
@@ -142,7 +139,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           onClick={handlePrevious}
           disabled={flashcards.length <= 1}
           variant="outline"
-          className="flex items-center gap-2 bg-accent/10 border border-accent/20 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
+          className="flex items-center gap-2 bg-accent/10 border border-accent/20 text-stone-600 hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
         >
           <ChevronLeft className="h-4 w-4" />
           Previous
@@ -152,7 +149,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           onClick={handleNext}
           disabled={flashcards.length <= 1}
           variant="outline"
-          className="flex items-center gap-2 bg-accent/10 border border-accent/20 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
+          className="flex items-center gap-2 bg-accent/10 border border-accent/20 text-stone-600 hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
         >
           Next
           <ChevronRight className="h-4 w-4" />

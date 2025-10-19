@@ -216,7 +216,7 @@ export default function InlineChatbot({
               )}
             >
               {message.role === "assistant" && (
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-sidebar flex items-center justify-center flex-shrink-0">
                   <Bot size={14} className="text-primary" />
                 </div>
               )}
