@@ -8,6 +8,7 @@ import { LoadingState } from "@/components/ui/loading-spinner";
 import { Play, FileText, CheckCircle } from "lucide-react";
 import { Chapter } from "@prisma/client";
 import { useChapterProgress } from "@/hooks/use-chapter-progress";
+import { useCourseProgress } from "@/contexts/course-progress-context";
 import {
   displayError,
   fetchWithErrorHandling,
@@ -35,6 +36,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
     updating: chapterUpdating,
     toggleCompletion,
   } = useChapterProgress(chapter.id);
+  const { refreshProgress } = useCourseProgress();
 
   const loadChapterContent = useCallback(async () => {
     if (chapterData.videoId && chapterData.notes) {
@@ -96,6 +98,8 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
 
   const markAsCompleted = async () => {
     await toggleCompletion();
+    // Refresh the course progress context to update sidebar
+    await refreshProgress();
     onComplete?.();
   };
 
@@ -193,8 +197,8 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
                   variant={chapterProgress.isCompleted ? "outline" : "default"}
                   size="lg"
                   className={chapterProgress.isCompleted
-                    ? "border-accent text-black dark:text-white hover:bg-accent hover:text-accent-foreground"
-                    : "bg-accent text-accent-foreground hover:bg-accent/90"
+                    ? "border-accent text-black dark:text-white hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                    : "bg-accent text-accent-foreground hover:bg-accent/90 cursor-pointer"
                   }
                 >
                   {chapterUpdating ? (
