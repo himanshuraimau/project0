@@ -102,26 +102,21 @@ export function SimplePDFProcessor({
 
     // Generate temp ID and add loading note BEFORE closing modal
     const tempId = `${mode}-${Date.now()}`;
-    console.log('[PDF Processor] Starting process with tempId:', tempId);
     setCurrentTempId(tempId);
     addLoadingNote(tempId, mode === "pdf" ? "pdf" : "pdf");
-    console.log('[PDF Processor] Added loading note, waiting for state update...');
 
     // Longer delay to ensure state update propagates and UI re-renders
     await new Promise(resolve => setTimeout(resolve, 300));
-    console.log('[PDF Processor] State update delay complete, closing modal...');
 
     // Close modal after adding loading note
     if (onClose) {
       onClose();
-      console.log('[PDF Processor] Modal closed');
     }
 
     let result;
 
     try {
       if (mode === "pdf") {
-        // Use simplified options - always generate notes, no images
         const options = {
           extractImages: false,
           generateNotes: true,

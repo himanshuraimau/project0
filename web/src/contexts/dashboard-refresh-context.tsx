@@ -20,12 +20,10 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
   const [loadingNotes, setLoadingNotes] = useState<Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage' }>>([]);
 
   const addLoadingNote = useCallback((tempId: string, type: 'pdf' | 'audio' | 'youtube' | 'webpage') => {
-    console.log(`Adding loading note: ${tempId} (${type})`);
     setLoadingNotes(prev => {
       // Check if note already exists to prevent duplicates
       const exists = prev.some(note => note.id === tempId);
       if (exists) {
-        console.log(`Loading note ${tempId} already exists, skipping`);
         return prev;
       }
       return [...prev, { id: tempId, type }];

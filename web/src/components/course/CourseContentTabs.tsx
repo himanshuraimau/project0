@@ -143,7 +143,6 @@ function FlashcardsTab({ chapterId }: { chapterId: string }) {
       if (data.success && data.data) {
         setFlashcards(data.data);
         if (data.cached) {
-          console.log('Loaded cached flashcards');
         }
       } else {
         throw new Error('Invalid response format');

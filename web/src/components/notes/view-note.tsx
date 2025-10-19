@@ -64,32 +64,27 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   const { updateNote } = useNotes();
   const { getTranslation } = useTranslations();
 
-  // Load available translations on mount - ONLY ONCE per note
-  useEffect(() => {
-    // Prevent duplicate loading
+  // Load available translations only when needed
+  const loadAvailableTranslations = async () => {
     if (translationsLoaded) return;
 
-    const loadTranslations = async () => {
-      const languages: LanguageCode[] = ['es', 'fr', 'de', 'zh', 'hi'];
-      const available: LanguageCode[] = [];
+    const languages: LanguageCode[] = ['es', 'fr', 'de', 'zh', 'hi'];
+    const available: LanguageCode[] = [];
 
-      // Use Promise.all to fetch all translations in parallel instead of sequentially
-      const results = await Promise.allSettled(
-        languages.map(lang => getTranslation(note.id, lang))
-      );
+    // Use Promise.allSettled to fetch all translations in parallel instead of sequentially
+    const results = await Promise.allSettled(
+      languages.map(lang => getTranslation(note.id, lang))
+    );
 
-      results.forEach((result, index) => {
-        if (result.status === 'fulfilled' && result.value) {
-          available.push(languages[index]);
-        }
-      });
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled' && result.value) {
+        available.push(languages[index]);
+      }
+    });
 
-      setAvailableTranslations(available);
-      setTranslationsLoaded(true);
-    };
-
-    loadTranslations();
-  }, [note.id]); // Remove getTranslation from dependencies to prevent infinite loop
+    setAvailableTranslations(available);
+    setTranslationsLoaded(true);
+  };
 
   // Load translation when language changes
   useEffect(() => {
@@ -376,6 +371,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                           currentLanguage={currentLanguage}
                           onLanguageChange={handleLanguageChange}
                           availableTranslations={availableTranslations}
+                          onDropdownOpen={loadAvailableTranslations}
                         />
                         
                         <Button

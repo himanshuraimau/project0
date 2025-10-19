@@ -49,7 +49,6 @@ export function NewNoteSection() {
     };
     note?: { id: string; title: string; content: string };
   }) => {
-    console.log("Webpage processing completed:", result);
     
     setShowWebpageDialog(false);
     setShowLinkDialog(false);
@@ -85,7 +84,6 @@ export function NewNoteSection() {
       message?: string;
     };
   }) => {
-    console.log("Audio transcription completed:", result);
     
     setShowAudioDialog(false);
 
@@ -118,7 +116,6 @@ export function NewNoteSection() {
       message?: string;
     };
   }) => {
-    console.log("Record audio completed:", result);
     
     setShowRecordAudioDialog(false);
 
@@ -142,7 +139,6 @@ export function NewNoteSection() {
   };
 
   const handlePDFProcessComplete = (result: ProcessPDFResult) => {
-    console.log("PDF processing completed:", result);
     
     setShowPDFDialog(false);
     
@@ -170,7 +166,6 @@ export function NewNoteSection() {
     transcript: { id: string; content: string; originalName: string };
     note?: { id: string; title: string; content: string };
   }) => {
-    console.log("YouTube transcript completed:", result);
     
     setShowYouTubeDialog(false);
     setShowLinkDialog(false);
