@@ -4,7 +4,6 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard";
-import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { User, Globe, Shield, ChevronRight, LogOut, X } from "lucide-react";
 
@@ -169,9 +168,9 @@ export default function SettingsPage() {
 
           <div className="space-y-4">
             {settings.map((item, i) => (
-              <Card
+              <div
                 key={i}
-                className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl bg-card dark:bg-card transition-all duration-300 cursor-pointer border border-gray-600 hover:border-gray-300 hover:shadow-xl hover:scale-[1.02]"
+                className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl transition-all duration-300 cursor-pointer neomorphic"
                 onClick={item.onClick}
               >
                 <div className="flex items-center gap-5">
@@ -197,11 +196,11 @@ export default function SettingsPage() {
                 <div>
                   <ChevronRight className="h-6 w-6 text-muted-foreground" />
                 </div>
-              </Card>
+              </div>
             ))}
 
-            <Card
-              className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl hover:bg-destructive/10 transition-all duration-300 cursor-pointer border border-destructive/50 hover:border-destructive hover:shadow-xl hover:scale-[1.02]"
+            <div
+              className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl transition-all duration-300 cursor-pointer neomorphic"
               onClick={handleDeleteAccountClick}
             >
               <div className="flex items-center gap-5">
@@ -213,7 +212,7 @@ export default function SettingsPage() {
                 </p>
               </div>
               <ChevronRight className="h-6 w-6 text-muted-foreground" />
-            </Card>
+            </div>
           </div>
         </div>
 
