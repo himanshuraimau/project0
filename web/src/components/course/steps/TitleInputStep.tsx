@@ -56,6 +56,20 @@ export function TitleInputStep({
 
   const isValidTitle = title.trim().length >= 2 && title.trim().length <= 100;
 
+  // Show loading state instead of the form when generating
+  if (isLoading) {
+    return (
+      <div className="h-fit">
+        <LoadingState
+          message="Generating Course Units"
+          submessage="AI is analyzing your course title and creating relevant units..."
+          variant="ai"
+          className="!bg-transparent"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-10">
       <div className="text-center">
@@ -111,23 +125,12 @@ export function TitleInputStep({
         </Button>
       </div>
 
-      {isLoading && (
-        <div className="mt-8">
-          <LoadingState
-            message="Generating Course Units"
-            submessage="AI is analyzing your course title and creating relevant units..."
-            variant="ai"
-            className=""
-          />
-        </div>
-      )}
-
-      {title && !isLoading && (
-        <div className="mt-8 ">
-          <p className="text-accent dark:text-accent">
+      {title && (
+        <div className="mt-8 !rounded-2xl !bg-transparent">
+          <p className="text-black dark:text-white">
             Course: <span className="font-medium">{title}</span>
           </p>
-          <p className="text-sm text-accent/80 dark:text-accent/80">
+          <p className="text-sm text-black/80 dark:text-white/80">
             AI will generate 5-7 relevant units for this course topic.
           </p>
         </div>
