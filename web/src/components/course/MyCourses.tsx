@@ -88,16 +88,16 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
   const estimatedDuration = getEstimatedDuration(getTotalChapters(course));
 
   return (
-    <div className="h-[400px] w-full group hover:transition-all hover:duration-300 rounded-xl overflow-hidden flex flex-col neomorphic p-8">
+    <div className="h-[420px] w-full group hover:transition-all hover:duration-300 rounded-2xl overflow-hidden flex flex-col neomorphic">
       {/* Header with Title and Options */}
-      <div className="flex items-start justify-between p-8 pb-6 flex-shrink-0">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-xl text-foreground leading-tight line-clamp-2 mb-3">
+      <div className="flex items-start justify-between pt-6 px-6 pb-4 flex-shrink-0">
+        <div className="flex-1 min-w-0 pr-3">
+          <h3 className="font-bold text-xl text-foreground leading-tight line-clamp-2 mb-2">
             {course.name}
           </h3>
           <Badge 
             variant="secondary" 
-            className="bg-background/80 text-foreground backdrop-blur-sm  text-sm font-medium px-3 py-1"
+            className="bg-background/80 text-foreground backdrop-blur-sm text-sm font-medium px-3 py-1"
           >
             {difficultyLevel}
           </Badge>
@@ -109,7 +109,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full"
+              className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-full flex-shrink-0"
             >
               <MoreVertical className="h-5 w-5" />
             </Button>
@@ -150,52 +150,52 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
       </div>
 
       {/* Course Details */}
-      <div className="px-8 pb-6 flex-shrink-0">
-        <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-accent flex-shrink-0" />
-            <span className="font-medium">{course.units.length} units</span>
+      <div className="px-6 pb-4 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 min-w-0">
+            <Users className="h-4 w-4 text-accent flex-shrink-0" />
+            <span className="font-medium truncate">{course.units.length} units</span>
           </div>
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-accent flex-shrink-0" />
-            <span className="font-medium">{getTotalChapters(course)} chapters</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <BookOpen className="h-4 w-4 text-accent flex-shrink-0" />
+            <span className="font-medium truncate">{getTotalChapters(course)} chapters</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-accent flex-shrink-0" />
-            <span className="font-medium">{estimatedDuration}</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <Clock className="h-4 w-4 text-accent flex-shrink-0" />
+            <span className="font-medium truncate">{estimatedDuration}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Eye className="h-5 w-5 text-accent flex-shrink-0" />
-            <span className="font-medium">{formatDate(course.createdAt)}</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <Eye className="h-4 w-4 text-accent flex-shrink-0" />
+            <span className="font-medium truncate">{formatDate(course.createdAt)}</span>
           </div>
         </div>
       </div>
 
       {/* Progress Section */}
-      <div className="px-8 pb-6 flex-shrink-0">
+      <div className="px-6 pb-4 flex-shrink-0">
         {progress.totalChapters > 0 ? (
           <div>
-            <div className="flex items-center justify-between text-sm mb-3">
+            <div className="flex items-center justify-between text-sm mb-2">
               <span className="text-foreground font-medium">Progress</span>
               <span className="text-foreground font-semibold">
                 {Math.round(progress.completionPercentage)}%
               </span>
             </div>
-            <div className="w-full bg-muted/50 rounded-full h-3">
+            <div className="w-full bg-muted/40 rounded-full h-2.5">
               <div 
-                className="bg-accent h-3 rounded-full transition-all duration-500" 
+                className="bg-accent h-2.5 rounded-full transition-all duration-500" 
                 style={{ width: `${progress.completionPercentage}%` }}
               />
             </div>
             {progress.isCompleted && progress.completedAt && (
-              <div className="flex items-center gap-2 text-sm text-accent mt-3 font-medium">
-                <CheckCircle className="h-4 w-4" />
-                <span>Completed {formatDate(new Date(progress.completedAt))}</span>
+              <div className="flex items-center gap-1.5 text-sm text-accent mt-2 font-medium">
+                <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate">Completed {formatDate(new Date(progress.completedAt))}</span>
               </div>
             )}
           </div>
         ) : (
-          <div className="h-12 flex items-center">
+          <div className="h-10 flex items-center">
             <span className="text-muted-foreground text-sm">No progress data available</span>
           </div>
         )}
@@ -205,10 +205,10 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
       <div className="flex-1"></div>
 
       {/* Continue Button */}
-      <div className="p-8 pt-0 flex-shrink-0">
+      <div className="px-6 pb-6 pt-2 flex-shrink-0">
         <Link href={`/dashboard/course/${course.id}/0/0`} className="block">
           <Button 
-            className="w-full bg-accent font-medium py-4 text-base text-black dark:text-white rounded-lg hover:bg-accent/90 cursor-pointer hover:scale-105 transition-transform duration-200"
+            className="w-full bg-sidebar font-medium py-3 text-base text-black dark:text-white rounded-sm hover:bg-accent/90 cursor-pointer"
             size="lg"
           >
             {progress.isCompleted ? "Review Course" : "Continue Learning"}

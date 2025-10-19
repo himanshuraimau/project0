@@ -2,7 +2,6 @@ import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
 // Note: The DashboardLayout is now handled by app/dashboard/layout.tsx
 import { DashboardLayout } from "@/components/dashboard"
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { 
@@ -33,7 +32,7 @@ export default async function SupportPage() {
         </div>
 
         {/* Most Popular FAQs */}
-        <Card className="rounded-3xl border-0 p-8  bg-card">
+        <div className="rounded-3xl p-8 neomorphic">
           <h2 className="text-2xl font-bold text-foreground mb-6">Most Popular</h2>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="family-plan" className="border-border">
@@ -78,10 +77,10 @@ export default async function SupportPage() {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-        </Card>
+        </div>
 
         {/* Recording & Notes */}
-        <Card className="rounded-3xl border-0 p-8  bg-card">
+        <div className="rounded-3xl p-8 neomorphic">
           <h2 className="text-2xl font-bold text-foreground mb-6">Recording & Notes</h2>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="recording-quality" className="border-border">
@@ -115,10 +114,10 @@ export default async function SupportPage() {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-        </Card>
+        </div>
 
         {/* Subscription & Payments */}
-        <Card className="rounded-3xl border-0 p-8  bg-card">
+        <div className="rounded-3xl p-8 neomorphic">
           <h2 className="text-2xl font-bold text-foreground mb-6">Subscription & Payments</h2>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="cancel-subscription" className="border-border">
@@ -151,10 +150,10 @@ export default async function SupportPage() {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-        </Card>
+        </div>
 
         {/* Support Email */}
-        <Card className="rounded-3xl border-0 p-8  bg-card">
+        <div className="rounded-3xl p-8 neomorphic">
           <h2 className="text-2xl font-bold text-foreground mb-6">Support Email</h2>
           <div className="flex items-start gap-4 p-6 bg-muted/30 rounded-2xl">
             <Mail className="h-6 w-6 text-accent flex-shrink-0 mt-1" />
@@ -166,10 +165,10 @@ export default async function SupportPage() {
               </p>
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Contact Us */}
-        <Card className="rounded-3xl border-0 p-8  bg-card">
+        <div className="rounded-3xl p-8 neomorphic">
           <h2 className="text-2xl font-bold text-foreground mb-6">Contact Us</h2>
           <div className="space-y-6">
             <div>
@@ -200,7 +199,7 @@ export default async function SupportPage() {
               Send Message
             </Button>
           </div>
-        </Card>
+        </div>
       </div>
     </DashboardLayout>
   )
