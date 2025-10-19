@@ -21,6 +21,7 @@ interface LanguageSelectorProps {
   currentLanguage: LanguageCode | 'en';
   onLanguageChange: (language: LanguageCode | 'en') => void;
   availableTranslations?: LanguageCode[];
+  onDropdownOpen?: () => void;
 }
 
 export function LanguageSelector({
@@ -28,6 +29,7 @@ export function LanguageSelector({
   currentLanguage,
   onLanguageChange,
   availableTranslations = [],
+  onDropdownOpen,
 }: LanguageSelectorProps) {
   const { loading, generateTranslation } = useTranslations();
   const [generatingLanguage, setGeneratingLanguage] = useState<LanguageCode | null>(null);
@@ -35,7 +37,6 @@ export function LanguageSelector({
     new Set(availableTranslations)
   );
 
-  console.log('LanguageSelector rendered:', { noteId, currentLanguage, availableTranslations });
 
   useEffect(() => {
     setTranslatedLanguages(new Set(availableTranslations));
@@ -93,7 +94,7 @@ export function LanguageSelector({
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => open && onDropdownOpen?.()}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"

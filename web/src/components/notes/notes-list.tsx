@@ -24,7 +24,6 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
   const { loadingNotes } = useDashboardRefresh();
   const [notes, setNotes] = useState<Note[]>([]);    // Debug: Log loading notes changes
     useEffect(() => {
-      console.log('[NotesList] Loading notes updated:', loadingNotes);
     }, [loadingNotes]);
 
     const loadNotes = useCallback(async () => {

@@ -85,7 +85,6 @@ export default function RecordAudio({
       const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
       return permission.state;
     } catch (error) {
-      console.log('Permission API not available or error:', error);
       // If permission API fails, assume we need to prompt
       return 'prompt';
     }
@@ -152,7 +151,6 @@ export default function RecordAudio({
       
       // Store the MIME type for later use
       mimeTypeRef.current = mimeType;
-      console.log("Using MIME type for recording:", mimeType);
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
@@ -173,7 +171,6 @@ export default function RecordAudio({
         const audioBlob = new Blob(audioChunksRef.current, {
           type: mimeTypeRef.current,
         });
-        console.log("Created audio blob with type:", mimeTypeRef.current, "size:", audioBlob.size);
         setAudioBlob(audioBlob);
         stream.getTracks().forEach((track) => track.stop());
         

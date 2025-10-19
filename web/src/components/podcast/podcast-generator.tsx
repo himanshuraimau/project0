@@ -70,7 +70,6 @@ function PodcastGeneratorInner({ noteId, noteTitle, noteContent }: PodcastGenera
       autoRetry: false,
       showToast: false, // We'll handle toasts manually
       onRetryStart: (retryCount) => {
-        console.log(`Starting retry attempt ${retryCount} for podcast generation`);
       },
       onRetrySuccess: (retryCount) => {
         toast.success(`Podcast generation succeeded after ${retryCount} retries`);
