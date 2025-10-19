@@ -149,6 +149,20 @@ export function ChaptersReviewStep({
     0
   );
 
+  // Show loading state instead of the form when saving
+  if (isLoading) {
+    return (
+      <div className="mt-8 h-fit">
+        <LoadingState
+          message="Saving Your Course"
+          submessage="Creating course structure in the database..."
+          variant="save"
+          className="!bg-transparent"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -238,7 +252,7 @@ export function ChaptersReviewStep({
                       variant="ghost"
                       size="sm"
                       disabled={isLoading}
-                      className="text-accent hover:text-accent/80 hover:bg-accent/10"
+                      className="text-black dark:text-white hover:text-accent/80 hover:bg-accent/10"
                     >
                       <Edit3 className="w-4 h-4" />
                     </Button>
@@ -317,7 +331,7 @@ export function ChaptersReviewStep({
                             variant="ghost"
                             size="sm"
                             disabled={isLoading}
-                            className="text-accent hover:text-accent/80 hover:bg-accent/10"
+                            className="text-black dark:text-white hover:text-accent/80 hover:bg-accent/10"
                           >
                             <Edit3 className="w-4 h-4" />
                           </Button>
@@ -346,24 +360,12 @@ export function ChaptersReviewStep({
         ))}
       </div>
 
-      {/* Loading Overlay for Saving */}
-      {isLoading && (
-        <div className="max-w-4xl mx-auto mb-6">
-          <LoadingState
-            message="Saving Your Course"
-            submessage="Creating course structure in the database..."
-            variant="save"
-            className="bg-accent/5 border border-accent/10 rounded-lg"
-          />
-        </div>
-      )}
-
       {/* Save Button */}
       <div className="max-w-4xl mx-auto">
         <div className="bg-gradient-to-r from-accent/5 to-accent/10 border border-accent/20 rounded-xl p-6 backdrop-blur-sm">
           <div className="text-center space-y-4">
             <div>
-              <h3 className="text-lg font-semibold text-accent mb-2">
+              <h3 className="text-lg font-semibold text-black dark:text-white mb-2">
                 Ready to Create Your Course?
               </h3>
               <p className="text-muted-foreground">

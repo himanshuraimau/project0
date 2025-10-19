@@ -163,6 +163,20 @@ export function UnitsGenerationStep({
     !editingId &&
     !isLoading;
 
+  // Show loading state instead of the form when generating chapters
+  if (isLoading) {
+    return (
+      <div className="mt-8 h-fit">
+        <LoadingState
+          message="Generating Course Chapters"
+          submessage="AI is creating 3-5 chapters for each unit with YouTube search queries..."
+          variant="ai"
+          className="!bg-transparent"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-10">
       <div className="text-center">
@@ -297,29 +311,19 @@ export function UnitsGenerationStep({
         </CardContent>
       </Card>
 
-      {isLoading && (
-        <div className="max-w-2xl mx-auto mt-6">
-          <LoadingState
-            message="Generating Course Chapters"
-            submessage="AI is creating 3-5 chapters for each unit with YouTube search queries..."
-            variant="ai"
-          />
-        </div>
-      )}
-
-      {units.length > 0 && !isLoading && (
+      {units.length > 0 && (
         <div className="max-w-2xl mx-auto">
           <Button
             onClick={handleFinalize}
             disabled={!canFinalize}
-            className="w-full cursor-pointer bg-accent text-white hover:bg-accent/90"
+            className="w-full cursor-pointer bg-accent text-black dark:text-white hover:bg-accent/90"
             size="lg"
           >
             {isLoading ? (
               <InlineLoading
                 message="Generating Chapters..."
                 variant="ai"
-                className="text-white"
+                className=""
               />
             ) : (
               "Finalize Units & Generate Chapters"

@@ -79,7 +79,7 @@ export default function CourseLayout({
           {/* Main content area - uses SidebarInset for proper spacing */}
           <SidebarInset className="flex flex-col flex-1">
             {/* Simplified top navbar - back to courses */}
-            <header className="sticky top-0 z-40 bg-background pt-4 pl-4">
+            <header className="sticky top-0 z-40 bg-white dark:bg-background pt-4 pl-4">
               <div className="flex h-16 items-center px-6 mr-4 mb-4 border-b border-border/40">
                 <Link
                   href="/dashboard/generate-course"

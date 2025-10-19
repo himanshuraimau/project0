@@ -123,7 +123,7 @@ export function BatchProgressStep({
 
       {/* Course Info Header */}
       <div className="max-w-4xl mx-auto border-border/60 bg-card/80 backdrop-blur-sm rounded-3xl">
-        <CardHeader className="bg-gradient-to-r from-accent/5 to-accent/10 border-b border-border/40 rounded-t-3xl pt-5">
+        <CardHeader className="bg-gradient-to-r from-accent/5 to-accent/10 p-5">
           <CardTitle className="flex items-center space-x-3">
             <div className="p-2 bg-accent/10 rounded-3xl">
               <BookOpen className="w-6 h-6 text-accent" />
@@ -139,10 +139,10 @@ export function BatchProgressStep({
       </div>
 
       {/* Progress Overview */}
-      <Card className="max-w-4xl mx-auto border-border/40 bg-card/60 backdrop-blur-sm rounded-3xl">
+      <Card className="max-w-4xl mx-auto border-border/40 bg-card/60 backdrop-blur-sm rounded-3xl p-5">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-foreground">Content Generation Progress</h3>
+            <h3 className="text-lg font-semibold text-foreground pb-3">Content Generation Progress</h3>
             <div className="text-sm text-muted-foreground">
               {isCompleted ? (
                 <span className="text-primary font-medium">Completed!</span>
@@ -184,20 +184,6 @@ export function BatchProgressStep({
         </CardContent>
       </Card>
 
-      {/* Current Processing Status */}
-      {batchState.isProcessing && !isCompleted && (
-        <div className="max-w-4xl mx-auto">
-          <CardContent className="pt-6">
-            <LoadingState
-              message={`Processing Batch ${currentBatchText}`}
-              submessage={`Generating content for ${batchState.processingChapters.length} chapters...`}
-              variant="ai"
-              className="bg-accent/5 border border-accent/20 rounded-3xl"
-            />
-          </CardContent>
-        </div>
-      )}
-
       {/* Chapters List with Status */}
       <Card className="max-w-4xl mx-auto border-border/40 bg-card rounded-3xl">
         <CardHeader>
@@ -213,8 +199,8 @@ export function BatchProgressStep({
                 <div
                   key={item.chapter.id}
                   className={`flex items-center justify-between p-4 transition-colors ${
-                    status === 'processing' ? 'bg-accent/10' : 
-                    status === 'completed' ? 'bg-primary/10' : 'hover:bg-muted/30'
+                    status === 'processing' ? 'bg-accent/10 rounded-lg mb-1' : 
+                    status === 'completed' ? 'bg-primary/10 rounded-lg mb-1' : 'hover:bg-muted/30'
                   }`}
                 >
                   <div className="flex items-center space-x-4 flex-1">

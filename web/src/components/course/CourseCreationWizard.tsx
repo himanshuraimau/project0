@@ -177,7 +177,7 @@ export function CourseCreationWizard({
             <Button
               onClick={goBack}
               variant="ghost"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground border-1"
               disabled={isGeneratingUnits || isGeneratingChapters || isSaving}
             >
               ← Back
@@ -451,7 +451,7 @@ export function CourseCreationWizard({
                   units={units}
                   onUnitsChange={handleUnitsChange}
                   onFinalize={handleFinalizeUnits}
-                  isLoading={false}
+                  isLoading={isGeneratingChapters}
                 />
               </div>
             </div>
