@@ -208,7 +208,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
       <div className="p-8 pt-0 flex-shrink-0">
         <Link href={`/dashboard/course/${course.id}/0/0`} className="block">
           <Button 
-            className="w-full bg-accent font-medium py-4 text-base text-black dark:text-white rounded-lg transition-colors hover:bg-accent/90 cursor-pointer hover:scale-105 transition-transform duration-200"
+            className="w-full bg-accent font-medium py-4 text-base text-black dark:text-white rounded-lg hover:bg-accent/90 cursor-pointer hover:scale-105 transition-transform duration-200"
             size="lg"
           >
             {progress.isCompleted ? "Review Course" : "Continue Learning"}

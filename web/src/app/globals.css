@@ -69,7 +69,7 @@
 }
 
 :root {
-  --background: #ffffff;
+  --background: #oklch(1 0 0);
   --foreground: oklch(0 0 0);
   --card: #EBECED;
   --card-foreground: oklch(0 0 0);
@@ -82,7 +82,7 @@
   --muted: oklch(0.9551 0 0);
   --muted-foreground: oklch(0.3211 0 0);
   --accent: #c5c5c5;
-  --accent-foreground: oklch(1 0 0);
+  --accent-foreground: oklch(0 0 0);
   --destructive: oklch(0.6368 0.2078 25.3313);
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.817 0.01 264.695);

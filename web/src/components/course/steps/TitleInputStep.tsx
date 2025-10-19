@@ -96,14 +96,14 @@ export function TitleInputStep({
         <Button
           onClick={handleGenerateUnits}
           disabled={!isValidTitle || isLoading}
-          className="w-full cursor-pointer bg-accent hover:bg-accent/60 text-white"
+          className="w-full cursor-pointer bg-accent hover:bg-accent/60 text-black dark:text-white"
           size="lg"
         >
           {isLoading ? (
             <InlineLoading
               message="Generating Units..."
               variant="ai"
-              className="text-white"
+              className="text-white dark:text-black"
             />
           ) : (
             "Generate Units with AI"
