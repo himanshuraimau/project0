@@ -369,22 +369,6 @@ export default function InlineChatbot({
                 </TooltipContent>
               </Tooltip>
             </div>
-
-            {/* Stop Generation Button */}
-            {isStreaming && (
-              <div className="flex justify-center mt-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={abortStream}
-                  className="text-xs"
-                >
-                  <StopCircle className="h-3 w-3 mr-1" />
-                  Stop generating
-                </Button>
-              </div>
-            )}
           </form>
         </div>
       </div>

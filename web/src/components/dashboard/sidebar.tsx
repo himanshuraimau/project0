@@ -9,11 +9,12 @@ import {
   Settings,
   BookOpen,
   Zap,
-  ArrowRight,
+  ArrowUpRight,
   LayoutDashboard,
 } from 'lucide-react';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -66,7 +67,9 @@ interface AppSidebarProps {
 export function AppSidebar({ className }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
+  const { theme } = useTheme();
   const isCollapsed = state === "collapsed";
+  const isDark = theme === "dark";
 
   return (
     <Sidebar
@@ -264,7 +267,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
               <span className="text-sm font-semibold text-foreground">
                 Upgrade to PRO
               </span>
-              <ArrowRight className="w-4 h-4 ml-auto text-accent group-hover:translate-x-1 transition-transform" />
+              <ArrowUpRight className={cn("w-6 h-6", isDark ? "text-black" : "text-white")} />
             </>
           )}
         </Link>
