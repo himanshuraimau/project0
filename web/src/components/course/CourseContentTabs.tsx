@@ -80,7 +80,7 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
         )}
 
                 {activeTab === "content" && (
-          <div className="w-full bg-card rounded-2xl  border p-8">
+          <div className="w-full rounded-2xl border bg-white dark:bg-black p-5">
             <ChapterView chapter={chapter} />
           </div>
         )}
@@ -92,13 +92,13 @@ export function CourseContentTabs({ chapter }: CourseContentTabsProps) {
         )}
 
         {activeTab === "flashcards" && (
-          <div className="w-full bg-card rounded-2xl  border p-8">
+          <div className="w-full rounded-2xl border bg-white dark:bg-black p-5">
             <FlashcardsTab chapterId={chapter.id} />
           </div>
         )}
 
         {activeTab === "transcript" && (
-          <div className="w-full bg-card rounded-2xl  border p-8">
+          <div className="w-full rounded-2xl border bg-white dark:bg-black p-5">
             <TranscriptViewer 
               chapterId={chapter.id}
               videoId={chapter.videoId} 

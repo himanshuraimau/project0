@@ -192,15 +192,15 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
                   disabled={chapterUpdating}
                   variant={chapterProgress.isCompleted ? "outline" : "default"}
                   size="lg"
-                  className={chapterProgress.isCompleted 
-                    ? "border-accent text-accent hover:bg-accent hover:text-accent-foreground" 
+                  className={chapterProgress.isCompleted
+                    ? "border-accent text-black dark:text-white hover:bg-accent hover:text-accent-foreground"
                     : "bg-accent text-accent-foreground hover:bg-accent/90"
                   }
                 >
                   {chapterUpdating ? (
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
                   ) : chapterProgress.isCompleted ? (
-                    <CheckCircle className="h-4 w-4 mr-2 text-accent" />
+                    <CheckCircle className="h-4 w-4 mr-2 text-black/50 dark:text-white/80" />
                   ) : (
                     <CheckCircle className="h-4 w-4 mr-2" />
                   )}

@@ -215,7 +215,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
           <Button
             onClick={handleReset}
             variant="outline"
-            className="border-stone-200 text-stone-600 dark:text-white hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800"
+            className="border-stone-200 text-stone-600 dark:text-white hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800 cursor-pointer"
             size="sm"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
@@ -224,7 +224,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
           <Button
             onClick={onClose}
             variant="outline"
-            className="border-stone-200 text-stone-600 hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:text-white dark:hover:bg-stone-800"
+            className="border-stone-200 text-stone-600 hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:text-white dark:hover:bg-stone-800 cursor-pointer"
             size="sm"
           >
             <X className="h-4 w-4" />
