@@ -59,28 +59,37 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode | 'en'>('en');
   const [currentTranslation, setCurrentTranslation] = useState<NoteTranslation | null>(null);
   const [availableTranslations, setAvailableTranslations] = useState<LanguageCode[]>([]);
+  const [translationsLoaded, setTranslationsLoaded] = useState(false);
   
   const { updateNote } = useNotes();
   const { getTranslation } = useTranslations();
 
-  // Load available translations on mount
+  // Load available translations on mount - ONLY ONCE per note
   useEffect(() => {
+    // Prevent duplicate loading
+    if (translationsLoaded) return;
+
     const loadTranslations = async () => {
       const languages: LanguageCode[] = ['es', 'fr', 'de', 'zh', 'hi'];
       const available: LanguageCode[] = [];
 
-      for (const lang of languages) {
-        const translation = await getTranslation(note.id, lang);
-        if (translation) {
-          available.push(lang);
+      // Use Promise.all to fetch all translations in parallel instead of sequentially
+      const results = await Promise.allSettled(
+        languages.map(lang => getTranslation(note.id, lang))
+      );
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled' && result.value) {
+          available.push(languages[index]);
         }
-      }
+      });
 
       setAvailableTranslations(available);
+      setTranslationsLoaded(true);
     };
 
     loadTranslations();
-  }, [note.id, getTranslation]);
+  }, [note.id]); // Remove getTranslation from dependencies to prevent infinite loop
 
   // Load translation when language changes
   useEffect(() => {
@@ -97,7 +106,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
     };
 
     loadTranslation();
-  }, [currentLanguage, note.id, getTranslation]);
+  }, [currentLanguage, note.id]); // Remove getTranslation from dependencies
 
   const handleLanguageChange = (language: LanguageCode | 'en') => {
     setCurrentLanguage(language);
@@ -243,25 +252,25 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   };
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full mx-auto p-8">
+      <div className="w-full mx-auto p-4 sm:p-6 lg:p-8">
         {/* Two Column Layout - Responsive Grid */}
-        <div className={`grid grid-cols-1 gap-6 lg:gap-8 ${!isChatbotMinimized ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
+        <div className={`grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 ${!isChatbotMinimized ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
           {/* Main Content - Takes 2/3 of the width on lg+ screens when chatbot is open, full width when minimized */}
           <div className={!isChatbotMinimized ? "lg:col-span-2" : "lg:col-span-1"}>
             {/* Main Content Card */}
             <Card className="rounded-3xl border-0  bg-card hover: transition-all duration-300">
           {/* Header Section */}
-          <CardHeader className="p-8 pb-6">
-            <div className="space-y-6">
+          <CardHeader className="p-4 sm:p-6 lg:p-8 pb-4 lg:pb-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Title and Controls Row */}
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-                <div className="flex-1 space-y-3">
+              <div className="flex flex-col gap-6">
+                <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <h1 className="text-3xl lg:text-4xl font-bold text-foreground leading-tight flex-1">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight flex-1">
                       {getCurrentTitle() || "Untitled Note"}
                     </h1>
                     {currentLanguage !== 'en' && (
-                      <Badge variant="secondary" className="mt-1">
+                      <Badge variant="secondary" className="mt-1 shrink-0">
                         Translated
                       </Badge>
                     )}
@@ -271,7 +280,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                   <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      <span>
+                      <span className="truncate">
                         {note.updatedAt 
                           ? formatDate(note.updatedAt) 
                           : formatDate(note.createdAt || new Date().toISOString())
@@ -287,7 +296,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                 </div>
 
                 {/* Controls Toolbar */}
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                   {isEditMode ? (
                     /* Edit Mode Controls */
                     <div className="flex items-center gap-2">
@@ -326,21 +335,21 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                     </div>
                   ) : (
                     /* View Mode Controls */
-                    <>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
                       {/* Mode Toggle */}
-                      <div className="hidden sm:flex items-center bg-muted rounded-2xl p-1">
+                      <div className="flex items-center bg-muted rounded-2xl p-1 shrink-0">
                         <Button
                           variant={viewMode === 'preview' ? "default" : "ghost"}
                           size="sm"
                           onClick={() => setViewMode('preview')}
-                          className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+                          className={`rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
                             viewMode === 'preview' 
                               ? "bg-primary text-primary-foreground " 
                               : "hover:bg-background text-foreground hover:text-foreground"
                           }`}
                         >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Preview
+                          <Eye className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Preview</span>
                         </Button>
                         <Button
                           variant={viewMode === 'edit' ? "default" : "ghost"}
@@ -349,19 +358,19 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                             e.preventDefault();
                             enterEditMode();
                           }}
-                          className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+                          className={`rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
                             viewMode === 'edit' 
                               ? "bg-primary text-primary-foreground " 
                               : "hover:bg-background text-foreground hover:text-foreground"
                           }`}
                         >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
+                          <Edit className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Edit</span>
                         </Button>
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 flex-1">
                         <LanguageSelector
                           noteId={note.id}
                           currentLanguage={currentLanguage}
@@ -373,20 +382,20 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                           variant="outline"
                           size="sm"
                           onClick={handleCopy}
-                          className="rounded-xl px-4 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer"
+                          className="rounded-xl px-3 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer shrink-0"
                         >
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copy
+                          <Copy className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Copy</span>
                         </Button>
                         
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={handleDownload}
-                          className="rounded-xl px-4 py-2 hover:bg-secondary/5 hover:text-foreground border-border hover:border-secondary/20 transition-all duration-200 cursor-pointer"
+                          className="rounded-xl px-3 py-2 hover:bg-secondary/5 hover:text-foreground border-border hover:border-secondary/20 transition-all duration-200 cursor-pointer shrink-0"
                         >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
+                          <Download className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Download</span>
                         </Button>
 
                         {isChatbotMinimized && (
@@ -394,15 +403,15 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                             variant="outline"
                             size="sm"
                             onClick={() => setIsChatbotMinimized(false)}
-                            className="rounded-xl px-4 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer"
+                            className="rounded-xl px-3 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer shrink-0"
                             title="Show AI Assistant"
                           >
-                            <Bot className="h-4 w-4 mr-2" />
-                            AI Chat
+                            <Bot className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">AI Chat</span>
                           </Button>
                         )}
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               </div>
@@ -411,7 +420,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
 
 
           {/* Content Section */}
-          <CardContent className="p-8 pt-8">
+          <CardContent className="p-4 sm:p-6 lg:p-8 pt-4 sm:pt-6 lg:pt-8">
             <div className="min-h-[400px]">
               {viewMode === 'preview' && !isEditMode ? (
                 <div className="prose-custom">
@@ -446,7 +455,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
 
           {/* Completion Section */}
           {!isEditMode && (
-            <CardContent className="p-8 pt-4">
+            <CardContent className="p-4 sm:p-6 lg:p-8 pt-2 sm:pt-3 lg:pt-4">
             </CardContent>
           )}
         </Card>
@@ -455,20 +464,20 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
           {/* Chatbot Sidebar - Takes 1/3 of the width on lg+ screens */}
           <div className="lg:col-span-1">
             {!isChatbotMinimized ? (
-              <Card className="rounded-3xl border-0  bg-card hover: transition-all duration-300 fixed mr-[3.1vw]">
-                <CardHeader className="p-6 pb-4">
+              <Card className="rounded-3xl border-0 bg-card hover: transition-all duration-300 sticky top-4">
+                <CardHeader className="p-4 sm:p-6 pb-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-primary/10 rounded-full">
                         <Bot className="h-5 w-5 text-primary" />
                       </div>
-                      <h3 className="text-xl font-semibold">AI Assistant</h3>
+                      <h3 className="text-lg sm:text-xl font-semibold">AI Assistant</h3>
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setIsChatbotMinimized(true)}
-                      className="hover:bg-primary/10 rounded-full"
+                      className="hover:bg-primary/10 rounded-full shrink-0"
                       title="Minimize chatbot"
                     >
                       <Minimize2 className="h-4 w-4" />
@@ -478,8 +487,8 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                     Ask questions about your note content
                   </p>
                 </CardHeader>
-                <CardContent className="p-0 pb-6">
-                  <div className="h-[500px] lg:h-[600px] overflow-hidden">
+                <CardContent className="p-0 pb-4 sm:pb-6">
+                  <div className="h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden">
                     <DynamicInlineChatbot 
                       noteId={note.id} 
                       className="h-full"
