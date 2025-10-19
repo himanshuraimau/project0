@@ -68,7 +68,7 @@ export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
       <div className="relative w-full borde border-gray-200 dark:border-gray-700 rounded-lg bg-card dark:bg-card" style={{ height: '700px' }}>
         <svg
           ref={refSvg}
-          className="w-full h-full"
+          className="w-full h-full text-black dark:text-white"
           style={{ fontFamily: 'Arial, sans-serif' }}
         />
         <div
