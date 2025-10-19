@@ -163,15 +163,69 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
-  const { chapterId } = await params;
-  
-  return NextResponse.json({
-    message: 'Chapter Flashcard API',
-    endpoints: {
-      POST: `/api/chapter/${chapterId}/flashcards - Generate flashcards from chapter content`,
-    },
-    parameters: {
-      chapterId: 'Chapter ID to generate flashcards from (required)',
-    },
-  });
+  try {
+    const { userId } = await auth();
+    const { chapterId } = await params;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Get the chapter with its flashcards
+    const chapter = await prisma.chapter.findUnique({
+      where: { id: chapterId },
+      include: {
+        unit: {
+          include: {
+            course: true
+          }
+        }
+      }
+    });
+
+    if (!chapter) {
+      return NextResponse.json(
+        { success: false, error: 'Chapter not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify that the user owns this course
+    if (chapter.unit.course.userId !== userId) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied' },
+        { status: 403 }
+      );
+    }
+
+    // Return existing flashcards if they exist
+    if (chapter.flashcards) {
+      return NextResponse.json({
+        success: true,
+        data: chapter.flashcards,
+        message: `Found ${Array.isArray(chapter.flashcards) ? chapter.flashcards.length : 0} existing flashcards`
+      });
+    }
+
+    // No flashcards found
+    return NextResponse.json({
+      success: true,
+      data: null,
+      message: 'No flashcards found'
+    });
+
+  } catch (error) {
+    console.error('Error fetching flashcards:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to fetch flashcards',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
 }

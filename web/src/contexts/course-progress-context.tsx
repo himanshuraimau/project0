@@ -54,6 +54,8 @@ export function CourseProgressProvider({
         const data = await response.json();
         setChapterProgress(data.chapters || {});
         setUnitProgress(data.units || {});
+      } else {
+        console.error('Failed to refresh course progress:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error refreshing course progress:', error);
