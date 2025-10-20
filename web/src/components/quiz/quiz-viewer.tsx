@@ -184,9 +184,9 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
                   : "Try Again!"}
               </div>
             </div>
-            <div className="flex justify-center gap-4">
-              <Button onClick={handleReset}>
-                <RotateCcw className="h-4 w-4 mr-2" />
+            <div className="flex justify-center gap-2">
+              <Button onClick={handleReset} className="text-white dark:text-black">
+                <RotateCcw className="h-4 w-4 mr-2 text-white dark:text-black" />
                 Retake Quiz
               </Button>
               <Button onClick={onClose} variant="outline">

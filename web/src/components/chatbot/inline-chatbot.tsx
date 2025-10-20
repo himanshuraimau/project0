@@ -240,7 +240,7 @@ export default function InlineChatbot({
                       )}
                     >
                       {message.role === "user" ? (
-                        <User className="h-4 w-4" />
+                        <User className="h-4 w-4 text-white dark:text-black" />
                       ) : (
                         <Bot className="h-4 w-4" />
                       )}
@@ -270,7 +270,7 @@ export default function InlineChatbot({
                           </div>
                         )
                       ) : (
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap m-0">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap m-0 text-white dark:text-black">
                           {message.text}
                         </p>
                       )}
@@ -360,7 +360,7 @@ export default function InlineChatbot({
                     {isStreaming ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Send className="h-4 w-4" />
+                      <Send className="h-4 w-4 text-white dark:text-black" />
                     )}
                   </Button>
                 </TooltipTrigger>

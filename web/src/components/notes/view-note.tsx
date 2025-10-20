@@ -298,7 +298,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                       <Button
                         onClick={handleSaveNote}
                         disabled={!hasUnsavedChanges || isSaving}
-                        className="rounded-xl px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 cursor-pointer"
+                        className="rounded-xl px-4 py-2 bg-primary hover:bg-primary/90 text-white dark:text-black transition-all duration-200 cursor-pointer"
                         size="sm"
                       >
                         {isSaving ? (
@@ -339,7 +339,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                           onClick={() => setViewMode('preview')}
                           className={`rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
                             viewMode === 'preview' 
-                              ? "bg-primary text-primary-foreground " 
+                              ? "bg-primary text-white dark:text-black" 
                               : "hover:bg-background text-foreground hover:text-foreground"
                           }`}
                         >

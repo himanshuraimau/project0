@@ -195,7 +195,7 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
       <div className="p-6 border-b border-border flex justify-between items-center bg-muted/5 rounded-t-3xl">
         <div className="flex items-center gap-4">
           <div className="p-2 bg-primary/10 rounded-full">
-            <Bot size={20} className="text-primary" />
+            <Bot size={20} className="text-white dark:text-black" />
           </div>
           <h3 className="text-lg font-semibold">Chat with Note</h3>
         </div>
@@ -213,7 +213,7 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
       <div className="flex-1 overflow-y-auto p-6 space-y-6" style={{ maxHeight: '60vh' }}>
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <Bot className="h-12 w-12 text-primary/50 mb-4" />
+            <Bot className="h-12 w-12 text-white dark:text-black mb-4" />
             <h3 className="text-xl font-semibold mb-2">How can I help you?</h3>
             <p className="text-muted-foreground">
               Ask me about this note and I'll try to answer your questions.
@@ -247,13 +247,13 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
                           <MarkdownRenderer content={message.text} />
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 text-sm text-white dark:text-black">
                           <Loader2 className="animate-spin" size={14} />
                           <span>Generating response...</span>
                         </div>
                       )
                     ) : (
-                      <div className="whitespace-pre-wrap text-sm">{message.text}</div>
+                      <div className="whitespace-pre-wrap text-sm text-white dark:text-black">{message.text}</div>
                     )}
                     {message.role === 'assistant' && message.text && (
                       <div className="flex justify-end">
@@ -278,7 +278,7 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
               </div>
               {message.role === 'user' && (
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                  <User size={16} className="text-primary-foreground" />
+                  <User size={16} className="text-white dark:text-black" />
                 </div>
               )}
             </div>
