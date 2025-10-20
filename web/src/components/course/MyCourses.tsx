@@ -88,24 +88,26 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
   const estimatedDuration = getEstimatedDuration(getTotalChapters(course));
 
   return (
-    <div className="h-[420px] w-full group hover:transition-all hover:duration-300 rounded-2xl overflow-hidden flex flex-col neomorphic">
+    <div className="h-[380px] w-full group hover:transition-all hover:duration-300 rounded-2xl overflow-hidden flex flex-col neomorphic">
       {/* Header with Title and Options */}
       <div className="flex items-start justify-between pt-6 px-6 pb-4 flex-shrink-0">
         <div className="flex-1 min-w-0 pr-3">
-          <h3 className="font-bold text-xl text-foreground leading-tight line-clamp-2 mb-2">
+          <h3 className="font-bold text-xl text-foreground leading-tight line-clamp-2 mb-2 min-h-[3.5rem]">
             {course.name}
           </h3>
+        </div>
+        
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Badge 
             variant="secondary" 
             className="bg-background/80 text-foreground backdrop-blur-sm text-sm font-medium px-3 py-1"
           >
             {difficultyLevel}
           </Badge>
-        </div>
-        
-        {/* Options Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          
+          {/* Options Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
@@ -146,12 +148,13 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
               </AlertDialogContent>
             </AlertDialog>
           </DropdownMenuContent>
-        </DropdownMenu>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Course Details */}
-      <div className="px-6 pb-4 flex-shrink-0">
-        <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground">
+      <div className="px-6 pb-3 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2 min-w-0">
             <Users className="h-4 w-4 text-accent flex-shrink-0" />
             <span className="font-medium truncate">{course.units.length} units</span>
@@ -172,7 +175,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
       </div>
 
       {/* Progress Section */}
-      <div className="px-6 pb-4 flex-shrink-0">
+      <div className="px-6 pb-2 flex-shrink-0">
         {progress.totalChapters > 0 ? (
           <div>
             <div className="flex items-center justify-between text-sm mb-2">
@@ -183,7 +186,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
             </div>
             <div className="w-full bg-muted/40 rounded-full h-2.5">
               <div 
-                className="bg-accent h-2.5 rounded-full transition-all duration-500" 
+                className="bg-primary h-2.5 rounded-full transition-all duration-500" 
                 style={{ width: `${progress.completionPercentage}%` }}
               />
             </div>
@@ -195,8 +198,8 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
             )}
           </div>
         ) : (
-          <div className="h-10 flex items-center">
-            <span className="text-muted-foreground text-sm">No progress data available</span>
+          <div className="py-2">
+            <span className="text-muted-foreground text-sm">Ready to start</span>
           </div>
         )}
       </div>
@@ -208,7 +211,11 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
       <div className="px-6 pb-6 pt-2 flex-shrink-0">
         <Link href={`/dashboard/course/${course.id}/0/0`} className="block">
           <Button 
-            className="w-full bg-sidebar font-medium py-3 text-base text-black dark:text-white rounded-sm hover:bg-accent/90 cursor-pointer"
+            className={`w-full font-medium py-3 text-base rounded-sm cursor-pointer transition-colors ${
+              progress.completedChapters > 0 
+                ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
+                : "bg-green-600 hover:bg-green-700 text-white"
+            }`}
             size="lg"
           >
             {progress.isCompleted ? "Review Course" : "Continue Learning"}
@@ -223,7 +230,7 @@ export function MyCourses({ courses }: MyCoursesProps) {
   return (
     <div className="w-full space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground mb-3">
+        <h2 className="text-2xl font-semibold text-foreground mb-1">
           My Courses
         </h2>
         <p className="text-muted-foreground text-base font-medium leading-6">

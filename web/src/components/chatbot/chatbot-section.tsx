@@ -24,7 +24,7 @@ export function ChatbotSection({ noteId, className }: ChatbotSectionProps) {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <div className="p-2 bg-primary/10 rounded-full">
-            <Bot className="h-5 w-5 text-primary" />
+            <Bot className="h-5 w-5 text-white dark:text-black" />
           </div>
           <h3 className="text-xl font-semibold">AI Assistant</h3>
         </div>

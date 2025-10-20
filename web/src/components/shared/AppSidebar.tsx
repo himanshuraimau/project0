@@ -327,7 +327,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           >
             <div className="flex items-center gap-2">
               <span className="font-semibold text-white dark:text-black">Upgrade to</span>
-              <span className="bg-background text-foreground px-2 py-1 rounded-[0.4rem] text-sm font-bold">PRO</span>
+              <span className="bg-background text-black dark:text-white px-2 py-1 rounded-[0.4rem] text-sm font-bold">PRO</span>
             </div>
             <ArrowUpRight className={cn("w-6 h-6", isDark ? "text-black" : "text-white")} />
           </Link>

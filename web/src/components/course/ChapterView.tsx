@@ -151,7 +151,7 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
               Chapter Notes
             </h3>
           </div>
-          <Card className="bg-card rounded-2xl  border">
+          <Card className="bg-card rounded-2xl border-0 shadow-none">
             <CardContent className="p-8">
               <LexicalViewer
                 content={chapterData.notes}
@@ -204,14 +204,14 @@ export function ChapterView({ chapter, onComplete }: ChapterViewProps) {
                   variant={chapterProgress.isCompleted ? "outline" : "default"}
                   size="lg"
                   className={chapterProgress.isCompleted
-                    ? "border-accent text-black dark:text-white hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                    : "bg-accent text-accent-foreground hover:bg-accent/90 cursor-pointer"
+                    ? "border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white cursor-pointer bg-orange-50 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-600 dark:hover:bg-orange-600 dark:hover:text-white"
+                    : "bg-green-600 text-white hover:bg-green-700 cursor-pointer shadow-md"
                   }
                 >
                   {chapterUpdating ? (
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
                   ) : chapterProgress.isCompleted ? (
-                    <CheckCircle className="h-4 w-4 mr-2 text-black/50 dark:text-white/80" />
+                    <CheckCircle className="h-4 w-4 mr-2" />
                   ) : (
                     <CheckCircle className="h-4 w-4 mr-2" />
                   )}
