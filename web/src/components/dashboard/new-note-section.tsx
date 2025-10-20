@@ -195,7 +195,7 @@ export function NewNoteSection() {
     <div className={`w-full ${inter.className}`}>
       <div className="mb-8">
         <h2
-          className={`text-2xl leading-8 font-semibold text-foreground mb-3 ${jakarta.className}`}
+          className={`text-2xl leading-8 font-semibold text-foreground mb-1 ${jakarta.className}`}
         >
           New Note
         </h2>
