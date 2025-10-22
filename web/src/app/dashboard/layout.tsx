@@ -25,7 +25,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const isCoursePage = pathname.includes("/course/") && !pathname.includes("/create/");
 
   return (
-    <div className="flex-1 min-h-screen bg-background overflow-x-hidden">
+    <div className="flex-1 min-h-screen bg-background overflow-x-hidden px-5">
       {/* Content area with conditional padding */}
       <main className={`flex-1 ${!isCoursePage ? 'px-6 py-4' : 'px-6 py-4'}`}>
         <div className="max-w-full w-full">

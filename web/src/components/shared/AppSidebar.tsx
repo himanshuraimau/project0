@@ -185,18 +185,27 @@ export function AppSidebar({ className }: AppSidebarProps) {
         <div className="flex items-center gap-2 w-full group">
           {isCollapsed ? (
             <div className="relative flex items-center w-full justify-center">
-              <div className="transition-opacity duration-200 group-hover:opacity-0 group-hover:pointer-events-none">
-                <UserControl showName={false} />
+              <div>
+                <img
+                  src="/logo.png"
+                  alt="JelliNote AI"
+                  className="h-10 w-auto rounded-md transition-opacity duration-200 opacity-100 group-hover:opacity-0 visible group-hover:invisible"
+                />
               </div>
               <SidebarTrigger
-                className="absolute opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all text-lg w-8 h-8 pointer-events-none group-hover:pointer-events-auto"
+                className="absolute opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all text-lg w-10 h-10 pointer-events-none group-hover:pointer-events-auto"
               />
             </div>
           ) : (
             <>
-              <UserControl showName={false} />
-              <span className="text-foreground font-semibold flex-1 text-xl">NotesAI</span>
-              <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-all text-lg w-8 h-8" />
+            <div>
+              <img src="/logo.png" alt="JelliNote AI" className="h-10 w-auto mr-2 rounded-md" />
+            </div>
+              <div className={`text-foreground flex-1 ${jakarta.className}`}>
+                <div className="text-lg font-semibold leading-5">JelliNote AI</div>
+                <div className="text-sm text-muted-foreground font-medium leading-4">Smart Notes</div>
+              </div>
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-all text-lg w-10 h-10" />
             </>
           )}
         </div>
@@ -331,6 +340,13 @@ export function AppSidebar({ className }: AppSidebarProps) {
             </div>
             <ArrowUpRight className={cn("w-6 h-6", isDark ? "text-black" : "text-white")} />
           </Link>
+        )}
+
+        {/* Moved UserControl to footer */}
+        {!isCollapsed && (
+          <div className="mt-3">
+            <UserControl showName={true} />
+          </div>
         )}
       </SidebarFooter>
     </Sidebar>

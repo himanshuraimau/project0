@@ -222,16 +222,16 @@ export function NewNoteSection() {
         >
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-4 sm:px-6 py-6 flex-1 min-w-[180px] flex items-center justify-start gap-3 sm:gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
+            className="neomorphic h-24 w-full lg:w-[16vw] lg:flex-none flex-1 py-6 px-[1.5vw] flex items-center justify-between gap-[1.25vw] border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowRecordAudioDialog(true)}
           >
             <div className="flex items-center justify-between w-full min-w-0">
-              <div className="flex flex-col items-start min-w-0 flex-1">
-                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate w-full">
+              <div className="flex items-center min-w-0">
+                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate">
                   Record Audio
                 </div>
               </div>
-              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0 ml-[1vw]">
                 <Mic className="size-5 sm:size-7" />
               </div>
             </div>
@@ -259,16 +259,16 @@ export function NewNoteSection() {
         <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-4 sm:px-6 py-6 flex-1 min-w-[180px] flex items-center justify-start gap-3 sm:gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
+            className="neomorphic h-24 w-full lg:w-[16vw] lg:flex-none flex-1 py-6 px-[1.5vw] flex items-center justify-between gap-[1.25vw] border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowAudioDialog(true)}
           >
             <div className="flex items-center justify-between w-full min-w-0">
-              <div className="flex flex-col items-start min-w-0 flex-1">
-                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate w-full">
+              <div className="flex items-center min-w-0">
+                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate">
                   Upload Audio
                 </div>
               </div>
-              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0 ml-[1vw]">
                 <Upload className="size-5 sm:size-7" />
               </div>
             </div>
@@ -296,16 +296,16 @@ export function NewNoteSection() {
         <Dialog open={showPDFDialog} onOpenChange={setShowPDFDialog}>
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-4 sm:px-6 py-6 flex-1 flex items-center justify-start gap-3 sm:gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
+            className="neomorphic h-24 w-full flex-1 py-6 px-[1.5vw] flex items-center justify-between gap-[1.25vw] border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowPDFDialog(true)}
           >
             <div className="flex items-center justify-between w-full min-w-0">
-              <div className="flex flex-col items-start min-w-0 flex-1">
-                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate w-full">
+              <div className="flex items-center min-w-0">
+                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate">
                   Upload PDF or Add Text
                 </div>
               </div>
-              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0 ml-[1vw]">
                 <FileText className="size-5 sm:size-7" />
               </div>
             </div>
@@ -333,16 +333,16 @@ export function NewNoteSection() {
         <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-4 sm:px-6 py-6 flex-1 flex items-center justify-start gap-3 sm:gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
+            className="neomorphic h-24 w-full flex-1 py-6 px-[1.5vw] flex items-center justify-between gap-[1.25vw] border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowLinkDialog(true)}
           >
             <div className="flex items-center justify-between w-full min-w-0">
-              <div className="flex flex-col items-start min-w-0 flex-1">
-                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate w-full">
+              <div className="flex items-center min-w-0">
+                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate">
                   Youtube Video or Web Links
                 </div>
               </div>
-              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0 ml-[1vw]">
                 <Video className="size-5 sm:size-7" />
               </div>
             </div>
@@ -364,8 +364,8 @@ export function NewNoteSection() {
                   <button
                     onClick={() => setLinkType("youtube")}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${linkType === "youtube"
-                      ? "bg-background text-foreground "
-                      : "text-muted-foreground hover:text-foreground"
+                        ? "bg-background text-foreground "
+                        : "text-muted-foreground hover:text-foreground"
                       }`}
                   >
                     YouTube
@@ -373,8 +373,8 @@ export function NewNoteSection() {
                   <button
                     onClick={() => setLinkType("webpage")}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${linkType === "webpage"
-                      ? "bg-background text-foreground "
-                      : "text-muted-foreground hover:text-foreground"
+                        ? "bg-background text-foreground "
+                        : "text-muted-foreground hover:text-foreground"
                       }`}
                   >
                     Website
