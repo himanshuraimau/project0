@@ -3,27 +3,19 @@
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  Home,
   HelpCircle,
   HeadphonesIcon,
   Settings,
   BookOpen,
-  CheckCircle,
-  Circle,
-  ChevronLeft,
   Grid3X3,
   Moon,
-  Info,
   ArrowUpRight,
-  PanelLeft,
   Sun,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { useTheme } from "next-themes";
-import { useChapterProgress } from "@/hooks/use-chapter-progress";
-import { Course, Unit, Chapter } from "@prisma/client";
 import { UserControl } from "@/components/user-control";
 import {
   Sidebar,
@@ -31,12 +23,10 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuAction,
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -46,6 +36,10 @@ const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin-ext", "vietnamese"],
 });
 
+interface AppSidebarProps {
+  className?: string;
+}
+
 const dashboardItems = [
   { title: "Dashboard", icon: Grid3X3, href: "/dashboard" },
   { title: "Create Course", icon: BookOpen, href: "/dashboard/generate-course"},
@@ -54,132 +48,22 @@ const dashboardItems = [
   { title: "Settings", icon: Settings, href: "/dashboard/settings" },
 ];
 
-
-interface CourseData {
-  course: Course & {
-    units: (Unit & {
-      chapters: Chapter[];
-    })[];
-  };
-  currentChapterId: string;
-}
-
-interface ChapterItemProps {
-  chapter: Chapter;
-  courseId: string;
-  unitIndex: number;
-  chapterIndex: number;
-  isCurrentChapter: boolean;
-}
-
-function ChapterItem({
-  chapter,
-  courseId,
-  unitIndex,
-  chapterIndex,
-  isCurrentChapter
-}: ChapterItemProps) {
-  const { progress, updating, toggleCompletion } = useChapterProgress(chapter.id);
-  const { state } = useSidebar();
-  const isCollapsed = state === "collapsed";
-
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={isCurrentChapter}
-        className={cn(
-          "group relative py-2.5 px-3 transition-all hover:bg-accent/50",
-          "text-sm font-medium rounded-sm text-muted-foreground hover:text-foreground",
-          isCurrentChapter && "bg-accent text-accent-foreground "
-        )}
-      >
-        <Link href={`/dashboard/course/${courseId}/${unitIndex}/${chapterIndex}`}>
-          <div className={cn(
-            "w-2 h-2 rounded-sm flex-shrink-0 mr-3",
-            progress.isCompleted
-              ? "bg-green-500"
-              : isCurrentChapter
-                ? "bg-foreground"
-                : "bg-muted-foreground/40"
-          )} />
-          {!isCollapsed && (
-            <span className="text-sm font-medium truncate">
-              {chapter.name}
-            </span>
-          )}
-        </Link>
-      </SidebarMenuButton>
-
-      {!isCollapsed && (
-        <SidebarMenuAction
-          onClick={(e) => {
-            e.preventDefault();
-            toggleCompletion();
-          }}
-          className={cn(
-            "opacity-0 group-hover:opacity-100 transition-opacity mr-2",
-            progress.isCompleted && "opacity-100"
-          )}
-        >
-          {updating ? (
-            <div className="h-5 w-5 animate-spin rounded-sm border border-current border-t-transparent" />
-          ) : progress.isCompleted ? (
-            <CheckCircle className="h-5 w-5 text-green-500" />
-          ) : (
-            <Circle className="h-5 w-5 text-sidebar-foreground/60" />
-          )}
-        </SidebarMenuAction>
-      )}
-    </SidebarMenuItem>
-  );
-}
-
-interface AppSidebarProps {
-  className?: string;
-}
-
 export function AppSidebar({ className }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const isCollapsed = state === "collapsed";
-  const isCoursePage = pathname.includes("/course/");
   const [mounted, setMounted] = useState(false);
   const isDark = (resolvedTheme || theme) === "dark";
 
-  const [courseData, setCourseData] = useState<CourseData | null>(null);
-
-  // Handle client-side mounting
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Check for course data in DOM when on course pages
-  useEffect(() => {
-    if (isCoursePage) {
-      const courseDataScript = document.getElementById('course-data');
-      if (courseDataScript) {
-        try {
-          const data = JSON.parse(courseDataScript.textContent || '{}');
-          setCourseData(data);
-        } catch (error) {
-          console.error('Failed to parse course data:', error);
-        }
-      }
-    } else {
-      setCourseData(null);
-    }
-  }, [isCoursePage, pathname]);
-
   return (
-
     <Sidebar
       collapsible="icon"
-      className={cn(
-        "bg-background rounded-sm",
-        className
-      )}
+      className={cn("bg-background rounded-sm", className)}
     >
       <SidebarHeader className="px-5 py-6">
         <div className="flex items-center gap-2 w-full group">
@@ -192,18 +76,24 @@ export function AppSidebar({ className }: AppSidebarProps) {
                   className="h-10 w-auto rounded-md transition-opacity duration-200 opacity-100 group-hover:opacity-0 visible group-hover:invisible"
                 />
               </div>
-              <SidebarTrigger
-                className="absolute opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all text-lg w-10 h-10 pointer-events-none group-hover:pointer-events-auto"
-              />
+              <SidebarTrigger className="absolute opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all text-lg w-10 h-10 pointer-events-none group-hover:pointer-events-auto" />
             </div>
           ) : (
             <>
-            <div>
-              <img src="/logo.png" alt="JelliNote AI" className="h-10 w-auto mr-2 rounded-md" />
-            </div>
+              <div>
+                <img
+                  src="/logo.png"
+                  alt="JelliNote AI"
+                  className="h-10 w-auto mr-2 rounded-md"
+                />
+              </div>
               <div className={`text-foreground flex-1 ${jakarta.className}`}>
-                <div className="text-lg font-semibold leading-5">JelliNote AI</div>
-                <div className="text-sm text-muted-foreground font-medium leading-4">Smart Notes</div>
+                <div className="text-lg font-semibold leading-5">
+                  JelliNote AI
+                </div>
+                <div className="text-sm text-muted-foreground font-medium leading-4">
+                  Smart Notes
+                </div>
               </div>
               <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-all text-lg w-10 h-10" />
             </>
@@ -212,96 +102,54 @@ export function AppSidebar({ className }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="flex-1 py-4">
-        {isCoursePage && courseData ? (
-          // Course Navigation
-          <>
-            {/* Course Header */}
-            {!isCollapsed && (
-              <div className="px-4 py-4 mb-4">
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-foreground transition-colors mb-3"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Back to Dashboard
-                </Link>
-                <h2 className="text-xl font-semibold text-foreground truncate">
-                  {courseData.course.name}
-                </h2>
-              </div>
-            )}
-
-            {/* Course Units and Chapters */}
-            <div className="space-y-4">
-              {courseData.course.units.map((unit, unitIndex) => (
-                <SidebarGroup key={unit.id} className={unitIndex > 0 ? "mt-4" : ""}>
-                  {!isCollapsed && (
-                    <SidebarGroupLabel className="text-xs uppercase tracking-wider px-3 py-2 text-muted-foreground font-semibold">
-                      Unit {unitIndex + 1}: {unit.name}
-                    </SidebarGroupLabel>
-                  )}
-
-                  <SidebarGroupContent>
-                    <SidebarMenu className="space-y-0.5 px-3">
-                      {unit.chapters.map((chapter, chapterIndex) => (
-                        <ChapterItem
-                          key={chapter.id}
-                          chapter={chapter}
-                          courseId={courseData.course.id}
-                          unitIndex={unitIndex}
-                          chapterIndex={chapterIndex}
-                          isCurrentChapter={chapter.id === courseData.currentChapterId}
-                        />
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              ))}
-            </div>
-          </>
-        ) : (
-          // Dashboard Navigation
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu className={cn("px-2", isCollapsed && "flex flex-col items-center")}>
-                {dashboardItems.map((item) => {
-                  const isActive = pathname === item.href;
-                  const Icon = item.icon;
-                  return (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
+        {/* Dashboard Navigation */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu
+              className={cn(
+                "px-2",
+                isCollapsed && "flex flex-col items-center"
+              )}
+            >
+              {dashboardItems.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      className={cn(
+                        "flex items-center transition-all px-3",
+                        "text-base font-semibold w-full",
+                        isActive
+                          ? "bg-accent text-accent-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      )}
+                    >
+                      <Link
+                        href={item.href}
                         className={cn(
-                          "flex items-center transition-all px-3",
-                          "text-base font-semibold w-full",
-                          isActive 
-                            ? "bg-accent text-accent-foreground"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                          "flex items-center",
+                          isCollapsed ? "justify-center w-full" : "w-full"
                         )}
                       >
-                        <Link 
-                          href={item.href} 
-                          className={cn("flex items-center", isCollapsed ? "justify-center w-full" : "w-full")}
-                        >
-                          <Icon className="w-5 h-5 flex-shrink-0" />
-                          {!isCollapsed && (
-                            <span className="text-base font-semibold truncate">
-                              {item.title}
-                            </span>
-                          )}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+                        <Icon className="w-5 h-5 flex-shrink-0" />
+                        {!isCollapsed && (
+                          <span className="text-base font-semibold truncate">
+                            {item.title}
+                          </span>
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer */}
       <SidebarFooter className="mx-4 mb-4">
         {/* Theme Toggle */}
         {!isCollapsed && (
@@ -330,15 +178,21 @@ export function AppSidebar({ className }: AppSidebarProps) {
 
         {/* PRO Upgrade Button */}
         {!isCollapsed && (
-          <Link 
+          <Link
             href="/pricing"
             className="flex items-center justify-between w-full bg-black dark:bg-[#F3F3F3] text-primary-foreground rounded-sm px-4 py-3 transition-all duration-200 cursor-pointer text-base font-semibold"
           >
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-white dark:text-black">Upgrade to</span>
-              <span className="bg-background text-black dark:text-white px-2 py-1 rounded-[0.4rem] text-sm font-bold">PRO</span>
+              <span className="font-semibold text-white dark:text-black">
+                Upgrade to
+              </span>
+              <span className="bg-background text-black dark:text-white px-2 py-1 rounded-[0.4rem] text-sm font-bold">
+                PRO
+              </span>
             </div>
-            <ArrowUpRight className={cn("w-6 h-6", isDark ? "text-black" : "text-white")} />
+            <ArrowUpRight
+              className={cn("w-6 h-6", isDark ? "text-black" : "text-white")}
+            />
           </Link>
         )}
 
@@ -349,6 +203,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           </div>
         )}
       </SidebarFooter>
+
     </Sidebar>
   );
 }
