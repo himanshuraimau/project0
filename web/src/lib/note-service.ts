@@ -627,6 +627,7 @@ Generate ONE perfect title (no quotes, just the title):`,
               id: true,
               originalName: true,
               createdAt: true,
+              type: true,
             },
           },
           translations: {
@@ -655,11 +656,15 @@ Generate ONE perfect title (no quotes, just the title):`,
       return await prisma.note.findMany({
         where: { transcriptId },
         orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          title: true,
-          createdAt: true,
-          updatedAt: true,
+        include: {
+          transcript: {
+            select: {
+              id: true,
+              originalName: true,
+              createdAt: true,
+              type: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -676,12 +681,20 @@ Generate ONE perfect title (no quotes, just the title):`,
       return await prisma.note.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
-        include: {
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          transcriptId: true,
+          userId: true,
+          createdAt: true,
+          updatedAt: true,
           transcript: {
             select: {
               id: true,
               originalName: true,
               createdAt: true,
+              type: true,
             },
           },
         },

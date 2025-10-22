@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { NewNoteSection, MyNotesSection } from "@/components/dashboard";
-import { DashboardRefreshProvider } from "@/contexts/dashboard-refresh-context";
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -11,14 +10,12 @@ export default async function DashboardPage() {
   }
 
   return (
-    <DashboardRefreshProvider>
-      <div className="w-full space-y-12">
-        {/* Top - New Note Section */}
-        <NewNoteSection />
-        
-        {/* Bottom - My Notes Section */}
-        <MyNotesSection />
-      </div>
-    </DashboardRefreshProvider>
+    <div className="w-full space-y-12">
+      {/* Top - New Note Section */}
+      <NewNoteSection />
+      
+      {/* Bottom - My Notes Section */}
+      <MyNotesSection />
+    </div>
   );
 }

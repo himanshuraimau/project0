@@ -10,6 +10,8 @@ interface DashboardRefreshContextType {
   removeLoadingNote: (tempId: string) => void;
   loadingNotes: Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage' }>;
   clearAllLoadingNotes: () => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 }
 
 const DashboardRefreshContext = createContext<DashboardRefreshContextType | null>(null);
@@ -18,6 +20,7 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
   const [refreshHandler, setRefreshHandler] = useState<(() => Promise<void>) | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadingNotes, setLoadingNotes] = useState<Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage' }>>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const addLoadingNote = useCallback((tempId: string, type: 'pdf' | 'audio' | 'youtube' | 'webpage') => {
     setLoadingNotes(prev => {
@@ -77,7 +80,9 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
         addLoadingNote,
         removeLoadingNote,
         loadingNotes,
-        clearAllLoadingNotes
+        clearAllLoadingNotes,
+        searchQuery,
+        setSearchQuery
       }}
     >
       {children}

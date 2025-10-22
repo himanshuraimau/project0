@@ -5,8 +5,10 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/AppSidebar";
 import CourseSideBar from "@/components/course/CourseSideBar";
 import { usePathname, useRouter } from "next/navigation";
-import { DashboardRefreshProvider } from "@/contexts/dashboard-refresh-context";
+import { DashboardRefreshProvider, useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { PaymentSuccessHandler } from "@/components/subscription/payment-success-handler";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import { Course, Unit, Chapter } from "@prisma/client";
 
 interface CourseData {
@@ -23,14 +25,80 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const isCoursePage = pathname.includes("/course/") && !pathname.includes("/create/");
 
   return (
-    <div className="flex-1 min-h-screen bg-background">
+    <div className="flex-1 min-h-screen bg-background overflow-x-hidden">
       {/* Content area with conditional padding */}
       <main className={`flex-1 ${!isCoursePage ? 'px-6 py-4' : 'px-6 py-4'}`}>
-        <div className="max-w-none w-full">
+        <div className="max-w-full w-full">
           {children}
         </div>
       </main>
     </div>
+  );
+}
+
+function DashboardHeader() {
+  const { searchQuery, setSearchQuery } = useDashboardRefresh();
+
+  return (
+    <header className="bg-white dark:bg-background pt-4 pl-4">
+      <div className="flex h-20 items-center justify-between px-6 mr-4 mb-4">
+        <div>
+          <h1 className="text-4xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">Welcome back to your dashboard</p>
+        </div>
+        {/* Search Control */}
+        <div className="relative min-w-md">
+          <Input
+            placeholder="Search notes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-4 pr-12 h-12 border-1 border-black/10 dark:border-muted/30 rounded-2xl text-foreground placeholder:text-muted-foreground"
+          />
+          <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function DashboardMain({ children }: { children: React.ReactNode }) {
+  const { searchQuery, setSearchQuery } = useDashboardRefresh();
+  const pathname = usePathname();
+  const isDashboardHome = pathname === "/dashboard";
+
+  return (
+    <SidebarInset className="flex flex-col flex-1 overflow-x-hidden">
+      {/* Simplified top navbar - just showing title */}
+      <header className={`bg-white dark:bg-background pl-4 ${isDashboardHome ? 'pt-10' : 'pt-2 border-b border-gray-300 dark:border-gray-800'}`}>
+        <div className={`flex h-20 items-center justify-between px-6 mr-4 max-w-full ${isDashboardHome ? 'mb-4' : 'mb-0'}`}>
+          <div className="flex-shrink min-w-0">
+            <h1 className="text-4xl font-bold text-foreground">Dashboard</h1>
+            {isDashboardHome && (
+              <p className="text-lg text-gray-500 mt-1">Welcome back! Here's what's happening today.</p>
+            )}
+          </div>
+          {/* Search Control - Only show on /dashboard home */}
+          {isDashboardHome && (
+            <div className="relative min-w-md flex-shrink-0 ml-4">
+              <Input
+                placeholder="Search notes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-4 pr-12 h-12 border-1 border-black/10 dark:border-muted/30 rounded-2xl text-foreground placeholder:text-muted-foreground"
+              />
+              <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="flex-1 bg-background overflow-x-hidden">
+        <DashboardContent>
+          {children}
+        </DashboardContent>
+      </main>
+    </SidebarInset>
   );
 }
 
@@ -119,26 +187,14 @@ export default function DashboardLayout({
           children
         ) : (
           <SidebarProvider defaultOpen={true}>
-            <div className="flex min-h-screen w-full bg-background">
+            <div className="flex min-h-screen w-full bg-background overflow-x-hidden">
               {/* Full-height Sidebar on the left */}
               <AppSidebar />
 
               {/* Main content area - uses SidebarInset for proper spacing */}
-              <SidebarInset className="flex flex-col flex-1">
-                {/* Simplified top navbar - just showing title */}
-                <header className="sticky top-0 z-40 bg-white dark:bg-background pt-4 pl-4">
-                  <div className="flex h-16 items-center px-6 mr-4 mb-4 border-b border-border/40">
-                    <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
-                  </div>
-                </header>
-
-                {/* Main content */}
-                <main className="flex-1 bg-background px-4">
-                  <DashboardContent>
-                    {children}
-                  </DashboardContent>
-                </main>
-              </SidebarInset>
+              <DashboardMain>
+                {children}
+              </DashboardMain>
             </div>
           </SidebarProvider>
         )}

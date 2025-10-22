@@ -1,13 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import {
-  Search,
-} from "lucide-react";
 import { NotesList, NotesListRef } from "@/components/notes/notes-list";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
+import { ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 const jakarta = Plus_Jakarta_Sans({
@@ -16,10 +14,9 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export function MyNotesSection() {
-  const { setRefreshHandler } = useDashboardRefresh();
+  const { setRefreshHandler, searchQuery } = useDashboardRefresh();
   const notesListRef = useRef<NotesListRef>(null);
-  
-  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
 
   // Register refresh handler when component mounts
   useEffect(() => {
@@ -33,33 +30,31 @@ export function MyNotesSection() {
 
   return (
 <div className={`w-full ${inter.className}`}>
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div>
-          <h2 className={`text-2xl leading-8 font-semibold text-foreground mb-1 ${jakarta.className}`}>
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-1">
+          <h2 className={`text-2xl leading-8 font-semibold text-foreground whitespace-nowrap ${jakarta.className}`}>
             My Notes
           </h2>
-          <p className={`text-muted-foreground text-base font-medium leading-6 ${jakarta.className}`}>
-            Manage and organize your notes
-          </p>
+          <hr className="flex-1 opacity-50" />
+          <button
+            onClick={() => router.push('/notes')}
+            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 group whitespace-nowrap cursor-pointer"
+          >
+            View All
+            <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+          </button>
         </div>
-
-        {/* Search Control */}
-        <div className="relative min-w-xl sm:mt-1">
-          <Input
-            placeholder="Search notes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="neomorphic pl-4 pr-12 h-12 border-1 border-black/10 dark:border-muted/30 rounded-2xl text-foreground placeholder:text-muted-foreground"
-          />
-          <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-        </div>
+        <p className={`text-gray-500 text-base font-medium leading-6 ${jakarta.className}`}>
+          Manage and organize your notes
+        </p>
       </div>
 
       {/* Notes Display */}
       <div className="w-full rounded-2xl pt-5">
         <NotesList 
           ref={notesListRef}
-          searchQuery={searchQuery} 
+          searchQuery={searchQuery}
+          limit={3}
         />
       </div>
     </div>

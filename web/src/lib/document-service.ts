@@ -33,6 +33,7 @@ export class DocumentService {
           pages: data.pages,
           metadata: data.metadata ? JSON.parse(JSON.stringify(data.metadata)) : null,
           userId: data.userId,
+          type: 'pdf',
         },
       });
 

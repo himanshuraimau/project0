@@ -2,12 +2,12 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight } from "lucide-react";
-import { Note } from "@/lib/types";
+import { ChevronRight, FileText, Mic, Upload, Video, Globe } from "lucide-react";
+import { NotesNoteWithTranscript } from "@/lib/types";
 import { useRouter } from "next/navigation";
 
 interface NoteCardProps {
-  note: Note;
+  note: NotesNoteWithTranscript;
 }
 
 export function NoteCard({ note }: NoteCardProps) {
@@ -19,6 +19,28 @@ export function NoteCard({ note }: NoteCardProps) {
       month: "short",
       day: "numeric",
     });
+  };
+
+  const getSourceIcon = () => {
+    if (!note.transcript?.type) return <FileText className="h-7 w-7" />;
+    
+    switch (note.transcript.type) {
+      case "pdf":
+        return <FileText className="h-7 w-7" />;
+      case "audio":
+        // Distinguish between record and upload audio based on originalName
+        if (note.transcript?.originalName?.includes("recorded")) {
+          return <Mic className="h-7 w-7" />;
+        } else {
+          return <Upload className="h-7 w-7" />;
+        }
+      case "youtube":
+        return <Video className="h-7 w-7" />;
+      case "webpage":
+        return <Globe className="h-7 w-7" />;
+      default:
+        return <FileText className="h-7 w-7" />;
+    }
   };
 
   const handleCardClick = () => {
@@ -50,30 +72,38 @@ export function NoteCard({ note }: NoteCardProps) {
     >
       <CardContent className="p-6">
         <div className="flex items-center justify-between gap-4">
-          {/* Left section - Title and Content */}
-          <div className="flex-1 min-w-0">
-            {/* Title */}
-            <h3 
-              className="font-bold text-lg leading-tight text-foreground line-clamp-2 mb-2"
-              title={note.title}
-            >
-              {note.title}
-            </h3>
-            
-            {/* Date */}
-            <div className="mb-3">
-              <span className="text-sm text-muted-foreground">
-                {formatDate(
-                  note.updatedAt instanceof Date
-                    ? note.updatedAt.toISOString()
-                    : note.updatedAt
-                )}
-              </span>
+          {/* Left section - Icon and Content */}
+          <div className="flex items-center gap-6 flex-1 min-w-0">
+            {/* Source Icon */}
+            <div className="neomorphic flex-shrink-0 text-muted-foreground p-3 rounded-md">
+              {getSourceIcon()}
             </div>
+            
+            {/* Title and Info */}
+            <div className="flex-1 min-w-0">
+              {/* Title */}
+              <h3 
+                className="font-bold text-lg leading-tight text-foreground line-clamp-2 mb-2"
+                title={note.title}
+              >
+                {note.title}
+              </h3>
+              
+              {/* Date */}
+              <div className="mb-3">
+                <span className="text-sm text-muted-foreground">
+                  {formatDate(
+                    note.updatedAt instanceof Date
+                      ? note.updatedAt.toISOString()
+                      : note.updatedAt
+                  )}
+                </span>
+              </div>
 
-            {/* Content Preview */}
-            <div className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-              {getTextPreview(note.content || "", 130)}
+              {/* Content Preview
+              <div className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                {getTextPreview(note.content || "", 130)}
+              </div> */}
             </div>
           </div>
 
