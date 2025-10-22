@@ -19,14 +19,12 @@ import {
   Video,
 } from "lucide-react";
 import { SimplePDFProcessor } from "@/components/pdf";
-import { checkCreditsAndRedirect } from "@/lib/client/credits-api";
 import { ProcessPDFResult } from "@/lib/types";
 import { AudioRecorder, RecordAudio } from "@/components/audio";
 import { YouTubeProcessor } from "@/components/transcript";
 import { WebpageProcessor } from "@/components/webpage";
 import { Inter } from "next/font/google";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import Image from "next/image";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { toast } from "sonner";
 
@@ -224,17 +222,17 @@ export function NewNoteSection() {
         >
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-6 py-6 flex-1 min-w-[180px] flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
+            className="neomorphic h-24 px-4 sm:px-6 py-6 flex-1 min-w-[180px] flex items-center justify-start gap-3 sm:gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowRecordAudioDialog(true)}
           >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex flex-col items-start">
-                <div className="font-semibold text-xl leading-6 text-foreground">
+            <div className="flex items-center justify-between w-full min-w-0">
+              <div className="flex flex-col items-start min-w-0 flex-1">
+                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate w-full">
                   Record Audio
                 </div>
               </div>
-              <div className="size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Mic className="size-7" />
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Mic className="size-5 sm:size-7" />
               </div>
             </div>
           </Button>
@@ -261,17 +259,17 @@ export function NewNoteSection() {
         <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-6 py-6 flex-1 min-w-[180px] flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
+            className="neomorphic h-24 px-4 sm:px-6 py-6 flex-1 min-w-[180px] flex items-center justify-start gap-3 sm:gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowAudioDialog(true)}
           >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex flex-col items-start">
-                <div className="font-semibold text-xl leading-6 text-foreground">
+            <div className="flex items-center justify-between w-full min-w-0">
+              <div className="flex flex-col items-start min-w-0 flex-1">
+                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate w-full">
                   Upload Audio
                 </div>
               </div>
-              <div className="size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Upload className="size-7" />
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Upload className="size-5 sm:size-7" />
               </div>
             </div>
           </Button>
@@ -298,17 +296,17 @@ export function NewNoteSection() {
         <Dialog open={showPDFDialog} onOpenChange={setShowPDFDialog}>
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-6 py-6 flex-1 flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
+            className="neomorphic h-24 px-4 sm:px-6 py-6 flex-1 flex items-center justify-start gap-3 sm:gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowPDFDialog(true)}
           >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex flex-col items-start">
-                <div className="font-semibold text-xl leading-6 text-foreground">
+            <div className="flex items-center justify-between w-full min-w-0">
+              <div className="flex flex-col items-start min-w-0 flex-1">
+                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate w-full">
                   Upload PDF or Add Text
                 </div>
               </div>
-              <div className="size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <FileText className="size-7" />
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <FileText className="size-5 sm:size-7" />
               </div>
             </div>
           </Button>
@@ -335,17 +333,17 @@ export function NewNoteSection() {
         <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
           <Button
             variant="ghost"
-            className="neomorphic h-24 px-6 py-6 flex-1 flex items-center justify-start gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
+            className="neomorphic h-24 px-4 sm:px-6 py-6 flex-1 flex items-center justify-start gap-3 sm:gap-6 border-0 cursor-pointer rounded-2xl group hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300"
             onClick={() => setShowLinkDialog(true)}
           >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex flex-col items-start">
-                <div className="font-semibold text-xl leading-6 text-foreground">
+            <div className="flex items-center justify-between w-full min-w-0">
+              <div className="flex flex-col items-start min-w-0 flex-1">
+                <div className="font-semibold text-base sm:text-xl leading-tight text-foreground truncate w-full">
                   Youtube Video or Web Links
                 </div>
               </div>
-              <div className="size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Video className="size-7" />
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Video className="size-5 sm:size-7" />
               </div>
             </div>
           </Button>
