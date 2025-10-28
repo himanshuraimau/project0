@@ -53,10 +53,10 @@ export default function SignUpScreen() {
       })
 
       // If verification was completed, set the session to active
-      // and redirect the user
+      // and redirect the user to onboarding
       if (signUpAttempt.status === 'complete') {
         await setActive({ session: signUpAttempt.createdSessionId })
-        router.replace('/')
+        router.replace('/(onboarding)/step1')
       } else {
         // If the status is not complete, check why. User may need to
         // complete further steps.
@@ -86,7 +86,7 @@ export default function SignUpScreen() {
         })
         if (createdSessionId) {
           await setActiveFromSSO!({ session: createdSessionId })
-          router.replace('/')
+          router.replace('/(onboarding)/step1')
         }
       } catch (err) {
         console.error(JSON.stringify(err, null, 2))

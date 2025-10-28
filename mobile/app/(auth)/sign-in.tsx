@@ -9,7 +9,6 @@ import React, { useCallback, useEffect } from 'react'
 import { Pressable, Text, TextInput, View } from 'react-native'
 
 export default function Page() {
-  // Warm-up/cool-down the browser and complete pending sessions
   useEffect(() => {
     void WebBrowser.warmUpAsync()
     return () => {
