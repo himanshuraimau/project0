@@ -34,7 +34,7 @@ export const Button: React.FC<UIButtonProps> = ({
     variant === 'social'
       ? undefined
       : (pressed
-          ? { backgroundColor: theme.palette.redHover }
+          ? { backgroundColor: theme.palette.purpleHover }
           : variant === 'accent'
             ? { backgroundColor: theme.colors.accent }
             : { backgroundColor: theme.colors.primary })

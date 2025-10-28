@@ -1,9 +1,16 @@
 export type ColorHex = `#${string}`
 
 export type ColorPalette = {
-  red: ColorHex
-  redHover: ColorHex
-
+  // Purple gradient colors
+  purple: ColorHex
+  purpleMid: ColorHex
+  purpleDark: ColorHex
+  purpleHover: ColorHex
+  
+  // Accent colors
+  yellow: ColorHex
+  yellowBright: ColorHex
+  
   blue: ColorHex
   green: ColorHex
   orange: ColorHex
@@ -15,6 +22,7 @@ export type ColorPalette = {
   gray200: ColorHex
   gray300: ColorHex
   gray500: ColorHex
+  gray700: ColorHex
 }
 
 export type SemanticColors = {

@@ -1,9 +1,16 @@
 import type { ColorPalette } from './types'
 
 export const palette: ColorPalette = {
-  red: '#FF3B3B',
-  redHover: '#E63333',
-
+  // Purple gradient colors from welcome screen
+  purple: '#A855F7',
+  purpleMid: '#7C3AED',
+  purpleDark: '#6D28D9',
+  purpleHover: '#9333EA',
+  
+  // Accent colors
+  yellow: '#FBBF24',
+  yellowBright: '#FCD34D',
+  
   blue: '#2D7FF9',
   green: '#00D68F',
   orange: '#FF7A00',
@@ -15,6 +22,7 @@ export const palette: ColorPalette = {
   gray200: '#E5E7EB',
   gray300: '#D1D5DB',
   gray500: '#555555',
+  gray700: '#374151',
 }
 
 
