@@ -1,12 +1,12 @@
-import Button from '@/components/ui/button'
-import { useTheme } from '@/lib/hooks/useTheme'
+import { authStyles } from '@/components/auth/styles'
 import { useSignIn, useSSO } from '@clerk/clerk-expo'
 import { OAuthStrategy } from '@clerk/types'
 import * as AuthSession from 'expo-auth-session'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Link, useRouter } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect } from 'react'
-import { Text, TextInput, View } from 'react-native'
+import { Pressable, Text, TextInput, View } from 'react-native'
 
 export default function Page() {
   // Warm-up/cool-down the browser and complete pending sessions
@@ -71,106 +71,81 @@ export default function Page() {
     }
   }
 
-  const { theme } = useTheme()
-
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: theme.colors.background,
-        padding: theme.spacing.md,
-        gap: theme.spacing.md,
-        justifyContent: 'center',
-      }}
+    <LinearGradient
+      colors={['#F5F4FF', '#FFFFFF']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={authStyles.container}
     >
-      <View style={{ marginHorizontal: theme.spacing.md }}>
+      <View style={authStyles.contentWrapper}>
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 6 }}>
-          <Text style={{ color: theme.colors.text, fontSize: theme.fontSize['2xl'], fontWeight: '800' }}>
-            Sign in to continue
-          </Text>
+        <View style={authStyles.headerSection}>
+          <Text style={authStyles.subHeading}>Welcome back!</Text>
+          <Text style={authStyles.mainHeading}>Sign in to continue</Text>
         </View>
 
-        {/* Social row */}
-        <View style={{ flexDirection: 'row', gap: theme.spacing.md, marginTop: 10 }}>
-          <View style={{ flex: 1 }}>
-            <Button onPress={() => signInWith('oauth_google')} label="Continue with Google" variant="social" size="md" />
-          </View>
+        {/* Social Button */}
+        <View style={authStyles.socialButtonWrapper}>
+          <Pressable
+            style={authStyles.socialButton}
+            onPress={() => signInWith('oauth_google')}
+          >
+            <Text style={authStyles.socialButtonText}>Continue with Google</Text>
+          </Pressable>
         </View>
 
         {/* Divider */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#CCCCCC' }} />
-          <Text style={{ color: theme.colors.mutedText, marginHorizontal: theme.spacing.sm }}>or</Text>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#CCCCCC' }} />
+        <View style={authStyles.dividerContainer}>
+          <View style={authStyles.dividerLine} />
+          <Text style={authStyles.dividerText}>or</Text>
+          <View style={authStyles.dividerLine} />
         </View>
 
-        {/* Email input group */}
-      
-        <View style={{ gap: 6 }}>
-          <Text style={{ color: theme.colors.mutedText, fontSize: theme.fontSize.xs }}>Email address</Text>
-          <View
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.border,
-              borderWidth: theme.borderWidth.brutal,
-              borderRadius: theme.radius.brutal,
-              padding: 8,
-              ...theme.shadow({ offset: 3, opacity: 0.25 }),
-            }}
-          >
-            <TextInput
-              autoCapitalize="none"
-              value={emailAddress}
-              placeholder="Enter email"
-              placeholderTextColor={theme.colors.mutedText}
-              onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
-              style={{ color: theme.colors.text, fontSize: theme.fontSize.sm }}
-            />
-          </View>
+        {/* Email Input */}
+        <View style={authStyles.inputContainer}>
+          <TextInput
+            autoCapitalize="none"
+            value={emailAddress}
+            placeholder="Email"
+            placeholderTextColor="#A0A0A0"
+            onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
+            style={authStyles.input}
+          />
         </View>
 
-        {/* Password */}
-        <View style={{ gap: 6, marginTop: 10 }}>
-          <Text style={{ color: theme.colors.mutedText, fontSize: theme.fontSize.xs }}>Password</Text>
-          <View
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.border,
-              borderWidth: theme.borderWidth.brutal,
-              borderRadius: theme.radius.brutal,
-              padding: 8,
-              ...theme.shadow({ offset: 3, opacity: 0.25 }),
-            }}
-          >
-            <TextInput
-              value={password}
-              placeholder="Enter password"
-              placeholderTextColor={theme.colors.mutedText}
-              secureTextEntry={true}
-              onChangeText={(password) => setPassword(password)}
-              style={{ color: theme.colors.text, fontSize: theme.fontSize.sm }}
-            />
-          </View>
-        </View>
-        <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
-          <Button onPress={onSignInPress} label="Continue" size="md" />
+        {/* Password Input */}
+        <View style={authStyles.inputContainer}>
+          <TextInput
+            value={password}
+            placeholder="Password"
+            placeholderTextColor="#A0A0A0"
+            secureTextEntry={true}
+            onChangeText={(password) => setPassword(password)}
+            style={authStyles.input}
+          />
         </View>
 
-        <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
-          <Text style={{ color: theme.colors.mutedText }}>No account?</Text>
-          <Link href="/sign-up">
-            <Text style={{ color: theme.colors.accent, fontWeight: '700', textDecorationLine: 'underline' }}>
-              Sign up
-            </Text>
+        {/* Primary Button */}
+        <Pressable style={authStyles.primaryButton} onPress={onSignInPress}>
+          <Text style={authStyles.primaryButtonText}>Continue</Text>
+        </Pressable>
+
+        {/* Footer Link */}
+        <View style={authStyles.footerContainer}>
+          <Text style={authStyles.footerText}>No account?</Text>
+          <Link href="/sign-up" asChild>
+            <Pressable>
+              <Text style={authStyles.footerLink}>Sign up</Text>
+            </Pressable>
           </Link>
         </View>
 
-        {/* Clerk branding */}
-        <View style={{ alignItems: 'center', marginTop: 12 }}>
-          <Text style={{ color: '#B0B0B0', fontSize: 12 }}>Secured by Clerk</Text>
+        {/* Clerk Branding */}
+        <View style={authStyles.clerkBranding}>
+          <Text style={authStyles.clerkText}>Secured by Clerk</Text>
         </View>
       </View>
-    </View>
+    </LinearGradient>
   )
 }
