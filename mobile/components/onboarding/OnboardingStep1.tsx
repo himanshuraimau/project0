@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import React, { useState } from 'react'
 import { Pressable, ScrollView, StatusBar, Text, View } from 'react-native'
-import { onboardingStyles as styles } from './onboarding-styles'
+import { onboardingStyles as styles } from './onboarding-styles/onboarding-styles'
 
 interface OptionButtonProps {
   icon: React.ReactNode

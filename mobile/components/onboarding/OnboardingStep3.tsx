@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import React, { useState } from 'react'
 import { Pressable, ScrollView, StatusBar, Text, View } from 'react-native'
-import { onboardingStep3Styles as styles } from './onboarding-step3-styles'
+import { onboardingStep3Styles as styles } from './onboarding-styles/onboarding-step3-styles'
 
 interface OptionCardProps {
   emoji: string
