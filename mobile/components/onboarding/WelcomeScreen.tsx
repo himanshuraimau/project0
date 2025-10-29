@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Link } from 'expo-router'
 import React from 'react'
 import { Pressable, StatusBar, Text, View } from 'react-native'
-import { welcomeScreenStyles as styles } from './styles'
+import { welcomeScreenStyles as styles } from './onboarding-styles/welcome-screen-styles'
 
 interface FeatureTagProps {
   icon: React.ReactNode
