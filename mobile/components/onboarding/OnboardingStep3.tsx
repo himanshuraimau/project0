@@ -42,7 +42,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
 }
 
 interface OnboardingStep3Props {
-  onContinue?: () => void
+  onContinue?: (selectedOption: string) => void
 }
 
 export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
@@ -138,7 +138,10 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
         {/* Continue Button */}
         {selectedOption && (
           <View style={styles.continueButtonContainer}>
-            <Pressable style={styles.continueButton} onPress={onContinue}>
+            <Pressable
+              style={styles.continueButton}
+              onPress={() => onContinue && onContinue(selectedOption)}
+            >
               <Text style={styles.continueButtonText}>Continue</Text>
             </Pressable>
           </View>

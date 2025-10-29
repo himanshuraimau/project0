@@ -5,9 +5,19 @@ import React from 'react'
 export default function Step3Screen() {
   const router = useRouter()
 
-  const handleContinue = () => {
-    // Mark onboarding as complete and navigate to home
-    router.replace('/(drawer)/(home)')
+  const handleContinue = (selectedOption?: string) => {
+    // Map selected option id to onboarding route
+    const routeMap: Record<string, string> = {
+      professional: '/(onboarding)/workingProfessional',
+      student: '/(onboarding)/student',
+      parent: '/(onboarding)/parent',
+      teacher: '/(onboarding)/teacher',
+      administrator: '/(onboarding)/administrator',
+    }
+
+    const target = (selectedOption && routeMap[selectedOption]) || '/(onboarding)/workingProfessional'
+    // router.replace has a narrow union type for routes; cast to any to allow dynamic routing
+    router.replace(target as any)
   }
 
   return <OnboardingStep3 onContinue={handleContinue} />
