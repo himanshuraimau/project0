@@ -9,9 +9,9 @@ export default function Step3Screen() {
     // Map selected option id to onboarding route
     const routeMap: Record<string, string> = {
       professional: '/(onboarding)/workingProfessional',
-      student: '/(onboarding)/student',
+      student: '/(onboarding)/teacher-flow',
       parent: '/(onboarding)/parent',
-      teacher: '/(onboarding)/teacher',
+      teacher: '/(onboarding)/teacher-flow',
       administrator: '/(onboarding)/administrator',
     }
 

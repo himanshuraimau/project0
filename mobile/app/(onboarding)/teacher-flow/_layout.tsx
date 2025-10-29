@@ -1,0 +1,15 @@
+import { Stack } from 'expo-router'
+
+export default function TeacherFlowLayout() {
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="teacher1" />
+      <Stack.Screen name="teacher2" />
+      <Stack.Screen name="teacher3" />
+    </Stack>
+  )
+}
