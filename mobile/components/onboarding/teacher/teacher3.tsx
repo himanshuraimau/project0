@@ -15,7 +15,7 @@ export default function Teacher3() {
   const router = useRouter()
 
   const handleContinue = () => {
-    router.replace('/(drawer)/(home)' as any)
+    router.push('/(onboarding)/teacher-flow/teacher4' as any)
   }
 
   return (

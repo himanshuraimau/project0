@@ -10,6 +10,7 @@ export default function TeacherFlowLayout() {
       <Stack.Screen name="teacher1" />
       <Stack.Screen name="teacher2" />
       <Stack.Screen name="teacher3" />
+      <Stack.Screen name="teacher4" />
     </Stack>
   )
 }
