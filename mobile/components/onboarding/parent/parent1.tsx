@@ -2,7 +2,7 @@ import React from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, ScrollView } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
-import styles from '../onboarding-styles/parent1.styles'
+import styles from '../onboarding-styles/parent1'
 
 export default function Parent1() {
   const router = useRouter()

@@ -1,8 +1,9 @@
 import React from 'react'
-import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions } from 'react-native'
+import { SafeAreaView, View, Text, TouchableOpacity, Platform, Dimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import Svg, { Line, Polyline } from 'react-native-svg'
+import styles from '../onboarding-styles/student9'
 
 const { width } = Dimensions.get('window')
 
@@ -111,54 +112,4 @@ export default function Student9() {
   )
 }
 
-const PURPLE = '#7C3AED'
-const BG = '#FFFFFF'
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG },
-  statusBar: {
-    height: Platform.OS === 'ios' ? 44 : 28,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  timeWrap: { backgroundColor: '#FF4D4F', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  time: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  statusIcons: { flexDirection: 'row' },
-  icon: { marginLeft: 8, fontSize: 14 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
-  back: { fontSize: 22, marginRight: 12 },
-  progressWrap: { flex: 1, paddingRight: 16 },
-  progressTrack: { height: 10, backgroundColor: '#F3EFFF', borderRadius: 6, overflow: 'hidden' },
-  progressFill: { width: '100%', height: '100%', backgroundColor: PURPLE },
-  content: { paddingHorizontal: 20, paddingTop: 24, flex: 1, alignItems: 'center' },
-  mainTitle: { fontSize: 32, fontWeight: '800', color: '#7C3AED', marginBottom: 8, textAlign: 'center' },
-  subtitle: { fontSize: 18, fontWeight: '600', color: '#9333EA', marginBottom: 12, textAlign: 'center' },
-  description: { fontSize: 14, color: '#6B7280', marginBottom: 32, textAlign: 'center', paddingHorizontal: 20 },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
-  badges: { flexDirection: 'row', gap: 8 },
-  badgePurple: { backgroundColor: '#7C3AED', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgePurpleText: { color: '#FFFFFF', fontSize: 11, fontWeight: '600' },
-  badgeGrey: { backgroundColor: '#E5E7EB', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgeGreyText: { color: '#6B7280', fontSize: 11, fontWeight: '600' },
-  chartContainer: { marginTop: 8 },
-  footer: { paddingHorizontal: 20, paddingBottom: 18 },
-  cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 12 },
-  ctaText: { color: '#fff', fontSize: 16, fontWeight: '700', marginRight: 8 },
-  ctaArrow: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  leftGradient: { position: 'absolute', left: -40, top: 80, width: 220, height: 420, borderRadius: 220, backgroundColor: '#F5EEFF', opacity: 0.7, transform: [{ rotate: '-25deg' }] },
-  homeIndicator: { height: 6, backgroundColor: '#E9E9EF', marginHorizontal: 110, borderRadius: 3, marginTop: 10, marginBottom: Platform.OS === 'ios' ? 24 : 8 },
-})
+// styles imported from onboarding-styles/student9
