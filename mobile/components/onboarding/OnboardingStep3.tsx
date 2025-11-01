@@ -130,7 +130,13 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
               description={option.description}
               gradientColors={option.gradientColors}
               isSelected={selectedOption === option.id}
-              onPress={() => setSelectedOption(option.id)}
+              onPress={() => {
+                setSelectedOption(option.id)
+                // If this option should immediately navigate (e.g. parent), call onContinue
+                if (onContinue && option.id === 'parent') {
+                  onContinue(option.id)
+                }
+              }}
             />
           ))}
         </View>
