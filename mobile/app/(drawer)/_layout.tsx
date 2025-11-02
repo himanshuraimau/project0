@@ -3,6 +3,7 @@ import { Drawer } from 'expo-router/drawer'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer'
 import { Text, View } from 'react-native'
+import { SignOutButton } from '@/components/auth/SignOutButton'
 
 export default function DrawerLayout() {
   const { theme } = useTheme()
@@ -45,6 +46,9 @@ export default function DrawerLayout() {
             </Text>
           </View>
           <DrawerItemList {...props} />
+          <View style={{ paddingHorizontal: theme.spacing.xl, paddingTop: theme.spacing.lg }}>
+            <SignOutButton />
+          </View>
         </DrawerContentScrollView>
       )}
     >
