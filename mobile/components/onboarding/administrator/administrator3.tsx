@@ -7,7 +7,7 @@ import styles from '../onboarding-styles/administrator3'
 export default function Administrator3() {
   const router = useRouter()
   const handleContinue = () => {
-    router.replace('/(drawer)/(home)' as any)
+    router.replace('/(onboarding)/step4' as any)
   }
 
   return (

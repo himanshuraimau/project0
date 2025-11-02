@@ -52,7 +52,7 @@ export default function Parent5() {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.continueWrap} activeOpacity={0.85} onPress={() => router.replace('/(drawer)/(home)' as any)}>
+        <TouchableOpacity style={styles.continueWrap} activeOpacity={0.85} onPress={() => router.replace('/(onboarding)/step4' as any)}>
           <View style={styles.continueButton}>
             <Text style={styles.continueText}>Continue →</Text>
           </View>

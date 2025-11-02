@@ -15,8 +15,8 @@ export default function Teacher4() {
   const [selected, setSelected] = useState<string | null>(null)
 
   const handleContinue = () => {
-    // finish onboarding and go to home
-    router.replace('/(drawer)/(home)' as any)
+    // finish onboarding and go to step4
+    router.replace('/(onboarding)/step4' as any)
   }
 
   const OPTIONS = [

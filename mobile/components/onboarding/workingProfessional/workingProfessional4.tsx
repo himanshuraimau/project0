@@ -53,7 +53,7 @@ export default function WorkingProfessional4() {
       <View style={styles.footer}>
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => router.replace('/(drawer)/(home)' as any)}
+          onPress={() => router.replace('/(onboarding)/step4' as any)}
         >
           <LinearGradient colors={["#3B82F6", "#7C3AED"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.continueButton}>
             <Text style={styles.continueText}>Continue</Text>

@@ -98,7 +98,7 @@ export default function Student9() {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => router.replace('/(drawer)/(home)' as any)}>
+        <TouchableOpacity activeOpacity={0.85} onPress={() => router.replace('/(onboarding)/step4' as any)}>
           <LinearGradient colors={["#7C3AED", "#3B82F6"]} style={styles.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
             <Text style={styles.ctaText}>Continue</Text>
             <Text style={styles.ctaArrow}>→</Text>
