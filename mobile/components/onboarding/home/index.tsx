@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
 import {
   SafeAreaView,
@@ -17,6 +18,7 @@ import {
 
 export default function NotesHome() {
   const { theme } = useTheme()
+  const router = useRouter()
   const [modalVisible, setModalVisible] = useState(false)
 
   const newNoteOptions = [
@@ -48,7 +50,11 @@ export default function NotesHome() {
 
           <View style={styles.titleRow}>
             <Text style={styles.title}>My notes</Text>
-            <TouchableOpacity style={styles.settingsButton} accessibilityLabel="Settings">
+            <TouchableOpacity 
+              style={styles.settingsButton} 
+              accessibilityLabel="Settings"
+              onPress={() => router.push('/(drawer)/(home)/settings')}
+            >
               <Feather name="settings" size={22} color="#374151" />
             </TouchableOpacity>
           </View>
