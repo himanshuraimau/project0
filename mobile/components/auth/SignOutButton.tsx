@@ -1,14 +1,17 @@
 import { tokens } from '@/lib/constants/Colors'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { useClerk } from '@clerk/clerk-expo'
+import { useClerk, useUser } from '@clerk/clerk-expo'
 import * as Linking from 'expo-linking'
+import { useRouter } from 'expo-router'
 import { Text, TouchableOpacity } from 'react-native'
 
 export const SignOutButton = () => {
-  // Use `useClerk()` to access the `signOut()` function
   const { signOut } = useClerk()
+  const { isSignedIn } = useUser()
   const { mode } = useTheme()
+  const router = useRouter()
   const styles = tokens.button(mode)
+
   const handleSignOut = async () => {
     try {
       await signOut()
@@ -20,6 +23,19 @@ export const SignOutButton = () => {
       console.error(JSON.stringify(err, null, 2))
     }
   }
+
+  const handleSignIn = () => {
+    router.push('/(auth)/sign-in' as any)
+  }
+
+  if (!isSignedIn) {
+    return (
+      <TouchableOpacity onPress={handleSignIn} style={styles.container} activeOpacity={0.9}>
+        <Text style={styles.text}>Sign in</Text>
+      </TouchableOpacity>
+    )
+  }
+
   return (
     <TouchableOpacity onPress={handleSignOut} style={styles.container} activeOpacity={0.9}>
       <Text style={styles.text}>Sign out</Text>

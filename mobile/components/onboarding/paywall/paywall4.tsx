@@ -43,6 +43,11 @@ export default function Paywall4() {
           <Text style={styles.appleText}>Sign up with Apple</Text>
         </TouchableOpacity>
 
+        {/* Continue button */}
+        <TouchableOpacity style={styles.continueBtn} activeOpacity={0.9} onPress={() => router.push('/(auth)/sign-up' as any)}>
+          <Text style={styles.continueText}>Continue</Text>
+        </TouchableOpacity>
+
         <Text style={styles.termsText}>By creating an account you agree to our <Text style={styles.linkText}>privacy policy</Text> and <Text style={styles.linkText}>terms of service</Text>.</Text>
       </View>
 
@@ -70,6 +75,8 @@ const styles = StyleSheet.create({
   googleText: { fontWeight: '700', color: '#111827' },
   appleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#000', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 16, width: '100%', justifyContent: 'center', marginBottom: 12 },
   appleText: { fontWeight: '700', color: '#fff' },
+  continueBtn: { backgroundColor: '#7C3AED', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 16, width: '100%', justifyContent: 'center', alignItems: 'center', marginBottom: 12, shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 12, elevation: 3 },
+  continueText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   termsText: { color: '#6B7280', fontSize: 12, textAlign: 'center', marginTop: 8 },
   linkText: { textDecorationLine: 'underline', color: '#4B5563' },
   homeIndicator: { height: 4, width: 140, backgroundColor: '#D1D5DB', borderRadius: 2, alignSelf: 'center', marginTop: 12 },
