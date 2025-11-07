@@ -171,7 +171,7 @@ export function NotesViewer({ transcriptId, searchQuery }: NotesViewerProps) {
             Error loading notes
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            {error}
+            {typeof error === 'string' ? error : 'An unexpected error occurred.'}
           </p>
           <Button onClick={loadNotes} variant="outline" size="sm">
             Try Again

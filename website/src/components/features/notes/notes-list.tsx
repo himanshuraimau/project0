@@ -113,7 +113,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
               Error loading notes
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {error}
+              {typeof error === 'string' ? error : 'An unexpected error occurred.'}
             </p>
             <Button onClick={loadNotes} variant="outline" size="sm">
               Try Again
