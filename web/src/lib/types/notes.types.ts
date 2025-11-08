@@ -12,6 +12,7 @@ export interface Note extends BaseEntity {
   content: string | null;
   transcriptId: string;
   userId: string | null;
+  folderId?: string | null;
   transcript?: {
     id: string;
     originalName: string;
@@ -166,6 +167,7 @@ export interface NotesQuery extends NoteFilters {
 
 // Extended note types with relations
 export interface NoteWithTranscript extends Note {
+  folderId?: string | null;
   transcript: {
     id: string;
     originalName: string;

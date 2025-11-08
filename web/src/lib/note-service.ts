@@ -687,6 +687,7 @@ Generate ONE perfect title (no quotes, just the title):`,
           content: true,
           transcriptId: true,
           userId: true,
+          folderId: true,
           createdAt: true,
           updatedAt: true,
           transcript: {

@@ -13,6 +13,7 @@ import {
   Menu,
   Home,
   Youtube,
+  Folder,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -37,6 +38,7 @@ interface AppSidebarProps {
 
 const dashboardItems = [
   { title: "Dashboard", icon: Home, href: "/dashboard" },
+  { title: "Folders", icon: Folder, href: "/dashboard/folders" },
   {
     title: "Create Course",
     icon: Youtube,

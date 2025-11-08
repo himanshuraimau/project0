@@ -13,6 +13,7 @@ interface NotesListProps {
   searchQuery?: string;
   transcriptId?: string;
   limit?: number;
+  folderId?: string | null;
 }
 
 export interface NotesListRef {
@@ -20,7 +21,7 @@ export interface NotesListRef {
 }
 
 export const NotesList = forwardRef<NotesListRef, NotesListProps>(
-  ({ searchQuery, transcriptId, limit }, ref) => {
+  ({ searchQuery, transcriptId, limit, folderId }, ref) => {
     const { getNotes, loading, error } = useNotes();
     const { loadingNotes } = useDashboardRefresh();
     const [notes, setNotes] = useState<NotesNoteWithTranscript[]>([]);    // Debug: Log loading notes changes
@@ -71,6 +72,19 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       });
     };
 
+    // Filter notes by folder
+    const filterByFolder = (notes: NotesNoteWithTranscript[]): NotesNoteWithTranscript[] => {
+      if (folderId === undefined || folderId === null) {
+        return notes; // Show all notes when no folder filter is applied
+      }
+
+      if (folderId === "uncategorized") {
+        return notes.filter((note) => !note.folderId);
+      }
+
+      return notes.filter((note) => note.folderId === folderId);
+    };
+
     if (loading && notes.length === 0) {
       return (
         <div className="flex items-center justify-center p-12">
@@ -105,7 +119,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       );
     }
 
-    const filteredNotes = filterNotes(notes, searchQuery || "");
+    const filteredNotes = filterByFolder(filterNotes(notes, searchQuery || ""));
 
     // Show shimmer if we're loading the first note (empty state with loading notes)
     if (notes.length === 0 && loadingNotes.length === 0) {
@@ -140,6 +154,40 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       );
     }
 
+    // Show empty state when folder has no notes
+    if (filteredNotes.length === 0 && folderId && folderId !== "uncategorized") {
+      return (
+        <div className="text-center py-16 neomorphic rounded-2xl">
+          <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <FileText className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <h3 className="font-semibold text-xl text-foreground mb-3">
+            No notes in this folder yet
+          </h3>
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+            Move notes to this folder or create new ones to organize your content.
+          </p>
+        </div>
+      );
+    }
+
+    // Show empty state for uncategorized
+    if (filteredNotes.length === 0 && folderId === "uncategorized") {
+      return (
+        <div className="text-center py-16 neomorphic rounded-2xl">
+          <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <FileText className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <h3 className="font-semibold text-xl text-foreground mb-3">
+            All notes are organized
+          </h3>
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+            Great! All your notes are in folders. Uncategorized notes will appear here.
+          </p>
+        </div>
+      );
+    }
+
     return (
       <>
         <div className="flex flex-col gap-6 w-full">
@@ -150,7 +198,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
           {/* Show actual notes */}
           {(limit ? filteredNotes.slice(0, limit) : filteredNotes).map((note) => (
-            <NoteCard key={note.id} note={note} />
+            <NoteCard key={note.id} note={note} onUpdate={loadNotes} />
           ))}
         </div>
 
