@@ -1,0 +1,193 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import {
+  Home,
+  HelpCircle,
+  Headphones,
+  Settings,
+  BookOpen,
+  Zap,
+  ArrowUpRight,
+  LayoutDashboard,
+} from 'lucide-react';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
+import { Plus_Jakarta_Sans } from "next/font/google";
+
+const jakarta = Plus_Jakarta_Sans({
+  weight: ["400", "600"],
+  subsets: ["latin-ext", "vietnamese"],
+});
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { SidebarFooterControls } from "@/components/shared/sidebar-footer-controls";
+
+const sidebarItems = [
+  {
+    section: "Main",
+    items: [
+      { title: "Dashboard", icon: Home, href: "/dashboard" },
+      { title: "My Courses", icon: BookOpen, href: "/dashboard/generate-course" },
+    ]
+  },
+  {
+    section: "Learning Tools",
+    items: [
+      { title: "Create Notes", icon: Zap, href: "/dashboard/notes" },
+    ]
+  },
+  {
+    section: "Support",
+    items: [
+      { title: "Help Center", icon: HelpCircle, href: "/dashboard/how-to-use" },
+      { title: "Contact Support", icon: Headphones, href: "/dashboard/support" },
+      { title: "Settings", icon: Settings, href: "/dashboard/settings" },
+    ]
+  }
+];
+
+interface AppSidebarProps {
+  className?: string;
+}
+
+export function AppSidebar({ className }: AppSidebarProps) {
+  const pathname = usePathname();
+  const { state, toggleSidebar } = useSidebar();
+  const { theme } = useTheme();
+  const isCollapsed = state === "collapsed";
+  const isDark = theme === "dark";
+
+  return (
+    <Sidebar
+      collapsible="icon"
+      className={cn(
+        "h-screen bg-white dark:bg-stone-950 border-r border-sidebar-border",
+        className
+      )}
+    >
+      <SidebarHeader className="border-b pt-4 pb-4 bg-sidebar border-sidebar-border flex-shrink-0">
+        <div className="flex items-center justify-between">
+          {!isCollapsed && (
+            <div className="flex items-center gap-3 min-w-0">
+              <LayoutDashboard className="w-6 h-6 text-accent flex-shrink-0" />
+              <h1 className="text-lg font-semibold text-sidebar-foreground truncate">
+                Dashboard
+              </h1>
+            </div>
+          )}
+          <SidebarTrigger className="ml-auto" />
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent
+        className={cn(
+          "flex-1 pt-8 bg-white dark:bg-stone-950",
+          isCollapsed ? "flex flex-col items-center" : ""
+        )}
+      >
+        {sidebarItems.map((section) => (
+          <SidebarGroup
+            key={section.section}
+            className={cn(
+              "mb-8",
+              isCollapsed ? "w-full flex flex-col items-center" : ""
+            )}
+          >
+            {!isCollapsed && (
+              <div className="pb-4">
+                <h3 className="text-sm uppercase tracking-wider text-stone-500 dark:text-stone-400 font-semibold">
+                  {section.section}
+                </h3>
+              </div>
+            )}
+            
+            <SidebarGroupContent>
+              <SidebarMenu
+                className={cn(
+                  "space-y-3",
+                  isCollapsed && "flex flex-col items-center w-full"
+                )}
+              >
+                {section.items.map((item) => {
+                  const isActive = pathname === item.href;
+
+                  return (
+                    <SidebarMenuItem
+                      key={item.href}
+                      className={isCollapsed ? "flex justify-center" : ""}
+                    >
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        className={cn(
+                          "group flex items-center rounded-xl transition-all duration-200 ease-in-out w-full",
+                          isCollapsed ? "h-14 justify-center" : "",
+                          isActive
+                            ? "bg-accent text-white dark:text-white  border-l-4 border-accent"
+                            : "text-stone-600 dark:text-stone-400 hover:bg-stone-100 hover:text-stone-900 dark:hover:bg-stone-800 dark:hover:text-stone-100 hover:"
+                        )}
+                      >
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-6",
+                            isCollapsed ? "w-full justify-center" : "w-full"
+                          )}
+                        >
+                          <item.icon className="w-7 h-7 flex-shrink-0 transition-transform group-hover:scale-110" />
+                          {!isCollapsed && (
+                            <span className="text-lg font-medium leading-relaxed">
+                              {item.title}
+                            </span>
+                          )}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+
+      <SidebarFooterControls>
+        {/* Upgrade to PRO Button */}
+        <Link 
+          href="/pricing"
+          className={cn(
+            "flex items-center gap-3 rounded-lg py-3 transition-all duration-200",
+            "bg-accent/10 hover:bg-accent/20 border border-accent/30",
+            "group cursor-pointer",
+            isCollapsed ? "justify-center" : ""
+          )}
+        >
+          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+            <span className="text-accent-foreground text-base font-bold">⚡</span>
+          </div>
+          {!isCollapsed && (
+            <>
+              <span className="text-sm font-semibold text-foreground">
+                Upgrade to PRO
+              </span>
+              <ArrowUpRight className={cn("w-6 h-6", isDark ? "text-black" : "text-white")} />
+            </>
+          )}
+        </Link>
+      </SidebarFooterControls>
+    </Sidebar>
+  );
+}

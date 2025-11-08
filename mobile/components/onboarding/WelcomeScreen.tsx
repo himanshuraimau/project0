@@ -1,10 +1,10 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import React from 'react'
 import { Pressable, StatusBar, Text, View } from 'react-native'
-import { welcomeScreenStyles as styles } from './styles'
+import { welcomeScreenStyles as styles } from './onboarding-styles/welcome-screen-styles'
 
 interface FeatureTagProps {
   icon: React.ReactNode
@@ -47,6 +47,8 @@ const GlassButton: React.FC<GlassButtonProps> = ({ text, icon }) => {
 }
 
 export default function WelcomeScreen() {
+  const router = useRouter()
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -123,12 +125,13 @@ export default function WelcomeScreen() {
           />
 
           {/* Primary CTA */}
-          <Link href="/(auth)/sign-up" asChild>
-            <Pressable style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>Continue</Text>
-              <Text style={styles.primaryButtonEmoji}>👉</Text>
-            </Pressable>
-          </Link>
+          <Pressable 
+            style={styles.primaryButton}
+            onPress={() => router.push('/(onboarding)/step1' as any)}
+          >
+            <Text style={styles.primaryButtonText}>Continue</Text>
+            <Text style={styles.primaryButtonEmoji}>👉</Text>
+          </Pressable>
         </View>
 
         {/* Footer Link */}

@@ -7,7 +7,7 @@ import {
   NoteType,
   GeneratedNoteResult,
   NotesFromContentResult
-} from "./types/notes.types";
+} from "@/lib/types/notes.types";
 
 
 export class NoteService {

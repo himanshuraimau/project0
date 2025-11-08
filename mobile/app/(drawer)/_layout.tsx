@@ -47,13 +47,7 @@ export default function DrawerLayout() {
           <DrawerItemList {...props} />
         </DrawerContentScrollView>
       )}
-    >
-      {/* Route group entry points become drawer items via file-based routing */}
-      <Drawer.Screen
-        name="(home)"
-        options={{ title: 'Home' }}
-      />
-    </Drawer>
+    />
   )
 }
 

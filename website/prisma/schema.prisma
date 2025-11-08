@@ -1,0 +1,348 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+model User {
+  id           String        @id
+  email        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  subscription Subscription?
+
+  @@map("users")
+}
+
+// Subscription System - New Models
+model Subscription {
+  id                 String             @id @default(cuid())
+  userId             String             @unique
+  dodoSubscriptionId String             @unique // Dodo Payments subscription ID
+  productId          String // Dodo product ID
+  status             SubscriptionStatus @default(PENDING)
+
+  // Billing period information
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  nextBillingDate    DateTime?
+
+  // Cancellation information
+  cancelAtPeriodEnd Boolean   @default(false)
+  cancelledAt       DateTime?
+
+  // Trial information
+  trialEnd DateTime?
+
+  // Metadata
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([dodoSubscriptionId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+enum SubscriptionStatus {
+  PENDING // Subscription created, payment pending
+  ACTIVE // Subscription is active and user has access
+  ON_HOLD // Payment failed, subscription on hold
+  CANCELLED // Subscription has been cancelled
+  FAILED // Subscription creation failed
+  EXPIRED // Subscription expired (past due without recovery)
+}
+
+model Transcript {
+  id           String   @id @default(cuid())
+  fileName     String
+  originalName String
+  content      String
+  cleanContent String
+  pages        Int?
+  metadata     Json?
+  userId       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  type         String   @default("pdf")
+  notes        Note[]
+
+  @@map("transcripts")
+}
+
+model Note {
+  id           String             @id @default(cuid())
+  title        String
+  content      String
+  transcriptId String
+  userId       String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  flashcard    Flashcard?
+  chunks       NoteChunk[]        @relation("NoteToChunks")
+  transcript   Transcript         @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+  quiz         Quiz?
+  mindmap      MindMap?
+  translations NoteTranslation[]
+  podcasts     Podcast[]
+
+  @@map("notes")
+}
+
+model NoteTranslation {
+  id        String   @id @default(cuid())
+  noteId    String
+  language  String // ISO 639-1 code: 'es', 'fr', 'de', 'zh', 'hi'
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, language])
+  @@index([noteId])
+  @@map("note_translations")
+}
+
+model Flashcard {
+  id        String   @id @default(cuid())
+  noteId    String   @unique
+  userId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  content   Json
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@map("flashcards")
+}
+
+model Quiz {
+  id        String   @id @default(cuid())
+  noteId    String   @unique
+  content   Json
+  userId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@map("quizzes")
+}
+
+model MindMap {
+  id          String   @id @default(cuid())
+  title       String
+  mermaidCode String
+  noteId      String   @unique
+  userId      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@map("mind_maps")
+}
+
+model Podcast {
+  id                  String        @id @default(cuid())
+  noteId              String
+  userId              String?
+  
+  // ElevenLabs Integration
+  elevenLabsProjectId String?       @unique
+  
+  // Generation Settings
+  mode                PodcastMode
+  hostVoiceId         String
+  guestVoiceId        String?
+  qualityPreset       QualityPreset @default(STANDARD)
+  durationScale       DurationScale @default(DEFAULT)
+  language            String?
+  intro               String?
+  outro               String?
+  
+  // Status and Progress
+  status              PodcastStatus @default(GENERATING)
+  progress            Float?        @default(0)
+  errorMessage        String?
+  
+  // Audio File Information
+  audioUrl            String?       // UploadThing URL
+  audioFileKey        String?       // UploadThing file key for deletion
+  duration            Int?          // Duration in seconds
+  fileSize            Int?          // File size in bytes
+  
+  // Metadata
+  title               String
+  description         String?
+  metadata            Json?
+  
+  // Timestamps
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  completedAt         DateTime?
+  
+  // Relations
+  note                Note          @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  
+  @@index([noteId])
+  @@index([userId])
+  @@index([status])
+  @@index([elevenLabsProjectId])
+  @@map("podcasts")
+}
+
+
+
+model NoteChunk {
+  id         Int                   @id @default(autoincrement())
+  note_id    String
+  chunk_text String
+  embedding  Unsupported("vector")
+  note       Note                  @relation("NoteToChunks", fields: [note_id], references: [id], onDelete: Cascade)
+
+  @@index([note_id])
+  @@map("note_chunks")
+}
+
+model ChapterChunk {
+  id         Int                   @id @default(autoincrement())
+  chapter_id String
+  chunk_text String
+  embedding  Unsupported("vector")
+  source     String                @default("notes")
+  chapter    Chapter               @relation("ChapterToChunks", fields: [chapter_id], references: [id], onDelete: Cascade)
+
+  @@index([chapter_id])
+  @@map("chapter_chunks")
+}
+
+model Course {
+  id           String               @id @default(cuid())
+  name         String
+  image        String
+  userId       String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  units        Unit[]
+  userProgress UserCourseProgress[]
+
+  @@map("courses")
+}
+
+model Unit {
+  id        String    @id @default(cuid())
+  courseId  String
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  chapters  Chapter[]
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@map("units")
+}
+
+model Chapter {
+  id                 String                @id @default(cuid())
+  unitId             String
+  name               String
+  youtubeSearchQuery String
+  videoId            String?
+  notes              String?
+  transcript         String?
+  flashcards         Json?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  chunks             ChapterChunk[]        @relation("ChapterToChunks")
+  unit               Unit                  @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  questions          Question[]
+  userProgress       UserChapterProgress[]
+
+  @@index([unitId])
+  @@map("chapters")
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  chapterId String
+  question  String
+  answer    String
+  options   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@index([chapterId])
+  @@map("questions")
+}
+
+model UserCourseProgress {
+  id                   String    @id @default(cuid())
+  userId               String
+  courseId             String
+  completedChapters    Int       @default(0)
+  totalChapters        Int       @default(0)
+  completionPercentage Float     @default(0)
+  isCompleted          Boolean   @default(false)
+  completedAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  course               Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+  @@map("user_course_progress")
+}
+
+model UserChapterProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  chapterId   String
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  chapter     Chapter   @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chapterId])
+  @@index([userId])
+  @@index([chapterId])
+  @@map("user_chapter_progress")
+}
+
+enum PodcastMode {
+  CONVERSATION
+  BULLETIN
+}
+
+enum PodcastStatus {
+  GENERATING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  SUPERSEDED
+}
+
+enum QualityPreset {
+  STANDARD
+  HIGH
+  HIGHEST
+  ULTRA
+  ULTRA_LOSSLESS
+}
+
+enum DurationScale {
+  SHORT
+  DEFAULT
+  LONG
+}
