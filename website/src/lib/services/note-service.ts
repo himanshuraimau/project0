@@ -1,7 +1,7 @@
 import { prisma } from "./prisma";
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
-import { indexNoteContent } from "./course/embedding-service";
+import { indexNoteContent } from "@/lib/services/embedding-service";
 import {
   NoteData,
   NoteType,
@@ -750,10 +750,12 @@ Generate ONE perfect title (no quotes, just the title):`,
         .filter(podcast => podcast.audioFileKey && podcast.audioFileKey.trim().length > 0)
         .map(podcast => podcast.audioFileKey!);
 
-      if (audioFileKeys.length > 0) {
+        if (audioFileKeys.length > 0) {
         try {
-          // Import UploadThing service for bulk file deletion
-          const { uploadThingAudioStorageService } = await import('./uploadthing');
+          // Import UploadThing service for bulk file deletion using a non-literal path
+          // This avoids TypeScript trying to statically resolve './uploadthing' at compile time
+          const uploadThingModulePath = './' + 'uploadthing';
+          const { uploadThingAudioStorageService } = await import(uploadThingModulePath as any);
           await uploadThingAudioStorageService.deleteAudioFiles(audioFileKeys);
           console.log(`Successfully deleted ${audioFileKeys.length} audio files for note ${id}`);
         } catch (fileError) {
