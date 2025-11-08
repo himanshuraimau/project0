@@ -29,33 +29,30 @@ export function MyNotesSection() {
   }, [setRefreshHandler]);
 
   return (
-<div className={`w-full ${inter.className}`}>
+    <div className={`w-full ${inter.className}`}>
       <div className="mb-8">
-        <div className="flex items-center gap-4 mb-1">
-          <h2 className={`text-2xl leading-8 font-semibold text-foreground whitespace-nowrap ${jakarta.className}`}>
+        <div className="flex justify-between items-center gap-4 ">
+          <h2
+            className={`dark:text-white text-black text-[20px] font-medium leading-[24px]`}
+          >
             My Notes
           </h2>
-          <hr className="flex-1 opacity-50" />
           <button
-            onClick={() => router.push('/notes')}
+            onClick={() => router.push("/notes")}
             className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 group whitespace-nowrap cursor-pointer"
           >
             View All
             <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
           </button>
         </div>
-        <p className={`text-gray-500 text-base font-medium leading-6 ${jakarta.className}`}>
+        <p className={`text-[15px] tracking-[-3%] text-[#787878]`}>
           Manage and organize your notes
         </p>
       </div>
 
       {/* Notes Display */}
       <div className="w-full rounded-2xl pt-5">
-        <NotesList 
-          ref={notesListRef}
-          searchQuery={searchQuery}
-          limit={3}
-        />
+        <NotesList ref={notesListRef} searchQuery={searchQuery} limit={3} />
       </div>
     </div>
   );
