@@ -2,8 +2,9 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Link, useRouter } from 'expo-router'
+import MaskedView from '@react-native-masked-view/masked-view'
 import React from 'react'
-import { Pressable, StatusBar, Text, View } from 'react-native'
+import { Pressable, StatusBar, Text, View, Image } from 'react-native'
 import { welcomeScreenStyles as styles } from './onboarding-styles/welcome-screen-styles'
 
 interface FeatureTagProps {
@@ -33,16 +34,19 @@ interface GlassButtonProps {
 
 const GlassButton: React.FC<GlassButtonProps> = ({ text, icon }) => {
   return (
-    <BlurView
-      intensity={20}
-      tint="light"
-      style={styles.glassButton}
-    >
-      <View style={styles.glassButtonInner}>
+    <View style={styles.glassButton}>
+      <LinearGradient
+        colors={['rgba(255, 223, 32, 0.2)', 'rgba(253, 165, 213, 0.2)']}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={styles.glassButtonInner}
+      >
         <Text style={styles.glassButtonText}>{text}</Text>
-        {icon}
-      </View>
-    </BlurView>
+        <Text style={[styles.glassButtonText, { fontSize: 16, lineHeight: 24 }]}>
+          {icon ? '↓' : null}
+        </Text>
+      </LinearGradient>
+    </View>
   )
 }
 
@@ -53,27 +57,41 @@ export default function WelcomeScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={['#A855F7', '#7C3AED', '#6D28D9']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
+        colors={['#7F22FE', '#9810FA', '#432DD7']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
         {/* Logo Section */}
         <View style={styles.logoSection}>
-          <View style={styles.logoContainer}>
-            <View style={styles.ghostContainer}>
-              <Text style={styles.ghostEmoji}>👻</Text>
-            </View>
-          </View>
+          <Image 
+            source={require('../../assets/images/main-logo.png')} 
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
 
         {/* Headline Section */}
         <View style={styles.headlineSection}>
           <Text style={styles.headlineText}>Capture.</Text>
           <Text style={styles.headlineText}>Understand.</Text>
-          <Text style={[styles.headlineText, styles.headlineHighlight]}>
-            Remember.
-          </Text>
+          <MaskedView
+            maskElement={
+              <Text style={styles.headlineHighlight}>
+                Remember.
+              </Text>
+            }
+          >
+            <LinearGradient
+              colors={['#FFF085', '#FCCEE8', '#A2F4FD']}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+            >
+              <Text style={[styles.headlineHighlight, { opacity: 0 }]}>
+                Remember.
+              </Text>
+            </LinearGradient>
+          </MaskedView>
         </View>
 
         {/* Feature Tags */}
@@ -129,8 +147,19 @@ export default function WelcomeScreen() {
             style={styles.primaryButton}
             onPress={() => router.push('/(onboarding)/step1' as any)}
           >
-            <Text style={styles.primaryButtonText}>Continue</Text>
-            <Text style={styles.primaryButtonEmoji}>👉</Text>
+            <LinearGradient
+              colors={['#000000', '#0F0517', '#080808']}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={[styles.primaryButtonGradient, { position: 'absolute', width: '100%', height: '100%' }]}
+            />
+            <LinearGradient
+              colors={['rgba(0, 0, 0, 0)', 'rgba(255, 255, 255, 0.2)', 'rgba(0, 0, 0, 0)']}
+              start={{ x: 0.2, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }} 
+              style={[styles.primaryButtonOverlay, { position: 'absolute', width: '100%', height: '100%' }]}
+            />
+            <Text style={styles.primaryButtonText}>Continue 👉</Text>    
           </Pressable>
         </View>
 
