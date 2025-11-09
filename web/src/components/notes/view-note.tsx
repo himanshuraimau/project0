@@ -23,7 +23,8 @@ import {
   Bot,
   Minimize2,
   Save,
-  X
+  X,
+  Share2
 } from "lucide-react";
 import { toast } from "sonner";
 import { MDXRenderer } from "@/components/mdx-renderer";
@@ -31,6 +32,7 @@ import { LexicalViewer } from "@/components/shared/LexicalViewer";
 import { useNotes } from "@/hooks/use-notes";
 import { useTranslations } from "@/hooks/use-translations";
 import { LanguageSelector } from "@/components/notes/language-selector";
+import { ShareLinkDialog } from "@/components/notes/share-link-dialog";
 import dynamic from "next/dynamic";
 
 const DynamicInlineChatbot = dynamic(
@@ -54,6 +56,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   const [editedContent, setEditedContent] = useState(note.content || "");
   const [editedTitle, setEditedTitle] = useState(note.title || "");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   
   // Translation state
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode | 'en'>('en');
@@ -393,6 +396,16 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                           <Download className="h-4 w-4 sm:mr-2" />
                           <span className="hidden sm:inline">Download</span>
                         </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowShareDialog(true)}
+                          className="rounded-xl px-3 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer shrink-0"
+                        >
+                          <Share2 className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Share</span>
+                        </Button>
 
                         {isChatbotMinimized && (
                           <Button
@@ -628,6 +641,14 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Share Link Dialog */}
+      <ShareLinkDialog
+        noteId={note.id}
+        noteTitle={note.title}
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+      />
     </div>
   );
 }

@@ -39,6 +39,7 @@ interface AppSidebarProps {
 const dashboardItems = [
   { title: "Dashboard", icon: Home, href: "/dashboard" },
   { title: "Folders", icon: Folder, href: "/dashboard/folders" },
+  { title: "Shared With Me", icon: Grid3X3, href: "/dashboard/cloned" },
   {
     title: "Create Course",
     icon: Youtube,

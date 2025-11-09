@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, FileText, Mic, Upload, Video, Globe, FolderInput, Folder } from "lucide-react";
+import { ChevronRight, FileText, Mic, Upload, Video, Globe, FolderInput, Folder, Share2 } from "lucide-react";
 import { NotesNoteWithTranscript } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { MoveToFolderDialog } from "@/components/folders/move-to-folder-dialog";
+import { ShareLinkDialog } from "@/components/notes/share-link-dialog";
 import { useFolders } from "@/hooks/use-folders";
 
 interface NoteCardProps {
@@ -17,6 +18,7 @@ interface NoteCardProps {
 export function NoteCard({ note, onUpdate }: NoteCardProps) {
   const router = useRouter();
   const [showMoveDialog, setShowMoveDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const { folders, loading: foldersLoading, getFolders } = useFolders();
   const [folderName, setFolderName] = useState<string | null>(null);
   const [folderColor, setFolderColor] = useState<string | null>(null);
@@ -149,6 +151,20 @@ export function NoteCard({ note, onUpdate }: NoteCardProps) {
 
             {/* Right section - Actions */}
             <div className="flex items-center gap-3">
+              {/* Share Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowShareDialog(true);
+                }}
+                className="neomorphic-button flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+                Share
+              </Button>
+
               {/* Move to Folder Button - More visible */}
             {folderName ? (
               <Button
@@ -197,6 +213,14 @@ export function NoteCard({ note, onUpdate }: NoteCardProps) {
         open={showMoveDialog}
         onOpenChange={setShowMoveDialog}
         onSuccess={onUpdate}
+      />
+
+      {/* Share Link Dialog */}
+      <ShareLinkDialog
+        noteId={note.id}
+        noteTitle={note.title}
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
       />
     </>
   );
