@@ -4,7 +4,6 @@ import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
 import {
-  SafeAreaView,
   StatusBar,
   View,
   Text,
@@ -15,6 +14,7 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function NotesHome() {
   const { theme } = useTheme()
