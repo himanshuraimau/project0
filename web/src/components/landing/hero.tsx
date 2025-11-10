@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Mic, Play, FileText, Headphones, Zap, Users, LayoutDashboard } from "lucide-react"
+import { Mic, Play, FileText, Headphones, Zap, Users, LayoutDashboard, Share2, Brain, Sparkles, GraduationCap } from "lucide-react"
 import { SignedIn, SignedOut } from "@clerk/nextjs"
 import Link from "next/link"
 
@@ -20,10 +20,19 @@ export function Hero() {
       </div>
 
       <div className="container relative z-10 mx-auto px-8 text-center">
+        {/* Logo */}
+        <div className="mb-8 flex justify-center">
+          <img
+            src="/logo.png"
+            alt="JelliNote AI"
+            className="h-20 w-auto rounded-2xl  hover: transition-all duration-300 hover:scale-105"
+          />
+        </div>
+
         {/* Status badge */}
         <div className="mb-8 flex justify-center">
           <Badge className="bg-primary/10 text-primary border-primary/20 rounded-full px-6 py-2 text-sm font-medium">
-            <Zap className="w-4 h-4 mr-2" />
+            <Sparkles className="w-4 h-4 mr-2" />
             AI-Powered Study Revolution
           </Badge>
         </div>
@@ -32,14 +41,14 @@ export function Hero() {
         <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-8 bg-gradient-to-br from-foreground via-foreground to-foreground/80 bg-clip-text text-transparent">
           Transform Learning with
           <span className="block text-primary mt-4">
-            Project0
+            JelliNote AI
           </span>
         </h1>
 
         {/* Subtitle */}
         <p className="text-xl lg:text-2xl text-muted-foreground leading-relaxed mb-12 max-w-4xl mx-auto">
-          One-tap recording, automatic note generation, and intelligent study materials. 
-          Convert lectures, videos, and PDFs into organized flashcards and quizzes.
+          AI-powered note-taking with smart flashcards, interactive quizzes, mindmaps, 
+          and podcasts. Generate complete courses, share notes, organize in folders, and learn in 100+ languages.
         </p>
 
         {/* CTA buttons */}
@@ -49,8 +58,8 @@ export function Hero() {
               size="lg" 
               className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-10 py-4 text-lg font-medium  hover: transition-all duration-300 hover:-translate-y-1"
             >
-              <Mic className="w-5 h-5 mr-3" />
-              Start Recording
+              <Zap className="w-5 h-5 mr-3" />
+              Get Started Free
             </Button>
             
             <Button 
@@ -74,21 +83,21 @@ export function Hero() {
               </Button>
             </Link>
             
-            <Link href="/dashboard/create/wizard">
+            <Link href="/dashboard/folders">
               <Button 
                 variant="outline" 
                 size="lg"
                 className="border-2 border-primary/30 hover:bg-primary/10 rounded-2xl px-10 py-4 text-lg font-medium hover: transition-all duration-300"
               >
-                <Mic className="w-5 h-5 mr-3" />
-                Create Course
+                <FileText className="w-5 h-5 mr-3" />
+                My Notes
               </Button>
             </Link>
           </SignedIn>
         </div>
 
         {/* Feature icons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 max-w-4xl mx-auto">
           <div className="flex flex-col items-center gap-3 group">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
               <FileText className="w-8 h-8 text-primary" />
@@ -98,18 +107,30 @@ export function Hero() {
           
           <div className="flex flex-col items-center gap-3 group">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
-              <Zap className="w-8 h-8 text-primary" />
+              <GraduationCap className="w-8 h-8 text-primary" />
             </div>
-            <span className="text-sm font-medium text-muted-foreground">Flashcards</span>
+            <span className="text-sm font-medium text-muted-foreground">AI Courses</span>
           </div>
-          
-
           
           <div className="flex flex-col items-center gap-3 group">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
-              <Users className="w-8 h-8 text-primary" />
+              <Share2 className="w-8 h-8 text-primary" />
             </div>
-            <span className="text-sm font-medium text-muted-foreground">Multi-Language</span>
+            <span className="text-sm font-medium text-muted-foreground">Share Notes</span>
+          </div>
+          
+          <div className="flex flex-col items-center gap-3 group">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
+              <Brain className="w-8 h-8 text-primary" />
+            </div>
+            <span className="text-sm font-medium text-muted-foreground">Mindmaps</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-3 group">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
+              <Headphones className="w-8 h-8 text-primary" />
+            </div>
+            <span className="text-sm font-medium text-muted-foreground">Podcasts</span>
           </div>
         </div>
 

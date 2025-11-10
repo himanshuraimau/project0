@@ -33,10 +33,19 @@ export function Header() {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">P0</span>
+            <img
+              src="/logo.png"
+              alt="JelliNote AI"
+              className="h-10 w-auto rounded-md"
+            />
+            <div>
+              <div className="text-xl font-bold text-foreground leading-tight">
+                JelliNote AI
+              </div>
+              <div className="text-xs text-muted-foreground font-medium">
+                Smart Notes
+              </div>
             </div>
-            <span className="text-2xl font-bold text-foreground">Project0</span>
           </div>
 
           {/* Desktop Navigation */}

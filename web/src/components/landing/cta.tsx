@@ -38,8 +38,8 @@ export function CTA() {
 
         {/* Description */}
         <p className="text-xl lg:text-2xl text-muted-foreground leading-relaxed mb-12 max-w-3xl mx-auto">
-          Join thousands of students who have revolutionized their learning with AI-powered study tools. 
-          Start your free trial today.
+          Join thousands of students who have revolutionized their learning with JelliNote AI. 
+          Start creating, sharing, and mastering your notes today.
         </p>
 
         {/* CTA Buttons */}

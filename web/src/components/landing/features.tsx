@@ -12,45 +12,84 @@ import {
   Clock,
   TrendingUp,
   Shield,
-  Sparkles 
+  Sparkles,
+  Share2,
+  Brain,
+  Folder,
+  MessageSquare,
+  GraduationCap
 } from "lucide-react"
 
 const features = [
   {
-    icon: Mic,
-    title: "One-Tap Recording",
-    description: "Record lectures with a single tap and let AI automatically generate comprehensive notes.",
+    icon: FileText,
+    title: "Smart Note Generation",
+    description: "Create comprehensive notes from PDFs, audio, video, and web content with AI-powered extraction.",
     badge: "Core Feature",
     gradient: "from-primary/20 to-primary/5"
   },
   {
-    icon: FileText,
-    title: "Smart Content Conversion",
-    description: "Transform audio, video, and PDF files into organized study materials instantly.",
-    badge: "AI-Powered",
-    gradient: "from-secondary/20 to-secondary/5"
+    icon: GraduationCap,
+    title: "AI Course Generator",
+    description: "Generate complete courses with structured units, chapters, and video recommendations in seconds.",
+    badge: "Featured",
+    gradient: "from-violet-500/20 to-violet-500/5"
+  },
+  {
+    icon: Share2,
+    title: "Share & Collaborate",
+    description: "Share notes via secure links. Recipients can preview and save copies with full content including quizzes and flashcards.",
+    badge: "New",
+    gradient: "from-blue-500/20 to-blue-500/5"
+  },
+  {
+    icon: Folder,
+    title: "Organize with Folders",
+    description: "Keep your notes organized in custom folders with color coding and easy navigation.",
+    badge: "Productivity",
+    gradient: "from-green-500/20 to-green-500/5"
   },
   {
     icon: Zap,
-    title: "Automated Flashcards",
-    description: "Generate engaging flashcards for active recall learning from any content.",
+    title: "Smart Flashcards",
+    description: "Automatically generate interactive flashcards from your notes for effective memorization.",
     badge: "Study Tool",
-    gradient: "from-success/20 to-success/5"
+    gradient: "from-yellow-500/20 to-yellow-500/5"
   },
-
+  {
+    icon: MessageSquare,
+    title: "Interactive Quizzes",
+    description: "Test your knowledge with AI-generated quizzes based on your note content.",
+    badge: "Assessment",
+    gradient: "from-purple-500/20 to-purple-500/5"
+  },
+  {
+    icon: Brain,
+    title: "Visual Mindmaps",
+    description: "Transform complex concepts into clear mindmaps for better understanding and retention.",
+    badge: "Visual Learning",
+    gradient: "from-pink-500/20 to-pink-500/5"
+  },
+  {
+    icon: Headphones,
+    title: "AI Podcasts",
+    description: "Convert your notes into engaging podcast-style audio for learning on the go.",
+    badge: "Audio Learning",
+    gradient: "from-indigo-500/20 to-indigo-500/5"
+  },
   {
     icon: Languages,
     title: "100+ Languages",
-    description: "Support for over 100 languages with accurate transcription and translation.",
+    description: "Support for over 100 languages with accurate transcription and translation capabilities.",
     badge: "Global",
-    gradient: "from-secondary/20 to-secondary/5"
+    gradient: "from-red-500/20 to-red-500/5"
   },
   {
     icon: Smartphone,
-    title: "Cross-Platform",
-    description: "Available on web and mobile with seamless synchronization across devices.",
+    title: "Cross-Platform Sync",
+    description: "Access your notes seamlessly across web and mobile with real-time synchronization.",
     badge: "Everywhere",
-    gradient: "from-success/20 to-success/5"
+    gradient: "from-cyan-500/20 to-cyan-500/5"
   }
 ]
 
@@ -58,22 +97,22 @@ const benefits = [
   {
     icon: Clock,
     title: "Save Time",
-    description: "Reduce study preparation time by 70% with automated content processing."
+    description: "Reduce study preparation time by 70% with automated content processing and organization."
   },
   {
     icon: TrendingUp,
-    title: "Better Grades",
-    description: "Students report average grade improvements of 15-25% using Project0."
+    title: "Better Retention",
+    description: "Students report 15-25% improvement in knowledge retention using JelliNote AI."
   },
   {
     icon: Shield,
-    title: "Honor Code Compliant",
-    description: "Designed to support learning while maintaining academic integrity."
+    title: "Secure & Private",
+    description: "Your notes are encrypted and secure. Share only what you want, when you want."
   },
   {
     icon: Sparkles,
-    title: "Personalized Learning",
-    description: "AI adapts to your learning style and optimizes content accordingly."
+    title: "AI-Powered",
+    description: "Advanced AI adapts to your learning style and creates personalized study materials."
   }
 ]
 
@@ -84,14 +123,14 @@ export function Features() {
         {/* Section header */}
         <div className="text-center mb-20">
           <Badge className="bg-primary/10 text-primary border-primary/20 rounded-full px-6 py-2 text-sm font-medium mb-6">
-            Core Features
+            Powerful Features
           </Badge>
           <h2 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text text-transparent">
             Everything You Need to
-            <span className="block text-primary">Supercharge Learning</span>
+            <span className="block text-primary">Excel in Your Studies</span>
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-            Powered by advanced AI, Project0 transforms how you capture, process, and review study materials.
+            JelliNote AI combines cutting-edge AI technology with intuitive design to transform how you learn.
           </p>
         </div>
 
@@ -131,7 +170,7 @@ export function Features() {
         {/* Benefits section */}
         <div className="text-center mb-16">
           <h3 className="text-3xl font-bold mb-12 text-foreground">
-            Why Students Choose Project0
+            Why Students Choose JelliNote AI
           </h3>
         </div>
 

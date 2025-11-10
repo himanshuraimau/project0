@@ -44,14 +44,15 @@ export function Footer() {
           {/* Brand section */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">P0</span>
+              <img src="/logo.png" alt="JelliNote AI" className="h-10 w-auto rounded-md" />
+              <div>
+                <div className="text-xl font-bold text-foreground">JelliNote AI</div>
+                <div className="text-xs text-muted-foreground">Smart Notes</div>
               </div>
-              <span className="text-2xl font-bold text-foreground">Project0</span>
             </div>
             <p className="text-muted-foreground leading-relaxed mb-6 max-w-sm">
-              Revolutionizing learning with AI-powered study tools. Transform lectures, videos, 
-              and documents into organized study materials instantly.
+              Revolutionizing learning with AI-powered study tools. Create, share, and master 
+              your notes with intelligent features and seamless organization.
             </p>
             
             {/* Social links */}
@@ -140,7 +141,7 @@ export function Footer() {
         {/* Bottom section */}
         <div className="pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-sm">
-            © 2024 Project0. All rights reserved.
+            © 2024 JelliNote AI. All rights reserved.
           </p>
           
           <div className="flex items-center gap-6 text-sm">
