@@ -13,18 +13,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { 
-  Copy, 
-  Download, 
-  Edit, 
-  Eye, 
+import {
+  Copy,
+  Download,
+  Edit,
+  Eye,
   Calendar,
   FileText,
   Bot,
   Minimize2,
   Save,
   X,
-  Share2
+  Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { MDXRenderer } from "@/components/mdx-renderer";
@@ -48,7 +48,7 @@ interface ViewNoteProps {
 }
 
 export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
-  const [viewMode, setViewMode] = useState<'preview' | 'edit'>('preview');
+  const [viewMode, setViewMode] = useState<"preview" | "edit">("preview");
   const [isChatbotMinimized, setIsChatbotMinimized] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -57,13 +57,18 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   const [editedTitle, setEditedTitle] = useState(note.title || "");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
-  
+
   // Translation state
-  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode | 'en'>('en');
-  const [currentTranslation, setCurrentTranslation] = useState<NoteTranslation | null>(null);
-  const [availableTranslations, setAvailableTranslations] = useState<LanguageCode[]>([]);
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode | "en">(
+    "en"
+  );
+  const [currentTranslation, setCurrentTranslation] =
+    useState<NoteTranslation | null>(null);
+  const [availableTranslations, setAvailableTranslations] = useState<
+    LanguageCode[]
+  >([]);
   const [translationsLoaded, setTranslationsLoaded] = useState(false);
-  
+
   const { updateNote } = useNotes();
   const { getTranslation } = useTranslations();
 
@@ -71,16 +76,16 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   const loadAvailableTranslations = async () => {
     if (translationsLoaded) return;
 
-    const languages: LanguageCode[] = ['es', 'fr', 'de', 'zh', 'hi'];
+    const languages: LanguageCode[] = ["es", "fr", "de", "zh", "hi"];
     const available: LanguageCode[] = [];
 
     // Use Promise.allSettled to fetch all translations in parallel instead of sequentially
     const results = await Promise.allSettled(
-      languages.map(lang => getTranslation(note.id, lang))
+      languages.map((lang) => getTranslation(note.id, lang))
     );
 
     results.forEach((result, index) => {
-      if (result.status === 'fulfilled' && result.value) {
+      if (result.status === "fulfilled" && result.value) {
         available.push(languages[index]);
       }
     });
@@ -92,7 +97,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
   // Load translation when language changes
   useEffect(() => {
     const loadTranslation = async () => {
-      if (currentLanguage === 'en') {
+      if (currentLanguage === "en") {
         setCurrentTranslation(null);
         return;
       }
@@ -106,20 +111,24 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
     loadTranslation();
   }, [currentLanguage, note.id]); // Remove getTranslation from dependencies
 
-  const handleLanguageChange = (language: LanguageCode | 'en') => {
+  const handleLanguageChange = (language: LanguageCode | "en") => {
     setCurrentLanguage(language);
-    if (language !== 'en' && !availableTranslations.includes(language)) {
+    if (language !== "en" && !availableTranslations.includes(language)) {
       setAvailableTranslations([...availableTranslations, language]);
     }
   };
 
   // Get current content based on language
   const getCurrentTitle = () => {
-    return currentLanguage === 'en' ? note.title : (currentTranslation?.title || note.title);
+    return currentLanguage === "en"
+      ? note.title
+      : currentTranslation?.title || note.title;
   };
 
   const getCurrentContent = () => {
-    return currentLanguage === 'en' ? note.content : (currentTranslation?.content || note.content);
+    return currentLanguage === "en"
+      ? note.content
+      : currentTranslation?.content || note.content;
   };
 
   const handleSaveNote = async () => {
@@ -129,13 +138,13 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
     try {
       const updatedNote = await updateNote(note.id, {
         title: editedTitle,
-        content: editedContent
+        content: editedContent,
       });
 
       if (updatedNote) {
         setHasUnsavedChanges(false);
         setIsEditMode(false);
-        setViewMode('preview');
+        setViewMode("preview");
         onUpdate?.(updatedNote);
         toast.success("Note saved successfully", {
           duration: 2000,
@@ -160,12 +169,12 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
       setShowCancelDialog(true);
       return;
     }
-    
+
     setEditedContent(note.content || "");
     setEditedTitle(note.title || "");
     setHasUnsavedChanges(false);
     setIsEditMode(false);
-    setViewMode('preview');
+    setViewMode("preview");
   };
 
   const confirmCancelEdit = () => {
@@ -173,7 +182,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
     setEditedTitle(note.title || "");
     setHasUnsavedChanges(false);
     setIsEditMode(false);
-    setViewMode('preview');
+    setViewMode("preview");
     setShowCancelDialog(false);
   };
 
@@ -191,7 +200,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
     // Prevent any scrolling behavior
     const currentScrollPosition = window.scrollY;
     setIsEditMode(true);
-    setViewMode('edit');
+    setViewMode("edit");
     // Restore scroll position after state update
     requestAnimationFrame(() => {
       window.scrollTo(0, currentScrollPosition);
@@ -249,225 +258,248 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
     return minutes;
   };
   return (
-    <div className="min-h-screen bg-background">
-      <div className="w-full mx-auto p-4 sm:p-6 lg:p-8">
-        {/* Two Column Layout - Responsive Grid */}
-        <div className={`grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 ${!isChatbotMinimized ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
+    <div className="min-h-screen">
+      <div className="w-full mx-auto p-5">
+        <div
+          className={`grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 ${
+            !isChatbotMinimized ? "lg:grid-cols-3" : "lg:grid-cols-1"
+          }`}
+        >
           {/* Main Content - Takes 2/3 of the width on lg+ screens when chatbot is open, full width when minimized */}
-          <div className={!isChatbotMinimized ? "lg:col-span-2" : "lg:col-span-1"}>
+          <div
+            className={!isChatbotMinimized ? "lg:col-span-2" : "lg:col-span-1"}
+          >
             {/* Main Content Card */}
             <Card className="rounded-3xl border-0  bg-card hover: transition-all duration-300">
-          {/* Header Section */}
-          <CardHeader className="p-4 sm:p-6 lg:p-8 pb-4 lg:pb-6">
-            <div className="space-y-4 sm:space-y-6">
-              {/* Title and Controls Row */}
-              <div className="flex flex-col gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight flex-1">
-                      {getCurrentTitle() || "Untitled Note"}
-                    </h1>
-                    {currentLanguage !== 'en' && (
-                      <Badge variant="secondary" className="mt-1 shrink-0">
-                        Translated
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  {/* Metadata */}
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      <span className="truncate">
-                        {note.updatedAt 
-                          ? formatDate(note.updatedAt) 
-                          : formatDate(note.createdAt || new Date().toISOString())
-                        }
-                      </span>
+              {/* Header Section */}
+              <CardHeader className="">
+                <div className="space-y-4 sm:space-y-6">
+                  {/* Title and Controls Row */}
+                  <div className="flex flex-col gap-6">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight flex-1">
+                          {getCurrentTitle() || "Untitled Note"}
+                        </h1>
+                        {currentLanguage !== "en" && (
+                          <Badge variant="secondary" className="mt-1 shrink-0">
+                            Translated
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Metadata */}
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          <span className="truncate">
+                            {note.updatedAt
+                              ? formatDate(note.updatedAt)
+                              : formatDate(
+                                  note.createdAt || new Date().toISOString()
+                                )}
+                          </span>
+                        </div>
+                        <Separator orientation="vertical" className="h-4" />
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          <span>
+                            {getReadingTime(getCurrentContent() || "")} min read
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <Separator orientation="vertical" className="h-4" />
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      <span>{getReadingTime(getCurrentContent() || "")} min read</span>
+
+                    {/* Controls Toolbar */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      {isEditMode ? (
+                        /* Edit Mode Controls */
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={handleSaveNote}
+                            disabled={!hasUnsavedChanges || isSaving}
+                            className="rounded-xl px-4 py-2 bg-primary hover:bg-primary/90 text-white dark:text-black transition-all duration-200 cursor-pointer"
+                            size="sm"
+                          >
+                            {isSaving ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="h-4 w-4 mr-2" />
+                                Save
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            onClick={handleCancelEdit}
+                            variant="outline"
+                            size="sm"
+                            className="rounded-xl px-4 py-2 hover:bg-muted hover:text-foreground border-border hover:border-muted-foreground/20 transition-all duration-200 cursor-pointer"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Cancel
+                          </Button>
+                          {hasUnsavedChanges && (
+                            <Badge
+                              variant="outline"
+                              className="text-destructive border-destructive/30 bg-destructive/5"
+                            >
+                              Unsaved changes
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        /* View Mode Controls */
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
+                          {/* Mode Toggle */}
+                          <div className="flex items-center bg-muted rounded-2xl p-1 shrink-0">
+                            <Button
+                              variant={
+                                viewMode === "preview" ? "default" : "ghost"
+                              }
+                              size="sm"
+                              onClick={() => setViewMode("preview")}
+                              className={`rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+                                viewMode === "preview"
+                                  ? "bg-primary text-white dark:text-black"
+                                  : "hover:bg-background text-foreground hover:text-foreground"
+                              }`}
+                            >
+                              <Eye className="h-4 w-4 sm:mr-2" />
+                              <span className="hidden sm:inline">Preview</span>
+                            </Button>
+                            <Button
+                              variant={
+                                viewMode === "edit" ? "default" : "ghost"
+                              }
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                enterEditMode();
+                              }}
+                              className={`rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+                                viewMode === "edit"
+                                  ? "bg-primary text-primary-foreground "
+                                  : "hover:bg-background text-foreground hover:text-foreground"
+                              }`}
+                            >
+                              <Edit className="h-4 w-4 sm:mr-2" />
+                              <span className="hidden sm:inline">Edit</span>
+                            </Button>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex flex-wrap items-center gap-2 flex-1">
+                            <LanguageSelector
+                              noteId={note.id}
+                              currentLanguage={currentLanguage}
+                              onLanguageChange={handleLanguageChange}
+                              availableTranslations={availableTranslations}
+                              onDropdownOpen={loadAvailableTranslations}
+                            />
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleCopy}
+                              className="rounded-xl px-3 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer shrink-0"
+                            >
+                              <Copy className="h-4 w-4 sm:mr-2" />
+                              <span className="hidden sm:inline">Copy</span>
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleDownload}
+                              className="rounded-xl px-3 py-2 hover:bg-secondary/5 hover:text-foreground border-border hover:border-secondary/20 transition-all duration-200 cursor-pointer shrink-0"
+                            >
+                              <Download className="h-4 w-4 sm:mr-2" />
+                              <span className="hidden sm:inline">Download</span>
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowShareDialog(true)}
+                              className="rounded-xl px-3 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer shrink-0"
+                            >
+                              <Share2 className="h-4 w-4 sm:mr-2" />
+                              <span className="hidden sm:inline">Share</span>
+                            </Button>
+
+                            {isChatbotMinimized && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsChatbotMinimized(false)}
+                                className="rounded-xl px-3 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer shrink-0"
+                                title="Show AI Assistant"
+                              >
+                                <Bot className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">
+                                  AI Chat
+                                </span>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
+              </CardHeader>
 
-                {/* Controls Toolbar */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  {isEditMode ? (
-                    /* Edit Mode Controls */
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={handleSaveNote}
-                        disabled={!hasUnsavedChanges || isSaving}
-                        className="rounded-xl px-4 py-2 bg-primary hover:bg-primary/90 text-white dark:text-black transition-all duration-200 cursor-pointer"
-                        size="sm"
-                      >
-                        {isSaving ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="h-4 w-4 mr-2" />
-                            Save
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        onClick={handleCancelEdit}
-                        variant="outline"
-                        size="sm"
-                        className="rounded-xl px-4 py-2 hover:bg-muted hover:text-foreground border-border hover:border-muted-foreground/20 transition-all duration-200 cursor-pointer"
-                      >
-                        <X className="h-4 w-4 mr-2" />
-                        Cancel
-                      </Button>
-                      {hasUnsavedChanges && (
-                        <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/5">
-                          Unsaved changes
-                        </Badge>
-                      )}
+              {/* Content Section */}
+              <CardContent className="p-4 sm:p-6 lg:p-8 pt-4 sm:pt-6 lg:pt-8">
+                <div className="min-h-[400px]">
+                  {viewMode === "preview" && !isEditMode ? (
+                    <div className="prose-custom">
+                      <MDXRenderer
+                        content={
+                          getCurrentContent() ||
+                          "# No Content\n\nThis note has no content yet."
+                        }
+                        className="leading-relaxed"
+                      />
                     </div>
                   ) : (
-                    /* View Mode Controls */
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
-                      {/* Mode Toggle */}
-                      <div className="flex items-center bg-muted rounded-2xl p-1 shrink-0">
-                        <Button
-                          variant={viewMode === 'preview' ? "default" : "ghost"}
-                          size="sm"
-                          onClick={() => setViewMode('preview')}
-                          className={`rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
-                            viewMode === 'preview' 
-                              ? "bg-primary text-white dark:text-black" 
-                              : "hover:bg-background text-foreground hover:text-foreground"
-                          }`}
+                    <div className="bg-background rounded-2xl border border-border/50">
+                      <div className="flex items-center justify-between mb-4 p-4 pb-2">
+                        <h3 className="text-lg font-semibold text-foreground">
+                          Edit Note
+                        </h3>
+                        <Badge
+                          variant="outline"
+                          className="rounded-full text-xs"
                         >
-                          <Eye className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Preview</span>
-                        </Button>
-                        <Button
-                          variant={viewMode === 'edit' ? "default" : "ghost"}
-                          size="sm"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            enterEditMode();
-                          }}
-                          className={`rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
-                            viewMode === 'edit' 
-                              ? "bg-primary text-primary-foreground " 
-                              : "hover:bg-background text-foreground hover:text-foreground"
-                          }`}
-                        >
-                          <Edit className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Edit</span>
-                        </Button>
+                          Editor
+                        </Badge>
                       </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex flex-wrap items-center gap-2 flex-1">
-                        <LanguageSelector
-                          noteId={note.id}
-                          currentLanguage={currentLanguage}
-                          onLanguageChange={handleLanguageChange}
-                          availableTranslations={availableTranslations}
-                          onDropdownOpen={loadAvailableTranslations}
+                      <div className="px-4 pb-4">
+                        <LexicalViewer
+                          content={editedContent}
+                          title={editedTitle}
+                          showToolbar={true}
+                          minHeight="400px"
+                          onContentChange={handleContentChange}
+                          onTitleChange={handleTitleChange}
+                          isEditable={true}
                         />
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleCopy}
-                          className="rounded-xl px-3 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer shrink-0"
-                        >
-                          <Copy className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Copy</span>
-                        </Button>
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleDownload}
-                          className="rounded-xl px-3 py-2 hover:bg-secondary/5 hover:text-foreground border-border hover:border-secondary/20 transition-all duration-200 cursor-pointer shrink-0"
-                        >
-                          <Download className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Download</span>
-                        </Button>
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowShareDialog(true)}
-                          className="rounded-xl px-3 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer shrink-0"
-                        >
-                          <Share2 className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Share</span>
-                        </Button>
-
-                        {isChatbotMinimized && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsChatbotMinimized(false)}
-                            className="rounded-xl px-3 py-2 hover:bg-primary/5 hover:text-foreground border-border hover:border-primary/20 transition-all duration-200 cursor-pointer shrink-0"
-                            title="Show AI Assistant"
-                          >
-                            <Bot className="h-4 w-4 sm:mr-2" />
-                            <span className="hidden sm:inline">AI Chat</span>
-                          </Button>
-                        )}
                       </div>
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
-          </CardHeader>
+              </CardContent>
 
-
-          {/* Content Section */}
-          <CardContent className="p-4 sm:p-6 lg:p-8 pt-4 sm:pt-6 lg:pt-8">
-            <div className="min-h-[400px]">
-              {viewMode === 'preview' && !isEditMode ? (
-                <div className="prose-custom">
-                  <MDXRenderer 
-                    content={getCurrentContent() || "# No Content\n\nThis note has no content yet."} 
-                    className="leading-relaxed"
-                  />
-                </div>
-              ) : (
-                <div className="bg-background rounded-2xl border border-border/50">
-                  <div className="flex items-center justify-between mb-4 p-4 pb-2">
-                    <h3 className="text-lg font-semibold text-foreground">Edit Note</h3>
-                    <Badge variant="outline" className="rounded-full text-xs">
-                      Editor
-                    </Badge>
-                  </div>
-                  <div className="px-4 pb-4">
-                    <LexicalViewer
-                      content={editedContent}
-                      title={editedTitle}
-                      showToolbar={true}
-                      minHeight="400px"
-                      onContentChange={handleContentChange}
-                      onTitleChange={handleTitleChange}
-                      isEditable={true}
-                    />
-                  </div>
-                </div>
+              {/* Completion Section */}
+              {!isEditMode && (
+                <CardContent className="p-4 sm:p-6 lg:p-8 pt-2 sm:pt-3 lg:pt-4"></CardContent>
               )}
-            </div>
-          </CardContent>
-
-          {/* Completion Section */}
-          {!isEditMode && (
-            <CardContent className="p-4 sm:p-6 lg:p-8 pt-2 sm:pt-3 lg:pt-4">
-            </CardContent>
-          )}
-        </Card>
+            </Card>
           </div>
 
           {/* Chatbot Sidebar - Takes 1/3 of the width on lg+ screens */}
@@ -480,7 +512,9 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                       <div className="p-2 bg-primary/10 rounded-full">
                         <Bot className="h-5 w-5 text-primary" />
                       </div>
-                      <h3 className="text-lg sm:text-xl font-semibold">AI Assistant</h3>
+                      <h3 className="text-lg sm:text-xl font-semibold">
+                        AI Assistant
+                      </h3>
                     </div>
                     <Button
                       variant="ghost"
@@ -498,10 +532,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden">
-                    <DynamicInlineChatbot 
-                      noteId={note.id} 
-                      className="h-full"
-                    />
+                    <DynamicInlineChatbot noteId={note.id} className="h-full" />
                   </div>
                 </CardContent>
               </Card>
@@ -515,91 +546,91 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
         .prose-custom {
           @apply max-w-none;
         }
-        
+
         .prose-custom h1 {
           @apply text-3xl lg:text-4xl font-bold text-foreground mt-8 mb-6 pb-3 border-b-2 border-border first:mt-0;
         }
-        
+
         .prose-custom h2 {
           @apply text-2xl lg:text-3xl font-bold text-foreground mt-8 mb-4 pb-2 border-b border-border;
         }
-        
+
         .prose-custom h3 {
           @apply text-xl lg:text-2xl font-semibold text-muted-foreground mt-6 mb-3;
         }
-        
+
         .prose-custom h4 {
           @apply text-lg lg:text-xl font-semibold text-muted-foreground mt-5 mb-3;
         }
-        
+
         .prose-custom h5 {
           @apply text-base lg:text-lg font-semibold text-muted-foreground mt-4 mb-2;
         }
-        
+
         .prose-custom h6 {
           @apply text-sm lg:text-base font-semibold text-muted-foreground mt-4 mb-2;
         }
-        
+
         .prose-custom p {
           @apply mb-6 leading-relaxed text-foreground text-base lg:text-lg;
         }
-        
+
         .prose-custom ul {
           @apply list-disc ml-6 mb-6 space-y-3;
         }
-        
+
         .prose-custom ol {
           @apply list-decimal ml-6 mb-6 space-y-3;
         }
-        
+
         .prose-custom li {
           @apply text-foreground leading-relaxed;
         }
-        
+
         .prose-custom blockquote {
           @apply border-l-4 border-accent pl-6 py-4 my-8 bg-accent/5 rounded-r-2xl italic text-muted-foreground font-medium;
         }
-        
+
         .prose-custom code {
           @apply bg-muted px-3 py-1.5 rounded-lg text-sm font-mono text-foreground font-medium border border-border/50;
         }
-        
+
         .prose-custom pre {
           @apply bg-muted p-6 rounded-2xl mb-8 overflow-x-auto text-sm border border-border/50 relative;
         }
-        
+
         .prose-custom pre code {
           @apply bg-transparent p-0 border-0 rounded-none;
         }
-        
+
         .prose-custom strong {
           @apply font-bold text-foreground;
         }
-        
+
         .prose-custom em {
           @apply italic text-muted-foreground;
         }
-        
+
         .prose-custom a {
           @apply text-primary hover:text-primary/80 underline underline-offset-2 transition-colors font-medium;
         }
-        
+
         .prose-custom hr {
           @apply my-12 border-border;
         }
-        
+
         .prose-custom table {
           @apply w-full border border-border rounded-2xl overflow-hidden my-8;
         }
-        
+
         .prose-custom th {
           @apply px-6 py-4 bg-muted text-left font-semibold text-foreground border-b border-border;
         }
-        
+
         .prose-custom td {
           @apply px-6 py-4 text-foreground border-b border-border last:border-b-0;
         }
-        
+
         .prose-custom tr:hover {
           @apply bg-muted/30 transition-colors;
         }
@@ -619,7 +650,8 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
               <div>You have unsaved changes to your note.</div>
               <div className="p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
                 <div className="text-sm text-destructive font-medium">
-                  If you cancel now, all your changes will be lost and cannot be recovered.
+                  If you cancel now, all your changes will be lost and cannot be
+                  recovered.
                 </div>
               </div>
             </div>

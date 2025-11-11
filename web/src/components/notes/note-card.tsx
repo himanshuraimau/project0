@@ -2,7 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, FileText, Mic, Upload, Video, Globe, FolderInput, Folder, Share2 } from "lucide-react";
+import {
+  ChevronRight,
+  FileText,
+  Mic,
+  Upload,
+  Video,
+  Globe,
+  FolderInput,
+  Folder,
+  Share2,
+} from "lucide-react";
 import { NotesNoteWithTranscript } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -59,24 +69,41 @@ export function NoteCard({ note, onUpdate }: NoteCardProps) {
   };
 
   const getSourceIcon = () => {
-    if (!note.transcript?.type) return <FileText className="h-7 w-7" />;
-    
+    if (!note.transcript?.type) return <FileText className="size-5" />;
+
     switch (note.transcript.type) {
       case "pdf":
-        return <FileText className="h-7 w-7" />;
+        return <FileText className="size-5" />;
       case "audio":
         // Distinguish between record and upload audio based on originalName
         if (note.transcript?.originalName?.includes("recorded")) {
-          return <Mic className="h-7 w-7" />;
+          return <Mic className="size-5" />;
         } else {
-          return <Upload className="h-7 w-7" />;
+          return <Upload className="size-5" />;
         }
       case "youtube":
-        return <Video className="h-7 w-7" />;
+        return <Video className="size-5" />;
       case "webpage":
-        return <Globe className="h-7 w-7" />;
+        return <Globe className="size-5" />;
       default:
-        return <FileText className="h-7 w-7" />;
+        return <FileText className="size-5" />;
+    }
+  };
+
+  // Get background style based on note type
+  const getIconBackgroundStyle = () => {
+    if (!note.transcript?.type) {
+      // Default gradient for unknown types
+      return "gradient-element";
+    }
+
+    switch (note.transcript.type) {
+      case "pdf":
+        return "bluw-gradient-element";
+      case "audio":
+        return "bluw-gradient-element";
+      default:
+        return "gradient-element";
     }
   };
 
@@ -91,49 +118,50 @@ export function NoteCard({ note, onUpdate }: NoteCardProps) {
   // Get plain text preview from markdown content
   const getTextPreview = (content: string, maxLength: number = 150) => {
     if (!content) return "No content available";
-    
+
     // Remove markdown formatting for preview
     const plainText = content
-      .replace(/#{1,6}\s+/g, '') // Remove headers
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
-      .replace(/\*(.*?)\*/g, '$1') // Remove italic
-      .replace(/`(.*?)`/g, '$1') // Remove inline code
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links, keep text
-      .replace(/\n+/g, ' ') // Replace newlines with spaces
+      .replace(/#{1,6}\s+/g, "") // Remove headers
+      .replace(/\*\*(.*?)\*\*/g, "$1") // Remove bold
+      .replace(/\*(.*?)\*/g, "$1") // Remove italic
+      .replace(/`(.*?)`/g, "$1") // Remove inline code
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Remove links, keep text
+      .replace(/\n+/g, " ") // Replace newlines with spaces
       .trim();
-    
+
     if (plainText.length <= maxLength) return plainText;
     return plainText.substring(0, maxLength).trim() + "...";
   };
 
   return (
     <>
-      <div 
-        className="neomorphic w-full border-0 cursor-pointer rounded-2xl transition-all duration-300"
+      <div
+        className="border bg-[#F1F1F1] dark:bg-[#1A1A1A] dark:border-[#1f1f1f] border-[#E3E3E3] w-full cursor-pointer rounded-2xl transition-all duration-300"
         onClick={handleCardClick}
       >
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between gap-4">
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between gap-3">
             {/* Left section - Icon and Content */}
-            <div className="flex items-center gap-6 flex-1 min-w-0">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
               {/* Source Icon */}
-              <div className="neomorphic flex-shrink-0 text-muted-foreground p-3 rounded-md">
+              <div
+                className={`${getIconBackgroundStyle()} text-white p-4 flex-shrink-0 rounded-[14px]`}
+              >
                 {getSourceIcon()}
               </div>
-              
+
               {/* Title and Info */}
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 ">
                 {/* Title */}
-                <h3 
-                  className="font-bold text-lg leading-tight text-foreground line-clamp-2 mb-2"
+                <h3
+                  className="font-medium mb-1 text-lg leading-tight text-foreground line-clamp-2 "
                   title={note.title}
                 >
                   {note.title}
                 </h3>
-                
-                {/* Date */}
-                <div className="mb-3">
-                  <span className="text-sm text-muted-foreground">
+
+                <div className="">
+                  <span className="text-sm text-neutral-600 dark:text-neutral-400">
                     {formatDate(
                       note.updatedAt instanceof Date
                         ? note.updatedAt.toISOString()
@@ -149,55 +177,46 @@ export function NoteCard({ note, onUpdate }: NoteCardProps) {
               </div>
             </div>
 
-            {/* Right section - Actions */}
             <div className="flex items-center gap-3">
-              {/* Share Button */}
               <Button
-                variant="outline"
-                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowShareDialog(true);
                 }}
-                className="neomorphic-button flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium"
+                className="bg-white cursor-pointer border-neutral-200 text-neutral-600 flex items-center dark:text-neutral-400 dark:bg-neutral-800 border font-normal dark:border-neutral-800/50 gap-1.5 px-3 py-1.5"
               >
-                <Share2 className="h-3.5 w-3.5" />
+                <Share2 size={10} />
                 Share
               </Button>
-
-              {/* Move to Folder Button - More visible */}
-            {folderName ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMoveDialog(true);
-                }}
-                className="neomorphic-button flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium"
-                style={{
-                  borderColor: folderColor || undefined,
-                  color: folderColor || undefined,
-                }}
-              >
-                <Folder className="h-3.5 w-3.5" />
-                {folderName}
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMoveDialog(true);
-                }}
-                className="neomorphic-button flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium"
-              >
-                <FolderInput className="h-3.5 w-3.5" />
-                Move
-              </Button>
-            )}              {/* Chevron Button */}
-              <div className="neomorphic-icon flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300">
+              {folderName ? (
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMoveDialog(true);
+                  }}
+                  className="bg-white cursor-pointer border-neutral-200 text-neutral-600 flex items-center dark:text-neutral-400 dark:bg-neutral-800 border font-normal dark:border-neutral-800/50 gap-1.5 px-3 py-1.5"
+                  style={{
+                    borderColor: folderColor || undefined,
+                    color: folderColor || undefined,
+                  }}
+                >
+                  <Folder className="h-3.5 w-3.5" />
+                  {folderName}
+                </Button>
+              ) : (
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMoveDialog(true);
+                  }}
+                  className="bg-white cursor-pointer border-neutral-200 text-neutral-600 flex items-center dark:text-neutral-400 dark:bg-neutral-800 border font-normal dark:border-neutral-800/50 gap-1.5 px-3 py-1.5"
+                >
+                  <FolderInput size={12} />
+                  Move
+                </Button>
+              )}{" "}
+              {/* Chevron Button */}
+              <div className="flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300">
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
               </div>
             </div>

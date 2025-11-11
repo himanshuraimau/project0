@@ -45,7 +45,7 @@ export function MyNotesSection() {
 
   return (
     <div className={`w-full ${inter.className}`}>
-      <div className="mb-8">
+      <div className="mb-5">
         <div className="flex justify-between items-center gap-4 flex-wrap">
           <div>
             <h2
@@ -57,7 +57,7 @@ export function MyNotesSection() {
               Manage and organize your notes
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {/* Folder Filter Dropdown */}
             <Select
               value={selectedFolderId || "all"}
@@ -65,11 +65,11 @@ export function MyNotesSection() {
                 setSelectedFolderId(value === "all" ? null : value)
               }
             >
-              <SelectTrigger className="w-[180px] h-10 bg-background border-input">
-                <Folder className="h-4 w-4 mr-2 text-muted-foreground" />
+              <SelectTrigger className="border hover:bg-transparent dark:hover:bg-transparent cursor-pointer bg-[#F9FAFB] border-neutral-100 dark:border-neutral-800/50 h-10 dark:bg-[#1A1A1A]">
+                <Folder className="h-4 w-4 mr-1 text-muted-foreground" />
                 <SelectValue placeholder="All Notes" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border border-neutral-200 dark:border-neutral-800/50 dark:bg-neutral-900">
                 <SelectItem value="all">All Notes</SelectItem>
                 <SelectItem value="uncategorized">Uncategorized</SelectItem>
                 {!foldersLoading &&
@@ -89,16 +89,14 @@ export function MyNotesSection() {
 
             <button
               onClick={() => router.push("/notes")}
-              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 group whitespace-nowrap cursor-pointer"
+              className="flex items-center gap-2 text-sm  text-muted-foreground hover:text-foreground transition-colors duration-200 group whitespace-nowrap cursor-pointer"
             >
               View All
-              <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Notes Display */}
       <div className="w-full rounded-2xl pt-5">
         <NotesList
           ref={notesListRef}

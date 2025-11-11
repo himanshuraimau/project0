@@ -48,9 +48,6 @@ interface LoadingStateProps {
   className?: string;
 }
 
-/**
- * Loading state with message and optional progress
- */
 export function LoadingState({
   message,
   submessage,
@@ -59,7 +56,9 @@ export function LoadingState({
   className = "",
 }: LoadingStateProps) {
   return (
-    <div className={`min-h-[calc(100vh-64px)] w-full bg-background p-6 ${className}`}>
+    <div
+      className={`min-h-[calc(100vh-64px)] w-full bg-background p-6 ${className}`}
+    >
       <div className="max-w-4xl mx-auto">
         {/* Loading Text with Pulse */}
         <div className="text-center mb-8 space-y-3">
@@ -67,7 +66,10 @@ export function LoadingState({
             {message}
           </h2>
           {submessage && (
-            <p className="text-muted-foreground animate-pulse" style={{ animationDelay: '0.5s' }}>
+            <p
+              className="text-muted-foreground animate-pulse"
+              style={{ animationDelay: "0.5s" }}
+            >
               {submessage}
             </p>
           )}
@@ -115,7 +117,9 @@ export function LoadingState({
                 <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                   <div
                     className="h-3 rounded-full transition-all duration-300 bg-accent"
-                    style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+                    style={{
+                      width: `${Math.min(100, Math.max(0, progress))}%`,
+                    }}
                   />
                 </div>
               </div>

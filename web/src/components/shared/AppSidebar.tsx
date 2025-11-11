@@ -198,7 +198,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           </div>
 
           <div className="mt-auto space-y-4">
-            {/* {!isCollapsed && (
+            {!isCollapsed && (
               <div>
                 <button
                   onClick={() => {
@@ -220,7 +220,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                   {!mounted && <div className="w-5 h-5" />}
                 </button>
               </div>
-            )} */}
+            )}
 
             {!isCollapsed && (
               <div className="w-full max-w-sm dark-gradient-element p-4 rounded-[16px]">

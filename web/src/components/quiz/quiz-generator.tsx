@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, FileQuestion } from "lucide-react";
 import { toast } from "sonner";
@@ -35,10 +34,13 @@ interface Quiz {
 interface QuizGeneratorProps {
   noteId: string;
   onClose?: () => void;
-  variant?: 'neomorphic' | 'clean'; // Add variant prop
+  variant?: "neomorphic" | "clean";
 }
 
-export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorProps) {
+export function QuizGenerator({
+  noteId,
+  variant = "neomorphic",
+}: QuizGeneratorProps) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,10 +93,8 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
           setQuiz(data.data);
         }
       }
-      // If quiz doesn't exist, that's fine - we'll show the generation option
     } catch (error) {
       console.error("Error fetching existing quiz:", error);
-      // Don't show error for this - just means no quiz exists yet
     } finally {
       setInitialLoading(false);
     }
@@ -124,17 +124,15 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
     }
   };
 
-  // Check for existing quiz on component mount
   React.useEffect(() => {
     fetchExistingQuiz();
   }, [fetchExistingQuiz]);
 
-  // Show loading state while checking for existing quiz
   if (initialLoading) {
-    if (variant === 'neomorphic') {
+    if (variant === "neomorphic") {
       return (
-        <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-background px-6">
-          <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
+        <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center px-6">
+          <div className="neomorphic rounded-3xl p-5 border-0 max-w-2xl w-full">
             <div className="flex flex-col items-center gap-8">
               <div className="relative">
                 <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
@@ -143,8 +141,12 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
                 </div>
               </div>
               <div className="text-center space-y-3">
-                <h3 className="text-2xl font-semibold text-foreground">Loading Quiz</h3>
-                <p className="text-muted-foreground leading-relaxed">Checking for existing content...</p>
+                <h3 className="text-2xl font-semibold text-foreground">
+                  Loading Quiz
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Checking for existing content...
+                </p>
               </div>
               <div className="w-64 h-2 neomorphic rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full animate-loading-bar" />
@@ -154,7 +156,7 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
         </div>
       );
     }
-    
+
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
@@ -166,14 +168,14 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
     );
   }
 
-  // If we have a quiz, show the viewer
   if (quiz && quiz.content?.quiz) {
-    const containerClass = variant === 'neomorphic' ? 'space-y-4 p-16 mb-5' : 'space-y-4';
-    
+    const containerClass =
+      variant === "neomorphic" ? "space-y-4 p-5 mb-5" : "space-y-4";
+
     return (
       <div className={containerClass}>
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Quiz</h2>
+          <h2 className="text-xl font-medium">Quiz</h2>
           <div className="flex items-center gap-2">
             <Button
               onClick={generateQuiz}
@@ -218,7 +220,7 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
   }
 
   // Show generation UI
-  if (variant === 'neomorphic') {
+  if (variant === "neomorphic") {
     // If loading, show LoadingState instead of the card
     if (loading) {
       return (
@@ -236,15 +238,15 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
 
     return (
       <div className="h-[92vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6">
-        <div className="neomorphic rounded-3xl p-12 bg-background border-0 max-w-2xl w-full">
+        <div className="rounded-3xl border border-neutral-200 dark:bg-[#1A1A1A] dark:border-[#1F1F1F] bg-[#F9FAFB] p-5  max-w-2xl w-full">
           <div className="flex flex-col items-center gap-8">
-            <div className="neomorphic-icon w-20 h-20 rounded-2xl flex items-center justify-center">
-              <FileQuestion className="h-10 w-10 text-primary" />
-            </div>
-            <div className="text-center space-y-3">
-              <h3 className="text-2xl font-semibold text-foreground">Generate Quiz</h3>
-              <p className="text-muted-foreground leading-relaxed max-w-md">
-                Create an interactive quiz from your notes to test your understanding and reinforce key concepts.
+            <div className="text-center space-y-2">
+              <h3 className="text-[20px] font-medium leading-[30px]">
+                Generate Quiz
+              </h3>
+              <p className="text-[15px] text-[#787878] tracking-[-3%]">
+                Create an interactive quiz from your notes to test your
+                understanding and reinforce key concepts.
               </p>
             </div>
             {error && (
@@ -252,30 +254,28 @@ export function QuizGenerator({ noteId, variant = 'neomorphic' }: QuizGeneratorP
                 <p className="text-red-600 text-sm text-center">{error}</p>
               </div>
             )}
-            <Button
+            <button
               onClick={generateQuiz}
               disabled={loading}
-              className="neomorphic border-0 bg-background hover:bg-background text-foreground shadow-none px-8 py-6 h-auto rounded-xl transition-all duration-300 w-full"
+              className="bg-green-500 hover:bg-green-600 text-white border-0 cursor-pointer shadow-none px-8 py-2 h-auto rounded-lg transition-all duration-300 w-full"
             >
-              <div className="neomorphic-icon w-10 h-10 rounded-lg flex items-center justify-center mr-3">
-                <FileQuestion className="h-5 w-5 text-primary" />
-              </div>
               <span className="font-medium text-lg">
                 {loading ? "Generating Quiz..." : "Generate Quiz"}
               </span>
-            </Button>
+            </button>
           </div>
         </div>
       </div>
     );
   }
-  
+
   return (
-    <div className="text-center p-8">
+    <div className="text-center p-5">
       <FileQuestion className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-      <h3 className="text-lg font-semibold mb-2">Generate Quiz</h3>
-      <p className="text-muted-foreground mb-4">
-        Create an interactive quiz from your notes to test your understanding and reinforce key concepts.
+      <h3 className="text-[20px] font-medium leading-[30px]">Generate Quiz</h3>
+      <p className="text-[15px] text-[#787878] tracking-[-3%]">
+        Create an interactive quiz from your notes to test your understanding
+        and reinforce key concepts.
       </p>
 
       {error && (
