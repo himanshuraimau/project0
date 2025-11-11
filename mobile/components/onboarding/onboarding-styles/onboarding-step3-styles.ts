@@ -8,7 +8,7 @@ export const onboardingStep3Styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingTop: Platform.OS === 'ios' ? 80 : 60,
     paddingHorizontal: 24,
     paddingBottom: 40,
   },

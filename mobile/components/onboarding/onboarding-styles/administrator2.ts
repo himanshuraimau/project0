@@ -1,9 +1,10 @@
 import { StyleSheet, Platform } from 'react-native'
+import { BrutalistTheme } from '@/lib/theme/types'
 
 const PURPLE = '#7C3AED'
 const BG = '#F8F8FA'
 
-export default StyleSheet.create({
+export default (theme: BrutalistTheme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   statusBar: {
     height: Platform.OS === 'ios' ? 44 : 28,
@@ -12,7 +13,7 @@ export default StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  time: { fontSize: 14, fontWeight: '600' },
+  time: { fontSize: 14, fontWeight: '600', fontFamily: theme.fontFamily.default },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
@@ -21,12 +22,12 @@ export default StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '48%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 20, paddingTop: 18, flex: 1 },
-  context: { color: PURPLE, fontSize: 13, fontWeight: '500', marginBottom: 8 },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 16 },
+  context: { color: PURPLE, fontSize: 13, fontWeight: '500', marginBottom: 8, fontFamily: theme.fontFamily.default },
+  title: { fontSize: 22, fontWeight: '700', marginBottom: 16, fontFamily: theme.fontFamily.heading },
   options: { marginTop: 6, gap: 12 },
   option: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0', marginBottom: 12 },
   optionIcon: { fontSize: 18, marginRight: 12 },
-  optionLabel: { fontSize: 16, color: '#111827', flex: 1 },
+  optionLabel: { fontSize: 16, color: '#111827', flex: 1, fontFamily: theme.fontFamily.default },
   footer: { paddingHorizontal: 20, paddingBottom: 18 },
   continueWrap: { borderRadius: 14, overflow: 'hidden' },
   continueButton: { backgroundColor: '#fff', borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#E6E6E6' },

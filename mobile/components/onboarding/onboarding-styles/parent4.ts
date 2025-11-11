@@ -1,9 +1,10 @@
 import { StyleSheet, Platform } from 'react-native'
+import { BrutalistTheme } from '@/lib/theme/types'
 
 const PURPLE = '#7C3AED'
 const BG = '#F7F5FF'
 
-export default StyleSheet.create({
+export default (theme: BrutalistTheme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   statusBar: {
     height: Platform.OS === 'ios' ? 44 : 28,
@@ -12,7 +13,7 @@ export default StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  time: { fontSize: 14, fontWeight: '600' },
+  time: { fontSize: 14, fontWeight: '600', fontFamily: theme.fontFamily.default },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
@@ -21,8 +22,8 @@ export default StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '82%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 20, paddingTop: 18, flex: 1 },
-  context: { color: '#9B6BFF', fontSize: 13, fontWeight: '500', marginBottom: 8 },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 16 },
+  context: { color: '#9B6BFF', fontSize: 13, fontWeight: '500', marginBottom: 8, fontFamily: theme.fontFamily.default },
+  title: { fontSize: 28, fontWeight: '700', marginBottom: 16, fontFamily: theme.fontFamily.heading },
   testimonialCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 6 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
   nameSection: { flex: 1 },
@@ -33,7 +34,7 @@ export default StyleSheet.create({
   quote: { fontSize: 15, fontWeight: '500', color: '#374151', lineHeight: 22, fontStyle: 'italic' },
   footer: { paddingHorizontal: 16, paddingBottom: 20 },
   continueButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 14 },
-  continueText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginRight: 8 },
+  continueText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginRight: 8, fontFamily: theme.fontFamily.default },
   continueArrow: { color: '#FFF', fontSize: 18, fontWeight: '700' },
   gesture: { height: 6, backgroundColor: '#E5E7EB', marginHorizontal: 120, borderRadius: 3, marginTop: 8 },
 })

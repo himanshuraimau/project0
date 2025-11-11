@@ -1,9 +1,10 @@
 import { StyleSheet, Platform } from 'react-native'
+import { BrutalistTheme } from '@/lib/theme/types'
 
 const PURPLE = '#7C3AED'
 const BG = '#FFFFFF'
 
-export default StyleSheet.create({
+export default (theme: BrutalistTheme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   statusBar: {
     height: Platform.OS === 'ios' ? 44 : 28,
@@ -13,7 +14,7 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   timeWrap: { backgroundColor: '#FF4D4F', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  time: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  time: { color: '#fff', fontWeight: '700', fontFamily: theme.fontFamily.default, fontSize: 13 },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
@@ -23,13 +24,13 @@ export default StyleSheet.create({
   progressFill: { width: '92%', height: '100%', backgroundColor: PURPLE },
   scrollContent: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 24 },
-  context: { color: '#7C3AED', fontSize: 13, fontWeight: '500', marginBottom: 8 },
-  title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 16 },
+  context: { color: '#7C3AED', fontSize: 13, fontWeight: '500', marginBottom: 8, fontFamily: theme.fontFamily.default },
+  title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 16, fontFamily: theme.fontFamily.heading },
   options: { marginTop: 6, gap: 12 },
   option: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#F0EEF8', marginBottom: 12 },
   optionSelected: { borderColor: PURPLE, backgroundColor: '#FBF7FF' },
   optionIcon: { fontSize: 18, marginRight: 12, width: 28, textAlign: 'center' },
-  optionLabel: { fontSize: 16, color: '#111827', flex: 1 },
+  optionLabel: { fontSize: 16, color: '#111827', flex: 1, fontFamily: theme.fontFamily.default },
   footer: { paddingHorizontal: 20, paddingBottom: 14 },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', paddingVertical: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0' },
   ctaText: { color: '#111827', fontSize: 16, fontWeight: '700', marginRight: 8 },

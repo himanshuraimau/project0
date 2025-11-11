@@ -1,9 +1,10 @@
 import { StyleSheet, Platform } from 'react-native'
+import { BrutalistTheme } from '@/lib/theme/types'
 
 const PURPLE = '#7C3AED'
 const BG = '#FFFFFF'
 
-export default StyleSheet.create({
+export default (theme: BrutalistTheme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   statusBar: {
     height: Platform.OS === 'ios' ? 44 : 28,
@@ -13,7 +14,7 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   timeWrap: { backgroundColor: '#FF4D4F', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  time: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  time: { color: '#fff', fontWeight: '700', fontFamily: theme.fontFamily.default, fontSize: 13 },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
@@ -23,8 +24,8 @@ export default StyleSheet.create({
   progressFill: { width: '65%', height: '100%', backgroundColor: PURPLE },
   scrollContent: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 24 },
-  title: { fontSize: 24, fontWeight: '800', color: '#111827', marginBottom: 10 },
-  subtitle: { color: '#7C3AED', fontSize: 14, marginBottom: 14 },
+  title: { fontSize: 24, fontWeight: '800', color: '#111827', marginBottom: 10, fontFamily: theme.fontFamily.heading },
+  subtitle: { color: '#7C3AED', fontSize: 14, marginBottom: 14, fontFamily: theme.fontFamily.heading },
   bullets: { marginTop: 8, gap: 12 },
   bulletRow: { flexDirection: 'row', alignItems: 'center' },
   checkWrap: { width: 32, height: 32, borderRadius: 8, backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center', marginRight: 12 },

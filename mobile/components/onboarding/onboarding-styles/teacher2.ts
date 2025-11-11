@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native'
+import { BrutalistTheme } from '@/lib/theme/types'
 
-export default StyleSheet.create({
+export default (theme: BrutalistTheme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',

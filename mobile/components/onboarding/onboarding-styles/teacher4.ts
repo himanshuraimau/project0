@@ -1,9 +1,10 @@
 import { StyleSheet, Platform } from 'react-native'
+import { BrutalistTheme } from '@/lib/theme/types'
 
 const PURPLE = '#7C3AED'
 const BG = '#F7F5FF'
 
-export default StyleSheet.create({
+export default (theme: BrutalistTheme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   statusBar: {
     height: Platform.OS === 'ios' ? 44 : 28,
@@ -12,7 +13,7 @@ export default StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  time: { fontSize: 14, fontWeight: '600' },
+  time: { fontSize: 14, fontWeight: '600', fontFamily: theme.fontFamily.default },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
@@ -21,8 +22,8 @@ export default StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '82%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 20, paddingTop: 18, flex: 1 },
-  context: { color: '#9B6BFF', fontSize: 13, fontWeight: '500', marginBottom: 8 },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 14 },
+  context: { color: '#9B6BFF', fontSize: 13, fontWeight: '500', marginBottom: 8, fontFamily: theme.fontFamily.default },
+  title: { fontSize: 22, fontWeight: '700', marginBottom: 14, fontFamily: theme.fontFamily.heading },
   options: { marginTop: 6, gap: 12 },
   option: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0' },
   optionSelected: { borderColor: PURPLE, backgroundColor: '#FBF7FF' },
