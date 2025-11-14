@@ -15,11 +15,16 @@ import {
   Modal,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import RecordAudio from './RecordAudio';
+import UploadAudio from './UploadAudio';
+import UploadTextOrPDF from './UploadTextOrPDF';
+import WebLink from './WebLink';
 
 export default function NotesHome() {
   const { theme } = useTheme()
   const router = useRouter()
   const [modalVisible, setModalVisible] = useState(false)
+  const [activeOption, setActiveOption] = useState<number | null>(null)
 
   const newNoteOptions = [
     { id: 1, icon: 'mic', label: 'Record audio' },
@@ -133,21 +138,53 @@ export default function NotesHome() {
             </View>
 
             <View style={styles.optionsList}>
-              {newNoteOptions.map((option) => (
-                <TouchableOpacity 
-                  key={option.id}
-                  style={styles.optionRow}
-                  onPress={() => {
-                    setModalVisible(false)
-                  }}
-                >
-                  <View style={styles.optionIconContainer}>
-                    <Feather name={option.icon as any} size={24} color="#7C3AED" />
-                  </View>
-                  <Text style={styles.optionText}>{option.label}</Text>
-                </TouchableOpacity>
-              ))}
+              {activeOption == null ? (
+                // show the selectable options
+                newNoteOptions.map((option) => (
+                  <TouchableOpacity 
+                    key={option.id}
+                    style={styles.optionRow}
+                    onPress={() => {
+                      // keep the New Note modal open and show the selected option inline
+                      setActiveOption(option.id)
+                    }}
+                  >
+                    <View style={styles.optionIconContainer}>
+                      <Feather name={option.icon as any} size={24} color="#7C3AED" />
+                    </View>
+                    <Text style={styles.optionText}>{option.label}</Text>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                // render the selected option inline inside the modal
+                <View>
+                  {activeOption === 1 && (
+                    <RecordAudio inline onClose={() => setActiveOption(null)} />
+                  )}
+
+                  {activeOption === 2 && (
+                    <UploadAudio inline onClose={() => setActiveOption(null)} />
+                  )}
+
+                  {activeOption === 3 && (
+                    <UploadTextOrPDF inline onClose={() => setActiveOption(null)} />
+                  )}
+
+                  {activeOption === 4 && (
+                    <WebLink inline onClose={() => setActiveOption(null)} />
+                  )}
+                </View>
+              )}
             </View>
+
+            {activeOption !== null && (
+              <TouchableOpacity 
+                style={styles.backButton} 
+                onPress={() => setActiveOption(null)}
+              >
+                <Text style={styles.backText}>Back</Text>
+              </TouchableOpacity>
+            )}
 
             <View style={styles.modalHomeIndicator} />
           </Pressable>
@@ -360,6 +397,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
+  },
+  backButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    alignSelf: 'flex-start',
+    marginTop: 16,
+  },
+  backText: {
+    color: '#7C3AED',
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalHomeIndicator: {
     height: 6,
