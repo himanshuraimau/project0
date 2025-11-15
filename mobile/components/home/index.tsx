@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
@@ -13,18 +13,29 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RecordAudio from './RecordAudio';
 import UploadAudio from './UploadAudio';
 import UploadTextOrPDF from './UploadTextOrPDF';
 import WebLink from './WebLink';
+import { notesApi } from '@/lib/api';
+import type { Note } from '@/lib/api/types';
 
 export default function NotesHome() {
   const { theme } = useTheme()
   const router = useRouter()
   const [modalVisible, setModalVisible] = useState(false)
   const [activeOption, setActiveOption] = useState<number | null>(null)
+  const [notes, setNotes] = useState<Note[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedFilter, setSelectedFilter] = useState('All')
+  const [isDevelopmentMode, setIsDevelopmentMode] = useState(false)
 
   const newNoteOptions = [
     { id: 1, icon: 'mic', label: 'Record audio' },
@@ -32,6 +43,67 @@ export default function NotesHome() {
     { id: 3, icon: 'file-text', label: 'Upload text or PDF' },
     { id: 4, icon: 'link', label: 'YouTube or web link' },
   ]
+
+  // Fetch notes on mount
+  useEffect(() => {
+    fetchNotes()
+  }, [])
+
+  const fetchNotes = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      setIsDevelopmentMode(false)
+      const fetchedNotes = await notesApi.getNotes()
+      setNotes(fetchedNotes || []) // Handle null/undefined response
+    } catch (err: any) {
+      console.error('Failed to fetch notes:', err)
+      
+      // Check if it's a network error (backend not running)
+      if (err.message?.includes('Network Error') || err.code === 'ERR_NETWORK') {
+        console.log('⚠️ Backend not connected - Using empty state for development')
+        setNotes([]) // Set empty notes instead of error
+        setError(null) // Clear error to show empty state
+        setIsDevelopmentMode(true) // Flag for showing dev message
+      } else {
+        setError(err.message || 'Failed to load notes')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const onRefresh = async () => {
+    setRefreshing(true)
+    await fetchNotes()
+    setRefreshing(false)
+  }
+
+  // Format date to readable format
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    })
+  }
+
+  // Filter notes based on search query
+  const filteredNotes = notes.filter(note => {
+    const matchesSearch = searchQuery.trim() === '' || 
+      note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.content.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    // Add filter logic here for Pinned, Shared, Folders, Archive when implemented
+    return matchesSearch
+  })
+
+  const handleNotePress = (note: Note) => {
+    // Navigate to note detail screen
+    // router.push(`/notes/${note.id}`)
+    console.log('Note pressed:', note.id)
+  }
 
   return (
     <>
@@ -70,15 +142,29 @@ export default function NotesHome() {
               placeholder="Search notes, tags, or people"
               placeholderTextColor="#9CA3AF"
               style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity 
+                onPress={() => setSearchQuery('')}
+                style={{ paddingRight: 12 }}
+              >
+                <Feather name="x" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.filtersWrapper}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
               {['All', 'Pinned', 'Shared', 'Folders', 'Archive'].map((f) => {
-                const selected = f === 'All'
+                const selected = f === selectedFilter
                 return (
-                  <Pressable key={f} style={[styles.filterPill, selected && styles.filterPillSelected]}>
+                  <Pressable 
+                    key={f} 
+                    style={[styles.filterPill, selected && styles.filterPillSelected]}
+                    onPress={() => setSelectedFilter(f)}
+                  >
                     <Text style={[styles.filterText, selected && styles.filterTextSelected]}>{f}</Text>
                   </Pressable>
                 )
@@ -86,19 +172,70 @@ export default function NotesHome() {
             </ScrollView>
           </View>
 
-          <ScrollView style={styles.notesList}>
-            <Pressable style={styles.noteCard}>
-              <View style={styles.noteLeftIcon}>
-                <Feather name="file-text" size={20} color="#6B7280" />
+          <ScrollView 
+            style={styles.notesList}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
+            {loading && !refreshing ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#7C3AED" />
+                <Text style={styles.loadingText}>Loading notes...</Text>
               </View>
-              <View style={styles.noteBody}>
-                <Text numberOfLines={2} style={styles.noteTitle}>
-                  Exploration of the Scope and Impact of Artificial Intelligence
+            ) : error ? (
+              <View style={styles.errorContainer}>
+                <Feather name="alert-circle" size={48} color="#EF4444" />
+                <Text style={styles.errorText}>{error}</Text>
+                <TouchableOpacity 
+                  style={styles.retryButton}
+                  onPress={fetchNotes}
+                >
+                  <Text style={styles.retryButtonText}>Retry</Text>
+                </TouchableOpacity>
+              </View>
+            ) : filteredNotes.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Feather name="file-text" size={64} color="#D1D5DB" />
+                <Text style={styles.emptyTitle}>
+                  {searchQuery ? 'No notes found' : 'No notes yet'}
                 </Text>
-                <Text style={styles.noteDate}>Mar 14, 2025</Text>
+                <Text style={styles.emptySubtitle}>
+                  {searchQuery 
+                    ? 'Try a different search term' 
+                    : 'Create your first note to get started'}
+                </Text>
+                {isDevelopmentMode && (
+                  <View style={styles.devModeContainer}>
+                    <Feather name="info" size={20} color="#F59E0B" />
+                    <Text style={styles.devModeText}>
+                      Backend not connected. Start your server to load real notes.
+                    </Text>
+                  </View>
+                )}
               </View>
-              <Feather name="chevron-right" size={20} color="#9CA3AF" />
-            </Pressable>
+            ) : (
+              filteredNotes.map((note) => (
+                <Pressable 
+                  key={note.id} 
+                  style={styles.noteCard}
+                  onPress={() => handleNotePress(note)}
+                >
+                  <View style={styles.noteLeftIcon}>
+                    <Feather name="file-text" size={20} color="#6B7280" />
+                  </View>
+                  <View style={styles.noteBody}>
+                    <Text numberOfLines={2} style={styles.noteTitle}>
+                      {note.title}
+                    </Text>
+                    <Text style={styles.noteDate}>
+                      {formatDate(note.createdAt)}
+                    </Text>
+                  </View>
+                  <Feather name="chevron-right" size={20} color="#9CA3AF" />
+                </Pressable>
+              ))
+            )}
           </ScrollView>
 
           <LinearGradient colors={['#7C3AED', '#4F46E5']} style={styles.fabGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
@@ -418,5 +555,80 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: 120,
     opacity: 0.7,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#6B7280',
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  errorText: {
+    marginTop: 16,
+    color: '#EF4444',
+    fontSize: 16,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  retryButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#7C3AED',
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 80,
+    paddingHorizontal: 40,
+  },
+  emptyTitle: {
+    marginTop: 20,
+    color: '#111827',
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    marginTop: 8,
+    color: '#6B7280',
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  devModeContainer: {
+    marginTop: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  devModeText: {
+    marginLeft: 10,
+    flex: 1,
+    color: '#92400E',
+    fontSize: 13,
+    fontWeight: '600',
   },
 })

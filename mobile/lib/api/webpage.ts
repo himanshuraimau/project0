@@ -1,0 +1,29 @@
+import apiClient, { handleApiResponse, handleApiError } from './client';
+import { ProcessWebpageRequest, ProcessWebpageResponse, ApiResponse } from './types';
+
+/**
+ * Webpage API Module
+ * Handles webpage content extraction and processing
+ */
+
+/**
+ * Process a webpage URL to extract content and create a transcript
+ * @param data - Webpage URL
+ */
+export const processWebpage = async (
+  data: ProcessWebpageRequest
+): Promise<ProcessWebpageResponse> => {
+  try {
+    const response = await apiClient.post<ApiResponse<ProcessWebpageResponse>>(
+      '/webpage/process',
+      data
+    );
+    return handleApiResponse<ProcessWebpageResponse>(response);
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
+
+export default {
+  processWebpage,
+};
