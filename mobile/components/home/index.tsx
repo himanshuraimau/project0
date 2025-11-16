@@ -109,8 +109,7 @@ export default function NotesHome() {
 
   const handleNotePress = (note: Note) => {
     // Navigate to note detail screen
-    // router.push(`/notes/${note.id}`)
-    console.log('Note pressed:', note.id)
+    router.push(`/notes/${note.id}`)
   }
 
   return (
@@ -312,7 +311,15 @@ export default function NotesHome() {
                   )}
 
                   {activeOption === 3 && (
-                    <UploadTextOrPDF inline onClose={() => setActiveOption(null)} />
+                    <UploadTextOrPDF 
+                      inline 
+                      onClose={() => setActiveOption(null)}
+                      onNoteCreated={() => {
+                        fetchNotes(); // Refresh notes list
+                        setModalVisible(false); // Close modal
+                        setActiveOption(null); // Reset active option
+                      }}
+                    />
                   )}
 
                   {activeOption === 4 && (
