@@ -43,6 +43,8 @@ export default clerkMiddleware(async (auth, req) => {
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
     response.headers.set('Access-Control-Max-Age', '86400')
     return response
+  }
+  
   // Handle CORS for API routes - allow mobile app access
   if (pathname.startsWith('/api/')) {
     // Handle preflight requests
@@ -87,10 +89,6 @@ export default clerkMiddleware(async (auth, req) => {
   if (pathname.startsWith('/api/')) {
     response.headers.set('Access-Control-Allow-Origin', '*')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-  // Add CORS headers for API routes
-  if (pathname.startsWith('/api/')) {
-    response.headers.set('Access-Control-Allow-Origin', '*')
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
   }
 
