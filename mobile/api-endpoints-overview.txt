@@ -1,0 +1,342 @@
+API Directory and Endpoint Analysis for /website/app/api
+=========================================================
+
+This document lists all files and API endpoints under the `/website/app/api` directory, and provides a high-level summary of the data flow for each endpoint. This will help you recreate the API workflow in your React Native mobile version.
+
+---
+
+# Directory Structure & Endpoints
+
+## audio/
+- transcribe/route.ts
+  - Endpoint: `/api/audio/transcribe` (POST)
+
+## chapter/
+- [chapterId]/route.ts
+  - Endpoint: `/api/chapter/:chapterId` (GET)
+- [chapterId]/quiz/route.ts
+  - Endpoint: `/api/chapter/:chapterId/quiz` (GET, POST, DELETE)
+- [chapterId]/progress/route.ts
+  - Endpoint: `/api/chapter/:chapterId/progress` (GET, POST, DELETE)
+- [chapterId]/transcript/route.ts
+  - Endpoint: `/api/chapter/:chapterId/transcript` (GET)
+- [chapterId]/chat/route.ts
+  - Endpoint: `/api/chapter/:chapterId/chat` (GET, POST)
+- [chapterId]/flashcards/route.ts
+  - Endpoint: `/api/chapter/:chapterId/flashcards` (GET, POST)
+- info/route.ts
+  - Endpoint: `/api/chapter/info` (POST)
+
+## chatbot/
+- (No .ts files found)
+
+## course/
+- [courseId]/create-course/route.ts
+  - Endpoint: `/api/course/:courseId/create-course` (POST)
+- [courseId]/createChapters/route.ts
+  - Endpoint: `/api/course/:courseId/createChapters` (POST)
+- [courseId]/generate-chapter-content-batch/route.ts
+  - Endpoint: `/api/course/:courseId/generate-chapter-content-batch` (POST)
+- [courseId]/generate-chapters/route.ts
+  - Endpoint: `/api/course/:courseId/generate-chapters` (POST)
+- [courseId]/generate-chapters-batch/route.ts
+  - Endpoint: `/api/course/:courseId/generate-chapters-batch` (POST)
+- [courseId]/generate-units/route.ts
+  - Endpoint: `/api/course/:courseId/generate-units` (POST)
+
+## documents/
+- route.ts
+  - Endpoint: `/api/documents` (GET, POST, DELETE)
+- [id]/route.ts
+  - Endpoint: `/api/documents/:id` (GET, PUT, DELETE)
+
+## mindmap/
+- [noteId]/route.ts
+  - Endpoint: `/api/mindmap/:noteId` (GET, PUT, DELETE)
+- generate/route.ts
+  - Endpoint: `/api/mindmap/generate` (POST, GET)
+
+## notes/
+- route.ts
+  - Endpoint: `/api/notes` (GET, POST)
+- [id]/route.ts
+  - Endpoint: `/api/notes/:id` (GET, PUT, DELETE)
+- [id]/flashcards/route.ts
+  - Endpoint: `/api/notes/:id/flashcards` (GET, DELETE)
+- [id]/quiz/route.ts
+  - Endpoint: `/api/notes/:id/quiz` (GET, DELETE)
+- [id]/translate/route.ts
+  - Endpoint: `/api/notes/:id/translate` (GET, POST, DELETE)
+- generate/route.ts
+  - Endpoint: `/api/notes/generate` (POST, GET)
+- generate-from-text/route.ts
+  - Endpoint: `/api/notes/generate-from-text` (POST)
+- generate-flashcards/route.ts
+  - Endpoint: `/api/notes/generate-flashcards` (POST, GET)
+- generate-focused/route.ts
+  - Endpoint: `/api/notes/generate-focused` (POST, GET)
+- generate-quiz/route.ts
+  - Endpoint: `/api/notes/generate-quiz` (POST)
+
+## pdf/
+- ai/route.ts
+  - Endpoint: `/api/pdf/ai` (POST, GET)
+- files/route.ts
+  - Endpoint: `/api/pdf/files` (GET, DELETE)
+- parse/route.ts
+  - Endpoint: `/api/pdf/parse` (POST, GET)
+- process/route.ts
+  - Endpoint: `/api/pdf/process` (POST, GET)
+
+## podcast/
+- [id]/route.ts
+  - Endpoint: `/api/podcast/:id` (GET, DELETE)
+- generate/route.ts
+  - Endpoint: `/api/podcast/generate` (POST, GET)
+- note/[noteId]/route.ts
+  - Endpoint: `/api/podcast/note/:noteId` (GET)
+- webhook/route.ts
+  - Endpoint: `/api/podcast/webhook` (POST, GET)
+
+## search/
+- semantic/route.ts
+  - Endpoint: `/api/search/semantic` (POST)
+
+## subscription/
+- cancel/route.ts
+  - Endpoint: `/api/subscription/cancel` (POST)
+- create/route.ts
+  - Endpoint: `/api/subscription/create` (POST)
+- portal/route.ts
+  - Endpoint: `/api/subscription/portal` (POST)
+- status/route.ts
+  - Endpoint: `/api/subscription/status` (GET)
+
+## test-dodo/
+- route.ts
+  - Endpoint: `/api/test-dodo` (GET, POST)
+
+## transcripts/
+- route.ts
+  - Endpoint: `/api/transcripts` (GET, POST, DELETE)
+- [id]/route.ts
+  - Endpoint: `/api/transcripts/:id` (GET)
+
+## uploadthing/
+- core.ts
+- route.ts
+
+## user/
+- delete/route.ts
+  - Endpoint: `/api/user/delete` (POST)
+- profile/route.ts
+  - Endpoint: `/api/user/profile` (GET, POST)
+
+## users/
+- credits/route.ts
+  - Endpoint: `/api/users/credits` (GET)
+- purchases/route.ts
+  - Endpoint: `/api/users/purchases` (GET)
+
+## webhooks/
+- clerk/route.ts
+  - Endpoint: `/api/webhooks/clerk` (POST)
+
+## webpage/
+- process/route.ts
+  - Endpoint: `/api/webpage/process` (POST)
+
+---
+
+# Data Flow Overview
+
+- Most endpoints follow a RESTful pattern: GET for fetching data, POST for creating, PUT for updating, DELETE for removal.
+- Dynamic segments (e.g., `[id]`, `[chapterId]`) are used for resource-specific operations.
+- Data typically flows from the client (mobile/web) to the API via POST/PUT requests, and responses are returned as JSON.
+- Some endpoints (e.g., `/generate`, `/parse`, `/process`) likely perform server-side processing or AI tasks, returning processed data or results.
+- Webhook endpoints handle external service callbacks.
+
+---
+
+# Next Steps
+
+- Review the actual implementation in each `route.ts` for detailed data flow and business logic.
+- Map each endpoint to your React Native app's features.
+- Replicate the request/response structure and authentication as needed.
+
+---
+
+
+# Deep Analysis: Example - /api/notes Endpoints
+
+## 1. `/api/notes` (GET, POST)
+### GET
+- **Purpose:** Fetch all notes for the authenticated user, or notes for a specific transcript if `transcriptId` is provided as a query param.
+- **Authentication:** Required (returns 401 if missing).
+- **Request:**
+  - Query param: `transcriptId` (optional)
+- **Response:**
+  - On success: `{ success: true, data: [notes] }`
+  - On error: `{ success: false, error, message? }` (status 401, 404, 503, 500)
+- **Data Flow:**
+  1. Auth is checked via Clerk.
+  2. If `transcriptId` is present, fetch notes for that transcript; else, fetch all notes for user.
+  3. Returns notes as JSON.
+
+### POST
+- **Purpose:** Create a new note for the authenticated user.
+- **Authentication:** Required (returns 401 if missing).
+- **Request:**
+  - JSON body: `{ title, content, transcriptId }` (all required)
+- **Response:**
+  - On success: `{ success: true, data: note }`
+  - On error: `{ success: false, error, message? }` (status 400, 500)
+- **Data Flow:**
+  1. Auth is checked.
+  2. Validates required fields.
+  3. Calls `noteService.saveNote` to persist the note.
+  4. Returns the created note as JSON.
+
+## 2. `/api/notes/[id]` (GET, PUT, DELETE)
+### GET
+- **Purpose:** Fetch a specific note by ID for the authenticated user.
+- **Authentication:** Required.
+- **Request:**
+  - URL param: `id`
+- **Response:**
+  - On success: `{ success: true, data: note }`
+  - On error: `{ success: false, error }` (status 401, 403, 404, 500)
+- **Data Flow:**
+  1. Auth is checked.
+  2. Fetches note by ID.
+  3. Checks if note belongs to user.
+  4. Returns note or error.
+
+### PUT
+- **Purpose:** Update a note by ID.
+- **Authentication:** Required.
+- **Request:**
+  - URL param: `id`
+  - JSON body: `{ title, content }`
+- **Response:**
+  - On success: `{ success: true, data: updatedNote }`
+  - On error: `{ success: false, error }` (status 401, 403, 404, 500)
+- **Data Flow:**
+  1. Auth is checked.
+  2. Fetches note and checks ownership.
+  3. Updates note fields.
+  4. Returns updated note.
+
+### DELETE
+- **Purpose:** Delete a note by ID.
+- **Authentication:** Required.
+- **Request:**
+  - URL param: `id`
+- **Response:**
+  - On success: `{ success: true, message }`
+  - On error: `{ success: false, error }` (status 401, 403, 404, 409, 500)
+- **Data Flow:**
+  1. Auth is checked.
+  2. Fetches note and checks ownership.
+  3. Deletes note and associated content.
+  4. Returns confirmation or error.
+
+## 3. `/api/notes/generate` (POST)
+- **Purpose:** Generate an AI note from a transcript for the user.
+- **Authentication:** Required.
+- **Request:** `{ transcriptId }` in JSON body.
+- **Response:** `{ success: true, data: note }` or error.
+- **Data Flow:**
+  1. Auth is checked.
+  2. Calls `noteService.generateAINote`.
+  3. Returns generated note.
+
+## 4. `/api/notes/generate-from-text` (POST)
+- **Purpose:** Generate a note from raw text input (with subscription check).
+- **Authentication:** Required.
+- **Request:** `{ text, title }` in JSON body.
+- **Response:** `{ success: true, data: { transcript, note } }` or error.
+- **Data Flow:**
+  1. Auth is checked.
+  2. Subscription is checked via `FeatureGateService`.
+  3. Transcript is created from text.
+  4. AI note is generated and saved.
+  5. Returns transcript and note.
+
+## 5. `/api/notes/generate-flashcards` (POST)
+- **Purpose:** Generate flashcards from a note using AI.
+- **Authentication:** Required.
+- **Request:** `{ noteId }` in JSON body.
+- **Response:** `{ success: true, data: flashcards }` or error.
+- **Data Flow:**
+  1. Auth is checked.
+  2. Checks if flashcards already exist.
+  3. If not, fetches note, generates flashcards via OpenAI, saves them.
+  4. Returns flashcards.
+
+## 6. `/api/notes/generate-focused` (POST)
+- **Purpose:** Generate focused notes (summary, detailed, action-items, etc.) from a transcript.
+- **Authentication:** Required.
+- **Request:** `{ transcriptId, noteType }` in JSON body.
+- **Response:** `{ success: true, data: note }` or error.
+- **Data Flow:**
+  1. Auth is checked.
+  2. Validates noteType.
+  3. Calls `noteService.generateFocusedNote`.
+  4. Returns note.
+
+## 7. `/api/notes/generate-quiz` (POST)
+- **Purpose:** Generate a quiz from a note using AI.
+- **Authentication:** Required.
+- **Request:** `{ noteId }` in JSON body.
+- **Response:** `{ success: true, data: quiz }` or error.
+- **Data Flow:**
+  1. Auth is checked.
+  2. Checks if quiz already exists.
+  3. If not, fetches note, generates quiz via OpenAI, saves it.
+  4. Returns quiz.
+
+## 8. `/api/notes/[id]/flashcards` (GET, DELETE)
+- **Purpose:** Get or delete flashcards for a note.
+- **Authentication:** Required.
+- **Request:** URL param: `id` (noteId)
+- **Response:**
+  - GET: `{ success: true, data: flashcards }` or error.
+  - DELETE: `{ success: true, message }` or error.
+- **Data Flow:**
+  1. Auth is checked.
+  2. Fetches or deletes flashcards for the note.
+
+## 9. `/api/notes/[id]/quiz` (GET, DELETE)
+- **Purpose:** Get or delete quiz for a note.
+- **Authentication:** Required.
+- **Request:** URL param: `id` (noteId)
+- **Response:**
+  - GET: `{ success: true, data: quiz }` or error.
+  - DELETE: `{ success: true, message }` or error.
+- **Data Flow:**
+  1. Auth is checked.
+  2. Fetches or deletes quiz for the note.
+
+## 10. `/api/notes/[id]/translate` (GET, POST, DELETE)
+- **Purpose:** Translate a note to a supported language, fetch, or delete translation.
+- **Authentication:** Required.
+- **Request:**
+  - GET: Query param `language` (e.g., `?language=es`)
+  - POST: JSON body `{ language }`
+  - DELETE: Query param `language`
+- **Response:**
+  - On success: `{ success: true, data: translation }` or `{ success: true, data: { deleted: true } }`
+  - On error: `{ success: false, error }` (status 401, 403, 404, 500)
+- **Data Flow:**
+  1. Auth is checked.
+  2. Checks note ownership.
+  3. For GET: returns translation if exists.
+  4. For POST: generates translation via OpenAI, saves and returns it.
+  5. For DELETE: deletes translation.
+
+---
+
+**This deep analysis covers the /api/notes endpoints. Repeat this process for other endpoint groups (e.g., /api/chapter, /api/pdf, etc.) for a full API workflow map.**
+
+This file now provides both a high-level and deep-dive reference for recreating the API workflow in your mobile app.

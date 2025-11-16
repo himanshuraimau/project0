@@ -37,8 +37,10 @@ function ThemedRoot() {
 }
 
 export default function RootLayout() {
+  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
+
   return (
-    <ClerkProvider tokenCache={tokenCache}>
+    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ThemeProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <ThemedRoot />

@@ -1,1 +1,1 @@
-export { default } from '@/components/onboarding/home/settings/settings'
+export { default } from '@/components/home/settings/settings'
