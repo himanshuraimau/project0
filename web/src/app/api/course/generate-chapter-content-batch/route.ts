@@ -14,7 +14,7 @@ import { indexChapterContent } from "@/lib/course/chapter-embedding-service";
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     if (!userId) {
       return NextResponse.json(
         { error: "Unauthorized" },

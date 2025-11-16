@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   
   try {
     // Check authentication
-    const { userId } = await auth()
+    const userId = await getUserFromAuth(request)
     if (!userId) {
       throw createAppError(AppErrorType.AUTHENTICATION_FAILED);
     }

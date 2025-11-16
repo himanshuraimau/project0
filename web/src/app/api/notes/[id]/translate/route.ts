@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { prisma } from '@/lib/prisma';
 import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
@@ -35,7 +35,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { id: noteId } = await params;
     const { searchParams } = new URL(request.url);
     const language = searchParams.get('language');
@@ -128,7 +128,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { id: noteId } = await params;
     const body: TranslateRequestBody = await request.json();
     const { language } = body;
@@ -288,7 +288,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { id: noteId } = await params;
     const { searchParams } = new URL(request.url);
     const language = searchParams.get('language');

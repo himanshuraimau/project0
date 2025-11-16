@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NoteService } from '@/lib/note-service';
 import { UserService } from '@/lib/user-service';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiSuccessResponse, ApiErrorResponse, NoteType } from '@/lib/types';
 
 const noteService = new NoteService();
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const body: { transcriptId: string; noteType?: NoteType } = await request.json();
     const { transcriptId, noteType = 'summary' } = body;
 
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   return NextResponse.json({
     message: 'Focused AI Note Generation API',
     endpoints: {

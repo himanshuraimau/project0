@@ -3,7 +3,7 @@ import { PDFParser } from '@/lib/pdf-parser';
 import { NoteService } from '@/lib/note-service';
 import { FeatureGateService } from '@/lib/feature-gate-service';
 import { join } from 'path';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 
 const parser = new PDFParser();
 const noteService = new NoteService();
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user ID from authentication
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
 
     if (!userId) {
       return NextResponse.json(
@@ -276,7 +276,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   return NextResponse.json({
     message: 'PDF Processing with AI Notes API',
     endpoints: {

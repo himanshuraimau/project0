@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { ShareLinkService } from '@/lib/share-link-service';
 
 interface Params {
@@ -12,7 +12,7 @@ export async function POST(
   { params }: { params: Promise<Params> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     if (!userId) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -56,7 +56,7 @@ export async function GET(
   { params }: { params: Promise<Params> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     if (!userId) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -88,7 +88,7 @@ export async function DELETE(
   { params }: { params: Promise<Params> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     if (!userId) {
       return NextResponse.json(
         { error: 'Authentication required' },

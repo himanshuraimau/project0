@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { UserService } from '@/lib/user-service'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getUserFromAuth(request)
     
     if (!userId) {
       return NextResponse.json(
@@ -37,7 +37,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getUserFromAuth(request)
     
     if (!userId) {
       return NextResponse.json(

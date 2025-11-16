@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { NoteCloneService } from '@/lib/note-clone-service';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     if (!userId) {
       return NextResponse.json(
         { error: 'Authentication required' },

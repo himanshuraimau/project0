@@ -4,7 +4,7 @@ import { UserService } from '@/lib/user-service'
 
 export async function DELETE() {
   try {
-    const { userId } = await auth()
+    const userId = await getUserFromAuth(request)
     
     if (!userId) {
       return NextResponse.json(

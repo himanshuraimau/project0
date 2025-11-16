@@ -7,7 +7,7 @@ const folderService = new FolderService();
 // GET /api/folders - Get all folders for the authenticated user
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
 
     if (!userId) {
       return NextResponse.json(
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 // POST /api/folders - Create a new folder
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
 
     if (!userId) {
       return NextResponse.json(

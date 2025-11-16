@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { indexChapterContent } from '@/lib/course/chapter-embedding-service';
@@ -8,7 +8,7 @@ export async function POST(
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { chapterId } = await params;
 
     if (!userId) {

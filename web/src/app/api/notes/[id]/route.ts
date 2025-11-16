@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NoteService } from '@/lib/note-service';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiResponse, ApiSuccessResponse, ApiErrorResponse, UpdateNoteRequest } from '@/lib/types';
 
 const noteService = new NoteService();
@@ -12,7 +12,7 @@ interface Params {
 // GET /api/notes/[id] - Get a specific note by ID
 export async function GET(request: NextRequest, { params }: { params: Promise<Params> }) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { id } = await params;
 
     if (!userId) {
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Pa
 // PUT /api/notes/[id] - Update a specific note by ID
 export async function PUT(request: NextRequest, { params }: { params: Promise<Params> }) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { id } = await params;
     const body: UpdateNoteRequest = await request.json();
     const { title, content } = body;
@@ -119,7 +119,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Pa
 // DELETE /api/notes/[id] - Delete a specific note by ID
 export async function DELETE(request: NextRequest, { params }: { params: Promise<Params> }) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { id } = await params;
 
     if (!userId) {

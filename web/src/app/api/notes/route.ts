@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NoteService } from '@/lib/note-service';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiSuccessResponse, ApiErrorResponse, CreateNoteRequest } from '@/lib/types';
 
 const noteService = new NoteService();
@@ -8,7 +8,7 @@ const noteService = new NoteService();
 // GET /api/notes - Get all notes for the authenticated user
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { searchParams } = new URL(request.url);
     const transcriptId = searchParams.get('transcriptId');
 
@@ -22,10 +22,8 @@ export async function GET(request: NextRequest) {
 
     let notes;
     if (transcriptId) {
-      // Get notes for specific transcript
       notes = await noteService.getNotesByTranscript(transcriptId);
     } else {
-      // Get all notes for user
       notes = await noteService.getNotesByUser(userId);
     }
 
@@ -33,10 +31,11 @@ export async function GET(request: NextRequest) {
       success: true,
       data: notes,
     };
+    
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error('Error retrieving notes:', error);
+    console.error('Error in GET /api/notes:', error);
     
     let errorMessage = 'Failed to retrieve notes';
     let statusCode = 500;
@@ -44,12 +43,11 @@ export async function GET(request: NextRequest) {
     if (error instanceof Error) {
       errorMessage = error.message;
       
-      // Provide more specific status codes based on error type
       if (error.message.includes('Database table') || error.message.includes('does not exist')) {
-        statusCode = 503; // Service Unavailable
+        statusCode = 503;
         errorMessage = 'The notes service is currently unavailable. Please contact support if this persists.';
       } else if (error.message.includes('Database connection failed')) {
-        statusCode = 503; // Service Unavailable
+        statusCode = 503;
         errorMessage = 'Unable to connect to the database. Please try again later.';
       } else if (error.message.includes('Authentication') || error.message.includes('unauthorized')) {
         statusCode = 401;
@@ -63,6 +61,7 @@ export async function GET(request: NextRequest) {
       error: 'Failed to retrieve notes',
       message: errorMessage
     };
+    
     return NextResponse.json(errorResponse, { status: statusCode });
   }
 }
@@ -70,9 +69,17 @@ export async function GET(request: NextRequest) {
 // POST /api/notes - Create a new note
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const body: CreateNoteRequest = await request.json();
     const { title, content, transcriptId } = body;
+
+    if (!userId) {
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: 'Authentication required'
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
+    }
 
     if (!title || !content || !transcriptId) {
       const errorResponse: ApiErrorResponse = {
@@ -86,23 +93,38 @@ export async function POST(request: NextRequest) {
       title,
       content,
       transcriptId,
-      userId: userId || undefined,
+      userId,
     });
 
     const response: ApiSuccessResponse = {
       success: true,
       data: note,
     };
+    
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error('Error creating note:', error);
+    console.error('Error in POST /api/notes:', error);
     
     const errorResponse: ApiErrorResponse = {
       success: false,
       error: 'Failed to create note',
       message: error instanceof Error ? error.message : 'Unknown error'
     };
+    
     return NextResponse.json(errorResponse, { status: 500 });
   }
+}
+
+// Handle OPTIONS preflight
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
 }

@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DocumentService } from '@/lib/document-service';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiResponse, ApiSuccessResponse, ApiErrorResponse } from '@/lib/types';
 
 const documentService = new DocumentService();
 
 // GET /api/documents - Get user's documents
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     
     if (!userId) {
       const errorResponse: ApiErrorResponse = {
@@ -41,7 +41,7 @@ export async function GET() {
 // DELETE /api/documents - Delete a document
 export async function DELETE(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     
     if (!userId) {
       const errorResponse: ApiErrorResponse = {

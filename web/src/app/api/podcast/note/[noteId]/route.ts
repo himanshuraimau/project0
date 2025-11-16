@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { podcastService } from '@/lib/services/podcast-service';
 import { ApiSuccessResponse, ApiErrorResponse } from '@/lib/types/api.types';
 
@@ -14,7 +14,7 @@ export async function GET(
 ) {
   try {
     // Authenticate user
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     if (!userId) {
       const errorResponse: ApiErrorResponse = {
         success: false,

@@ -3,12 +3,12 @@ import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 import { prisma } from '@/lib/prisma';
 import { UserService } from '@/lib/user-service';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiSuccessResponse, ApiErrorResponse, QuizQuestion, QuizData, CreateQuizRequest } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const body: CreateQuizRequest = await request.json();
     const { noteId } = body;
 
@@ -153,7 +153,7 @@ Generate ONLY the JSON, no other text:`,
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   return NextResponse.json({
     message: 'Quiz Generation API',
     endpoints: {

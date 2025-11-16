@@ -17,7 +17,7 @@ const createChaptersSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });

@@ -1,12 +1,12 @@
 // API endpoint to get Dodo customer portal link
 
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { NextResponse } , NextRequest } from 'next/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { SubscriptionService } from '@/lib/subscription-service';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
 
     if (!userId) {
       return NextResponse.json(

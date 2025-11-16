@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 import { prisma } from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiSuccessResponse, ApiErrorResponse, FlashcardItem, GenerateFlashcardRequest } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const body: GenerateFlashcardRequest = await request.json();
     const { noteId } = body;
 
@@ -194,7 +194,7 @@ Generate exactly 20 amazing flashcards in JSON format! Focus on creating detaile
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   return NextResponse.json({
     message: 'Flashcard Generation API',
     endpoints: {
