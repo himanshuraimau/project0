@@ -4,6 +4,13 @@ import { getToken } from '@/lib/auth';
 // Base API URL - adjust this based on your environment
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
 
+// Store a reference to the Clerk getToken function
+let clerkGetToken: (() => Promise<string | null>) | null = null;
+
+// Function to set the Clerk token getter
+export const setClerkTokenGetter = (getter: () => Promise<string | null>) => {
+  clerkGetToken = getter;
+};
 console.log('🔗 API Client Configuration:');
 console.log('📍 Base URL:', API_BASE_URL);
 console.log('🌐 Environment API URL:', process.env.EXPO_PUBLIC_API_URL);
@@ -26,6 +33,18 @@ apiClient.interceptors.request.use(
     console.log('📝 Headers:', config.headers);
     
     try {
+      // Try to get Clerk token first
+      if (clerkGetToken) {
+        const token = await clerkGetToken();
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } else {
+        // Fallback to SecureStore (for backward compatibility)
+        const token = await SecureStore.getItemAsync('auth_token');
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
       const token = await getToken();
       console.log('🔐 Auth token:', token ? '✅ Found' : '❌ Not found');
       if (token && config.headers) {
