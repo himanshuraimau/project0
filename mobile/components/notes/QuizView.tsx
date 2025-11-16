@@ -11,6 +11,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { notesApi } from '@/lib/api'
@@ -50,6 +51,8 @@ export default function QuizView({ noteId }: QuizViewProps) {
   const [startTime] = useState(Date.now())
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [showExplanation, setShowExplanation] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Set up Clerk token getter on mount
   useEffect(() => {
@@ -126,6 +129,8 @@ export default function QuizView({ noteId }: QuizViewProps) {
   const generateQuiz = async () => {
     try {
       setLoading(true)
+      setIsGenerating(true)
+      setError(null)
       const generatedQuiz = await notesApi.generateQuiz({ noteId })
       setQuiz(generatedQuiz)
       setQuizState('initial')
@@ -134,7 +139,50 @@ export default function QuizView({ noteId }: QuizViewProps) {
       setError(err.message || 'Failed to generate quiz')
     } finally {
       setLoading(false)
+      setIsGenerating(false)
     }
+  }
+
+  const handleDeleteQuiz = async () => {
+    if (isDeleting) return
+
+    // Confirm deletion with native alert
+    Alert.alert(
+      'Delete Quiz',
+      'Are you sure you want to delete this quiz? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true)
+            try {
+              await notesApi.deleteQuiz(noteId)
+              // Reset state to show empty state with generate button
+              setQuiz(null)
+              setQuestions([])
+              setCurrentQuestion(0)
+              setSelectedAnswer(null)
+              setCorrectAnswers(0)
+              setStreak(0)
+              setQuizState('initial')
+              setShowExplanation(false)
+              setLoading(false)
+              setError(null)
+            } catch (err: any) {
+              console.error('Failed to delete quiz:', err)
+              setError(err.message || 'Failed to delete quiz')
+            } finally {
+              setIsDeleting(false)
+            }
+          },
+        },
+      ]
+    )
   }
 
   const handleAnswerSelect = (answerIndex: number) => {
@@ -211,7 +259,7 @@ export default function QuizView({ noteId }: QuizViewProps) {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#7C3AED" />
             <Text style={styles.loadingText}>
-              {quiz ? 'Loading quiz...' : 'Generating quiz...'}
+              {isGenerating ? 'Generating quiz with AI...' : 'Loading quiz...'}
             </Text>
           </View>
         </SafeAreaView>
@@ -336,15 +384,32 @@ export default function QuizView({ noteId }: QuizViewProps) {
   const isCorrectState = quizState === 'correct'
   const isWrongState = quizState === 'wrong'
 
-  // If no questions loaded, show error
+  // If no questions loaded, show generate quiz option
   if (questions.length === 0) {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.errorContainer}>
-            <Feather name="alert-circle" size={48} color="#EF4444" />
-            <Text style={styles.errorText}>No questions available</Text>
+            <Feather name="help-circle" size={64} color="#7C3AED" />
+            <Text style={styles.errorTitle}>No Quiz Available</Text>
+            <Text style={styles.errorSubtitle}>
+              Generate a quiz from this note to test your knowledge
+            </Text>
+            <TouchableOpacity 
+              style={styles.generateButton}
+              onPress={generateQuiz}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <Feather name="zap" size={20} color="#FFFFFF" />
+                  <Text style={styles.generateButtonText}>Generate Quiz</Text>
+                </>
+              )}
+            </TouchableOpacity>
             <TouchableOpacity 
               style={styles.backButtonError}
               onPress={() => router.back()}
@@ -376,6 +441,20 @@ export default function QuizView({ noteId }: QuizViewProps) {
             >
               <Feather name="arrow-left" size={24} color="#111827" />
             </TouchableOpacity>
+            {questions.length > 0 && (
+              <TouchableOpacity 
+                onPress={handleDeleteQuiz} 
+                style={[styles.deleteButton, isDeleting && styles.deleteButtonDisabled]}
+                disabled={isDeleting}
+                accessibilityLabel="Delete quiz"
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="#EF4444" />
+                ) : (
+                  <Feather name="trash-2" size={20} color="#EF4444" />
+                )}
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.headerRight}>
@@ -591,6 +670,13 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 4,
+  },
+  deleteButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  deleteButtonDisabled: {
+    opacity: 0.5,
   },
   content: {
     flex: 1,
@@ -900,12 +986,44 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     paddingHorizontal: 40,
   },
+  errorTitle: {
+    marginTop: 24,
+    color: '#111827',
+    fontSize: 24,
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  errorSubtitle: {
+    marginTop: 12,
+    color: '#6B7280',
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
   errorText: {
     marginTop: 16,
     color: '#EF4444',
     fontSize: 16,
     textAlign: 'center',
     fontWeight: '600',
+  },
+  generateButton: {
+    marginTop: 32,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    backgroundColor: '#7C3AED',
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 200,
+    justifyContent: 'center',
+  },
+  generateButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   retryButton: {
     marginTop: 20,

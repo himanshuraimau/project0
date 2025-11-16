@@ -115,7 +115,12 @@ export const deleteNote = async (id: string): Promise<{ message: string }> => {
  */
 export const generateAINote = async (data: GenerateNoteRequest): Promise<Note> => {
   try {
-    const response = await apiClient.post<ApiResponse<Note>>('/notes/generate', data);
+    // Use longer timeout for AI generation (120 seconds)
+    const response = await apiClient.post<ApiResponse<Note>>(
+      '/notes/generate', 
+      data,
+      { timeout: 120000 }
+    );
     return handleApiResponse<Note>(response);
   } catch (error) {
     return handleApiError(error);
@@ -130,9 +135,11 @@ export const generateNoteFromText = async (
   data: GenerateNoteFromTextRequest
 ): Promise<GenerateNoteFromTextResponse> => {
   try {
+    // Use longer timeout for AI generation (120 seconds)
     const response = await apiClient.post<ApiResponse<GenerateNoteFromTextResponse>>(
       '/notes/generate-from-text',
-      data
+      data,
+      { timeout: 120000 }
     );
     return handleApiResponse<GenerateNoteFromTextResponse>(response);
   } catch (error) {
@@ -146,7 +153,12 @@ export const generateNoteFromText = async (
  */
 export const generateFocusedNote = async (data: GenerateFocusedNoteRequest): Promise<Note> => {
   try {
-    const response = await apiClient.post<ApiResponse<Note>>('/notes/generate-focused', data);
+    // Use longer timeout for AI generation (120 seconds)
+    const response = await apiClient.post<ApiResponse<Note>>(
+      '/notes/generate-focused', 
+      data,
+      { timeout: 120000 }
+    );
     return handleApiResponse<Note>(response);
   } catch (error) {
     return handleApiError(error);
@@ -174,7 +186,12 @@ export const getFlashcards = async (noteId: string): Promise<Flashcard> => {
  */
 export const generateFlashcards = async (data: GenerateFlashcardsRequest): Promise<Flashcard> => {
   try {
-    const response = await apiClient.post<ApiResponse<Flashcard>>('/notes/generate-flashcards', data);
+    // Use longer timeout for AI generation (120 seconds)
+    const response = await apiClient.post<ApiResponse<Flashcard>>(
+      '/notes/generate-flashcards', 
+      data,
+      { timeout: 120000 }
+    );
     return handleApiResponse<Flashcard>(response);
   } catch (error) {
     return handleApiError(error);
@@ -217,7 +234,12 @@ export const getQuiz = async (noteId: string): Promise<Quiz> => {
  */
 export const generateQuiz = async (data: GenerateQuizRequest): Promise<Quiz> => {
   try {
-    const response = await apiClient.post<ApiResponse<Quiz>>('/notes/generate-quiz', data);
+    // Use longer timeout for AI generation (120 seconds)
+    const response = await apiClient.post<ApiResponse<Quiz>>(
+      '/notes/generate-quiz', 
+      data,
+      { timeout: 120000 }
+    );
     return handleApiResponse<Quiz>(response);
   } catch (error) {
     return handleApiError(error);
@@ -270,9 +292,11 @@ export const translateNote = async (
   data: TranslateNoteRequest
 ): Promise<NoteTranslation> => {
   try {
+    // Use longer timeout for AI translation (120 seconds)
     const response = await apiClient.post<ApiResponse<NoteTranslation>>(
       `/notes/${noteId}/translate`,
-      data
+      data,
+      { timeout: 120000 }
     );
     return handleApiResponse<NoteTranslation>(response);
   } catch (error) {
@@ -311,10 +335,11 @@ export const deleteTranslation = async (
  */
 export const chatWithNote = async (noteId: string, message: string): Promise<string> => {
   try {
+    // Use longer timeout for AI chat responses (60 seconds)
     const response = await apiClient.post('/chatbot', {
       noteId,
       message,
-    });
+    }, { timeout: 60000 });
     
     // Handle different response formats
     if (typeof response.data === 'string') {

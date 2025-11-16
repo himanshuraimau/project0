@@ -7,8 +7,15 @@ import {
   StyleSheet,
   SafeAreaView,
   TextInput,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
+import { useRouter } from 'expo-router';
+import { useAuth } from '@clerk/clerk-expo';
+import { notesApi } from '@/lib/api';
+import { setClerkTokenGetter } from '@/lib/api/client';
+import * as DocumentPicker from 'expo-document-picker';
 
 // Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient in all environments
 let Icon: any = null;
@@ -35,31 +42,189 @@ type Props = {
   visible?: boolean;
   onClose?: () => void;
   inline?: boolean;
+  onNoteCreated?: () => void; // Callback to refresh notes list
 };
 
-const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline = false}) => {
+const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline = false, onNoteCreated}) => {
+  const router = useRouter();
+  const { getToken } = useAuth();
   const [internalVisible, setInternalVisible] = useState<boolean>(visibleProp ?? true);
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
+  const [titleValue, setTitleValue] = useState('');
   const [textValue, setTextValue] = useState('');
   const [folder, setFolder] = useState('all_notes');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedPDFs, setSelectedPDFs] = useState<DocumentPicker.DocumentPickerAsset[]>([]);
+
+  // Set up Clerk token getter
+  React.useEffect(() => {
+    setClerkTokenGetter(getToken);
+  }, [getToken]);
 
   const close = () => {
     if (onClose) onClose();
     else setInternalVisible(false);
   };
 
+  const handleGenerateNote = async () => {
+    const hasTextContent = textValue.trim().length > 0;
+    const hasPDFs = selectedPDFs.length > 0;
+    const hasTitle = titleValue.trim().length > 0;
+    
+    // Validation: Must have content (text OR PDF)
+    if (!hasTextContent && !hasPDFs) {
+      Alert.alert('Missing Content', 'Please enter some text or select PDF files.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      let title = '';
+      let text = '';
+      
+      // Generate title if not provided
+      if (hasTitle) {
+        title = titleValue.trim();
+      } else if (hasPDFs) {
+        // Use first PDF name as title
+        title = selectedPDFs[0].name.replace('.pdf', '');
+      } else {
+        title = 'Untitled Note';
+      }
+      
+      // Generate content
+      if (hasPDFs) {
+        // Create note with PDF information
+        // TODO: Implement actual PDF text extraction or upload to backend
+        const pdfInfo = selectedPDFs.map(pdf => `[PDF: ${pdf.name}]`).join('\n\n');
+        text = hasTextContent 
+          ? `${textValue.trim()}\n\n--- Attached PDFs ---\n${pdfInfo}`
+          : pdfInfo;
+        
+        console.log('Creating note with PDFs:', selectedPDFs.map(p => p.name));
+        console.log('PDF URIs for future processing:', selectedPDFs.map(p => p.uri));
+      } else {
+        text = textValue.trim();
+      }
+
+      console.log('Creating note with:', { title, textLength: text.length });
+
+      // Use generateNoteFromText API - it handles transcript creation automatically
+      const response = await notesApi.generateNoteFromText({
+        title: title,
+        text: text,
+      });
+
+      console.log('Note created successfully:', response.note.id);
+      console.log('Transcript created:', response.transcript.id);
+
+      // Show success message
+      Alert.alert(
+        'Success!',
+        'Your note has been created successfully.',
+        [
+          {
+            text: 'View Note',
+            onPress: () => {
+              close();
+              router.push(`/notes/${response.note.id}`);
+            },
+          },
+          {
+            text: 'OK',
+            onPress: () => {
+              // Clear form
+              setTitleValue('');
+              setTextValue('');
+              setFolder('all_notes');
+              setSelectedPDFs([]);
+              
+              // Call refresh callback
+              if (onNoteCreated) onNoteCreated();
+              
+              close();
+            },
+          },
+        ]
+      );
+    } catch (err: any) {
+      console.error('Failed to create note:', err);
+      console.error('Error details:', err.response?.data || err.message);
+      setError(err.message || 'Failed to create note. Please try again.');
+      Alert.alert('Error', err.message || 'Failed to create note. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImportPDF = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        multiple: true,
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) {
+        console.log('User cancelled PDF selection');
+        return;
+      }
+
+      // Store selected PDFs
+      setSelectedPDFs(result.assets);
+      
+      // Show success message
+      const fileNames = result.assets.map(asset => asset.name).join(', ');
+      Alert.alert(
+        'PDFs Selected',
+        `Selected ${result.assets.length} file(s): ${fileNames}`,
+        [{ text: 'OK' }]
+      );
+
+      console.log('Selected PDFs:', result.assets);
+    } catch (err: any) {
+      console.error('Failed to pick PDF:', err);
+      Alert.alert('Error', 'Failed to select PDF files. Please try again.');
+    }
+  };
+
   const inner = (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Upload Text</Text>
-        <TouchableOpacity onPress={close}>
+        <TouchableOpacity onPress={close} disabled={loading}>
           {/* Use name 'close' compatible with vector icons */}
           <Icon name="close" size={20} color="#111" />
         </TouchableOpacity>
       </View>
 
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
       <View style={styles.field}>
-        <Text style={styles.label}>Text</Text>
+        <Text style={styles.label}>
+          Title {selectedPDFs.length === 0 ? '*' : '(Optional - will use PDF name if empty)'}
+        </Text>
+        <TextInput
+          style={styles.titleInput}
+          placeholder={selectedPDFs.length > 0 ? "Optional - will use PDF name" : "Enter note title..."}
+          placeholderTextColor="#8b8b8b"
+          value={titleValue}
+          onChangeText={setTitleValue}
+          editable={!loading}
+        />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>
+          Text {selectedPDFs.length === 0 ? '*' : '(Optional)'}
+        </Text>
         <TextInput
           style={styles.textInput}
           placeholder="Enter your text here..."
@@ -68,6 +233,7 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
           numberOfLines={6}
           value={textValue}
           onChangeText={setTextValue}
+          editable={!loading}
         />
       </View>
 
@@ -90,15 +256,58 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
         </View>
       </View>
 
+      {selectedPDFs.length > 0 && (
+        <View style={[styles.field, {marginTop: 10}]}>
+          <Text style={styles.label}>Selected PDFs ({selectedPDFs.length})</Text>
+          <View style={styles.pdfListContainer}>
+            {selectedPDFs.map((pdf, index) => (
+              <View key={index} style={styles.pdfItem}>
+                <Icon name="file" size={16} color="#7C3AED" style={{marginRight: 8}} />
+                <Text style={styles.pdfName} numberOfLines={1}>
+                  {pdf.name}
+                </Text>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setSelectedPDFs(prev => prev.filter((_, i) => i !== index));
+                  }}
+                  style={styles.removePdfButton}
+                >
+                  <Icon name="close" size={16} color="#EF4444" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.importBtn} activeOpacity={0.85}>
+        <TouchableOpacity 
+          style={[styles.importBtn, loading && styles.buttonDisabled]} 
+          activeOpacity={0.85}
+          disabled={loading}
+          onPress={handleImportPDF}
+        >
           <Icon name="file" size={16} color="#333" style={{marginRight: 8}} />
           <Text style={styles.importText}>Import PDF(s)</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.generateBtn} activeOpacity={0.85}>
-          <Icon name="sparkles" size={16} color="#fff" style={{marginRight: 8}} />
-          <Text style={styles.generateText}>Generate Notes</Text>
+        <TouchableOpacity 
+          style={[styles.generateBtn, loading && styles.buttonDisabled]} 
+          activeOpacity={0.85}
+          onPress={handleGenerateNote}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <ActivityIndicator size="small" color="#fff" style={{marginRight: 8}} />
+              <Text style={styles.generateText}>Creating...</Text>
+            </>
+          ) : (
+            <>
+              <Icon name="sparkles" size={16} color="#fff" style={{marginRight: 8}} />
+              <Text style={styles.generateText}>Create Note</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -151,6 +360,28 @@ const styles = StyleSheet.create({
   title: {color: '#111', fontSize: 18, fontWeight: '600'},
   field: {marginTop: 8},
   label: {color: '#6b6b6b', fontSize: 12, marginBottom: 6},
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  titleInput: {
+    backgroundColor: '#fbfbfd',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e6e6ea',
+    padding: 12,
+    color: '#111',
+    fontSize: 14,
+  },
   textInput: {
     backgroundColor: '#fbfbfd',
     borderRadius: 12,
@@ -170,6 +401,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
+  },
+  pdfListContainer: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#e6e6ea',
+  },
+  pdfItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 6,
+  },
+  pdfName: {
+    flex: 1,
+    color: '#111',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  removePdfButton: {
+    padding: 4,
+    marginLeft: 8,
   },
   actionsRow: {flexDirection: 'row', justifyContent: 'space-between', marginTop: 18},
   importBtn: {
@@ -195,6 +451,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   generateText: {color: '#fff', fontWeight: '700'},
+  buttonDisabled: {
+    opacity: 0.5,
+  },
 });
 
 const pickerStyles = {

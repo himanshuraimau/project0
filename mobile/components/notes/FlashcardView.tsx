@@ -11,6 +11,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { notesApi } from '@/lib/api'
@@ -43,6 +44,8 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
   const [startTime] = useState(Date.now())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Set up Clerk token getter on mount
   useEffect(() => {
@@ -134,6 +137,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
   const generateFlashcards = async () => {
     try {
       setLoading(true)
+      setIsGenerating(true)
       setError(null)
       const response = await notesApi.generateFlashcards({ noteId })
       
@@ -162,6 +166,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
           console.error('Unknown generated format:', content)
           setError('Invalid flashcard format from generation')
           setLoading(false)
+          setIsGenerating(false)
           return
         }
         
@@ -188,7 +193,47 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
       setError(err.message || 'Failed to generate flashcards')
     } finally {
       setLoading(false)
+      setIsGenerating(false)
     }
+  }
+
+  const handleDeleteFlashcards = async () => {
+    if (isDeleting) return
+
+    // Confirm deletion with native alert
+    Alert.alert(
+      'Delete Flashcards',
+      'Are you sure you want to delete all flashcards for this note? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true)
+            try {
+              await notesApi.deleteFlashcards(noteId)
+              // Reset state to show empty state with generate button
+              setFlashcards([])
+              setCurrentCard(0)
+              setCorrectAnswers(0)
+              setWrongAnswers(0)
+              setFlashcardState('front')
+              setLoading(false)
+              setError(null)
+            } catch (err: any) {
+              console.error('Failed to delete flashcards:', err)
+              setError(err.message || 'Failed to delete flashcards')
+            } finally {
+              setIsDeleting(false)
+            }
+          },
+        },
+      ]
+    )
   }
 
   const handleFlipCard = () => {
@@ -269,7 +314,9 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#7C3AED" />
-            <Text style={styles.loadingText}>Loading flashcards...</Text>
+            <Text style={styles.loadingText}>
+              {isGenerating ? 'Generating flashcards with AI...' : 'Loading flashcards...'}
+            </Text>
           </View>
         </SafeAreaView>
       </View>
@@ -313,10 +360,24 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
             </TouchableOpacity>
           </View>
           <View style={styles.errorContainer}>
-            <Feather name="alert-circle" size={48} color="#EF4444" />
-            <Text style={styles.errorText}>No flashcards available</Text>
-            <TouchableOpacity style={styles.retryButton} onPress={generateFlashcards}>
-              <Text style={styles.retryButtonText}>Generate Flashcards</Text>
+            <Feather name="layers" size={64} color="#7C3AED" />
+            <Text style={styles.errorTitle}>No Flashcards Available</Text>
+            <Text style={styles.errorSubtitle}>
+              Generate flashcards from this note to help you study and memorize
+            </Text>
+            <TouchableOpacity 
+              style={styles.generateButton} 
+              onPress={generateFlashcards}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <Feather name="zap" size={20} color="#FFFFFF" />
+                  <Text style={styles.generateButtonText}>Generate Flashcards</Text>
+                </>
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.backButtonError} onPress={() => router.back()}>
               <Text style={styles.backButtonErrorText}>Go Back</Text>
@@ -343,6 +404,19 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Feather name="arrow-left" size={24} color="#000" />
           </TouchableOpacity>
+          {flashcards.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleDeleteFlashcards} 
+              style={[styles.deleteButton, isDeleting && styles.deleteButtonDisabled]}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <ActivityIndicator size="small" color="#EF4444" />
+              ) : (
+                <Feather name="trash-2" size={20} color="#EF4444" />
+              )}
+            </TouchableOpacity>
+          )}
           <Text style={styles.headerTime}>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</Text>
           <View style={styles.headerRight}>
             <Feather name="wifi" size={16} color="#000" style={styles.headerIcon} />
@@ -519,6 +593,13 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
+  },
+  deleteButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  deleteButtonDisabled: {
+    opacity: 0.5,
   },
   headerTime: {
     fontSize: 16,
@@ -783,12 +864,44 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     paddingHorizontal: 40,
   },
+  errorTitle: {
+    marginTop: 24,
+    color: '#111827',
+    fontSize: 24,
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  errorSubtitle: {
+    marginTop: 12,
+    color: '#6B7280',
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
   errorText: {
     marginTop: 16,
     color: '#EF4444',
     fontSize: 16,
     textAlign: 'center',
     fontWeight: '600',
+  },
+  generateButton: {
+    marginTop: 32,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    backgroundColor: '#7C3AED',
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 200,
+    justifyContent: 'center',
+  },
+  generateButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   retryButton: {
     marginTop: 20,

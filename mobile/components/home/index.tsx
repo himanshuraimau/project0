@@ -311,7 +311,15 @@ export default function NotesHome() {
                   )}
 
                   {activeOption === 3 && (
-                    <UploadTextOrPDF inline onClose={() => setActiveOption(null)} />
+                    <UploadTextOrPDF 
+                      inline 
+                      onClose={() => setActiveOption(null)}
+                      onNoteCreated={() => {
+                        fetchNotes(); // Refresh notes list
+                        setModalVisible(false); // Close modal
+                        setActiveOption(null); // Reset active option
+                      }}
+                    />
                   )}
 
                   {activeOption === 4 && (
