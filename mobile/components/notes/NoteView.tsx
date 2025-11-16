@@ -108,7 +108,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
     } else if (toolId === 1) { // Edit note
       console.log('Edit note pressed')
     } else if (toolId === 2) { // Chat
-      console.log('Chat pressed')
+      router.push(`/notes/${noteId}/chat`)
     } else if (toolId === 4) { // Flashcards
       router.push(`/notes/${noteId}/flashcards`)
     } else if (toolId === 5) { // Podcast

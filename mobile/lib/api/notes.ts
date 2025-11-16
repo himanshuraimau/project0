@@ -19,7 +19,7 @@ import {
 /**
  * Notes API Module
  * Handles all note-related operations including CRUD, AI generation, flashcards, quizzes, and translations
- */
+*/
 
 // ==================== Basic CRUD Operations ====================
 
@@ -302,6 +302,35 @@ export const deleteTranslation = async (
   }
 };
 
+// ==================== Chat ====================
+
+/**
+ * Chat with AI about a note's content
+ * @param noteId - Note ID to chat about
+ * @param message - User's message
+ */
+export const chatWithNote = async (noteId: string, message: string): Promise<string> => {
+  try {
+    const response = await apiClient.post('/chatbot', {
+      noteId,
+      message,
+    });
+    
+    // Handle different response formats
+    if (typeof response.data === 'string') {
+      return response.data;
+    } else if (response.data && typeof response.data === 'object') {
+      // If response is an object, try to extract text
+      return response.data.text || response.data.message || JSON.stringify(response.data);
+    }
+    
+    return 'Sorry, I received an unexpected response format.';
+  } catch (error) {
+    console.error('Chat API error:', error);
+    throw new Error('Failed to send message. Please try again.');
+  }
+};
+
 export default {
   getNotes,
   getNoteById,
@@ -320,4 +349,5 @@ export default {
   getTranslation,
   translateNote,
   deleteTranslation,
+  chatWithNote,
 };
