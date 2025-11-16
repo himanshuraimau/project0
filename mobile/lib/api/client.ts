@@ -4,6 +4,14 @@ import * as SecureStore from 'expo-secure-store';
 // Base API URL - adjust this based on your environment
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
 
+// Store a reference to the Clerk getToken function
+let clerkGetToken: (() => Promise<string | null>) | null = null;
+
+// Function to set the Clerk token getter
+export const setClerkTokenGetter = (getter: () => Promise<string | null>) => {
+  clerkGetToken = getter;
+};
+
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -17,9 +25,18 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     try {
-      const token = await SecureStore.getItemAsync('auth_token');
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+      // Try to get Clerk token first
+      if (clerkGetToken) {
+        const token = await clerkGetToken();
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } else {
+        // Fallback to SecureStore (for backward compatibility)
+        const token = await SecureStore.getItemAsync('auth_token');
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
       }
     } catch (error) {
       console.error('Error getting auth token:', error);

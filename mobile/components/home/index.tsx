@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
+import { useAuth } from '@clerk/clerk-expo'
 import {
   StatusBar,
   View,
@@ -22,11 +23,13 @@ import UploadAudio from './UploadAudio';
 import UploadTextOrPDF from './UploadTextOrPDF';
 import WebLink from './WebLink';
 import { notesApi } from '@/lib/api';
+import { setClerkTokenGetter } from '@/lib/api/client';
 import type { Note } from '@/lib/api/types';
 
 export default function NotesHome() {
   const { theme } = useTheme()
   const router = useRouter()
+  const { getToken } = useAuth()
   const [modalVisible, setModalVisible] = useState(false)
   const [activeOption, setActiveOption] = useState<number | null>(null)
   const [notes, setNotes] = useState<Note[]>([])
@@ -43,6 +46,11 @@ export default function NotesHome() {
     { id: 3, icon: 'file-text', label: 'Upload text or PDF' },
     { id: 4, icon: 'link', label: 'YouTube or web link' },
   ]
+
+  // Set up Clerk token getter on mount
+  useEffect(() => {
+    setClerkTokenGetter(getToken)
+  }, [getToken])
 
   // Fetch notes on mount
   useEffect(() => {
