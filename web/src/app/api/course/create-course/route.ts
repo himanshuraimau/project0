@@ -18,7 +18,7 @@ import {
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     if (!userId) {
       throw createAppError(AppErrorType.AUTHENTICATION_FAILED);
     }

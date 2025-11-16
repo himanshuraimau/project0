@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { openai } from '@ai-sdk/openai';
 import { generateObject } from 'ai';
 import { prisma } from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { z } from 'zod';
 
 const flashcardSchema = z.object({
@@ -18,7 +18,7 @@ export async function POST(
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { chapterId } = await params;
 
     if (!userId) {
@@ -164,7 +164,7 @@ export async function GET(
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { chapterId } = await params;
 
     if (!userId) {

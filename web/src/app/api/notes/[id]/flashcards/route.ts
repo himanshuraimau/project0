@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiResponse, ApiSuccessResponse, ApiErrorResponse } from '@/lib/types';
 
 export async function GET(
@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { id: noteId } = await params;
 
     // Get flashcard record for the note (single record with JSON content)
@@ -41,7 +41,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { id: noteId } = await params;
 
     // Delete flashcard record for the note

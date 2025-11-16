@@ -6,6 +6,18 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/webhooks/clerk', // Clerk webhook endpoint
+  '/api/health', // Health check endpoint for mobile app testing
+  '/api/notes(.*)', // Notes API handles its own authentication
+  '/api/transcripts(.*)', // Transcripts API handles its own authentication
+  '/api/documents(.*)', // Documents API handles its own authentication
+  '/api/folders(.*)', // Folders API handles its own authentication
+  '/api/audio(.*)', // Audio API handles its own authentication
+  '/api/pdf(.*)', // PDF API handles its own authentication
+  '/api/search(.*)', // Search API handles its own authentication
+  '/api/mindmap(.*)', // Mindmap API handles its own authentication
+  '/api/webpage(.*)', // Webpage API handles its own authentication
+  '/api/user(.*)', // User API handles its own authentication
+  '/api/subscription(.*)', // Subscription API handles its own authentication
 ])
 
 const isProtectedApiRoute = createRouteMatcher([
@@ -31,6 +43,20 @@ export default clerkMiddleware(async (auth, req) => {
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
     response.headers.set('Access-Control-Max-Age', '86400')
     return response
+  // Handle CORS for API routes - allow mobile app access
+  if (pathname.startsWith('/api/')) {
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+          'Access-Control-Max-Age': '86400',
+        },
+      })
+    }
   }
 
   // If user is authenticated and visiting auth pages, redirect to dashboard
@@ -61,6 +87,10 @@ export default clerkMiddleware(async (auth, req) => {
   if (pathname.startsWith('/api/')) {
     response.headers.set('Access-Control-Allow-Origin', '*')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+  // Add CORS headers for API routes
+  if (pathname.startsWith('/api/')) {
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
   }
 

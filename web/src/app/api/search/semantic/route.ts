@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { querySimilarChunks } from '../../../../lib/course/embedding-service';
 import { prisma } from '../../../../lib/prisma';
 import { ApiErrorResponse, SemanticSearchRequest, SemanticSearchResponse } from '@/lib/types';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: NextRequest) {
   try {
     // Get the user session to authorize the request
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     if (!userId) {
       const errorResponse: ApiErrorResponse = {
         success: false,

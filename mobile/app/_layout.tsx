@@ -1,6 +1,7 @@
 import { ThemeProvider, useTheme } from '@/lib/hooks/useTheme'
 import { ClerkProvider } from '@clerk/clerk-expo'
 import { tokenCache } from '@clerk/clerk-expo/token-cache'
+import { AuthTokenProvider } from '@/components/auth/AuthTokenProvider'
 import { useFonts } from 'expo-font'
 import { Slot } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
@@ -41,11 +42,13 @@ export default function RootLayout() {
 
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
-      <ThemeProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <ThemedRoot />
-        </GestureHandlerRootView>
-      </ThemeProvider>
+      <AuthTokenProvider>
+        <ThemeProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <ThemedRoot />
+          </GestureHandlerRootView>
+        </ThemeProvider>
+      </AuthTokenProvider>
     </ClerkProvider>
   )
 }

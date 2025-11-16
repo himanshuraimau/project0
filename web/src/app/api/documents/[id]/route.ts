@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DocumentService } from '@/lib/document-service';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiSuccessResponse, ApiErrorResponse } from '@/lib/types';
 
 const documentService = new DocumentService();
@@ -10,7 +10,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     
     if (!userId) {
       const errorResponse: ApiErrorResponse = {

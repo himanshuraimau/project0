@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ noteId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -47,7 +47,7 @@ export async function DELETE(
   { params }: { params: Promise<{ noteId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

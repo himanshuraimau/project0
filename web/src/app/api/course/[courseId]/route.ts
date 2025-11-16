@@ -8,7 +8,7 @@ export async function DELETE(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { courseId } = await params;
     
     if (!userId) {

@@ -73,7 +73,7 @@ export async function GET(
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { chapterId } = await params;
     
     if (!userId) {
@@ -108,7 +108,7 @@ export async function POST(
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { chapterId } = await params;
     
     if (!userId) {
@@ -177,7 +177,7 @@ export async function DELETE(
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { chapterId } = await params;
     
     if (!userId) {

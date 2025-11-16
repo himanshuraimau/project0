@@ -10,7 +10,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string; noteId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
 
     if (!userId) {
       return NextResponse.json(

@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { WebpageCrawlerService } from '@/lib/webpage-crawler-service';
 import { NoteService } from '@/lib/note-service';
 import { FeatureGateService } from '@/lib/feature-gate-service';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 
 const webpageCrawlerService = new WebpageCrawlerService();
 const noteService = new NoteService();
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     
     if (!userId) {
       return NextResponse.json(
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   return NextResponse.json({
     message: 'Webpage Processing API',
     description: 'Process webpages to extract content and generate AI-powered notes',

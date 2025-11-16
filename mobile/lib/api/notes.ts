@@ -28,11 +28,28 @@ import {
  * @param transcriptId - Optional transcript ID to filter notes
  */
 export const getNotes = async (transcriptId?: string): Promise<Note[]> => {
+  console.log('📝 getNotes called');
+  console.log('🎯 transcriptId:', transcriptId);
+  
   try {
     const params = transcriptId ? { transcriptId } : {};
+    console.log('📋 Request params:', params);
+    
+    console.log('🚀 Making API call to /notes...');
     const response = await apiClient.get<ApiResponse<Note[]>>('/notes', { params });
-    return handleApiResponse<Note[]>(response);
+    
+    console.log('✅ getNotes response received');
+    console.log('📊 Response status:', response.status);
+    console.log('📝 Response data:', response.data);
+    
+    const notes = handleApiResponse<Note[]>(response);
+    console.log('🎉 Processed notes:', notes);
+    console.log('📊 Notes count:', notes.length);
+    
+    return notes;
   } catch (error) {
+    console.error('❌ getNotes error:', error);
+    console.error('🔍 Error details:', JSON.stringify(error, null, 2));
     return handleApiError(error);
   }
 };

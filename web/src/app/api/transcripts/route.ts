@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TranscriptService } from '@/lib/transcript-service';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiResponse, ApiSuccessResponse, ApiErrorResponse, YouTubeProcessRequest } from '@/lib/types';
 import { FeatureGateService } from '@/lib/feature-gate-service';
 
 const transcriptService = new TranscriptService();
 
 // GET /api/transcripts - Get user's transcripts
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
-        const { userId } = await auth();
+        const userId = await getUserFromAuth(request);
 
         if (!userId) {
             const errorResponse: ApiErrorResponse = {
@@ -42,7 +42,7 @@ export async function GET() {
 // POST /api/transcripts - Create a new transcript from YouTube URL
 export async function POST(request: NextRequest) {
     try {
-        const { userId } = await auth();
+        const userId = await getUserFromAuth(request);
 
         if (!userId) {
             const errorResponse: ApiErrorResponse = {
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
 // DELETE /api/transcripts - Delete a transcript
 export async function DELETE(request: NextRequest) {
     try {
-        const { userId } = await auth();
+        const userId = await getUserFromAuth(request);
 
         if (!userId) {
             const errorResponse: ApiErrorResponse = {

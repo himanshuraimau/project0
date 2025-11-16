@@ -4,7 +4,7 @@ import { streamText } from 'ai';
 import { z } from 'zod';
 import { queryChapterSimilarChunks } from '@/lib/course/chapter-embedding-service';
 import { prisma } from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 
 // Environment variables
 const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
@@ -97,7 +97,7 @@ export async function POST(
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
     const { chapterId } = await params;
 
     if (!userId) {

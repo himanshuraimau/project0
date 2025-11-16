@@ -7,7 +7,7 @@ import { ApiSuccessResponse, ApiErrorResponse, GenerateNotesFromTextRequest } fr
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
 
     if (!userId) {
       const errorResponse: ApiErrorResponse = {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PDFParser } from '@/lib/pdf-parser';
 import { join } from 'path';
-import { auth } from '@clerk/nextjs/server';
+import { getUserFromAuth } from '@/lib/auth-helper';
 
 const parser = new PDFParser();
 
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user ID from authentication
-    const { userId } = await auth();
+    const userId = await getUserFromAuth(request);
 
     // Convert file to buffer with error handling
     let buffer: Buffer;
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   return NextResponse.json({
     message: 'PDF Parser API',
     endpoints: {
