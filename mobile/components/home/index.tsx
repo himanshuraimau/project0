@@ -109,8 +109,7 @@ export default function NotesHome() {
 
   const handleNotePress = (note: Note) => {
     // Navigate to note detail screen
-    // router.push(`/notes/${note.id}`)
-    console.log('Note pressed:', note.id)
+    router.push(`/notes/${note.id}`)
   }
 
   return (
