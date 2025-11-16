@@ -2,6 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import React, { useState } from 'react'
 import { Pressable, ScrollView, StatusBar, Text, View } from 'react-native'
+import { BlurGradient } from '../ui/BlurGradient'
 import { onboardingStyles as styles } from './onboarding-styles/onboarding-styles'
 
 interface OptionButtonProps {
@@ -40,10 +41,21 @@ interface OnboardingStep1Props {
 export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
 
+  const handleOptionSelect = (optionId: string) => {
+    setSelectedOption(optionId)
+    // Navigate immediately when an option is clicked
+    if (onContinue) {
+      // Small delay for visual feedback (showing the selected state)
+      setTimeout(() => {
+        onContinue()
+      }, 300)
+    }
+  }
+
   const options = [
     {
       id: 'instagram',
-      icon: <Ionicons name="logo-instagram" size={24} color="#E1306C" />,
+      icon: <Ionicons name="logo-instagram" size={24} color=" " />,
       label: 'Instagram Reels',
     },
     {
@@ -95,6 +107,27 @@ export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
+      
+      {/* Top Right Blur Gradient */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={286}
+        height={256}
+        right={-98}
+        top={-47}
+        opacity={0.1}
+      />
+      
+      {/* Bottom Right Blur Gradient */}
+      <BlurGradient
+        colors={['#14C3A2', '#4C57FF']}
+        width={256}
+        height={256}
+        right={-80}
+        bottom={-56}
+        opacity={0.1}
+      />
+      
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -125,19 +158,10 @@ export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
               icon={option.icon}
               label={option.label}
               isSelected={selectedOption === option.id}
-              onPress={() => setSelectedOption(option.id)}
+              onPress={() => handleOptionSelect(option.id)}
             />
           ))}
         </View>
-
-        {/* Continue Button */}
-        {selectedOption && (
-          <View style={styles.continueButtonContainer}>
-            <Pressable style={styles.continueButton} onPress={onContinue}>
-              <Text style={styles.continueButtonText}>Continue</Text>
-            </Pressable>
-          </View>
-        )}
       </ScrollView>
     </LinearGradient>
   )

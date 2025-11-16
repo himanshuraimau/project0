@@ -54,3 +54,45 @@ export function NoteCardShimmer() {
     </div>
   );
 }
+
+// Folder card shimmer component
+export function FolderCardShimmer() {
+  return (
+    <div className="w-full neomorphic border-0 rounded-2xl">
+      <Shimmer>
+        <div className="p-6">
+          <div className="flex items-start justify-between gap-4">
+            {/* Left section - Icon and Content */}
+            <div className="flex items-start gap-4 flex-1 min-w-0">
+              {/* Folder Icon */}
+              <div className="flex-shrink-0">
+                <div className="h-[52px] w-[52px] shimmer-element rounded-md"></div>
+              </div>
+              
+              {/* Folder Info */}
+              <div className="flex-1 min-w-0">
+                {/* Name */}
+                <div className="h-6 shimmer-element rounded w-2/3 mb-1"></div>
+                
+                {/* Note count */}
+                <div className="h-4 shimmer-element rounded w-20 mb-2"></div>
+
+                {/* Description */}
+                <div className="space-y-1.5">
+                  <div className="h-3.5 shimmer-element rounded w-full"></div>
+                  <div className="h-3.5 shimmer-element rounded w-4/5"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right section - Menu and Chevron */}
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 shimmer-element rounded-full"></div>
+              <div className="h-10 w-10 shimmer-element rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </Shimmer>
+    </div>
+  );
+}

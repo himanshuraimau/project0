@@ -79,23 +79,67 @@ model Transcript {
   @@map("transcripts")
 }
 
-model Note {
-  id           String             @id @default(cuid())
-  title        String
-  content      String
-  transcriptId String
-  userId       String?
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  flashcard    Flashcard?
-  chunks       NoteChunk[]        @relation("NoteToChunks")
-  transcript   Transcript         @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
-  quiz         Quiz?
-  mindmap      MindMap?
-  translations NoteTranslation[]
-  podcasts     Podcast[]
+model Folder {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String?  @default("#6366f1")
+  userId      String
+  icon        String?  @default("folder")
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  notes       Note[]
 
+  @@index([userId])
+  @@index([userId, position])
+  @@map("folders")
+}
+
+model Note {
+  id             String             @id @default(cuid())
+  title          String
+  content        String
+  transcriptId   String
+  userId         String?
+  folderId       String?
+  isCloned       Boolean            @default(false)
+  sourceNoteId   String?
+  originalAuthor String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  flashcard      Flashcard?
+  chunks         NoteChunk[]        @relation("NoteToChunks")
+  transcript     Transcript         @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+  folder         Folder?            @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  quiz           Quiz?
+  mindmap        MindMap?
+  translations   NoteTranslation[]
+  podcasts       Podcast[]
+  sharedLinks    SharedLink[]
+
+  @@index([folderId])
+  @@index([userId])
+  @@index([sourceNoteId])
   @@map("notes")
+}
+
+model SharedLink {
+  id         String    @id @default(cuid())
+  noteId     String
+  token      String    @unique
+  createdBy  String
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  viewCount  Int       @default(0)
+  isActive   Boolean   @default(true)
+  
+  note       Note      @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  
+  @@index([token])
+  @@index([noteId])
+  @@index([createdBy])
+  @@map("shared_links")
 }
 
 model NoteTranslation {

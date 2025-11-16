@@ -1,9 +1,10 @@
 import { StyleSheet, Platform } from 'react-native'
+import { BrutalistTheme } from '@/lib/theme/types'
 
 const PURPLE = '#7C3AED'
 const BG = '#FFFFFF'
 
-export default StyleSheet.create({
+export default (theme: BrutalistTheme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   statusBar: {
     height: Platform.OS === 'ios' ? 44 : 28,
@@ -13,7 +14,7 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   timeWrap: { backgroundColor: '#FF4D4F', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  time: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  time: { color: '#fff', fontWeight: '700', fontFamily: theme.fontFamily.default, fontSize: 13 },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
@@ -22,8 +23,8 @@ export default StyleSheet.create({
   progressTrack: { height: 10, backgroundColor: '#F3EFFF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '100%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 20, paddingTop: 18, flex: 1, alignItems: 'center' },
-  context: { color: '#7C3AED', fontSize: 13, fontWeight: '500', marginBottom: 8, alignSelf: 'flex-start' },
-  title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 6, alignSelf: 'flex-start' },
+  context: { color: '#7C3AED', fontSize: 13, fontWeight: '500', marginBottom: 8, fontFamily: theme.fontFamily.default, alignSelf: 'flex-start' },
+  title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 6, fontFamily: theme.fontFamily.heading, alignSelf: 'flex-start' },
   gpaWrap: { flexDirection: 'row', alignItems: 'center', marginTop: 24, justifyContent: 'center' },
   gpaButton: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', marginHorizontal: 12 },
   gpaButtonText: { fontSize: 32, color: '#111827', fontWeight: '700' },

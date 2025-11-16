@@ -11,6 +11,8 @@ import {
   Zap,
   ArrowUpRight,
   LayoutDashboard,
+  Share2,
+  Folder,
 } from 'lucide-react';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -48,6 +50,8 @@ const sidebarItems = [
     section: "Learning Tools",
     items: [
       { title: "Create Notes", icon: Zap, href: "/dashboard/notes" },
+      { title: "My Folders", icon: Folder, href: "/dashboard/folders" },
+      { title: "Shared With Me", icon: Share2, href: "/dashboard/cloned" },
     ]
   },
   {

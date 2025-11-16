@@ -49,6 +49,17 @@ interface OnboardingStep2Props {
 export default function OnboardingStep2({ onContinue }: OnboardingStep2Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
 
+  const handleOptionSelect = (optionId: string) => {
+    setSelectedOption(optionId)
+    // Navigate immediately when an option is clicked
+    if (onContinue) {
+      // Small delay for visual feedback (showing the selected state)
+      setTimeout(() => {
+        onContinue()
+      }, 300)
+    }
+  }
+
   const options = [
     {
       id: 'just-me',
@@ -114,19 +125,10 @@ export default function OnboardingStep2({ onContinue }: OnboardingStep2Props) {
               icon={option.icon}
               label={option.label}
               isSelected={selectedOption === option.id}
-              onPress={() => setSelectedOption(option.id)}
+              onPress={() => handleOptionSelect(option.id)}
             />
           ))}
         </View>
-
-        {/* Continue Button */}
-        {selectedOption && (
-          <View style={styles.continueButtonContainer}>
-            <Pressable style={styles.continueButton} onPress={onContinue}>
-              <Text style={styles.continueButtonText}>Continue</Text>
-            </Pressable>
-          </View>
-        )}
       </ScrollView>
     </LinearGradient>
   )

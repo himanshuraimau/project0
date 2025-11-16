@@ -23,7 +23,6 @@ function NotesPageContent() {
 
   return (
     <SidebarInset className="flex flex-col flex-1">
-      {/* Header */}
       <header className="bg-white dark:bg-background pt-10 pl-4">
         <div className="flex h-20 items-center justify-between px-6 mr-4 mb-4">
           <div className="flex items-center gap-4">
@@ -35,10 +34,10 @@ function NotesPageContent() {
               <ChevronLeft className="h-5 w-5 text-foreground" />
             </button>
             <div>
-              <h1 className={`text-3xl font-bold text-foreground ${jakarta.className}`}>
+              <h1 className={`text-3xl font-bold text-foreground `}>
                 All Notes
               </h1>
-              <p className={`text-gray-500 text-base font-medium leading-6 ${jakarta.className}`}>
+              <p className={`text-gray-500 text-base font-medium leading-6 `}>
                 Browse and manage all your notes
               </p>
             </div>
@@ -62,10 +61,7 @@ function NotesPageContent() {
         <div className="max-w-none w-full px-6 py-8">
           {/* Notes Display */}
           <div className="w-full">
-            <NotesList
-              ref={notesListRef}
-              searchQuery={searchQuery}
-            />
+            <NotesList ref={notesListRef} searchQuery={searchQuery} />
           </div>
         </div>
       </main>

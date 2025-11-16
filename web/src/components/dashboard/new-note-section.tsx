@@ -227,17 +227,17 @@ export function NewNoteSection() {
               </div>
             </div>
           </button>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-            <DialogHeader>
-              <DialogTitle className={`text-left ${jakarta.className}`}>
+          <DialogContent className="max-w-2xl bg-white dark:bg-[#1A1A1A] border-neutral-200 dark:border-[#1F1F1F] max-h-[90vh] overflow-hidden">
+            <DialogHeader className="">
+              <h1 className="text-black dark:text-white text-[20px] font-medium leading-[30px]">
                 Record Audio & Generate Notes
-              </DialogTitle>
-              <DialogDescription className={`${jakarta.className}`}>
+              </h1>
+              <p className="-mt-2 text-[#787878] text-[15px] tracking-[-3%]">
                 Record audio content and automatically generate AI-powered notes
                 from the transcription.
-              </DialogDescription>
+              </p>
             </DialogHeader>
-            <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <div className=" overflow-y-auto max-h-[calc(90vh-120px)]">
               <RecordAudio
                 onTranscriptionComplete={handleRecordAudioComplete}
                 onClose={handleCloseRecordAudioDialog}

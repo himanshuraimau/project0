@@ -323,20 +323,19 @@ function ToolbarPlugin({
         })
         .join("");
 
-      // @ts-expect-error html2pdf.js may not have proper TypeScript declarations
       import("html2pdf.js")
         .then((html2pdf) => {
           const opt = {
             margin: 1,
             filename: "content.pdf",
-            image: { type: "jpeg", quality: 0.98 },
+            image: { type: "jpeg" as const, quality: 0.98 },
             html2canvas: { scale: 2 },
-            jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+            jsPDF: { unit: "in", format: "letter", orientation: "portrait" as const },
           };
 
           const editorElement = document.querySelector(
             '[contenteditable="true"]'
-          );
+          ) as HTMLElement;
           if (editorElement) {
             html2pdf.default().set(opt).from(editorElement).save();
           }
