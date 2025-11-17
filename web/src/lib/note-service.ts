@@ -665,6 +665,16 @@ Generate ONE perfect title (no quotes, just the title):`,
               type: true,
             },
           },
+          translations: {
+            select: {
+              id: true,
+              language: true,
+              title: true,
+              content: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -696,6 +706,16 @@ Generate ONE perfect title (no quotes, just the title):`,
               originalName: true,
               createdAt: true,
               type: true,
+            },
+          },
+          translations: {
+            select: {
+              id: true,
+              language: true,
+              title: true,
+              content: true,
+              createdAt: true,
+              updatedAt: true,
             },
           },
         },
