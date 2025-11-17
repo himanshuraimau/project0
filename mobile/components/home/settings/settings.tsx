@@ -37,8 +37,7 @@ export default function Settings() {
   }
 
   const handleAccountInfo = () => {
-    console.log('Navigate to Account Info')
-    // Add navigation logic
+    router.push('/(drawer)/(home)/accountInfo')
   }
 
   const handleChangeLanguage = () => {
