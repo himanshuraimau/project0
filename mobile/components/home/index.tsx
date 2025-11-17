@@ -26,6 +26,7 @@ import WebLink from './WebLink';
 import { notesApi } from '@/lib/api';
 import { setClerkTokenGetter } from '@/lib/api/client';
 import type { Note } from '@/lib/api/types';
+import { getTranslatedNote } from '@/lib/utils/translation';
 
 export default function NotesHome() {
   const { theme } = useTheme()
@@ -101,9 +102,11 @@ export default function NotesHome() {
 
   // Filter notes based on search query
   const filteredNotes = notes.filter(note => {
+    // Get translated content for search
+    const { title, content } = getTranslatedNote(note);
     const matchesSearch = searchQuery.trim() === '' || 
-      note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.content.toLowerCase().includes(searchQuery.toLowerCase())
+      title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      content.toLowerCase().includes(searchQuery.toLowerCase())
     
     // Add filter logic here for Pinned, Shared, Folders, Archive when implemented
     return matchesSearch
@@ -230,26 +233,29 @@ export default function NotesHome() {
                 )}
               </View>
             ) : (
-              filteredNotes.map((note) => (
-                <Pressable 
-                  key={note.id} 
-                  style={styles.noteCard}
-                  onPress={() => handleNotePress(note)}
-                >
-                  <View style={styles.noteLeftIcon}>
-                    <Feather name="file-text" size={20} color="#6B7280" />
-                  </View>
-                  <View style={styles.noteBody}>
-                    <Text numberOfLines={2} style={styles.noteTitle}>
-                      {note.title}
-                    </Text>
-                    <Text style={styles.noteDate}>
-                      {formatDate(note.createdAt)}
-                    </Text>
-                  </View>
-                  <Feather name="chevron-right" size={20} color="#9CA3AF" />
-                </Pressable>
-              ))
+              filteredNotes.map((note) => {
+                const { title } = getTranslatedNote(note);
+                return (
+                  <Pressable 
+                    key={note.id} 
+                    style={styles.noteCard}
+                    onPress={() => handleNotePress(note)}
+                  >
+                    <View style={styles.noteLeftIcon}>
+                      <Feather name="file-text" size={20} color="#6B7280" />
+                    </View>
+                    <View style={styles.noteBody}>
+                      <Text numberOfLines={2} style={styles.noteTitle}>
+                        {title}
+                      </Text>
+                      <Text style={styles.noteDate}>
+                        {formatDate(note.createdAt)}
+                      </Text>
+                    </View>
+                    <Feather name="chevron-right" size={20} color="#9CA3AF" />
+                  </Pressable>
+                );
+              })
             )}
           </ScrollView>
 

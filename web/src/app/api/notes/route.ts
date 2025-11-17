@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { NoteService } from '@/lib/note-service';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiSuccessResponse, ApiErrorResponse, CreateNoteRequest } from '@/lib/types';
+import { queueBackgroundTranslation } from '@/lib/translation-service';
 
 const noteService = new NoteService();
 
@@ -95,6 +96,10 @@ export async function POST(request: NextRequest) {
       transcriptId,
       userId,
     });
+
+    // Queue background translation to all supported languages
+    console.log('🌍 Queueing background translation for note:', note.id);
+    queueBackgroundTranslation(note.id, note.title, note.content);
 
     const response: ApiSuccessResponse = {
       success: true,

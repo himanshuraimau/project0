@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { notesApi } from '@/lib/api'
 import { setClerkTokenGetter } from '@/lib/api/client'
 import type { Note } from '@/lib/api/types'
+import { getTranslatedNote } from '@/lib/utils/translation'
 
 interface NoteViewProps {
   noteId: string
@@ -26,7 +27,7 @@ interface NoteViewProps {
 export default function NoteView({ noteId }: NoteViewProps) {
   const router = useRouter()
   const { getToken } = useAuth()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [note, setNote] = useState<Note | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -36,12 +37,12 @@ export default function NoteView({ noteId }: NoteViewProps) {
     setClerkTokenGetter(getToken)
   }, [getToken])
 
-  // Fetch note data on mount
+  // Fetch note data on mount or when language changes
   useEffect(() => {
     if (noteId) {
       fetchNote()
     }
-  }, [noteId])
+  }, [noteId, i18n.language])
 
   const fetchNote = async () => {
     try {
@@ -56,6 +57,14 @@ export default function NoteView({ noteId }: NoteViewProps) {
       setLoading(false)
     }
   }
+
+  // Get translated content based on current language
+  const getDisplayContent = () => {
+    if (!note) return { title: '', content: '' }
+    return getTranslatedNote(note)
+  }
+
+  const { title: displayTitle, content: displayContent } = getDisplayContent()
 
   // Format date to readable format
   const formatDate = (dateString: string) => {
@@ -218,11 +227,11 @@ export default function NoteView({ noteId }: NoteViewProps) {
           >
             {/* Title and Metadata */}
             <View style={styles.titleSection}>
-              <Text style={styles.noteTitle}>{note.title}</Text>
+              <Text style={styles.noteTitle}>{displayTitle}</Text>
               <View style={styles.metadataRow}>
                 <Text style={styles.metadataText}>{formatDate(note.createdAt)}</Text>
                 <View style={styles.metadataDot} />
-                <Text style={styles.metadataText}>{calculateReadTime(note.content)}</Text>
+                <Text style={styles.metadataText}>{calculateReadTime(displayContent)}</Text>
               </View>
             </View>
 
@@ -262,7 +271,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
             {/* Overview Section */}
             <View style={styles.overviewSection}>
               <Text style={styles.overviewTitle}>Overview</Text>
-              <Text style={styles.overviewContent}>{note.content}</Text>
+              <Text style={styles.overviewContent}>{displayContent}</Text>
             </View>
 
             {/* Bottom spacing */}

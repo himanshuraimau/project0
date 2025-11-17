@@ -84,6 +84,7 @@ export interface Note {
   userId?: string;
   createdAt: string;
   updatedAt: string;
+  translations?: NoteTranslation[]; // Optional array of translations
 }
 
 export interface NoteTranslation {
