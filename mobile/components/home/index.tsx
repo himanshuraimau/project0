@@ -295,7 +295,7 @@ export default function NotesHome() {
                     }}
                   >
                     <View style={styles.optionIconContainer}>
-                      <Feather name={option.icon as any} size={24} color="#7C3AED" />
+                      <Feather name={option.icon as any} size={19.99} color="#364153" />
                     </View>
                     <Text style={styles.optionText}>{option.label}</Text>
                   </TouchableOpacity>
@@ -555,12 +555,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   optionIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 0.0228271,
+    width: 39.99,
+    height: 39.99,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 14,
     marginRight: 16,
   },
   optionText: {
