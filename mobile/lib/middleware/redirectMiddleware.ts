@@ -8,7 +8,7 @@ const useRedirectMiddleware = () => {
 
   useEffect(() => {
     if (isSignedIn) {
-      router.replace('/(drawer)/(home)');
+      router.replace('/(home)');
     }
   }, [isSignedIn, router]);
 };

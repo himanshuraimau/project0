@@ -4,6 +4,8 @@ import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { useUser } from '@clerk/clerk-expo'
+import { useTranslation } from 'react-i18next'
+import * as Clipboard from 'expo-clipboard'
 import {
   SafeAreaView,
   StatusBar,
@@ -47,6 +49,7 @@ export default function AccountInfo() {
   const { theme } = useTheme()
   const router = useRouter()
   const { user } = useUser()
+  const { t } = useTranslation()
 
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return 'N/A'
@@ -57,10 +60,10 @@ export default function AccountInfo() {
     }).format(new Date(date))
   }
 
-  const copyUserId = () => {
+  const copyUserId = async () => {
     if (user?.id) {
-      // In a real app, you'd use Clipboard API
-      Alert.alert('User ID Copied', user.id)
+      await Clipboard.setStringAsync(user.id)
+      Alert.alert(t('accountInfo.idCopied'), t('accountInfo.idCopiedMessage'))
     }
   }
 
@@ -122,26 +125,26 @@ export default function AccountInfo() {
             </View>
 
             {/* Account Details Header */}
-            <Text style={styles.sectionHeader}>Account Details</Text>
+            <Text style={styles.sectionHeader}>{t('accountInfo.title')}</Text>
 
             {/* Account Information Cards */}
             <View style={styles.cardsContainer}>
               <InfoCard
                 icon="mail"
-                label="Email"
+                label={t('accountInfo.email')}
                 value={userEmail}
                 iconBackgroundColor="#93C5FD"
               />
               <InfoCard
                 icon="award"
-                label="Subscription"
-                value="Free"
+                label={t('accountInfo.subscription')}
+                value={t('accountInfo.free')}
                 iconBackgroundColor="#A78BFA"
                 isPill
               />
               <InfoCard
                 icon="calendar"
-                label="Member Since"
+                label={t('accountInfo.memberSince')}
                 value={memberSince}
                 iconBackgroundColor="#FDBA74"
               />
@@ -150,7 +153,7 @@ export default function AccountInfo() {
 
           {/* Footer */}
           <TouchableOpacity onPress={copyUserId} style={styles.footer}>
-            <Text style={styles.footerText}>Customer Support: Copy User ID</Text>
+            <Text style={styles.footerText}>{t('accountInfo.customerSupport')}</Text>
           </TouchableOpacity>
 
           {/* iOS Home Indicator */}

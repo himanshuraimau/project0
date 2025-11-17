@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
+import { useTranslation } from 'react-i18next'
 import {
   SafeAreaView,
   StatusBar,
@@ -26,6 +27,7 @@ export default function Settings() {
   const { theme } = useTheme()
   const router = useRouter()
   const { signOut } = useClerk()
+  const { t } = useTranslation()
 
   const handleLogout = async () => {
     try {
@@ -37,12 +39,11 @@ export default function Settings() {
   }
 
   const handleAccountInfo = () => {
-    router.push('/(drawer)/(home)/accountInfo')
+    router.push('/(home)/accountInfo')
   }
 
   const handleChangeLanguage = () => {
-    console.log('Navigate to Change Language')
-    // Add navigation logic
+    router.push('/(home)/changeLanguage')
   }
 
   const handleNotifications = () => {
@@ -51,8 +52,7 @@ export default function Settings() {
   }
 
   const handleContactSupport = () => {
-    console.log('Navigate to Contact Support')
-    // Add navigation logic or open email
+    router.push('/(home)/support')
   }
 
   const handleGoToWebsite = () => {
@@ -83,14 +83,14 @@ export default function Settings() {
   }
 
   const settingOptions: SettingOption[] = [
-    { id: '1', icon: 'user', label: 'Account Info', onPress: handleAccountInfo },
-    { id: '2', icon: 'globe', label: 'Change Language', onPress: handleChangeLanguage },
-    { id: '3', icon: 'bell', label: 'Notifications', onPress: handleNotifications },
-    { id: '4', icon: 'message-circle', label: 'Contact support', onPress: handleContactSupport },
-    { id: '5', icon: 'external-link', label: 'Go to website', onPress: handleGoToWebsite },
-    { id: '6', icon: 'star', label: 'Rate us', onPress: handleRateUs },
-    { id: '7', icon: 'bar-chart-2', label: 'Subscription', onPress: handleSubscription },
-    { id: '8', icon: 'log-out', label: 'Log out', onPress: handleLogout },
+    { id: '1', icon: 'user', label: t('settings.accountInfo'), onPress: handleAccountInfo },
+    { id: '2', icon: 'globe', label: t('settings.changeLanguage'), onPress: handleChangeLanguage },
+    { id: '3', icon: 'bell', label: t('settings.notifications'), onPress: handleNotifications },
+    { id: '4', icon: 'message-circle', label: t('settings.contactSupport'), onPress: handleContactSupport },
+    { id: '5', icon: 'external-link', label: t('settings.goToWebsite'), onPress: handleGoToWebsite },
+    { id: '6', icon: 'star', label: t('settings.rateUs'), onPress: handleRateUs },
+    { id: '7', icon: 'bar-chart-2', label: t('settings.subscription'), onPress: handleSubscription },
+    { id: '8', icon: 'log-out', label: t('settings.logout'), onPress: handleLogout },
   ]
 
   return (
@@ -124,7 +124,7 @@ export default function Settings() {
                   <View style={styles.robotEye} />
                 </View>
               </View>
-              <Text style={styles.title}>Jellinote AI</Text>
+              <Text style={styles.title}>{t('common.jellinote')}</Text>
             </View>
             <TouchableOpacity 
               style={styles.settingsButton} 
@@ -161,15 +161,15 @@ export default function Settings() {
           {/* Bottom Links */}
           <View style={styles.bottomLinks}>
             <TouchableOpacity onPress={handlePrivacy}>
-              <Text style={styles.linkText}>Privacy</Text>
+              <Text style={styles.linkText}>{t('settings.privacy')}</Text>
             </TouchableOpacity>
             <Text style={styles.linkSeparator}>•</Text>
             <TouchableOpacity onPress={handleTerms}>
-              <Text style={styles.linkText}>Terms</Text>
+              <Text style={styles.linkText}>{t('settings.terms')}</Text>
             </TouchableOpacity>
             <Text style={styles.linkSeparator}>•</Text>
             <TouchableOpacity onPress={handleDeleteAccount}>
-              <Text style={styles.linkText}>Delete Account</Text>
+              <Text style={styles.linkText}>{t('settings.deleteAccount')}</Text>
             </TouchableOpacity>
           </View>
 
