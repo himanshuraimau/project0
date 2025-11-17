@@ -10,6 +10,8 @@ import { useEffect, useState } from 'react'
 import { View, ActivityIndicator, Text } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { initI18n } from '@/lib/i18n/i18n'
+import * as NavigationBar from 'expo-navigation-bar'
+import { Platform } from 'react-native'
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync()
@@ -35,6 +37,14 @@ function ThemedRoot() {
   }, [])
 
   useEffect(() => {
+    // Configure navigation bar for Android
+    if (Platform.OS === 'android') {
+      NavigationBar.setBackgroundColorAsync(theme.colors.background)
+      NavigationBar.setButtonStyleAsync(mode === 'dark' ? 'light' : 'dark')
+    }
+  }, [theme.colors.background, mode])
+
+  useEffect(() => {
     if (fontsLoaded && i18nInitialized) {
       SplashScreen.hideAsync()
     }
@@ -51,7 +61,11 @@ function ThemedRoot() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+      <StatusBar 
+        style={mode === 'dark' ? 'light' : 'dark'} 
+        translucent={true}
+        backgroundColor="transparent"
+      />
       <Slot />
     </View>
   )
