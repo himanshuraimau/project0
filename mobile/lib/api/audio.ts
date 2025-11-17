@@ -12,6 +12,7 @@ import { TranscribeAudioResponse, ApiResponse } from './types';
  */
 export const transcribeAudio = async (audioFile: FormData): Promise<TranscribeAudioResponse> => {
   try {
+    // Use longer timeout for audio transcription and AI generation (180 seconds)
     const response = await apiClient.post<ApiResponse<TranscribeAudioResponse>>(
       '/audio/transcribe',
       audioFile,
@@ -19,6 +20,7 @@ export const transcribeAudio = async (audioFile: FormData): Promise<TranscribeAu
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        timeout: 180000, // 3 minutes for transcription + note generation
       }
     );
     return handleApiResponse<TranscribeAudioResponse>(response);
