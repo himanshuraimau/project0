@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
+import { BookOpen, Brain } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import { useAuth } from '@clerk/clerk-expo'
 import { useTranslation } from 'react-i18next'
@@ -11,10 +12,10 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Pressable,
   ActivityIndicator,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import Markdown from 'react-native-markdown-display'
 import { notesApi } from '@/lib/api'
 import { setClerkTokenGetter } from '@/lib/api/client'
 import type { Note } from '@/lib/api/types'
@@ -92,12 +93,12 @@ export default function NoteView({ noteId }: NoteViewProps) {
   ]
 
   const studyTools = [
-    { id: 1, icon: 'book', label: t('note.editNote'), color: '#FB923C', bgColor: '#FED7AA' },
-    { id: 2, icon: 'message-circle', label: t('note.chat'), color: '#A855F7', bgColor: '#E9D5FF' },
-    { id: 3, icon: 'cpu', label: t('note.takeQuiz'), color: '#EC4899', bgColor: '#FBCFE8' },
-    { id: 4, icon: 'square', label: t('note.flashcards'), color: '#06B6D4', bgColor: '#A5F3FC' },
-    { id: 5, icon: 'headphones', label: t('note.podcast'), color: '#8B5CF6', bgColor: '#DDD6FE' },
-    { id: 6, icon: 'plus', label: t('note.mindMap'), color: '#3B82F6', bgColor: '#BFDBFE' },
+    { id: 1, icon: 'BookOpen', iconType: 'lucide', label: t('note.editNote'), color: '#FFFFFF', bgColor: '#FF6900'},
+    { id: 2, icon: 'message-square', iconType: 'feather', label: t('note.chat'), color: '#FFFFFF', bgColor: '#AD46FF' },
+    { id: 3, icon: 'brain', iconType: 'lucide', label: t('note.takeQuiz'), color: '#FFFFFF', bgColor: '#F6339A' },
+    { id: 4, icon: 'square', iconType: 'feather', label: t('note.flashcards'), color: '#FFFFFF', bgColor: '#00D3F3' },
+    { id: 5, icon: 'headphones', iconType: 'feather', label: t('note.podcast'), color: '#FFFFFF', bgColor: '#615FFF' },
+    { id: 6, icon: 'plus', iconType: 'feather', label: t('note.mindMap'), color: '#FFFFFF', bgColor: '#2B7FFF' },
   ]
 
   // Handle action chip press
@@ -195,21 +196,14 @@ export default function NoteView({ noteId }: NoteViewProps) {
           {/* Custom Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <View style={styles.timeBadge}>
-                <Text style={styles.timeText}>4:26</Text>
-              </View>
               <BackButton iconColor="#111827" />
             </View>
 
             <View style={styles.headerCenter}>
-              <Text style={styles.emojiIcon}>😟</Text>
+              <Text style={styles.emojiIcon}>🤔</Text>
             </View>
 
             <View style={styles.headerRight}>
-              <View style={styles.statusIcons}>
-                <Feather name="wifi" size={18} color="#222" style={{ marginRight: 8 }} />
-                <Feather name="battery" size={18} color="#222" />
-              </View>
               <TouchableOpacity style={styles.shareButton}>
                 <Text style={styles.shareButtonText}>SHARE</Text>
               </TouchableOpacity>
@@ -251,11 +245,35 @@ export default function NoteView({ noteId }: NoteViewProps) {
                 {studyTools.map((tool) => (
                   <TouchableOpacity 
                     key={tool.id} 
-                    style={[styles.studyToolCard, { backgroundColor: tool.bgColor }]}
+                    style={[
+                      styles.studyToolCard, 
+                      { backgroundColor: tool.bgColor }
+                    ]}
                     onPress={() => handleStudyToolPress(tool.id)}
                   >
-                    <View style={[styles.toolIconContainer, { backgroundColor: tool.color }]}>
-                      <Feather name={tool.icon as any} size={12} color="#FFFFFF" />
+                    <View style={[
+                      styles.toolIconContainer,
+                      tool.id === 1 && styles.editNoteIcon
+                    ]}>
+                      {tool.iconType === 'lucide' ? (
+                        tool.icon === 'BookOpen' ? (
+                          <BookOpen 
+                            size={24} 
+                            color={tool.color} 
+                          />
+                        ) : tool.icon === 'brain' ? (
+                          <Brain 
+                            size={24} 
+                            color={tool.color} 
+                          />
+                        ) : null
+                      ) : (
+                        <Feather 
+                          name={tool.icon as any} 
+                          size={24} 
+                          color={tool.color} 
+                        />
+                      )}
                     </View>
                     <Text style={styles.toolLabel}>{tool.label}</Text>
                   </TouchableOpacity>
@@ -266,14 +284,14 @@ export default function NoteView({ noteId }: NoteViewProps) {
             {/* Overview Section */}
             <View style={styles.overviewSection}>
               <Text style={styles.overviewTitle}>Overview</Text>
-              <Text style={styles.overviewContent}>{displayContent}</Text>
+              <Markdown style={markdownStyles}>
+                {displayContent}
+              </Markdown>
             </View>
 
             {/* Bottom spacing */}
             <View style={{ height: 40 }} />
           </ScrollView>
-
-          <View style={styles.homeIndicator} />
         </SafeAreaView>
       </LinearGradient>
     </>
@@ -335,16 +353,21 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   shareButton: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#F3E8FF',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 26843500,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
   },
   shareButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 12,
-    letterSpacing: 0.5,
+    color: '#9810FA',
+    fontWeight: '400',
+    fontSize: 13,
+    lineHeight: 20,
+    fontFamily: 'Arimo',
   },
   content: {
     flex: 1,
@@ -353,12 +376,17 @@ const styles = StyleSheet.create({
   titleSection: {
     paddingTop: 24,
     paddingBottom: 16,
+    flex: 0,
+    alignSelf: 'stretch',
+    flexGrow: 0,
   },
   noteTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#111827',
-    lineHeight: 36,
+    fontFamily: 'Arimo',
+    fontStyle: 'normal',
+    fontWeight: '400',
+    fontSize: 24,
+    lineHeight: 32,
+    color: '#0A0A0A',
     marginBottom: 12,
   },
   metadataRow: {
@@ -386,7 +414,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F3F4F6',
-    paddingHorizontal: 14,
+    paddingRight: 20,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
@@ -397,39 +425,64 @@ const styles = StyleSheet.create({
     color: '#374151',
   },
   studyToolsSection: {
-    paddingVertical: 24,
+    paddingVertical: 0,
+    marginTop: 24,
   },
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#111827',
-    letterSpacing: 0.5,
+    fontFamily: 'Arimo',
+    fontStyle: 'normal',
+    fontWeight: '700',
+    fontSize: 14,
+    lineHeight: 16,
+    letterSpacing: 0.6,
+    color: '#99A1AF',
     marginBottom: 16,
   },
-  studyToolsGrid: {
+    studyToolsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    justifyContent: 'space-between',
+    width: '100%',
   },
   studyToolCard: {
-    width: '48%',
-    aspectRatio: 8,
-    borderRadius: 14,
-    padding: 12,
-    justifyContent: 'space-between',
+    width: '49%',
+    height: 59.99,
+    borderRadius: 16,
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11.99,
+    marginBottom: 12,
+  },
+
+  editNoteCard: {
+    backgroundColor: '#FF6900',
   },
   toolIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: 23.99,
+    height: 23.99,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  editNoteIcon: {
+    borderWidth: 1.99886,
+    borderColor: '#FFFFFF',
+  },
   toolLabel: {
-    fontSize: 13,
+    fontFamily: 'Arimo',
+    fontStyle: 'normal',
     fontWeight: '700',
-    color: '#111827',
-    marginTop: 6,
+    fontSize: 18,
+    lineHeight: 28,
+    color: '#FFFFFF',
+  },
+  editNoteLabel: {
+    fontFamily: 'Arimo',
+    fontStyle: 'normal',
+    fontWeight: '700',
+    fontSize: 18,
+    lineHeight: 28,
+    color: '#FFFFFF',
   },
   overviewSection: {
     paddingVertical: 16,
@@ -501,5 +554,125 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontSize: 16,
     fontWeight: '600',
+  },
+})
+
+const markdownStyles = StyleSheet.create({
+  body: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: '#374151',
+  },
+  heading1: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#111827',
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  heading2: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 16,
+    marginBottom: 10,
+  },
+  heading3: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginTop: 14,
+    marginBottom: 8,
+  },
+  paragraph: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: '#374151',
+    marginBottom: 12,
+  },
+  link: {
+    color: '#7C3AED',
+    textDecorationLine: 'underline' as const,
+  },
+  strong: {
+    fontWeight: '700',
+    color: '#111827',
+  },
+  em: {
+    fontStyle: 'italic' as const,
+  },
+  bullet_list: {
+    marginBottom: 12,
+  },
+  ordered_list: {
+    marginBottom: 12,
+  },
+  list_item: {
+    flexDirection: 'row' as const,
+    marginBottom: 6,
+  },
+  bullet_list_icon: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: '#6B7280',
+    marginRight: 8,
+  },
+  code_inline: {
+    backgroundColor: '#F3F4F6',
+    color: '#EC4899',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    fontFamily: 'monospace',
+    fontSize: 14,
+  },
+  code_block: {
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#7C3AED',
+    marginBottom: 12,
+  },
+  fence: {
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#7C3AED',
+    marginBottom: 12,
+  },
+  blockquote: {
+    backgroundColor: '#F3F4F6',
+    borderLeftWidth: 4,
+    borderLeftColor: '#7C3AED',
+    paddingLeft: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  table: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  thead: {
+    backgroundColor: '#F9FAFB',
+  },
+  th: {
+    fontWeight: '700',
+    padding: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: '#E5E7EB',
+  },
+  td: {
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  hr: {
+    backgroundColor: '#E5E7EB',
+    height: 1,
+    marginVertical: 16,
   },
 })
