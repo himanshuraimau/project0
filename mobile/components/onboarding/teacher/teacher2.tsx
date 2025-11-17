@@ -5,10 +5,10 @@ import {
   TouchableOpacity,
   ScrollView,
   StatusBar,
-  SafeAreaView,
 } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
+import { BlurGradient } from '../../ui/BlurGradient'
 import styles from '../onboarding-styles/teacher2'
 
 export default function Teacher2() {
@@ -28,76 +28,72 @@ export default function Teacher2() {
   ]
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" translucent={false} backgroundColor="#FFFFFF" />
 
-      {/* Status Bar Replacement */}
-      <View style={styles.statusBarReplacement}>
-        <Text style={styles.time}>6:07</Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>📡</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      {/* Top blur gradient */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={241}
+        top={-111}
+      />
 
-      {/* Navigation Header with Back and Progress */}
+      {/* Bottom blur gradient */}
+      <BlurGradient
+        colors={['#14C3A2', '#4C57FF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={-72}
+        top={235}
+      />
+
+      {/* Header with back and progress */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backArrow}>&lt;</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="#0A0A0A" />
         </TouchableOpacity>
-        <View style={styles.progressBarContainer}>
-          <View style={styles.progressBarBackground}>
-            <View style={styles.progressBarFill} />
+        <View style={styles.progressContainer}>
+          <View style={styles.progressTrack}>
+            <View style={styles.progressFill} />
           </View>
         </View>
       </View>
 
-      {/* Main Content */}
-      <ScrollView 
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Contextual Text */}
-        <Text style={styles.contextText}>Personalizing Jellinote for you...</Text>
+      {/* Main Question */}
+      <Text style={styles.mainQuestion}>What would you like Jellinote to help you with?</Text>
 
-        {/* Main Question */}
-        <Text style={styles.mainQuestion}>What would you like Jellinote to help you with?</Text>
+      {/* Options Container */}
+      <View style={styles.optionsContainer}>
 
-        {/* Selection Options */}
-        <View style={styles.optionsContainer}>
-          {options.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={[
-                styles.optionButton,
-                selectedOption === option.id && styles.optionButtonSelected,
-              ]}
-              onPress={() => setSelectedOption(option.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.optionIcon}>{option.icon}</Text>
-              <Text style={styles.optionText}>{option.text}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
-
-      {/* Continue Button */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.continueButton}
-          onPress={handleContinue}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.continueButtonText}>Continue →</Text>
-        </TouchableOpacity>
+        {options.map((option) => (
+          <TouchableOpacity
+            key={option.id}
+            style={[
+              styles.optionButton,
+              selectedOption === option.id && styles.optionButtonSelected,
+            ]}
+            onPress={() => setSelectedOption(option.id)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.optionIcon}>{option.icon}</Text>
+            <Text style={styles.optionText}>{option.text}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {/* Gesture Bar */}
-      <View style={styles.gestureBar} />
-    </SafeAreaView>
+      {/* Continue Button */}
+      <TouchableOpacity
+        style={styles.continueButton}
+        onPress={handleContinue}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.continueButtonText}>Continue →</Text>
+      </TouchableOpacity>
+    </View>
   )
 }
 

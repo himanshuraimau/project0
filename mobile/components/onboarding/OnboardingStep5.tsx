@@ -233,9 +233,11 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   subTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#A78BFA',
+    fontSize: 15,
+    fontFamily: 'Arimo',
+    fontWeight: '700',
+    lineHeight: 22,
+    color: '#7C3AED',
     marginBottom: 8,
   },
   mainTitle: {

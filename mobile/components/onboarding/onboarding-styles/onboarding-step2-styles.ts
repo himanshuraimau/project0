@@ -34,8 +34,10 @@ export const onboardingStep2Styles = StyleSheet.create({
     marginBottom: 32,
   },
   subHeading: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontFamily: 'Arimo',
+    fontWeight: '700',
+    lineHeight: 22,
     color: '#7C3AED',
     marginBottom: 8,
   },

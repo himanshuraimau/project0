@@ -2,6 +2,8 @@ import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
+import { BlurGradient } from '../../ui/BlurGradient'
 
 export default function WorkingProfessional4() {
   const router = useRouter()
@@ -9,15 +11,25 @@ export default function WorkingProfessional4() {
     <View style={styles.screen}>
       <StatusBar barStyle="dark-content" backgroundColor="#F7F5FF" />
 
-      {/* Status imitation */}
-      <View style={styles.statusBar}>
-        <Text style={styles.time}>6:10</Text>
-        <View style={styles.statusRight}>
-          <Text style={styles.statusIcon}>📶</Text>
-          <Text style={[styles.statusIcon, { marginLeft: 6 }]}>📡</Text>
-          <Text style={[styles.statusIcon, { marginLeft: 6 }]}>🔋</Text>
-        </View>
-      </View>
+      {/* Gaussian Blur 1 - Blue-Teal */}
+      <BlurGradient
+        colors={['#4C57FF', '#14C3A2']}
+        width={128}
+        height={128}
+        opacity={0.2}
+        right={-37} 
+        top={83}
+      />
+
+      {/* Gaussian Blur 2 - Purple */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        right={-86}
+        top={-102}
+      />
 
       {/* Header */}
       <View style={styles.header}>
@@ -33,20 +45,28 @@ export default function WorkingProfessional4() {
         <Text style={styles.contextText}>Personalizing Jellinote for you...</Text>
         <Text style={styles.title}>You're in the right place.</Text>
 
-        <View style={styles.card}>
-          <View style={styles.cardTop}>
-            <View>
-              <Text style={styles.cardName}>Steve Gray</Text>
-              <Text style={styles.cardTitle}>Management Consultant</Text>
-            </View>
-            <View style={styles.stars}>
-              <Text style={styles.star}>⭐️⭐️⭐️⭐️⭐️</Text>
+        <View style={styles.cardContainer}>
+          <View style={styles.card}>
+            <View style={styles.cardContent}>
+              <View style={styles.cardTop}>
+                <View style={styles.userInfo}>
+                  <Text style={styles.cardName}>Steve Gray</Text>
+                  <Text style={styles.cardTitle}>Management Consultant</Text>
+                </View>
+                <View style={styles.stars}>
+                  <Ionicons name="star" size={16} color="#FFB800" />
+                  <Ionicons name="star" size={16} color="#FFB800" />
+                  <Ionicons name="star" size={16} color="#FFB800" />
+                  <Ionicons name="star" size={16} color="#FFB800" />
+                  <Ionicons name="star" size={16} color="#FFB800" />
+                </View>
+              </View>
+
+              <Text style={styles.quote}>
+                "Jellinote made me more productive within weeks. I can focus fully on work and still walk away with perfect notes."
+              </Text>
             </View>
           </View>
-
-          <Text style={styles.quote}>
-            “Jellinote made me more productive within weeks. I can focus fully on work and still walk away with perfect notes.”
-          </Text>
         </View>
       </View>
 
@@ -55,9 +75,14 @@ export default function WorkingProfessional4() {
           activeOpacity={0.85}
           onPress={() => router.replace('/(onboarding)/step4' as any)}
         >
-          <LinearGradient colors={["#3B82F6", "#7C3AED"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.continueButton}>
+          <LinearGradient 
+            colors={["#4C57FF", "#9810FA"]} 
+            start={{ x: 0, y: 0 }} 
+            end={{ x: 1, y: 1 }} 
+            style={styles.continueButton}
+          >
             <Text style={styles.continueText}>Continue</Text>
-            <Text style={styles.continueArrow}>→</Text>
+            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
           </LinearGradient>
         </TouchableOpacity>
 
@@ -69,28 +94,112 @@ export default function WorkingProfessional4() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#F7F5FF' },
-  statusBar: { height: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 6 },
-  time: { fontSize: 14, color: '#0F172A', fontWeight: '600' },
-  statusRight: { flexDirection: 'row', alignItems: 'center' },
-  statusIcon: { fontSize: 13 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginTop: 12 },
   back: { fontSize: 22, marginRight: 16, color: '#0F172A' },
   progressContainer: { flex: 1 },
   progressTrack: { height: 6, backgroundColor: '#E6E7F0', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '35%', height: '100%', backgroundColor: '#7C3AED' },
   content: { paddingHorizontal: 24, paddingTop: 20 },
-  contextText: { color: '#7C3AED', fontSize: 13, marginBottom: 8 },
+  contextText: { 
+    color: '#7C3AED', 
+    fontSize: 15, 
+    fontFamily: 'Arimo',
+    fontWeight: '700',
+    lineHeight: 22,
+    marginBottom: 8,
+  },
   title: { fontSize: 28, fontWeight: '700', color: '#0F172A', marginBottom: 18 },
-  card: { backgroundColor: '#FFF', borderRadius: 14, padding: 16, marginTop: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 4 },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  cardName: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  cardTitle: { fontSize: 13, color: '#6B7280', marginTop: 4 },
-  stars: { alignItems: 'flex-end' },
-  star: { fontSize: 16 },
-  quote: { fontSize: 15, color: '#374151', lineHeight: 22 },
-  footer: { paddingHorizontal: 24, paddingBottom: 18, marginTop: 12 },
-  continueButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 14 },
-  continueText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginRight: 8 },
-  continueArrow: { color: '#FFF', fontSize: 18, fontWeight: '700' },
+  cardContainer: {
+    gap: 16,
+    width: 310,
+    height: 207.6,
+  },
+  card: { 
+    width: 310,
+    height: 195,
+    backgroundColor: '#FFFFFF', 
+    borderWidth: 0.8,
+    borderColor: '#EBEDF2',
+    borderRadius: 24,
+    shadowColor: '#4C57FF',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 4,
+  },
+  cardContent: {
+    padding: 24.8,
+    gap: 16,
+  },
+  cardTop: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'flex-start',
+    height: 46,
+    paddingRight: 24,
+  },
+  userInfo: {
+    gap: 2,
+    width: 170,
+    height: 46,
+  },
+  cardName: { 
+    fontSize: 18, 
+    fontFamily: 'Arimo',
+    fontWeight: '700',
+    lineHeight: 24,
+    color: '#0B0C10',
+  },
+  cardTitle: { 
+    fontSize: 14, 
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+    lineHeight: 20,
+    color: '#5A6171',
+  },
+  stars: { 
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+    width: 80,
+    height: 16,
+    marginRight: 20,
+  },
+  quote: { 
+    fontSize: 16, 
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+    lineHeight: 24,
+    color: '#0B0C10',
+  },
+  footer: { 
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 24, 
+    paddingBottom: 18,
+  },
+  continueButton: { 
+    width: 310,
+    height: 56,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    borderRadius: 28,
+    shadowColor: '#4C57FF',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  continueText: { 
+    color: '#FFFFFF', 
+    fontSize: 17, 
+    fontFamily: 'Arimo',
+    fontWeight: '700',
+    lineHeight: 24,
+    marginRight: 8,
+  },
   gestureBar: { height: 4, backgroundColor: '#E5E7EB', borderRadius: 3, marginTop: 8, marginHorizontal: 120 },
 })

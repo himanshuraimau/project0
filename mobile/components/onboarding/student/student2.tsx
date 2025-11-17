@@ -2,29 +2,37 @@ import React, { useState } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
+import { BlurGradient } from '../../ui/BlurGradient'
 import styles from '../onboarding-styles/student2'
 
 export default function Student2() {
   const router = useRouter()
   const [selected, setSelected] = useState<string | null>(null)
 
+  const handleOptionSelect = (id: string) => {
+    setSelected(id)
+    router.push('/(onboarding)/student-flow/student3' as any)
+  }
+
   const OPTIONS = [
-    { id: 'senior', icon: '🎓', label: 'Senior / 4th+ year' },
-    { id: 'junior', icon: '🎓', label: 'Junior / 3rd year' },
-    { id: 'sophomore', icon: '🎓', label: 'Soph / 2nd year' },
-    { id: 'freshman', icon: '🌱', label: 'Freshman / 1st year' },
-    { id: 'graduate', icon: '🎓', label: 'Graduate school' },
+    { id: 'senior', icon: '🎓', label: 'Senior / 4th+ year', iconBg: '#DCFCE7' },
+    { id: 'junior', icon: '🎓', label: 'Junior / 3rd year', iconBg: '#FFEDD4' },
+    { id: 'sophomore', icon: '🎓', label: 'Soph / 2nd year', iconBg: '#DCFCE7' },
+    { id: 'freshman', icon: '🌱', label: 'Freshman / 1st year', iconBg: '#DCFCE7' },
+    { id: 'graduate', icon: '🎓', label: 'Graduate school', iconBg: '#FFEDD4' },
   ]
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.time}>1:11</Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      {/* Blur gradient - Purple */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={256}
+        top={142}
+      />
 
       <View style={styles.header}>
         <Text style={styles.back}>&lt;</Text>
@@ -36,8 +44,10 @@ export default function Student2() {
       </View>
 
       <ScrollView style={styles.scrollContent} contentContainerStyle={styles.content}>
-        <Text style={styles.context}>Personalizing Jellinote for you...</Text>
-        <Text style={styles.title}>What year are you in?</Text>
+        <View>
+          <Text style={styles.context}>Personalizing Jellinote for you...</Text>
+          <Text style={styles.title}>What year are you in?</Text>
+        </View>
 
         <View style={styles.options}>
           {OPTIONS.map((o) => {
@@ -46,27 +56,16 @@ export default function Student2() {
               <TouchableOpacity
                 key={o.id}
                 activeOpacity={0.85}
-                onPress={() => setSelected(o.id)}
+                onPress={() => handleOptionSelect(o.id)}
                 style={[styles.option, sel && styles.optionSelected]}
               >
-                <Text style={styles.optionIcon}>{o.icon}</Text>
+                <Text style={[styles.optionIcon, { backgroundColor: o.iconBg }]}>{o.icon}</Text>
                 <Text style={styles.optionLabel}>{o.label}</Text>
               </TouchableOpacity>
             )
           })}
         </View>
       </ScrollView>
-
-      {selected && (
-        <View style={styles.footer}>
-          <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/(onboarding)/student-flow/student3' as any)}>
-            <LinearGradient colors={["#3B82F6", "#7C3AED"]} style={styles.continueButton} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Text style={styles.continueText}>Continue</Text>
-              <Text style={styles.continueArrow}>→</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      )}
 
       <View style={styles.gesture} />
     </SafeAreaView>

@@ -4,15 +4,15 @@ import { Stack } from 'expo-router'
 export default function Layout() {
   return (
     <Stack>
-      <Stack.Screen name="student1" />
-      <Stack.Screen name="student2" />
-      <Stack.Screen name="student3" />
-      <Stack.Screen name="student4" />
-      <Stack.Screen name="student5" />
-      <Stack.Screen name="student6" />
-      <Stack.Screen name="student7" />
-      <Stack.Screen name="student8" />
-      <Stack.Screen name="student9" />
+      <Stack.Screen name="student1" options={{ headerShown: false }} />
+      <Stack.Screen name="student2" options={{ headerShown: false }} />
+      <Stack.Screen name="student3" options={{ headerShown: false }} />
+      <Stack.Screen name="student4" options={{ headerShown: false }} />
+      <Stack.Screen name="student5" options={{ headerShown: false }} />
+      <Stack.Screen name="student6" options={{ headerShown: false }} />
+      <Stack.Screen name="student7" options={{ headerShown: false }} />
+      <Stack.Screen name="student8" options={{ headerShown: false }} />
+      <Stack.Screen name="student9" options={{ headerShown: false }} />
     </Stack>
   )
 }
