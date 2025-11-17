@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native'
+import BackButton from '@/components/ui/BackButton'
 
 interface FAQItem {
   id: string
@@ -138,13 +139,7 @@ export default function Support() {
 
           {/* Title Row with Back Button */}
           <View style={styles.titleRow}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-              accessibilityLabel="Go back"
-            >
-              <Feather name="arrow-left" size={24} color="#374151" />
-            </TouchableOpacity>
+            <BackButton iconColor="#374151" />
             <Text style={styles.title}>Help Centre</Text>
             <View style={{ width: 40 }} />
           </View>

@@ -350,25 +350,20 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
     )
   }
 
-  // Safety check: ensure flashcards exist and current card is valid
+  // If no flashcards loaded, show generate flashcards option
   if (!flashcards || flashcards.length === 0) {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Feather name="arrow-left" size={24} color="#000" />
-            </TouchableOpacity>
-          </View>
           <View style={styles.errorContainer}>
             <Feather name="layers" size={64} color="#7C3AED" />
-            <Text style={styles.errorTitle}>{t('flashcards.noFlashcardsYet')}</Text>
+            <Text style={styles.errorTitle}>No Flashcards Available</Text>
             <Text style={styles.errorSubtitle}>
-              {t('flashcards.createPrompt')}
+              Generate flashcards from this note to help you study
             </Text>
             <TouchableOpacity 
-              style={styles.generateButton} 
+              style={styles.generateButton}
               onPress={generateFlashcards}
               disabled={loading}
             >
@@ -377,12 +372,15 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
               ) : (
                 <>
                   <Feather name="zap" size={20} color="#FFFFFF" />
-                  <Text style={styles.generateButtonText}>{t('flashcards.generate')}</Text>
+                  <Text style={styles.generateButtonText}>Generate Flashcards</Text>
                 </>
               )}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.backButtonError} onPress={() => router.back()}>
-              <Text style={styles.backButtonErrorText}>{t('common.back')}</Text>
+            <TouchableOpacity 
+              style={styles.backButtonError}
+              onPress={() => router.back()}
+            >
+              <Text style={styles.backButtonErrorText}>Go Back</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
