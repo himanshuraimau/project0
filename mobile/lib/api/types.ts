@@ -444,6 +444,7 @@ export interface ProcessWebpageRequest {
 export interface ProcessWebpageResponse {
   transcript: Transcript;
   content: string;
+  note?: Note; // Optional: backend may generate note automatically
 }
 
 // ==================== Search API ====================
