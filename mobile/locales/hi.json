@@ -146,7 +146,16 @@
     "available": "उपलब्ध भाषाएं",
     "languageChanged": "भाषा बदल दी गई",
     "languageChangedMessage": "आपकी भाषा सफलतापूर्वक बदल दी गई है",
-    "errorChanging": "भाषा बदलने में विफल। कृपया पुनः प्रयास करें।"
+    "errorChanging": "भाषा बदलने में विफल। कृपया पुनः प्रयास करें।",
+    "translatingNotes": "नोट्स का अनुवाद हो रहा है",
+    "translatingNotesMessage": "आपके नोट्स का {{language}} में अनुवाद किया जा रहा है...",
+    "translationProgress": "{{total}} में से {{current}} नोट्स का अनुवाद हो रहा है",
+    "translationComplete": "अनुवाद पूर्ण",
+    "translationCompleteMessage": "{{total}} में से {{count}} नोट्स का सफलतापूर्वक अनुवाद किया गया",
+    "translationPartialSuccess": "आंशिक अनुवाद सफलता",
+    "translationPartialMessage": "{{success}} नोट्स का सफलतापूर्वक अनुवाद किया गया। {{failed}} नोट्स का अनुवाद नहीं किया जा सका।",
+    "translationFailed": "अनुवाद विफल",
+    "translationFailedMessage": "आपके नोट्स का अनुवाद नहीं किया जा सका। आपकी भाषा वरीयता अपडेट कर दी गई है।"
   },
   "languages": {
     "en": "English (अंग्रेज़ी)",

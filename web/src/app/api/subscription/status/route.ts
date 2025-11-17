@@ -1,6 +1,6 @@
 // API endpoint to get user's subscription status
 
-import { NextResponse } , NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { SubscriptionService } from '@/lib/subscription-service';
 import { FeatureGateService } from '@/lib/feature-gate-service';

@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { LANGUAGES, setLanguage } from '@/lib/i18n/i18n'
+import { translateAllNotes, TranslationProgress } from '@/lib/service/noteTranslation'
 import {
   SafeAreaView,
   StatusBar,
@@ -15,6 +16,7 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Modal,
 } from 'react-native'
 
 interface LanguageOptionProps {
@@ -83,6 +85,8 @@ export default function ChangeLanguage() {
   const { t, i18n } = useTranslation()
   const [isChanging, setIsChanging] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language)
+  const [translationProgress, setTranslationProgress] = useState<TranslationProgress | null>(null)
+  const [showTranslationModal, setShowTranslationModal] = useState(false)
 
   const handleLanguageChange = async (languageCode: string) => {
     if (languageCode === i18n.language) {
@@ -93,23 +97,76 @@ export default function ChangeLanguage() {
     setSelectedLanguage(languageCode)
 
     try {
+      // First, change the app language
       await setLanguage(languageCode)
       
-      // Show success message
+      // Show translation modal and start translating notes
+      setShowTranslationModal(true)
+      
+      // Get language name for display
+      const languageName = LANGUAGES[languageCode as keyof typeof LANGUAGES]?.nativeName || languageCode
+      
+      // Translate all notes in the background
+      const result = await translateAllNotes(languageCode, (progress) => {
+        setTranslationProgress(progress)
+      })
+      
+      // Hide translation modal
+      setShowTranslationModal(false)
+      setTranslationProgress(null)
+      
+      // Show appropriate success/partial success message
       setTimeout(() => {
-        Alert.alert(
-          t('language.languageChanged'),
-          t('language.languageChangedMessage'),
-          [
-            {
-              text: t('common.ok'),
-              onPress: () => router.back(),
-            },
-          ]
-        )
+        if (result.success) {
+          if (result.failedCount === 0) {
+            // All notes translated successfully
+            Alert.alert(
+              t('language.translationComplete'),
+              t('language.translationCompleteMessage', {
+                count: result.translatedCount,
+                total: result.totalNotes,
+              }),
+              [
+                {
+                  text: t('common.ok'),
+                  onPress: () => router.back(),
+                },
+              ]
+            )
+          } else {
+            // Partial success
+            Alert.alert(
+              t('language.translationPartialSuccess'),
+              t('language.translationPartialMessage', {
+                success: result.translatedCount,
+                failed: result.failedCount,
+              }),
+              [
+                {
+                  text: t('common.ok'),
+                  onPress: () => router.back(),
+                },
+              ]
+            )
+          }
+        } else {
+          // Translation failed but language was changed
+          Alert.alert(
+            t('language.languageChanged'),
+            t('language.translationFailedMessage'),
+            [
+              {
+                text: t('common.ok'),
+                onPress: () => router.back(),
+              },
+            ]
+          )
+        }
       }, 300)
     } catch (error) {
       console.error('Error changing language:', error)
+      setShowTranslationModal(false)
+      setTranslationProgress(null)
       Alert.alert(t('common.error'), t('language.errorChanging'))
       setSelectedLanguage(i18n.language) // Revert selection
     } finally {
@@ -185,6 +242,49 @@ export default function ChangeLanguage() {
           <View style={styles.homeIndicator} />
         </SafeAreaView>
       </LinearGradient>
+
+      {/* Translation Progress Modal */}
+      <Modal
+        visible={showTranslationModal}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalIconContainer}>
+              <Feather name="globe" size={40} color="#8B5CF6" />
+            </View>
+            <Text style={styles.modalTitle}>{t('language.translatingNotes')}</Text>
+            <Text style={styles.modalSubtitle}>
+              {translationProgress 
+                ? t('language.translationProgress', {
+                    current: translationProgress.completed,
+                    total: translationProgress.total,
+                  })
+                : t('common.loading')}
+            </Text>
+            {translationProgress && translationProgress.currentNote && (
+              <Text style={styles.modalCurrentNote} numberOfLines={1}>
+                {translationProgress.currentNote}
+              </Text>
+            )}
+            <ActivityIndicator size="large" color="#8B5CF6" style={{ marginTop: 20 }} />
+            {translationProgress && (
+              <View style={styles.progressBarContainer}>
+                <View 
+                  style={[
+                    styles.progressBar, 
+                    { 
+                      width: `${(translationProgress.completed / translationProgress.total) * 100}%` 
+                    }
+                  ]} 
+                />
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </>
   )
 }
@@ -350,5 +450,74 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 8,
     opacity: 0.3,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 32,
+    width: '100%',
+    maxWidth: 340,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  modalIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F5F3FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    textAlign: 'center',
+    marginBottom: 8,
+    letterSpacing: -0.3,
+  },
+  modalSubtitle: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 4,
+    letterSpacing: -0.2,
+  },
+  modalCurrentNote: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#9CA3AF',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    paddingHorizontal: 16,
+  },
+  progressBarContainer: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginTop: 20,
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#8B5CF6',
+    borderRadius: 4,
   },
 })

@@ -1,11 +1,11 @@
 // API endpoint to cancel user's subscription
 
-import { NextResponse } , NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { SubscriptionService } from '@/lib/subscription-service';
 import { DodoSubscriptionService } from '@/lib/utils/dodo/subscription';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request);
 

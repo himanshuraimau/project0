@@ -146,7 +146,16 @@
     "available": "Available Languages",
     "languageChanged": "Language Changed",
     "languageChangedMessage": "Your language has been changed successfully",
-    "errorChanging": "Failed to change language. Please try again."
+    "errorChanging": "Failed to change language. Please try again.",
+    "translatingNotes": "Translating Notes",
+    "translatingNotesMessage": "Translating your notes to {{language}}...",
+    "translationProgress": "Translating {{current}} of {{total}} notes",
+    "translationComplete": "Translation Complete",
+    "translationCompleteMessage": "Successfully translated {{count}} of {{total}} notes",
+    "translationPartialSuccess": "Partial Translation Success",
+    "translationPartialMessage": "Translated {{success}} notes successfully. {{failed}} notes could not be translated.",
+    "translationFailed": "Translation Failed",
+    "translationFailedMessage": "Could not translate your notes. Your language preference has been updated."
   },
   "languages": {
     "en": "English",
