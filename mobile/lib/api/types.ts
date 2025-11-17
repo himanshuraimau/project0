@@ -296,6 +296,7 @@ export interface TranscribeAudioRequest {
 export interface TranscribeAudioResponse {
   transcription: string;
   transcript: Transcript;
+  note?: Note; // Optional: backend may generate note automatically
 }
 
 // ==================== PDF API ====================

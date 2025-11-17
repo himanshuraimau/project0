@@ -11,7 +11,7 @@ const openai = new OpenAI({
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserFromAuth(request);
+    const userId = await getUserFromAuth(req);
     
     if (!userId) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -146,20 +146,45 @@ export async function POST(req: NextRequest) {
       console.log('Notes generation completed successfully');
     } catch (error) {
       console.error('Failed to generate AI notes:', error);
-      noteResult = {
-        error: 'Failed to generate AI notes',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      };
+      // Don't fail the entire request if note generation fails
+      // Return transcript so user can retry note generation
+      return NextResponse.json({
+        success: true,
+        data: {
+          transcription: transcriptText,
+          transcript: {
+            id: transcriptRecord.id,
+            fileName: transcriptRecord.fileName,
+            originalName: transcriptRecord.originalName,
+            content: transcriptText,
+            cleanContent: transcriptText,
+            type: transcriptRecord.type,
+            createdAt: transcriptRecord.createdAt,
+            updatedAt: transcriptRecord.updatedAt,
+          },
+          note: null,
+          noteError: error instanceof Error ? error.message : 'Failed to generate notes'
+        }
+      });
     }
     
     // Return the transcript and note results
     return NextResponse.json({
       success: true,
-      transcript: {
-        id: transcriptRecord.id,
-        content: transcriptText
-      },
-      note: noteResult
+      data: {
+        transcription: transcriptText,
+        transcript: {
+          id: transcriptRecord.id,
+          fileName: transcriptRecord.fileName,
+          originalName: transcriptRecord.originalName,
+          content: transcriptText,
+          cleanContent: transcriptText,
+          type: transcriptRecord.type,
+          createdAt: transcriptRecord.createdAt,
+          updatedAt: transcriptRecord.updatedAt,
+        },
+        note: noteResult
+      }
     });
 
   } catch (error) {
