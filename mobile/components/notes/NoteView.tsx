@@ -19,6 +19,7 @@ import { notesApi } from '@/lib/api'
 import { setClerkTokenGetter } from '@/lib/api/client'
 import type { Note } from '@/lib/api/types'
 import { getTranslatedNote } from '@/lib/utils/translation'
+import BackButton from '@/components/ui/BackButton'
 
 interface NoteViewProps {
   noteId: string
@@ -197,13 +198,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
               <View style={styles.timeBadge}>
                 <Text style={styles.timeText}>4:26</Text>
               </View>
-              <TouchableOpacity 
-                style={styles.backButton}
-                onPress={() => router.back()}
-                accessibilityLabel="Go back"
-              >
-                <Feather name="arrow-left" size={24} color="#111827" />
-              </TouchableOpacity>
+              <BackButton iconColor="#111827" />
             </View>
 
             <View style={styles.headerCenter}>

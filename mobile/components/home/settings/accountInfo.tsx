@@ -16,6 +16,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native'
+import BackButton from '@/components/ui/BackButton'
 
 interface InfoCardProps {
   icon: keyof typeof Feather.glyphMap
@@ -96,13 +97,7 @@ export default function AccountInfo() {
 
           {/* Back Button and Title */}
           <View style={styles.header}>
-            <TouchableOpacity 
-              onPress={() => router.back()} 
-              style={styles.backButton}
-              accessibilityLabel="Go back"
-            >
-              <Feather name="arrow-left" size={24} color="#1F2937" />
-            </TouchableOpacity>
+            <BackButton iconColor="#1F2937" />
           </View>
 
           <ScrollView 
