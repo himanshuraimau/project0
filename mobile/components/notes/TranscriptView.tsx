@@ -114,9 +114,6 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
           {/* Custom Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <View style={styles.timeBadge}>
-                <Text style={styles.timeText}>4:26</Text>
-              </View>
               <BackButton iconColor="#111827" />
             </View>
 
@@ -125,10 +122,6 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
             </View>
 
             <View style={styles.headerRight}>
-              <View style={styles.statusIcons}>
-                <Feather name="wifi" size={18} color="#222" style={{ marginRight: 8 }} />
-                <Feather name="battery" size={18} color="#222" />
-              </View>
               <View style={styles.actionIcons}>
                 <TouchableOpacity style={styles.iconButton}>
                   <Feather name="copy" size={20} color="#374151" />
@@ -169,14 +162,8 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
           >
             {/* Transcript For Section */}
             <View style={styles.transcriptForSection}>
-              <Text style={styles.transcriptForLabel}>Transcript for</Text>
+              <Text style={styles.transcriptForLabel}>Transcript for:</Text>
               <Text style={styles.transcriptTitle}>{note.title}</Text>
-              <Text style={styles.transcriptMetadata}>
-                Available online at: https://zenthubium.com{'\n'}
-                Journal of Advanced Zoology{'\n'}
-                ISSN: 0253-7214{'\n'}
-                Volume 44 Issue S-4 Year 2023 Page 226-238
-              </Text>
             </View>
 
             {/* Transcript Content */}
@@ -189,8 +176,6 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
             {/* Bottom spacing */}
             <View style={{ height: 40 }} />
           </ScrollView>
-
-          <View style={styles.homeIndicator} />
         </SafeAreaView>
       </View>
     </>
@@ -211,8 +196,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomWidth: 2,
+    borderBottomColor: '#E5E7EB',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -236,7 +221,8 @@ const styles = StyleSheet.create({
   },
   headerCenter: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    paddingLeft: 8,
   },
   headerTitle: {
     fontSize: 18,
@@ -270,6 +256,7 @@ const styles = StyleSheet.create({
     height: 44,
     marginHorizontal: 20,
     marginVertical: 16,
+    marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -288,21 +275,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   transcriptForSection: {
-    marginBottom: 24,
+    marginBottom: 40,
   },
   transcriptForLabel: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#7C3AED',
-    marginBottom: 12,
-    letterSpacing: 0.5,
+    width: 136,
+    height: 24,
+    left: 0,
+    top: -1.74,
+    fontFamily: 'Arimo',
+    fontStyle: 'normal',
+    fontWeight: '700',
+    fontSize: 20,
+    lineHeight: 24,
+    color: '#9810FA',
   },
   transcriptTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    lineHeight: 28,
-    marginBottom: 12,
+    width: 338,
+    height: 48,
+    marginTop: 10,
+    marginBottom: 20,
+    fontFamily: 'Arimo',
+    fontStyle: 'normal',
+    fontWeight: '400',
+    fontSize: 17,
+    lineHeight: 24,
+    color: '#364153',
   },
   transcriptMetadata: {
     fontSize: 13,
