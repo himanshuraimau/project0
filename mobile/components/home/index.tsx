@@ -127,16 +127,6 @@ export default function NotesHome() {
       >
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.topBar}>
-            <View style={styles.timeBadge}>
-              <Text style={styles.timeText}>4:23</Text>
-            </View>
-            <View style={styles.statusIcons}>
-              <Feather name="wifi" size={18} color="#222" style={{ marginRight: 8 }} />
-              <Feather name="battery" size={18} color="#222" />
-            </View>
-          </View>
-
           <View style={styles.titleRow}>
             <Text style={styles.title}>{t('home.myNotes')}</Text>
             <TouchableOpacity 
@@ -149,10 +139,10 @@ export default function NotesHome() {
           </View>
 
           <View style={styles.searchContainer}>
-            <Feather name="search" size={18} color="#9CA3AF" style={{ marginLeft: 12 }} />
+            <Feather name="search" size={20} color="#99A1AF" style={{ position: 'absolute', left: 12, top: 12 }} />
             <TextInput
               placeholder={t('home.searchPlaceholder')}
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#717182"
               style={styles.searchInput}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -160,9 +150,8 @@ export default function NotesHome() {
             {searchQuery.length > 0 && (
               <TouchableOpacity 
                 onPress={() => setSearchQuery('')}
-                style={{ paddingRight: 12 }}
               >
-                <Feather name="x" size={18} color="#9CA3AF" />
+                <Feather name="x" size={18} color="#99A1AF" />
               </TouchableOpacity>
             )}
           </View>
@@ -268,8 +257,6 @@ export default function NotesHome() {
               <Text style={styles.fabPlus}>+</Text>
             </TouchableOpacity>
           </LinearGradient>
-
-          <View style={styles.homeIndicator} />
         </SafeAreaView>
       </LinearGradient>
 
@@ -351,8 +338,6 @@ export default function NotesHome() {
                 <Text style={styles.backText}>Back</Text>
               </TouchableOpacity>
             )}
-
-            <View style={styles.modalHomeIndicator} />
           </Pressable>
         </Pressable>
       </Modal>
@@ -407,19 +392,28 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
-    height: 48,
+    height: 44,
     marginBottom: 12,
+    borderWidth: 0.8,
+    borderColor: '#E5E7EB',
+    paddingLeft: 40,
+    paddingRight: 12,
+    paddingVertical: 4,
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+    fontSize: 14,
+    lineHeight: 16,
     color: '#111827',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   filtersWrapper: {
-    height: 48,
+    height: 54,
     marginBottom: 12,
   },
   filtersScroll: {
@@ -427,21 +421,31 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   filterPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    marginRight: 10,
+    paddingHorizontal: 16.8,
+    paddingVertical: 9.6,
+    height: 39.2,
+    borderRadius: 26843500,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0.8,
+    borderColor: '#E5E7EB',
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterPillSelected: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.6,
+    borderColor: '#AD46FF',
   },
   filterText: {
-    color: '#374151',
-    fontWeight: '600',
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#364153',
   },
   filterTextSelected: {
-    color: '#fff',
+    color: '#8621FC',
   },
   notesList: {
     flex: 1,
