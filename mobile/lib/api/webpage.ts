@@ -14,9 +14,11 @@ export const processWebpage = async (
   data: ProcessWebpageRequest
 ): Promise<ProcessWebpageResponse> => {
   try {
+    // Use longer timeout for webpage processing and AI generation (180 seconds)
     const response = await apiClient.post<ApiResponse<ProcessWebpageResponse>>(
       '/webpage/process',
-      data
+      data,
+      { timeout: 180000 } // 3 minutes for extraction + note generation
     );
     return handleApiResponse<ProcessWebpageResponse>(response);
   } catch (error) {
