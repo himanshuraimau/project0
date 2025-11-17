@@ -7,18 +7,18 @@ import {
   StatusBar,
   View,
   Text,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { setClerkTokenGetter } from '@/lib/api/client'
 import { chatWithNote } from '@/lib/api/notes'
 import { loadChatHistory, saveChatHistory, type ChatMessage } from '@/lib/storage/chatStorage'
+import BackButton from '@/components/ui/BackButton'
 
 interface ChatbotViewProps {
   noteId: string
@@ -35,7 +35,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
   const router = useRouter()
   const { getToken } = useAuth()
   const { t } = useTranslation()
-  const scrollViewRef = useRef<ScrollView>(null)
+  const scrollViewRef = useRef<KeyboardAwareScrollView>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
   const [isSending, setIsSending] = useState(false)
@@ -104,7 +104,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
   // Scroll to bottom when messages change
   useEffect(() => {
     setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true })
+      scrollViewRef.current?.scrollToEnd(true)
     }, 100)
   }, [messages])
 
@@ -182,38 +182,29 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-    >
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Feather name="arrow-left" size={24} color="#000" />
-          </TouchableOpacity>
-          <Text style={styles.headerTime}>
-            {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-          </Text>
-          <View style={styles.headerRight}>
-            <Feather name="wifi" size={16} color="#000" style={styles.headerIcon} />
-            <Feather name="battery" size={16} color="#000" />
+          <BackButton />
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{t('chat.title')}</Text>
           </View>
+          <View style={styles.headerSpacer} />
         </View>
 
-        {/* Title */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>{t('chat.title')}</Text>
-        </View>
-
-        {/* Messages Area */}
-        <ScrollView
+        {/* Messages Area with Keyboard Aware ScrollView */}
+        <KeyboardAwareScrollView
           ref={scrollViewRef}
           style={styles.messagesContainer}
           contentContainerStyle={styles.messagesContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid={true}
+          enableAutomaticScroll={true}
+          extraScrollHeight={20}
+          keyboardOpeningTime={0}
         >
           {isLoadingHistory ? (
             <View style={styles.loadingContainer}>
@@ -238,7 +229,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
               )}
             </>
           )}
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         {/* Input Area */}
         <View style={styles.inputContainer}>
@@ -254,32 +245,31 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
               editable={!isSending}
             />
             <TouchableOpacity
-              style={[styles.sendButton, (!inputText.trim() || isSending) && styles.sendButtonDisabled]}
+              style={styles.sendButton}
               onPress={handleSend}
               disabled={!inputText.trim() || isSending}
             >
               {isSending ? (
                 <ActivityIndicator size="small" color="#7C3AED" />
               ) : (
-                <Feather name="send" size={20} color={inputText.trim() ? '#7C3AED' : '#D1D5DB'} />
+                <Feather name="send" size={20} color="#7C3AED" />
               )}
             </TouchableOpacity>
           </View>
         </View>
-
-        <View style={styles.homeIndicator} />
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+      </View>
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  safeArea: {
+  container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
@@ -288,10 +278,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: '#E5E7EB',
   },
-  backButton: {
-    padding: 8,
+  headerSpacer: {
+    width: 48,
   },
   headerTime: {
     fontSize: 16,
@@ -377,7 +367,8 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingTop: 12,
+    paddingBottom: 12,
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
     backgroundColor: '#FFFFFF',
@@ -407,9 +398,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
   },
   loadingContainer: {
     flex: 1,
