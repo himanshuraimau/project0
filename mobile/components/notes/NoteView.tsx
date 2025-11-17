@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useAuth } from '@clerk/clerk-expo'
+import { useTranslation } from 'react-i18next'
 import {
   StatusBar,
   View,
@@ -25,6 +26,7 @@ interface NoteViewProps {
 export default function NoteView({ noteId }: NoteViewProps) {
   const router = useRouter()
   const { getToken } = useAuth()
+  const { t } = useTranslation()
   const [note, setNote] = useState<Note | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -74,18 +76,18 @@ export default function NoteView({ noteId }: NoteViewProps) {
   }
 
   const actionChips = [
-    { id: 1, icon: 'globe', label: 'Translate' },
-    { id: 2, icon: 'file-text', label: 'Transcript' },
-    { id: 3, icon: 'folder', label: 'Folder' },
+    { id: 1, icon: 'globe', label: t('note.translate') },
+    { id: 2, icon: 'file-text', label: t('note.transcript') },
+    { id: 3, icon: 'folder', label: t('note.folder') },
   ]
 
   const studyTools = [
-    { id: 1, icon: 'book', label: 'Edit note', color: '#FB923C', bgColor: '#FED7AA' },
-    { id: 2, icon: 'message-circle', label: 'Chat', color: '#A855F7', bgColor: '#E9D5FF' },
-    { id: 3, icon: 'cpu', label: 'Take quiz', color: '#EC4899', bgColor: '#FBCFE8' },
-    { id: 4, icon: 'square', label: 'Flashcards', color: '#06B6D4', bgColor: '#A5F3FC' },
-    { id: 5, icon: 'headphones', label: 'Podcast', color: '#8B5CF6', bgColor: '#DDD6FE' },
-    { id: 6, icon: 'plus', label: 'MindMap', color: '#3B82F6', bgColor: '#BFDBFE' },
+    { id: 1, icon: 'book', label: t('note.editNote'), color: '#FB923C', bgColor: '#FED7AA' },
+    { id: 2, icon: 'message-circle', label: t('note.chat'), color: '#A855F7', bgColor: '#E9D5FF' },
+    { id: 3, icon: 'cpu', label: t('note.takeQuiz'), color: '#EC4899', bgColor: '#FBCFE8' },
+    { id: 4, icon: 'square', label: t('note.flashcards'), color: '#06B6D4', bgColor: '#A5F3FC' },
+    { id: 5, icon: 'headphones', label: t('note.podcast'), color: '#8B5CF6', bgColor: '#DDD6FE' },
+    { id: 6, icon: 'plus', label: t('note.mindMap'), color: '#3B82F6', bgColor: '#BFDBFE' },
   ]
 
   // Handle action chip press
@@ -131,7 +133,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#7C3AED" />
-            <Text style={styles.loadingText}>Loading note...</Text>
+            <Text style={styles.loadingText}>{t('common.loading')}</Text>
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -151,18 +153,18 @@ export default function NoteView({ noteId }: NoteViewProps) {
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.errorContainer}>
             <Feather name="alert-circle" size={48} color="#EF4444" />
-            <Text style={styles.errorText}>{error || 'Note not found'}</Text>
+            <Text style={styles.errorText}>{error || t('note.failedToLoad')}</Text>
             <TouchableOpacity 
               style={styles.retryButton}
               onPress={fetchNote}
             >
-              <Text style={styles.retryButtonText}>Retry</Text>
+              <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.backButtonError}
               onPress={() => router.back()}
             >
-              <Text style={styles.backButtonErrorText}>Go Back</Text>
+              <Text style={styles.backButtonErrorText}>{t('common.back')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

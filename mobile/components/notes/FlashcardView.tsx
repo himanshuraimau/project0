@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useAuth } from '@clerk/clerk-expo'
+import { useTranslation } from 'react-i18next'
 import {
   StatusBar,
   View,
@@ -36,6 +37,7 @@ interface FlashcardData {
 export default function FlashcardView({ noteId }: FlashcardViewProps) {
   const router = useRouter()
   const { getToken } = useAuth()
+  const { t } = useTranslation()
   const [flashcardState, setFlashcardState] = useState<FlashcardState>('loading')
   const [currentCard, setCurrentCard] = useState(0)
   const [flashcards, setFlashcards] = useState<FlashcardItem[]>([])
@@ -202,15 +204,15 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
     // Confirm deletion with native alert
     Alert.alert(
-      'Delete Flashcards',
-      'Are you sure you want to delete all flashcards for this note? This action cannot be undone.',
+      t('flashcards.deleteTitle'),
+      t('flashcards.deleteConfirm'),
       [
         {
-          text: 'Cancel',
+          text: t('common.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             setIsDeleting(true)
@@ -226,7 +228,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
               setError(null)
             } catch (err: any) {
               console.error('Failed to delete flashcards:', err)
-              setError(err.message || 'Failed to delete flashcards')
+              setError(err.message || t('flashcards.deleteFailed'))
             } finally {
               setIsDeleting(false)
             }
@@ -315,7 +317,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#7C3AED" />
             <Text style={styles.loadingText}>
-              {isGenerating ? 'Generating flashcards with AI...' : 'Loading flashcards...'}
+              {isGenerating ? t('flashcards.generating') : t('common.loading')}
             </Text>
           </View>
         </SafeAreaView>
@@ -337,10 +339,10 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
             <Feather name="alert-circle" size={48} color="#EF4444" />
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={generateFlashcards}>
-              <Text style={styles.retryButtonText}>Generate Flashcards</Text>
+              <Text style={styles.retryButtonText}>{t('flashcards.generate')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.backButtonError} onPress={() => router.back()}>
-              <Text style={styles.backButtonErrorText}>Go Back</Text>
+              <Text style={styles.backButtonErrorText}>{t('common.back')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -361,9 +363,9 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
           </View>
           <View style={styles.errorContainer}>
             <Feather name="layers" size={64} color="#7C3AED" />
-            <Text style={styles.errorTitle}>No Flashcards Available</Text>
+            <Text style={styles.errorTitle}>{t('flashcards.noFlashcardsYet')}</Text>
             <Text style={styles.errorSubtitle}>
-              Generate flashcards from this note to help you study and memorize
+              {t('flashcards.createPrompt')}
             </Text>
             <TouchableOpacity 
               style={styles.generateButton} 
@@ -375,12 +377,12 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
               ) : (
                 <>
                   <Feather name="zap" size={20} color="#FFFFFF" />
-                  <Text style={styles.generateButtonText}>Generate Flashcards</Text>
+                  <Text style={styles.generateButtonText}>{t('flashcards.generate')}</Text>
                 </>
               )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.backButtonError} onPress={() => router.back()}>
-              <Text style={styles.backButtonErrorText}>Go Back</Text>
+              <Text style={styles.backButtonErrorText}>{t('common.back')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -447,8 +449,8 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
               {/* Card Info */}
               <View style={styles.cardInfo}>
-                <Text style={styles.cardInfoText}>Card {currentCard + 1}</Text>
-                <Text style={styles.cardsLeft}>{cardsLeft} left</Text>
+                <Text style={styles.cardInfoText}>{t('flashcards.cardNumber', { number: currentCard + 1 })}</Text>
+                <Text style={styles.cardsLeft}>{t('flashcards.cardsLeft', { count: cardsLeft })}</Text>
               </View>
 
               {/* Flashcard */}
@@ -468,7 +470,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
               {/* Helper Text / Action Buttons */}
               {flashcardState === 'front' ? (
-                <Text style={styles.helperText}>Flip the card to see the answer</Text>
+                <Text style={styles.helperText}>{t('flashcards.flipCard')}</Text>
               ) : (
                 <View style={styles.actionButtons}>
                   <TouchableOpacity
@@ -480,11 +482,11 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                   </TouchableOpacity>
 
                   <TouchableOpacity style={styles.wrongButton} onPress={handleGotItWrong}>
-                    <Text style={styles.wrongButtonText}>Got it wrong</Text>
+                    <Text style={styles.wrongButtonText}>{t('flashcards.gotItWrong')}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity style={styles.correctButton} onPress={handleGotItRight}>
-                    <Text style={styles.correctButtonText}>Got it right</Text>
+                    <Text style={styles.correctButtonText}>{t('flashcards.gotItRight')}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -509,21 +511,21 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                 {completionPercentage}%
               </Text>
 
-              <Text style={styles.completionMessage}>Nicely done!</Text>
+              <Text style={styles.completionMessage}>{t('flashcards.nicelyDone')}</Text>
 
               <View style={styles.completionStats}>
-                <Text style={styles.completionStat}>{completionPercentage}% correct</Text>
-                <Text style={styles.completionStat}>completed in {getElapsedTime()}</Text>
+                <Text style={styles.completionStat}>{t('flashcards.percentCorrect', { percent: completionPercentage })}</Text>
+                <Text style={styles.completionStat}>{t('flashcards.completedIn', { time: getElapsedTime() })}</Text>
               </View>
 
               <View style={styles.completionActions}>
                 <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-                  <Text style={styles.shareButtonText}>Share</Text>
+                  <Text style={styles.shareButtonText}>{t('flashcards.share')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.createNewButton} onPress={handleCreateNew}>
                   <Feather name="plus" size={20} color="#374151" />
-                  <Text style={styles.createNewButtonText}>Create new flashcards</Text>
+                  <Text style={styles.createNewButtonText}>{t('flashcards.createNew')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -540,26 +542,26 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                 {completionPercentage}%
               </Text>
 
-              <Text style={styles.completionMessage}>Let's try that again.</Text>
+              <Text style={styles.completionMessage}>{t('flashcards.tryAgain')}</Text>
 
               <View style={styles.completionStats}>
-                <Text style={styles.completionStat}>{completionPercentage}% correct</Text>
-                <Text style={styles.completionStat}>completed in {getElapsedTime()}</Text>
+                <Text style={styles.completionStat}>{t('flashcards.percentCorrect', { percent: completionPercentage })}</Text>
+                <Text style={styles.completionStat}>{t('flashcards.completedIn', { time: getElapsedTime() })}</Text>
               </View>
 
               <View style={styles.completionActionsRetry}>
                 <TouchableOpacity style={styles.retakeButton} onPress={handleRetake}>
                   <Feather name="rotate-cw" size={20} color="#374151" />
-                  <Text style={styles.retakeButtonText}>Retake</Text>
+                  <Text style={styles.retakeButtonText}>{t('flashcards.retake')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.shareButtonBlack} onPress={handleShare}>
-                  <Text style={styles.shareButtonBlackText}>Share</Text>
+                  <Text style={styles.shareButtonBlackText}>{t('flashcards.share')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.createNewButton} onPress={handleCreateNew}>
                   <Feather name="plus" size={20} color="#374151" />
-                  <Text style={styles.createNewButtonText}>Create new flashcards</Text>
+                  <Text style={styles.createNewButtonText}>{t('flashcards.createNew')}</Text>
                 </TouchableOpacity>
               </View>
             </View>

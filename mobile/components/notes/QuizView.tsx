@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useAuth } from '@clerk/clerk-expo'
+import { useTranslation } from 'react-i18next'
 import {
   StatusBar,
   View,
@@ -40,6 +41,7 @@ interface QuizContent {
 export default function QuizView({ noteId }: QuizViewProps) {
   const router = useRouter()
   const { getToken } = useAuth()
+  const { t } = useTranslation()
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -259,7 +261,7 @@ export default function QuizView({ noteId }: QuizViewProps) {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#7C3AED" />
             <Text style={styles.loadingText}>
-              {isGenerating ? 'Generating quiz with AI...' : 'Loading quiz...'}
+              {isGenerating ? t('quiz.generating') : t('common.loading')}
             </Text>
           </View>
         </SafeAreaView>

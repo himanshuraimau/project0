@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useAuth } from '@clerk/clerk-expo'
+import { useTranslation } from 'react-i18next'
 import {
   StatusBar,
   View,
@@ -33,6 +34,7 @@ interface Message {
 export default function ChatbotView({ noteId }: ChatbotViewProps) {
   const router = useRouter()
   const { getToken } = useAuth()
+  const { t } = useTranslation()
   const scrollViewRef = useRef<ScrollView>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
@@ -64,7 +66,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
           setMessages([
             {
               id: '1',
-              text: 'Ask me any question about your content!',
+              text: t('chat.welcomeMessage'),
               isUser: false,
               timestamp: new Date(),
             },
@@ -76,7 +78,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
         setMessages([
           {
             id: '1',
-            text: 'Ask me any question about your content!',
+            text: t('chat.welcomeMessage'),
             isUser: false,
             timestamp: new Date(),
           },
@@ -140,7 +142,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
       // Add error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Sorry, I encountered an error. Please try again.',
+        text: t('chat.errorMessage'),
         isUser: false,
         timestamp: new Date(),
       }
@@ -203,7 +205,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
 
         {/* Title */}
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Chat</Text>
+          <Text style={styles.title}>{t('chat.title')}</Text>
         </View>
 
         {/* Messages Area */}
@@ -216,7 +218,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
           {isLoadingHistory ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#7C3AED" />
-              <Text style={styles.loadingText}>Loading chat history...</Text>
+              <Text style={styles.loadingText}>{t('common.loading')}</Text>
             </View>
           ) : (
             <>
@@ -243,7 +245,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder="Ask anything..."
+              placeholder={t('chat.placeholder')}
               placeholderTextColor="#9CA3AF"
               value={inputText}
               onChangeText={setInputText}

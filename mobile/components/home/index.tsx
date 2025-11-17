@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { useAuth } from '@clerk/clerk-expo'
+import { useTranslation } from 'react-i18next'
 import {
   StatusBar,
   View,
@@ -30,6 +31,7 @@ export default function NotesHome() {
   const { theme } = useTheme()
   const router = useRouter()
   const { getToken } = useAuth()
+  const { t } = useTranslation()
   const [modalVisible, setModalVisible] = useState(false)
   const [activeOption, setActiveOption] = useState<number | null>(null)
   const [notes, setNotes] = useState<Note[]>([])
@@ -41,10 +43,10 @@ export default function NotesHome() {
   const [isDevelopmentMode, setIsDevelopmentMode] = useState(false)
 
   const newNoteOptions = [
-    { id: 1, icon: 'mic', label: 'Record audio' },
-    { id: 2, icon: 'upload-cloud', label: 'Upload audio' },
-    { id: 3, icon: 'file-text', label: 'Upload text or PDF' },
-    { id: 4, icon: 'link', label: 'YouTube or web link' },
+    { id: 1, icon: 'mic', label: t('home.newNoteOptions.recordAudio') },
+    { id: 2, icon: 'upload-cloud', label: t('home.newNoteOptions.uploadAudio') },
+    { id: 3, icon: 'file-text', label: t('home.newNoteOptions.uploadText') },
+    { id: 4, icon: 'link', label: t('home.newNoteOptions.webLink') },
   ]
 
   // Set up Clerk token getter on mount
@@ -133,11 +135,11 @@ export default function NotesHome() {
           </View>
 
           <View style={styles.titleRow}>
-            <Text style={styles.title}>My notes</Text>
+            <Text style={styles.title}>{t('home.myNotes')}</Text>
             <TouchableOpacity 
               style={styles.settingsButton} 
               accessibilityLabel="Settings"
-              onPress={() => router.push('/(drawer)/(home)/settings')}
+              onPress={() => router.push('/(home)/settings')}
             >
               <Feather name="settings" size={22} color="#374151" />
             </TouchableOpacity>
@@ -146,7 +148,7 @@ export default function NotesHome() {
           <View style={styles.searchContainer}>
             <Feather name="search" size={18} color="#9CA3AF" style={{ marginLeft: 12 }} />
             <TextInput
-              placeholder="Search notes, tags, or people"
+              placeholder={t('home.searchPlaceholder')}
               placeholderTextColor="#9CA3AF"
               style={styles.searchInput}
               value={searchQuery}
@@ -164,15 +166,21 @@ export default function NotesHome() {
 
           <View style={styles.filtersWrapper}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
-              {['All', 'Pinned', 'Shared', 'Folders', 'Archive'].map((f) => {
-                const selected = f === selectedFilter
+              {[
+                { key: 'All', label: t('home.filters.all') },
+                { key: 'Pinned', label: t('home.filters.pinned') },
+                { key: 'Shared', label: t('home.filters.shared') },
+                { key: 'Folders', label: t('home.filters.folders') },
+                { key: 'Archive', label: t('home.filters.archive') },
+              ].map((f) => {
+                const selected = f.key === selectedFilter
                 return (
                   <Pressable 
-                    key={f} 
+                    key={f.key} 
                     style={[styles.filterPill, selected && styles.filterPillSelected]}
-                    onPress={() => setSelectedFilter(f)}
+                    onPress={() => setSelectedFilter(f.key)}
                   >
-                    <Text style={[styles.filterText, selected && styles.filterTextSelected]}>{f}</Text>
+                    <Text style={[styles.filterText, selected && styles.filterTextSelected]}>{f.label}</Text>
                   </Pressable>
                 )
               })}
@@ -188,7 +196,7 @@ export default function NotesHome() {
             {loading && !refreshing ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#7C3AED" />
-                <Text style={styles.loadingText}>Loading notes...</Text>
+                <Text style={styles.loadingText}>{t('home.loadingNotes')}</Text>
               </View>
             ) : error ? (
               <View style={styles.errorContainer}>
@@ -198,25 +206,25 @@ export default function NotesHome() {
                   style={styles.retryButton}
                   onPress={fetchNotes}
                 >
-                  <Text style={styles.retryButtonText}>Retry</Text>
+                  <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
                 </TouchableOpacity>
               </View>
             ) : filteredNotes.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Feather name="file-text" size={64} color="#D1D5DB" />
                 <Text style={styles.emptyTitle}>
-                  {searchQuery ? 'No notes found' : 'No notes yet'}
+                  {searchQuery ? t('home.noNotesFound') : t('home.noNotesYet')}
                 </Text>
                 <Text style={styles.emptySubtitle}>
                   {searchQuery 
-                    ? 'Try a different search term' 
-                    : 'Create your first note to get started'}
+                    ? t('home.tryDifferentSearch')
+                    : t('home.createFirstNote')}
                 </Text>
                 {isDevelopmentMode && (
                   <View style={styles.devModeContainer}>
                     <Feather name="info" size={20} color="#F59E0B" />
                     <Text style={styles.devModeText}>
-                      Backend not connected. Start your server to load real notes.
+                      {t('home.backendNotConnected')}
                     </Text>
                   </View>
                 )}
@@ -271,7 +279,7 @@ export default function NotesHome() {
         >
           <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>New Note</Text>
+              <Text style={styles.modalTitle}>{t('home.newNote')}</Text>
               <TouchableOpacity 
                 onPress={() => setModalVisible(false)}
                 style={styles.closeButton}
