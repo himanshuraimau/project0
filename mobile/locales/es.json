@@ -146,7 +146,16 @@
     "available": "Idiomas disponibles",
     "languageChanged": "Idioma cambiado",
     "languageChangedMessage": "Su idioma ha sido cambiado exitosamente",
-    "errorChanging": "No se pudo cambiar el idioma. Por favor, inténtelo de nuevo."
+    "errorChanging": "No se pudo cambiar el idioma. Por favor, inténtelo de nuevo.",
+    "translatingNotes": "Traduciendo notas",
+    "translatingNotesMessage": "Traduciendo tus notas a {{language}}...",
+    "translationProgress": "Traduciendo {{current}} de {{total}} notas",
+    "translationComplete": "Traducción completa",
+    "translationCompleteMessage": "Se tradujeron exitosamente {{count}} de {{total}} notas",
+    "translationPartialSuccess": "Traducción parcialmente exitosa",
+    "translationPartialMessage": "Se tradujeron {{success}} notas exitosamente. {{failed}} notas no se pudieron traducir.",
+    "translationFailed": "Traducción fallida",
+    "translationFailedMessage": "No se pudieron traducir tus notas. Tu preferencia de idioma ha sido actualizada."
   },
   "languages": {
     "en": "English (Inglés)",

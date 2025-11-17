@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { generateNotesFromContent, NoteService } from "@/lib/note-service";
 import { FeatureGateService } from "@/lib/feature-gate-service";
 import { ApiSuccessResponse, ApiErrorResponse, GenerateNotesFromTextRequest } from "@/lib/types";
+import { getUserFromAuth } from "@/lib/auth-helper";
 
 export async function POST(request: NextRequest) {
   try {
