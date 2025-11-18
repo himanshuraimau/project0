@@ -13,6 +13,7 @@ import {
 import RNPickerSelect from 'react-native-picker-select';
 import { processWebpage } from '@/lib/api/webpage';
 import { generateAINote } from '@/lib/api/notes';
+import GenerateNote from '@/components/ui/GenerateNote';
 
 // Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient
 let Icon: any = null;
@@ -197,29 +198,13 @@ const WebLink: React.FC<Props> = ({visible: visibleProp, onClose, inline = false
         </View>
       </View>
 
-      <TouchableOpacity 
-        style={[
-          styles.generateBtn,
-          (isProcessing || !link.trim()) && styles.generateBtnDisabled
-        ]} 
-        activeOpacity={0.85}
+      <GenerateNote
         onPress={handleGenerateNotes}
-        disabled={isProcessing || !link.trim()}
-      >
-        {isProcessing ? (
-          <>
-            <ActivityIndicator color="#fff" size="small" style={{marginRight: 8}} />
-            <Text style={styles.generateText}>
-              {processingStep === 'extracting' ? 'Extracting Content...' : 'Generating Notes...'}
-            </Text>
-          </>
-        ) : (
-          <>
-            <Icon name="sparkles" size={16} color="#fff" style={{marginRight: 8}} />
-            <Text style={styles.generateText}>Generate Notes</Text>
-          </>
-        )}
-      </TouchableOpacity>
+        disabled={!link.trim()}
+        loading={isProcessing}
+        loadingText={processingStep === 'extracting' ? 'Extracting Content...' : 'Generating Notes...'}
+        buttonText="Generate Notes"
+      />
     </View>
   );
 
@@ -285,26 +270,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
-  generateBtn: {
-    flexDirection: 'row',
-    backgroundColor: '#000',
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    marginTop: 18,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 3,
-    justifyContent: 'center',
-  },
-  generateBtnDisabled: {
-    backgroundColor: '#999',
-    opacity: 0.6,
-  },
-  generateText: {color: '#fff', fontWeight: '700'},
+
 });
 
 const pickerStyles = {
