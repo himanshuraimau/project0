@@ -16,6 +16,7 @@ import { useAuth } from '@clerk/clerk-expo';
 import { notesApi } from '@/lib/api';
 import { setClerkTokenGetter } from '@/lib/api/client';
 import * as DocumentPicker from 'expo-document-picker';
+import GenerateNote from '@/components/ui/GenerateNote';
 
 // Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient in all environments
 let Icon: any = null;
@@ -291,24 +292,14 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
           <Text style={styles.importText}>Import PDF(s)</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.generateBtn, loading && styles.buttonDisabled]} 
-          activeOpacity={0.85}
+        <GenerateNote
           onPress={handleGenerateNote}
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <ActivityIndicator size="small" color="#fff" style={{marginRight: 8}} />
-              <Text style={styles.generateText}>Creating...</Text>
-            </>
-          ) : (
-            <>
-              <Icon name="sparkles" size={16} color="#fff" style={{marginRight: 8}} />
-              <Text style={styles.generateText}>Create Note</Text>
-            </>
-          )}
-        </TouchableOpacity>
+          disabled={false}
+          loading={loading}
+          loadingText="Creating..."
+          buttonText="Create Note"
+          style={styles.generateBtn}
+        />
       </View>
     </View>
   );
@@ -437,15 +428,7 @@ const styles = StyleSheet.create({
   importText: {color: '#222', fontWeight: '600'},
   generateBtn: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#000',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
   },
-  generateText: {color: '#fff', fontWeight: '700'},
   buttonDisabled: {
     opacity: 0.5,
   },

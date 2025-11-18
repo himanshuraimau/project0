@@ -11,8 +11,10 @@ import {
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import * as DocumentPicker from 'expo-document-picker';
+import { Upload } from 'lucide-react-native';
 import { transcribeAudio } from '@/lib/api/audio';
 import { generateAINote } from '@/lib/api/notes';
+import GenerateNote from '@/components/ui/GenerateNote';
 
 // Local emoji icon fallback (keeps component dependency-free)
 const Icon: React.FC<{name: string; size?: number; color?: string; style?: any}> = ({
@@ -170,7 +172,7 @@ const UploadAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
       </View>
 
       <TouchableOpacity style={styles.uploadArea} onPress={pickAudioFile} activeOpacity={0.7}>
-        <Icon name="upload" size={44} color="#6b6b6b" />
+        <Upload size={44} color="#6b6b6b" />
         <Text style={styles.uploadText}>
           {selectedFile ? selectedFile.name : 'Drag audio file here, or click to select'}
         </Text>
@@ -181,62 +183,39 @@ const UploadAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
         )}
       </TouchableOpacity>
 
-      <View style={styles.row}>
-        <View style={styles.pickerWrap}>
-          <Text style={styles.label}>Audio language</Text>
+      <View style={styles.pickerWrap}>
+        <Text style={styles.label}>Audio language</Text>
+        <RNPickerSelect
+          onValueChange={val => setLanguage(val)}
+          items={[{label: 'English', value: 'english'}]}
+          value={language}
+          style={pickerStyles}
+          useNativeAndroidPickerStyle={false}
+          placeholder={{}}
+          Icon={() => <Icon name="caret" size={16} color="#6b6b6b" />}
+        />
+      </View>
+
+      <View style={styles.pickerWrap}>
+        <Text style={styles.label}>Folder</Text>
           <RNPickerSelect
-            onValueChange={val => setLanguage(val)}
-            items={[{label: 'English', value: 'english'}]}
-            value={language}
+            onValueChange={val => setFolder(val)}
+            items={[{label: 'All notes', value: 'all_notes'}]}
+            value={folder}
             style={pickerStyles}
             useNativeAndroidPickerStyle={false}
             placeholder={{}}
             Icon={() => <Icon name="caret" size={16} color="#6b6b6b" />}
           />
-        </View>
-
-        <View style={styles.pickerWrap}>
-          <Text style={styles.label}>Folder</Text>
-          <View style={styles.folderRow}>
-            <View style={styles.folderIconWrap}>
-              <Icon name="folder" size={14} color="#7b61ff" />
-            </View>
-            <RNPickerSelect
-              onValueChange={val => setFolder(val)}
-              items={[{label: 'All notes', value: 'all_notes'}]}
-              value={folder}
-              style={pickerStyles}
-              useNativeAndroidPickerStyle={false}
-              placeholder={{}}
-              Icon={() => <Icon name="caret" size={16} color="#6b6b6b" />}
-            />
-          </View>
-        </View>
       </View>
 
-      <TouchableOpacity 
-        style={[
-          styles.generateBtn, 
-          (isProcessing || !selectedFile) && styles.generateBtnDisabled
-        ]} 
-        activeOpacity={0.85} 
-        onPress={handleGenerateNotes} 
-        disabled={isProcessing || !selectedFile}
-      >
-        {isProcessing ? (
-          <>
-            <ActivityIndicator color="#fff" size="small" style={{marginRight: 8}} />
-            <Text style={styles.generateText}>
-              {processingStep === 'transcribing' ? 'Transcribing Audio...' : 'Generating Notes...'}
-            </Text>
-          </>
-        ) : (
-          <>
-            <Icon name="sparkle" size={16} color="#fff" style={{marginRight: 8}} />
-            <Text style={styles.generateText}>Generate Notes</Text>
-          </>
-        )}
-      </TouchableOpacity>
+      <GenerateNote
+        onPress={handleGenerateNotes}
+        disabled={!selectedFile}
+        loading={isProcessing}
+        loadingText={processingStep === 'transcribing' ? 'Transcribing Audio...' : 'Generating Notes...'}
+        buttonText="Generate Notes"
+      />
     </View>
   );
 
@@ -277,7 +256,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 7,
+    marginHorizontal: 8,
   },
   title: {color: '#111', fontSize: 18, fontWeight: '600'},
   uploadArea: {
@@ -286,7 +266,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e6e6ea',
-    paddingVertical: 28,
+    paddingVertical: 40,
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -294,8 +274,15 @@ const styles = StyleSheet.create({
   uploadText: {color: '#6b6b6b', marginTop: 12},
   fileInfo: {color: '#6b6b6b', fontSize: 12, marginTop: 4},
   row: {flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 14},
-  pickerWrap: {flex: 1, marginVertical: 8},
-  label: {color: '#6b6b6b', fontSize: 12, marginBottom: 6},
+  pickerWrap: {marginVertical: 8, marginHorizontal: 8},
+  label: {
+    color: '#6b6b6b',
+    fontSize: 12,
+    marginBottom: 6,
+    height: 24,
+    borderRadius: 0,
+    alignSelf: 'stretch',
+  },
   folderRow: {flexDirection: 'row', alignItems: 'center'},
   folderIconWrap: {
     width: 28,
@@ -306,47 +293,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
-  generateBtn: {
-    flexDirection: 'row',
-    backgroundColor: '#000',
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    marginTop: 18,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 3,
-    justifyContent: 'center',
-    opacity: 1,
-  },
-  generateBtnDisabled: {
-    backgroundColor: '#999',
-    opacity: 0.6,
-  },
-  generateText: {color: '#fff', fontWeight: '700'},
+
 });
 
 const pickerStyles = {
   inputIOS: {
     color: '#111',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
     fontSize: 14,
+    borderWidth: 1.26,
+    borderColor: '#D4D4D4',
+    height: 53,
   },
   inputAndroid: {
     color: '#111',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
     fontSize: 14,
+    borderWidth: 1.26,
+    borderColor: '#D4D4D4',
+    height: 53,
   },
   placeholder: {
     color: '#6b6b6b',
+  },
+  iconContainer: {
+    top: 16,
+    right: 16,
   },
 };

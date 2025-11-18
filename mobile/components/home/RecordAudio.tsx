@@ -15,7 +15,8 @@ import RNPickerSelect from 'react-native-picker-select';
 import { Audio } from 'expo-av';
 import { transcribeAudio } from '@/lib/api/audio';
 import { generateAINote } from '@/lib/api/notes';
-import { Mic, Sparkles } from 'lucide-react-native';
+import { Mic } from 'lucide-react-native';
+import GenerateNote from '@/components/ui/GenerateNote';
 
 // Lightweight local Icon fallback using emoji so the component works without extra deps
 const Icon: React.FC<{
@@ -443,28 +444,15 @@ const RecordAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
           </>
         )}
 
-        <TouchableOpacity 
-          style={[
-            styles.generateBtn,
-            (isProcessing || phase !== 'recorded') && styles.generateBtnDisabled
-          ]} 
-          activeOpacity={0.85}
+        <GenerateNote
           onPress={handleGenerateNotes}
-          disabled={isProcessing || phase !== 'recorded'}
-        >
-          {isProcessing ? (
-            <>
-              <Text style={styles.generateText}>
-                {processingStep === 'transcribing' ? 'Transcribing...' : 'Generating Notes...'}
-              </Text>
-            </>
-          ) : (
-            <>
-              <Sparkles size={20} color="#FFFFFF" style={{borderRadius: 0}} />
-              <Text style={styles.generateText}>Generate Notes</Text>
-            </>
-          )}
-        </TouchableOpacity>
+          disabled={phase !== 'recorded'}
+          loading={isProcessing}
+          loadingText={processingStep === 'transcribing' ? 'Transcribing...' : 'Generating Notes...'}
+          buttonText="Generate Notes"
+          style={styles.customGenerateBtn}
+          textStyle={styles.customGenerateText}
+        />
       </View>
     </View>
   );
@@ -639,36 +627,21 @@ const styles = StyleSheet.create({
   playText: {color: '#fff', fontWeight: '600'},
   saveBtn: {flex: 1, backgroundColor: '#3bb273', borderRadius: 16, alignItems: 'center', paddingVertical: 10},
   saveText: {color: '#fff', fontWeight: '600'},
-  generateBtn: {
-    flexDirection: 'row',
-    backgroundColor: '#000000',
-    padding: 0,
-    gap: 12,
+  customGenerateBtn: {
     width: 300,
     height: 56,
     borderRadius: 15,
     marginTop: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
     shadowColor: '#000000',
     shadowOffset: {width: 0, height: 0},
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,
   },
-  generateBtnDisabled: {
-    backgroundColor: '#999',
-    opacity: 0.6,
-  },
-  generateText: {
-    color: '#FFFFFF',
+  customGenerateText: {
     fontFamily: 'Arimo',
-    fontWeight: '700',
     fontSize: 19,
     lineHeight: 28,
-    width: 141,
-    height: 29,
-    borderRadius: 0,
   },
   demoRow: {flexDirection: 'row', justifyContent: 'space-between', marginTop: 18},
   demoControl: {flex: 1, alignItems: 'center', paddingVertical: 8},
