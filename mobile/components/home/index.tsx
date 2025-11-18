@@ -271,16 +271,18 @@ export default function NotesHome() {
           onPress={() => setModalVisible(false)}
         >
           <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('home.newNote')}</Text>
-              <TouchableOpacity 
-                onPress={() => setModalVisible(false)}
-                style={styles.closeButton}
-                accessibilityLabel="Close"
-              >
-                <Feather name="x" size={24} color="#374151" />
-              </TouchableOpacity>
-            </View>
+            {activeOption === null && (
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('home.newNote')}</Text>
+                <TouchableOpacity 
+                  onPress={() => setModalVisible(false)}
+                  style={styles.closeButton}
+                  accessibilityLabel="Close"
+                >
+                  <Feather name="x" size={24} color="#374151" />
+                </TouchableOpacity>
+              </View>
+            )}
 
             <View style={styles.optionsList}>
               {activeOption == null ? (
@@ -329,15 +331,6 @@ export default function NotesHome() {
                 </View>
               )}
             </View>
-
-            {activeOption !== null && (
-              <TouchableOpacity 
-                style={styles.backButton} 
-                onPress={() => setActiveOption(null)}
-              >
-                <Text style={styles.backText}>Back</Text>
-              </TouchableOpacity>
-            )}
           </Pressable>
         </Pressable>
       </Modal>
