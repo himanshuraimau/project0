@@ -32,7 +32,8 @@ export default function Settings() {
   const handleLogout = async () => {
     try {
       await signOut()
-      Linking.openURL('/') // Redirect to the home page
+      // Clerk will automatically handle the redirect to the auth flow
+      router.replace('/(auth)/sign-in')
     } catch (err) {
       console.error(JSON.stringify(err, null, 2))
     }
