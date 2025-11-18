@@ -11,19 +11,6 @@ export default function Paywall1() {
     <LinearGradient colors={["#FFFFFF", "#F7F5FF"]} start={{ x: 1, y: 0 }} end={{ x: 0.3, y: 1 }} style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Top status (time + icons) */}
-      <View style={styles.statusBar}>
-        <View style={styles.statusLeft}>
-          <View style={styles.timeBg}>
-            <Text style={styles.timeText}>4:22</Text>
-          </View>
-        </View>
-        <View style={styles.statusRight}>
-          <Ionicons name="wifi" size={16} color="#000" style={{ marginRight: 8 }} />
-          <Ionicons name="battery-full" size={18} color="#000" />
-        </View>
-      </View>
-
       {/* Offer content */}
       <View style={styles.content}>
         <View style={styles.pillSmall}>
@@ -50,8 +37,6 @@ export default function Paywall1() {
             <Text style={styles.ctaText}>Try for FREE</Text>
           </LinearGradient>
         </TouchableOpacity>
-
-        <View style={styles.homeIndicator} />
       </View>
     </LinearGradient>
   )
@@ -82,15 +67,31 @@ const styles = StyleSheet.create({
   },
   timeText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  pillSmall: { backgroundColor: '#F3F4F6', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, marginBottom: 12 },
-  pillSmallText: { color: '#6B7280', fontWeight: '700', fontSize: 12 },
+  pillSmall: {
+    backgroundColor: '#D1D5DC',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pillSmallText: {
+    fontFamily: 'Arimo',
+    fontStyle: 'normal',
+    fontWeight: '400',
+    fontSize: 16,
+    lineHeight: 16,
+    color: '#4A5565',
+    textAlign: 'left',
+  },
   title: { fontSize: 28, fontWeight: '800', color: '#0F172A', marginBottom: 12, textAlign: 'center' },
   description: { fontSize: 16, color: '#374151', textAlign: 'center', marginBottom: 20 },
   freeHighlight: { color: '#7C3AED', fontWeight: '800' },
   featureRow: { flexDirection: 'row', gap: 12, marginTop: 8 },
   featurePill: { backgroundColor: '#F3F4F6', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20 },
   featureText: { color: '#374151', fontWeight: '600' },
-  bottom: { paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 20 : 16, paddingTop: 12 },
+  bottom: { paddingHorizontal: 24, paddingBottom: 56, paddingTop: 12 },
   cta: { paddingVertical: 16, borderRadius: 28, alignItems: 'center' },
   ctaText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   homeIndicator: { height: 4, width: 140, backgroundColor: '#D1D5DB', borderRadius: 2, alignSelf: 'center', marginTop: 12 },
