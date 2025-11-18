@@ -15,6 +15,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { Audio } from 'expo-av';
 import { transcribeAudio } from '@/lib/api/audio';
 import { generateAINote } from '@/lib/api/notes';
+import { Mic, Sparkles } from 'lucide-react-native';
 
 // Lightweight local Icon fallback using emoji so the component works without extra deps
 const Icon: React.FC<{
@@ -367,38 +368,32 @@ const RecordAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
           <Icon name="close" size={22} color="#111" />
         </TouchableOpacity>
       </View>
+      <View style={styles.separator} />
 
-      <View style={styles.row}>
-        <View style={styles.pickerWrap}>
-          <Text style={styles.label}>Audio language</Text>
-          <RNPickerSelect
-            onValueChange={val => setLanguage(val)}
-            items={[{label: 'English', value: 'english'}]}
-            value={language}
-            style={pickerStyles}
-            useNativeAndroidPickerStyle={false}
-            placeholder={{}}
-            Icon={() => <Icon name="caret" size={18} color="#6b6b6b" />}
-          />
-        </View>
+      <View style={styles.pickerWrap}>
+        <Text style={styles.label}>Audio language</Text>
+        <RNPickerSelect
+          onValueChange={val => setLanguage(val)}
+          items={[{label: 'English', value: 'english'}]}
+          value={language}
+          style={pickerStyles}
+          useNativeAndroidPickerStyle={false}
+          placeholder={{}}
+          Icon={() => <Icon name="caret" size={18} color="#6b6b6b" />}
+        />
+      </View>
 
-        <View style={styles.pickerWrap}>
-          <Text style={styles.label}>Folder</Text>
-          <View style={styles.folderRow}>
-            <View style={styles.folderIconWrap}>
-              <Icon name="folder" size={14} color="#7b61ff" />
-            </View>
-            <RNPickerSelect
-              onValueChange={val => setFolder(val)}
-              items={[{label: 'All notes', value: 'all_notes'}]}
-              value={folder}
-              style={pickerStyles}
-              useNativeAndroidPickerStyle={false}
-              placeholder={{}}
-              Icon={() => <Icon name="caret" size={18} color="#6b6b6b" />}
-            />
-          </View>
-        </View>
+      <View style={styles.pickerWrap}>
+        <Text style={styles.label}>Folder</Text>
+        <RNPickerSelect
+          onValueChange={val => setFolder(val)}
+          items={[{label: 'All notes', value: 'all_notes'}]}
+          value={folder}
+          style={pickerStyles}
+          useNativeAndroidPickerStyle={false}
+          placeholder={{}}
+          Icon={() => <Icon name="caret" size={18} color="#6b6b6b" />}
+        />
       </View>
 
       <View style={styles.content}>
@@ -408,14 +403,14 @@ const RecordAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
             onPress={startRecording}
             activeOpacity={0.85}
           >
+            <Mic size={24} color="#FFFFFF" style={{borderRadius: 0}} />
             <Text style={styles.recordButtonText}>Start recording</Text>
-            <Icon name="keyboard-voice" size={20} color="#fff" style={{marginLeft: 8}} />
           </TouchableOpacity>
         )}
 
         {phase !== 'initial' && (
-          <Animated.View style={[styles.timerButton, {transform: [{scale: pulse}]}]}>
-            <Icon name="mic" size={20} color="#fff" style={{marginRight: 8}} />
+          <Animated.View style={[styles.timerButton]}>
+            <Mic size={24} color="#FFFFFF" style={{borderRadius: 0}} />
             <Text style={styles.timerText}>{formatTime(seconds)}</Text>
           </Animated.View>
         )}
@@ -439,10 +434,9 @@ const RecordAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
                 style={styles.resumeBtn}
                 onPress={startRecording}
               >
-                <Text style={styles.resumeText}>Re-record</Text>
+                <Text style={styles.resumeText}>Resume</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.playBtn} onPress={togglePlayback}>
-                <Icon name={isPlaying ? 'pause' : 'play'} size={14} color="#fff" />
                 <Text style={styles.playText}>{isPlaying ? 'Pause' : 'Play'}</Text>
               </TouchableOpacity>
             </View>
@@ -466,7 +460,7 @@ const RecordAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
             </>
           ) : (
             <>
-              <Icon name="sparkle" size={16} color="#fff" style={{marginRight: 8}} />
+              <Sparkles size={20} color="#FFFFFF" style={{borderRadius: 0}} />
               <Text style={styles.generateText}>Generate Notes</Text>
             </>
           )}
@@ -504,19 +498,31 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingHorizontal: 10,
-    paddingTop: 16,
     paddingBottom: 32,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 7,
+    marginHorizontal: 8,
   },
   title: {color: '#111', fontSize: 18, fontWeight: '600'},
+  separator: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 12,
+  },
   row: {flexDirection: 'row', justifyContent: 'space-between', gap: 12},
-  pickerWrap: {flex: 1, marginVertical: 8},
-  label: {color: '#6b6b6b', fontSize: 12, marginBottom: 6},
+  pickerWrap: {marginVertical: 8, marginHorizontal: 8},
+  label: {
+    color: '#6b6b6b',
+    fontSize: 12,
+    marginBottom: 6,
+    height: 24,
+    borderRadius: 0,
+    alignSelf: 'stretch',
+  },
   folderRow: {flexDirection: 'row', alignItems: 'center'},
   folderIconWrap: {
     width: 28,
@@ -532,11 +538,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ff5f7a',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 14,
-    width: '100%',
+    padding: 0,
+    gap: 12,
+    width: 300,
+    height: 56,
+    backgroundColor: '#FF6467', // Fallback for gradient
+    borderRadius: 16,
     // button shadow
     shadowColor: '#ff5f7a',
     shadowOffset: {width: 0, height: 6},
@@ -544,7 +551,16 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
-  recordButtonText: {color: '#fff', fontSize: 16, fontWeight: '700'},
+  recordButtonText: {
+    color: '#FFFFFF',
+    fontFamily: 'Arimo',
+    fontWeight: '700',
+    fontSize: 19,
+    lineHeight: 28,
+    width: 137,
+    height: 29,
+    borderRadius: 0,
+  },
   timerButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -557,38 +573,103 @@ const styles = StyleSheet.create({
   },
   timerText: {color: '#fff', fontSize: 16, fontWeight: '700'},
   stopButton: {
-    marginTop: 12,
-    backgroundColor: '#444',
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 10,
-    width: '100%',
-    alignItems: 'center',
-  },
-  stopText: {color: '#fff', fontWeight: '600'},
-  actionRow: {flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 12},
-  deleteBtn: {flex: 1, alignItems: 'center', paddingVertical: 10},
-  deleteText: {color: '#ff6b9a', fontWeight: '600'},
-  resumeBtn: {flex: 1, backgroundColor: '#d9534f', marginHorizontal: 6, borderRadius: 10, alignItems: 'center', paddingVertical: 10},
-  resumeText: {color: '#fff', fontWeight: '600'},
-  playBtn: {flex: 1, backgroundColor: '#5a67d8', borderRadius: 10, alignItems: 'center', paddingVertical: 10, flexDirection: 'row', justifyContent: 'center', gap: 6},
-  playText: {color: '#fff', fontWeight: '600'},
-  saveBtn: {flex: 1, backgroundColor: '#3bb273', borderRadius: 10, alignItems: 'center', paddingVertical: 10},
-  saveText: {color: '#fff', fontWeight: '600'},
-  generateBtn: {flexDirection: 'row', backgroundColor: '#000', paddingVertical: 12, paddingHorizontal: 18, borderRadius: 12, marginTop: 18, alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 3,
-    width: '100%',
+    flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
+    padding: 0,
+    width: 300,
+    height: 47.99,
+    backgroundColor: '#8F8F8F',
+    borderRadius: 16,
+    marginTop: 12,
+  },
+  stopText: {
+    width: 43,
+    height: 29,
+    fontFamily: 'Arimo',
+    fontWeight: '700',
+    fontSize: 19,
+    lineHeight: 28,
+    color: '#FFFFFF',
+  },
+  actionRow: {flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 12},
+  deleteBtn: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 0,
+    width: 99.13,
+    height: 47.99,
+    backgroundColor: '#FFE2E2',
+    borderRadius: 16,
+    flex: 1,
+  },
+  deleteText: {
+    width: 47,
+    height: 24,
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#FB2C36',
+  },
+  resumeBtn: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 0,
+    width: 99.13,
+    height: 47.99,
+    backgroundColor: '#FB2C36',
+    borderRadius: 16,
+    flex: 1,
+    marginHorizontal: 6,
+  },
+  resumeText: {
+    width: 60,
+    height: 24,
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#FFFFFF',
+    borderRadius: 16,
+  },
+  playBtn: {flex: 1, backgroundColor: '#8F8F8F', borderRadius: 16, alignItems: 'center', paddingVertical: 10, flexDirection: 'row', justifyContent: 'center', gap: 6},
+  playText: {color: '#fff', fontWeight: '600'},
+  saveBtn: {flex: 1, backgroundColor: '#3bb273', borderRadius: 16, alignItems: 'center', paddingVertical: 10},
+  saveText: {color: '#fff', fontWeight: '600'},
+  generateBtn: {
+    flexDirection: 'row',
+    backgroundColor: '#000000',
+    padding: 0,
+    gap: 12,
+    width: 300,
+    height: 56,
+    borderRadius: 15,
+    marginTop: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   generateBtnDisabled: {
     backgroundColor: '#999',
     opacity: 0.6,
   },
-  generateText: {color: '#fff', fontWeight: '700'},
+  generateText: {
+    color: '#FFFFFF',
+    fontFamily: 'Arimo',
+    fontWeight: '700',
+    fontSize: 19,
+    lineHeight: 28,
+    width: 141,
+    height: 29,
+    borderRadius: 0,
+  },
   demoRow: {flexDirection: 'row', justifyContent: 'space-between', marginTop: 18},
   demoControl: {flex: 1, alignItems: 'center', paddingVertical: 8},
   demoText: {color: '#9aa0a6'},
@@ -597,21 +678,31 @@ const styles = StyleSheet.create({
 const pickerStyles = {
   inputIOS: {
     color: '#111',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
     fontSize: 14,
+    borderWidth: 1.26,
+    borderColor: '#D4D4D4',
+    height: 53,
   },
   inputAndroid: {
     color: '#111',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
     fontSize: 14,
+    borderWidth: 1.26,
+    borderColor: '#D4D4D4',
+    height: 53,
   },
   placeholder: {
     color: '#6b6b6b',
+  },
+  iconContainer: {
+    top: 16,
+    right: 16,
   },
 };
