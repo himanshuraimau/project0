@@ -7,7 +7,6 @@ import {
   StyleSheet,
   SafeAreaView,
   TextInput,
-  ActivityIndicator,
   Alert,
   Dimensions,
 } from 'react-native';
@@ -18,6 +17,7 @@ import { notesApi } from '@/lib/api';
 import { setClerkTokenGetter } from '@/lib/api/client';
 import * as DocumentPicker from 'expo-document-picker';
 import GenerateNote from '@/components/ui/GenerateNote';
+import { ChevronDown } from 'lucide-react-native';
 
 // Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient in all environments
 let Icon: any = null;
@@ -31,6 +31,8 @@ try {
     const map: Record<string, string> = {
       close: '✕',
       'chevron-down': '▾',
+      caret: '▾',
+      chevronRight: '▶',
       file: '📄',
       sparkle: '✨',
       person: '👤',
@@ -199,7 +201,6 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
         <View style={styles.header}>
           <Text style={styles.title}>Upload Text</Text>
           <TouchableOpacity onPress={close} disabled={loading}>
-            {/* Use name 'close' compatible with vector icons */}
             <Icon name="close" size={20} color="#111" />
           </TouchableOpacity>
         </View>
@@ -213,23 +214,7 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
         )}
 
         <View style={styles.field}>
-          <Text style={styles.label}>
-            Title {selectedPDFs.length === 0 ? '*' : '(Optional - will use PDF name if empty)'}
-          </Text>
-          <TextInput
-            style={styles.titleInput}
-            placeholder={selectedPDFs.length > 0 ? "Optional - will use PDF name" : "Enter note title..."}
-            placeholderTextColor="#8b8b8b"
-            value={titleValue}
-            onChangeText={setTitleValue}
-            editable={!loading}
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Text {selectedPDFs.length === 0 ? '*' : '(Optional)'}
-          </Text>
+          <Text style={styles.label}>Text</Text>
           <TextInput
             style={styles.textInput}
             placeholder="Enter your text here..."
@@ -242,23 +227,17 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
           />
         </View>
 
-        <View style={[styles.field, {marginTop: 10}]}>
+        <View style={styles.pickerWrap}>
           <Text style={styles.label}>Folder</Text>
-          <View style={styles.folderRow}>
-            <View style={styles.folderIconWrap}>
-              <Icon name="account" size={14} color="#7b61ff" />
-            </View>
-
-            <RNPickerSelect
-              onValueChange={val => setFolder(val)}
-              items={[{label: 'All notes', value: 'all_notes'}]}
-              value={folder}
-              style={pickerStyles}
-              useNativeAndroidPickerStyle={false}
-              placeholder={{}}
-              Icon={() => <Icon name="chevron-down" size={18} color="#6b6b6b" />}
-            />
-          </View>
+          <RNPickerSelect
+            onValueChange={val => setFolder(val)}
+            items={[{label: 'All notes', value: 'all_notes'}]}
+            value={folder}
+            style={pickerStyles}
+            useNativeAndroidPickerStyle={false}
+            placeholder={{}}
+            Icon={() => <ChevronDown size={18} color="#6b6b6b" />}
+          />
         </View>
 
         {selectedPDFs.length > 0 && (
@@ -285,14 +264,14 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
           </View>
         )}
 
-        <View style={styles.actionsRow}>
+        <View style={styles.actionsColumn}>
           <TouchableOpacity 
             style={[styles.importBtn, loading && styles.buttonDisabled]} 
             activeOpacity={0.85}
             disabled={loading}
             onPress={handleImportPDF}
           >
-            <Icon name="file" size={16} color="#333" style={{marginRight: 8}} />
+            <Icon name="file" size={30} color="#101828" />
             <Text style={styles.importText}>Import PDF(s)</Text>
           </TouchableOpacity>
 
@@ -301,7 +280,7 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
             disabled={false}
             loading={loading}
             loadingText="Creating..."
-            buttonText="Create Note"
+            buttonText="Generate Note"
             style={styles.customGenerateBtn}
             textStyle={styles.customGenerateText}
           />
@@ -364,7 +343,15 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
   },
   field: {marginTop: 8},
-  label: {color: '#6b6b6b', fontSize: 12, marginBottom: 6},
+  pickerWrap: {marginVertical: 8,},
+  label: {
+    color: '#6b6b6b',
+    fontSize: 12,
+    marginBottom: 6,
+    height: 24,
+    borderRadius: 0,
+    alignSelf: 'stretch',
+  },
   errorContainer: {
     backgroundColor: '#FEE2E2',
     borderRadius: 8,
@@ -433,18 +420,27 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   actionsRow: {flexDirection: 'row', justifyContent: 'space-between', marginTop: 18},
+  actionsColumn: {flexDirection: 'column', marginTop: 18},
   importBtn: {
-    flex: 1,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f3f3f3',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    marginRight: 8,
+    alignItems: 'center',
+    padding: 0,
+    gap: 11.99,
+    width: 300,
+    height: 51,
+    backgroundColor: '#E6E6E6',
+    borderRadius: 14,
   },
-  importText: {color: '#222', fontWeight: '600'},
+  importText: {
+    width: 126,
+    height: 29,
+    fontFamily: 'Arimo',
+    fontWeight: '700',
+    fontSize: 19,
+    lineHeight: 28,
+    color: '#101828',
+  },
   generateBtn: {
     flex: 1,
   },
@@ -452,10 +448,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   customGenerateBtn: {
-    flex: 1,
     height: 56,
     borderRadius: 15,
-    marginTop: 18,
     shadowColor: '#000000',
     shadowOffset: {width: 0, height: 0},
     shadowOpacity: 0,
@@ -472,21 +466,31 @@ const styles = StyleSheet.create({
 const pickerStyles = {
   inputIOS: {
     color: '#111',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
     fontSize: 14,
+    borderWidth: 1.26,
+    borderColor: '#D4D4D4',
+    height: 53,
   },
   inputAndroid: {
     color: '#111',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
     fontSize: 14,
+    borderWidth: 1.26,
+    borderColor: '#D4D4D4',
+    height: 53,
   },
   placeholder: {
     color: '#6b6b6b',
+  },
+  iconContainer: {
+    top: 16,
+    right: 16,
   },
 };
