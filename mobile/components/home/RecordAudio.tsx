@@ -17,6 +17,7 @@ import { transcribeAudio } from '@/lib/api/audio';
 import { generateAINote } from '@/lib/api/notes';
 import { Mic } from 'lucide-react-native';
 import GenerateNote from '@/components/ui/GenerateNote';
+import FolderSelect from '@/components/ui/FolderSelect';
 
 // Lightweight local Icon fallback using emoji so the component works without extra deps
 const Icon: React.FC<{
@@ -386,18 +387,11 @@ const RecordAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
           />
         </View>
 
-        <View style={styles.pickerWrap}>
-          <Text style={styles.label}>Folder</Text>
-          <RNPickerSelect
-            onValueChange={val => setFolder(val)}
-            items={[{label: 'All notes', value: 'all_notes'}]}
-            value={folder}
-            style={pickerStyles}
-            useNativeAndroidPickerStyle={false}
-            placeholder={{}}
-            Icon={() => <Icon name="caret" size={18} color="#6b6b6b" />}
-          />
-        </View>
+        <FolderSelect
+          value={folder}
+          onValueChange={(val: string) => setFolder(val)}
+          options={[{label: 'All notes', value: 'all_notes'}]}
+        />
 
         <View style={styles.content}>
           {phase === 'initial' && (

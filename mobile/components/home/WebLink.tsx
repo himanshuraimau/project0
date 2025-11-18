@@ -15,6 +15,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { processWebpage } from '@/lib/api/webpage';
 import { generateAINote } from '@/lib/api/notes';
 import GenerateNote from '@/components/ui/GenerateNote';
+import FolderSelect from '@/components/ui/FolderSelect';
 
 // Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient
 let Icon: any = null;
@@ -183,24 +184,12 @@ const WebLink: React.FC<Props> = ({visible: visibleProp, onClose, inline = false
         <Text style={styles.helper}>Also works with YouTube, PDFs, TikTok, Websites.</Text>
       </View>
 
-      <View style={[styles.field, {marginTop: 10}]}>
-        <Text style={styles.label}>Folder</Text>
-        <View style={styles.folderRow}>
-          <View style={styles.folderIconWrap}>
-            <Icon name="account" size={14} color="#7b61ff" />
-          </View>
-
-          <RNPickerSelect
-            onValueChange={val => setFolder(val)}
-            items={[{label: 'All notes', value: 'all_notes'}]}
-            value={folder}
-            style={pickerStyles}
-            useNativeAndroidPickerStyle={false}
-            placeholder={{}}
-            Icon={() => <Icon name="chevron-down" size={18} color="#6b6b6b" />}
-          />
-        </View>
-      </View>
+      <FolderSelect
+        value={folder}
+        onValueChange={(val: string) => setFolder(val)}
+        options={[{label: 'All notes', value: 'all_notes'}]}
+        style={{marginTop: 10}}
+      />
 
       <GenerateNote
         onPress={handleGenerateNotes}
