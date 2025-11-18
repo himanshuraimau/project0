@@ -204,6 +204,8 @@ const WebLink: React.FC<Props> = ({visible: visibleProp, onClose, inline = false
         loading={isProcessing}
         loadingText={processingStep === 'extracting' ? 'Extracting Content...' : 'Generating Notes...'}
         buttonText="Generate Notes"
+        style={styles.customGenerateBtn}
+        textStyle={styles.customGenerateText}
       />
     </View>
   );
@@ -270,7 +272,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
-
+  customGenerateBtn: {
+    width: 300,
+    height: 56,
+    borderRadius: 15,
+    marginTop: 18,
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  customGenerateText: {
+    fontFamily: 'Arimo',
+    fontSize: 19,
+    lineHeight: 28,
+  },
 });
 
 const pickerStyles = {

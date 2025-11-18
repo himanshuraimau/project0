@@ -298,7 +298,8 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
           loading={loading}
           loadingText="Creating..."
           buttonText="Create Note"
-          style={styles.generateBtn}
+          style={styles.customGenerateBtn}
+          textStyle={styles.customGenerateText}
         />
       </View>
     </View>
@@ -431,6 +432,22 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.5,
+  },
+  customGenerateBtn: {
+    flex: 1,
+    height: 56,
+    borderRadius: 15,
+    marginTop: 18,
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  customGenerateText: {
+    fontFamily: 'Arimo',
+    fontSize: 19,
+    lineHeight: 28,
   },
 });
 
