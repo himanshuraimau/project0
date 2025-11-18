@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { processWebpage } from '@/lib/api/webpage';
@@ -157,15 +158,18 @@ const WebLink: React.FC<Props> = ({visible: visibleProp, onClose, inline = false
   };
 
   const inner = (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Add link</Text>
-        <TouchableOpacity onPress={close}>
-          <Icon name="close" size={20} color="#111" />
-        </TouchableOpacity>
+    <>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Add link</Text>
+          <TouchableOpacity onPress={close}>
+            <Icon name="close" size={20} color="#111" />
+          </TouchableOpacity>
+        </View>
       </View>
-
-      <View style={styles.field}>
+      <View style={styles.separator} />
+      <View style={[styles.container, styles.containerContent]}>
+        <View style={styles.field}>
         <Text style={styles.label}>Link</Text>
         <TextInput
           style={styles.input}
@@ -208,6 +212,7 @@ const WebLink: React.FC<Props> = ({visible: visibleProp, onClose, inline = false
         textStyle={styles.customGenerateText}
       />
     </View>
+    </>
   );
 
   if (inline) return <View>{inner}</View>;
@@ -243,13 +248,26 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 32,
   },
+  containerContent: {
+    paddingTop: 0,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 7,
+    marginHorizontal: 8,
   },
   title: {color: '#111', fontSize: 18, fontWeight: '600'},
+  separator: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 12,
+    marginHorizontal: -10,
+    width: Dimensions.get('window').width,
+  },
   field: {marginTop: 8},
   label: {color: '#6b6b6b', fontSize: 12, marginBottom: 6},
   input: {

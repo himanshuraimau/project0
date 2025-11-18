@@ -362,99 +362,102 @@ const RecordAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
   };
 
   const inner = (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Record audio</Text>
-        <TouchableOpacity onPress={close}>
-          <Icon name="close" size={22} color="#111" />
-        </TouchableOpacity>
+    <>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Record audio</Text>
+          <TouchableOpacity onPress={close}>
+            <Icon name="close" size={22} color="#111" />
+          </TouchableOpacity>
+        </View>
       </View>
       <View style={styles.separator} />
+      <View style={[styles.container, styles.containerContent]}>
+        <View style={styles.pickerWrap}>
+          <Text style={styles.label}>Audio language</Text>
+          <RNPickerSelect
+            onValueChange={val => setLanguage(val)}
+            items={[{label: 'English', value: 'english'}]}
+            value={language}
+            style={pickerStyles}
+            useNativeAndroidPickerStyle={false}
+            placeholder={{}}
+            Icon={() => <Icon name="caret" size={18} color="#6b6b6b" />}
+          />
+        </View>
 
-      <View style={styles.pickerWrap}>
-        <Text style={styles.label}>Audio language</Text>
-        <RNPickerSelect
-          onValueChange={val => setLanguage(val)}
-          items={[{label: 'English', value: 'english'}]}
-          value={language}
-          style={pickerStyles}
-          useNativeAndroidPickerStyle={false}
-          placeholder={{}}
-          Icon={() => <Icon name="caret" size={18} color="#6b6b6b" />}
-        />
+        <View style={styles.pickerWrap}>
+          <Text style={styles.label}>Folder</Text>
+          <RNPickerSelect
+            onValueChange={val => setFolder(val)}
+            items={[{label: 'All notes', value: 'all_notes'}]}
+            value={folder}
+            style={pickerStyles}
+            useNativeAndroidPickerStyle={false}
+            placeholder={{}}
+            Icon={() => <Icon name="caret" size={18} color="#6b6b6b" />}
+          />
+        </View>
+
+        <View style={styles.content}>
+          {phase === 'initial' && (
+            <TouchableOpacity
+              style={styles.recordButtonGradient}
+              onPress={startRecording}
+              activeOpacity={0.85}
+            >
+              <Mic size={24} color="#FFFFFF" style={{borderRadius: 0}} />
+              <Text style={styles.recordButtonText}>Start recording</Text>
+            </TouchableOpacity>
+          )}
+
+          {phase !== 'initial' && (
+            <Animated.View style={[styles.timerButton]}>
+              <Mic size={24} color="#FFFFFF" style={{borderRadius: 0}} />
+              <Text style={styles.timerText}>{formatTime(seconds)}</Text>
+            </Animated.View>
+          )}
+
+          {phase === 'recording' && (
+            <TouchableOpacity
+              style={styles.stopButton}
+              onPress={stopRecording}
+            >
+              <Text style={styles.stopText}>Stop</Text>
+            </TouchableOpacity>
+          )}
+
+          {phase === 'recorded' && (
+            <>
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={styles.deleteBtn} onPress={reset}>
+                  <Text style={styles.deleteText}>Delete</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.resumeBtn}
+                  onPress={startRecording}
+                >
+                  <Text style={styles.resumeText}>Resume</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.playBtn} onPress={togglePlayback}>
+                  <Text style={styles.playText}>{isPlaying ? 'Pause' : 'Play'}</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          <GenerateNote
+            onPress={handleGenerateNotes}
+            disabled={phase !== 'recorded'}
+            loading={isProcessing}
+            loadingText={processingStep === 'transcribing' ? 'Transcribing...' : 'Generating Notes...'}
+            buttonText="Generate Notes"
+            style={styles.customGenerateBtn}
+            textStyle={styles.customGenerateText}
+          />
+        </View>
       </View>
-
-      <View style={styles.pickerWrap}>
-        <Text style={styles.label}>Folder</Text>
-        <RNPickerSelect
-          onValueChange={val => setFolder(val)}
-          items={[{label: 'All notes', value: 'all_notes'}]}
-          value={folder}
-          style={pickerStyles}
-          useNativeAndroidPickerStyle={false}
-          placeholder={{}}
-          Icon={() => <Icon name="caret" size={18} color="#6b6b6b" />}
-        />
-      </View>
-
-      <View style={styles.content}>
-        {phase === 'initial' && (
-          <TouchableOpacity
-            style={styles.recordButtonGradient}
-            onPress={startRecording}
-            activeOpacity={0.85}
-          >
-            <Mic size={24} color="#FFFFFF" style={{borderRadius: 0}} />
-            <Text style={styles.recordButtonText}>Start recording</Text>
-          </TouchableOpacity>
-        )}
-
-        {phase !== 'initial' && (
-          <Animated.View style={[styles.timerButton]}>
-            <Mic size={24} color="#FFFFFF" style={{borderRadius: 0}} />
-            <Text style={styles.timerText}>{formatTime(seconds)}</Text>
-          </Animated.View>
-        )}
-
-        {phase === 'recording' && (
-          <TouchableOpacity
-            style={styles.stopButton}
-            onPress={stopRecording}
-          >
-            <Text style={styles.stopText}>Stop</Text>
-          </TouchableOpacity>
-        )}
-
-        {phase === 'recorded' && (
-          <>
-            <View style={styles.actionRow}>
-              <TouchableOpacity style={styles.deleteBtn} onPress={reset}>
-                <Text style={styles.deleteText}>Delete</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.resumeBtn}
-                onPress={startRecording}
-              >
-                <Text style={styles.resumeText}>Resume</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.playBtn} onPress={togglePlayback}>
-                <Text style={styles.playText}>{isPlaying ? 'Pause' : 'Play'}</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-
-        <GenerateNote
-          onPress={handleGenerateNotes}
-          disabled={phase !== 'recorded'}
-          loading={isProcessing}
-          loadingText={processingStep === 'transcribing' ? 'Transcribing...' : 'Generating Notes...'}
-          buttonText="Generate Notes"
-          style={styles.customGenerateBtn}
-          textStyle={styles.customGenerateText}
-        />
-      </View>
-    </View>
+    </>
   );
 
   if (inline) return <View>{inner}</View>;
@@ -483,10 +486,17 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   container: {
+    backgroundColor: '#fff',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingHorizontal: 10,
+    paddingTop: 16,
     paddingBottom: 32,
+  },
+  containerContent: {
+    paddingTop: 0,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
   },
   header: {
     flexDirection: 'row',

@@ -9,6 +9,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Dimensions,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { useRouter } from 'expo-router';
@@ -193,116 +194,120 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
   };
 
   const inner = (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Upload Text</Text>
-        <TouchableOpacity onPress={close} disabled={loading}>
-          {/* Use name 'close' compatible with vector icons */}
-          <Icon name="close" size={20} color="#111" />
-        </TouchableOpacity>
-      </View>
-
-      {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+    <>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Upload Text</Text>
+          <TouchableOpacity onPress={close} disabled={loading}>
+            {/* Use name 'close' compatible with vector icons */}
+            <Icon name="close" size={20} color="#111" />
+          </TouchableOpacity>
         </View>
-      )}
-
-      <View style={styles.field}>
-        <Text style={styles.label}>
-          Title {selectedPDFs.length === 0 ? '*' : '(Optional - will use PDF name if empty)'}
-        </Text>
-        <TextInput
-          style={styles.titleInput}
-          placeholder={selectedPDFs.length > 0 ? "Optional - will use PDF name" : "Enter note title..."}
-          placeholderTextColor="#8b8b8b"
-          value={titleValue}
-          onChangeText={setTitleValue}
-          editable={!loading}
-        />
       </View>
-
-      <View style={styles.field}>
-        <Text style={styles.label}>
-          Text {selectedPDFs.length === 0 ? '*' : '(Optional)'}
-        </Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Enter your text here..."
-          placeholderTextColor="#8b8b8b"
-          multiline
-          numberOfLines={6}
-          value={textValue}
-          onChangeText={setTextValue}
-          editable={!loading}
-        />
-      </View>
-
-      <View style={[styles.field, {marginTop: 10}]}>
-        <Text style={styles.label}>Folder</Text>
-        <View style={styles.folderRow}>
-          <View style={styles.folderIconWrap}>
-            <Icon name="account" size={14} color="#7b61ff" />
+      <View style={styles.separator} />
+      <View style={[styles.container, styles.containerContent]}>
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
           </View>
+        )}
 
-          <RNPickerSelect
-            onValueChange={val => setFolder(val)}
-            items={[{label: 'All notes', value: 'all_notes'}]}
-            value={folder}
-            style={pickerStyles}
-            useNativeAndroidPickerStyle={false}
-            placeholder={{}}
-            Icon={() => <Icon name="chevron-down" size={18} color="#6b6b6b" />}
+        <View style={styles.field}>
+          <Text style={styles.label}>
+            Title {selectedPDFs.length === 0 ? '*' : '(Optional - will use PDF name if empty)'}
+          </Text>
+          <TextInput
+            style={styles.titleInput}
+            placeholder={selectedPDFs.length > 0 ? "Optional - will use PDF name" : "Enter note title..."}
+            placeholderTextColor="#8b8b8b"
+            value={titleValue}
+            onChangeText={setTitleValue}
+            editable={!loading}
+          />
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>
+            Text {selectedPDFs.length === 0 ? '*' : '(Optional)'}
+          </Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Enter your text here..."
+            placeholderTextColor="#8b8b8b"
+            multiline
+            numberOfLines={6}
+            value={textValue}
+            onChangeText={setTextValue}
+            editable={!loading}
+          />
+        </View>
+
+        <View style={[styles.field, {marginTop: 10}]}>
+          <Text style={styles.label}>Folder</Text>
+          <View style={styles.folderRow}>
+            <View style={styles.folderIconWrap}>
+              <Icon name="account" size={14} color="#7b61ff" />
+            </View>
+
+            <RNPickerSelect
+              onValueChange={val => setFolder(val)}
+              items={[{label: 'All notes', value: 'all_notes'}]}
+              value={folder}
+              style={pickerStyles}
+              useNativeAndroidPickerStyle={false}
+              placeholder={{}}
+              Icon={() => <Icon name="chevron-down" size={18} color="#6b6b6b" />}
+            />
+          </View>
+        </View>
+
+        {selectedPDFs.length > 0 && (
+          <View style={[styles.field, {marginTop: 10}]}>
+            <Text style={styles.label}>Selected PDFs ({selectedPDFs.length})</Text>
+            <View style={styles.pdfListContainer}>
+              {selectedPDFs.map((pdf, index) => (
+                <View key={index} style={styles.pdfItem}>
+                  <Icon name="file" size={16} color="#7C3AED" style={{marginRight: 8}} />
+                  <Text style={styles.pdfName} numberOfLines={1}>
+                    {pdf.name}
+                  </Text>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      setSelectedPDFs(prev => prev.filter((_, i) => i !== index));
+                    }}
+                    style={styles.removePdfButton}
+                  >
+                    <Icon name="close" size={16} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        <View style={styles.actionsRow}>
+          <TouchableOpacity 
+            style={[styles.importBtn, loading && styles.buttonDisabled]} 
+            activeOpacity={0.85}
+            disabled={loading}
+            onPress={handleImportPDF}
+          >
+            <Icon name="file" size={16} color="#333" style={{marginRight: 8}} />
+            <Text style={styles.importText}>Import PDF(s)</Text>
+          </TouchableOpacity>
+
+          <GenerateNote
+            onPress={handleGenerateNote}
+            disabled={false}
+            loading={loading}
+            loadingText="Creating..."
+            buttonText="Create Note"
+            style={styles.customGenerateBtn}
+            textStyle={styles.customGenerateText}
           />
         </View>
       </View>
-
-      {selectedPDFs.length > 0 && (
-        <View style={[styles.field, {marginTop: 10}]}>
-          <Text style={styles.label}>Selected PDFs ({selectedPDFs.length})</Text>
-          <View style={styles.pdfListContainer}>
-            {selectedPDFs.map((pdf, index) => (
-              <View key={index} style={styles.pdfItem}>
-                <Icon name="file" size={16} color="#7C3AED" style={{marginRight: 8}} />
-                <Text style={styles.pdfName} numberOfLines={1}>
-                  {pdf.name}
-                </Text>
-                <TouchableOpacity 
-                  onPress={() => {
-                    setSelectedPDFs(prev => prev.filter((_, i) => i !== index));
-                  }}
-                  style={styles.removePdfButton}
-                >
-                  <Icon name="close" size={16} color="#EF4444" />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-
-      <View style={styles.actionsRow}>
-        <TouchableOpacity 
-          style={[styles.importBtn, loading && styles.buttonDisabled]} 
-          activeOpacity={0.85}
-          disabled={loading}
-          onPress={handleImportPDF}
-        >
-          <Icon name="file" size={16} color="#333" style={{marginRight: 8}} />
-          <Text style={styles.importText}>Import PDF(s)</Text>
-        </TouchableOpacity>
-
-        <GenerateNote
-          onPress={handleGenerateNote}
-          disabled={false}
-          loading={loading}
-          loadingText="Creating..."
-          buttonText="Create Note"
-          style={styles.customGenerateBtn}
-          textStyle={styles.customGenerateText}
-        />
-      </View>
-    </View>
+    </>
   );
 
   if (inline) return <View>{inner}</View>;
@@ -338,13 +343,26 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 32,
   },
+  containerContent: {
+    paddingTop: 0,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 7,
+    marginHorizontal: 8,
   },
   title: {color: '#111', fontSize: 18, fontWeight: '600'},
+  separator: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 12,
+    marginHorizontal: -10,
+    width: Dimensions.get('window').width,
+  },
   field: {marginTop: 8},
   label: {color: '#6b6b6b', fontSize: 12, marginBottom: 6},
   errorContainer: {
