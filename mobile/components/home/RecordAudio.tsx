@@ -10,6 +10,7 @@ import {
   Easing,
   Alert,
   Platform,
+  Dimensions,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { Audio } from 'expo-av';
@@ -374,7 +375,7 @@ const RecordAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
       </View>
       <View style={styles.separator} />
       <View style={[styles.container, styles.containerContent]}>
-        <View style={styles.pickerWrap}>
+        <View style={styles.field}>
           <Text style={styles.label}>Audio language</Text>
           <RNPickerSelect
             onValueChange={val => setLanguage(val)}
@@ -391,6 +392,7 @@ const RecordAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
           value={folder}
           onValueChange={(val: string) => setFolder(val)}
           options={[{label: 'All notes', value: 'all_notes'}]}
+          style={{marginTop: 10}}
         />
 
         <View style={styles.content}>
@@ -485,7 +487,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     paddingHorizontal: 10,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 16,
   },
   containerContent: {
     paddingTop: 0,
@@ -503,18 +505,12 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: '#e0e0e0',
-    marginVertical: 12,
+    marginHorizontal: -40,
+    width: Dimensions.get('window').width,
   },
   row: {flexDirection: 'row', justifyContent: 'space-between', gap: 12},
-  pickerWrap: {marginVertical: 8, marginHorizontal: 8},
-  label: {
-    color: '#6b6b6b',
-    fontSize: 12,
-    marginBottom: 6,
-    height: 24,
-    borderRadius: 0,
-    alignSelf: 'stretch',
-  },
+  field: {marginTop: 8},
+  label: {color: '#6b6b6b', fontSize: 12, marginBottom: 6},
   folderRow: {flexDirection: 'row', alignItems: 'center'},
   folderIconWrap: {
     width: 28,
@@ -525,7 +521,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
-  content: {marginTop: 18, alignItems: 'center'},
+  content: {marginTop: 20, alignItems: 'center'},
   recordButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -636,6 +632,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 15,
     marginTop: 18,
+    alignSelf: 'center',
     shadowColor: '#000000',
     shadowOffset: {width: 0, height: 0},
     shadowOpacity: 0,
@@ -655,31 +652,29 @@ const styles = StyleSheet.create({
 const pickerStyles = {
   inputIOS: {
     color: '#111',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    backgroundColor: '#fbfbfd',
+    borderRadius: 12,
     fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
+    borderWidth: 1,
+    borderColor: '#e6e6ea',
   },
   inputAndroid: {
     color: '#111',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    backgroundColor: '#fbfbfd',
+    borderRadius: 12,
     fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
+    borderWidth: 1,
+    borderColor: '#e6e6ea',
   },
   placeholder: {
     color: '#6b6b6b',
   },
   iconContainer: {
-    top: 16,
-    right: 16,
+    top: 12,
+    right: 12,
   },
 };

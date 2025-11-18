@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     paddingHorizontal: 10,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 16,
   },
   containerContent: {
     paddingTop: 0,
@@ -330,8 +330,7 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: '#e0e0e0',
-    marginVertical: 12,
-    marginHorizontal: -10,
+    marginHorizontal: -40,
     width: Dimensions.get('window').width,
   },
   field: {marginTop: 8},
