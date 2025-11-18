@@ -33,7 +33,7 @@ export default function Page() {
         })
         if (createdSessionId) {
           await setActiveFromSSO!({ session: createdSessionId })
-          router.replace('/(drawer)/(home)' as any)
+          router.replace('/(home)' as any)
         }
       } catch (err) {
         console.error(JSON.stringify(err, null, 2))
@@ -57,7 +57,7 @@ export default function Page() {
       // and redirect the user
       if (signInAttempt.status === 'complete') {
         await setActive({ session: signInAttempt.createdSessionId })
-        router.replace('/(drawer)/(home)' as any)
+        router.replace('/(home)' as any)
       } else {
         // If the status isn't complete, check why. User might need to
         // complete further steps.

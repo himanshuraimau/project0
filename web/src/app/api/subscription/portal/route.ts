@@ -1,6 +1,6 @@
 // API endpoint to get Dodo customer portal link
 
-import { NextResponse } , NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { SubscriptionService } from '@/lib/subscription-service';
 

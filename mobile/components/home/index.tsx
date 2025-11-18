@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { useAuth } from '@clerk/clerk-expo'
+import { useTranslation } from 'react-i18next'
 import {
   StatusBar,
   View,
@@ -25,11 +26,13 @@ import WebLink from './WebLink';
 import { notesApi } from '@/lib/api';
 import { setClerkTokenGetter } from '@/lib/api/client';
 import type { Note } from '@/lib/api/types';
+import { getTranslatedNote } from '@/lib/utils/translation';
 
 export default function NotesHome() {
   const { theme } = useTheme()
   const router = useRouter()
   const { getToken } = useAuth()
+  const { t } = useTranslation()
   const [modalVisible, setModalVisible] = useState(false)
   const [activeOption, setActiveOption] = useState<number | null>(null)
   const [notes, setNotes] = useState<Note[]>([])
@@ -41,10 +44,10 @@ export default function NotesHome() {
   const [isDevelopmentMode, setIsDevelopmentMode] = useState(false)
 
   const newNoteOptions = [
-    { id: 1, icon: 'mic', label: 'Record audio' },
-    { id: 2, icon: 'upload-cloud', label: 'Upload audio' },
-    { id: 3, icon: 'file-text', label: 'Upload text or PDF' },
-    { id: 4, icon: 'link', label: 'YouTube or web link' },
+    { id: 1, icon: 'mic', label: t('home.newNoteOptions.recordAudio') },
+    { id: 2, icon: 'upload-cloud', label: t('home.newNoteOptions.uploadAudio') },
+    { id: 3, icon: 'file-text', label: t('home.newNoteOptions.uploadText') },
+    { id: 4, icon: 'link', label: t('home.newNoteOptions.webLink') },
   ]
 
   // Set up Clerk token getter on mount
@@ -99,9 +102,11 @@ export default function NotesHome() {
 
   // Filter notes based on search query
   const filteredNotes = notes.filter(note => {
+    // Get translated content for search
+    const { title, content } = getTranslatedNote(note);
     const matchesSearch = searchQuery.trim() === '' || 
-      note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.content.toLowerCase().includes(searchQuery.toLowerCase())
+      title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      content.toLowerCase().includes(searchQuery.toLowerCase())
     
     // Add filter logic here for Pinned, Shared, Folders, Archive when implemented
     return matchesSearch
@@ -109,8 +114,7 @@ export default function NotesHome() {
 
   const handleNotePress = (note: Note) => {
     // Navigate to note detail screen
-    // router.push(`/notes/${note.id}`)
-    console.log('Note pressed:', note.id)
+    router.push(`/notes/${note.id}`)
   }
 
   return (
@@ -123,32 +127,22 @@ export default function NotesHome() {
       >
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.topBar}>
-            <View style={styles.timeBadge}>
-              <Text style={styles.timeText}>4:23</Text>
-            </View>
-            <View style={styles.statusIcons}>
-              <Feather name="wifi" size={18} color="#222" style={{ marginRight: 8 }} />
-              <Feather name="battery" size={18} color="#222" />
-            </View>
-          </View>
-
           <View style={styles.titleRow}>
-            <Text style={styles.title}>My notes</Text>
+            <Text style={styles.title}>{t('home.myNotes')}</Text>
             <TouchableOpacity 
               style={styles.settingsButton} 
               accessibilityLabel="Settings"
-              onPress={() => router.push('/(drawer)/(home)/settings')}
+              onPress={() => router.push('/(home)/settings')}
             >
               <Feather name="settings" size={22} color="#374151" />
             </TouchableOpacity>
           </View>
 
           <View style={styles.searchContainer}>
-            <Feather name="search" size={18} color="#9CA3AF" style={{ marginLeft: 12 }} />
+            <Feather name="search" size={20} color="#99A1AF" style={{ position: 'absolute', left: 12, top: 12 }} />
             <TextInput
-              placeholder="Search notes, tags, or people"
-              placeholderTextColor="#9CA3AF"
+              placeholder={t('home.searchPlaceholder')}
+              placeholderTextColor="#717182"
               style={styles.searchInput}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -156,24 +150,29 @@ export default function NotesHome() {
             {searchQuery.length > 0 && (
               <TouchableOpacity 
                 onPress={() => setSearchQuery('')}
-                style={{ paddingRight: 12 }}
               >
-                <Feather name="x" size={18} color="#9CA3AF" />
+                <Feather name="x" size={18} color="#99A1AF" />
               </TouchableOpacity>
             )}
           </View>
 
           <View style={styles.filtersWrapper}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
-              {['All', 'Pinned', 'Shared', 'Folders', 'Archive'].map((f) => {
-                const selected = f === selectedFilter
+              {[
+                { key: 'All', label: t('home.filters.all') },
+                { key: 'Pinned', label: t('home.filters.pinned') },
+                { key: 'Shared', label: t('home.filters.shared') },
+                { key: 'Folders', label: t('home.filters.folders') },
+                { key: 'Archive', label: t('home.filters.archive') },
+              ].map((f) => {
+                const selected = f.key === selectedFilter
                 return (
                   <Pressable 
-                    key={f} 
+                    key={f.key} 
                     style={[styles.filterPill, selected && styles.filterPillSelected]}
-                    onPress={() => setSelectedFilter(f)}
+                    onPress={() => setSelectedFilter(f.key)}
                   >
-                    <Text style={[styles.filterText, selected && styles.filterTextSelected]}>{f}</Text>
+                    <Text style={[styles.filterText, selected && styles.filterTextSelected]}>{f.label}</Text>
                   </Pressable>
                 )
               })}
@@ -189,7 +188,7 @@ export default function NotesHome() {
             {loading && !refreshing ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#7C3AED" />
-                <Text style={styles.loadingText}>Loading notes...</Text>
+                <Text style={styles.loadingText}>{t('home.loadingNotes')}</Text>
               </View>
             ) : error ? (
               <View style={styles.errorContainer}>
@@ -199,50 +198,53 @@ export default function NotesHome() {
                   style={styles.retryButton}
                   onPress={fetchNotes}
                 >
-                  <Text style={styles.retryButtonText}>Retry</Text>
+                  <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
                 </TouchableOpacity>
               </View>
             ) : filteredNotes.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Feather name="file-text" size={64} color="#D1D5DB" />
                 <Text style={styles.emptyTitle}>
-                  {searchQuery ? 'No notes found' : 'No notes yet'}
+                  {searchQuery ? t('home.noNotesFound') : t('home.noNotesYet')}
                 </Text>
                 <Text style={styles.emptySubtitle}>
                   {searchQuery 
-                    ? 'Try a different search term' 
-                    : 'Create your first note to get started'}
+                    ? t('home.tryDifferentSearch')
+                    : t('home.createFirstNote')}
                 </Text>
                 {isDevelopmentMode && (
                   <View style={styles.devModeContainer}>
                     <Feather name="info" size={20} color="#F59E0B" />
                     <Text style={styles.devModeText}>
-                      Backend not connected. Start your server to load real notes.
+                      {t('home.backendNotConnected')}
                     </Text>
                   </View>
                 )}
               </View>
             ) : (
-              filteredNotes.map((note) => (
-                <Pressable 
-                  key={note.id} 
-                  style={styles.noteCard}
-                  onPress={() => handleNotePress(note)}
-                >
-                  <View style={styles.noteLeftIcon}>
-                    <Feather name="file-text" size={20} color="#6B7280" />
-                  </View>
-                  <View style={styles.noteBody}>
-                    <Text numberOfLines={2} style={styles.noteTitle}>
-                      {note.title}
-                    </Text>
-                    <Text style={styles.noteDate}>
-                      {formatDate(note.createdAt)}
-                    </Text>
-                  </View>
-                  <Feather name="chevron-right" size={20} color="#9CA3AF" />
-                </Pressable>
-              ))
+              filteredNotes.map((note) => {
+                const { title } = getTranslatedNote(note);
+                return (
+                  <Pressable 
+                    key={note.id} 
+                    style={styles.noteCard}
+                    onPress={() => handleNotePress(note)}
+                  >
+                    <View style={styles.noteLeftIcon}>
+                      <Feather name="file-text" size={20} color="#6B7280" />
+                    </View>
+                    <View style={styles.noteBody}>
+                      <Text numberOfLines={2} style={styles.noteTitle}>
+                        {title}
+                      </Text>
+                      <Text style={styles.noteDate}>
+                        {formatDate(note.createdAt)}
+                      </Text>
+                    </View>
+                    <Feather name="chevron-right" size={20} color="#9CA3AF" />
+                  </Pressable>
+                );
+              })
             )}
           </ScrollView>
 
@@ -255,8 +257,6 @@ export default function NotesHome() {
               <Text style={styles.fabPlus}>+</Text>
             </TouchableOpacity>
           </LinearGradient>
-
-          <View style={styles.homeIndicator} />
         </SafeAreaView>
       </LinearGradient>
 
@@ -271,16 +271,18 @@ export default function NotesHome() {
           onPress={() => setModalVisible(false)}
         >
           <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>New Note</Text>
-              <TouchableOpacity 
-                onPress={() => setModalVisible(false)}
-                style={styles.closeButton}
-                accessibilityLabel="Close"
-              >
-                <Feather name="x" size={24} color="#374151" />
-              </TouchableOpacity>
-            </View>
+            {activeOption === null && (
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('home.newNote')}</Text>
+                <TouchableOpacity 
+                  onPress={() => setModalVisible(false)}
+                  style={styles.closeButton}
+                  accessibilityLabel="Close"
+                >
+                  <Feather name="x" size={24} color="#374151" />
+                </TouchableOpacity>
+              </View>
+            )}
 
             <View style={styles.optionsList}>
               {activeOption == null ? (
@@ -295,7 +297,7 @@ export default function NotesHome() {
                     }}
                   >
                     <View style={styles.optionIconContainer}>
-                      <Feather name={option.icon as any} size={24} color="#7C3AED" />
+                      <Feather name={option.icon as any} size={19.99} color="#364153" />
                     </View>
                     <Text style={styles.optionText}>{option.label}</Text>
                   </TouchableOpacity>
@@ -312,7 +314,15 @@ export default function NotesHome() {
                   )}
 
                   {activeOption === 3 && (
-                    <UploadTextOrPDF inline onClose={() => setActiveOption(null)} />
+                    <UploadTextOrPDF 
+                      inline 
+                      onClose={() => setActiveOption(null)}
+                      onNoteCreated={() => {
+                        fetchNotes(); // Refresh notes list
+                        setModalVisible(false); // Close modal
+                        setActiveOption(null); // Reset active option
+                      }}
+                    />
                   )}
 
                   {activeOption === 4 && (
@@ -321,17 +331,6 @@ export default function NotesHome() {
                 </View>
               )}
             </View>
-
-            {activeOption !== null && (
-              <TouchableOpacity 
-                style={styles.backButton} 
-                onPress={() => setActiveOption(null)}
-              >
-                <Text style={styles.backText}>Back</Text>
-              </TouchableOpacity>
-            )}
-
-            <View style={styles.modalHomeIndicator} />
           </Pressable>
         </Pressable>
       </Modal>
@@ -386,19 +385,28 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
-    height: 48,
+    height: 44,
     marginBottom: 12,
+    borderWidth: 0.8,
+    borderColor: '#E5E7EB',
+    paddingLeft: 40,
+    paddingRight: 12,
+    paddingVertical: 4,
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+    fontSize: 14,
+    lineHeight: 16,
     color: '#111827',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   filtersWrapper: {
-    height: 48,
+    height: 54,
     marginBottom: 12,
   },
   filtersScroll: {
@@ -406,21 +414,31 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   filterPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    marginRight: 10,
+    paddingHorizontal: 16.8,
+    paddingVertical: 9.6,
+    height: 39.2,
+    borderRadius: 26843500,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0.8,
+    borderColor: '#E5E7EB',
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterPillSelected: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.6,
+    borderColor: '#AD46FF',
   },
   filterText: {
-    color: '#374151',
-    fontWeight: '600',
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#364153',
   },
   filterTextSelected: {
-    color: '#fff',
+    color: '#8621FC',
   },
   notesList: {
     flex: 1,
@@ -464,7 +482,7 @@ const styles = StyleSheet.create({
   fabGradient: {
     position: 'absolute',
     right: 18,
-    bottom: 36,
+    bottom: 60,
     borderRadius: 999,
   },
   fab: {
@@ -530,12 +548,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   optionIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 0.0228271,
+    width: 39.99,
+    height: 39.99,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 14,
     marginRight: 16,
   },
   optionText: {

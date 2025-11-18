@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { generateNotesFromContent, NoteService } from "@/lib/note-service";
 import { FeatureGateService } from "@/lib/feature-gate-service";
 import { ApiSuccessResponse, ApiErrorResponse, GenerateNotesFromTextRequest } from "@/lib/types";
+import { getUserFromAuth } from "@/lib/auth-helper";
+import { queueBackgroundTranslation } from "@/lib/translation-service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -75,6 +77,10 @@ export async function POST(request: NextRequest) {
         transcriptId: transcript.id,
         userId,
       });
+
+      // Queue background translation to all supported languages
+      console.log('🌍 Queueing background translation for note:', note.id);
+      queueBackgroundTranslation(note.id, note.title, note.content);
 
       // No credit deduction needed - subscription system handles access
     } catch (error) {

@@ -17,7 +17,7 @@ export default function Index() {
 
   // If user is logged in, redirect to home immediately
   if (isSignedIn) {
-    return <Redirect href="/(drawer)/(home)" />
+    return <Redirect href="/(home)" />
   }
 
   // Otherwise show welcome screen

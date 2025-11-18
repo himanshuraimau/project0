@@ -3,6 +3,7 @@ import { NoteService } from '@/lib/note-service';
 import { UserService } from '@/lib/user-service';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiSuccessResponse, ApiErrorResponse, NoteType } from '@/lib/types';
+import { queueBackgroundTranslation } from '@/lib/translation-service';
 
 const noteService = new NoteService();
 
@@ -41,6 +42,10 @@ export async function POST(request: NextRequest) {
 
     // Generate focused AI note from the transcript
     const note = await noteService.generateFocusedNote(transcriptId, noteType, userId || undefined);
+
+    // Queue background translation to all supported languages
+    console.log('🌍 Queueing background translation for note:', note.id);
+    queueBackgroundTranslation(note.id, note.title, note.content);
 
     // No credit deduction - focused notes from existing content are free
 

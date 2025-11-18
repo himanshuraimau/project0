@@ -1,12 +1,13 @@
 // API endpoint to create a new subscription and get payment link
 
-import { NextResponse } , NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { SubscriptionService } from '@/lib/subscription-service';
 import { UserService } from '@/lib/user-service';
 import { DodoSubscriptionService } from '@/lib/utils/dodo/subscription';
+import { getUserFromAuth } from '@/lib/auth-helper';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request);
 

@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, isAxiosError } from 'axios';
+import * as SecureStore from 'expo-secure-store';
 import { getToken } from '@/lib/auth';
 
 // Base API URL - adjust this based on your environment
@@ -33,10 +34,19 @@ apiClient.interceptors.request.use(
     console.log('📝 Headers:', config.headers);
     
     try {
-      const token = await getToken();
-      console.log('🔐 Auth token:', token ? '✅ Found' : '❌ Not found');
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+      // Try to get Clerk token first
+      if (clerkGetToken) {
+        const token = await clerkGetToken();
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } else {
+        // Fallback to SecureStore (for backward compatibility)
+        const token = await SecureStore.getItemAsync('auth_token');
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+
       }
     } catch (error) {
       console.error('❌ Error getting auth token:', error);

@@ -84,6 +84,7 @@ export interface Note {
   userId?: string;
   createdAt: string;
   updatedAt: string;
+  translations?: NoteTranslation[]; // Optional array of translations
 }
 
 export interface NoteTranslation {
@@ -296,6 +297,7 @@ export interface TranscribeAudioRequest {
 export interface TranscribeAudioResponse {
   transcription: string;
   transcript: Transcript;
+  note?: Note; // Optional: backend may generate note automatically
 }
 
 // ==================== PDF API ====================
@@ -443,6 +445,7 @@ export interface ProcessWebpageRequest {
 export interface ProcessWebpageResponse {
   transcript: Transcript;
   content: string;
+  note?: Note; // Optional: backend may generate note automatically
 }
 
 // ==================== Search API ====================
