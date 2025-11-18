@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import * as DocumentPicker from 'expo-document-picker';
@@ -163,15 +164,18 @@ const UploadAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
   };
 
   const inner = (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Upload audio</Text>
-        <TouchableOpacity onPress={close}>
-          <Icon name="close" size={22} color="#111" />
-        </TouchableOpacity>
+    <>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Upload audio</Text>
+          <TouchableOpacity onPress={close}>
+            <Icon name="close" size={22} color="#111" />
+          </TouchableOpacity>
+        </View>
       </View>
-
-      <TouchableOpacity style={styles.uploadArea} onPress={pickAudioFile} activeOpacity={0.7}>
+      <View style={styles.separator} />
+      <View style={[styles.container, styles.containerContent]}>
+        <TouchableOpacity style={styles.uploadArea} onPress={pickAudioFile} activeOpacity={0.7}>
         <Upload size={44} color="#6b6b6b" />
         <Text style={styles.uploadText}>
           {selectedFile ? selectedFile.name : 'Drag audio file here, or click to select'}
@@ -209,14 +213,17 @@ const UploadAudio: React.FC<Props> = ({visible: visibleProp, onClose, inline = f
           />
       </View>
 
-      <GenerateNote
-        onPress={handleGenerateNotes}
-        disabled={!selectedFile}
-        loading={isProcessing}
-        loadingText={processingStep === 'transcribing' ? 'Transcribing Audio...' : 'Generating Notes...'}
-        buttonText="Generate Notes"
-      />
-    </View>
+        <GenerateNote
+          onPress={handleGenerateNotes}
+          disabled={!selectedFile}
+          loading={isProcessing}
+          loadingText={processingStep === 'transcribing' ? 'Transcribing Audio...' : 'Generating Notes...'}
+          buttonText="Generate Notes"
+          style={styles.customGenerateBtn}
+          textStyle={styles.customGenerateText}
+        />
+      </View>
+    </>
   );
 
   if (inline) return <View>{inner}</View>;
@@ -252,6 +259,11 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 32,
   },
+  containerContent: {
+    paddingTop: 0,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -260,6 +272,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   title: {color: '#111', fontSize: 18, fontWeight: '600'},
+  separator: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 12,
+    marginHorizontal: -10,
+    width: Dimensions.get('window').width,
+  },
   uploadArea: {
     marginTop: 8,
     backgroundColor: '#fbfbfd',
@@ -293,7 +312,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
-
+  customGenerateBtn: {
+    width: 300,
+    height: 56,
+    borderRadius: 15,
+    marginTop: 18,
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  customGenerateText: {
+    fontFamily: 'Arimo',
+    fontSize: 19,
+    lineHeight: 28,
+  },
 });
 
 const pickerStyles = {
