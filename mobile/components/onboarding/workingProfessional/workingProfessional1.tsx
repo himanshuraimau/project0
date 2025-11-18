@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurGradient } from "../../ui/BlurGradient";
 import { workingProfessionalStyles as styles } from "../onboarding-styles/working-professional-styles";
 import { useRouter } from "expo-router";
 
@@ -27,6 +28,19 @@ export default function WorkingProfessional() {
   const router = useRouter()
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
 
+  const handleFieldSelect = (fieldId: string) => {
+    setSelectedOption(fieldId)
+    // Navigate immediately when a field is clicked
+    setTimeout(() => {
+      try {
+        // Navigate to the second working professional onboarding screen
+        router.push('/(onboarding)/workingProfessional/workingProfessional2')
+      } catch (e) {
+        // fallback: do nothing
+      }
+    }, 300)
+  }
+
   return (
     <LinearGradient
       colors={["#F7F5FF", "#F9FAFB"]}
@@ -35,6 +49,27 @@ export default function WorkingProfessional() {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
+      
+      {/* Top Right Purple Blur Gradient */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={286}
+        height={256}
+        right={-80}
+        top={-136}
+        opacity={0.1}
+      />
+      
+      {/* Bottom Left Purple Blur Gradient */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={286}
+        height={256}
+        left={-90}
+        top={508}
+        opacity={0.1}
+      />
+      
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -46,7 +81,12 @@ export default function WorkingProfessional() {
           </TouchableOpacity>
           <View style={styles.progressBarContainer}>
             <View style={styles.progressTrack}>
-              <View style={styles.progressFill} />
+              <LinearGradient
+                colors={['#9810FA', '#AD46FF']}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.progressFill}
+              />
             </View>
           </View>
         </View>
@@ -65,32 +105,13 @@ export default function WorkingProfessional() {
                 selectedOption === f.id ? styles.fieldButtonSelected : null,
               ]}
               activeOpacity={0.8}
-              onPress={() => setSelectedOption(f.id)}
+              onPress={() => handleFieldSelect(f.id)}
             >
               <Text style={styles.fieldEmoji}>{f.emoji}</Text>
               <Text style={styles.fieldLabel}>{f.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
-
-        {selectedOption && (
-          <View style={styles.continueButtonContainer}>
-            <TouchableOpacity
-              style={styles.continueButton}
-              activeOpacity={0.85}
-              onPress={() => {
-                try {
-                  // Navigate to the second working professional onboarding screen
-                  router.push('/(onboarding)/workingProfessional/workingProfessional2')
-                } catch (e) {
-                  // fallback: do nothing
-                }
-              }}
-            >
-              <Text style={styles.continueButtonText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
         <View style={{ height: 24 }} />
       </ScrollView>

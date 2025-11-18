@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import React, { useState } from 'react'
 import { Pressable, ScrollView, StatusBar, Text, View } from 'react-native'
+import { BlurGradient } from '../ui/BlurGradient'
 import { onboardingStep2Styles as styles } from './onboarding-styles/onboarding-step2-styles'
 
 interface OptionButtonProps {
@@ -93,6 +94,37 @@ export default function OnboardingStep2({ onContinue }: OnboardingStep2Props) {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
+      
+      {/* Top Right Purple Blur Gradient */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={286}
+        height={256}
+        left={254}
+        top={-46}
+        opacity={0.1}
+      />
+      
+      {/* Top Left Purple Blur Gradient */}
+      <BlurGradient
+        colors={['#7C3AED', '#9810FA']}
+        width={240}
+        height={240}
+        left={-130}
+        top={270}
+        opacity={0.1}
+      />
+      
+      {/* Bottom Right Blue Blur Gradient */}
+      <BlurGradient
+        colors={['#14C3A2', '#4C57FF']}
+        width={256}
+        height={256}
+        left={215}
+        top={661}
+        opacity={0.1}
+      />
+      
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}

@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import React, { useState } from 'react'
 import { Pressable, ScrollView, StatusBar, Text, View } from 'react-native'
+import { BlurGradient } from '../ui/BlurGradient'
 import { onboardingStep3Styles as styles } from './onboarding-styles/onboarding-step3-styles'
 
 interface OptionCardProps {
@@ -22,21 +23,31 @@ const OptionCard: React.FC<OptionCardProps> = ({
 }) => {
   return (
     <Pressable
-      style={[styles.optionCard, isSelected && styles.optionCardSelected]}
       onPress={onPress}
     >
       <LinearGradient
-        colors={gradientColors}
+        colors={
+          isSelected
+            ? ['rgba(245, 243, 255, 0.9)', 'rgba(245, 243, 255, 0.7)']
+            : ['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)']
+        }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.emojiSquircle}
+        style={[styles.optionCard, isSelected && styles.optionCardSelected]}
       >
-        <Text style={styles.emoji}>{emoji}</Text>
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.emojiSquircle}
+        >
+          <Text style={styles.emoji}>{emoji}</Text>
+        </LinearGradient>
+        <View style={styles.textContainer}>
+          <Text style={styles.optionTitle}>{title}</Text>
+          <Text style={styles.optionDescription}>{description}</Text>
+        </View>
       </LinearGradient>
-      <View style={styles.textContainer}>
-        <Text style={styles.optionTitle}>{title}</Text>
-        <Text style={styles.optionDescription}>{description}</Text>
-      </View>
     </Pressable>
   )
 }
@@ -47,6 +58,17 @@ interface OnboardingStep3Props {
 
 export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
+
+  const handleOptionSelect = (optionId: string) => {
+    setSelectedOption(optionId)
+    // Navigate immediately when an option is clicked
+    if (onContinue) {
+      // Small delay for visual feedback (showing the selected state)
+      setTimeout(() => {
+        onContinue(optionId)
+      }, 300)
+    }
+  }
 
   const options: Array<{
     id: string
@@ -67,7 +89,7 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
       emoji: '🍎',
       title: 'Student',
       description: 'Lectures, study notes, summaries, etc.',
-      gradientColors: ['#F48FB1', '#EC407A'],
+      gradientColors: ['#FF6467', '#F6339A'],
     },
     {
       id: 'parent',
@@ -100,6 +122,27 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
+      
+      {/* Top Right Purple Blur Gradient */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={286}
+        height={256}
+        right={-73}
+        top={-73}
+        opacity={0.1}
+      />
+      
+      {/* Left Side Blue-Purple Blur Gradient */}
+      <BlurGradient
+        colors={['rgba(81, 162, 255, 0.2)', 'rgba(194, 122, 255, 0.2)']}
+        width={398}
+        height={398}
+        left={0}
+        top={448}
+        opacity={1}
+      />
+      
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -130,28 +173,10 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
               description={option.description}
               gradientColors={option.gradientColors}
               isSelected={selectedOption === option.id}
-              onPress={() => {
-                setSelectedOption(option.id)
-                // If this option should immediately navigate (e.g. parent), call onContinue
-                if (onContinue && option.id === 'parent') {
-                  onContinue(option.id)
-                }
-              }}
+              onPress={() => handleOptionSelect(option.id)}
             />
           ))}
         </View>
-
-        {/* Continue Button */}
-        {selectedOption && (
-          <View style={styles.continueButtonContainer}>
-            <Pressable
-              style={styles.continueButton}
-              onPress={() => onContinue && onContinue(selectedOption)}
-            >
-              <Text style={styles.continueButtonText}>Continue</Text>
-            </Pressable>
-          </View>
-        )}
       </ScrollView>
     </LinearGradient>
   )

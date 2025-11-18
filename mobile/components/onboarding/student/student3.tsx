@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
+import { BlurGradient } from '../../ui/BlurGradient'
 import styles from '../onboarding-styles/student3'
 
 export default function Student3() {
@@ -9,25 +10,37 @@ export default function Student3() {
   const [selected, setSelected] = useState<string | null>(null)
 
   const OPTIONS = [
-    { id: 'arts', icon: '🎨', label: 'Arts & Humanities' },
-    { id: 'business', icon: '💼', label: 'Business & Economics' },
-    { id: 'education', icon: '🎓', label: 'Education' },
-    { id: 'engineering', icon: '⚙️', label: 'Engineering & Technology' },
-    { id: 'health', icon: '❤️', label: 'Health & Medicine' },
-    { id: 'law', icon: '⚖️', label: 'Law & Criminal Justice' },
-    { id: 'sciences', icon: '🔬', label: 'Life & Physical Sciences' },
-    { id: 'other', icon: '🌐', label: 'Other' },
+    { id: 'arts', icon: '🎨', label: 'Arts & Humanities', iconBg: '#FFEDD4' },
+    { id: 'business', icon: '💼', label: 'Business & Economics', iconBg: '#FEF3C6' },
+    { id: 'education', icon: '🎓', label: 'Education', iconBg: '#FFE2E2' },
+    { id: 'engineering', icon: '⚙️', label: 'Engineering & Technology', iconBg: '#D1D5DC' },
+    { id: 'health', icon: '❤️', label: 'Health & Medicine', iconBg: '#FFE2E2' },
+    { id: 'law', icon: '⚖️', label: 'Law & Criminal Justice', iconBg: '#D1D5DC' },
+    { id: 'sciences', icon: '🧪', label: 'Life & Physical Sciences', iconBg: '#DBEAFE' },
+    { id: 'other', icon: '🌍', label: 'Other', iconBg: '#BEDBFF' },
   ]
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.timeWrap}><Text style={styles.time}>4:21</Text></Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      {/* Teal-Blue blur gradient - Bottom */}
+      <BlurGradient
+        colors={['#14C3A2', '#4C57FF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={-59}
+        top={646}
+      />
+
+      {/* Purple blur gradient - Top */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={226}
+        top={217}
+      />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
@@ -54,7 +67,7 @@ export default function Student3() {
                 onPress={() => setSelected(o.id)}
                 style={[styles.option, sel && styles.optionSelected]}
               >
-                <Text style={styles.optionIcon}>{o.icon}</Text>
+                <Text style={[styles.optionIcon, { backgroundColor: o.iconBg }]}>{o.icon}</Text>
                 <Text style={styles.optionLabel}>{o.label}</Text>
               </TouchableOpacity>
             )
@@ -73,7 +86,6 @@ export default function Student3() {
         </View>
       )}
 
-      <View style={styles.rightGradient} pointerEvents="none" />
       <View style={styles.gesture} />
     </SafeAreaView>
   )

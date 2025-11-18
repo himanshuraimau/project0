@@ -46,6 +46,7 @@ apiClient.interceptors.request.use(
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+
       }
     } catch (error) {
       console.error('❌ Error getting auth token:', error);

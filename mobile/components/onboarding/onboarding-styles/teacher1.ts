@@ -1,27 +1,114 @@
 import { StyleSheet } from 'react-native'
-import { BrutalistTheme } from '@/lib/theme/types'
 
-export default (theme: BrutalistTheme) => StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F7F5FF' },
-  statusBar: { height: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 6 },
-  time: { fontSize: 14, color: '#0F172A', fontWeight: '600', fontFamily: theme.fontFamily.default },
-  statusRight: { flexDirection: 'row', alignItems: 'center' },
-  statusIcon: { fontSize: 13 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginTop: 12 },
-  back: { fontSize: 22, marginRight: 16, color: '#0F172A' },
-  progressContainer: { flex: 1 },
-  progressTrack: { height: 6, backgroundColor: '#E6E7F0', borderRadius: 6, overflow: 'hidden' },
-  progressFill: { width: '35%', height: '100%', backgroundColor: '#7C3AED' },
-  content: { paddingHorizontal: 24, paddingTop: 20, flex: 1 },
-  title: { fontSize: 28, fontWeight: '700', color: '#0F172A', marginBottom: 6, fontFamily: theme.fontFamily.heading },
-  subtitle: { fontSize: 15, color: '#374151', marginBottom: 18, fontFamily: theme.fontFamily.heading },
-  features: { marginTop: 6 },
-  featureItem: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 18 },
-  check: { fontSize: 18, color: '#60A5FA', marginRight: 12, marginTop: 2 },
-  featureText: { fontSize: 16, color: '#0F172A', flex: 1 },
-  footer: { paddingHorizontal: 24, paddingBottom: 18 },
-  continueButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 14 },
-  continueText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginRight: 8, fontFamily: theme.fontFamily.default },
-  continueArrow: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  gestureBar: { height: 4, backgroundColor: '#E5E7EB', borderRadius: 3, marginTop: 8, marginHorizontal: 120 },
+export default StyleSheet.create({
+  screen: { 
+    flex: 1, 
+    backgroundColor: '#F9FAFB',
+    paddingTop: 35,
+  },
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 24, 
+    marginTop: 0,
+    height: 76
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16
+  },
+  progressContainer: { 
+    flex: 1 
+  },
+  progressTrack: { 
+    height: 8, 
+    backgroundColor: '#E5E7EB', 
+    borderRadius: 268435,
+    overflow: 'hidden' 
+  },
+  progressFill: { 
+    width: '50%', 
+    height: '100%', 
+    backgroundColor: '#9810FA',
+    borderRadius: 268435
+  },
+  content: { 
+    paddingHorizontal: 19, 
+    paddingTop: 0,
+    flex: 1 
+  },
+  title: { 
+    fontSize: 28, 
+    fontWeight: '700', 
+    color: '#0B0C10', 
+    marginBottom: 9,
+    fontFamily: 'Arimo',
+    lineHeight: 34,
+    letterSpacing: -0.28
+  },
+  subtitle: { 
+    fontSize: 17, 
+    color: '#0B0C10', 
+    marginBottom: 24,
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+    lineHeight: 22
+  },
+  features: { 
+    marginTop: 6 
+  },
+  featureItem: { 
+    flexDirection: 'row', 
+    alignItems: 'flex-start', 
+    marginBottom: 18,
+    paddingLeft: 13
+  },
+  checkContainer: {
+    width: 24,
+    height: 24,
+    backgroundColor: '#E5F4F8',
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12
+  },
+  featureText: { 
+    fontSize: 16, 
+    color: '#0B0C10', 
+    flex: 1,
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+    lineHeight: 22
+  },
+  footer: { 
+    position: 'absolute',
+    left: 24,
+    top: 690,
+    width: 345,
+    height: 56
+  },
+  continueButton: { 
+    width: 310,
+    height: 56,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    borderRadius: 28,
+    shadowColor: 'rgba(76, 87, 255, 0.3)',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    elevation: 8
+  },
+  continueText: { 
+    color: '#FFFFFF', 
+    fontSize: 17, 
+    fontWeight: '700',
+    fontFamily: 'Arimo',
+    lineHeight: 24,
+    marginRight: 8
+  },
 })

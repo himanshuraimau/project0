@@ -2,12 +2,24 @@ import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
+import { BlurGradient } from '../../ui/BlurGradient'
 
 export default function WorkingProfessional2() {
   const router = useRouter()
   return (
     <View style={styles.screen}>
       <StatusBar barStyle="dark-content" translucent={false} backgroundColor="#F7F5FF" />
+
+      {/* Gaussian Blur */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={286}
+        height={256}
+        opacity={0.1}
+        right={-30}
+        top={-40}
+      />
 
       {/* Status bar imitation */}
       <View style={styles.statusBar}> 
@@ -36,19 +48,27 @@ export default function WorkingProfessional2() {
 
         <View style={styles.features}>
           <View style={styles.featureItem}>
-            <Text style={styles.check}>✔️</Text>
+            <View style={styles.checkContainer}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
             <Text style={styles.featureText}>Capture meeting notes effortlessly</Text>
           </View>
           <View style={styles.featureItem}>
-            <Text style={styles.check}>✔️</Text>
+            <View style={styles.checkContainer}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
             <Text style={styles.featureText}>Collect and organize notes faster</Text>
           </View>
           <View style={styles.featureItem}>
-            <Text style={styles.check}>✔️</Text>
+            <View style={styles.checkContainer}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
             <Text style={styles.featureText}>Document policy discussions clearly</Text>
           </View>
           <View style={styles.featureItem}>
-            <Text style={styles.check}>✔️</Text>
+            <View style={styles.checkContainer}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
             <Text style={styles.featureText}>Summarize and share reports faster</Text>
           </View>
         </View>
@@ -57,18 +77,17 @@ export default function WorkingProfessional2() {
       {/* Continue button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.buttonWrapper}
           activeOpacity={0.85}
           onPress={() => router.push('/(onboarding)/workingProfessional/workingProfessional3' as any)}
         >
           <LinearGradient
-            colors={["#3B82F6", "#7C3AED"]}
+            colors={["#4C57FF", "#9810FA"]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.continueButton}
           >
             <Text style={styles.continueText}>Continue</Text>
-            <Text style={styles.continueArrow}>→</Text>
+            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
           </LinearGradient>
         </TouchableOpacity>
 
@@ -140,19 +159,39 @@ const styles = StyleSheet.create({
   },
   features: { marginTop: 6 },
   featureItem: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 18 },
-  check: { fontSize: 18, color: '#60A5FA', marginRight: 12, marginTop: 2 }, // light blue
+  checkContainer: {
+    width: 24,
+    height: 24,
+    backgroundColor: '#E5F4F8',
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
   featureText: { fontSize: 16, color: '#0F172A', flex: 1 },
   footer: { paddingHorizontal: 24, paddingBottom: 18 },
-  buttonWrapper: { marginBottom: 12 },
   continueButton: {
+    width: 310,
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 14,
+    borderRadius: 28,
+    shadowColor: '#4C57FF',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    elevation: 8,
   },
-  continueText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginRight: 8 },
-  continueArrow: { color: '#FFF', fontSize: 18, fontWeight: '700' },
+  continueText: { 
+    color: '#FFFFFF', 
+    fontSize: 17, 
+    fontWeight: '700', 
+    fontFamily: 'Arimo',
+    lineHeight: 24,
+    marginRight: 8,
+  },
   gestureBar: {
     height: 4,
     backgroundColor: '#E5E7EB',

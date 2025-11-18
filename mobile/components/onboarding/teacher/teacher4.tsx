@@ -8,6 +8,7 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
+import { BlurGradient } from '../../ui/BlurGradient'
 import styles from '../onboarding-styles/teacher4'
 
 export default function Teacher4() {
@@ -28,14 +29,25 @@ export default function Teacher4() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.time}>4:22</Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>📡</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      {/* Top blur gradient - Purple */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={227}
+        top={-44}
+      />
+
+      {/* Bottom blur gradient - Teal-Blue */}
+      <BlurGradient
+        colors={['#14C3A2', '#4C57FF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={-16}
+        top={654}
+      />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -77,8 +89,6 @@ export default function Teacher4() {
           </View>
         </TouchableOpacity>
       </View>
-
-      <View style={styles.gesture} />
     </SafeAreaView>
   )
 }

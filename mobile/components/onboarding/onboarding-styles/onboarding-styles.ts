@@ -32,8 +32,10 @@ export const onboardingStyles = StyleSheet.create({
     marginBottom: 32,
   },
   subHeadingOnboarding: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontFamily: 'Arimo',
+    fontWeight: '700',
+    lineHeight: 22,
     color: '#7C3AED',
     marginBottom: 8,
   },
