@@ -22,16 +22,6 @@ export default function Paywall2() {
     <LinearGradient colors={["#FFFFFF", "#F7F5FF"]} start={{ x: 1, y: 0 }} end={{ x: 0.3, y: 1 }} style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <View style={styles.statusBar}>
-        <View style={styles.statusLeft}>
-          <View style={styles.timeBg}><Text style={styles.timeText}>4:22</Text></View>
-        </View>
-        <View style={styles.statusRight}>
-          <Ionicons name="wifi" size={16} color="#000" style={{ marginRight: 8 }} />
-          <Ionicons name="battery-full" size={18} color="#000" />
-        </View>
-      </View>
-
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.headerTitle}>Unlimited notes, better grades</Text>
 
@@ -65,8 +55,6 @@ export default function Paywall2() {
             <Text style={styles.ctaText}>Try 3 days FREE 🔥</Text>
           </LinearGradient>
         </TouchableOpacity>
-
-        <View style={styles.homeIndicator} />
       </View>
     </LinearGradient>
   )
@@ -79,7 +67,7 @@ const styles = StyleSheet.create({
   statusRight: { flexDirection: 'row', alignItems: 'center' },
   timeBg: { backgroundColor: '#DC2626', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   timeText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  content: { paddingHorizontal: 24, paddingTop: 36, paddingBottom: 16, alignItems: 'center' },
+  content: { paddingHorizontal: 24, paddingTop: 56, paddingBottom: 16, alignItems: 'center' },
   headerTitle: { fontSize: 24, fontWeight: '800', textAlign: 'center', marginBottom: 20, color: '#0F172A' },
   card: { width: '100%', backgroundColor: '#fff', borderRadius: 16, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.06, shadowRadius: 24, elevation: 6 },
   toggleRow: { flexDirection: 'row', backgroundColor: '#F3F4F6', padding: 4, borderRadius: 12, alignSelf: 'center', marginBottom: 12 },
@@ -95,7 +83,7 @@ const styles = StyleSheet.create({
   featureVal: { width: 88, textAlign: 'center', fontSize: 16, fontWeight: '700' },
   greyCheck: { color: '#9CA3AF' },
   purpleCheck: { color: '#7C3AED' },
-  bottom: { paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 20 : 16, paddingTop: 12 },
+  bottom: { paddingHorizontal: 24, paddingBottom: 56, paddingTop: 12 },
   cta: { paddingVertical: 16, borderRadius: 28, alignItems: 'center' },
   ctaText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   homeIndicator: { height: 4, width: 140, backgroundColor: '#D1D5DB', borderRadius: 2, alignSelf: 'center', marginTop: 12 },
