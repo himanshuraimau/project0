@@ -288,12 +288,12 @@ const styles = StyleSheet.create({
   row: {flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 14},
   pickerWrap: {marginVertical: 8, marginHorizontal: 8},
   label: {
-    color: '#6b6b6b',
-    fontSize: 12,
+    fontFamily: 'Arimo',
+    fontWeight: '700',
+    fontSize: 21,
+    lineHeight: 32,
+    color: '#364153',
     marginBottom: 6,
-    height: 24,
-    borderRadius: 0,
-    alignSelf: 'stretch',
   },
   folderRow: {flexDirection: 'row', alignItems: 'center'},
   folderIconWrap: {
