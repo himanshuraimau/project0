@@ -6,7 +6,6 @@ import { Platform, Pressable, ScrollView, StatusBar, Text, View, StyleSheet } fr
 
 interface StudyOptionProps {
   icon: React.ReactNode
-  iconBgColor: string
   label: string
   duration: string
   isSelected: boolean
@@ -15,7 +14,6 @@ interface StudyOptionProps {
 
 const StudyOption: React.FC<StudyOptionProps> = ({
   icon,
-  iconBgColor,
   label,
   duration,
   isSelected,
@@ -26,7 +24,7 @@ const StudyOption: React.FC<StudyOptionProps> = ({
       style={[styles.optionCard, isSelected && styles.optionCardSelected]}
       onPress={onPress}
     >
-      <View style={[styles.iconCircle, { backgroundColor: iconBgColor }]}>
+      <View style={styles.iconCircle}>
         {icon}
       </View>
       <View style={styles.optionTextContainer}>
@@ -61,29 +59,105 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
   const studyOptions = [
     {
       id: 'light',
-      icon: <Ionicons name="checkbox" size={24} color="#FFFFFF" />,
-      iconBgColor: '#10B981',
+      icon: (
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: 56,
+          height: 56,
+          backgroundColor: '#DCFCE7',
+          borderRadius: 16,
+        }}>
+          <Text style={{
+            width: 28,
+            height: 32,
+            fontFamily: 'Arimo',
+            fontWeight: '400',
+            fontSize: 24,
+            lineHeight: 32,
+            color: '#00C950',
+          }}>✅</Text>
+        </View>
+      ),
       label: 'Light',
       duration: '10 min / day',
     },
     {
       id: 'regular',
-      icon: <Ionicons name="flame" size={24} color="#FFFFFF" />,
-      iconBgColor: '#EF4444',
+      icon: (
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: 56,
+          height: 56,
+          backgroundColor: '#DCFCE7',
+          borderRadius: 16,
+        }}>
+          <Text style={{
+            width: 28,
+            height: 32,
+            fontFamily: 'Arimo',
+            fontWeight: '400',
+            fontSize: 24,
+            lineHeight: 32,
+            color: '#00C950',
+          }}>🔥</Text>
+        </View>
+      ),
       label: 'Regular',
       duration: '20 min / day',
     },
     {
       id: 'focused',
-      icon: <MaterialCommunityIcons name="arm-flex" size={24} color="#FFFFFF" />,
-      iconBgColor: '#F59E0B',
+      icon: (
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: 56,
+          height: 56,
+          backgroundColor: '#DCFCE7',
+          borderRadius: 16,
+        }}>
+          <Text style={{
+            width: 28,
+            height: 32,
+            fontFamily: 'Arimo',
+            fontWeight: '400',
+            fontSize: 24,
+            lineHeight: 32,
+            color: '#00C950',
+          }}>💪</Text>
+        </View>
+      ),
       label: 'Focused',
       duration: '60 min / day',
     },
     {
       id: 'intense',
-      icon: <Ionicons name="flash" size={24} color="#FFFFFF" />,
-      iconBgColor: '#10B981',
+      icon: (
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: 56,
+          height: 56,
+          backgroundColor: '#0D542B',
+          borderRadius: 16,
+        }}>
+          <Text style={{
+            width: 28,
+            height: 32,
+            fontFamily: 'Arimo',
+            fontWeight: '400',
+            fontSize: 24,
+            lineHeight: 32,
+            color: '#7BF1A8',
+          }}>⚡</Text>
+        </View>
+      ),
       label: 'Intense',
       duration: '90+ min / day',
     },
@@ -97,25 +171,21 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
-      
-      {/* Custom Status Bar */}
-      <View style={styles.statusBar}>
-        <View style={styles.statusLeft}>
-          <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>4:22</Text>
-          </View>
-        </View>
-        <View style={styles.statusRight}>
-          <Ionicons name="wifi" size={16} color="#000000" style={{ marginRight: 4 }} />
-          <Ionicons name="battery-full" size={20} color="#000000" />
-        </View>
-      </View>
 
       {/* Header with back button */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={28} color="#000000" />
-        </Pressable>
+        <View style={styles.headerRow}>
+          <Pressable onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={28} color="#000000" />
+          </Pressable>
+
+          {/* Progress Bar */}
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBarTrack}>
+              <View style={styles.progressBarFill} />
+            </View>
+          </View>
+        </View>
       </View>
 
       <ScrollView
@@ -123,12 +193,6 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Progress Bar */}
-        <View style={styles.progressBarContainer}>
-          <View style={styles.progressBarTrack}>
-            <View style={styles.progressBarFill} />
-          </View>
-        </View>
 
         {/* Title Section */}
         <View style={styles.titleContainer}>
@@ -144,7 +208,6 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
             <StudyOption
               key={option.id}
               icon={option.icon}
-              iconBgColor={option.iconBgColor}
               label={option.label}
               duration={option.duration}
               isSelected={selectedOption === option.id}
@@ -163,9 +226,6 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
           <Text style={styles.continueButtonText}>Continue</Text>
           <Ionicons name="arrow-forward" size={20} color="#000000" style={{ marginLeft: 8 }} />
         </Pressable>
-        
-        {/* iOS Home Indicator */}
-        <View style={styles.homeIndicator} />
       </View>
     </LinearGradient>
   )
@@ -174,14 +234,6 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  statusBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 10,
-    paddingBottom: 10,
   },
   statusLeft: {
     flexDirection: 'row',
@@ -204,18 +256,25 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingVertical: 8,
+    paddingTop: 40,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
   },
   scrollView: {
     flex: 1,
   },
   contentContainer: {
-    paddingTop: Platform.OS === 'ios' ? 80 : 60,
+    paddingTop: 24,
     paddingHorizontal: 24,
     paddingBottom: 20,
   },
   progressBarContainer: {
+    flex: 1,
     marginBottom: 24,
+    marginTop: 20,
   },
   progressBarTrack: {
     height: 8,
@@ -297,7 +356,7 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
+    paddingBottom: 52,
     paddingTop: 12,
   },
   continueButton: {
