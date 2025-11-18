@@ -10,14 +10,13 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { notesApi } from '@/lib/api';
 import { setClerkTokenGetter } from '@/lib/api/client';
 import * as DocumentPicker from 'expo-document-picker';
 import GenerateNote from '@/components/ui/GenerateNote';
-import { ChevronDown } from 'lucide-react-native';
+import FolderSelect from '@/components/ui/FolderSelect';
 
 // Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient in all environments
 let Icon: any = null;
@@ -227,18 +226,11 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
           />
         </View>
 
-        <View style={styles.pickerWrap}>
-          <Text style={styles.label}>Folder</Text>
-          <RNPickerSelect
-            onValueChange={val => setFolder(val)}
-            items={[{label: 'All notes', value: 'all_notes'}]}
-            value={folder}
-            style={pickerStyles}
-            useNativeAndroidPickerStyle={false}
-            placeholder={{}}
-            Icon={() => <ChevronDown size={18} color="#6b6b6b" />}
-          />
-        </View>
+        <FolderSelect
+          value={folder}
+          onValueChange={(val: string) => setFolder(val)}
+          options={[{label: 'All notes', value: 'all_notes'}]}
+        />
 
         {selectedPDFs.length > 0 && (
           <View style={[styles.field, {marginTop: 10}]}>
@@ -343,7 +335,6 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
   },
   field: {marginTop: 8},
-  pickerWrap: {marginVertical: 8,},
   label: {
     color: '#6b6b6b',
     fontSize: 12,
@@ -463,34 +454,3 @@ const styles = StyleSheet.create({
   },
 });
 
-const pickerStyles = {
-  inputIOS: {
-    color: '#111',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
-  },
-  inputAndroid: {
-    color: '#111',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
-  },
-  placeholder: {
-    color: '#6b6b6b',
-  },
-  iconContainer: {
-    top: 16,
-    right: 16,
-  },
-};
