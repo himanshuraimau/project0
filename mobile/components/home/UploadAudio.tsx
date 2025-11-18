@@ -250,7 +250,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingHorizontal: 10,
-    paddingTop: 16,
     paddingBottom: 16,
   },
   containerContent: {
@@ -265,12 +264,12 @@ const styles = StyleSheet.create({
     marginBottom: 7,
     marginHorizontal: 8,
   },
-  title: {color: '#111', fontSize: 18, fontWeight: '600'},
+  title: {color: '#111', fontSize: 20, fontWeight: '600'},
   separator: {
     height: 1,
     backgroundColor: '#e0e0e0',
     marginHorizontal: -40,
-    width: Dimensions.get('window').width,
+    width: Dimensions.get('window').width + 20,
   },
   uploadArea: {
     marginTop: 8,
@@ -286,11 +285,11 @@ const styles = StyleSheet.create({
   uploadText: {color: '#6b6b6b', marginTop: 12},
   fileInfo: {color: '#6b6b6b', fontSize: 12, marginTop: 4},
   row: {flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 14},
-  pickerWrap: {marginVertical: 8, marginHorizontal: 8},
+  pickerWrap: {marginVertical: 8},
   label: {
     fontFamily: 'Arimo',
     fontWeight: '700',
-    fontSize: 21,
+    fontSize: 18,
     lineHeight: 32,
     color: '#364153',
     marginBottom: 6,
@@ -334,6 +333,7 @@ const pickerStyles = {
     borderWidth: 1.26,
     borderColor: '#D4D4D4',
     height: 53,
+    width: 300,
   },
   inputAndroid: {
     color: '#111',
@@ -345,6 +345,7 @@ const pickerStyles = {
     borderWidth: 1.26,
     borderColor: '#D4D4D4',
     height: 53,
+    width: 300,
   },
   placeholder: {
     color: '#6b6b6b',

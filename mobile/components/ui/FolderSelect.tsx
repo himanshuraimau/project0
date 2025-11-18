@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: 'Arimo',
     fontWeight: '700',
-    fontSize: 21,
+    fontSize: 18,
     lineHeight: 32,
     color: '#364153',
     marginBottom: 6,

@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
   fabGradient: {
     position: 'absolute',
     right: 18,
-    bottom: 36,
+    bottom: 60,
     borderRadius: 999,
   },
   fab: {
