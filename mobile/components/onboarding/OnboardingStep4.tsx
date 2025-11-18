@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
-import { Platform, Pressable, ScrollView, StatusBar, Text, View, StyleSheet } from 'react-native'
+import { Image, Platform, Pressable, ScrollView, StatusBar, Text, View, StyleSheet } from 'react-native'
 
 interface FeatureCardProps {
   icon: React.ReactNode
@@ -60,32 +60,32 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
   const features = [
     {
       id: 'record',
-      icon: <Ionicons name="mic" size={48} color="#7C3AED" />,
+      icon: <Image source={require('../../assets/images/record-audio.png')} style={{ width: 60, height: 60 }} />,
       label: 'Record lectures',
     },
     {
       id: 'notes',
-      icon: <MaterialCommunityIcons name="note-text" size={48} color="#7C3AED" />,
+      icon: <Image source={require('../../assets/images/instant-notes.png')} style={{ width: 60, height: 60 }} />,
       label: 'Instant Notes',
     },
     {
       id: 'transcripts',
-      icon: <Ionicons name="laptop" size={48} color="#7C3AED" />,
+      icon: <Image source={require('../../assets/images/quick-transcripts.png')} style={{ width: 60, height: 60 }} />,
       label: 'Quick Transcripts',
     },
     {
       id: 'ai-chat',
-      icon: <MaterialCommunityIcons name="brain" size={48} color="#7C3AED" />,
+      icon: <Image source={require('../../assets/images/chat-with-ai.png')} style={{ width: 60, height: 60 }} />,
       label: 'Chat with AI',
     },
     {
       id: 'quiz',
-      icon: <MaterialCommunityIcons name="clipboard-check" size={48} color="#7C3AED" />,
+      icon: <Image source={require('../../assets/images/ai-quiz-tests.png')} style={{ width: 60, height: 60 }} />,
       label: 'AI Quiz Tests',
     },
     {
       id: 'flashcards',
-      icon: <MaterialCommunityIcons name="cards" size={48} color="#7C3AED" />,
+      icon: <Image source={require('../../assets/images/flashcards.png')} style={{ width: 60, height: 60 }} />,
       label: 'Flashcards',
     },
   ]
@@ -98,25 +98,21 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
-      
-      {/* Custom Status Bar */}
-      <View style={styles.statusBar}>
-        <View style={styles.statusLeft}>
-          <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>4:22</Text>
-          </View>
-        </View>
-        <View style={styles.statusRight}>
-          <Ionicons name="wifi" size={16} color="#000000" style={{ marginRight: 4 }} />
-          <Ionicons name="battery-full" size={20} color="#000000" />
-        </View>
-      </View>
 
       {/* Header with back button */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={28} color="#000000" />
-        </Pressable>
+        <View style={styles.headerRow}>
+          <Pressable onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={28} color="#000000" />
+          </Pressable>
+
+          {/* Progress Bar */}
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBarTrack}>
+              <View style={styles.progressBarFill} />
+            </View>
+          </View>
+        </View>
       </View>
 
       <ScrollView
@@ -124,13 +120,6 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Progress Bar */}
-        <View style={styles.progressBarContainer}>
-          <View style={styles.progressBarTrack}>
-            <View style={styles.progressBarFill} />
-          </View>
-        </View>
-
         {/* Title Section */}
         <View style={styles.titleContainer}>
           <Text style={styles.subTitle}>Personalizing Jellinote for you...</Text>
@@ -166,9 +155,6 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
           <Text style={styles.continueButtonText}>Continue</Text>
           <Ionicons name="arrow-forward" size={20} color="#000000" style={{ marginLeft: 8 }} />
         </Pressable>
-        
-        {/* iOS Home Indicator */}
-        <View style={styles.homeIndicator} />
       </View>
     </LinearGradient>
   )
@@ -177,14 +163,6 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  statusBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 10,
-    paddingBottom: 10,
   },
   statusLeft: {
     flexDirection: 'row',
@@ -207,18 +185,25 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingVertical: 8,
+    paddingTop: 40,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
   },
   scrollView: {
     flex: 1,
   },
   contentContainer: {
-    paddingTop: Platform.OS === 'ios' ? 80 : 60,
+    paddingTop: 24,
     paddingHorizontal: 24,
     paddingBottom: 20,
   },
   progressBarContainer: {
+    flex: 1,
     marginBottom: 24,
+    marginTop: 20,
   },
   progressBarTrack: {
     height: 8,
@@ -293,7 +278,7 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
+    paddingBottom: 52,
     paddingTop: 12,
   },
   continueButton: {
