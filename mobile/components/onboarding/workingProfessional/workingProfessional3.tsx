@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
 import { BlurGradient } from '../../ui/BlurGradient'
+import { ContinueButton } from '../../ui/ContinueButton'
 
 export default function WorkinProfessional3() {
   const router = useRouter()
@@ -71,15 +72,10 @@ export default function WorkinProfessional3() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.continueButton}
-          activeOpacity={0.85}
+        <ContinueButton 
+          variant="white"
           onPress={() => router.push('/(onboarding)/workingProfessional/workingProfessional4' as any)}
-        >
-          <Text style={styles.continueText}>Continue</Text>
-          <Text style={styles.continueArrow}>→</Text>
-        </TouchableOpacity>
-        <View style={styles.gestureBar} />
+        />
       </View>
     </View>
   )
@@ -164,5 +160,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 24,
   },
-  gestureBar: { height: 4, backgroundColor: '#E5E7EB', borderRadius: 3, marginTop: 8, marginHorizontal: 120 },
 })

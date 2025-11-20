@@ -1,41 +1,66 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform, Dimensions } from 'react-native'
-import { useRouter } from 'expo-router'
-import { LinearGradient } from 'expo-linear-gradient'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import Svg, { Line, Polyline } from 'react-native-svg'
+import { BlurGradient } from '../../ui/BlurGradient'
+import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/student9'
 
 const { width } = Dimensions.get('window')
 
 export default function Student9() {
   const router = useRouter()
-
-  // Chart data points for upward trend
-  const chartPoints = [
-    { x: 0, y: 80 },
-    { x: 60, y: 70 },
-    { x: 120, y: 55 },
-    { x: 180, y: 40 },
-    { x: 240, y: 20 },
-  ]
+  const params = useLocalSearchParams()
+  const currentGpa = parseFloat(params.currentGpa as string) || 3.8
+  const goalGpa = parseFloat(params.goalGpa as string) || 3.8
+  const [activeChart, setActiveChart] = useState<'jellinote' | 'self-study'>('jellinote')
 
   const chartWidth = width - 80
   const chartHeight = 120
 
+  // Generate chart data points based on current and goal GPA
+  // Y-axis represents GPA (inverted because SVG Y increases downward)
+  // Scale: 0 GPA at y=120, 10 GPA at y=0
+  const gpaToY = (gpa: number) => chartHeight - (gpa / 10) * chartHeight
+
+  // Create 5 points for Jellinote (goal GPA progression - student8)
+  const jellinotePoints = [
+    { x: 0, y: gpaToY(currentGpa) },
+    { x: 60, y: gpaToY(currentGpa + (goalGpa - currentGpa) * 0.25) },
+    { x: 120, y: gpaToY(currentGpa + (goalGpa - currentGpa) * 0.5) },
+    { x: 180, y: gpaToY(currentGpa + (goalGpa - currentGpa) * 0.75) },
+    { x: 240, y: gpaToY(goalGpa) },
+  ]
+
+  // Create 5 points for self-study (stays at current GPA - student7)
+  const selfStudyPoints = [
+    { x: 0, y: gpaToY(currentGpa) },
+    { x: 60, y: gpaToY(currentGpa) },
+    { x: 120, y: gpaToY(currentGpa) },
+    { x: 180, y: gpaToY(currentGpa) },
+    { x: 240, y: gpaToY(currentGpa) },
+  ]
+
   // Convert data points to SVG polyline points
-  const polylinePoints = chartPoints
+  const jellinotePolyline = jellinotePoints
+    .map(point => `${(point.x / 240) * chartWidth},${point.y}`)
+    .join(' ')
+
+  const selfStudyPolyline = selfStudyPoints
     .map(point => `${(point.x / 240) * chartWidth},${point.y}`)
     .join(' ')
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.timeWrap}><Text style={styles.time}>4:22</Text></Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      {/* Teal-Blue blur gradient */}
+      <BlurGradient
+        colors={['#14C3A2', '#4C57FF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={-83}
+        top={537.05}
+      />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
@@ -59,12 +84,22 @@ export default function Student9() {
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Your GPA</Text>
             <View style={styles.badges}>
-              <View style={styles.badgePurple}>
-                <Text style={styles.badgePurpleText}>with Jellinote</Text>
-              </View>
-              <View style={styles.badgeGrey}>
-                <Text style={styles.badgeGreyText}>self-study</Text>
-              </View>
+              <TouchableOpacity 
+                onPress={() => setActiveChart('jellinote')}
+                style={activeChart === 'jellinote' ? styles.badgePurple : styles.badgeGrey}
+              >
+                <Text style={activeChart === 'jellinote' ? styles.badgePurpleText : styles.badgeGreyText}>
+                  with Jellinote
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => setActiveChart('self-study')}
+                style={activeChart === 'self-study' ? styles.badgePurple : styles.badgeGrey}
+              >
+                <Text style={activeChart === 'self-study' ? styles.badgePurpleText : styles.badgeGreyText}>
+                  self-study
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -83,11 +118,21 @@ export default function Student9() {
                 />
               ))}
               
-              {/* Purple upward-sloping line */}
+              {/* Jellinote line - purple when active, grey when inactive */}
               <Polyline
-                points={polylinePoints}
+                points={jellinotePolyline}
                 fill="none"
-                stroke="#7C3AED"
+                stroke={activeChart === 'jellinote' ? '#7C3AED' : '#9CA3AF'}
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+
+              {/* Self-study line - purple when active, grey when inactive */}
+              <Polyline
+                points={selfStudyPolyline}
+                fill="none"
+                stroke={activeChart === 'self-study' ? '#7C3AED' : '#9CA3AF'}
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -98,16 +143,12 @@ export default function Student9() {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => router.replace('/(onboarding)/step4' as any)}>
-          <LinearGradient colors={["#7C3AED", "#3B82F6"]} style={styles.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-            <Text style={styles.ctaText}>Continue</Text>
-            <Text style={styles.ctaArrow}>→</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        <ContinueButton
+          variant="gradient"
+          onPress={() => router.replace('/(onboarding)/step4' as any)}
+        />
       </View>
 
-      <View style={styles.leftGradient} pointerEvents="none" />
-      <View style={styles.homeIndicator} />
     </SafeAreaView>
   )
 }

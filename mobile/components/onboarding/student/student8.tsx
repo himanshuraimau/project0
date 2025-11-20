@@ -1,25 +1,58 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
-import { useRouter } from 'expo-router'
-import { LinearGradient } from 'expo-linear-gradient'
+import { useRouter, useLocalSearchParams } from 'expo-router'
+import { BlurGradient } from '../../ui/BlurGradient'
+import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/student8'
 
 export default function Student8() {
   const router = useRouter()
+  const params = useLocalSearchParams()
+  const currentGpa = parseFloat(params.currentGpa as string) || 3.8
   const [gpa, setGpa] = useState<number>(3.8)
+  const intervalRef = useRef<any>(null)
 
-  const dec = () => setGpa((v) => Math.max(0, Math.round((v - 0.1) * 10) / 10))
-  const inc = () => setGpa((v) => Math.min(4.0, Math.round((v + 0.1) * 10) / 10))
+  const dec = () => setGpa((v) => {
+    const newVal = Math.max(0, v - 0.1)
+    return parseFloat(newVal.toFixed(1))
+  })
+  const inc = () => setGpa((v) => {
+    const newVal = Math.min(10.0, v + 0.1)
+    return parseFloat(newVal.toFixed(1))
+  })
+
+  const startDecrement = () => {
+    dec()
+    intervalRef.current = setInterval(() => {
+      dec()
+    }, 100)
+  }
+
+  const startIncrement = () => {
+    inc()
+    intervalRef.current = setInterval(() => {
+      inc()
+    }, 100)
+  }
+
+  const stopCounter = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.timeWrap}><Text style={styles.time}>4:22</Text></Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      {/* Teal-Blue blur gradient */}
+      <BlurGradient
+        colors={['#14C3A2', '#4C57FF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        right={-183}
+        top={587.05}
+      />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
@@ -37,7 +70,12 @@ export default function Student8() {
         <Text style={styles.title}>What is your goal GPA?</Text>
 
         <View style={styles.gpaWrap}>
-          <TouchableOpacity style={styles.gpaButton} onPress={dec} activeOpacity={0.8}>
+          <TouchableOpacity 
+            style={styles.gpaButton} 
+            onPressIn={startDecrement}
+            onPressOut={stopCounter}
+            activeOpacity={0.8}
+          >
             <Text style={styles.gpaButtonText}>−</Text>
           </TouchableOpacity>
 
@@ -45,23 +83,24 @@ export default function Student8() {
             <Text style={styles.gpaValue}>{gpa.toFixed(1)}</Text>
           </View>
 
-          <TouchableOpacity style={styles.gpaButton} onPress={inc} activeOpacity={0.8}>
+          <TouchableOpacity 
+            style={styles.gpaButton} 
+            onPressIn={startIncrement}
+            onPressOut={stopCounter}
+            activeOpacity={0.8}
+          >
             <Text style={styles.gpaButtonText}>+</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/(onboarding)/student-flow/student9' as any)}>
-          <LinearGradient colors={["#7C3AED", "#3B82F6"]} style={styles.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-            <Text style={styles.ctaText}>Continue</Text>
-            <Text style={styles.ctaArrow}>→</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        <ContinueButton
+          variant="gradient"
+          onPress={() => router.push(`/(onboarding)/student-flow/student9?currentGpa=${currentGpa}&goalGpa=${gpa}` as any)}
+        />
       </View>
 
-      <View style={styles.leftGradient} pointerEvents="none" />
-      <View style={styles.homeIndicator} />
     </SafeAreaView>
   )
 }

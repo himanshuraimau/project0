@@ -9,6 +9,11 @@ export default function Student3() {
   const router = useRouter()
   const [selected, setSelected] = useState<string | null>(null)
 
+  const handleOptionSelect = (id: string) => {
+    setSelected(id)
+    router.push('/(onboarding)/student-flow/student4' as any)
+  }
+
   const OPTIONS = [
     { id: 'arts', icon: '🎨', label: 'Arts & Humanities', iconBg: '#FFEDD4' },
     { id: 'business', icon: '💼', label: 'Business & Economics', iconBg: '#FEF3C6' },
@@ -64,7 +69,7 @@ export default function Student3() {
               <TouchableOpacity
                 key={o.id}
                 activeOpacity={0.85}
-                onPress={() => setSelected(o.id)}
+                onPress={() => handleOptionSelect(o.id)}
                 style={[styles.option, sel && styles.optionSelected]}
               >
                 <Text style={[styles.optionIcon, { backgroundColor: o.iconBg }]}>{o.icon}</Text>
@@ -74,17 +79,6 @@ export default function Student3() {
           })}
         </View>
       </ScrollView>
-
-      {selected && (
-        <View style={styles.footer}>
-          <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/(onboarding)/student-flow/student4' as any)}>
-            <LinearGradient colors={["#3B82F6", "#7C3AED"]} style={styles.continueButton} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Text style={styles.continueText}>Continue</Text>
-              <Text style={styles.continueArrow}>→</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      )}
 
       <View style={styles.gesture} />
     </SafeAreaView>

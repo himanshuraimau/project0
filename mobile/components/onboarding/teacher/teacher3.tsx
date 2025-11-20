@@ -5,10 +5,10 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurGradient } from '../../ui/BlurGradient'
+import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/teacher3'
 
 export default function Teacher3() {
@@ -97,22 +97,10 @@ export default function Teacher3() {
       </View>
 
       <View style={styles.footer}>
-        {/* Continue Button */}
-        <TouchableOpacity
-          style={styles.continueButtonWrapper}
+        <ContinueButton 
+          variant="gradient"
           onPress={handleContinue}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={['#4C57FF', '#9810FA']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.continueButton}
-          >
-            <Text style={styles.continueButtonText}>Continue</Text>
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-          </LinearGradient>
-        </TouchableOpacity>
+        />
       </View>
     </View>
   )

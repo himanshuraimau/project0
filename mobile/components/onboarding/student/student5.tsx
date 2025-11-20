@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
+import { BlurGradient } from '../../ui/BlurGradient'
+import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/student5'
 
 export default function Student5() {
@@ -8,22 +10,24 @@ export default function Student5() {
   const [selected, setSelected] = useState<string | null>(null)
 
   const OPTIONS = [
-    { id: 'grades', icon: '🌱', label: 'Improve my grades' },
-    { id: 'learn', icon: '📚', label: 'Learn 10x faster' },
-    { id: 'focus', icon: '🎯', label: 'Focus better in class' },
-    { id: 'details', icon: '☑️', label: "Don't miss important details" },
-    { id: 'other', icon: '✏️', label: 'Something else' },
+    { id: 'grades', icon: '🌱', label: 'Improve my grades', iconBg: '#FFE2E2' },
+    { id: 'learn', icon: '📚', label: 'Learn 10x faster', iconBg: '#DCFCE7' },
+    { id: 'focus', icon: '🎯', label: 'Focus better in class', iconBg: '#D1D5DC' },
+    { id: 'details', icon: '✅', label: "Don't miss important details", iconBg: '#D1D5DC' },
+    { id: 'other', icon: '✏️', label: 'Something else', iconBg: '#FEF3C6' },
   ]
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.timeWrap}><Text style={styles.time}>4:21</Text></Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      {/* Purple blur gradient */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={-112}
+        top={450}
+      />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
@@ -50,7 +54,7 @@ export default function Student5() {
                 onPress={() => setSelected(o.id)}
                 style={[styles.option, sel && styles.optionSelected]}
               >
-                <Text style={styles.optionIcon}>{o.icon}</Text>
+                <Text style={[styles.optionIcon, { backgroundColor: o.iconBg }]}>{o.icon}</Text>
                 <Text style={styles.optionLabel}>{o.label}</Text>
               </TouchableOpacity>
             )
@@ -59,16 +63,12 @@ export default function Student5() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/(onboarding)/student-flow/student6' as any)}>
-          <View style={styles.cta}>
-            <Text style={styles.ctaText}>Continue</Text>
-            <Text style={styles.ctaArrow}>→</Text>
-          </View>
-        </TouchableOpacity>
+        <ContinueButton 
+          variant="white"
+          onPress={() => router.push('/(onboarding)/student-flow/student6' as any)}
+        />
       </View>
 
-      <View style={styles.leftGradient} pointerEvents="none" />
-      <View style={styles.homeIndicator} />
     </SafeAreaView>
   )
 }

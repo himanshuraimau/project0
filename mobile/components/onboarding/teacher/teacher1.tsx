@@ -1,9 +1,9 @@
 import React from 'react'
 import { View, Text, TouchableOpacity, StatusBar } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurGradient } from '../../ui/BlurGradient'
+import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/teacher1'
 
 export default function Teacher1() {
@@ -77,20 +77,10 @@ export default function Teacher1() {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity 
-          activeOpacity={0.85}
+        <ContinueButton 
+          variant="gradient"
           onPress={() => router.push('/(onboarding)/teacher-flow/teacher2' as any)}
-        >
-          <LinearGradient 
-            colors={['#4C57FF', '#9810FA']} 
-            start={{ x: 0, y: 0 }} 
-            end={{ x: 1, y: 1 }} 
-            style={styles.continueButton}
-          >
-            <Text style={styles.continueText}>Continue</Text>
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={{ marginLeft: 8 }} />
-          </LinearGradient>
-        </TouchableOpacity>
+        />
       </View>
     </View>
   )

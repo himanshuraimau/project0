@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { BlurGradient } from '../../ui/BlurGradient'
+import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/teacher4'
 
 export default function Teacher4() {
@@ -83,11 +83,10 @@ export default function Teacher4() {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.continueWrap} activeOpacity={0.85} onPress={handleContinue}>
-          <View style={styles.continueButton}>
-            <Text style={styles.continueText}>Continue →</Text>
-          </View>
-        </TouchableOpacity>
+        <ContinueButton 
+          variant="white"
+          onPress={handleContinue}
+        />
       </View>
     </SafeAreaView>
   )

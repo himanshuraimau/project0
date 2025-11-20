@@ -21,15 +21,6 @@ export default function WorkingProfessional2() {
         top={-40}
       />
 
-      {/* Status bar imitation */}
-      <View style={styles.statusBar}> 
-        <Text style={styles.time}>6:10</Text>
-        <View style={styles.statusRight}>
-          <Text style={styles.statusIcon}>📶</Text>
-          <Text style={[styles.statusIcon, { marginLeft: 6 }]}>📡</Text>
-          <Text style={[styles.statusIcon, { marginLeft: 6 }]}>🔋</Text>
-        </View>
-      </View>
 
       {/* Navigation header with back and progress */}
       <View style={styles.header}>
@@ -91,8 +82,6 @@ export default function WorkingProfessional2() {
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* Gesture bar */}
-        <View style={styles.gestureBar} />
       </View>
     </View>
   )

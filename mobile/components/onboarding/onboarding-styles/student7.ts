@@ -1,10 +1,9 @@
 import { StyleSheet, Platform } from 'react-native'
-import { BrutalistTheme } from '@/lib/theme/types'
 
 const PURPLE = '#7C3AED'
 const BG = '#FFFFFF'
 
-export default (theme: BrutalistTheme) => StyleSheet.create({
+export default StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   statusBar: {
     height: Platform.OS === 'ios' ? 44 : 28,
@@ -14,10 +13,10 @@ export default (theme: BrutalistTheme) => StyleSheet.create({
     alignItems: 'center',
   },
   timeWrap: { backgroundColor: '#FF4D4F', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  time: { color: '#fff', fontWeight: '700', fontFamily: theme.fontFamily.default, fontSize: 13 },
+  time: { color: '#fff', fontWeight: '700', fontFamily: 'Arimo', fontSize: 13 },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
   back: { fontSize: 22, marginRight: 12 },
   progressWrap: { flex: 1, paddingRight: 16 },
   progressTrack: { height: 10, backgroundColor: '#F3EFFF', borderRadius: 6, overflow: 'hidden' },
@@ -32,12 +31,50 @@ export default (theme: BrutalistTheme) => StyleSheet.create({
     marginBottom: 8,
     alignSelf: 'flex-start',
   },
-  title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 6, fontFamily: theme.fontFamily.heading, alignSelf: 'flex-start' },
-  gpaWrap: { flexDirection: 'row', alignItems: 'center', marginTop: 24, justifyContent: 'center' },
-  gpaButton: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', marginHorizontal: 12 },
-  gpaButtonText: { fontSize: 32, color: '#111827', fontWeight: '700' },
-  gpaValueWrap: { minWidth: 120, alignItems: 'center', justifyContent: 'center' },
-  gpaValue: { fontSize: 48, color: PURPLE, fontWeight: '800' },
+  title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 6, fontFamily: 'Arimo', alignSelf: 'flex-start' },
+  subtitle: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: '#6A7282',
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+    alignSelf: 'flex-start',
+  },
+  gpaWrap: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 100,
+  },
+  gpaButton: {
+    width: 55.98,
+    height: 55.98,
+    borderRadius: 16,
+    backgroundColor: '#E9D5FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gpaButtonText: {
+    fontSize: 30,
+    lineHeight: 36,
+    color: PURPLE,
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+  },
+  gpaValueWrap: {
+    width: 120,
+    height: 48.01,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 15.99,
+  },
+  gpaValue: {
+    fontSize: 48,
+    lineHeight: 48,
+    color: PURPLE,
+    fontFamily: 'Arimo',
+    fontWeight: '400',
+  },
   footer: { paddingHorizontal: 20, paddingBottom: 18 },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 12 },
   ctaText: { color: '#fff', fontSize: 16, fontWeight: '700', marginRight: 8 },

@@ -1,7 +1,7 @@
 import React from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, ScrollView } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
+import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/parent1'
 
 export default function Parent1() {
@@ -54,12 +54,10 @@ export default function Parent1() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/(onboarding)/parent/parent2' as any)}>
-          <LinearGradient colors={["#3B82F6", "#7C3AED"]} style={styles.continueButton} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-            <Text style={styles.continueText}>Continue</Text>
-            <Text style={styles.continueArrow}>→</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        <ContinueButton 
+          variant="gradient"
+          onPress={() => router.push('/(onboarding)/parent/parent2' as any)}
+        />
       </View>
 
       <View style={styles.gesture} />
