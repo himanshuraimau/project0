@@ -31,7 +31,10 @@ export default function Paywall4() {
 
       if (createdSessionId) {
         setActive!({ session: createdSessionId })
-        router.replace('/(home)' as any)
+        // Add a small delay to allow notes to load properly
+        setTimeout(() => {
+          router.replace('/(home)' as any)
+        }, 1500)
       }
     } catch (err) {
       console.error('OAuth error', err)
