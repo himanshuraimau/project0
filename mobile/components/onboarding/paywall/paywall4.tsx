@@ -3,9 +3,40 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform, StatusBar, Image } 
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import { useOAuth } from '@clerk/clerk-expo'
+import * as AuthSession from 'expo-auth-session'
+import * as WebBrowser from 'expo-web-browser'
+
+WebBrowser.maybeCompleteAuthSession()
 
 export default function Paywall4() {
   const router = useRouter()
+  const { startOAuthFlow: startGoogleFlow } = useOAuth({ strategy: 'oauth_google' })
+  const { startOAuthFlow: startAppleFlow } = useOAuth({ strategy: 'oauth_apple' })
+
+  React.useEffect(() => {
+    void WebBrowser.warmUpAsync()
+    return () => {
+      void WebBrowser.coolDownAsync()
+    }
+  }, [])
+
+  const onSelectAuth = React.useCallback(async (strategy: 'oauth_google' | 'oauth_apple') => {
+    try {
+      const startOAuthFlow = strategy === 'oauth_google' ? startGoogleFlow : startAppleFlow
+
+      const { createdSessionId, setActive } = await startOAuthFlow({
+        redirectUrl: AuthSession.makeRedirectUri({ scheme: 'mobile' }),
+      })
+
+      if (createdSessionId) {
+        setActive!({ session: createdSessionId })
+        router.replace('/(home)' as any)
+      }
+    } catch (err) {
+      console.error('OAuth error', err)
+    }
+  }, [startGoogleFlow, startAppleFlow, router])
 
   return (
     <LinearGradient colors={["#FFFFFF", "#F7F5FF"]} start={{ x: 1, y: 0 }} end={{ x: 0.3, y: 1 }} style={styles.container}>
@@ -33,19 +64,14 @@ export default function Paywall4() {
           <View style={styles.benefitRow}><Ionicons name="checkmark-circle" size={20} color="#7C3AED" style={{ marginRight: 8 }} /><Text style={styles.benefitText}>Access your ideas from anywhere, anytime</Text></View>
         </View>
 
-        <TouchableOpacity style={styles.googleBtn} activeOpacity={0.9} onPress={() => {/* TODO: integrate */}}>
+        <TouchableOpacity style={styles.googleBtn} activeOpacity={0.9} onPress={() => onSelectAuth('oauth_google')}>
           <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg' }} style={styles.googleLogo} />
           <Text style={styles.googleText}>Sign up with Google</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.appleBtn} activeOpacity={0.9} onPress={() => {/* TODO: integrate */}}>
+        <TouchableOpacity style={styles.appleBtn} activeOpacity={0.9} onPress={() => onSelectAuth('oauth_apple')}>
           <Ionicons name="logo-apple" size={20} color="#fff" style={{ marginRight: 8 }} />
           <Text style={styles.appleText}>Sign up with Apple</Text>
-        </TouchableOpacity>
-
-        {/* Continue button */}
-        <TouchableOpacity style={styles.continueBtn} activeOpacity={0.9} onPress={() => router.push('/(auth)/sign-up' as any)}>
-          <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>
 
         <Text style={styles.termsText}>By creating an account you agree to our <Text style={styles.linkText}>privacy policy</Text> and <Text style={styles.linkText}>terms of service</Text>.</Text>
