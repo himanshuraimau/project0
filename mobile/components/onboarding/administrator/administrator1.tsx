@@ -1,7 +1,9 @@
 import React from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { BlurGradient } from '../../ui/BlurGradient'
 import styles from '../onboarding-styles/administrator1'
 
 export default function Administrator1() {
@@ -12,14 +14,23 @@ export default function Administrator1() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.time}>6:10</Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>📡</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={265}
+        top={200}
+      />
+      
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={-26}
+        top={600}
+      />
 
       <View style={styles.header}>
         <Text style={styles.back}>&lt;</Text>
@@ -36,20 +47,28 @@ export default function Administrator1() {
 
         <View style={styles.features}>
           <View style={styles.featureRow}>
-            <Text style={styles.check}>✓</Text>
+            <View style={styles.checkContainer}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
             <Text style={styles.featureText}>Capture and summarize staff meetings instantly</Text>
           </View>
           <View style={styles.featureRow}>
-            <Text style={styles.check}>✓</Text>
+            <View style={styles.checkContainer}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
             <Text style={styles.featureText}>Collect and organize notes faster</Text>
           </View>
           <View style={styles.featureRow}>
-            <Text style={styles.check}>✓</Text>
+            <View style={styles.checkContainer}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
             <Text style={styles.featureText}>Inspire students through smarter learning</Text>
           </View>
           <View style={styles.featureRow}>
-            <Text style={styles.check}>✓</Text>
-            <Text style={styles.featureText}>Support teachers with resources built by AI</Text>
+            <View style={styles.checkContainer}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
+            <Text style={styles.featureText}>Stay present in meetings—get action items automatically</Text>
           </View>
         </View>
       </View>
@@ -60,8 +79,6 @@ export default function Administrator1() {
           onPress={handleContinue}
         />
       </View>
-
-      <View style={styles.gesture} />
     </SafeAreaView>
   )
 }

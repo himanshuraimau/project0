@@ -1,6 +1,8 @@
 import React from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
+import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/parent1'
 
@@ -9,14 +11,15 @@ export default function Parent1() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.time}>6:10</Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>📡</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      {/* Teal-Blue blur gradient */}
+      <BlurGradient
+        colors={['#14C3A2', '#4C57FF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={-87}
+        top={654.5}
+      />
 
       <View style={styles.header}>
         <Text style={styles.back}>&lt;</Text>
@@ -35,19 +38,27 @@ export default function Parent1() {
 
         <View style={styles.features}>
           <View style={styles.featureItem}>
-            <Text style={styles.check}>✔️</Text>
+            <View style={styles.check}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
             <Text style={styles.featureText}>Boost their child's results with smart study tools</Text>
           </View>
           <View style={styles.featureItem}>
-            <Text style={styles.check}>✔️</Text>
+            <View style={styles.check}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
             <Text style={styles.featureText}>Turn classes into ready-to-review notes</Text>
           </View>
           <View style={styles.featureItem}>
-            <Text style={styles.check}>✔️</Text>
+            <View style={styles.check}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
             <Text style={styles.featureText}>Record and summarize calls & voice notes</Text>
           </View>
           <View style={styles.featureItem}>
-            <Text style={styles.check}>✔️</Text>
+            <View style={styles.check}>
+              <Ionicons name="checkmark" size={16} color="#2C94CA" />
+            </View>
             <Text style={styles.featureText}>Stay present in meetings and get action items automatically</Text>
           </View>
         </View>
@@ -60,7 +71,6 @@ export default function Parent1() {
         />
       </View>
 
-      <View style={styles.gesture} />
     </SafeAreaView>
   )
 }

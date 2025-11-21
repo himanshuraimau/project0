@@ -2,6 +2,8 @@ import React from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { TestimonialCard } from '../../ui/TestimonialCard'
+import { BlurGradient } from '../../ui/BlurGradient'
 import styles from '../onboarding-styles/administrator3'
 
 export default function Administrator3() {
@@ -12,14 +14,24 @@ export default function Administrator3() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.time}>6:10</Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>📡</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      {/* Gaussian Blur 1 */}
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        left={239.4}
+        top={-102.4}
+        opacity={0.1}
+      />
+      {/* Gaussian Blur 2 */}
+      <BlurGradient
+        colors={['#14C3A2', '#4C57FF']}
+        width={256}
+        height={256}
+        left={-102.4}
+        top={698.4}
+        opacity={0.1}
+      />
 
       <View style={styles.header}>
         <Text style={styles.back}>&lt;</Text>
@@ -34,25 +46,12 @@ export default function Administrator3() {
         <Text style={styles.context}>Personalizing Jellinote for you...</Text>
         <Text style={styles.title}>You're in the right place.</Text>
 
-        <View style={styles.testimonialCard}>
-          <View style={styles.cardHeader}>
-            <View style={styles.nameSection}>
-              <Text style={styles.cardName}>Josh berk</Text>
-              <Text style={styles.cardTitle}>head of school</Text>
-            </View>
-            <View style={styles.starsContainer}>
-              <Text style={styles.star}>⭐</Text>
-              <Text style={styles.star}>⭐</Text>
-              <Text style={styles.star}>⭐</Text>
-              <Text style={styles.star}>⭐</Text>
-              <Text style={styles.star}>⭐</Text>
-            </View>
-          </View>
-
-          <Text style={styles.quote}>
-            “Jellinote keeps my all notes organized. I walk away with clean summaries, follow-ups, and no missed details. Even from the busiest days”
-          </Text>
-        </View>
+        <TestimonialCard
+          name="Josh berk"
+          title="head of school"
+          quote="Jellinote keeps my all notes organized. I walk away with clean summaries, follow-ups, and no missed details. Even from the busiest days"
+          stars={5}
+        />
       </View>
 
       <View style={styles.footer}>
@@ -61,8 +60,6 @@ export default function Administrator3() {
           onPress={handleContinue}
         />
       </View>
-
-      <View style={styles.gesture} />
     </SafeAreaView>
   )
 }

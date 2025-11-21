@@ -2,6 +2,8 @@ import React from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { TestimonialCard } from '../../ui/TestimonialCard'
+import { BlurGradient } from '../../ui/BlurGradient'
 import styles from '../onboarding-styles/parent4'
 
 export default function Parent4() {
@@ -12,14 +14,23 @@ export default function Parent4() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.time}>6:10</Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>📡</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      <BlurGradient
+        colors={['#14C3A2', '#4C57FF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={-102.4}
+        top={698.4}
+      />
+      
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={239.4}
+        top={-102.4}
+      />
 
       <View style={styles.header}>
         <Text style={styles.back}>&lt;</Text>
@@ -34,25 +45,12 @@ export default function Parent4() {
         <Text style={styles.context}>Personalizing Jellinote for you...</Text>
         <Text style={styles.title}>You're in the right place.</Text>
 
-        <View style={styles.testimonialCard}>
-          <View style={styles.cardHeader}>
-            <View style={styles.nameSection}>
-              <Text style={styles.cardName}>Jessica Cole</Text>
-              <Text style={styles.cardTitle}>Mom of 4</Text>
-            </View>
-            <View style={styles.starsContainer}>
-              <Text style={styles.star}>⭐</Text>
-              <Text style={styles.star}>⭐</Text>
-              <Text style={styles.star}>⭐</Text>
-              <Text style={styles.star}>⭐</Text>
-              <Text style={styles.star}>⭐</Text>
-            </View>
-          </View>
-
-          <Text style={styles.quote}>
-            "Started out for my oldest, but now everyone's hooked. It's been such a great tool for all my kids in school."
-          </Text>
-        </View>
+        <TestimonialCard
+          name="Jessica Cole"
+          title="Mom of 4"
+          quote="Started out for my oldest, but now everyone's hooked. It's been such a great tool for all my kids in school."
+          stars={5}
+        />
       </View>
 
       <View style={styles.footer}>
@@ -62,7 +60,6 @@ export default function Parent4() {
         />
       </View>
 
-      <View style={styles.gesture} />
     </SafeAreaView>
   )
 }

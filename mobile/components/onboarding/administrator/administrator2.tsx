@@ -1,6 +1,9 @@
 import React, { useState } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
+import { ContinueButton } from '../../ui/ContinueButton'
+import { OptionButton } from '../../ui/OptionButton'
+import { BlurGradient } from '../../ui/BlurGradient'
 import styles from '../onboarding-styles/administrator2'
 
 export default function Administrator2() {
@@ -9,23 +12,32 @@ export default function Administrator2() {
   const [selected, setSelected] = useState<string | null>(null)
 
   const OPTIONS = [
-    { id: 'meetings', icon: '🎯', label: 'Streamline and organize meeting notes' },
-    { id: 'reports', icon: '✍️', label: 'Generate reports, AI summaries' },
-    { id: 'faculty', icon: '📄', label: 'Support faculty and classroom initiatives' },
-    { id: 'conversations', icon: '📚', label: 'Keep track of important conversations' },
-    { id: 'other', icon: '✏️', label: 'Something else' },
+    { id: 'meetings', icon: '🎯', label: 'Streamline and organize meeting notes', iconBg: 'transparent' },
+    { id: 'reports', icon: '✍️', label: 'Generate reports, AI summaries', iconBg: 'transparent' },
+    { id: 'faculty', icon: '📄', label: 'Support faculty and classroom initiatives', iconBg: 'transparent' },
+    { id: 'conversations', icon: '📚', label: 'Keep track of important conversations', iconBg: 'transparent' },
+    { id: 'other', icon: '✏️', label: 'Something else', iconBg: 'transparent' },
   ]
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.time}>6:07</Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>📡</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={241}
+        top={-111}
+      />
+      
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={-133}
+        top={295.01}
+      />
 
       <View style={styles.header}>
         <Text style={styles.back}>&lt;</Text>
@@ -41,32 +53,22 @@ export default function Administrator2() {
         <Text style={styles.title}>What would you like Jellinote to help you with?</Text>
 
         <View style={styles.options}>
-          {OPTIONS.map((o) => {
-            const sel = selected === o.id
-            return (
-              <TouchableOpacity
-                key={o.id}
-                activeOpacity={0.85}
-                onPress={() => setSelected(o.id)}
-                style={[styles.option, sel && styles.optionSelected]}
-              >
-                <Text style={styles.optionIcon}>{o.icon}</Text>
-                <Text style={styles.optionLabel}>{o.label}</Text>
-              </TouchableOpacity>
-            )
-          })}
+          {OPTIONS.map((o) => (
+            <OptionButton
+              key={o.id}
+              icon={o.icon}
+              label={o.label}
+              iconBg={o.iconBg}
+              selected={selected === o.id}
+              onPress={() => setSelected(o.id)}
+            />
+          ))}
         </View>
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.continueWrap} activeOpacity={0.85} onPress={() => router.push('/(onboarding)/administrator-flow/administrator3' as any)}>
-          <View style={styles.continueButton}>
-            <Text style={styles.continueText}>Continue →</Text>
-          </View>
-        </TouchableOpacity>
+        <ContinueButton variant="white" onPress={() => router.push('/(onboarding)/administrator-flow/administrator3' as any)} />
       </View>
-
-      <View style={styles.gesture} />
     </SafeAreaView>
   )
 }

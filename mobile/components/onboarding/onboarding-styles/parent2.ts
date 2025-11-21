@@ -1,10 +1,9 @@
 import { StyleSheet, Platform } from 'react-native'
-import { BrutalistTheme } from '@/lib/theme/types'
 
 const PURPLE = '#7C3AED'
-const BG = '#F7F5FF'
+const BG = '#FFFFFF'
 
-export default (theme: BrutalistTheme) => StyleSheet.create({
+export default StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   statusBar: {
     height: Platform.OS === 'ios' ? 44 : 28,
@@ -13,10 +12,10 @@ export default (theme: BrutalistTheme) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  time: { fontSize: 14, fontWeight: '600', fontFamily: theme.fontFamily.default },
+  time: { fontSize: 14, fontWeight: '600', fontFamily: 'Arimo' },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
   back: { fontSize: 22, marginRight: 12 },
   progressWrap: { flex: 1, paddingRight: 16 },
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
@@ -30,7 +29,7 @@ export default (theme: BrutalistTheme) => StyleSheet.create({
     lineHeight: 22,
     marginBottom: 8,
   },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 14, fontFamily: theme.fontFamily.heading },
+  title: { fontSize: 22, fontWeight: '700', marginBottom: 14, fontFamily: 'Arimo' },
   options: { marginTop: 6, gap: 12 },
   option: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0' },
   optionSelected: { borderColor: PURPLE, backgroundColor: '#FBF7FF' },
@@ -40,5 +39,4 @@ export default (theme: BrutalistTheme) => StyleSheet.create({
   continueWrap: { borderRadius: 14, overflow: 'hidden' },
   continueButton: { backgroundColor: '#fff', borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#E6E6E6' },
   continueText: { fontSize: 16, fontWeight: '700', color: '#000' },
-  gesture: { height: 6, backgroundColor: '#E9E9EF', marginHorizontal: 110, borderRadius: 3, marginTop: 10, marginBottom: Platform.OS === 'ios' ? 16 : 8 },
 })

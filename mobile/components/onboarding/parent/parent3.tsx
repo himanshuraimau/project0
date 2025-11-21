@@ -1,6 +1,9 @@
 import React, { useState } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
+import { ContinueButton } from '@/components/ui/ContinueButton'
+import { OptionButton } from '@/components/ui/OptionButton'
+import { BlurGradient } from '@/components/ui/BlurGradient'
 import styles from '../onboarding-styles/parent3'
 
 export default function Parent3() {
@@ -8,20 +11,20 @@ export default function Parent3() {
   const [selected, setSelected] = useState<string | null>(null)
 
   const OPTIONS = [
-    { id: 'child', icon: '✅', label: 'My child' },
-    { id: 'both', icon: '✏️', label: 'Both of us' },
+    { id: 'child', icon: '✅', label: 'My child', iconBg: '#FFFFFF' },
+    { id: 'both', icon: '✏️', label: 'Both of us', iconBg: '#FFFFFF' },
   ]
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
-        <Text style={styles.time}>6:10</Text>
-        <View style={styles.statusIcons}>
-          <Text style={styles.icon}>📶</Text>
-          <Text style={styles.icon}>📡</Text>
-          <Text style={styles.icon}>🔋</Text>
-        </View>
-      </View>
+      <BlurGradient
+        colors={['#9810FA', '#441AFF']}
+        width={256}
+        height={256}
+        opacity={0.1}
+        left={267}
+        top={275.5}
+      />
 
       <View style={styles.header}>
         <Text style={styles.back}>&lt;</Text>
@@ -37,27 +40,23 @@ export default function Parent3() {
         <Text style={styles.title}>Who is Jellinote for?</Text>
 
         <View style={styles.options}>
-          {OPTIONS.map((o) => {
-            const sel = selected === o.id
-            return (
-              <TouchableOpacity key={o.id} activeOpacity={0.85} onPress={() => setSelected(o.id)} style={[styles.option, sel && styles.optionSelected]}>
-                <Text style={styles.optionIcon}>{o.icon}</Text>
-                <Text style={styles.optionLabel}>{o.label}</Text>
-              </TouchableOpacity>
-            )
-          })}
+          {OPTIONS.map((o) => (
+            <OptionButton
+              key={o.id}
+              icon={o.icon}
+              label={o.label}
+              iconBg={o.iconBg}
+              selected={selected === o.id}
+              onPress={() => setSelected(o.id)}
+            />
+          ))}
         </View>
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.continueWrap} activeOpacity={0.85} onPress={() => router.push('/(onboarding)/parent/parent4' as any)}>
-          <View style={styles.continueButton}>
-            <Text style={styles.continueText}>Continue →</Text>
-          </View>
-        </TouchableOpacity>
+        <ContinueButton variant="white" onPress={() => router.push('/(onboarding)/parent/parent4' as any)} />
       </View>
 
-      <View style={styles.gesture} />
     </SafeAreaView>
   )
 }
