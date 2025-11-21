@@ -11,18 +11,6 @@ export default function Paywall3() {
     <LinearGradient colors={["#FFFFFF", "#F7F5FF"]} start={{ x: 1, y: 0 }} end={{ x: 0.3, y: 1 }} style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Status */}
-      <View style={styles.statusBar}>
-        <View style={styles.timeBg}><Text style={styles.timeText}>4:23</Text></View>
-        <View style={styles.statusRight}>
-          <Ionicons name="wifi" size={16} color="#000" style={{ marginRight: 8 }} />
-          <Ionicons name="battery-full" size={18} color="#000" />
-        </View>
-        <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
-          <Text style={styles.closeX}>✕</Text>
-        </TouchableOpacity>
-      </View>
-
       <View style={styles.content}>
         <Text style={styles.title}>Back to school sale free for 3 days</Text>
 
@@ -62,8 +50,6 @@ export default function Paywall3() {
             <Text style={styles.ctaText}>Try 3 days FREE 🔥</Text>
           </LinearGradient>
         </TouchableOpacity>
-
-        <View style={styles.homeIndicator} />
       </View>
     </LinearGradient>
   )

@@ -33,7 +33,7 @@ export default function Settings() {
     try {
       await signOut()
       // Clerk will automatically handle the redirect to the auth flow
-      router.replace('/(auth)/sign-in')
+      router.push('/paywall/paywall4' as any)
     } catch (err) {
       console.error(JSON.stringify(err, null, 2))
     }
@@ -127,8 +127,8 @@ export default function Settings() {
               </View>
               <Text style={styles.title}>{t('common.jellinote')}</Text>
             </View>
-            <TouchableOpacity 
-              style={styles.settingsButton} 
+            <TouchableOpacity
+              style={styles.settingsButton}
               accessibilityLabel="Settings"
               onPress={() => router.back()}
             >
