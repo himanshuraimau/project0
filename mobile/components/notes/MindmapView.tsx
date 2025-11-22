@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
+    Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -198,6 +199,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                     spacingVertical: 15,
                     pan: true,
                     zoom: true,
+                    initialExpandLevel: 2,
                     color: (node) => {
                         const colors = ['#7C3AED', '#FF6B00', '#00B4D8', '#4A90E2', '#F03E89'];
                         return colors[node.depth % colors.length];
@@ -207,7 +209,12 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                 log('Markmap created successfully');
                 document.getElementById('status').style.display = 'none';
                 
-                setTimeout(() => mm.fit(), 100);
+                setTimeout(() => {
+                    mm.fit();
+                    // Apply initial zoom after fit
+                    const currentState = mm.state;
+                    mm.setData(root, { ...currentState, zoom: (currentState.zoom || 1) * 1.3 });
+                }, 100);
                 
             } catch (error) {
                 log('Error: ' + error.message);
@@ -280,8 +287,18 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         console.log('Save as image');
     };
 
-    const handleShare = () => {
-        console.log('Share');
+    const handleShare = async () => {
+        if (!mindmap) return;
+
+        try {
+            await Share.share({
+                message: mindmap.mermaidCode,
+                title: `Mindmap: ${displayTitle}`,
+            });
+        } catch (error: any) {
+            console.error('Error sharing mindmap:', error);
+            Alert.alert('Error', 'Failed to share mindmap');
+        }
     };
 
     const handleCreateNew = () => {
@@ -363,11 +380,6 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                         {/* Title and Metadata */}
                         <View style={styles.titleSection}>
                             <Text style={styles.cardTitle}>{displayTitle}</Text>
-                            <View style={styles.metadataRow}>
-                                <Text style={styles.metadataText}>{formatDate(note.createdAt)}</Text>
-                                <View style={styles.metadataDot} />
-                                <Text style={styles.metadataText}>{calculateReadTime(displayContent)}</Text>
-                            </View>
                         </View>
 
                         {/* Show generating state */}
@@ -518,15 +530,9 @@ const styles = StyleSheet.create({
     card: {
         backgroundColor: '#FFFFFF',
         borderRadius: 16,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: '#F3F4F6',
+        paddingHorizontal: 10,
+        paddingVertical: 20,
+        marginBottom: 16
     },
     cardTitle: {
         fontSize: 20,
@@ -558,7 +564,7 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
     },
     mindMapWebViewContainer: {
-        height: 500,
+        height: 335,
         borderRadius: 12,
         overflow: 'hidden',
         backgroundColor: '#FFFFFF',
@@ -581,6 +587,7 @@ const styles = StyleSheet.create({
     },
     footer: {
         gap: 12,
+        marginTop: 20,
     },
     saveButton: {
         backgroundColor: '#7C3AED',
