@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     saveButton: {
-        backgroundColor: '#7C3AED',
+        backgroundColor: '#000',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
