@@ -309,15 +309,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     if (loading) {
         return (
             <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-                <StatusBar barStyle="dark-content" />
                 <View style={styles.container}>
-                    <View style={styles.header}>
-                        <BackButton />
-                        <View style={styles.titleContainer}>
-                            <Text style={styles.title}>MindMap</Text>
-                        </View>
-                        <View style={styles.headerSpacer} />
-                    </View>
                     <View style={styles.loadingContainer}>
                         <ActivityIndicator size="large" color="#7C3AED" />
                         <Text style={styles.loadingText}>Loading...</Text>
@@ -331,19 +323,64 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     if (error || !note) {
         return (
             <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-                <StatusBar barStyle="dark-content" />
                 <View style={styles.container}>
-                    <View style={styles.header}>
-                        <BackButton />
-                        <View style={styles.titleContainer}>
-                            <Text style={styles.title}>MindMap</Text>
-                        </View>
-                        <View style={styles.headerSpacer} />
-                    </View>
                     <View style={styles.errorContainer}>
                         <Text style={styles.errorText}>{error || 'Failed to load note'}</Text>
                         <TouchableOpacity style={styles.retryButton} onPress={fetchNoteAndMindmap}>
                             <Text style={styles.retryButtonText}>Retry</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    // Show generating state
+    if (isGenerating) {
+        return (
+            <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+                <StatusBar barStyle="dark-content" />
+                <View style={styles.container}>
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#7C3AED" />
+                        <Text style={styles.loadingText}>Generating mindmap...</Text>
+                    </View>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    // Show empty state without header
+    if (!mindmap) {
+        return (
+            <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+                <StatusBar barStyle="dark-content" />
+                <View style={styles.container}>
+                    <View style={styles.emptyStateContainer}>
+                        <Feather name="help-circle" size={64} color="#7C3AED" />
+                        <Text style={styles.emptyStateTitle}>No Mindmap Available</Text>
+                        <Text style={styles.emptyStateSubtitle}>
+                            Generate a mindmap from this note to visualize key concepts
+                        </Text>
+                        <TouchableOpacity
+                            style={styles.generateButton}
+                            onPress={handleGenerateMindmap}
+                            disabled={isGenerating}
+                        >
+                            {isGenerating ? (
+                                <ActivityIndicator size="small" color="#FFFFFF" />
+                            ) : (
+                                <>
+                                    <Feather name="zap" size={20} color="#FFFFFF" />
+                                    <Text style={styles.generateButtonText}>Generate Mindmap</Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.backButtonError}
+                            onPress={() => router.back()}
+                        >
+                            <Text style={styles.backButtonErrorText}>Go Back</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -377,76 +414,42 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                 <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
                     {/* Main Card */}
                     <View style={styles.card}>
-
-
-                        {/* Show generating state */}
-                        {isGenerating ? (
-                            <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="large" color="#7C3AED" />
-                                <Text style={styles.loadingText}>Generating mindmap...</Text>
-                            </View>
-                        ) : !mindmap ? (
-                            <View style={styles.emptyStateContainer}>
-                                <Feather name="help-circle" size={64} color="#7C3AED" />
-                                <Text style={styles.emptyStateTitle}>No Mindmap Available</Text>
-                                <Text style={styles.emptyStateSubtitle}>
-                                    Generate a mindmap from this note to visualize key concepts
-                                </Text>
-                                <TouchableOpacity
-                                    style={styles.generateButton}
-                                    onPress={handleGenerateMindmap}
-                                    disabled={isGenerating}
-                                >
-                                    {isGenerating ? (
-                                        <ActivityIndicator size="small" color="#FFFFFF" />
-                                    ) : (
-                                        <>
-                                            <Feather name="zap" size={20} color="#FFFFFF" />
-                                            <Text style={styles.generateButtonText}>Generate Mindmap</Text>
-                                        </>
-                                    )}
-                                </TouchableOpacity>
-                            </View>
-                        ) : (
-                            <>
-                                <Text style={styles.cardTitle}>{displayTitle}</Text>
-                                {/* Mindmap WebView Container */}
-                                <View style={styles.mindMapWebViewContainer}>
-                                    <WebView
-                                        source={{ html: generateMarkmapHTML(mindmap.mermaidCode) }}
-                                        style={styles.webView}
-                                        scrollEnabled={true}
-                                        scalesPageToFit={true}
-                                        bounces={false}
-                                        javaScriptEnabled={true}
-                                        domStorageEnabled={true}
-                                        startInLoadingState={true}
-                                        onMessage={(event) => {
-                                            try {
-                                                const data = JSON.parse(event.nativeEvent.data);
-                                                console.log(`[WebView ${data.type}]:`, data.message);
-                                            } catch (e) {
-                                                console.log('WebView message:', event.nativeEvent.data);
-                                            }
-                                        }}
-                                        onError={(syntheticEvent) => {
-                                            const { nativeEvent } = syntheticEvent;
-                                            console.error('WebView error:', nativeEvent);
-                                            setError('Failed to load mindmap visualization');
-                                        }}
-                                        onLoadEnd={() => {
-                                            console.log('WebView loaded successfully');
-                                        }}
-                                        renderLoading={() => (
-                                            <View style={styles.webViewLoading}>
-                                                <ActivityIndicator size="large" color="#7C3AED" />
-                                                <Text style={styles.loadingText}>Loading visualization...</Text>
-                                            </View>
-                                        )}
-                                    />
-                                </View>
-                            </>
-                        )}
+                        <Text style={styles.cardTitle}>{displayTitle}</Text>
+                        {/* Mindmap WebView Container */}
+                        <View style={styles.mindMapWebViewContainer}>
+                            <WebView
+                                source={{ html: generateMarkmapHTML(mindmap!.mermaidCode) }}
+                                style={styles.webView}
+                                scrollEnabled={true}
+                                scalesPageToFit={true}
+                                bounces={false}
+                                javaScriptEnabled={true}
+                                domStorageEnabled={true}
+                                startInLoadingState={true}
+                                onMessage={(event) => {
+                                    try {
+                                        const data = JSON.parse(event.nativeEvent.data);
+                                        console.log(`[WebView ${data.type}]:`, data.message);
+                                    } catch (e) {
+                                        console.log('WebView message:', event.nativeEvent.data);
+                                    }
+                                }}
+                                onError={(syntheticEvent) => {
+                                    const { nativeEvent } = syntheticEvent;
+                                    console.error('WebView error:', nativeEvent);
+                                    setError('Failed to load mindmap visualization');
+                                }}
+                                onLoadEnd={() => {
+                                    console.log('WebView loaded successfully');
+                                }}
+                                renderLoading={() => (
+                                    <View style={styles.webViewLoading}>
+                                        <ActivityIndicator size="large" color="#7C3AED" />
+                                        <Text style={styles.loadingText}>Loading visualization...</Text>
+                                    </View>
+                                )}
+                            />
+                        </View>
                     </View>
 
                     {/* Footer Actions */}
@@ -710,6 +713,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         marginLeft: 8,
+    },
+    backButtonError: {
+        marginTop: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+    },
+    backButtonErrorText: {
+        color: '#6B7280',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });
 

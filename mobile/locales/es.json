@@ -51,7 +51,10 @@
     "mindMap": "Mapa Mental",
     "readTime": "{{minutes}} min de lectura",
     "createdOn": "Creado el {{date}}",
-    "failedToLoad": "Error al cargar la nota"
+    "failedToLoad": "Error al cargar la nota",
+    "deleteNote": "Eliminar Nota",
+    "deleteConfirmation": "¿Estás seguro de que quieres eliminar esta nota? Esta acción no se puede deshacer.",
+    "failedToDelete": "Error al eliminar la nota"
   },
   "quiz": {
     "title": "Cuestionario",

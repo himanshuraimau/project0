@@ -51,7 +51,10 @@
     "mindMap": "माइंडमैप",
     "readTime": "{{minutes}} मिनट पढ़ें",
     "createdOn": "{{date}} को बनाया गया",
-    "failedToLoad": "नोट लोड करने में विफल"
+    "failedToLoad": "नोट लोड करने में विफल",
+    "deleteNote": "नोट हटाएं",
+    "deleteConfirmation": "क्या आप वाकई इस नोट को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
+    "failedToDelete": "नोट हटाने में विफल"
   },
   "quiz": {
     "title": "क्विज़",

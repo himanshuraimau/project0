@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
-import { BookOpen, Brain } from 'lucide-react-native'
+import { BookOpen, Brain, Layers } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import { useAuth } from '@clerk/clerk-expo'
 import { useTranslation } from 'react-i18next'
@@ -13,6 +13,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { WebView } from 'react-native-webview'
@@ -35,6 +36,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [webViewHeight, setWebViewHeight] = useState(400)
+  const [deleting, setDeleting] = useState(false)
 
   // Set up Clerk token getter on mount
   useEffect(() => {
@@ -116,7 +118,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
     { id: 1, icon: 'BookOpen', iconType: 'lucide', label: t('note.editNote'), color: '#FFFFFF', bgColor: '#FF6900' },
     { id: 2, icon: 'message-square', iconType: 'feather', label: t('note.chat'), color: '#FFFFFF', bgColor: '#AD46FF' },
     { id: 3, icon: 'brain', iconType: 'lucide', label: t('note.takeQuiz'), color: '#FFFFFF', bgColor: '#F6339A' },
-    { id: 4, icon: 'square', iconType: 'feather', label: t('note.flashcards'), color: '#FFFFFF', bgColor: '#00D3F3' },
+    { id: 4, icon: 'Layers', iconType: 'lucide', label: t('note.flashcards'), color: '#FFFFFF', bgColor: '#00D3F3' },
     { id: 5, icon: 'headphones', iconType: 'feather', label: t('note.podcast'), color: '#FFFFFF', bgColor: '#615FFF' },
     { id: 6, icon: 'plus', iconType: 'feather', label: t('note.mindMap'), color: '#FFFFFF', bgColor: '#2B7FFF' },
   ]
@@ -149,6 +151,39 @@ export default function NoteView({ noteId }: NoteViewProps) {
     } else if (toolId === 6) { // MindMap
       router.push(`/notes/${noteId}/mindmap`)
     }
+  }
+
+  // Handle delete note
+  const handleDeleteNote = () => {
+    Alert.alert(
+      t('note.deleteNote'),
+      t('note.deleteConfirmation'),
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setDeleting(true)
+              await notesApi.deleteNote(noteId)
+              router.back()
+            } catch (err: any) {
+              console.error('Failed to delete note:', err)
+              Alert.alert(
+                t('common.error'),
+                err.message || t('note.failedToDelete')
+              )
+            } finally {
+              setDeleting(false)
+            }
+          },
+        },
+      ]
+    )
   }
 
   // Show loading state
@@ -283,6 +318,11 @@ export default function NoteView({ noteId }: NoteViewProps) {
                           />
                         ) : tool.icon === 'brain' ? (
                           <Brain
+                            size={24}
+                            color={tool.color}
+                          />
+                        ) : tool.icon === 'Layers' ? (
+                          <Layers
                             size={24}
                             color={tool.color}
                           />
@@ -479,6 +519,24 @@ export default function NoteView({ noteId }: NoteViewProps) {
               />
             </View>
 
+            {/* Delete Note Button */}
+            <View style={styles.deleteSection}>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={handleDeleteNote}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <ActivityIndicator size="small" color="#EF4444" />
+                ) : (
+                  <>
+                    <Feather name="trash-2" size={20} color="#EF4444" />
+                    <Text style={styles.deleteButtonText}>{t('note.deleteNote')}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+
             {/* Bottom spacing */}
             <View style={{ height: 40 }} />
           </ScrollView>
@@ -655,8 +713,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   editNoteIcon: {
-    borderWidth: 1.99886,
-    borderColor: '#FFFFFF',
   },
   toolLabel: {
     fontFamily: 'Arimo',
@@ -745,6 +801,27 @@ const styles = StyleSheet.create({
   },
   backButtonErrorText: {
     color: '#6B7280',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  deleteSection: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  deleteButtonText: {
+    color: '#EF4444',
     fontSize: 16,
     fontWeight: '600',
   },
