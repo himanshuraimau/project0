@@ -15,6 +15,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import Markdown from 'react-native-markdown-display'
 import { setClerkTokenGetter } from '@/lib/api/client'
 import { chatWithNote } from '@/lib/api/notes'
 import { loadChatHistory, saveChatHistory, type ChatMessage } from '@/lib/storage/chatStorage'
@@ -52,10 +53,10 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
       try {
         setIsLoadingHistory(true)
         const history = await loadChatHistory(noteId)
-        
+
         console.log('Loading chat history for noteId:', noteId)
         console.log('History loaded:', history ? `${history.length} messages` : 'null')
-        
+
         if (history && history.length > 0) {
           // Load existing chat history
           console.log('Setting messages from history')
@@ -126,7 +127,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
     try {
       // Call the chat API with streaming
       const response = await chatWithNote(noteId, userMessage.text)
-      
+
       // Create AI message
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -138,7 +139,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
       setMessages(prev => [...prev, aiMessage])
     } catch (error: any) {
       console.error('Chat error:', error)
-      
+
       // Add error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -146,7 +147,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
         isUser: false,
         timestamp: new Date(),
       }
-      
+
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsSending(false)
@@ -168,14 +169,39 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
             message.isUser ? styles.userBubble : styles.aiBubble,
           ]}
         >
-          <Text
-            style={[
-              styles.messageText,
-              message.isUser ? styles.userMessageText : styles.aiMessageText,
-            ]}
+          <Markdown
+            style={{
+              body: {
+                color: message.isUser ? '#FFFFFF' : '#111827',
+                fontSize: 15,
+                lineHeight: 22,
+              },
+              paragraph: {
+                marginTop: 0,
+                marginBottom: 0,
+              },
+              link: {
+                color: message.isUser ? '#FFFFFF' : '#7C3AED',
+                textDecorationLine: 'underline',
+              },
+              code_inline: {
+                backgroundColor: message.isUser ? 'rgba(255,255,255,0.2)' : '#E5E7EB',
+                borderRadius: 4,
+                paddingHorizontal: 4,
+                paddingVertical: 2,
+                fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+              },
+              fence: {
+                backgroundColor: message.isUser ? 'rgba(255,255,255,0.1)' : '#E5E7EB',
+                borderColor: 'transparent',
+                borderRadius: 8,
+                padding: 8,
+                marginVertical: 8,
+              },
+            }}
           >
             {message.text}
-          </Text>
+          </Markdown>
         </View>
       </View>
     )
@@ -214,7 +240,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
           ) : (
             <>
               {messages.map(renderMessage)}
-              
+
               {/* Typing indicator */}
               {isSending && (
                 <View style={[styles.messageContainer, styles.aiMessageContainer]}>
@@ -328,7 +354,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   messageBubble: {
-    maxWidth: '80%',
+    maxWidth: '90%',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 20,
@@ -338,19 +364,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 4,
   },
   aiBubble: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#F5F5F5',
     borderTopLeftRadius: 4,
   },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  userMessageText: {
-    color: '#FFFFFF',
-  },
-  aiMessageText: {
-    color: '#111827',
-  },
+  // Removed messageText, userMessageText, aiMessageText as they are replaced by Markdown styles
   typingBubble: {
     paddingVertical: 16,
   },
