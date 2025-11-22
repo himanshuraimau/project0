@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     StatusBar,
     View,
@@ -9,6 +9,7 @@ import {
     ActivityIndicator,
     Alert,
     Share,
+    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -16,6 +17,8 @@ import { Edit, ZoomIn, ZoomOut, Download, Share2 } from 'lucide-react-native';
 import WebView from 'react-native-webview';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
 import { notesApi } from '@/lib/api';
 import { setClerkTokenGetter } from '@/lib/api/client';
 import { getMindMapByNoteId, generateMindMap, deleteMindMap } from '@/lib/api/mindmap';
@@ -30,12 +33,14 @@ interface MindmapViewProps {
 const MindmapView = ({ noteId }: MindmapViewProps) => {
     const router = useRouter();
     const { getToken } = useAuth();
+    const webViewRef = useRef<WebView>(null);
     const [note, setNote] = useState<Note | null>(null);
     const [mindmap, setMindmap] = useState<MindMap | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Set up Clerk token getter on mount
     useEffect(() => {
@@ -283,8 +288,132 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         console.log('Zoom out');
     };
 
-    const handleSaveAsImage = () => {
-        console.log('Save as image');
+    const handleSaveAsImage = async () => {
+        if (!webViewRef.current || isSaving) return;
+
+        try {
+            setIsSaving(true);
+
+            // Request media library permissions
+            const { status } = await MediaLibrary.requestPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission Required', 'Please grant permission to save images to your photo library.');
+                setIsSaving(false);
+                return;
+            }
+
+            // Inject JavaScript to capture the SVG and convert to PNG
+            const captureScript = `
+                (function() {
+                    try {
+                        const svg = document.getElementById('mindmap');
+                        if (!svg) {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({ 
+                                type: 'error', 
+                                message: 'SVG element not found' 
+                            }));
+                            return;
+                        }
+
+                        // Get SVG dimensions
+                        const bbox = svg.getBBox();
+                        const width = bbox.width + 40;
+                        const height = bbox.height + 40;
+
+                        // Create canvas
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+
+                        // Fill white background
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, width, height);
+
+                        // Serialize SVG
+                        const serializer = new XMLSerializer();
+                        let svgString = serializer.serializeToString(svg);
+                        
+                        // Create blob and convert to base64
+                        const img = new Image();
+                        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+                        const url = URL.createObjectURL(svgBlob);
+
+                        img.onload = function() {
+                            ctx.drawImage(img, 20, 20);
+                            const pngData = canvas.toDataURL('image/png');
+                            window.ReactNativeWebView.postMessage(JSON.stringify({ 
+                                type: 'image', 
+                                data: pngData 
+                            }));
+                            URL.revokeObjectURL(url);
+                        };
+
+                        img.onerror = function(err) {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({ 
+                                type: 'error', 
+                                message: 'Failed to load image: ' + err 
+                            }));
+                        };
+
+                        img.src = url;
+                    } catch (error) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({ 
+                            type: 'error', 
+                            message: error.message 
+                        }));
+                    }
+                })();
+                true;
+            `;
+
+            webViewRef.current.injectJavaScript(captureScript);
+        } catch (err: any) {
+            console.error('Failed to save image:', err);
+            Alert.alert('Error', 'Failed to save image: ' + err.message);
+            setIsSaving(false);
+        }
+    };
+
+    const handleWebViewMessage = async (event: any) => {
+        try {
+            const data = JSON.parse(event.nativeEvent.data);
+
+            if (data.type === 'image') {
+                // Remove data URL prefix
+                const base64Data = data.data.replace(/^data:image\/png;base64,/, '');
+
+                // Create file path
+                const filename = `mindmap_${Date.now()}.png`;
+                const cacheDir = (FileSystem as any).cacheDirectory;
+                if (!cacheDir) {
+                    throw new Error('Cache directory not available');
+                }
+                const fileUri = cacheDir + filename;
+
+                // Write base64 to file
+                await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+                    encoding: 'base64' as any,
+                });
+
+                // Save to media library
+                const asset = await MediaLibrary.createAssetAsync(fileUri);
+                await MediaLibrary.createAlbumAsync('Mindmaps', asset, false);
+
+                Alert.alert('Success', 'Mindmap saved to your photo library!');
+                setIsSaving(false);
+            } else if (data.type === 'error') {
+                console.error('WebView error:', data.message);
+                Alert.alert('Error', 'Failed to capture mindmap: ' + data.message);
+                setIsSaving(false);
+            } else if (data.type === 'log') {
+                console.log(`[WebView ${data.type}]:`, data.message);
+            }
+        } catch (err: any) {
+            console.error('Failed to process WebView message:', err);
+            Alert.alert('Error', 'Failed to save image: ' + err.message);
+            setIsSaving(false);
+        }
     };
 
     const handleShare = async () => {
@@ -418,6 +547,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                         {/* Mindmap WebView Container */}
                         <View style={styles.mindMapWebViewContainer}>
                             <WebView
+                                ref={webViewRef}
                                 source={{ html: generateMarkmapHTML(mindmap!.mermaidCode) }}
                                 style={styles.webView}
                                 scrollEnabled={true}
@@ -426,14 +556,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                                 javaScriptEnabled={true}
                                 domStorageEnabled={true}
                                 startInLoadingState={true}
-                                onMessage={(event) => {
-                                    try {
-                                        const data = JSON.parse(event.nativeEvent.data);
-                                        console.log(`[WebView ${data.type}]:`, data.message);
-                                    } catch (e) {
-                                        console.log('WebView message:', event.nativeEvent.data);
-                                    }
-                                }}
+                                onMessage={handleWebViewMessage}
                                 onError={(syntheticEvent) => {
                                     const { nativeEvent } = syntheticEvent;
                                     console.error('WebView error:', nativeEvent);
@@ -456,9 +579,22 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                     {mindmap && (
                         <View style={styles.footer}>
                             {/* Save as Image Button */}
-                            <TouchableOpacity onPress={handleSaveAsImage} style={styles.saveButton}>
-                                <Download size={20} color="#FFF" />
-                                <Text style={styles.saveButtonText}>Save as Image</Text>
+                            <TouchableOpacity
+                                onPress={handleSaveAsImage}
+                                style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+                                disabled={isSaving}
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <ActivityIndicator size="small" color="#FFFFFF" />
+                                        <Text style={styles.saveButtonText}>Saving...</Text>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download size={20} color="#FFF" />
+                                        <Text style={styles.saveButtonText}>Save as Image</Text>
+                                    </>
+                                )}
                             </TouchableOpacity>
 
                             {/* Share and Create New Buttons */}
@@ -598,6 +734,9 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         borderRadius: 12,
         gap: 8,
+    },
+    saveButtonDisabled: {
+        opacity: 0.6,
     },
     saveButtonText: {
         color: '#FFFFFF',
