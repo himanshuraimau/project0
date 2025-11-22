@@ -3,10 +3,11 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
+import { getUserFromAuth } from "@/lib/auth-helper";
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserFromAuth(request);
+    const userId = await getUserFromAuth(req);
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

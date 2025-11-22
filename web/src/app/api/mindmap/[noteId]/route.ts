@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { getUserFromAuth } from "@/lib/auth-helper";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ noteId: string }> }
 ) {
   try {
-    const userId = await getUserFromAuth(request);
-    
+    const userId = await getUserFromAuth(req);
+
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -47,8 +48,8 @@ export async function DELETE(
   { params }: { params: Promise<{ noteId: string }> }
 ) {
   try {
-    const userId = await getUserFromAuth(request);
-    
+    const userId = await getUserFromAuth(req);
+
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
