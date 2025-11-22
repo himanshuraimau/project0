@@ -377,6 +377,8 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                 <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
                     {/* Main Card */}
                     <View style={styles.card}>
+
+
                         {/* Show generating state */}
                         {isGenerating ? (
                             <View style={styles.loadingContainer}>
@@ -407,6 +409,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                             </View>
                         ) : (
                             <>
+                                <Text style={styles.cardTitle}>{displayTitle}</Text>
                                 {/* Mindmap WebView Container */}
                                 <View style={styles.mindMapWebViewContainer}>
                                     <WebView
