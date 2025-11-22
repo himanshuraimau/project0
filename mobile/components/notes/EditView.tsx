@@ -270,9 +270,18 @@ export default function EditView({ noteId }: EditViewProps) {
                                 backgroundColor: '#FFFFFF',
                                 color: '#374151',
                                 placeholderColor: '#9CA3AF',
-                                contentCSSText: 'font-size: 16px; line-height: 24px;',
+                                contentCSSText: `
+                                    font-size: 16px; 
+                                    line-height: 24px; 
+                                    color: #374151;
+                                    padding: 0;
+                                    margin: 0;
+                                    min-height: 200px;
+                                `,
                             }}
                             style={styles.richEditor}
+                            useContainer={true}
+                            initialHeight={250}
                         />
 
                         {/* Extra space for scrolling above toolbar */}
@@ -281,54 +290,60 @@ export default function EditView({ noteId }: EditViewProps) {
 
                     {/* Bottom Toolbar */}
                     <View style={styles.toolbar}>
-                        <RichToolbar
-                            editor={richText}
-                            actions={[
-                                actions.heading1,
-                                actions.insertBulletsList,
-                                actions.insertOrderedList,
-                                actions.alignLeft,
-                                actions.indent,
-                                actions.setBold,
-                                actions.setItalic,
-                                actions.setUnderline,
-                            ]}
-                            iconMap={{
-                                [actions.heading1]: () => (
-                                    <View style={styles.pillButton}>
-                                        <Text style={styles.pillButtonText}>Header 1</Text>
-                                    </View>
-                                ),
-                                [actions.insertBulletsList]: () => <List color="#333" size={20} />,
-                                [actions.insertOrderedList]: () => <ListOrdered color="#333" size={20} />,
-                                [actions.alignLeft]: () => <AlignLeft color="#333" size={20} />,
-                                [actions.indent]: () => <Play color="#333" size={20} style={{ transform: [{ rotate: '90deg' }] }} />,
-                                [actions.setBold]: () => <Bold color="#333" size={20} />,
-                                [actions.setItalic]: () => <Italic color="#333" size={20} />,
-                                [actions.setUnderline]: () => <Underline color="#333" size={20} />,
-                            }}
-                            style={styles.richToolbar}
-                            selectedIconTint="#7C3AED"
-                            iconTint="#333"
-                        />
-
-                        {/* Font Size Button */}
-                        <TouchableOpacity
-                            style={styles.fontSizeButton}
-                            onPress={() => setShowFontSizePicker(!showFontSizePicker)}
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.toolbarScrollContent}
                         >
-                            <Type color="#333" size={20} />
-                            <Text style={styles.fontSizeButtonText}>Size</Text>
-                        </TouchableOpacity>
+                            <RichToolbar
+                                editor={richText}
+                                actions={[
+                                    actions.heading1,
+                                    actions.insertBulletsList,
+                                    actions.insertOrderedList,
+                                    actions.alignLeft,
+                                    actions.indent,
+                                    actions.setBold,
+                                    actions.setItalic,
+                                    actions.setUnderline,
+                                ]}
+                                iconMap={{
+                                    [actions.heading1]: () => (
+                                        <View style={styles.pillButton}>
+                                            <Text style={[styles.pillButtonText, { color: '#7C3AED', opacity: 1 }]}>Header 1</Text>
+                                        </View>
+                                    ),
+                                    [actions.insertBulletsList]: () => <List color="#333" size={20} />,
+                                    [actions.insertOrderedList]: () => <ListOrdered color="#333" size={20} />,
+                                    [actions.alignLeft]: () => <AlignLeft color="#333" size={20} />,
+                                    [actions.indent]: () => <Play color="#333" size={20} style={{ transform: [{ rotate: '90deg' }] }} />,
+                                    [actions.setBold]: () => <Bold color="#333" size={20} />,
+                                    [actions.setItalic]: () => <Italic color="#333" size={20} />,
+                                    [actions.setUnderline]: () => <Underline color="#333" size={20} />,
+                                }}
+                                style={styles.richToolbar}
+                                selectedIconTint="#7C3AED"
+                                iconTint="#333"
+                            />
 
-                        {/* Font Style Button */}
-                        <TouchableOpacity
-                            style={[styles.fontSizeButton, { right: 80 }]}
-                            onPress={() => setShowFontStylePicker(!showFontStylePicker)}
-                        >
-                            <Text style={[styles.fontSizeButtonText, { fontSize: 16, fontWeight: '700' }]}>Aa</Text>
-                            <Text style={styles.fontSizeButtonText}>Font</Text>
-                        </TouchableOpacity>
+                            {/* Font Size Button */}
+                            <TouchableOpacity
+                                style={styles.fontButton}
+                                onPress={() => setShowFontSizePicker(!showFontSizePicker)}
+                            >
+                                <Type color="#333" size={20} />
+                                <Text style={styles.fontButtonText}>Size</Text>
+                            </TouchableOpacity>
+
+                            {/* Font Style Button */}
+                            <TouchableOpacity
+                                style={styles.fontButton}
+                                onPress={() => setShowFontStylePicker(!showFontStylePicker)}
+                            >
+                                <Text style={[styles.fontButtonText, { fontSize: 16, fontWeight: '700' }]}>Aa</Text>
+                                <Text style={styles.fontButtonText}>Font</Text>
+                            </TouchableOpacity>
+                        </ScrollView>
                     </View>
 
                     {/* Font Size Picker */}
@@ -406,7 +421,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         alignItems: 'center',
-        zIndex: -1,
+        pointerEvents: 'none',
     },
     title: {
         fontSize: 18,
@@ -443,9 +458,17 @@ const styles = StyleSheet.create({
         borderTopColor: '#F3F4F6',
         backgroundColor: '#FFFFFF',
     },
+    toolbarScrollContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        gap: 8,
+    },
     richToolbar: {
         backgroundColor: '#FFFFFF',
         height: 60,
+        flex: 0,
     },
     toolbarContent: {
         paddingHorizontal: 16,
@@ -462,11 +485,29 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         height: 36,
+        minWidth: 80,
     },
     pillButtonText: {
         color: '#7C3AED',
         fontWeight: '600',
         fontSize: 14,
+        lineHeight: 20,
+    },
+    fontButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 8,
+        marginLeft: 8,
+        height: 40,
+    },
+    fontButtonText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#333',
     },
     loadingContainer: {
         flex: 1,
@@ -503,23 +544,6 @@ const styles = StyleSheet.create({
     },
     backButtonText: {
         color: '#6B7280',
-    },
-    fontSizeButton: {
-        position: 'absolute',
-        right: 10,
-        top: 10,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 8,
-    },
-    fontSizeButtonText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#333',
     },
     fontSizePicker: {
         backgroundColor: '#FFFFFF',
