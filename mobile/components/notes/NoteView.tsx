@@ -15,7 +15,8 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Markdown from 'react-native-markdown-display'
+import { WebView } from 'react-native-webview'
+import { marked } from 'marked'
 import { notesApi } from '@/lib/api'
 import { setClerkTokenGetter } from '@/lib/api/client'
 import type { Note } from '@/lib/api/types'
@@ -33,6 +34,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
   const [note, setNote] = useState<Note | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [webViewHeight, setWebViewHeight] = useState(400)
 
   // Set up Clerk token getter on mount
   useEffect(() => {
@@ -86,6 +88,24 @@ export default function NoteView({ noteId }: NoteViewProps) {
     return `${minutes} min read`
   }
 
+  // Convert Markdown to HTML
+  const convertToHTML = (content: string) => {
+    try {
+      // Check if content is already HTML (contains HTML tags)
+      if (content.includes('<p>') || content.includes('<div>') || content.includes('<h1>')) {
+        return content
+      }
+      // Convert Markdown to HTML
+      return marked(content, {
+        breaks: true,
+        gfm: true
+      }) as string
+    } catch (error) {
+      console.error('Error converting markdown to HTML:', error)
+      return content
+    }
+  }
+
   const actionChips = [
     { id: 1, icon: 'globe', label: t('note.translate') },
     { id: 2, icon: 'file-text', label: t('note.transcript') },
@@ -93,7 +113,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
   ]
 
   const studyTools = [
-    { id: 1, icon: 'BookOpen', iconType: 'lucide', label: t('note.editNote'), color: '#FFFFFF', bgColor: '#FF6900'},
+    { id: 1, icon: 'BookOpen', iconType: 'lucide', label: t('note.editNote'), color: '#FFFFFF', bgColor: '#FF6900' },
     { id: 2, icon: 'message-square', iconType: 'feather', label: t('note.chat'), color: '#FFFFFF', bgColor: '#AD46FF' },
     { id: 3, icon: 'brain', iconType: 'lucide', label: t('note.takeQuiz'), color: '#FFFFFF', bgColor: '#F6339A' },
     { id: 4, icon: 'square', iconType: 'feather', label: t('note.flashcards'), color: '#FFFFFF', bgColor: '#00D3F3' },
@@ -119,7 +139,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
     if (toolId === 3) { // Take quiz
       router.push(`/notes/${noteId}/quiz`)
     } else if (toolId === 1) { // Edit note
-      console.log('Edit note pressed')
+      router.push(`/notes/${noteId}/edit`)
     } else if (toolId === 2) { // Chat
       router.push(`/notes/${noteId}/chat`)
     } else if (toolId === 4) { // Flashcards
@@ -284,9 +304,179 @@ export default function NoteView({ noteId }: NoteViewProps) {
             {/* Overview Section */}
             <View style={styles.overviewSection}>
               <Text style={styles.overviewTitle}>Overview</Text>
-              <Markdown style={markdownStyles}>
-                {displayContent}
-              </Markdown>
+              <WebView
+                originWhitelist={['*']}
+                source={{
+                  html: `
+                    <!DOCTYPE html>
+                    <html>
+                      <head>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                        <style>
+                          * {
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                          }
+                          body {
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                            font-size: 15px;
+                            line-height: 24px;
+                            color: #374151;
+                            padding: 0;
+                            margin: 0;
+                            overflow-x: hidden;
+                          }
+                          h1 {
+                            font-size: 24px;
+                            font-weight: 800;
+                            color: #111827;
+                            margin-top: 20px;
+                            margin-bottom: 12px;
+                          }
+                          h1:first-child {
+                            margin-top: 0;
+                          }
+                          h2 {
+                            font-size: 20px;
+                            font-weight: 700;
+                            color: #111827;
+                            margin-top: 16px;
+                            margin-bottom: 10px;
+                          }
+                          h3 {
+                            font-size: 18px;
+                            font-weight: 600;
+                            color: #111827;
+                            margin-top: 14px;
+                            margin-bottom: 8px;
+                          }
+                          p {
+                            font-size: 15px;
+                            line-height: 24px;
+                            color: #374151;
+                            margin-bottom: 12px;
+                          }
+                          a {
+                            color: #7C3AED;
+                            text-decoration: underline;
+                          }
+                          strong, b {
+                            font-weight: 700;
+                            color: #111827;
+                          }
+                          em, i {
+                            font-style: italic;
+                          }
+                          u {
+                            text-decoration: underline;
+                          }
+                          ul, ol {
+                            margin-bottom: 12px;
+                            padding-left: 20px;
+                          }
+                          li {
+                            margin-bottom: 6px;
+                            line-height: 24px;
+                          }
+                          code {
+                            background-color: #F3F4F6;
+                            color: #EC4899;
+                            padding: 2px 6px;
+                            border-radius: 4px;
+                            font-family: monospace;
+                            font-size: 14px;
+                          }
+                          pre {
+                            background-color: #F9FAFB;
+                            padding: 12px;
+                            border-radius: 8px;
+                            border-left: 3px solid #7C3AED;
+                            margin-bottom: 12px;
+                            overflow-x: auto;
+                          }
+                          pre code {
+                            background-color: transparent;
+                            padding: 0;
+                            color: #374151;
+                          }
+                          blockquote {
+                            background-color: #F3F4F6;
+                            border-left: 4px solid #7C3AED;
+                            padding-left: 12px;
+                            padding-top: 8px;
+                            padding-bottom: 8px;
+                            margin-bottom: 12px;
+                          }
+                          table {
+                            border: 1px solid #E5E7EB;
+                            border-radius: 8px;
+                            margin-bottom: 12px;
+                            width: 100%;
+                            border-collapse: collapse;
+                          }
+                          th {
+                            font-weight: 700;
+                            padding: 8px;
+                            border-bottom: 2px solid #E5E7EB;
+                            background-color: #F9FAFB;
+                            text-align: left;
+                          }
+                          td {
+                            padding: 8px;
+                            border-bottom: 1px solid #F3F4F6;
+                          }
+                          hr {
+                            background-color: #E5E7EB;
+                            height: 1px;
+                            border: none;
+                            margin: 16px 0;
+                          }
+                          img {
+                            max-width: 100%;
+                            height: auto;
+                            display: block;
+                            margin: 12px 0;
+                          }
+                        </style>
+                      </head>
+                      <body>
+                        ${convertToHTML(displayContent)}
+                        <script>
+                          // Send height to React Native
+                          function sendHeight() {
+                            const height = document.body.scrollHeight;
+                            window.ReactNativeWebView.postMessage(JSON.stringify({ height }));
+                          }
+                          
+                          // Send height when content loads
+                          window.addEventListener('load', sendHeight);
+                          
+                          // Send height after a short delay to ensure all content is rendered
+                          setTimeout(sendHeight, 100);
+                          setTimeout(sendHeight, 500);
+                        </script>
+                      </body>
+                    </html>
+                  `
+                }}
+                style={[styles.webView, { height: webViewHeight }]}
+                scrollEnabled={false}
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
+                onMessage={(event) => {
+                  try {
+                    const data = JSON.parse(event.nativeEvent.data);
+                    if (data.height) {
+                      setWebViewHeight(data.height + 20); // Add some padding
+                    }
+                  } catch (e) {
+                    console.log('Error parsing WebView message:', e);
+                  }
+                }}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+              />
             </View>
 
             {/* Bottom spacing */}
@@ -498,6 +688,9 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: '#374151',
   },
+  webView: {
+    backgroundColor: 'transparent',
+  },
   homeIndicator: {
     height: 6,
     backgroundColor: '#E6E6F0',
@@ -557,122 +750,4 @@ const styles = StyleSheet.create({
   },
 })
 
-const markdownStyles = StyleSheet.create({
-  body: {
-    fontSize: 15,
-    lineHeight: 24,
-    color: '#374151',
-  },
-  heading1: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#111827',
-    marginTop: 20,
-    marginBottom: 12,
-  },
-  heading2: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    marginTop: 16,
-    marginBottom: 10,
-  },
-  heading3: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginTop: 14,
-    marginBottom: 8,
-  },
-  paragraph: {
-    fontSize: 15,
-    lineHeight: 24,
-    color: '#374151',
-    marginBottom: 12,
-  },
-  link: {
-    color: '#7C3AED',
-    textDecorationLine: 'underline' as const,
-  },
-  strong: {
-    fontWeight: '700',
-    color: '#111827',
-  },
-  em: {
-    fontStyle: 'italic' as const,
-  },
-  bullet_list: {
-    marginBottom: 12,
-  },
-  ordered_list: {
-    marginBottom: 12,
-  },
-  list_item: {
-    flexDirection: 'row' as const,
-    marginBottom: 6,
-  },
-  bullet_list_icon: {
-    fontSize: 15,
-    lineHeight: 24,
-    color: '#6B7280',
-    marginRight: 8,
-  },
-  code_inline: {
-    backgroundColor: '#F3F4F6',
-    color: '#EC4899',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    fontFamily: 'monospace',
-    fontSize: 14,
-  },
-  code_block: {
-    backgroundColor: '#F9FAFB',
-    padding: 12,
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#7C3AED',
-    marginBottom: 12,
-  },
-  fence: {
-    backgroundColor: '#F9FAFB',
-    padding: 12,
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#7C3AED',
-    marginBottom: 12,
-  },
-  blockquote: {
-    backgroundColor: '#F3F4F6',
-    borderLeftWidth: 4,
-    borderLeftColor: '#7C3AED',
-    paddingLeft: 12,
-    paddingVertical: 8,
-    marginBottom: 12,
-  },
-  table: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  thead: {
-    backgroundColor: '#F9FAFB',
-  },
-  th: {
-    fontWeight: '700',
-    padding: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: '#E5E7EB',
-  },
-  td: {
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  hr: {
-    backgroundColor: '#E5E7EB',
-    height: 1,
-    marginVertical: 16,
-  },
-})
+
