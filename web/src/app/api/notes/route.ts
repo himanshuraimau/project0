@@ -90,6 +90,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
+    // Note: This endpoint is typically called after transcript creation,
+    // but we still check the free tier limit for consistency
+    // Import at top if not already imported
+    const { FeatureGateService } = await import('@/lib/feature-gate-service');
+    const accessCheck = await FeatureGateService.checkNoteCreationAccess();
+    
+    if (!accessCheck.allowed) {
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: accessCheck.message || 'Unable to create note',
+        message: accessCheck.message,
+        // @ts-ignore - adding extra fields for client
+        notesUsed: accessCheck.notesUsed,
+        notesLimit: accessCheck.notesLimit,
+        upgradeUrl: accessCheck.upgradeUrl || '/pricing',
+      };
+      return NextResponse.json(errorResponse, { status: accessCheck.statusCode });
+    }
+
     const note = await noteService.saveNote({
       title,
       content,

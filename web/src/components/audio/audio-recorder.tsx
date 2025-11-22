@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, Loader2, Play, Square } from "lucide-react";
@@ -24,6 +25,7 @@ export default function AudioRecorder({
   onTranscriptionComplete,
   onClose,
 }: AudioRecorderProps) {
+  const router = useRouter();
   const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -140,7 +142,11 @@ export default function AudioRecorder({
         const errorData = await response.json();
         
         // Handle specific error types
-        if (response.status === 413) {
+        if (response.status === 403 && errorData.error === 'FREE_TIER_LIMIT_REACHED') {
+          // Redirect to pricing page for free tier limit
+          router.push(errorData.upgradeUrl || '/pricing?reason=note-limit');
+          return;
+        } else if (response.status === 413) {
           throw new Error(`File too large: ${errorData.error || 'Audio file exceeds 25MB limit'}`);
         } else if (response.status === 402) {
           throw new Error('Insufficient credits to process audio');

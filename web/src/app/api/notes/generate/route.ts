@@ -29,8 +29,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    // Notes from existing transcripts are now free - no credit check needed
-    // Only YouTube video processing (transcription + notes) costs 1 credit
+    // Check note creation access (allows free tier: 3 notes)
+    const { FeatureGateService } = await import('@/lib/feature-gate-service');
+    const accessCheck = await FeatureGateService.checkNoteCreationAccess();
+    
+    if (!accessCheck.allowed) {
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: accessCheck.message || 'Unable to create note',
+        message: accessCheck.message,
+        // @ts-ignore - adding extra fields for client
+        notesUsed: accessCheck.notesUsed,
+        notesLimit: accessCheck.notesLimit,
+        upgradeUrl: accessCheck.upgradeUrl || '/pricing',
+      };
+      return NextResponse.json(errorResponse, { status: accessCheck.statusCode });
+    }
 
     // Generate AI note from the transcript
     const note = await noteService.generateAINote(transcriptId, userId || undefined);

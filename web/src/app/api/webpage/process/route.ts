@@ -38,14 +38,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check subscription access
-    const accessCheck = await FeatureGateService.checkAccessForAPI();
+    // Check note creation access (allows free tier: 3 notes)
+    const accessCheck = await FeatureGateService.checkNoteCreationAccess();
     if (!accessCheck.allowed) {
       return NextResponse.json(
         { 
-          error: accessCheck.message || 'Active subscription required',
-          code: 'SUBSCRIPTION_REQUIRED',
-          upgradeUrl: '/dashboard',
+          error: accessCheck.message || 'Unable to create note',
+          code: accessCheck.error,
+          notesUsed: accessCheck.notesUsed,
+          notesLimit: accessCheck.notesLimit,
+          upgradeUrl: accessCheck.upgradeUrl || '/pricing',
         },
         { status: accessCheck.statusCode }
       );

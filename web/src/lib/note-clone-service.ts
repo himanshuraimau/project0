@@ -8,10 +8,15 @@ export class NoteCloneService {
    * Clone a note to user's account
    */
   static async cloneNote(token: string, userId: string) {
-    // Verify user has active subscription
-    const hasSubscription = await SubscriptionService.hasActiveSubscription(userId);
-    if (!hasSubscription) {
-      throw new Error('Active subscription required to save notes');
+    // Check if user can create more notes (free tier: 3 notes, subscription: unlimited)
+    const { FeatureGateService } = await import('@/lib/feature-gate-service');
+    const accessCheck = await FeatureGateService.canCreateNote(userId);
+    
+    if (!accessCheck.allowed) {
+      if (accessCheck.reason === 'FREE_TIER_LIMIT_REACHED') {
+        throw new Error(`You've reached the free tier limit of ${accessCheck.notesLimit} notes. Upgrade to Pro for unlimited notes.`);
+      }
+      throw new Error('Unable to save note to your account');
     }
 
     // Get share link and validate

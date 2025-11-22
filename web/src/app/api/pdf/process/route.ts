@@ -79,15 +79,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check subscription access using FeatureGateService
-    const accessCheck = await FeatureGateService.checkAccessForAPI();
+    // Check note creation access (allows free tier: 3 notes)
+    const accessCheck = await FeatureGateService.checkNoteCreationAccess();
     if (!accessCheck.allowed) {
       return NextResponse.json(
         { 
           success: false,
           error: accessCheck.error,
           message: accessCheck.message,
-          upgradeUrl: '/dashboard', // Redirect to dashboard to subscribe
+          notesUsed: accessCheck.notesUsed,
+          notesLimit: accessCheck.notesLimit,
+          upgradeUrl: accessCheck.upgradeUrl || '/pricing',
         },
         { status: accessCheck.statusCode }
       );
