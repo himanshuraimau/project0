@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 4,
   },
   aiBubble: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#eaeaeaff',
     borderTopLeftRadius: 4,
   },
   // Removed messageText, userMessageText, aiMessageText as they are replaced by Markdown styles
