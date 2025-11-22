@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useTranslation } from "react-i18next";
 import {
   StatusBar,
@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Share,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { notesApi } from "@/lib/api";
@@ -166,8 +167,37 @@ export default function QuizView({ noteId }: QuizViewProps) {
     }
   };
 
-  const handleDeleteQuiz = async () => {
+  const handleDeleteQuiz = async (skipConfirmation = false) => {
     if (isDeleting) return;
+
+    const performDelete = async () => {
+      setIsDeleting(true);
+      try {
+        await notesApi.deleteQuiz(noteId);
+        // Reset state to show empty state with generate button
+        setQuiz(null);
+        setQuestions([]);
+        setCurrentQuestion(0);
+        setSelectedAnswer(null);
+        setCorrectAnswers(0);
+        setStreak(0);
+        setQuizState("initial");
+        setShowExplanation(false);
+        setLoading(false);
+        setError(null);
+      } catch (err: any) {
+        console.error("Failed to delete quiz:", err);
+        setError(err.message || "Failed to delete quiz");
+        throw err;
+      } finally {
+        setIsDeleting(false);
+      }
+    };
+
+    if (skipConfirmation) {
+      await performDelete();
+      return;
+    }
 
     // Confirm deletion with native alert
     Alert.alert(
@@ -181,28 +211,7 @@ export default function QuizView({ noteId }: QuizViewProps) {
         {
           text: "Delete",
           style: "destructive",
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              await notesApi.deleteQuiz(noteId);
-              // Reset state to show empty state with generate button
-              setQuiz(null);
-              setQuestions([]);
-              setCurrentQuestion(0);
-              setSelectedAnswer(null);
-              setCorrectAnswers(0);
-              setStreak(0);
-              setQuizState("initial");
-              setShowExplanation(false);
-              setLoading(false);
-              setError(null);
-            } catch (err: any) {
-              console.error("Failed to delete quiz:", err);
-              setError(err.message || "Failed to delete quiz");
-            } finally {
-              setIsDeleting(false);
-            }
-          },
+          onPress: performDelete,
         },
       ]
     );
@@ -273,6 +282,42 @@ export default function QuizView({ noteId }: QuizViewProps) {
     return questions.length;
   };
 
+  const { user } = useUser();
+
+  const handleShare = async () => {
+    try {
+      const score = getScorePercentage();
+      const total = getTotalQuestions();
+      const wrong = total - correctAnswers;
+      const time = getElapsedTime();
+
+      const name = user?.firstName || "Someone";
+      const message = `${name} just scored ${score}% on my quiz! 🎯\n\n` +
+        `✅ Correct: ${correctAnswers}/${total}\n` +
+        `❌ Wrong: ${wrong}/${total}\n` +
+        `⏱️ Time: ${time}\n\n` +
+        `Great job!`;
+
+      await Share.share({
+        message,
+      });
+    } catch (error: any) {
+      Alert.alert(error.message);
+    }
+  };
+
+  const handleCreateNewQuiz = async () => {
+    try {
+      setLoading(true);
+      await handleDeleteQuiz(true);
+      await generateQuiz();
+    } catch (error: any) {
+      console.error("Failed to create new quiz:", error);
+      Alert.alert("Error", "Failed to create new quiz");
+      setLoading(false);
+    }
+  };
+
   // Show loading state
   if (loading) {
     return (
@@ -332,12 +377,12 @@ export default function QuizView({ noteId }: QuizViewProps) {
           >
             {/* Ghost Icon */}
             <View style={styles.ghostIconContainer}>
-              
-                <Image 
-                  source={require("@/assets/images/main-logo.png")} 
-                  style={styles.ghostIcon}
-                  resizeMode="contain"
-                />
+
+              <Image
+                source={require("@/assets/images/main-logo.png")}
+                style={styles.ghostIcon}
+                resizeMode="contain"
+              />
             </View>
 
             {/* Score */}
@@ -409,7 +454,10 @@ export default function QuizView({ noteId }: QuizViewProps) {
             </View>
 
             {/* Action Buttons */}
-            <TouchableOpacity style={styles.primaryActionButton}>
+            <TouchableOpacity
+              style={styles.primaryActionButton}
+              onPress={handleCreateNewQuiz}
+            >
               <Feather
                 name="refresh-cw"
                 size={20}
@@ -428,7 +476,10 @@ export default function QuizView({ noteId }: QuizViewProps) {
               >
                 <Text style={styles.secondaryActionButtonText}>Try Again</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.secondaryActionButton}>
+              <TouchableOpacity
+                style={styles.secondaryActionButton}
+                onPress={handleShare}
+              >
                 <Feather
                   name="share-2"
                   size={18}
@@ -536,7 +587,7 @@ export default function QuizView({ noteId }: QuizViewProps) {
             </Text>
           </View>
         </View>
-        
+
         {/* Header bottom line */}
         <View style={styles.headerLine} />
 
@@ -547,7 +598,7 @@ export default function QuizView({ noteId }: QuizViewProps) {
               Question {currentQuestion + 1}
             </Text>
           </View>
-          
+
           {/* Progress Indicator */}
           <View style={styles.progressIndicator}>
             <View style={styles.progressDotFilled} />
