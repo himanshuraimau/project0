@@ -17,6 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { notesApi } from '@/lib/api'
 import { setClerkTokenGetter } from '@/lib/api/client'
+import BackButton from '@/components/ui/BackButton'
 
 interface FlashcardViewProps {
   noteId: string
@@ -66,21 +67,21 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
       setLoading(true)
       setError(null)
       const response = await notesApi.getFlashcards(noteId)
-      
+
       console.log('Flashcard response:', response)
       console.log('Flashcard content:', response?.content)
       console.log('Content type:', typeof response?.content)
-      
+
       if (response && response.content) {
-        const content = typeof response.content === 'string' 
-          ? JSON.parse(response.content) 
+        const content = typeof response.content === 'string'
+          ? JSON.parse(response.content)
           : response.content
-        
+
         console.log('Parsed flashcard content:', content)
         console.log('Is array?', Array.isArray(content))
-        
+
         let flashcardsArray: any[] = []
-        
+
         // Handle multiple possible formats
         if (Array.isArray(content)) {
           // Format 1: Direct array [{ id, question, answer }, ...]
@@ -97,17 +98,17 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
           setTimeout(() => generateFlashcards(), 500)
           return
         }
-        
+
         // Map question/answer to front/back if needed
         const normalizedFlashcards = flashcardsArray.map((card: any) => ({
           id: card.id,
           front: card.front || card.question || '',
           back: card.back || card.answer || ''
         }))
-        
+
         console.log('Normalized flashcards:', normalizedFlashcards.length, 'cards')
         console.log('First card:', normalizedFlashcards[0])
-        
+
         if (normalizedFlashcards.length > 0) {
           setFlashcards(normalizedFlashcards)
           setFlashcardState('front')
@@ -142,19 +143,19 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
       setIsGenerating(true)
       setError(null)
       const response = await notesApi.generateFlashcards({ noteId })
-      
+
       console.log('Generated flashcard response:', response)
       console.log('Generated content:', response?.content)
-      
+
       if (response && response.content) {
-        const content = typeof response.content === 'string' 
-          ? JSON.parse(response.content) 
+        const content = typeof response.content === 'string'
+          ? JSON.parse(response.content)
           : response.content
-        
+
         console.log('Parsed generated content:', content)
-        
+
         let flashcardsArray: any[] = []
-        
+
         // Handle multiple possible formats
         if (Array.isArray(content)) {
           // Format 1: Direct array [{ id, question, answer }, ...]
@@ -171,16 +172,16 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
           setIsGenerating(false)
           return
         }
-        
+
         // Map question/answer to front/back if needed
         const normalizedFlashcards = flashcardsArray.map((card: any) => ({
           id: card.id,
           front: card.front || card.question || '',
           back: card.back || card.answer || ''
         }))
-        
+
         console.log('Generated normalized flashcards:', normalizedFlashcards.length, 'cards')
-        
+
         if (normalizedFlashcards.length > 0) {
           setFlashcards(normalizedFlashcards)
           setFlashcardState('front')
@@ -263,7 +264,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
       const totalAnswered = correctAnswers + wrongAnswers + 1
       const finalCorrect = flashcardState === 'back' ? correctAnswers : correctAnswers + 1
       const percentage = Math.round((finalCorrect / totalAnswered) * 100)
-      
+
       if (percentage >= 70) {
         setFlashcardState('success')
       } else {
@@ -331,9 +332,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Feather name="arrow-left" size={24} color="#000" />
-            </TouchableOpacity>
+            <BackButton />
           </View>
           <View style={styles.errorContainer}>
             <Feather name="alert-circle" size={48} color="#EF4444" />
@@ -362,7 +361,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
             <Text style={styles.errorSubtitle}>
               Generate flashcards from this note to help you study
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.generateButton}
               onPress={generateFlashcards}
               disabled={loading}
@@ -376,7 +375,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                 </>
               )}
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.backButtonError}
               onPress={() => router.back()}
             >
@@ -401,50 +400,43 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Feather name="arrow-left" size={24} color="#000" />
-          </TouchableOpacity>
-          {flashcards.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleDeleteFlashcards} 
-              style={[styles.deleteButton, isDeleting && styles.deleteButtonDisabled]}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <ActivityIndicator size="small" color="#EF4444" />
-              ) : (
-                <Feather name="trash-2" size={20} color="#EF4444" />
-              )}
-            </TouchableOpacity>
-          )}
-          <Text style={styles.headerTime}>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</Text>
+          <BackButton />
+          {/* Pagination Dots */}
+          <View style={styles.paginationContainer}>
+            <View style={styles.paginationDots}>
+              {Array.from({ length: Math.min(5, flashcards.length) }).map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.paginationDot,
+                    index === Math.min(currentCard, 4) && styles.paginationDotActive,
+                  ]}
+                />
+              ))}
+            </View>
+          </View>
           <View style={styles.headerRight}>
-            <Feather name="wifi" size={16} color="#000" style={styles.headerIcon} />
-            <Feather name="battery" size={16} color="#000" />
+            {flashcards.length > 0 ? (
+              <TouchableOpacity
+                onPress={handleDeleteFlashcards}
+                style={[styles.deleteButton, isDeleting && styles.deleteButtonDisabled]}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="#EF4444" />
+                ) : (
+                  <Feather name="trash-2" size={20} color="#EF4444" />
+                )}
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: 40 }} />
+            )}
           </View>
         </View>
 
         <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
           {!isComplete && currentFlashcard && (
             <>
-              {/* Pagination Dots */}
-              <View style={styles.paginationContainer}>
-                <View style={styles.paginationDots}>
-                  {Array.from({ length: Math.min(5, flashcards.length) }).map((_, index) => (
-                    <View
-                      key={index}
-                      style={[
-                        styles.paginationDot,
-                        index === Math.min(currentCard, 4) && styles.paginationDotActive,
-                      ]}
-                    />
-                  ))}
-                </View>
-                <Text style={styles.cardCounter}>
-                  {currentCard + 1}/{flashcards.length}
-                </Text>
-              </View>
-
               {/* Card Info */}
               <View style={styles.cardInfo}>
                 <Text style={styles.cardInfoText}>{t('flashcards.cardNumber', { number: currentCard + 1 })}</Text>
@@ -476,7 +468,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                     onPress={moveToPreviousCard}
                     disabled={currentCard === 0}
                   >
-                    <Feather name="arrow-left" size={24} color={currentCard === 0 ? '#D1D5DB' : '#374151'} />
+                    <Feather name="arrow-left" size={16} color={currentCard === 0 ? '#D1D5DB' : '#374151'} />
                   </TouchableOpacity>
 
                   <TouchableOpacity style={styles.wrongButton} onPress={handleGotItWrong}>
@@ -491,7 +483,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                     style={styles.navigationButton}
                     onPress={moveToNextCard}
                   >
-                    <Feather name="arrow-right" size={24} color="#374151" />
+                    <Feather name="arrow-right" size={16} color="#374151" />
                   </TouchableOpacity>
                 </View>
               )}
@@ -502,18 +494,19 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
           {isSuccess && (
             <View style={styles.completionContainer}>
               <View style={[styles.completionCircle, styles.completionCircleSuccess]}>
-                <Feather name="award" size={64} color="#F59E0B" />
+                <Text style={styles.emojiIcon}>🏆</Text>
               </View>
 
-              <Text style={[styles.completionScore, styles.completionScoreSuccess]}>
-                {completionPercentage}%
-              </Text>
+              <View style={styles.completionScoreContainer}>
+                <Text style={styles.completionScoreText}>
+                  {completionPercentage}%
+                </Text>
+              </View>
 
               <Text style={styles.completionMessage}>{t('flashcards.nicelyDone')}</Text>
 
               <View style={styles.completionStats}>
                 <Text style={styles.completionStat}>{t('flashcards.percentCorrect', { percent: completionPercentage })}</Text>
-                <Text style={styles.completionStat}>{t('flashcards.completedIn', { time: getElapsedTime() })}</Text>
               </View>
 
               <View style={styles.completionActions}>
@@ -536,15 +529,16 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                 <Text style={styles.emojiIcon}>😅</Text>
               </View>
 
-              <Text style={[styles.completionScore, styles.completionScoreRetry]}>
-                {completionPercentage}%
-              </Text>
+              <View style={styles.completionScoreContainer}>
+                <Text style={[styles.completionScoreText, styles.completionScoreRetryText]}>
+                  {completionPercentage}%
+                </Text>
+              </View>
 
               <Text style={styles.completionMessage}>{t('flashcards.tryAgain')}</Text>
 
               <View style={styles.completionStats}>
                 <Text style={styles.completionStat}>{t('flashcards.percentCorrect', { percent: completionPercentage })}</Text>
-                <Text style={styles.completionStat}>{t('flashcards.completedIn', { time: getElapsedTime() })}</Text>
               </View>
 
               <View style={styles.completionActionsRetry}>
@@ -567,8 +561,6 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
           <View style={{ height: 40 }} />
         </ScrollView>
-
-        <View style={styles.homeIndicator} />
       </SafeAreaView>
     </View>
   )
@@ -589,14 +581,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: '#E5E7EB',
   },
-  backButton: {
-    padding: 8,
+  titleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+    textAlign: 'center',
+  },
+  headerRight: {
+    width: 48,
+    alignItems: 'flex-end',
   },
   deleteButton: {
     padding: 8,
-    marginLeft: 8,
   },
   deleteButtonDisabled: {
     opacity: 0.5,
@@ -606,11 +609,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
   },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   headerIcon: {
     marginRight: 4,
   },
@@ -619,7 +617,8 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 40,
+    flexGrow: 1,
   },
   paginationContainer: {
     flexDirection: 'row',
@@ -664,7 +663,8 @@ const styles = StyleSheet.create({
   flashcard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    padding: 40,
+    paddingVertical: 40,
+    paddingHorizontal: 20,
     minHeight: 300,
     justifyContent: 'center',
     alignItems: 'center',
@@ -676,10 +676,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   flashcardBack: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: '#F1FCF5',
   },
   flashcardText: {
-    fontSize: 20,
+    fontSize: 17,
     lineHeight: 32,
     textAlign: 'center',
     color: '#111827',
@@ -698,35 +698,55 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   navigationButton: {
-    width: 48,
-    height: 48,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.25,
+    borderColor: '#E5E7EB',
     borderRadius: 24,
-    backgroundColor: '#F3F4F6',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  wrongButton: {
+    width: 110,
+    height: 38,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 0.8,
+    borderColor: '#FFC9C9',
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  wrongButton: {
-    flex: 1,
-    backgroundColor: '#EF4444',
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
   wrongButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontFamily: 'Arimo',
+    fontStyle: 'normal',
+    fontWeight: '400',
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#E7000B',
   },
   correctButton: {
-    flex: 1,
-    backgroundColor: '#10B981',
-    borderRadius: 14,
-    paddingVertical: 16,
+    width: 110,
+    height: 38,
+    backgroundColor: '#00C950',
+    borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   correctButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Arimo',
+    fontStyle: 'normal',
+    fontWeight: '400',
+    fontSize: 14,
+    lineHeight: 20,
     color: '#FFFFFF',
   },
   completionContainer: {
@@ -735,35 +755,53 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   completionCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 128,
+    height: 128,
+    borderRadius: 64,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 32,
   },
   completionCircleSuccess: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: '#D0FAE5',
   },
   completionCircleRetry: {
     backgroundColor: '#FED7AA',
   },
   emojiIcon: {
-    fontSize: 72,
+    fontFamily: 'Arimo',
+    fontStyle: 'normal',
+    fontWeight: '400',
+    fontSize: 60,
+    lineHeight: 60,
+    textAlign: 'center',
+    color: '#0A0A0A',
+    width: 60,
+    height: 60,
   },
-  completionScore: {
-    fontSize: 56,
-    fontWeight: '700',
+  completionScoreContainer: {
+    width: 87,
+    height: 40,
+    backgroundColor: '#D0FAE5',
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  completionScoreSuccess: {
-    color: '#10B981',
+  completionScoreText: {
+    fontFamily: 'Arimo',
+    fontStyle: 'normal',
+    fontWeight: '400',
+    fontSize: 16,
+    lineHeight: 24,
+    textAlign: 'center',
+    color: '#009966',
   },
-  completionScoreRetry: {
+  completionScoreRetryText: {
     color: '#F97316',
   },
   completionMessage: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '600',
     color: '#111827',
     marginBottom: 24,
@@ -785,6 +823,8 @@ const styles = StyleSheet.create({
   completionActionsRetry: {
     width: '100%',
     gap: 12,
+    marginTop: 'auto',
+    paddingBottom: 20,
   },
   shareButton: {
     backgroundColor: '#7C3AED',
@@ -816,6 +856,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 18,
     gap: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   createNewButtonText: {
     fontSize: 16,
@@ -830,6 +872,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 18,
     gap: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   retakeButtonText: {
     fontSize: 16,
