@@ -95,7 +95,6 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
           console.error('Unknown format:', content)
           setError('Invalid flashcard format')
           setLoading(false)
-          setTimeout(() => generateFlashcards(), 500)
           return
         }
 
@@ -115,21 +114,20 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
           setLoading(false)  // Turn off loading after successful set
         } else {
           console.error('Empty flashcards array')
-          setError('No flashcards found')
+          setFlashcards([])
           setLoading(false)
-          setTimeout(() => generateFlashcards(), 500)
         }
       } else {
         console.error('No content in response')
-        setError('No flashcard data available')
+        setFlashcards([])
         setLoading(false)
-        setTimeout(() => generateFlashcards(), 500)
       }
     } catch (err: any) {
       console.error('Failed to fetch flashcards:', err)
       if (err.message?.includes('404') || err.message?.includes('not found')) {
-        console.log('Flashcards not found, generating...')
-        generateFlashcards()
+        console.log('Flashcards not found')
+        setFlashcards([])
+        setLoading(false)
       } else {
         setError(err.message || 'Failed to load flashcards')
         setLoading(false)
@@ -356,7 +354,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.errorContainer}>
-            <Feather name="layers" size={64} color="#7C3AED" />
+            <Feather name="help-circle" size={64} color="#7C3AED" />
             <Text style={styles.errorTitle}>No Flashcards Available</Text>
             <Text style={styles.errorSubtitle}>
               Generate flashcards from this note to help you study
