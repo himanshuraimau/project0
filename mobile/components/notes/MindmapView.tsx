@@ -380,11 +380,6 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                         {/* Title and Metadata */}
                         <View style={styles.titleSection}>
                             <Text style={styles.cardTitle}>{displayTitle}</Text>
-                            <View style={styles.metadataRow}>
-                                <Text style={styles.metadataText}>{formatDate(note.createdAt)}</Text>
-                                <View style={styles.metadataDot} />
-                                <Text style={styles.metadataText}>{calculateReadTime(displayContent)}</Text>
-                            </View>
                         </View>
 
                         {/* Show generating state */}
@@ -535,15 +530,9 @@ const styles = StyleSheet.create({
     card: {
         backgroundColor: '#FFFFFF',
         borderRadius: 16,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: '#F3F4F6',
+        paddingHorizontal: 10,
+        paddingVertical: 20,
+        marginBottom: 16
     },
     cardTitle: {
         fontSize: 20,
@@ -598,6 +587,7 @@ const styles = StyleSheet.create({
     },
     footer: {
         gap: 12,
+        marginTop: 20,
     },
     saveButton: {
         backgroundColor: '#7C3AED',
