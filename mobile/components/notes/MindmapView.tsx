@@ -66,8 +66,8 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             } catch (mindmapError: any) {
                 // If mindmap doesn't exist (404), generate a new one
                 if (mindmapError.message?.includes('404') || mindmapError.message?.includes('not found')) {
-                    console.log('No existing mindmap found, generating new one...');
-                    await handleGenerateMindmap();
+                    console.log('No existing mindmap found, waiting for user to generate...');
+                    // Do nothing, let the UI show the generate button
                 } else {
                     throw mindmapError;
                 }
@@ -377,11 +377,6 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                 <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
                     {/* Main Card */}
                     <View style={styles.card}>
-                        {/* Title and Metadata */}
-                        <View style={styles.titleSection}>
-                            <Text style={styles.cardTitle}>{displayTitle}</Text>
-                        </View>
-
                         {/* Show generating state */}
                         {isGenerating ? (
                             <View style={styles.loadingContainer}>
