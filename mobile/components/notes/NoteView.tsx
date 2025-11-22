@@ -71,10 +71,10 @@ export default function NoteView({ noteId }: NoteViewProps) {
   // Format date to readable format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     })
   }
 
@@ -127,7 +127,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
     } else if (toolId === 5) { // Podcast
       console.log('Podcast pressed')
     } else if (toolId === 6) { // MindMap
-      console.log('MindMap pressed')
+      router.push(`/notes/${noteId}/mindmap`)
     }
   }
 
@@ -165,13 +165,13 @@ export default function NoteView({ noteId }: NoteViewProps) {
           <View style={styles.errorContainer}>
             <Feather name="alert-circle" size={48} color="#EF4444" />
             <Text style={styles.errorText}>{error || t('note.failedToLoad')}</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.retryButton}
               onPress={fetchNote}
             >
               <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.backButtonError}
               onPress={() => router.back()}
             >
@@ -210,7 +210,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
             </View>
           </View>
 
-          <ScrollView 
+          <ScrollView
             style={styles.content}
             showsVerticalScrollIndicator={false}
           >
@@ -227,8 +227,8 @@ export default function NoteView({ noteId }: NoteViewProps) {
             {/* Action Chips */}
             <View style={styles.chipsContainer}>
               {actionChips.map((chip) => (
-                <TouchableOpacity 
-                  key={chip.id} 
+                <TouchableOpacity
+                  key={chip.id}
                   style={styles.chip}
                   onPress={() => handleChipPress(chip.id)}
                 >
@@ -243,10 +243,10 @@ export default function NoteView({ noteId }: NoteViewProps) {
               <Text style={styles.sectionTitle}>STUDY TOOLS</Text>
               <View style={styles.studyToolsGrid}>
                 {studyTools.map((tool) => (
-                  <TouchableOpacity 
-                    key={tool.id} 
+                  <TouchableOpacity
+                    key={tool.id}
                     style={[
-                      styles.studyToolCard, 
+                      styles.studyToolCard,
                       { backgroundColor: tool.bgColor }
                     ]}
                     onPress={() => handleStudyToolPress(tool.id)}
@@ -257,21 +257,21 @@ export default function NoteView({ noteId }: NoteViewProps) {
                     ]}>
                       {tool.iconType === 'lucide' ? (
                         tool.icon === 'BookOpen' ? (
-                          <BookOpen 
-                            size={24} 
-                            color={tool.color} 
+                          <BookOpen
+                            size={24}
+                            color={tool.color}
                           />
                         ) : tool.icon === 'brain' ? (
-                          <Brain 
-                            size={24} 
-                            color={tool.color} 
+                          <Brain
+                            size={24}
+                            color={tool.color}
                           />
                         ) : null
                       ) : (
-                        <Feather 
-                          name={tool.icon as any} 
-                          size={24} 
-                          color={tool.color} 
+                        <Feather
+                          name={tool.icon as any}
+                          size={24}
+                          color={tool.color}
                         />
                       )}
                     </View>
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     color: '#99A1AF',
     marginBottom: 16,
   },
-    studyToolsGrid: {
+  studyToolsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
