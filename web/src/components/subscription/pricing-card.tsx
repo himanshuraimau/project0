@@ -52,6 +52,9 @@ export function PricingCard() {
         <p className="text-muted-foreground">
           Everything you need to supercharge your learning
         </p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Start with 3 free notes, then upgrade for unlimited access
+        </p>
       </div>
 
       {/* Price */}

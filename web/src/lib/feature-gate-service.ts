@@ -2,8 +2,70 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { SubscriptionService } from './subscription-service';
+import { prisma } from './prisma';
+
+const FREE_TIER_NOTE_LIMIT = 3;
 
 export class FeatureGateService {
+  /**
+   * Get user's note count
+   */
+  static async getUserNoteCount(userId: string): Promise<number> {
+    try {
+      const count = await prisma.note.count({
+        where: { userId }
+      });
+      return count;
+    } catch (error) {
+      console.error('Error getting user note count:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Check if user can create more notes (free tier: 3 notes, subscription: unlimited)
+   */
+  static async canCreateNote(userId?: string): Promise<{ allowed: boolean; reason?: string; notesUsed?: number; notesLimit?: number }> {
+    try {
+      // If no userId provided, get from auth
+      let targetUserId = userId;
+      if (!targetUserId) {
+        const { userId: authUserId } = await auth();
+        if (!authUserId) return { allowed: false, reason: 'NOT_AUTHENTICATED' };
+        targetUserId = authUserId;
+      }
+
+      // Check if user has active subscription
+      const hasSubscription = await SubscriptionService.hasActiveSubscription(targetUserId);
+      
+      if (hasSubscription) {
+        return { allowed: true, reason: 'SUBSCRIPTION_ACTIVE' };
+      }
+
+      // Check free tier limit
+      const noteCount = await this.getUserNoteCount(targetUserId);
+      
+      if (noteCount >= FREE_TIER_NOTE_LIMIT) {
+        return { 
+          allowed: false, 
+          reason: 'FREE_TIER_LIMIT_REACHED',
+          notesUsed: noteCount,
+          notesLimit: FREE_TIER_NOTE_LIMIT
+        };
+      }
+
+      return { 
+        allowed: true, 
+        reason: 'FREE_TIER',
+        notesUsed: noteCount,
+        notesLimit: FREE_TIER_NOTE_LIMIT
+      };
+    } catch (error) {
+      console.error('Error checking note creation access:', error);
+      return { allowed: false, reason: 'ERROR' };
+    }
+  }
+
   /**
    * Check if user can access any feature (requires active subscription)
    */
@@ -83,6 +145,52 @@ export class FeatureGateService {
   }
 
   /**
+   * Check feature access for note creation (allows free tier)
+   */
+  static async checkNoteCreationAccess() {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return {
+        allowed: false,
+        statusCode: 401,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required',
+      };
+    }
+
+    const noteAccess = await this.canCreateNote(userId);
+
+    if (!noteAccess.allowed) {
+      if (noteAccess.reason === 'FREE_TIER_LIMIT_REACHED') {
+        return {
+          allowed: false,
+          statusCode: 403,
+          error: 'FREE_TIER_LIMIT_REACHED',
+          message: `You've reached the free tier limit of ${FREE_TIER_NOTE_LIMIT} notes. Upgrade to Pro for unlimited notes.`,
+          notesUsed: noteAccess.notesUsed,
+          notesLimit: noteAccess.notesLimit,
+          upgradeUrl: '/pricing?reason=note-limit',
+        };
+      }
+
+      return {
+        allowed: false,
+        statusCode: 403,
+        error: 'ACCESS_DENIED',
+        message: 'Unable to create note',
+      };
+    }
+
+    return {
+      allowed: true,
+      reason: noteAccess.reason,
+      notesUsed: noteAccess.notesUsed,
+      notesLimit: noteAccess.notesLimit,
+    };
+  }
+
+  /**
    * Check feature access and return appropriate response for API
    */
   static async checkAccessForAPI() {
@@ -142,18 +250,29 @@ export class FeatureGateService {
    */
   static async getFeatureAccessSummary() {
     const accessInfo = await this.getAccessInfo();
+    const { userId } = await auth();
+    
+    let noteAccess = { allowed: false, notesUsed: 0, notesLimit: FREE_TIER_NOTE_LIMIT };
+    if (userId) {
+      noteAccess = await this.canCreateNote(userId);
+    }
 
     return {
-      canUploadPDF: accessInfo.hasAccess,
-      canProcessAudio: accessInfo.hasAccess,
-      canProcessYouTube: accessInfo.hasAccess,
+      canUploadPDF: noteAccess.allowed,
+      canProcessAudio: noteAccess.allowed,
+      canProcessYouTube: noteAccess.allowed,
       canGenerateCourse: accessInfo.hasAccess,
-      canProcessWebpage: accessInfo.hasAccess,
-      canGenerateNotes: accessInfo.hasAccess,
+      canProcessWebpage: noteAccess.allowed,
+      canGenerateNotes: noteAccess.allowed,
       canViewNotes: true, // Always allow viewing existing notes
       canGenerateFlashcards: accessInfo.hasAccess,
       canGenerateQuizzes: accessInfo.hasAccess,
       subscription: accessInfo.subscription,
+      freeNotes: {
+        used: noteAccess.notesUsed || 0,
+        limit: noteAccess.notesLimit || FREE_TIER_NOTE_LIMIT,
+        remaining: Math.max(0, (noteAccess.notesLimit || FREE_TIER_NOTE_LIMIT) - (noteAccess.notesUsed || 0)),
+      },
     };
   }
 }

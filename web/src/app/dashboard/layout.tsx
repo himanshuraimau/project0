@@ -10,6 +10,7 @@ import {
   useDashboardRefresh,
 } from "@/contexts/dashboard-refresh-context";
 import { PaymentSuccessHandler } from "@/components/subscription/payment-success-handler";
+import { FreeTierBadge } from "@/components/subscription";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Course, Unit, Chapter } from "@prisma/client";
@@ -51,12 +52,13 @@ function DashboardMain({ children }: { children: React.ReactNode }) {
             isDashboardHome ? "" : "mb-0"
           }`}
         >
-          <div className="flex-shrink min-w-0">
+          <div className="flex items-center gap-3 flex-shrink min-w-0">
             {isDashboardHome && (
               <p className="text-[16px] leading-4 tracking-[-3%] font-medium dark:text-white text-black">
                 Welcome back!
               </p>
             )}
+            <FreeTierBadge />
           </div>
           {isDashboardHome && (
             <Input

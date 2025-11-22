@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,7 @@ export function WebpageProcessor({
   onProcessComplete,
   onClose,
 }: WebpageProcessorProps) {
+  const router = useRouter();
   const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
   const [url, setUrl] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -107,6 +109,12 @@ export function WebpageProcessor({
       const data = await response.json();
 
       if (!response.ok) {
+        // Check for free tier limit
+        if (response.status === 403 && data.code === 'FREE_TIER_LIMIT_REACHED') {
+          router.push(data.upgradeUrl || '/pricing?reason=note-limit');
+          return;
+        }
+
         if (response.status === 402) {
           throw new Error(
             "Insufficient credits. You need 1 credit to process a webpage."

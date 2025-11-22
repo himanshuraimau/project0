@@ -101,7 +101,7 @@ export function SubscriptionGate({
               </div>
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <span>7-day free trial included</span>
+                <span>Start with 3 free notes</span>
               </div>
             </div>
             

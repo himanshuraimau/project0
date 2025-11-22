@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import type { 
   Note, 
   ProcessPDFResult, 
@@ -11,6 +12,7 @@ import type {
 export function useNotes() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   // Process PDF and generate notes
   const processPDFWithNotes = async (
@@ -44,6 +46,12 @@ export function useNotes() {
       const result = await response.json();
 
       if (!result.success) {
+        // Check for free tier limit
+        if (response.status === 403 && result.error === 'FREE_TIER_LIMIT_REACHED') {
+          // Redirect to pricing page
+          router.push(result.upgradeUrl || '/pricing?reason=note-limit');
+          throw new Error(result.message || 'Free tier limit reached');
+        }
         if (response.status === 402) {
           throw new Error('INSUFFICIENT_CREDITS');
         }
@@ -77,6 +85,11 @@ export function useNotes() {
       const result = await response.json();
 
       if (!response.ok) {
+        // Check for free tier limit
+        if (response.status === 403 && result.error === 'FREE_TIER_LIMIT_REACHED') {
+          router.push(result.upgradeUrl || '/pricing?reason=note-limit');
+          throw new Error(result.message || 'Free tier limit reached');
+        }
         if (response.status === 402) {
           throw new Error('INSUFFICIENT_CREDITS');
         }
@@ -117,6 +130,11 @@ export function useNotes() {
       const result = await response.json();
 
       if (!response.ok) {
+        // Check for free tier limit
+        if (response.status === 403 && result.error === 'FREE_TIER_LIMIT_REACHED') {
+          router.push(result.upgradeUrl || '/pricing?reason=note-limit');
+          throw new Error(result.message || 'Free tier limit reached');
+        }
         if (response.status === 402) {
           throw new Error('INSUFFICIENT_CREDITS');
         }
@@ -157,6 +175,11 @@ export function useNotes() {
       const result = await response.json();
 
       if (!response.ok) {
+        // Check for free tier limit
+        if (response.status === 403 && result.error === 'FREE_TIER_LIMIT_REACHED') {
+          router.push(result.upgradeUrl || '/pricing?reason=note-limit');
+          throw new Error(result.message || 'Free tier limit reached');
+        }
         if (response.status === 402) {
           throw new Error('INSUFFICIENT_CREDITS');
         }
@@ -266,6 +289,11 @@ export function useNotes() {
       const result = await response.json();
 
       if (!result.success) {
+        // Check for free tier limit
+        if (response.status === 403 && result.error === 'FREE_TIER_LIMIT_REACHED') {
+          router.push(result.upgradeUrl || '/pricing?reason=note-limit');
+          throw new Error(result.message || 'Free tier limit reached');
+        }
         throw new Error(result.message || 'Failed to create note');
       }
 
