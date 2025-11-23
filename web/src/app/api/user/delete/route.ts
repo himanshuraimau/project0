@@ -1,11 +1,12 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { UserService } from '@/lib/user-service'
+import { getUserFromAuth } from '@/lib/auth-helper'
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request)
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },

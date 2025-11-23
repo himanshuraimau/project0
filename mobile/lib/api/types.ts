@@ -411,14 +411,16 @@ export interface UserPurchase {
 
 // ==================== Subscription API ====================
 export interface CreateSubscriptionRequest {
-  productId: string;
+  planId: string;
+  customerEmail: string;
+  customerName: string;
   successUrl: string;
   cancelUrl: string;
 }
 
 export interface CreateSubscriptionResponse {
-  subscriptionId: string;
   checkoutUrl: string;
+  sessionId: string;
 }
 
 export interface SubscriptionPortalResponse {

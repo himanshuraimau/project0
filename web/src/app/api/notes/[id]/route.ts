@@ -50,7 +50,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Pa
 
   } catch (error) {
     console.error('Error retrieving note:', error);
-    
+
     const errorResponse: ApiErrorResponse = {
       success: false,
       error: 'Failed to retrieve note',
@@ -78,7 +78,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Pa
 
     // First, check if the note exists and belongs to the user
     const existingNote = await noteService.getNote(id);
-    
+
     if (!existingNote) {
       const errorResponse: ApiErrorResponse = {
         success: false,
@@ -106,7 +106,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Pa
 
   } catch (error) {
     console.error('Error updating note:', error);
-    
+
     const errorResponse: ApiErrorResponse = {
       success: false,
       error: 'Failed to update note',
@@ -132,7 +132,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     // First, check if the note exists and belongs to the user
     const existingNote = await noteService.getNote(id);
-    
+
     if (!existingNote) {
       const errorResponse: ApiErrorResponse = {
         success: false,
@@ -152,6 +152,20 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     // Delete the note (this will also clean up associated podcasts and audio files)
     await noteService.deleteNote(id);
 
+    // Decrement user's notes count (ensure it doesn't go below 0)
+    const { prisma } = await import('@/lib/prisma');
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { notesCount: true }
+    });
+
+    if (user && user.notesCount > 0) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { notesCount: { decrement: 1 } }
+      });
+    }
+
     const response: ApiResponse = {
       success: true,
       message: 'Note and associated content deleted successfully',
@@ -160,7 +174,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   } catch (error) {
     console.error('Error deleting note:', error);
-    
+
     // Provide more specific error messages for different failure scenarios
     let errorMessage = 'Failed to delete note';
     let statusCode = 500;
@@ -176,7 +190,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         errorMessage = error.message;
       }
     }
-    
+
     const errorResponse: ApiErrorResponse = {
       success: false,
       error: errorMessage,

@@ -12,6 +12,7 @@ datasource db {
 model User {
   id           String        @id
   email        String?
+  notesCount   Int           @default(0)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   subscription Subscription?

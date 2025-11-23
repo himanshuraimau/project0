@@ -12,11 +12,11 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    
+
     // Enhanced file validation
     if (!file) {
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: 'No file provided',
           message: 'Please select a PDF file to upload.'
@@ -28,10 +28,10 @@ export async function POST(request: NextRequest) {
     // Validate file type and extension
     const allowedMimeTypes = ['application/pdf'];
     const allowedExtensions = ['.pdf'];
-    
+
     if (!allowedMimeTypes.includes(file.type)) {
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: 'Invalid file type',
           message: 'Only PDF files are allowed.'
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
     if (!allowedExtensions.includes(fileExtension)) {
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: 'Invalid file extension',
           message: 'File must have a .pdf extension.'
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const maxFileSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxFileSize) {
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: 'File too large',
           message: `File size must be less than ${maxFileSize / 1024 / 1024}MB.`
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: 'Unauthorized',
           message: 'Please sign in to process PDF files.'
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     const accessCheck = await FeatureGateService.checkNoteCreationAccess();
     if (!accessCheck.allowed) {
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: accessCheck.error,
           message: accessCheck.message,
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       buffer = Buffer.from(await file.arrayBuffer());
     } catch (error) {
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: 'File processing failed',
           message: 'Unable to read the uploaded file. Please try again.'
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Parse and validate options from form data
     const extractImages = formData.get('extractImages') === 'true';
     const maxPagesParam = formData.get('maxPages');
@@ -122,14 +122,14 @@ export async function POST(request: NextRequest) {
       parseResult = await parser.extractToDatabase(buffer, file.name, userId);
     } catch (parseError) {
       console.error('PDF parsing failed:', parseError);
-      
+
       // Don't deduct credits if parsing fails
       if (parseError instanceof Error) {
         const errorMessage = parseError.message.toLowerCase();
-        
+
         if (errorMessage.includes('invalid pdf') || errorMessage.includes('corrupted')) {
           return NextResponse.json(
-            { 
+            {
               success: false,
               error: 'Invalid PDF file',
               message: 'The uploaded file is not a valid PDF or is corrupted.'
@@ -137,10 +137,10 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        
+
         if (errorMessage.includes('timeout')) {
           return NextResponse.json(
-            { 
+            {
               success: false,
               error: 'Processing timeout',
               message: 'PDF processing timed out. Please try a smaller file.'
@@ -148,10 +148,10 @@ export async function POST(request: NextRequest) {
             { status: 408 }
           );
         }
-        
+
         if (errorMessage.includes('password')) {
           return NextResponse.json(
-            { 
+            {
               success: false,
               error: 'Password protected',
               message: 'Password-protected PDFs are not supported.'
@@ -160,9 +160,9 @@ export async function POST(request: NextRequest) {
           );
         }
       }
-      
+
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: 'PDF processing failed',
           message: parseError instanceof Error ? parseError.message : 'Failed to process PDF'
@@ -181,13 +181,20 @@ export async function POST(request: NextRequest) {
     if (generateNotes && parseResult.documentId) {
       try {
         noteResult = await noteService.generateAINote(parseResult.documentId, userId);
+
+        // Increment user's notes count after successful note creation
+        const { prisma } = await import('@/lib/prisma');
+        await prisma.user.update({
+          where: { id: userId },
+          data: { notesCount: { increment: 1 } }
+        });
       } catch (noteError) {
         console.error('Failed to generate AI notes:', noteError);
         // Don't fail the entire request if note generation fails
-        
+
         if (noteError instanceof Error) {
           const errorMessage = noteError.message.toLowerCase();
-          
+
           if (errorMessage.includes('overloaded') || errorMessage.includes('quota')) {
             noteResult = {
               modelOverloaded: true,
@@ -228,14 +235,14 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('PDF processing error:', error);
-    
+
     // Provide specific error responses
     if (error instanceof Error) {
       const errorMessage = error.message.toLowerCase();
-      
+
       if (errorMessage.includes('unauthorized') || errorMessage.includes('authentication')) {
         return NextResponse.json(
-          { 
+          {
             success: false,
             error: 'Authentication failed',
             message: 'Please sign in and try again.'
@@ -243,10 +250,10 @@ export async function POST(request: NextRequest) {
           { status: 401 }
         );
       }
-      
+
       if (errorMessage.includes('credits') || errorMessage.includes('insufficient')) {
         return NextResponse.json(
-          { 
+          {
             success: false,
             error: 'Insufficient credits',
             message: 'You need more credits to process PDF files.'
@@ -254,10 +261,10 @@ export async function POST(request: NextRequest) {
           { status: 402 }
         );
       }
-      
+
       if (errorMessage.includes('database') || errorMessage.includes('prisma')) {
         return NextResponse.json(
-          { 
+          {
             success: false,
             error: 'Database error',
             message: 'Unable to save PDF content. Please try again later.'
@@ -266,9 +273,9 @@ export async function POST(request: NextRequest) {
         );
       }
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         success: false,
         error: 'PDF processing failed',
         message: 'An unexpected error occurred while processing the PDF. Please try again.'

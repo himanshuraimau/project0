@@ -11,7 +11,7 @@ export class NoteCloneService {
     // Check if user can create more notes (free tier: 3 notes, subscription: unlimited)
     const { FeatureGateService } = await import('@/lib/feature-gate-service');
     const accessCheck = await FeatureGateService.canCreateNote(userId);
-    
+
     if (!accessCheck.allowed) {
       if (accessCheck.reason === 'FREE_TIER_LIMIT_REACHED') {
         throw new Error(`You've reached the free tier limit of ${accessCheck.notesLimit} notes. Upgrade to Pro for unlimited notes.`);
@@ -127,6 +127,12 @@ export class NoteCloneService {
       }
 
       return newNote;
+    });
+
+    // Increment user's notes count
+    await prisma.user.update({
+      where: { id: userId },
+      data: { notesCount: { increment: 1 } }
     });
 
     // Index the cloned note (non-blocking)

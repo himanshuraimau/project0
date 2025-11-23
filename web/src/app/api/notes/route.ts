@@ -3,6 +3,7 @@ import { NoteService } from '@/lib/note-service';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiSuccessResponse, ApiErrorResponse, CreateNoteRequest } from '@/lib/types';
 import { queueBackgroundTranslation } from '@/lib/translation-service';
+import { prisma } from '@/lib/prisma';
 
 const noteService = new NoteService();
 
@@ -32,18 +33,18 @@ export async function GET(request: NextRequest) {
       success: true,
       data: notes,
     };
-    
+
     return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error in GET /api/notes:', error);
-    
+
     let errorMessage = 'Failed to retrieve notes';
     let statusCode = 500;
-    
+
     if (error instanceof Error) {
       errorMessage = error.message;
-      
+
       if (error.message.includes('Database table') || error.message.includes('does not exist')) {
         statusCode = 503;
         errorMessage = 'The notes service is currently unavailable. Please contact support if this persists.';
@@ -56,13 +57,13 @@ export async function GET(request: NextRequest) {
         statusCode = 404;
       }
     }
-    
+
     const errorResponse: ApiErrorResponse = {
       success: false,
       error: 'Failed to retrieve notes',
       message: errorMessage
     };
-    
+
     return NextResponse.json(errorResponse, { status: statusCode });
   }
 }
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
     // Import at top if not already imported
     const { FeatureGateService } = await import('@/lib/feature-gate-service');
     const accessCheck = await FeatureGateService.checkNoteCreationAccess();
-    
+
     if (!accessCheck.allowed) {
       const errorResponse: ApiErrorResponse = {
         success: false,
@@ -116,6 +117,12 @@ export async function POST(request: NextRequest) {
       userId,
     });
 
+    // Increment user's notes count
+    await prisma.user.update({
+      where: { id: userId },
+      data: { notesCount: { increment: 1 } }
+    });
+
     // Queue background translation to all supported languages
     console.log('🌍 Queueing background translation for note:', note.id);
     queueBackgroundTranslation(note.id, note.title, note.content);
@@ -124,18 +131,18 @@ export async function POST(request: NextRequest) {
       success: true,
       data: note,
     };
-    
+
     return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error in POST /api/notes:', error);
-    
+
     const errorResponse: ApiErrorResponse = {
       success: false,
       error: 'Failed to create note',
       message: error instanceof Error ? error.message : 'Unknown error'
     };
-    
+
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }

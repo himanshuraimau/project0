@@ -43,6 +43,13 @@ export async function POST(request: NextRequest) {
     // Generate focused AI note from the transcript
     const note = await noteService.generateFocusedNote(transcriptId, noteType, userId || undefined);
 
+    // Increment user's notes count
+    const { prisma } = await import('@/lib/prisma');
+    await prisma.user.update({
+      where: { id: userId },
+      data: { notesCount: { increment: 1 } }
+    });
+
     // Queue background translation to all supported languages
     console.log('🌍 Queueing background translation for note:', note.id);
     queueBackgroundTranslation(note.id, note.title, note.content);
