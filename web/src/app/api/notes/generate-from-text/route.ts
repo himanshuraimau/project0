@@ -83,6 +83,12 @@ export async function POST(request: NextRequest) {
         userId,
       });
 
+      // Increment user's notes count
+      await prisma.user.update({
+        where: { id: userId },
+        data: { notesCount: { increment: 1 } }
+      });
+
       // Queue background translation to all supported languages
       console.log('🌍 Queueing background translation for note:', note.id);
       queueBackgroundTranslation(note.id, note.title, note.content);

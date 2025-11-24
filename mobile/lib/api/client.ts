@@ -32,7 +32,7 @@ apiClient.interceptors.request.use(
     console.log('🎯 URL:', `${config.baseURL || 'undefined'}${config.url || 'undefined'}`);
     console.log('🔧 Method:', config.method?.toUpperCase());
     console.log('📝 Headers:', config.headers);
-    
+
     try {
       // Try to get Clerk token first
       if (clerkGetToken) {
@@ -69,16 +69,16 @@ apiClient.interceptors.response.use(
   },
   async (error: AxiosError) => {
     console.error('❌ API Error:', error);
-    
+
     if (error.response) {
       console.error('🚨 Response Error Details:');
       console.error('📊 Status:', error.response.status);
       console.error('📝 Data:', error.response.data);
       console.error('🎯 URL:', error.config?.url);
-      
+
       // Server responded with error status
       const status = error.response.status;
-      
+
       switch (status) {
         case 401:
           console.log('🔐 Unauthorized - token may be invalid or expired');
@@ -104,7 +104,7 @@ apiClient.interceptors.response.use(
     } else {
       console.error('⚙️ Request setup error:', error.message);
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -114,13 +114,13 @@ export const handleApiResponse = <T>(response: any): T => {
   console.log('🔍 handleApiResponse called');
   console.log('📊 Response object:', response);
   console.log('📝 Response data:', response.data);
-  
+
   if (response.data.success) {
     console.log('✅ Response marked as successful');
     console.log('🎯 Returning data:', response.data.data);
     return response.data.data as T;
   }
-  
+
   console.error('❌ Response not marked as successful');
   console.error('💬 Error message:', response.data.message);
   throw new Error(response.data.message || 'API request failed');
@@ -131,8 +131,21 @@ export const handleApiError = (error: any): never => {
   console.error('🔥 handleApiError called with:', error);
   if (isAxiosError(error)) {
     const message = error.response?.data?.message || error.message;
+    const statusCode = error.response?.status;
+    const errorData = error.response?.data;
+
     console.error('🎯 Axios error message:', message);
-    throw new Error(message);
+    console.error('📊 Status code:', statusCode);
+    console.error('📦 Error data:', errorData);
+
+    // Create enhanced error with additional fields
+    const enhancedError: any = new Error(message);
+    enhancedError.statusCode = statusCode;
+    enhancedError.notesUsed = errorData?.notesUsed;
+    enhancedError.notesLimit = errorData?.notesLimit;
+    enhancedError.upgradeUrl = errorData?.upgradeUrl;
+
+    throw enhancedError;
   }
   console.error('🔥 Non-Axios error:', error);
   throw error;

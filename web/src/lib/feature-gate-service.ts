@@ -8,14 +8,15 @@ const FREE_TIER_NOTE_LIMIT = 3;
 
 export class FeatureGateService {
   /**
-   * Get user's note count
+   * Get user's note count from the database
    */
   static async getUserNoteCount(userId: string): Promise<number> {
     try {
-      const count = await prisma.note.count({
-        where: { userId }
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { notesCount: true }
       });
-      return count;
+      return user?.notesCount ?? 0;
     } catch (error) {
       console.error('Error getting user note count:', error);
       return 0;
@@ -37,25 +38,25 @@ export class FeatureGateService {
 
       // Check if user has active subscription
       const hasSubscription = await SubscriptionService.hasActiveSubscription(targetUserId);
-      
+
       if (hasSubscription) {
         return { allowed: true, reason: 'SUBSCRIPTION_ACTIVE' };
       }
 
       // Check free tier limit
       const noteCount = await this.getUserNoteCount(targetUserId);
-      
+
       if (noteCount >= FREE_TIER_NOTE_LIMIT) {
-        return { 
-          allowed: false, 
+        return {
+          allowed: false,
           reason: 'FREE_TIER_LIMIT_REACHED',
           notesUsed: noteCount,
           notesLimit: FREE_TIER_NOTE_LIMIT
         };
       }
 
-      return { 
-        allowed: true, 
+      return {
+        allowed: true,
         reason: 'FREE_TIER',
         notesUsed: noteCount,
         notesLimit: FREE_TIER_NOTE_LIMIT
@@ -98,7 +99,7 @@ export class FeatureGateService {
    */
   static async requireSubscription(userId?: string): Promise<void> {
     const hasAccess = await this.canAccessFeature(userId);
-    
+
     if (!hasAccess) {
       throw new Error('SUBSCRIPTION_REQUIRED');
     }
@@ -118,7 +119,7 @@ export class FeatureGateService {
     }
 
     const subscription = await SubscriptionService.getUserSubscription(userId);
-    
+
     if (!subscription) {
       return {
         hasAccess: false,
@@ -149,7 +150,7 @@ export class FeatureGateService {
    */
   static async checkNoteCreationAccess() {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return {
         allowed: false,
@@ -251,8 +252,12 @@ export class FeatureGateService {
   static async getFeatureAccessSummary() {
     const accessInfo = await this.getAccessInfo();
     const { userId } = await auth();
-    
-    let noteAccess = { allowed: false, notesUsed: 0, notesLimit: FREE_TIER_NOTE_LIMIT };
+
+    let noteAccess: { allowed: boolean; reason?: string; notesUsed?: number; notesLimit?: number } = {
+      allowed: false,
+      notesUsed: 0,
+      notesLimit: FREE_TIER_NOTE_LIMIT
+    };
     if (userId) {
       noteAccess = await this.canCreateNote(userId);
     }

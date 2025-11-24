@@ -20,10 +20,10 @@ export async function POST(request: NextRequest) {
 
     // Check if user already has an active subscription
     const existingSubscription = await SubscriptionService.getUserSubscription(userId);
-    
+
     if (existingSubscription && existingSubscription.status === 'ACTIVE') {
       return NextResponse.json(
-        { 
+        {
           error: 'You already have an active subscription',
           subscription: existingSubscription,
         },
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const dodoSubscription = await DodoSubscriptionService.createSubscription({
       userId,
       userEmail: email,
-      userName: user.firstName && user.lastName 
+      userName: user.firstName && user.lastName
         ? `${user.firstName} ${user.lastName}`
         : email.split('@')[0],
       billingAddress: {
@@ -88,16 +88,19 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      subscription: {
-        id: subscription.id,
-        status: subscription.status,
+      data: {
+        checkoutUrl: dodoSubscription.paymentLink,
+        sessionId: dodoSubscription.subscriptionId,
+        subscription: {
+          id: subscription.id,
+          status: subscription.status,
+        },
       },
-      paymentLink: dodoSubscription.paymentLink,
       message: 'Subscription created successfully. Please complete payment.',
     });
   } catch (error: any) {
     console.error('Error creating subscription:', error);
-    
+
     // Handle specific error cases
     if (error.message?.includes('already exists')) {
       return NextResponse.json(

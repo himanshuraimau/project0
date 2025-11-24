@@ -235,6 +235,14 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export interface NoteLimitError {
+  error: string;
+  message: string;
+  notesUsed?: number;
+  notesLimit?: number;
+  upgradeUrl?: string;
+}
+
 // ==================== Notes API ====================
 export interface CreateNoteRequest {
   title: string;
@@ -411,14 +419,16 @@ export interface UserPurchase {
 
 // ==================== Subscription API ====================
 export interface CreateSubscriptionRequest {
-  productId: string;
+  planId: string;
+  customerEmail: string;
+  customerName: string;
   successUrl: string;
   cancelUrl: string;
 }
 
 export interface CreateSubscriptionResponse {
-  subscriptionId: string;
   checkoutUrl: string;
+  sessionId: string;
 }
 
 export interface SubscriptionPortalResponse {

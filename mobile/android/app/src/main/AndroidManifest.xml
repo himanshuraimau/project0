@@ -24,6 +24,18 @@
         <action android:name="android.intent.action.MAIN"/>
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
+      <!-- Deep link for payment status -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="mobile"/>
+      </intent-filter>
     </activity>
+    <!-- InAppBrowser Activity for Dodo Payments checkout -->
+    <activity
+      android:name="com.proyecto26.inappbrowser.RNInAppBrowserActivity"
+      android:theme="@android:style/Theme.Dialog"
+      android:exported="false"/>
   </application>
 </manifest>

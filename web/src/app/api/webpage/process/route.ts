@@ -10,7 +10,7 @@ const noteService = new NoteService();
 export async function POST(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request);
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const accessCheck = await FeatureGateService.checkNoteCreationAccess();
     if (!accessCheck.allowed) {
       return NextResponse.json(
-        { 
+        {
           error: accessCheck.message || 'Unable to create note',
           code: accessCheck.error,
           notesUsed: accessCheck.notesUsed,
@@ -70,6 +70,13 @@ export async function POST(request: NextRequest) {
         console.log(`Generating AI notes for transcript: ${crawlResult.documentId}`);
         noteResult = await noteService.generateAINote(crawlResult.documentId, userId);
         console.log(`Successfully generated AI notes: ${noteResult.id}`);
+
+        // Increment user's notes count after successful note creation
+        const { prisma } = await import('@/lib/prisma');
+        await prisma.user.update({
+          where: { id: userId },
+          data: { notesCount: { increment: 1 } }
+        });
       } catch (noteError) {
         console.error('Failed to generate AI notes:', noteError);
         // Don't fail the entire request if note generation fails
@@ -102,12 +109,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Webpage processing error:', error);
-    
+
     // Handle specific error types
     if (error instanceof Error) {
       if (error.message.includes('Scrape.do API error')) {
         return NextResponse.json(
-          { 
+          {
             error: 'Failed to access webpage',
             message: 'The webpage could not be accessed. It might be down or blocking requests.',
             code: 'WEBPAGE_ACCESS_ERROR'
@@ -118,7 +125,7 @@ export async function POST(request: NextRequest) {
 
       if (error.message.includes('Invalid or unsafe URL')) {
         return NextResponse.json(
-          { 
+          {
             error: 'Invalid URL',
             message: 'The provided URL is invalid or points to a restricted location.',
             code: 'INVALID_URL'
@@ -129,7 +136,7 @@ export async function POST(request: NextRequest) {
 
       if (error.message.includes('content is too short')) {
         return NextResponse.json(
-          { 
+          {
             error: 'Insufficient content',
             message: 'The webpage does not contain enough readable content to process.',
             code: 'INSUFFICIENT_CONTENT'
@@ -140,7 +147,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to process webpage',
         message: error instanceof Error ? error.message : 'Unknown error occurred',
         code: 'PROCESSING_ERROR'

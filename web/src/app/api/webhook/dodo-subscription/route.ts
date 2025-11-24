@@ -121,14 +121,14 @@ async function handleSubscriptionActivated(payload: any) {
   const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   await SubscriptionService.activateSubscription(subscriptionId, {
-    currentPeriodStart: payload.data.current_period_start 
-      ? new Date(payload.data.current_period_start) 
+    currentPeriodStart: payload.data.current_period_start
+      ? new Date(payload.data.current_period_start)
       : now,
-    currentPeriodEnd: payload.data.current_period_end 
-      ? new Date(payload.data.current_period_end) 
+    currentPeriodEnd: payload.data.current_period_end
+      ? new Date(payload.data.current_period_end)
       : thirtyDaysFromNow,
-    nextBillingDate: payload.data.next_billing_date 
-      ? new Date(payload.data.next_billing_date) 
+    nextBillingDate: payload.data.next_billing_date
+      ? new Date(payload.data.next_billing_date)
       : thirtyDaysFromNow,
   });
 
@@ -137,8 +137,8 @@ async function handleSubscriptionActivated(payload: any) {
 
 async function handlePaymentSucceeded(payload: any) {
   const subscriptionId = payload.data.subscription_id;
-  const nextBillingDate = payload.data.next_billing_date 
-    ? new Date(payload.data.next_billing_date) 
+  const nextBillingDate = payload.data.next_billing_date
+    ? new Date(payload.data.next_billing_date)
     : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now as fallback
 
   // Renew subscription
@@ -174,8 +174,8 @@ async function handleSubscriptionExpired(payload: any) {
 
 async function handleSubscriptionRenewed(payload: any) {
   const subscriptionId = payload.data.subscription_id;
-  const nextBillingDate = payload.data.next_billing_date 
-    ? new Date(payload.data.next_billing_date) 
+  const nextBillingDate = payload.data.next_billing_date
+    ? new Date(payload.data.next_billing_date)
     : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now as fallback
 
   await SubscriptionService.renewSubscription(subscriptionId, nextBillingDate);

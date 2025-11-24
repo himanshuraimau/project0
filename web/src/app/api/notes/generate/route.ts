@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     // Check note creation access (allows free tier: 3 notes)
     const { FeatureGateService } = await import('@/lib/feature-gate-service');
     const accessCheck = await FeatureGateService.checkNoteCreationAccess();
-    
+
     if (!accessCheck.allowed) {
       const errorResponse: ApiErrorResponse = {
         success: false,
@@ -49,6 +49,13 @@ export async function POST(request: NextRequest) {
     // Generate AI note from the transcript
     const note = await noteService.generateAINote(transcriptId, userId || undefined);
 
+    // Increment user's notes count
+    const { prisma } = await import('@/lib/prisma');
+    await prisma.user.update({
+      where: { id: userId },
+      data: { notesCount: { increment: 1 } }
+    });
+
     // Queue background translation to all supported languages
     console.log('🌍 Queueing background translation for note:', note.id);
     queueBackgroundTranslation(note.id, note.title, note.content);
@@ -63,7 +70,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('AI note generation error:', error);
-    
+
     const errorResponse: ApiErrorResponse = {
       success: false,
       error: 'Failed to generate AI note',
