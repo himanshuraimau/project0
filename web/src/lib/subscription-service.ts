@@ -183,9 +183,16 @@ export class SubscriptionService {
    */
   static async hasActiveSubscription(userId: string): Promise<boolean> {
     try {
-      const subscription = await this.getUserSubscription(userId);
-      
+      let subscription = await this.getUserSubscription(userId);
+
       if (!subscription) return false;
+
+      // If subscription is PENDING, try to sync with Dodo to see if it's activated
+      if (subscription.status === 'PENDING') {
+        console.log('Subscription is PENDING, syncing with Dodo...');
+        subscription = await this.getSubscriptionWithSync(userId);
+        if (!subscription) return false;
+      }
 
       // Check if subscription is active
       if (subscription.status !== 'ACTIVE') return false;
@@ -210,7 +217,7 @@ export class SubscriptionService {
   static async currentUserHasActiveSubscription(): Promise<boolean> {
     const { userId } = await auth();
     if (!userId) return false;
-    
+
     return await this.hasActiveSubscription(userId);
   }
 
@@ -219,7 +226,7 @@ export class SubscriptionService {
    */
   static async getSubscriptionWithSync(userId: string) {
     const subscription = await this.getUserSubscription(userId);
-    
+
     if (!subscription) return null;
 
     // Sync with Dodo to get latest status
@@ -231,7 +238,7 @@ export class SubscriptionService {
       if (dodoSubscription) {
         // Update our database with latest info from Dodo
         const periodInfo = DodoSubscriptionService.getSubscriptionPeriodInfo(dodoSubscription);
-        
+
         await this.updateSubscriptionStatus(
           subscription.dodoSubscriptionId,
           dodoSubscription.status.toUpperCase() as SubscriptionStatus,
@@ -260,7 +267,7 @@ export class SubscriptionService {
       await prisma.subscription.delete({
         where: { userId },
       });
-      
+
       console.log('Subscription deleted for user:', userId);
     } catch (error) {
       console.error('Error deleting subscription:', error);
@@ -306,12 +313,12 @@ export class SubscriptionService {
    */
   static getDaysUntilEnd(subscription: any): number | null {
     if (!subscription?.currentPeriodEnd) return null;
-    
+
     const now = new Date();
     const end = new Date(subscription.currentPeriodEnd);
     const diffTime = end.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays;
   }
 
@@ -355,13 +362,13 @@ export class SubscriptionService {
   private static getDisplayStatus(subscription: any): string {
     const status = subscription.status;
     const isTrial = this.isInTrialPeriod(subscription);
-    
+
     if (status === 'ACTIVE') {
       if (isTrial) return 'Active (Trial)';
       if (subscription.cancelAtPeriodEnd) return 'Active (Cancelling)';
       return 'Active';
     }
-    
+
     const statusMap: Record<string, string> = {
       PENDING: 'Pending',
       ON_HOLD: 'Payment Issue',

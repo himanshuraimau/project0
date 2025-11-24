@@ -14,7 +14,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { InAppBrowser } from 'react-native-inappbrowser-reborn';
+import { useUser } from '@clerk/clerk-expo';
+import * as WebBrowser from 'expo-web-browser';
 import { Check } from 'lucide-react-native';
 import { createSubscription } from '@/lib/api/subscription';
 import { useSubscription } from '@/lib/contexts/SubscriptionContext';
@@ -54,6 +55,7 @@ const FEATURES = [
 ];
 
 export default function PaywallScreen() {
+    const { user } = useUser();
     const router = useRouter();
     const { isSubscribed, refreshSubscription } = useSubscription();
 
@@ -141,11 +143,11 @@ export default function PaywallScreen() {
         try {
             setIsLoading(true);
 
-            // Get user info from AsyncStorage
-            const userEmail = await AsyncStorage.getItem('userEmail');
-            const userName = await AsyncStorage.getItem('userName');
+            // Get user info from Clerk
+            const userEmail = user?.primaryEmailAddress?.emailAddress;
+            const userName = user?.fullName || user?.firstName || 'User';
 
-            if (!userEmail || !userName) {
+            if (!userEmail) {
                 Alert.alert(
                     'Error',
                     'User information not found. Please log in again.',
@@ -168,42 +170,14 @@ export default function PaywallScreen() {
 
             console.log('✅ Checkout session created:', response);
 
-            // Open checkout URL in InAppBrowser
-            if (await InAppBrowser.isAvailable()) {
-                const result = await InAppBrowser.open(response.checkoutUrl, {
-                    // iOS Options
-                    dismissButtonStyle: 'close',
-                    preferredBarTintColor: '#6366f1',
-                    preferredControlTintColor: 'white',
-                    readerMode: false,
-                    animated: true,
-                    modalPresentationStyle: 'fullScreen',
-                    modalTransitionStyle: 'coverVertical',
-                    modalEnabled: true,
-                    enableBarCollapsing: false,
-                    // Android Options
-                    showTitle: true,
-                    toolbarColor: '#6366f1',
-                    secondaryToolbarColor: 'black',
-                    navigationBarColor: 'black',
-                    navigationBarDividerColor: 'white',
-                    enableUrlBarHiding: true,
-                    enableDefaultShare: true,
-                    forceCloseOnRedirection: false,
-                    // Animations
-                    animations: {
-                        startEnter: 'slide_in_right',
-                        startExit: 'slide_out_left',
-                        endEnter: 'slide_in_left',
-                        endExit: 'slide_out_right',
-                    },
-                });
+            // Open checkout URL in WebBrowser
+            const result = await WebBrowser.openBrowserAsync(response.checkoutUrl, {
+                presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
+                toolbarColor: '#6366f1',
+                controlsColor: 'white',
+            });
 
-                console.log('📱 InAppBrowser result:', result);
-            } else {
-                // Fallback to external browser
-                Linking.openURL(response.checkoutUrl);
-            }
+            console.log('📱 WebBrowser result:', result);
         } catch (error: any) {
             console.error('❌ Subscription error:', error);
             Alert.alert(

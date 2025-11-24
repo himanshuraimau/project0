@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
-import { notesApi } from '@/lib/api';
+import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
 import { setClerkTokenGetter } from '@/lib/api/client';
 import * as DocumentPicker from 'expo-document-picker';
 import GenerateNote from '@/components/ui/GenerateNote';
@@ -26,7 +26,7 @@ try {
   Icon = require('react-native-vector-icons/MaterialCommunityIcons').default;
 } catch (e) {
   // fallback local Icon
-  Icon = ({name, size = 18, color = '#000', style}: any) => {
+  Icon = ({ name, size = 18, color = '#000', style }: any) => {
     const map: Record<string, string> = {
       close: '✕',
       'chevron-down': '▾',
@@ -37,7 +37,7 @@ try {
       person: '👤',
     };
     const glyph = map[name] ?? '◻️';
-    return <Text style={[{fontSize: size, color}, style]}>{glyph}</Text>;
+    return <Text style={[{ fontSize: size, color }, style]}>{glyph}</Text>;
   };
 }
 
@@ -48,9 +48,10 @@ type Props = {
   onNoteCreated?: () => void; // Callback to refresh notes list
 };
 
-const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline = false, onNoteCreated}) => {
+const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inline = false, onNoteCreated }) => {
   const router = useRouter();
   const { getToken } = useAuth();
+  const { generateNoteFromText } = useNoteCreation();
   const [internalVisible, setInternalVisible] = useState<boolean>(visibleProp ?? true);
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [titleValue, setTitleValue] = useState('');
@@ -74,7 +75,7 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
     const hasTextContent = textValue.trim().length > 0;
     const hasPDFs = selectedPDFs.length > 0;
     const hasTitle = titleValue.trim().length > 0;
-    
+
     // Validation: Must have content (text OR PDF)
     if (!hasTextContent && !hasPDFs) {
       Alert.alert('Missing Content', 'Please enter some text or select PDF files.');
@@ -87,7 +88,7 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
     try {
       let title = '';
       let text = '';
-      
+
       // Generate title if not provided
       if (hasTitle) {
         title = titleValue.trim();
@@ -97,16 +98,16 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
       } else {
         title = 'Untitled Note';
       }
-      
+
       // Generate content
       if (hasPDFs) {
         // Create note with PDF information
         // TODO: Implement actual PDF text extraction or upload to backend
         const pdfInfo = selectedPDFs.map(pdf => `[PDF: ${pdf.name}]`).join('\n\n');
-        text = hasTextContent 
+        text = hasTextContent
           ? `${textValue.trim()}\n\n--- Attached PDFs ---\n${pdfInfo}`
           : pdfInfo;
-        
+
         console.log('Creating note with PDFs:', selectedPDFs.map(p => p.name));
         console.log('PDF URIs for future processing:', selectedPDFs.map(p => p.uri));
       } else {
@@ -115,11 +116,17 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
 
       console.log('Creating note with:', { title, textLength: text.length });
 
-      // Use generateNoteFromText API - it handles transcript creation automatically
-      const response = await notesApi.generateNoteFromText({
+      // Use generateNoteFromText hook - it handles limits automatically
+      const response = await generateNoteFromText({
         title: title,
         text: text,
       });
+
+      if (!response) {
+        // Error was handled by hook (e.g. limit reached)
+        setLoading(false);
+        return;
+      }
 
       console.log('Note created successfully:', response.note.id);
       console.log('Transcript created:', response.transcript.id);
@@ -144,10 +151,10 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
               setTextValue('');
               setFolder('all_notes');
               setSelectedPDFs([]);
-              
+
               // Call refresh callback
               if (onNoteCreated) onNoteCreated();
-              
+
               close();
             },
           },
@@ -155,9 +162,8 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
       );
     } catch (err: any) {
       console.error('Failed to create note:', err);
-      console.error('Error details:', err.response?.data || err.message);
+      // Hook handles most errors, but if something slips through:
       setError(err.message || 'Failed to create note. Please try again.');
-      Alert.alert('Error', err.message || 'Failed to create note. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -178,7 +184,7 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
 
       // Store selected PDFs
       setSelectedPDFs(result.assets);
-      
+
       // Show success message
       const fileNames = result.assets.map(asset => asset.name).join(', ');
       Alert.alert(
@@ -229,20 +235,20 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
         <FolderSelect
           value={folder}
           onValueChange={(val: string) => setFolder(val)}
-          options={[{label: 'All notes', value: 'all_notes'}]}
+          options={[{ label: 'All notes', value: 'all_notes' }]}
         />
 
         {selectedPDFs.length > 0 && (
-          <View style={[styles.field, {marginTop: 10}]}>
+          <View style={[styles.field, { marginTop: 10 }]}>
             <Text style={styles.label}>Selected PDFs ({selectedPDFs.length})</Text>
             <View style={styles.pdfListContainer}>
               {selectedPDFs.map((pdf, index) => (
                 <View key={index} style={styles.pdfItem}>
-                  <Icon name="file" size={16} color="#7C3AED" style={{marginRight: 8}} />
+                  <Icon name="file" size={16} color="#7C3AED" style={{ marginRight: 8 }} />
                   <Text style={styles.pdfName} numberOfLines={1}>
                     {pdf.name}
                   </Text>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     onPress={() => {
                       setSelectedPDFs(prev => prev.filter((_, i) => i !== index));
                     }}
@@ -257,8 +263,8 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
         )}
 
         <View style={styles.actionsColumn}>
-          <TouchableOpacity 
-            style={[styles.importBtn, loading && styles.buttonDisabled]} 
+          <TouchableOpacity
+            style={[styles.importBtn, loading && styles.buttonDisabled]}
             activeOpacity={0.85}
             disabled={loading}
             onPress={handleImportPDF}
@@ -287,7 +293,7 @@ const UploadTextOrPDF: React.FC<Props> = ({visible: visibleProp, onClose, inline
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
         <TouchableOpacity style={styles.backdrop} onPress={close} />
-        <SafeAreaView style={{flex: 1}}>
+        <SafeAreaView style={{ flex: 1 }}>
           {inner}
         </SafeAreaView>
       </View>
@@ -325,14 +331,14 @@ const styles = StyleSheet.create({
     marginBottom: 7,
     marginHorizontal: 8,
   },
-  title: {color: '#111', fontSize: 20, fontWeight: '600'},
+  title: { color: '#111', fontSize: 20, fontWeight: '600' },
   separator: {
     height: 1,
     backgroundColor: '#e0e0e0',
     marginHorizontal: -40,
     width: Dimensions.get('window').width + 20,
   },
-  field: {marginTop: 8},
+  field: { marginTop: 8 },
   label: {
     fontFamily: 'Arimo',
     fontWeight: '700',
@@ -373,7 +379,7 @@ const styles = StyleSheet.create({
     minHeight: 120,
     color: '#111',
   },
-  folderRow: {flexDirection: 'row', alignItems: 'center'},
+  folderRow: { flexDirection: 'row', alignItems: 'center' },
   folderIconWrap: {
     width: 28,
     height: 28,
@@ -408,8 +414,8 @@ const styles = StyleSheet.create({
     padding: 4,
     marginLeft: 8,
   },
-  actionsRow: {flexDirection: 'row', justifyContent: 'space-between', marginTop: 18},
-  actionsColumn: {flexDirection: 'column', marginTop: 18},
+  actionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 18 },
+  actionsColumn: { flexDirection: 'column', marginTop: 18 },
   importBtn: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -440,7 +446,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 15,
     shadowColor: '#000000',
-    shadowOffset: {width: 0, height: 0},
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,

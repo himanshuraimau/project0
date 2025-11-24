@@ -235,6 +235,14 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export interface NoteLimitError {
+  error: string;
+  message: string;
+  notesUsed?: number;
+  notesLimit?: number;
+  upgradeUrl?: string;
+}
+
 // ==================== Notes API ====================
 export interface CreateNoteRequest {
   title: string;
