@@ -33,6 +33,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to save mindmaps to your photo library</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs access to save mindmaps to your photo library</string>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

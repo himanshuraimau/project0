@@ -10,15 +10,20 @@ import {
     Alert,
     Share,
     Platform,
+    TextInput,
+    KeyboardAvoidingView,
 } from 'react-native';
+import ViewShot, { captureRef } from 'react-native-view-shot';
+import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { Edit, ZoomIn, ZoomOut, Download, Share2 } from 'lucide-react-native';
+import { Edit, ZoomIn, ZoomOut, Download, Share2, Eye, Save } from 'lucide-react-native';
 import WebView from 'react-native-webview';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
+import * as Sharing from 'expo-sharing';
 import { notesApi } from '@/lib/api';
 import { setClerkTokenGetter } from '@/lib/api/client';
 import { getMindMapByNoteId, generateMindMap, deleteMindMap } from '@/lib/api/mindmap';
@@ -41,6 +46,10 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [markdownInput, setMarkdownInput] = useState('');
+    const viewShotRef = useRef(null);
+    const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
     // Set up Clerk token getter on mount
     useEffect(() => {
@@ -53,6 +62,13 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             fetchNoteAndMindmap();
         }
     }, [noteId]);
+
+    // Sync markdown input with mindmap data
+    useEffect(() => {
+        if (mindmap) {
+            setMarkdownInput(mindmap.mermaidCode);
+        }
+    }, [mindmap]);
 
     const fetchNoteAndMindmap = async () => {
         try {
@@ -98,6 +114,17 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         } finally {
             setIsGenerating(false);
         }
+    };
+
+    const handleMarkdownChange = (text: string) => {
+        setMarkdownInput(text);
+
+        // Debounce updates to the visualization (optional if we want to update mindmap object)
+        // For local preview, we use markdownInput directly in generateMarkmapHTML
+    };
+
+    const toggleEditMode = () => {
+        setIsEditing(!isEditing);
     };
 
     // Get translated content based on current language
@@ -204,7 +231,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                     spacingVertical: 15,
                     pan: true,
                     zoom: true,
-                    initialExpandLevel: 2,
+                    initialExpandLevel: -1,
                     color: (node) => {
                         const colors = ['#7C3AED', '#FF6B00', '#00B4D8', '#4A90E2', '#F03E89'];
                         return colors[node.depth % colors.length];
@@ -288,86 +315,52 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         console.log('Zoom out');
     };
 
+    const captureMindmapImage = async () => {
+        if (!viewShotRef.current) return null;
+
+        try {
+            const uri = await captureRef(viewShotRef, {
+                format: 'png',
+                quality: 1.0,
+                result: 'tmpfile',
+            });
+            return uri;
+        } catch (err) {
+            console.error('Failed to capture mindmap:', err);
+            return null;
+        }
+    };
+
     const handleSaveAsImage = async () => {
-        if (!webViewRef.current || isSaving) return;
+        if (isSaving) return;
 
         try {
             setIsSaving(true);
 
             // Request media library permissions
-            const { status } = await MediaLibrary.requestPermissionsAsync();
+            const { status } = await MediaLibrary.requestPermissionsAsync(true);
             if (status !== 'granted') {
                 Alert.alert('Permission Required', 'Please grant permission to save images to your photo library.');
                 setIsSaving(false);
                 return;
             }
 
-            // Inject JavaScript to capture the SVG and convert to PNG
-            const captureScript = `
-                (function() {
-                    try {
-                        const svg = document.getElementById('mindmap');
-                        if (!svg) {
-                            window.ReactNativeWebView.postMessage(JSON.stringify({ 
-                                type: 'error', 
-                                message: 'SVG element not found' 
-                            }));
-                            return;
-                        }
+            const uri = await captureMindmapImage();
+            if (!uri) {
+                throw new Error('Failed to capture mindmap image');
+            }
 
-                        // Get SVG dimensions
-                        const bbox = svg.getBBox();
-                        const width = bbox.width + 40;
-                        const height = bbox.height + 40;
+            // Save to media library
+            const asset = await MediaLibrary.createAssetAsync(uri);
+            await MediaLibrary.createAlbumAsync('Mindmaps', asset, false);
 
-                        // Create canvas
-                        const canvas = document.createElement('canvas');
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
+            Toast.show({
+                type: 'success',
+                text1: 'Saved to Gallery',
+                text2: 'Mindmap image saved successfully!',
+            });
+            setIsSaving(false);
 
-                        // Fill white background
-                        ctx.fillStyle = '#FFFFFF';
-                        ctx.fillRect(0, 0, width, height);
-
-                        // Serialize SVG
-                        const serializer = new XMLSerializer();
-                        let svgString = serializer.serializeToString(svg);
-                        
-                        // Create blob and convert to base64
-                        const img = new Image();
-                        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-                        const url = URL.createObjectURL(svgBlob);
-
-                        img.onload = function() {
-                            ctx.drawImage(img, 20, 20);
-                            const pngData = canvas.toDataURL('image/png');
-                            window.ReactNativeWebView.postMessage(JSON.stringify({ 
-                                type: 'image', 
-                                data: pngData 
-                            }));
-                            URL.revokeObjectURL(url);
-                        };
-
-                        img.onerror = function(err) {
-                            window.ReactNativeWebView.postMessage(JSON.stringify({ 
-                                type: 'error', 
-                                message: 'Failed to load image: ' + err 
-                            }));
-                        };
-
-                        img.src = url;
-                    } catch (error) {
-                        window.ReactNativeWebView.postMessage(JSON.stringify({ 
-                            type: 'error', 
-                            message: error.message 
-                        }));
-                    }
-                })();
-                true;
-            `;
-
-            webViewRef.current.injectJavaScript(captureScript);
         } catch (err: any) {
             console.error('Failed to save image:', err);
             Alert.alert('Error', 'Failed to save image: ' + err.message);
@@ -420,10 +413,21 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         if (!mindmap) return;
 
         try {
-            await Share.share({
-                message: mindmap.mermaidCode,
-                title: `Mindmap: ${displayTitle}`,
-            });
+            const uri = await captureMindmapImage();
+            if (!uri) {
+                Alert.alert('Error', 'Failed to capture mindmap for sharing');
+                return;
+            }
+
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(uri, {
+                    mimeType: 'image/png',
+                    dialogTitle: `Share Mindmap: ${displayTitle}`,
+                    UTI: 'public.png', // for iOS
+                });
+            } else {
+                Alert.alert('Error', 'Sharing is not available on this device');
+            }
         } catch (error: any) {
             console.error('Error sharing mindmap:', error);
             Alert.alert('Error', 'Failed to share mindmap');
@@ -527,17 +531,30 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                     <View style={styles.titleContainer}>
                         <Text style={styles.title}>MindMap</Text>
                     </View>
-                    <TouchableOpacity
-                        onPress={handleDeleteMindmap}
-                        style={[styles.headerButton, isDeleting && styles.headerButtonDisabled]}
-                        disabled={isDeleting || !mindmap}
-                    >
-                        {isDeleting ? (
-                            <ActivityIndicator size="small" color="#EF4444" />
-                        ) : (
-                            <Feather name="trash-2" size={24} color={mindmap ? "#EF4444" : "#D1D5DB"} />
-                        )}
-                    </TouchableOpacity>
+                    <View style={styles.headerButtons}>
+                        <TouchableOpacity
+                            onPress={toggleEditMode}
+                            style={styles.headerButton}
+                            disabled={!mindmap}
+                        >
+                            {isEditing ? (
+                                <Eye size={24} color="#7C3AED" />
+                            ) : (
+                                <Edit size={24} color="#7C3AED" />
+                            )}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={handleDeleteMindmap}
+                            style={[styles.headerButton, isDeleting && styles.headerButtonDisabled]}
+                            disabled={isDeleting || !mindmap}
+                        >
+                            {isDeleting ? (
+                                <ActivityIndicator size="small" color="#EF4444" />
+                            ) : (
+                                <Feather name="trash-2" size={24} color={mindmap ? "#EF4444" : "#D1D5DB"} />
+                            )}
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -545,33 +562,48 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>{displayTitle}</Text>
                         {/* Mindmap WebView Container */}
-                        <View style={styles.mindMapWebViewContainer}>
-                            <WebView
-                                ref={webViewRef}
-                                source={{ html: generateMarkmapHTML(mindmap!.mermaidCode) }}
-                                style={styles.webView}
-                                scrollEnabled={true}
-                                scalesPageToFit={true}
-                                bounces={false}
-                                javaScriptEnabled={true}
-                                domStorageEnabled={true}
-                                startInLoadingState={true}
-                                onMessage={handleWebViewMessage}
-                                onError={(syntheticEvent) => {
-                                    const { nativeEvent } = syntheticEvent;
-                                    console.error('WebView error:', nativeEvent);
-                                    setError('Failed to load mindmap visualization');
-                                }}
-                                onLoadEnd={() => {
-                                    console.log('WebView loaded successfully');
-                                }}
-                                renderLoading={() => (
-                                    <View style={styles.webViewLoading}>
-                                        <ActivityIndicator size="large" color="#7C3AED" />
-                                        <Text style={styles.loadingText}>Loading visualization...</Text>
-                                    </View>
-                                )}
-                            />
+                        <View
+                            style={styles.mindMapWebViewContainer}
+                            ref={viewShotRef}
+                            collapsable={false}
+                        >
+                            {isEditing ? (
+                                <TextInput
+                                    style={styles.markdownInput}
+                                    multiline
+                                    value={markdownInput}
+                                    onChangeText={handleMarkdownChange}
+                                    placeholder="# Enter markdown here..."
+                                    textAlignVertical="top"
+                                />
+                            ) : (
+                                <WebView
+                                    ref={webViewRef}
+                                    source={{ html: generateMarkmapHTML(markdownInput || (mindmap?.mermaidCode || '')) }}
+                                    style={styles.webView}
+                                    scrollEnabled={true}
+                                    scalesPageToFit={true}
+                                    bounces={false}
+                                    javaScriptEnabled={true}
+                                    domStorageEnabled={true}
+                                    startInLoadingState={true}
+                                    onMessage={handleWebViewMessage}
+                                    onError={(syntheticEvent) => {
+                                        const { nativeEvent } = syntheticEvent;
+                                        console.error('WebView error:', nativeEvent);
+                                        setError('Failed to load mindmap visualization');
+                                    }}
+                                    onLoadEnd={() => {
+                                        console.log('WebView loaded successfully');
+                                    }}
+                                    renderLoading={() => (
+                                        <View style={styles.webViewLoading}>
+                                            <ActivityIndicator size="large" color="#7C3AED" />
+                                            <Text style={styles.loadingText}>Loading visualization...</Text>
+                                        </View>
+                                    )}
+                                />
+                            )}
                         </View>
                     </View>
 
@@ -707,6 +739,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderWidth: 1,
         borderColor: '#E5E7EB',
+    },
+    markdownInput: {
+        flex: 1,
+        padding: 15,
+        fontSize: 14,
+        fontFamily: 'monospace',
+        color: '#111827',
+        backgroundColor: '#F9FAFB',
+    },
+    headerButtons: {
+        flexDirection: 'row',
+        gap: 8,
     },
     webView: {
         flex: 1,
