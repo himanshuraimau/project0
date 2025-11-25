@@ -18,6 +18,7 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native'
+import BackButton from '@/components/ui/BackButton'
 
 interface LanguageOptionProps {
   code: string
@@ -99,22 +100,22 @@ export default function ChangeLanguage() {
     try {
       // First, change the app language
       await setLanguage(languageCode)
-      
+
       // Show translation modal and start translating notes
       setShowTranslationModal(true)
-      
+
       // Get language name for display
       const languageName = LANGUAGES[languageCode as keyof typeof LANGUAGES]?.nativeName || languageCode
-      
+
       // Translate all notes in the background
       const result = await translateAllNotes(languageCode, (progress) => {
         setTranslationProgress(progress)
       })
-      
+
       // Hide translation modal
       setShowTranslationModal(false)
       setTranslationProgress(null)
-      
+
       // Show appropriate success/partial success message
       setTimeout(() => {
         if (result.success) {
@@ -184,36 +185,11 @@ export default function ChangeLanguage() {
       >
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.safeArea}>
-          {/* Header with Time and Status Icons */}
-          <View style={styles.topBar}>
-            <View style={styles.timeBadge}>
-              <Text style={styles.timeText}>
-                {new Date().toLocaleTimeString('en-US', {
-                  hour: 'numeric',
-                  minute: '2-digit',
-                  hour12: false,
-                })}
-              </Text>
-            </View>
-            <View style={styles.statusIcons}>
-              <Feather name="wifi" size={18} color="#222" style={{ marginRight: 8 }} />
-              <Feather name="battery" size={18} color="#222" />
-            </View>
-          </View>
-
           {/* Header with Back Button */}
           <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-              accessibilityLabel={t('common.back')}
-            >
-              <Feather name="arrow-left" size={24} color="#374151" />
-            </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>{t('language.title')}</Text>
-              <Text style={styles.headerSubtitle}>{t('language.subtitle')}</Text>
-            </View>
+            <BackButton iconColor="#374151" />
+            <Text style={styles.headerTitle}>{t('language.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('language.subtitle')}</Text>
           </View>
 
           {/* Language Options List */}
@@ -237,9 +213,6 @@ export default function ChangeLanguage() {
               />
             ))}
           </ScrollView>
-
-          {/* iOS Home Indicator */}
-          <View style={styles.homeIndicator} />
         </SafeAreaView>
       </LinearGradient>
 
@@ -257,11 +230,11 @@ export default function ChangeLanguage() {
             </View>
             <Text style={styles.modalTitle}>{t('language.translatingNotes')}</Text>
             <Text style={styles.modalSubtitle}>
-              {translationProgress 
+              {translationProgress
                 ? t('language.translationProgress', {
-                    current: translationProgress.completed,
-                    total: translationProgress.total,
-                  })
+                  current: translationProgress.completed,
+                  total: translationProgress.total,
+                })
                 : t('common.loading')}
             </Text>
             {translationProgress && translationProgress.currentNote && (
@@ -272,13 +245,13 @@ export default function ChangeLanguage() {
             <ActivityIndicator size="large" color="#8B5CF6" style={{ marginTop: 20 }} />
             {translationProgress && (
               <View style={styles.progressBarContainer}>
-                <View 
+                <View
                   style={[
-                    styles.progressBar, 
-                    { 
-                      width: `${(translationProgress.completed / translationProgress.total) * 100}%` 
+                    styles.progressBar,
+                    {
+                      width: `${(translationProgress.completed / translationProgress.total) * 100}%`
                     }
-                  ]} 
+                  ]}
                 />
               </View>
             )}
@@ -296,6 +269,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: 20,
+    marginVertical: 40,
   },
   topBar: {
     flexDirection: 'row',
@@ -327,7 +301,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 40,
   },
   headerTitleContainer: {
     marginBottom: 8,

@@ -126,17 +126,6 @@ export default function Support() {
       >
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.safeArea}>
-          {/* Header with Time and Status Icons */}
-          <View style={styles.topBar}>
-            <View style={styles.timeBadge}>
-              <Text style={styles.timeText}>4:19</Text>
-            </View>
-            <View style={styles.statusIcons}>
-              <Feather name="wifi" size={18} color="#222" style={{ marginRight: 8 }} />
-              <Feather name="battery" size={18} color="#222" />
-            </View>
-          </View>
-
           {/* Title Row with Back Button */}
           <View style={styles.titleRow}>
             <BackButton iconColor="#374151" />
@@ -235,9 +224,6 @@ export default function Support() {
             {/* Bottom spacing */}
             <View style={{ height: 40 }} />
           </ScrollView>
-
-          {/* iOS Home Indicator */}
-          <View style={styles.homeIndicator} />
         </SafeAreaView>
       </LinearGradient>
     </>
@@ -251,6 +237,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingVertical: 40,
   },
   topBar: {
     flexDirection: 'row',

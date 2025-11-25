@@ -82,19 +82,6 @@ export default function AccountInfo() {
       >
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.safeArea}>
-          {/* Header with Time and Status Icons */}
-          <View style={styles.topBar}>
-            <View style={styles.timeBadge}>
-              <Text style={styles.timeText}>
-                {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false })}
-              </Text>
-            </View>
-            <View style={styles.statusIcons}>
-              <Feather name="wifi" size={18} color="#222" style={{ marginRight: 8 }} />
-              <Feather name="battery" size={18} color="#222" />
-            </View>
-          </View>
-
           {/* Back Button and Title */}
           <View style={styles.header}>
             <BackButton iconColor="#1F2937" />
@@ -150,9 +137,6 @@ export default function AccountInfo() {
           <TouchableOpacity onPress={copyUserId} style={styles.footer}>
             <Text style={styles.footerText}>{t('accountInfo.customerSupport')}</Text>
           </TouchableOpacity>
-
-          {/* iOS Home Indicator */}
-          <View style={styles.homeIndicator} />
         </SafeAreaView>
       </LinearGradient>
     </>
@@ -166,6 +150,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: 20,
+    marginVertical: 40,
   },
   topBar: {
     flexDirection: 'row',
