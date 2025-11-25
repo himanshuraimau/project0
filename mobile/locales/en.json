@@ -130,7 +130,9 @@
     "logout": "Log out",
     "privacy": "Privacy",
     "terms": "Terms",
-    "deleteAccount": "Delete Account"
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirmation": "Are you sure you want to delete your account? This action cannot be undone.",
+    "deleteAccountError": "Failed to delete account. Please try again."
   },
   "accountInfo": {
     "title": "Account Details",

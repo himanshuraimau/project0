@@ -36,7 +36,7 @@ export const updateUserProfile = async (data: UpdateUserProfileRequest): Promise
  */
 export const deleteUserAccount = async (): Promise<{ message: string }> => {
   try {
-    const response = await apiClient.post<ApiResponse<{ message: string }>>('/user/delete');
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>('/user/delete');
     return handleApiResponse<{ message: string }>(response);
   } catch (error) {
     return handleApiError(error);
