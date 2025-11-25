@@ -44,9 +44,9 @@ export async function POST(req: NextRequest) {
     const sourceContent = note.transcript?.content || note.content;
     const sourceTitle = note.title;
 
-    if (!sourceContent || sourceContent.trim().length < 50) {
+    if (!sourceContent || sourceContent.trim().length < 10) {
       return NextResponse.json({
-        error: "Not enough content to generate a meaningful mindmap"
+        error: "Not enough content to generate a meaningful mindmap (min 10 chars required)"
       }, { status: 400 });
     }
 
