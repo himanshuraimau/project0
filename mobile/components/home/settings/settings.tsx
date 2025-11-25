@@ -13,7 +13,10 @@ import {
   ScrollView,
   StyleSheet,
   Linking,
+  Image,
+  Alert,
 } from 'react-native'
+import { deleteUserAccount } from '@/lib/api/user'
 import { useClerk } from '@clerk/clerk-expo'
 
 interface SettingOption {
@@ -79,8 +82,30 @@ export default function Settings() {
   }
 
   const handleDeleteAccount = () => {
-    console.log('Navigate to Delete Account')
-    // Add delete account logic
+    Alert.alert(
+      t('settings.deleteAccount'),
+      t('settings.deleteAccountConfirmation'),
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteUserAccount()
+              await signOut()
+              router.push('/paywall/paywall4' as any)
+            } catch (error) {
+              console.error('Error deleting account:', error)
+              Alert.alert(t('common.error'), t('settings.deleteAccountError'))
+            }
+          },
+        },
+      ]
+    )
   }
 
   const settingOptions: SettingOption[] = [
@@ -104,27 +129,15 @@ export default function Settings() {
       >
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.safeArea}>
-          {/* Header with Time and Status Icons */}
-          <View style={styles.topBar}>
-            <View style={styles.timeBadge}>
-              <Text style={styles.timeText}>4:19</Text>
-            </View>
-            <View style={styles.statusIcons}>
-              <Feather name="wifi" size={18} color="#222" style={{ marginRight: 8 }} />
-              <Feather name="battery" size={18} color="#222" />
-            </View>
-          </View>
-
           {/* Title Row with Logo and Settings Icon */}
           <View style={styles.titleRow}>
             <View style={styles.titleWithLogo}>
               {/* Logo/Robot Icon */}
-              <View style={styles.logoContainer}>
-                <View style={styles.robotHead}>
-                  <View style={styles.robotEye} />
-                  <View style={styles.robotEye} />
-                </View>
-              </View>
+              <Image
+                source={require('@/assets/images/main-logo.png')}
+                style={styles.logoContainer}
+                resizeMode="contain"
+              />
               <Text style={styles.title}>{t('common.jellinote')}</Text>
             </View>
             <TouchableOpacity
@@ -173,9 +186,6 @@ export default function Settings() {
               <Text style={styles.linkText}>{t('settings.deleteAccount')}</Text>
             </TouchableOpacity>
           </View>
-
-          {/* iOS Home Indicator */}
-          <View style={styles.homeIndicator} />
         </SafeAreaView>
       </LinearGradient>
     </>
@@ -189,6 +199,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingVertical: 32,
   },
   topBar: {
     flexDirection: 'row',
@@ -216,7 +227,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 8,
+    marginTop: 20,
   },
   titleWithLogo: {
     flexDirection: 'row',
