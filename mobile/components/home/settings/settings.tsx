@@ -69,8 +69,7 @@ export default function Settings() {
   }
 
   const handleSubscription = () => {
-    console.log('Navigate to Subscription')
-    // Add navigation logic
+    router.push('/(onboarding)/paywall/paywall5' as any)
   }
 
   const handlePrivacy = () => {
