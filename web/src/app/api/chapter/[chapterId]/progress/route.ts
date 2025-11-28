@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { getUserFromAuth } from "@/lib/auth-helper";
 
 // Helper function to calculate course progress
 async function updateCourseProgress(userId: string, courseId: string) {
@@ -69,11 +70,11 @@ async function updateCourseProgress(userId: string, courseId: string) {
 
 // GET - Get chapter progress for current user
 export async function GET(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
-    const userId = await getUserFromAuth(request);
+    const userId = await getUserFromAuth(req);
     const { chapterId } = await params;
     
     if (!userId) {
@@ -104,11 +105,11 @@ export async function GET(
 
 // POST - Mark chapter as complete
 export async function POST(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
-    const userId = await getUserFromAuth(request);
+    const userId = await getUserFromAuth(req);
     const { chapterId } = await params;
     
     if (!userId) {

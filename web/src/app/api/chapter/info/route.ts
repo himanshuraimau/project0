@@ -11,25 +11,27 @@ import { openai } from "@ai-sdk/openai"
 import { generateText } from "ai"
 import { indexChapterContent } from "@/lib/course/chapter-embedding-service"
 import { auth } from "@clerk/nextjs/server"
-import { 
-  createSuccessResponse, 
+import {
+  createSuccessResponse,
   handleApiError
 } from "@/lib/utils/api-error-handler";
-import { 
-  AppErrorType, 
-  createAppError 
+import {
+  AppErrorType,
+  createAppError
 } from "@/lib/utils/enhanced-error-handler";
+import { getUserFromAuth } from "@/lib/auth-helper"
+import { NextRequest } from "next/server"
 
 const bodyParser = z.object({
   chapterId: z.union([z.string(), z.number()]).transform(String),
 })
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {    
   const startTime = Date.now();
-  
+
   try {
     // Check authentication
-    const userId = await getUserFromAuth(request)
+    const userId = await getUserFromAuth(req)
     if (!userId) {
       throw createAppError(AppErrorType.AUTHENTICATION_FAILED);
     }
@@ -77,14 +79,14 @@ export async function POST(req: Request) {
 
     // Check if chapter already has content (video processed)
     if (chapter.videoId && chapter.notes && chapter.transcript) {
-      return createSuccessResponse({ 
+      return createSuccessResponse({
         message: "Chapter already processed",
-        videoId: chapter.videoId 
+        videoId: chapter.videoId
       });
     }
 
     console.log("Searching YouTube for:", chapter.youtubeSearchQuery)
-    
+
     let videoId: string | null;
     try {
       videoId = await searchYoutube(chapter.youtubeSearchQuery);
@@ -107,7 +109,7 @@ export async function POST(req: Request) {
     }
 
     console.log("Fetching transcript for video:", videoId)
-    
+
     let transcript: string;
     try {
       transcript = await getTranscript(videoId);
@@ -283,7 +285,7 @@ Transcript: ${transcript}`,
     const processingTime = Date.now() - startTime;
     console.log(`Chapter ${chapterId} processed successfully in ${processingTime}ms`);
 
-    return createSuccessResponse({ 
+    return createSuccessResponse({
       message: "Chapter processed successfully",
       videoId,
       notesLength: notes.length,

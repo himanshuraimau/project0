@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { getUserFromAuth } from "@/lib/auth-helper";
 
 // GET - Get course progress for current user
 export async function GET(

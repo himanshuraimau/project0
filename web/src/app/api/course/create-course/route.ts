@@ -5,15 +5,16 @@ import type { CreateCourseRequest, CreateCourseResponse } from "@/lib/types/cour
 import { ApiValidationSchemas, validateContentSafety, isValidUserId } from "@/lib/utils/validation";
 import { FeatureGateService } from "@/lib/feature-gate-service";
 import { z } from "zod";
-import { 
-  createSuccessResponse, 
+import {
+  createSuccessResponse,
   handleApiError,
   CourseValidation
 } from "@/lib/utils/api-error-handler";
-import { 
-  AppErrorType, 
-  createAppError 
+import {
+  AppErrorType,
+  createAppError
 } from "@/lib/utils/enhanced-error-handler";
+import { getUserFromAuth } from "@/lib/auth-helper";
 
 export async function POST(request: NextRequest) {
   try {
@@ -161,7 +162,7 @@ export async function POST(request: NextRequest) {
     return createSuccessResponse(response);
 
   } catch (error) {
-    return handleApiError(error, { 
+    return handleApiError(error, {
       endpoint: 'create-course',
       userId: request.headers.get('x-user-id') || 'unknown'
     });

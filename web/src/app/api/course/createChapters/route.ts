@@ -1,6 +1,6 @@
 // /api/course/createChapters
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
@@ -8,6 +8,7 @@ import { getUnsplashImage } from "@/lib/course/unsplash";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import z from "zod";
+import { getUserFromAuth } from "@/lib/auth-helper";
 
 const createChaptersSchema = z.object({
   title: z.string().min(2).max(100),
@@ -15,7 +16,7 @@ const createChaptersSchema = z.object({
 });
 
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request);
 
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const { title, units } = createChaptersSchema.parse(body);
 
     // Limit to maximum 2 units for testing

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { getUserFromAuth } from "@/lib/auth-helper";
 
 // DELETE - Delete a course and all related data
 export async function DELETE(

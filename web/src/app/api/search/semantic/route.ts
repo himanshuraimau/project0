@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: NextRequest) {
   try {
     // Get the user session to authorize the request
-    const userId = await getUserFromAuth(request);
+    const userId = await getUserFromAuth(req);
     if (!userId) {
       const errorResponse: ApiErrorResponse = {
         success: false,

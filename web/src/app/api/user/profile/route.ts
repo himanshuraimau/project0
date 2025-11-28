@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { UserService } from '@/lib/user-service'
+import { getUserFromAuth } from '@/lib/auth-helper'
 
 export async function GET(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request)
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     // Get or create user (this will create if doesn't exist)
     const user = await UserService.getOrCreateUser(userId)
-    
+
     return NextResponse.json({
       success: true,
       user: {
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request)
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Force create/update user with email
     const user = await UserService.getOrCreateUser(userId, email)
-    
+
     return NextResponse.json({
       success: true,
       message: 'User profile created/updated successfully',

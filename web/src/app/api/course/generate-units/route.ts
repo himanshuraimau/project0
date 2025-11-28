@@ -4,6 +4,7 @@ import { generateUnitsFromTitle } from "@/lib/course/ai-course-service";
 import type { GenerateUnitsRequest, GenerateUnitsResponse } from "@/lib/types/course.types";
 import { ApiValidationSchemas, validateContentSafety, isValidUserId } from "@/lib/utils/validation";
 import { z } from "zod";
+import { getUserFromAuth } from "@/lib/auth-helper";
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,8 +43,8 @@ export async function POST(request: NextRequest) {
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
         return NextResponse.json(
-          { 
-            error: "Validation failed", 
+          {
+            error: "Validation failed",
             details: validationError.issues.map(e => e.message).join(', ')
           },
           { status: 400 }
@@ -91,13 +92,13 @@ export async function POST(request: NextRequest) {
       units
     };
 
-    return NextResponse.json(response, { 
+    return NextResponse.json(response, {
       status: 200
     });
 
   } catch (error) {
     console.error("Error in generate-units API:", error);
-    
+
     // Handle specific error types (Requirements: 8.1)
     if (error instanceof Error) {
       if (error.message.includes("title must be between")) {
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      
+
       if (error.message.includes("Failed to generate")) {
         return NextResponse.json(
           { error: "AI service temporarily unavailable. Please try again." },

@@ -6,6 +6,7 @@ import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { prisma } from "@/lib/prisma";
 import { indexChapterContent } from "@/lib/course/chapter-embedding-service";
+import { getUserFromAuth } from "@/lib/auth-helper";
 
 /**
  * Batch chapter content generation endpoint - processes chapter content (YouTube videos, etc.) in batches
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
       }>;
       batchIndex?: number;
     };
-    
+
     try {
       body = await request.json();
     } catch {
@@ -83,11 +84,11 @@ export async function POST(request: NextRequest) {
 
     // Process all chapters in parallel for true batch processing
     console.log(`Processing ${chapters.length} chapters in parallel...`);
-    
+
     const processChapter = async (chapter: any) => {
       try {
         console.log(`Processing chapter: ${chapter.name}`);
-        
+
         // 1. Search for YouTube video
         const videoId = await searchYoutube(chapter.youtubeSearchQuery);
         if (!videoId) {
@@ -214,7 +215,7 @@ Transcript: ${processedTranscript}`,
         }
 
         console.log(`Successfully processed chapter: ${chapter.name}`);
-        
+
         return {
           id: chapter.id,
           name: chapter.name,
@@ -225,7 +226,7 @@ Transcript: ${processedTranscript}`,
           notesLength: notes.length,
           questionsCount: questions?.length || 0
         };
-        
+
       } catch (error) {
         console.error(`Error processing chapter ${chapter.name}:`, error);
         return {
@@ -258,23 +259,23 @@ Transcript: ${processedTranscript}`,
 
     console.log(`Successfully processed content batch ${batchIndex}: ${successfulChapters.length}/${chapters.length} chapters completed successfully`);
 
-    return NextResponse.json(response, { 
+    return NextResponse.json(response, {
       status: 200
     });
 
   } catch (error) {
     console.error("Error in generate-chapter-content-batch API:", error);
-    
+
     // Handle specific error types
     if (error instanceof Error) {
-      if (error.message.includes("required") || 
-          error.message.includes("invalid")) {
+      if (error.message.includes("required") ||
+        error.message.includes("invalid")) {
         return NextResponse.json(
           { error: error.message },
           { status: 400 }
         );
       }
-      
+
       if (error.message.includes("service unavailable")) {
         return NextResponse.json(
           { error: "Content generation service temporarily unavailable. Please try again." },

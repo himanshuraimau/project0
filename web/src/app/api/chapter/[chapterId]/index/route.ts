@@ -8,7 +8,7 @@ export async function POST(
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
-    const userId = await getUserFromAuth(request);
+    const userId = await getUserFromAuth(req);
     const { chapterId } = await params;
 
     if (!userId) {

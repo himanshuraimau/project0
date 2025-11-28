@@ -6,7 +6,7 @@ import { getUserFromAuth } from '@/lib/auth-helper'
 export async function DELETE(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request)
-
+    
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },

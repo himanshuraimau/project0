@@ -4,6 +4,7 @@ import { generateChaptersForUnits } from "@/lib/course/ai-course-service";
 import type { GenerateChaptersRequest, GenerateChaptersResponse } from "@/lib/types/course.types";
 import { ApiValidationSchemas, validateContentSafety, isValidUserId } from "@/lib/utils/validation";
 import { z } from "zod";
+import { getUserFromAuth } from "@/lib/auth-helper";
 
 /**
  * Batch chapter generation endpoint - processes chapters in smaller batches for better UX
@@ -46,8 +47,8 @@ export async function POST(request: NextRequest) {
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
         return NextResponse.json(
-          { 
-            error: "Validation failed", 
+          {
+            error: "Validation failed",
             details: validationError.issues.map(e => e.message).join(', ')
           },
           { status: 400 }
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
       if (!unit.chapters || unit.chapters.length < 3 || unit.chapters.length > 5) {
         console.warn(`Unit "${unit.name}" has ${unit.chapters?.length || 0} chapters, expected 3-5`);
       }
-      
+
       // Ensure all chapters have YouTube search queries and validate content safety
       for (const chapter of unit.chapters || []) {
         if (!chapter.youtubeSearchQuery || chapter.youtubeSearchQuery.trim().length === 0) {
@@ -141,24 +142,24 @@ export async function POST(request: NextRequest) {
 
     console.log(`Successfully processed batch ${batchIndex} with ${unitsWithChapters.length} units`);
 
-    return NextResponse.json(response, { 
+    return NextResponse.json(response, {
       status: 200
     });
 
   } catch (error) {
     console.error("Error in generate-chapters-batch API:", error);
-    
+
     // Handle specific error types
     if (error instanceof Error) {
-      if (error.message.includes("title must be between") || 
-          error.message.includes("units are required") ||
-          error.message.includes("must have valid names")) {
+      if (error.message.includes("title must be between") ||
+        error.message.includes("units are required") ||
+        error.message.includes("must have valid names")) {
         return NextResponse.json(
           { error: error.message },
           { status: 400 }
         );
       }
-      
+
       if (error.message.includes("Failed to generate")) {
         return NextResponse.json(
           { error: "AI service temporarily unavailable. Please try again." },
