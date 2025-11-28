@@ -1,0 +1,18 @@
+{
+  "build": {
+    "preview": {
+      "android": {
+        "buildType": "apk",
+        "env": {
+          "EXPO_PUBLIC_API_URL": "https://project0-nu.vercel.app/api",
+          "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_dXAtaGlwcG8tNDQuY2xlcmsuYWNjb3VudHMuZGV2JA"
+        }
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}
