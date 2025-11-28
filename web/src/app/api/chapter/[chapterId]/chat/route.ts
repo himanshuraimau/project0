@@ -43,13 +43,13 @@ function createContextString(chunks: Array<{ chunkText: string }>): string {
   for (const chunk of chunks) {
     context += `${chunk.chunkText}\n\n`;
   }
-  
+
   // Truncate if too long (around 15k chars to be safe)
   const MAX_CONTEXT_LENGTH = 15000;
   if (context.length > MAX_CONTEXT_LENGTH) {
     context = context.substring(0, MAX_CONTEXT_LENGTH) + '... (context truncated)';
   }
-  
+
   return context;
 }
 
@@ -97,7 +97,7 @@ export async function POST(
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
-    const userId = await getUserFromAuth(request);
+    const userId = await getUserFromAuth(req);
     const { chapterId } = await params;
 
     if (!userId) {
@@ -110,11 +110,11 @@ export async function POST(
       ...body,
       chapterId
     });
-    
+
     if (!validationResult.success) {
       return Response.json({ error: 'Invalid request body', details: validationResult.error.issues }, { status: 400 });
     }
-    
+
     const { message, topK = 6 } = validationResult.data;
 
     // Get the chapter
@@ -131,27 +131,27 @@ export async function POST(
     if (!chapter) {
       return Response.json({ error: 'Chapter not found' }, { status: 404 });
     }
-    
+
     // Use our enhanced embedding service to find similar chunks
     const similarChunks = await queryChapterSimilarChunks(message, chapterId, topK);
-    
+
     // Map results to the expected format
     const mappedChunks = mapChunkResults(similarChunks);
-    
+
     // Create a context string from the chunks
     const context = createContextString(mappedChunks);
-    
+
     // Generate a streaming response
     const response = await generateResponse(context, message, chapter.name);
-    
+
     // Return the streaming response from AI SDK
     return response;
   } catch (error) {
     console.error('Error handling chapter chatbot request:', error);
-    
+
     // Return a friendly error response
     return Response.json(
-      { error: 'An error occurred while processing your request. Please try again later.' }, 
+      { error: 'An error occurred while processing your request. Please try again later.' },
       { status: 500 }
     );
   }
@@ -162,7 +162,7 @@ export async function GET(
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   const { chapterId } = await params;
-  
+
   return Response.json({
     message: `Chapter ${chapterId} chat endpoint is ready`,
     methods: ['POST']
