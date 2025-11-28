@@ -2,8 +2,8 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
     ...config,
-    name: "mobile",
-    slug: "mobile",
+    name: "Jellinote AI",
+    slug: "jellinote-ai",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/main-logo.png",
