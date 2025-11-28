@@ -1,6 +1,6 @@
 import { ThemeProvider, useTheme } from '@/lib/hooks/useTheme'
 import { ClerkProvider } from '@clerk/clerk-expo'
-import { tokenCache } from '@clerk/clerk-expo/token-cache'
+import { tokenCache } from '@/lib/auth/cache'
 import { AuthTokenProvider } from '@/components/auth/AuthTokenProvider'
 import { SubscriptionProvider } from '@/lib/contexts/SubscriptionContext'
 import { useFonts } from 'expo-font'
