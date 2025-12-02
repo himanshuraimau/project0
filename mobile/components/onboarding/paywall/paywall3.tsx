@@ -3,40 +3,71 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform, StatusBar } from 'r
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import { X } from 'lucide-react-native'
 
 export default function Paywall3() {
   const router = useRouter()
+
+  const [selectedPlan, setSelectedPlan] = React.useState<'yearly' | 'monthly'>('yearly')
 
   return (
     <LinearGradient colors={["#FFFFFF", "#F7F5FF"]} start={{ x: 1, y: 0 }} end={{ x: 0.3, y: 1 }} style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
+      {/* Close Button */}
+      <TouchableOpacity
+        style={styles.closeButton}
+        onPress={() => router.push('/(onboarding)/paywall/paywall4' as any)}
+      >
+        <X size={20} color="#4A5565" strokeWidth={1.7} />
+      </TouchableOpacity>
+
       <View style={styles.content}>
         <Text style={styles.title}>Back to school sale free for 3 days</Text>
 
-        <LinearGradient colors={['#D8B4FE', '#E9D5FF']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.cardPrimary}>
-          <View style={styles.cardTag}><Text style={styles.cardTagText}>BEST DEAL</Text></View>
-          <View style={styles.cardRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.planTitle}>Back to school plan</Text>
-              <Text style={styles.planSubtitle}>Billed yearly as $72</Text>
+        <TouchableOpacity activeOpacity={0.9} onPress={() => setSelectedPlan('yearly')}>
+          <LinearGradient
+            colors={selectedPlan === 'yearly' ? ['#D8B4FE', '#E9D5FF'] : ['#FFFFFF', '#FFFFFF']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={[
+              styles.cardPrimary,
+              selectedPlan !== 'yearly' && { borderColor: '#E5E7EB' }
+            ]}
+          >
+            <View style={[
+              styles.cardTag,
+              selectedPlan !== 'yearly' && { backgroundColor: '#9CA3AF' }
+            ]}>
+              <Text style={styles.cardTagText}>BEST DEAL</Text>
             </View>
-            <View>
-              <Text style={styles.planPrice}>$6 / month</Text>
+            <View style={styles.cardRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.planTitle}>Back to school plan</Text>
+                <Text style={styles.planSubtitle}>Billed yearly as $72</Text>
+              </View>
+              <View>
+                <Text style={styles.planPrice}>$6 / month</Text>
+              </View>
             </View>
-          </View>
-        </LinearGradient>
+          </LinearGradient>
+        </TouchableOpacity>
 
-        <View style={styles.cardSecondary}>
-          <View style={styles.cardRowSecondary}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.planTitle}>Monthly Plan</Text>
-            </View>
-            <View>
-              <Text style={styles.planPrice}>$11 / month</Text>
+        <TouchableOpacity activeOpacity={0.9} onPress={() => setSelectedPlan('monthly')}>
+          <View style={[
+            styles.cardSecondary,
+            selectedPlan === 'monthly' && { borderColor: '#7C3AED' }
+          ]}>
+            <View style={styles.cardRowSecondary}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.planTitle}>Monthly Plan</Text>
+              </View>
+              <View>
+                <Text style={styles.planPrice}>$11 / month</Text>
+              </View>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.bottom}>
@@ -63,6 +94,18 @@ const styles = StyleSheet.create({
   timeBg: { backgroundColor: '#DC2626', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   timeText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   statusRight: { flexDirection: 'row', alignItems: 'center' },
+  closeButton: {
+    position: 'absolute',
+    top: 48.46,
+    right: 20, // Using right instead of left: 329 for responsiveness
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(211, 209, 209, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
   closeBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
   closeX: { color: '#6B7280', fontWeight: '700' },
   content: { flex: 1, paddingHorizontal: 24, paddingTop: 200 },
@@ -75,7 +118,7 @@ const styles = StyleSheet.create({
   planTitle: { fontSize: 20, fontWeight: '400', color: '#000000', lineHeight: 30, fontFamily: 'Arimo' },
   planSubtitle: { fontSize: 14, color: '#000000', marginTop: 0, fontWeight: '400', lineHeight: 21, fontFamily: 'Arimo' },
   planPrice: { fontSize: 18, fontWeight: '400', color: '#000000', lineHeight: 27, fontFamily: 'Arimo' },
-  cardSecondary: { backgroundColor: '#FFFFFF', borderRadius: 24, padding: 20, marginBottom: 12, height: 84, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 },
+  cardSecondary: { backgroundColor: '#FFFFFF', borderRadius: 24, padding: 20, marginBottom: 12, height: 84, borderWidth: 1.5, borderColor: '#E5E7EB' },
   paymentInfo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 },
   checkIconWrapper: { width: 20, height: 20, borderRadius: 20, borderWidth: 1.5, borderColor: '#000000', alignItems: 'center', justifyContent: 'center' },
   paymentText: { color: '#000000', fontWeight: '400', fontSize: 15, lineHeight: 22, fontFamily: 'Arimo' },
