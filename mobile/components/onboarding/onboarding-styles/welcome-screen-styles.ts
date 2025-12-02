@@ -69,10 +69,9 @@ export const welcomeScreenStyles = StyleSheet.create({
   },
   featureTagsContainer: {
     flexDirection: 'row',
-    gap: 8,
-    flexWrap: 'wrap',
+    gap: 6,
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingLeft: 20,
   },
   featureTag: {
     borderRadius: 9999,
@@ -92,10 +91,9 @@ export const welcomeScreenStyles = StyleSheet.create({
   featureTagInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     paddingVertical: 10.8,
-    paddingLeft: 16,
-    paddingRight: 16,
+    paddingHorizontal: 10,
   },
   featureTagText: {
     fontFamily: 'Arimo',
