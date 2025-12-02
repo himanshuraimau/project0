@@ -107,7 +107,7 @@ export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
-      
+
       {/* Top Right Blur Gradient */}
       <BlurGradient
         colors={['#9810FA', '#441AFF']}
@@ -117,7 +117,7 @@ export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
         top={-47}
         opacity={0.1}
       />
-      
+
       {/* Bottom Right Blur Gradient */}
       <BlurGradient
         colors={['#14C3A2', '#4C57FF']}
@@ -127,7 +127,7 @@ export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
         bottom={-56}
         opacity={0.1}
       />
-      
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}

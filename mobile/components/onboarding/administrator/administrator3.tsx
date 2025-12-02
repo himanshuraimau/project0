@@ -9,7 +9,7 @@ import styles from '../onboarding-styles/administrator3'
 export default function Administrator3() {
   const router = useRouter()
   const handleContinue = () => {
-    router.replace('/(onboarding)/step4' as any)
+    router.push('/(onboarding)/step4' as any)
   }
 
   return (
@@ -55,7 +55,7 @@ export default function Administrator3() {
       </View>
 
       <View style={styles.footer}>
-        <ContinueButton 
+        <ContinueButton
           variant="gradient"
           onPress={handleContinue}
         />

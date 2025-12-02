@@ -3,7 +3,12 @@ import { Stack } from 'expo-router'
 
 export default function Layout() {
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+      }}
+    >
       <Stack.Screen name="student1" options={{ headerShown: false }} />
       <Stack.Screen name="student2" options={{ headerShown: false }} />
       <Stack.Screen name="student3" options={{ headerShown: false }} />

@@ -77,42 +77,42 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
     description: string
     gradientColors: [string, string]
   }> = [
-    {
-      id: 'professional',
-      emoji: '💼',
-      title: 'Working professional',
-      description: "I'm currently employed full or part time",
-      gradientColors: ['#FDD835', '#FB8C00'],
-    },
-    {
-      id: 'student',
-      emoji: '🍎',
-      title: 'Student',
-      description: 'Lectures, study notes, summaries, etc.',
-      gradientColors: ['#FF6467', '#F6339A'],
-    },
-    {
-      id: 'parent',
-      emoji: '👶',
-      title: 'Parent',
-      description: "For my child's classes and activities",
-      gradientColors: ['#AB47BC', '#EC407A'],
-    },
-    {
-      id: 'teacher',
-      emoji: '✏️',
-      title: 'Teacher',
-      description: 'To record lectures, scribble notes, or other',
-      gradientColors: ['#FB8C00', '#FDD835'],
-    },
-    {
-      id: 'administrator',
-      emoji: '🏛️',
-      title: 'Administrator',
-      description: 'Trying Jellinote for my school/district',
-      gradientColors: ['#4FC3F7', '#00BCD4'],
-    },
-  ]
+      {
+        id: 'professional',
+        emoji: '💼',
+        title: 'Working professional',
+        description: "I'm currently employed full or part time",
+        gradientColors: ['#FDD835', '#FB8C00'],
+      },
+      {
+        id: 'student',
+        emoji: '🍎',
+        title: 'Student',
+        description: 'Lectures, study notes, summaries, etc.',
+        gradientColors: ['#FF6467', '#F6339A'],
+      },
+      {
+        id: 'parent',
+        emoji: '👶',
+        title: 'Parent',
+        description: "For my child's classes and activities",
+        gradientColors: ['#AB47BC', '#EC407A'],
+      },
+      {
+        id: 'teacher',
+        emoji: '✏️',
+        title: 'Teacher',
+        description: 'To record lectures, scribble notes, or other',
+        gradientColors: ['#FB8C00', '#FDD835'],
+      },
+      {
+        id: 'administrator',
+        emoji: '🏛️',
+        title: 'Administrator',
+        description: 'Trying Jellinote for my school/district',
+        gradientColors: ['#4FC3F7', '#00BCD4'],
+      },
+    ]
 
   return (
     <LinearGradient
@@ -122,7 +122,7 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
-      
+
       {/* Top Right Purple Blur Gradient */}
       <BlurGradient
         colors={['#9810FA', '#441AFF']}
@@ -132,7 +132,7 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
         top={-73}
         opacity={0.1}
       />
-      
+
       {/* Left Side Blue-Purple Blur Gradient */}
       <BlurGradient
         colors={['rgba(81, 162, 255, 0.2)', 'rgba(194, 122, 255, 0.2)']}
@@ -142,7 +142,7 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
         top={448}
         opacity={1}
       />
-      
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}

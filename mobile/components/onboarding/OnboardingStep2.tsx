@@ -94,7 +94,7 @@ export default function OnboardingStep2({ onContinue }: OnboardingStep2Props) {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
-      
+
       {/* Top Right Purple Blur Gradient */}
       <BlurGradient
         colors={['#9810FA', '#441AFF']}
@@ -104,7 +104,7 @@ export default function OnboardingStep2({ onContinue }: OnboardingStep2Props) {
         top={-46}
         opacity={0.1}
       />
-      
+
       {/* Top Left Purple Blur Gradient */}
       <BlurGradient
         colors={['#7C3AED', '#9810FA']}
@@ -114,7 +114,7 @@ export default function OnboardingStep2({ onContinue }: OnboardingStep2Props) {
         top={270}
         opacity={0.1}
       />
-      
+
       {/* Bottom Right Blue Blur Gradient */}
       <BlurGradient
         colors={['#14C3A2', '#4C57FF']}
@@ -124,7 +124,7 @@ export default function OnboardingStep2({ onContinue }: OnboardingStep2Props) {
         top={661}
         opacity={0.1}
       />
-      
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
