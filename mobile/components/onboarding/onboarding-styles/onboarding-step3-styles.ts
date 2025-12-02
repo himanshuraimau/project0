@@ -28,7 +28,7 @@ export const onboardingStep3Styles = StyleSheet.create({
     borderRadius: 20,
   },
   headerContainer: {
-    marginBottom: 32,
+    marginBottom: 48,
   },
   subHeading: {
     fontSize: 15,
@@ -39,21 +39,21 @@ export const onboardingStep3Styles = StyleSheet.create({
     marginBottom: 8,
   },
   mainHeading: {
-    fontSize: 32,
+    fontSize: 21,
     fontWeight: '800',
     color: '#000000',
     lineHeight: 40,
   },
   optionsList: {
-    gap: 12,
+    gap: 16,
   },
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 77,
+    height: 83,
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 16,
-    paddingVertical: 9,
+    paddingVertical: 14,
     paddingHorizontal: 21,
     shadowColor: '#000000',
     shadowOffset: {
@@ -97,7 +97,7 @@ export const onboardingStep3Styles = StyleSheet.create({
   optionTitle: {
     fontSize: 16,
     fontWeight: '400',
-    color: '#101828',
+    color: '#000000',
     lineHeight: 24,
     marginBottom: 0,
   },
@@ -105,7 +105,7 @@ export const onboardingStep3Styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '400',
     color: '#4A5565',
-    lineHeight: 23,
+    lineHeight: 22.75,
   },
   continueButtonContainer: {
     marginTop: 32,
