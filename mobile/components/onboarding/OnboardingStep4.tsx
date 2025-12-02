@@ -53,7 +53,7 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
     if (onContinue) {
       onContinue()
     } else {
-      router.replace('/(onboarding)/step5' as any)
+      router.push('/(onboarding)/step5' as any)
     }
   }
 

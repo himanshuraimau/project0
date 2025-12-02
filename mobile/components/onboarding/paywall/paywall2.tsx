@@ -50,7 +50,7 @@ export default function Paywall2() {
       </ScrollView>
 
       <View style={styles.bottom}>
-        <TouchableOpacity activeOpacity={0.9} onPress={() => router.replace('/(onboarding)/paywall/paywall3' as any)}>
+        <TouchableOpacity activeOpacity={0.9} onPress={() => router.push('/(onboarding)/paywall/paywall3' as any)}>
           <LinearGradient colors={["#7C3AED", "#3B82F6"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cta}>
             <Text style={styles.ctaText}>Try 3 days FREE 🔥</Text>
           </LinearGradient>

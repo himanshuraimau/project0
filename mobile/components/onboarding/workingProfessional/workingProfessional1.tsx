@@ -49,7 +49,7 @@ export default function WorkingProfessional() {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
-      
+
       {/* Top Right Purple Blur Gradient */}
       <BlurGradient
         colors={['#9810FA', '#441AFF']}
@@ -59,7 +59,7 @@ export default function WorkingProfessional() {
         top={-136}
         opacity={0.1}
       />
-      
+
       {/* Bottom Left Purple Blur Gradient */}
       <BlurGradient
         colors={['#9810FA', '#441AFF']}
@@ -69,7 +69,7 @@ export default function WorkingProfessional() {
         top={508}
         opacity={0.1}
       />
-      
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}

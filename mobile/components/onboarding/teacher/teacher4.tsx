@@ -17,7 +17,7 @@ export default function Teacher4() {
 
   const handleContinue = () => {
     // finish onboarding and go to step4
-    router.replace('/(onboarding)/step4' as any)
+    router.push('/(onboarding)/step4' as any)
   }
 
   const OPTIONS = [
@@ -83,7 +83,7 @@ export default function Teacher4() {
       </View>
 
       <View style={styles.footer}>
-        <ContinueButton 
+        <ContinueButton
           variant="white"
           onPress={handleContinue}
         />

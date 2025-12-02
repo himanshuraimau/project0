@@ -84,7 +84,7 @@ export default function Student9() {
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Your GPA</Text>
             <View style={styles.badges}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setActiveChart('jellinote')}
                 style={activeChart === 'jellinote' ? styles.badgePurple : styles.badgeGrey}
               >
@@ -92,7 +92,7 @@ export default function Student9() {
                   with Jellinote
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setActiveChart('self-study')}
                 style={activeChart === 'self-study' ? styles.badgePurple : styles.badgeGrey}
               >
@@ -117,7 +117,7 @@ export default function Student9() {
                   strokeWidth="1"
                 />
               ))}
-              
+
               {/* Jellinote line - purple when active, grey when inactive */}
               <Polyline
                 points={jellinotePolyline}
@@ -145,7 +145,7 @@ export default function Student9() {
       <View style={styles.footer}>
         <ContinueButton
           variant="gradient"
-          onPress={() => router.replace('/(onboarding)/step4' as any)}
+          onPress={() => router.push('/(onboarding)/step4' as any)}
         />
       </View>
 

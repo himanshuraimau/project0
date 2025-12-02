@@ -47,7 +47,7 @@ export default function Paywall3() {
           <Text style={styles.paymentText}>No payment due now</Text>
         </View>
 
-        <TouchableOpacity activeOpacity={0.9} onPress={() => router.replace('/(onboarding)/paywall/paywall4' as any)}>
+        <TouchableOpacity activeOpacity={0.9} onPress={() => router.push('/(onboarding)/paywall/paywall4' as any)}>
           <LinearGradient colors={["#7C3AED", "#3B82F6"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cta}>
             <Text style={styles.ctaText}>Try 3 days FREE 🔥</Text>
           </LinearGradient>

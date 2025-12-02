@@ -27,7 +27,7 @@ export default function Parent5() {
         left={239}
         top={-102}
       />
-      
+
       <BlurGradient
         colors={['#14C3A2', '#4C57FF']}
         width={256}
@@ -65,7 +65,7 @@ export default function Parent5() {
       </View>
 
       <View style={styles.footer}>
-        <ContinueButton variant="white" onPress={() => router.replace('/(onboarding)/step4' as any)} />
+        <ContinueButton variant="white" onPress={() => router.push('/(onboarding)/step4' as any)} />
       </View>
 
     </SafeAreaView>

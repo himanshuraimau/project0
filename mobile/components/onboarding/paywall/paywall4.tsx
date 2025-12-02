@@ -34,7 +34,7 @@ export default function Paywall4() {
         // Add a small delay to allow notes to load properly
         setTimeout(() => {
           router.replace('/(home)' as any)
-        }, 1500)
+        }, 300)
       }
     } catch (err) {
       console.error('OAuth error', err)

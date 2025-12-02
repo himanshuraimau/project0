@@ -52,7 +52,7 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
     if (onContinue) {
       onContinue()
     } else {
-      router.replace('/(onboarding)/paywall/paywall1' as any)
+      router.push('/(onboarding)/paywall/paywall1' as any)
     }
   }
 

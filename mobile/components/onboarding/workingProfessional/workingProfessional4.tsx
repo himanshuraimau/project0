@@ -17,7 +17,7 @@ export default function WorkingProfessional4() {
         width={128}
         height={128}
         opacity={0.2}
-        right={-37} 
+        right={-37}
         top={83}
       />
 
@@ -73,12 +73,12 @@ export default function WorkingProfessional4() {
       <View style={styles.footer}>
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => router.replace('/(onboarding)/step4' as any)}
+          onPress={() => router.push('/(onboarding)/step4' as any)}
         >
-          <LinearGradient 
-            colors={["#4C57FF", "#9810FA"]} 
-            start={{ x: 0, y: 0 }} 
-            end={{ x: 1, y: 1 }} 
+          <LinearGradient
+            colors={["#4C57FF", "#9810FA"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.continueButton}
           >
             <Text style={styles.continueText}>Continue</Text>
@@ -100,9 +100,9 @@ const styles = StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#E6E7F0', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '35%', height: '100%', backgroundColor: '#7C3AED' },
   content: { paddingHorizontal: 24, paddingTop: 20 },
-  contextText: { 
-    color: '#7C3AED', 
-    fontSize: 15, 
+  contextText: {
+    color: '#7C3AED',
+    fontSize: 15,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 22,
@@ -114,10 +114,10 @@ const styles = StyleSheet.create({
     width: 310,
     height: 207.6,
   },
-  card: { 
+  card: {
     width: 310,
     height: 195,
-    backgroundColor: '#FFFFFF', 
+    backgroundColor: '#FFFFFF',
     borderWidth: 0.8,
     borderColor: '#EBEDF2',
     borderRadius: 24,
@@ -131,9 +131,9 @@ const styles = StyleSheet.create({
     padding: 24.8,
     gap: 16,
   },
-  cardTop: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
+  cardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'flex-start',
     height: 46,
     paddingRight: 24,
@@ -143,21 +143,21 @@ const styles = StyleSheet.create({
     width: 170,
     height: 46,
   },
-  cardName: { 
-    fontSize: 18, 
+  cardName: {
+    fontSize: 18,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 24,
     color: '#0B0C10',
   },
-  cardTitle: { 
-    fontSize: 14, 
+  cardTitle: {
+    fontSize: 14,
     fontFamily: 'Arimo',
     fontWeight: '400',
     lineHeight: 20,
     color: '#5A6171',
   },
-  stars: { 
+  stars: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 4,
@@ -165,26 +165,26 @@ const styles = StyleSheet.create({
     height: 16,
     marginRight: 20,
   },
-  quote: { 
-    fontSize: 16, 
+  quote: {
+    fontSize: 16,
     fontFamily: 'Arimo',
     fontWeight: '400',
     lineHeight: 24,
     color: '#0B0C10',
   },
-  footer: { 
+  footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 24, 
+    paddingHorizontal: 24,
     paddingBottom: 18,
   },
-  continueButton: { 
+  continueButton: {
     width: 310,
     height: 56,
-    flexDirection: 'row', 
-    alignItems: 'center', 
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 28,
     shadowColor: '#4C57FF',
@@ -193,9 +193,9 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
   },
-  continueText: { 
-    color: '#FFFFFF', 
-    fontSize: 17, 
+  continueText: {
+    color: '#FFFFFF',
+    fontSize: 17,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 24,

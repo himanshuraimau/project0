@@ -5,6 +5,7 @@ export default function WorkingProfessionalLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
+        animation: 'slide_from_right',
       }}
     >
       <Stack.Screen name="workingProfessional1" />
