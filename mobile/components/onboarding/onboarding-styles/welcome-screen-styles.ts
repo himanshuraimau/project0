@@ -106,7 +106,7 @@ export const welcomeScreenStyles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     gap: 16,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   glassButton: {
     borderRadius: 9999,
@@ -169,7 +169,7 @@ export const welcomeScreenStyles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     marginBottom: 28,
-    marginTop: -15,
+    marginTop: -20,
   },
   footerText: {
     fontFamily: 'Arimo',
