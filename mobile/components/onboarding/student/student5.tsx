@@ -4,11 +4,17 @@ import { useRouter } from 'expo-router'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
 import { ChevronLeft } from 'lucide-react-native'
+import { OptionButton } from '../../ui/OptionButton'
 import styles from '../onboarding-styles/student5'
 
 export default function Student5() {
   const router = useRouter()
   const [selected, setSelected] = useState<string | null>(null)
+
+  const handleContinue = () => {
+    // finish onboarding and go to step4
+    router.push('/(onboarding)/student-flow/student6' as any)
+  }
 
   const OPTIONS = [
     { id: 'grades', icon: '🌱', label: 'Improve my grades', iconBg: '#FFE2E2' },
@@ -46,27 +52,26 @@ export default function Student5() {
         <Text style={styles.title}>What's your main goal?</Text>
 
         <View style={styles.options}>
-          {OPTIONS.map((o) => {
-            const sel = selected === o.id
-            return (
-              <TouchableOpacity
-                key={o.id}
-                activeOpacity={0.85}
-                onPress={() => setSelected(o.id)}
-                style={[styles.option, sel && styles.optionSelected]}
-              >
-                <Text style={[styles.optionIcon, { backgroundColor: o.iconBg }]}>{o.icon}</Text>
-                <Text style={styles.optionLabel}>{o.label}</Text>
-              </TouchableOpacity>
-            )
-          })}
+          {OPTIONS.map((o) => (
+            <OptionButton
+              key={o.id}
+              icon={o.icon}
+              label={o.label}
+              iconBg={o.iconBg}
+              selected={selected === o.id}
+              onPress={() => setSelected(o.id)}
+              style={styles.optionOverride}
+            />
+          ))}
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
         <ContinueButton
           variant="white"
-          onPress={() => router.push('/(onboarding)/student-flow/student6' as any)}
+          onPress={handleContinue}
+          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
+          disabled={!selected}
         />
       </View>
 

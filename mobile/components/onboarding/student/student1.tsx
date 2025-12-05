@@ -2,8 +2,10 @@ import React, { useState } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
+import { ChevronLeft } from 'lucide-react-native'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { OptionButton } from '../../ui/OptionButton'
 import styles from '../onboarding-styles/student1'
 
 export default function Student1() {
@@ -43,8 +45,8 @@ export default function Student1() {
       />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backIcon}>{'<'}</Text>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         </TouchableOpacity>
         <View style={styles.emptySpace} />
         <View style={styles.progressWrap}>
@@ -61,20 +63,17 @@ export default function Student1() {
         </View>
 
         <View style={styles.options}>
-          {OPTIONS.map((o) => {
-            const sel = selected === o.id
-            return (
-              <TouchableOpacity
-                key={o.id}
-                activeOpacity={0.85}
-                onPress={() => setSelected(o.id)}
-                style={[styles.option, sel && styles.optionSelected]}
-              >
-                <Text style={[styles.optionIcon, { backgroundColor: o.iconBg }]}>{o.icon}</Text>
-                <Text style={styles.optionLabel}>{o.label}</Text>
-              </TouchableOpacity>
-            )
-          })}
+          {OPTIONS.map((o) => (
+            <OptionButton
+              key={o.id}
+              icon={o.icon}
+              label={o.label}
+              iconBg={o.iconBg}
+              selected={selected === o.id}
+              onPress={() => setSelected(o.id)}
+              style={styles.optionOverride}
+            />
+          ))}
         </View>
       </View>
 
@@ -82,6 +81,7 @@ export default function Student1() {
         <ContinueButton
           variant="gradient"
           onPress={() => router.push('/(onboarding)/student-flow/student2' as any)}
+          disabled={!selected}
         />
       </View>
     </SafeAreaView>

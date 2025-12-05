@@ -49,7 +49,9 @@ export default StyleSheet.create({
     marginBottom: 0,
   },
   optionSelected: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FBF7FF',
+    borderColor: '#7C3AED',
+    borderWidth: 2,
     shadowColor: 'rgba(0, 0, 0, 0.15)',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
@@ -77,4 +79,5 @@ export default StyleSheet.create({
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', paddingVertical: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0' },
   ctaText: { color: '#111827', fontSize: 16, fontWeight: '700', marginRight: 8 },
   ctaArrow: { color: '#111827', fontSize: 18, fontWeight: '700' },
+  optionOverride: { height: 70 },
 })

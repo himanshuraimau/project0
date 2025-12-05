@@ -54,6 +54,7 @@ export default function Student6() {
               iconBg={o.iconBg}
               selected={selected === o.id}
               onPress={() => setSelected(o.id)}
+              style={styles.optionOverride}
             />
           ))}
         </View>
@@ -63,6 +64,8 @@ export default function Student6() {
         <ContinueButton
           variant="white"
           onPress={() => router.push('/(onboarding)/student-flow/student7' as any)}
+          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
+          disabled={!selected}
         />
       </View>
     </SafeAreaView>

@@ -74,4 +74,5 @@ export default StyleSheet.create({
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', paddingVertical: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0' },
   ctaText: { color: '#111827', fontSize: 16, fontWeight: '700', marginRight: 8 },
   ctaArrow: { color: '#111827', fontSize: 18, fontWeight: '700' },
+  optionOverride: { height: 70 },
 })
