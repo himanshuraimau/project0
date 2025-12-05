@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView } from 
 import { useRouter } from 'expo-router'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { ChevronLeft } from 'lucide-react-native'
 
 export default function WorkinProfessional3() {
   const router = useRouter()
@@ -42,7 +43,7 @@ export default function WorkinProfessional3() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.back}>{'<'}</Text>
+        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
@@ -72,7 +73,7 @@ export default function WorkinProfessional3() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <ContinueButton 
+        <ContinueButton
           variant="white"
           onPress={() => router.push('/(onboarding)/workingProfessional/workingProfessional4' as any)}
         />
@@ -89,9 +90,9 @@ const styles = StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#E6E7F0', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '25%', height: '100%', backgroundColor: '#7C3AED' },
   content: { paddingHorizontal: 24, paddingTop: 20 },
-  contextText: { 
-    color: '#7C3AED', 
-    fontSize: 15, 
+  contextText: {
+    color: '#7C3AED',
+    fontSize: 15,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 22,
@@ -99,45 +100,45 @@ const styles = StyleSheet.create({
   },
   question: { fontSize: 22, fontWeight: '700', color: '#0F172A', marginBottom: 18 },
   options: { marginTop: 6 },
-  optionButton: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
+  optionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingLeft: 16,
     paddingRight: 0,
     paddingVertical: 0,
     gap: 12,
     width: 310,
     height: 61.6,
-    backgroundColor: '#FFFFFF', 
-    borderColor: '#E5E7EB', 
-    borderWidth: 0.8, 
-    borderRadius: 14, 
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+    borderWidth: 0.8,
+    borderRadius: 14,
     marginBottom: 12,
   },
-  optionIcon: { 
-    fontSize: 20, 
+  optionIcon: {
+    fontSize: 20,
     fontFamily: 'Arimo',
     fontWeight: '400',
     lineHeight: 28,
     color: '#0A0A0A',
   },
-  optionText: { 
-    fontSize: 16, 
+  optionText: {
+    fontSize: 16,
     fontFamily: 'Arimo',
     fontWeight: '400',
     lineHeight: 24,
-    color: '#101828', 
+    color: '#101828',
     flex: 1,
   },
   optionSelected: { borderColor: '#7C3AED', backgroundColor: '#FEF8FF' },
   footer: { paddingHorizontal: 24, paddingBottom: 18 },
-  continueButton: { 
+  continueButton: {
     width: 310,
     height: 55.98,
-    backgroundColor: '#FFFFFF', 
+    backgroundColor: '#FFFFFF',
     borderRadius: 49067700,
-    alignItems: 'center', 
-    justifyContent: 'center', 
+    alignItems: 'center',
+    justifyContent: 'center',
     flexDirection: 'row',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 0 },
@@ -145,17 +146,17 @@ const styles = StyleSheet.create({
     shadowRadius: 3.2,
     elevation: 3,
   },
-  continueText: { 
-    color: '#000000', 
-    fontSize: 20, 
+  continueText: {
+    color: '#000000',
+    fontSize: 20,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 24,
     marginRight: 4,
   },
-  continueArrow: { 
-    color: '#000000', 
-    fontSize: 20, 
+  continueArrow: {
+    color: '#000000',
+    fontSize: 20,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 24,

@@ -3,6 +3,7 @@ import { SafeAreaView, View, Text, TouchableOpacity, Platform, ScrollView } from
 import { useRouter } from 'expo-router'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { ChevronLeft } from 'lucide-react-native'
 import styles from '../onboarding-styles/student5'
 
 export default function Student5() {
@@ -31,7 +32,7 @@ export default function Student5() {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
-          <Text style={styles.back}>&lt;</Text>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         </TouchableOpacity>
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
@@ -63,7 +64,7 @@ export default function Student5() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <ContinueButton 
+        <ContinueButton
           variant="white"
           onPress={() => router.push('/(onboarding)/student-flow/student6' as any)}
         />

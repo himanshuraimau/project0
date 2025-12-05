@@ -3,6 +3,7 @@ import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-nati
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { ChevronLeft } from 'lucide-react-native'
 import styles from '../onboarding-styles/student8'
 
 export default function Student8() {
@@ -56,12 +57,10 @@ export default function Student8() {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
-          <Text style={styles.back}>&lt;</Text>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         </TouchableOpacity>
         <View style={styles.progressWrap}>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
-          </View>
+          <View style={styles.progressFill} />
         </View>
       </View>
 
@@ -70,8 +69,8 @@ export default function Student8() {
         <Text style={styles.title}>What is your goal GPA?</Text>
 
         <View style={styles.gpaWrap}>
-          <TouchableOpacity 
-            style={styles.gpaButton} 
+          <TouchableOpacity
+            style={styles.gpaButton}
             onPressIn={startDecrement}
             onPressOut={stopCounter}
             activeOpacity={0.8}
@@ -83,8 +82,8 @@ export default function Student8() {
             <Text style={styles.gpaValue}>{gpa.toFixed(1)}</Text>
           </View>
 
-          <TouchableOpacity 
-            style={styles.gpaButton} 
+          <TouchableOpacity
+            style={styles.gpaButton}
             onPressIn={startIncrement}
             onPressOut={stopCounter}
             activeOpacity={0.8}

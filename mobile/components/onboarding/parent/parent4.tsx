@@ -1,6 +1,8 @@
 import React from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
+import { ChevronLeft } from 'lucide-react-native'
 import { ContinueButton } from '../../ui/ContinueButton'
 import { TestimonialCard } from '../../ui/TestimonialCard'
 import { BlurGradient } from '../../ui/BlurGradient'
@@ -22,7 +24,7 @@ export default function Parent4() {
         left={-102.4}
         top={698.4}
       />
-      
+
       <BlurGradient
         colors={['#9810FA', '#441AFF']}
         width={256}
@@ -33,7 +35,7 @@ export default function Parent4() {
       />
 
       <View style={styles.header}>
-        <Text style={styles.back}>&lt;</Text>
+        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
@@ -54,7 +56,7 @@ export default function Parent4() {
       </View>
 
       <View style={styles.footer}>
-        <ContinueButton 
+        <ContinueButton
           variant="gradient"
           onPress={handleContinue}
         />

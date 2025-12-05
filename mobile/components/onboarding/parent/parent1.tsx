@@ -2,6 +2,7 @@ import React from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { ChevronLeft } from 'lucide-react-native'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/parent1'
@@ -22,7 +23,7 @@ export default function Parent1() {
       />
 
       <View style={styles.header}>
-        <Text style={styles.back}>&lt;</Text>
+        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
@@ -65,7 +66,7 @@ export default function Parent1() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <ContinueButton 
+        <ContinueButton
           variant="gradient"
           onPress={() => router.push('/(onboarding)/parent/parent2' as any)}
         />

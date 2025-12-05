@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { ChevronLeft } from 'lucide-react-native'
 import { OptionButton } from '../../ui/OptionButton'
 import { BlurGradient } from '../../ui/BlurGradient'
 import styles from '../onboarding-styles/administrator2'
@@ -29,7 +30,7 @@ export default function Administrator2() {
         left={241}
         top={-111}
       />
-      
+
       <BlurGradient
         colors={['#9810FA', '#441AFF']}
         width={256}
@@ -40,7 +41,7 @@ export default function Administrator2() {
       />
 
       <View style={styles.header}>
-        <Text style={styles.back}>&lt;</Text>
+        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />

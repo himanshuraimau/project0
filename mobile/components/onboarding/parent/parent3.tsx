@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
+import { ChevronLeft } from 'lucide-react-native'
 import { ContinueButton } from '@/components/ui/ContinueButton'
 import { OptionButton } from '@/components/ui/OptionButton'
 import { BlurGradient } from '@/components/ui/BlurGradient'
@@ -27,7 +29,7 @@ export default function Parent3() {
       />
 
       <View style={styles.header}>
-        <Text style={styles.back}>&lt;</Text>
+        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
