@@ -29,7 +29,7 @@ export const onboardingStyles = StyleSheet.create({
     borderRadius: 20,
   },
   headerContainer: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
   subHeadingOnboarding: {
     fontSize: 15,
