@@ -69,7 +69,7 @@ export default function NotesHome() {
       setNotes(fetchedNotes || []) // Handle null/undefined response
     } catch (err: any) {
       console.error('Failed to fetch notes:', err)
-      
+
       // Check if it's a network error (backend not running)
       if (err.message?.includes('Network Error') || err.code === 'ERR_NETWORK') {
         console.log('⚠️ Backend not connected - Using empty state for development')
@@ -93,10 +93,10 @@ export default function NotesHome() {
   // Format date to readable format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     })
   }
 
@@ -104,10 +104,10 @@ export default function NotesHome() {
   const filteredNotes = notes.filter(note => {
     // Get translated content for search
     const { title, content } = getTranslatedNote(note);
-    const matchesSearch = searchQuery.trim() === '' || 
+    const matchesSearch = searchQuery.trim() === '' ||
       title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       content.toLowerCase().includes(searchQuery.toLowerCase())
-    
+
     // Add filter logic here for Pinned, Shared, Folders, Archive when implemented
     return matchesSearch
   })
@@ -129,8 +129,8 @@ export default function NotesHome() {
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>{t('home.myNotes')}</Text>
-            <TouchableOpacity 
-              style={styles.settingsButton} 
+            <TouchableOpacity
+              style={styles.settingsButton}
               accessibilityLabel="Settings"
               onPress={() => router.push('/(home)/settings')}
             >
@@ -148,7 +148,7 @@ export default function NotesHome() {
               onChangeText={setSearchQuery}
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setSearchQuery('')}
               >
                 <Feather name="x" size={18} color="#99A1AF" />
@@ -167,8 +167,8 @@ export default function NotesHome() {
               ].map((f) => {
                 const selected = f.key === selectedFilter
                 return (
-                  <Pressable 
-                    key={f.key} 
+                  <Pressable
+                    key={f.key}
                     style={[styles.filterPill, selected && styles.filterPillSelected]}
                     onPress={() => setSelectedFilter(f.key)}
                   >
@@ -179,7 +179,7 @@ export default function NotesHome() {
             </ScrollView>
           </View>
 
-          <ScrollView 
+          <ScrollView
             style={styles.notesList}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -194,7 +194,7 @@ export default function NotesHome() {
               <View style={styles.errorContainer}>
                 <Feather name="alert-circle" size={48} color="#EF4444" />
                 <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.retryButton}
                   onPress={fetchNotes}
                 >
@@ -208,7 +208,7 @@ export default function NotesHome() {
                   {searchQuery ? t('home.noNotesFound') : t('home.noNotesYet')}
                 </Text>
                 <Text style={styles.emptySubtitle}>
-                  {searchQuery 
+                  {searchQuery
                     ? t('home.tryDifferentSearch')
                     : t('home.createFirstNote')}
                 </Text>
@@ -225,8 +225,8 @@ export default function NotesHome() {
               filteredNotes.map((note) => {
                 const { title } = getTranslatedNote(note);
                 return (
-                  <Pressable 
-                    key={note.id} 
+                  <Pressable
+                    key={note.id}
                     style={styles.noteCard}
                     onPress={() => handleNotePress(note)}
                   >
@@ -249,8 +249,8 @@ export default function NotesHome() {
           </ScrollView>
 
           <LinearGradient colors={['#7C3AED', '#4F46E5']} style={styles.fabGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-            <TouchableOpacity 
-              style={styles.fab} 
+            <TouchableOpacity
+              style={styles.fab}
               accessibilityLabel="Add note"
               onPress={() => setModalVisible(true)}
             >
@@ -266,15 +266,15 @@ export default function NotesHome() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <Pressable 
-          style={styles.modalOverlay} 
+        <Pressable
+          style={styles.modalOverlay}
           onPress={() => setModalVisible(false)}
         >
           <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
             {activeOption === null && (
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>{t('home.newNote')}</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => setModalVisible(false)}
                   style={styles.closeButton}
                   accessibilityLabel="Close"
@@ -288,7 +288,7 @@ export default function NotesHome() {
               {activeOption == null ? (
                 // show the selectable options
                 newNoteOptions.map((option) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={option.id}
                     style={styles.optionRow}
                     onPress={() => {
@@ -314,8 +314,8 @@ export default function NotesHome() {
                   )}
 
                   {activeOption === 3 && (
-                    <UploadTextOrPDF 
-                      inline 
+                    <UploadTextOrPDF
+                      inline
                       onClose={() => setActiveOption(null)}
                       onNoteCreated={() => {
                         fetchNotes(); // Refresh notes list
@@ -450,7 +450,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 14,
     padding: 14,
-    marginBottom: 12,
+    marginTop: 2,
+    marginBottom: 10,
+    marginHorizontal: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
