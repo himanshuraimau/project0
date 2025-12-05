@@ -4,17 +4,23 @@ import { useRouter } from 'expo-router'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
 import { ChevronLeft } from 'lucide-react-native'
+import { OptionButton } from '../../ui/OptionButton'
 
 export default function WorkinProfessional3() {
   const router = useRouter()
   const [selected, setSelected] = useState<string | null>(null)
 
+  const handleContinue = () => {
+    // finish onboarding and go to step4
+    router.push('/(onboarding)/step4' as any)
+  }
+
   const options = [
-    { id: 'focus', icon: '🎯', text: 'Stay focused during meetings and calls' },
-    { id: 'autoNotes', icon: '✍️', text: 'Have my notes written automatically' },
-    { id: 'summarize', icon: '📄', text: 'Summarize documents, videos, / PDFs' },
-    { id: 'learn', icon: '📚', text: 'Learn and retain information faster' },
-    { id: 'other', icon: '✏️', text: 'Something else' },
+    { id: 'focus', icon: '🎯', text: 'Stay focused during meetings and calls', iconBg: '#FFFFFF' },
+    { id: 'autoNotes', icon: '✍️', text: 'Have my notes written automatically', iconBg: '#FFFFFF' },
+    { id: 'summarize', icon: '📄', text: 'Summarize documents, videos, / PDFs', iconBg: '#FFFFFF' },
+    { id: 'learn', icon: '📚', text: 'Learn and retain information faster', iconBg: '#FFFFFF' },
+    { id: 'other', icon: '✏️', text: 'Something else', iconBg: '#FFFFFF' },
   ]
 
   return (
@@ -43,7 +49,9 @@ export default function WorkinProfessional3() {
 
       {/* Header */}
       <View style={styles.header}>
-        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
+        <TouchableOpacity onPress={() => router.back()}>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
+        </TouchableOpacity>
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
@@ -57,15 +65,15 @@ export default function WorkinProfessional3() {
 
         <View style={styles.options}>
           {options.map((o) => (
-            <TouchableOpacity
+            <OptionButton
               key={o.id}
-              style={[styles.optionButton, selected === o.id && styles.optionSelected]}
-              activeOpacity={0.8}
+              icon={o.icon}
+              label={o.text}
+              iconBg={o.iconBg}
+              selected={selected === o.id}
               onPress={() => setSelected(o.id)}
-            >
-              <Text style={styles.optionIcon}>{o.icon}</Text>
-              <Text style={styles.optionText}>{o.text}</Text>
-            </TouchableOpacity>
+              style={styles.optionOverride}
+            />
           ))}
         </View>
 
@@ -75,7 +83,9 @@ export default function WorkinProfessional3() {
       <View style={styles.footer}>
         <ContinueButton
           variant="white"
-          onPress={() => router.push('/(onboarding)/workingProfessional/workingProfessional4' as any)}
+          onPress={handleContinue}
+          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
+          disabled={!selected}
         />
       </View>
     </View>
@@ -84,7 +94,7 @@ export default function WorkinProfessional3() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#F7F5FF' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginTop: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
   back: { fontSize: 22, marginRight: 16, color: '#0F172A' },
   progressContainer: { flex: 1 },
   progressTrack: { height: 6, backgroundColor: '#E6E7F0', borderRadius: 6, overflow: 'hidden' },
@@ -99,39 +109,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   question: { fontSize: 22, fontWeight: '700', color: '#0F172A', marginBottom: 18 },
-  options: { marginTop: 6 },
-  optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 16,
-    paddingRight: 0,
-    paddingVertical: 0,
-    gap: 12,
-    width: 310,
-    height: 61.6,
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E5E7EB',
-    borderWidth: 0.8,
-    borderRadius: 14,
-    marginBottom: 12,
-  },
-  optionIcon: {
-    fontSize: 20,
-    fontFamily: 'Arimo',
-    fontWeight: '400',
-    lineHeight: 28,
-    color: '#0A0A0A',
-  },
-  optionText: {
-    fontSize: 16,
-    fontFamily: 'Arimo',
-    fontWeight: '400',
-    lineHeight: 24,
-    color: '#101828',
-    flex: 1,
-  },
-  optionSelected: { borderColor: '#7C3AED', backgroundColor: '#FEF8FF' },
-  footer: { paddingHorizontal: 24, paddingBottom: 18 },
+  options: { marginTop: 6, gap: 12 },
+  optionOverride: { height: 70 },
+  footer: { paddingHorizontal: 25, paddingBottom: 20 },
   continueButton: {
     width: 310,
     height: 55.98,

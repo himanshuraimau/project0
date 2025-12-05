@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ChevronLeft } from 'lucide-react-native'
+import { ContinueButton } from '../../ui/ContinueButton'
 
 export default function WorkingProfessional4() {
   const router = useRouter()
@@ -34,7 +35,9 @@ export default function WorkingProfessional4() {
 
       {/* Header */}
       <View style={styles.header}>
-        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
+        <TouchableOpacity onPress={() => router.back()}>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
+        </TouchableOpacity>
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
@@ -72,20 +75,10 @@ export default function WorkingProfessional4() {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          activeOpacity={0.85}
+        <ContinueButton
+          variant="gradient"
           onPress={() => router.push('/(onboarding)/step4' as any)}
-        >
-          <LinearGradient
-            colors={["#4C57FF", "#9810FA"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.continueButton}
-          >
-            <Text style={styles.continueText}>Continue</Text>
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-          </LinearGradient>
-        </TouchableOpacity>
+        />
 
         <View style={styles.gestureBar} />
       </View>
@@ -95,7 +88,7 @@ export default function WorkingProfessional4() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#F7F5FF' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginTop: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
   back: { fontSize: 22, marginRight: 16, color: '#0F172A' },
   progressContainer: { flex: 1 },
   progressTrack: { height: 6, backgroundColor: '#E6E7F0', borderRadius: 6, overflow: 'hidden' },
@@ -178,29 +171,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 24,
-    paddingBottom: 18,
-  },
-  continueButton: {
-    width: 310,
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 28,
-    shadowColor: '#4C57FF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  continueText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontFamily: 'Arimo',
-    fontWeight: '700',
-    lineHeight: 24,
-    marginRight: 8,
+    paddingHorizontal: 25,
+    paddingBottom: 20,
   },
   gestureBar: { height: 4, backgroundColor: '#E5E7EB', borderRadius: 3, marginTop: 8, marginHorizontal: 120 },
 })

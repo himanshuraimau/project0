@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ChevronLeft } from 'lucide-react-native'
+import { ContinueButton } from '../../ui/ContinueButton'
 
 export default function WorkingProfessional2() {
   const router = useRouter()
@@ -25,7 +26,9 @@ export default function WorkingProfessional2() {
 
       {/* Navigation header with back and progress */}
       <View style={styles.header}>
-        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
+        <TouchableOpacity onPress={() => router.back()}>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
+        </TouchableOpacity>
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
@@ -68,21 +71,10 @@ export default function WorkingProfessional2() {
 
       {/* Continue button */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          activeOpacity={0.85}
+        <ContinueButton
+          variant="gradient"
           onPress={() => router.push('/(onboarding)/workingProfessional/workingProfessional3' as any)}
-        >
-          <LinearGradient
-            colors={["#4C57FF", "#9810FA"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.continueButton}
-          >
-            <Text style={styles.continueText}>Continue</Text>
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-          </LinearGradient>
-        </TouchableOpacity>
-
+        />
       </View>
     </View>
   )
@@ -109,10 +101,10 @@ const styles = StyleSheet.create({
   statusRight: { flexDirection: 'row', alignItems: 'center' },
   statusIcon: { fontSize: 13 },
   header: {
-    marginTop: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    paddingTop: 60,
   },
   back: {
     fontSize: 22,
@@ -160,28 +152,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   featureText: { fontSize: 16, color: '#0F172A', flex: 1 },
-  footer: { paddingHorizontal: 24, paddingBottom: 18 },
-  continueButton: {
-    width: 310,
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 28,
-    shadowColor: '#4C57FF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  continueText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '700',
-    fontFamily: 'Arimo',
-    lineHeight: 24,
-    marginRight: 8,
-  },
+  footer: { paddingHorizontal: 25, paddingBottom: 20 },
+
   gestureBar: {
     height: 4,
     backgroundColor: '#E5E7EB',
