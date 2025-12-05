@@ -23,6 +23,7 @@ import { setClerkTokenGetter } from '@/lib/api/client'
 import type { Note } from '@/lib/api/types'
 import { getTranslatedNote } from '@/lib/utils/translation'
 import BackButton from '@/components/ui/BackButton'
+import { useAlert } from '@/lib/contexts/AlertContext'
 
 interface NoteViewProps {
   noteId: string
@@ -32,6 +33,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
   const router = useRouter()
   const { getToken } = useAuth()
   const { t, i18n } = useTranslation()
+  const { showAlert } = useAlert()
   const [note, setNote] = useState<Note | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -155,7 +157,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
 
   // Handle delete note
   const handleDeleteNote = () => {
-    Alert.alert(
+    showAlert(
       t('note.deleteNote'),
       t('note.deleteConfirmation'),
       [
@@ -173,7 +175,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
               router.back()
             } catch (err: any) {
               console.error('Failed to delete note:', err)
-              Alert.alert(
+              showAlert(
                 t('common.error'),
                 err.message || t('note.failedToDelete')
               )

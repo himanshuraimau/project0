@@ -12,12 +12,18 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Share,
+  Platform,
 } from 'react-native'
+import * as Clipboard from 'expo-clipboard'
+import * as FileSystem from 'expo-file-system/legacy'
+import * as Sharing from 'expo-sharing'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { notesApi } from '@/lib/api'
 import { setClerkTokenGetter } from '@/lib/api/client'
 import type { Note } from '@/lib/api/types'
 import BackButton from '@/components/ui/BackButton'
+import { useAlert } from '@/lib/contexts/AlertContext'
 
 interface TranscriptViewProps {
   noteId: string
@@ -26,6 +32,7 @@ interface TranscriptViewProps {
 export default function TranscriptView({ noteId }: TranscriptViewProps) {
   const router = useRouter()
   const { getToken } = useAuth()
+  const { showAlert } = useAlert()
   const [note, setNote] = useState<Note | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -64,6 +71,43 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
     return text
   }
 
+  // Action Handlers
+  const handleCopy = async () => {
+    if (!note?.content) return
+    await Clipboard.setStringAsync(note.content)
+    showAlert('Copied', 'Transcript copied to clipboard')
+  }
+
+  const handleDownload = async () => {
+    if (!note?.content) return
+    try {
+      const fileName = `${note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_transcript.txt`
+      const fileUri = (FileSystem.documentDirectory || '') + fileName
+      await FileSystem.writeAsStringAsync(fileUri, note.content)
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri)
+      } else {
+        showAlert('Error', 'Sharing is not available on this device')
+      }
+    } catch (error) {
+      console.error('Download error:', error)
+      showAlert('Error', 'Failed to download transcript')
+    }
+  }
+
+  const handleShare = async () => {
+    if (!note?.content) return
+    try {
+      await Share.share({
+        message: note.content,
+        title: note.title,
+      })
+    } catch (error) {
+      console.error('Share error:', error)
+    }
+  }
+
   // Show loading state
   if (loading) {
     return (
@@ -88,13 +132,13 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
           <View style={styles.errorContainer}>
             <Feather name="alert-circle" size={48} color="#EF4444" />
             <Text style={styles.errorText}>{error || 'Transcript not found'}</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.retryButton}
               onPress={fetchNote}
             >
               <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.backButtonError}
               onPress={() => router.back()}
             >
@@ -123,13 +167,13 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
 
             <View style={styles.headerRight}>
               <View style={styles.actionIcons}>
-                <TouchableOpacity style={styles.iconButton}>
+                <TouchableOpacity style={styles.iconButton} onPress={handleCopy}>
                   <Feather name="copy" size={20} color="#374151" />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.iconButton}>
+                <TouchableOpacity style={styles.iconButton} onPress={handleDownload}>
                   <Feather name="download" size={20} color="#374151" />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.iconButton}>
+                <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
                   <Feather name="share-2" size={20} color="#374151" />
                 </TouchableOpacity>
               </View>
@@ -147,7 +191,7 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
               onChangeText={setSearchQuery}
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setSearchQuery('')}
                 style={{ paddingRight: 12 }}
               >
@@ -156,7 +200,7 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
             )}
           </View>
 
-          <ScrollView 
+          <ScrollView
             style={styles.content}
             showsVerticalScrollIndicator={false}
           >

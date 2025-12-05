@@ -18,6 +18,7 @@ import { useNoteCreation } from "@/lib/hooks/useNoteCreation";
 import { Mic } from "lucide-react-native";
 import GenerateNote from "@/components/ui/GenerateNote";
 import FolderSelect from "@/components/ui/FolderSelect";
+import { useAlert } from "@/lib/contexts/AlertContext";
 
 // Lightweight local Icon fallback using emoji so the component works without extra deps
 const Icon: React.FC<{
@@ -60,6 +61,7 @@ const RecordAudio: React.FC<Props> = ({
   const [internalVisible, setInternalVisible] = useState<boolean>(
     visibleProp ?? true
   );
+  const { showAlert } = useAlert();
   const visible =
     typeof visibleProp === "boolean" ? visibleProp : internalVisible;
   const [phase, setPhase] = useState<Phase>("initial");
@@ -155,20 +157,36 @@ const RecordAudio: React.FC<Props> = ({
   };
 
   const reset = () => {
-    setSeconds(0);
-    setPhase("initial");
-    setIsPlaying(false);
-    recordingUriRef.current = null;
+    showAlert(
+      "Delete Recording",
+      "Are you sure you want to delete this recording?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            setSeconds(0);
+            setPhase("initial");
+            setIsPlaying(false);
+            recordingUriRef.current = null;
 
-    // Clean up recording and sound
-    if (recordingRef.current) {
-      recordingRef.current.stopAndUnloadAsync().catch(console.error);
-      recordingRef.current = null;
-    }
-    if (soundRef.current) {
-      soundRef.current.unloadAsync().catch(console.error);
-      soundRef.current = null;
-    }
+            // Clean up recording and sound
+            if (recordingRef.current) {
+              recordingRef.current.stopAndUnloadAsync().catch(console.error);
+              recordingRef.current = null;
+            }
+            if (soundRef.current) {
+              soundRef.current.unloadAsync().catch(console.error);
+              soundRef.current = null;
+            }
+          },
+        },
+      ]
+    );
   };
 
   const startRecording = async () => {
@@ -176,7 +194,7 @@ const RecordAudio: React.FC<Props> = ({
       // Request permissions
       const permission = await Audio.requestPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert(
+        showAlert(
           "Permission Required",
           "Please grant microphone permission to record audio."
         );
@@ -198,7 +216,7 @@ const RecordAudio: React.FC<Props> = ({
       console.log("Recording started");
     } catch (error) {
       console.error("Failed to start recording:", error);
-      Alert.alert("Error", "Failed to start recording. Please try again.");
+      showAlert("Error", "Failed to start recording. Please try again.");
     }
   };
 
@@ -222,14 +240,14 @@ const RecordAudio: React.FC<Props> = ({
       });
     } catch (error) {
       console.error("Failed to stop recording:", error);
-      Alert.alert("Error", "Failed to stop recording.");
+      showAlert("Error", "Failed to stop recording.");
     }
   };
 
   const togglePlayback = async () => {
     try {
       if (!recordingUriRef.current) {
-        Alert.alert("No Recording", "Please record audio first.");
+        showAlert("No Recording", "Please record audio first.");
         return;
       }
 
@@ -263,13 +281,13 @@ const RecordAudio: React.FC<Props> = ({
       setIsPlaying(true);
     } catch (error) {
       console.error("Failed to play recording:", error);
-      Alert.alert("Error", "Failed to play recording.");
+      showAlert("Error", "Failed to play recording.");
     }
   };
 
   const handleGenerateNotes = async () => {
     if (!recordingUriRef.current) {
-      Alert.alert("No Recording", "Please record audio first.");
+      showAlert("No Recording", "Please record audio first.");
       return;
     }
 
@@ -333,7 +351,7 @@ const RecordAudio: React.FC<Props> = ({
       }
 
       // Success!
-      Alert.alert("Success!", "Your notes have been generated successfully.", [
+      showAlert("Success!", "Your notes have been generated successfully.", [
         {
           text: "View Notes",
           onPress: () => {
