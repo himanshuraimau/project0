@@ -39,4 +39,5 @@ export default StyleSheet.create({
   continueWrap: { borderRadius: 14, overflow: 'hidden' },
   continueButton: { backgroundColor: '#fff', borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#E6E6E6' },
   continueText: { fontSize: 16, fontWeight: '700', color: '#000' },
+  optionOverride: { height: 70 },
 })

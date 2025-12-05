@@ -29,7 +29,9 @@ export default function Parent3() {
       />
 
       <View style={styles.header}>
-        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
+        <TouchableOpacity onPress={() => router.back()}>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
+        </TouchableOpacity>
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
@@ -50,13 +52,19 @@ export default function Parent3() {
               iconBg={o.iconBg}
               selected={selected === o.id}
               onPress={() => setSelected(o.id)}
+              style={styles.optionOverride}
             />
           ))}
         </View>
       </View>
 
       <View style={styles.footer}>
-        <ContinueButton variant="white" onPress={() => router.push('/(onboarding)/parent/parent4' as any)} />
+        <ContinueButton
+          variant="white"
+          onPress={() => router.push('/(onboarding)/parent/parent4' as any)}
+          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
+          disabled={!selected}
+        />
       </View>
 
     </SafeAreaView>
