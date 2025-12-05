@@ -9,12 +9,12 @@ interface OptionButtonProps {
   onPress: () => void
 }
 
-export function OptionButton({ icon, label, iconBg, selected = false, onPress }: OptionButtonProps) {
+export function OptionButton({ icon, label, iconBg, selected = false, onPress, style }: OptionButtonProps & { style?: any }) {
   return (
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
-      style={[styles.option, selected && styles.optionSelected]}
+      style={[styles.option, selected && styles.optionSelected, style]}
     >
       <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
         <Text style={styles.optionIcon}>{icon}</Text>

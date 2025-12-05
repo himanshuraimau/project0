@@ -13,8 +13,8 @@ export default StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 18, flex: 1 },
   context: { color: PURPLE, fontSize: 15, fontWeight: '700', lineHeight: 22, marginBottom: 8, fontFamily: 'Arimo' },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 16, fontFamily: 'Arimo' },
-  options: { marginTop: 6, gap: 12 },
-  option: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0', marginBottom: 12 },
+  options: { marginTop: 6, gap: 10 },
+  option: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0', marginBottom: 12 },
   optionIcon: { fontSize: 18, marginRight: 12 },
   optionLabel: { fontSize: 16, color: '#111827', flex: 1, fontFamily: 'Arimo' },
   footer: { paddingHorizontal: 25, paddingBottom: 20 },
@@ -22,4 +22,5 @@ export default StyleSheet.create({
   continueButton: { backgroundColor: '#fff', borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#E6E6E6' },
   continueText: { fontSize: 16, fontWeight: '700', color: '#000' },
   optionSelected: { borderColor: PURPLE, backgroundColor: '#FBF7FF' },
+  optionOverride: { height: 70 },
 })

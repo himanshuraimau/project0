@@ -1,24 +1,26 @@
 import React from 'react'
-import { TouchableOpacity, Text, StyleSheet } from 'react-native'
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, StyleProp } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 
 interface ContinueButtonProps {
   onPress: () => void
   variant?: 'gradient' | 'white'
   text?: string
+  style?: StyleProp<ViewStyle>
 }
 
-export function ContinueButton({ 
-  onPress, 
+export function ContinueButton({
+  onPress,
   variant = 'gradient',
-  text = 'Continue'
+  text = 'Continue',
+  style
 }: ContinueButtonProps) {
   if (variant === 'white') {
     return (
-      <TouchableOpacity 
-        activeOpacity={0.85} 
+      <TouchableOpacity
+        activeOpacity={0.85}
         onPress={onPress}
-        style={styles.whiteButton}
+        style={[styles.whiteButton, style]}
       >
         <Text style={styles.whiteButtonText}>{text} →</Text>
       </TouchableOpacity>
@@ -26,11 +28,11 @@ export function ContinueButton({
   }
 
   return (
-    <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
-      <LinearGradient 
-        colors={["#4C57FF", "#9810FA"]} 
-        style={styles.gradientButton} 
-        start={{ x: 0, y: 0 }} 
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={style}>
+      <LinearGradient
+        colors={["#4C57FF", "#9810FA"]}
+        style={styles.gradientButton}
+        start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
         <Text style={styles.gradientButtonText}>{text}</Text>
@@ -69,7 +71,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
   },
-  
+
   // White variant
   whiteButton: {
     width: 315,
