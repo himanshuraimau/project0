@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emojiIcon: {
-    fontSize: 28,
+    fontSize: 24,
   },
   headerRight: {
     flexDirection: 'row',
@@ -657,14 +657,15 @@ const styles = StyleSheet.create({
   },
   chipsContainer: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 9,
     paddingVertical: 16,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    paddingRight: 20,
+    justifyContent: 'center',
+    backgroundColor: '#E5E7EB',
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
