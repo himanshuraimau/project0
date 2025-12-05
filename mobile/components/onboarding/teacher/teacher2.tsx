@@ -9,6 +9,7 @@ import {
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurGradient } from '../../ui/BlurGradient'
+import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/teacher2'
 
 export default function Teacher2() {
@@ -63,36 +64,37 @@ export default function Teacher2() {
         </View>
       </View>
 
-      {/* Main Question */}
-      <Text style={styles.mainQuestion}>What would you like Jellinote to help you with?</Text>
+      <View style={styles.content}>
+        {/* Main Question */}
+        <Text style={styles.mainQuestion}>What would you like Jellinote to help you with?</Text>
 
-      {/* Options Container */}
-      <View style={styles.optionsContainer}>
+        {/* Options Container */}
+        <View style={styles.optionsContainer}>
 
-        {options.map((option) => (
-          <TouchableOpacity
-            key={option.id}
-            style={[
-              styles.optionButton,
-              selectedOption === option.id && styles.optionButtonSelected,
-            ]}
-            onPress={() => setSelectedOption(option.id)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.optionIcon}>{option.icon}</Text>
-            <Text style={styles.optionText}>{option.text}</Text>
-          </TouchableOpacity>
-        ))}
+          {options.map((option) => (
+            <TouchableOpacity
+              key={option.id}
+              style={[
+                styles.optionButton,
+                selectedOption === option.id && styles.optionButtonSelected,
+              ]}
+              onPress={() => setSelectedOption(option.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.optionIcon}>{option.icon}</Text>
+              <Text style={styles.optionText}>{option.text}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       {/* Continue Button */}
-      <TouchableOpacity
-        style={styles.continueButton}
-        onPress={handleContinue}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.continueButtonText}>Continue →</Text>
-      </TouchableOpacity>
+      <View style={styles.footer}>
+        <ContinueButton
+          variant="gradient"
+          onPress={handleContinue}
+        />
+      </View>
     </View>
   )
 }

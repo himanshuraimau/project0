@@ -22,9 +22,9 @@ export default StyleSheet.create({
   progressTrack: { height: 10, backgroundColor: '#F3EFFF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '100%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 20, paddingTop: 18, flex: 1, alignItems: 'center' },
-  context: { 
-    color: '#7C3AED', 
-    fontSize: 15, 
+  context: {
+    color: '#7C3AED',
+    fontSize: 15,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 22,
@@ -75,7 +75,7 @@ export default StyleSheet.create({
     fontFamily: 'Arimo',
     fontWeight: '400',
   },
-  footer: { paddingHorizontal: 20, paddingBottom: 18 },
+  footer: { paddingHorizontal: 25, paddingBottom: 20 },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 12 },
   ctaText: { color: '#fff', fontSize: 16, fontWeight: '700', marginRight: 8 },
   ctaArrow: { color: '#fff', fontSize: 18, fontWeight: '700' },

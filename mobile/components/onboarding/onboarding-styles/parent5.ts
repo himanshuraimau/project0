@@ -21,9 +21,9 @@ export default StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '70%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 20, paddingTop: 18, flex: 1 },
-  context: { 
-    color: '#7C3AED', 
-    fontSize: 15, 
+  context: {
+    color: '#7C3AED',
+    fontSize: 15,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 22,
@@ -35,7 +35,7 @@ export default StyleSheet.create({
   optionSelected: { borderColor: PURPLE, backgroundColor: '#FBF7FF' },
   optionIcon: { fontSize: 20, marginRight: 12 },
   optionLabel: { fontSize: 16 },
-  footer: { paddingHorizontal: 20, paddingBottom: 18 },
+  footer: { paddingHorizontal: 25, paddingBottom: 20 },
   continueWrap: { borderRadius: 14, overflow: 'hidden' },
   continueButton: { backgroundColor: '#fff', borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#E6E6E6' },
   continueText: { fontSize: 16, fontWeight: '700', color: '#000' },

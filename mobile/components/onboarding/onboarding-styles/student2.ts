@@ -22,9 +22,9 @@ export default StyleSheet.create({
   progressFill: { width: '35%', height: '100%', backgroundColor: PURPLE },
   scrollContent: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 18, flexGrow: 1, justifyContent: 'space-between' },
-  context: { 
-    color: PURPLE, 
-    fontSize: 15, 
+  context: {
+    color: PURPLE,
+    fontSize: 15,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 22,
@@ -32,15 +32,15 @@ export default StyleSheet.create({
   },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 16 },
   options: { gap: 12, paddingHorizontal: 6, paddingBottom: 20 },
-  option: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#FFFFFF', 
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
     width: 310,
     height: 72,
     paddingLeft: 16,
     paddingVertical: 16,
-    borderRadius: 18, 
+    borderRadius: 18,
     shadowColor: 'rgba(0, 0, 0, 0.1)',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 1,
@@ -48,7 +48,7 @@ export default StyleSheet.create({
     elevation: 2,
     marginBottom: 0,
   },
-  optionSelected: { 
+  optionSelected: {
     backgroundColor: '#FFFFFF',
     shadowColor: 'rgba(0, 0, 0, 0.15)',
     shadowOffset: { width: 0, height: 2 },
@@ -56,24 +56,24 @@ export default StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  optionIcon: { 
+  optionIcon: {
     width: 40,
     height: 40,
     borderRadius: 100,
-    fontSize: 20, 
+    fontSize: 20,
     lineHeight: 40,
     textAlign: 'center',
     marginRight: 12,
   },
-  optionLabel: { 
-    fontSize: 16, 
+  optionLabel: {
+    fontSize: 16,
     fontFamily: 'Arimo',
     fontWeight: '400',
     lineHeight: 20,
-    color: '#000000', 
+    color: '#000000',
     flex: 1,
   },
-  footer: { paddingHorizontal: 20, paddingBottom: 10 },
+  footer: { paddingHorizontal: 25, paddingBottom: 20 },
   continueButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 12 },
   continueText: { color: '#fff', fontSize: 16, fontWeight: '600', marginRight: 6 },
   continueArrow: { color: '#fff', fontSize: 18, fontWeight: '600' },

@@ -10,10 +10,7 @@ export default function Student3() {
   const router = useRouter()
   const [selected, setSelected] = useState<string | null>(null)
 
-  const handleOptionSelect = (id: string) => {
-    setSelected(id)
-    router.push('/(onboarding)/student-flow/student4' as any)
-  }
+
 
   const OPTIONS = [
     { id: 'arts', icon: '🎨', label: 'Arts & Humanities', iconBg: '#FFEDD4' },
@@ -70,7 +67,7 @@ export default function Student3() {
               <TouchableOpacity
                 key={o.id}
                 activeOpacity={0.85}
-                onPress={() => handleOptionSelect(o.id)}
+                onPress={() => setSelected(o.id)}
                 style={[styles.option, sel && styles.optionSelected]}
               >
                 <Text style={[styles.optionIcon, { backgroundColor: o.iconBg }]}>{o.icon}</Text>
@@ -81,7 +78,12 @@ export default function Student3() {
         </View>
       </ScrollView>
 
-      <View style={styles.gesture} />
+      <View style={styles.footer}>
+        <ContinueButton
+          variant="gradient"
+          onPress={() => router.push('/(onboarding)/student-flow/student4' as any)}
+        />
+      </View>
     </SafeAreaView>
   )
 }

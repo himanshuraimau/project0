@@ -60,7 +60,9 @@ export default function Student8() {
           <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         </TouchableOpacity>
         <View style={styles.progressWrap}>
-          <View style={styles.progressFill} />
+          <View style={styles.progressTrack}>
+            <View style={styles.progressFill} />
+          </View>
         </View>
       </View>
 

@@ -54,7 +54,7 @@ export default StyleSheet.create({
     fontFamily: 'Arimo',
     fontWeight: '400',
   },
-  footer: { paddingHorizontal: 20, paddingBottom: 18 },
+  footer: { paddingHorizontal: 25, paddingBottom: 20 },
   continueButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 14 },
   continueText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginRight: 8, fontFamily: 'Arimo' },
   continueArrow: { color: '#FFF', fontSize: 18, fontWeight: '700' },

@@ -36,6 +36,9 @@ export default StyleSheet.create({
     backgroundColor: '#9810FA',
     borderRadius: 268435,
   },
+  content: {
+    flex: 1,
+  },
   mainQuestion: {
     marginHorizontal: 24,
     marginTop: 16,
@@ -49,7 +52,6 @@ export default StyleSheet.create({
   optionsContainer: {
     marginHorizontal: 24,
     gap: 12,
-    marginBottom: 100,
   },
   optionButton: {
     height: 61.6,
@@ -83,27 +85,29 @@ export default StyleSheet.create({
     color: '#101828',
     flex: 1,
   },
+  footer: {
+    paddingHorizontal: 25,
+    paddingBottom: 20,
+  },
   continueButton: {
-    position: 'absolute',
-    bottom: 30,
-    left: 24,
-    right: 24,
-    height: 55.98,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 49067700,
-    shadowColor: 'rgba(0, 0, 0, 0.25)',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 3.2,
-    elevation: 3,
-    justifyContent: 'center',
+    width: 310,
+    height: 56,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 28,
+    shadowColor: 'rgba(76, 87, 255, 0.3)',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    elevation: 8
   },
   continueButtonText: {
-    fontSize: 20,
+    color: '#FFFFFF',
+    fontSize: 17,
     fontWeight: '700',
     fontFamily: 'Arimo',
     lineHeight: 24,
-    color: '#000000',
+    marginRight: 8
   },
 })
