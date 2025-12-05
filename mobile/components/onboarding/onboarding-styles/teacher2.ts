@@ -42,7 +42,7 @@ export default StyleSheet.create({
   mainQuestion: {
     marginHorizontal: 24,
     marginTop: 16,
-    marginBottom: 16,
+    marginBottom: 32,
     fontSize: 24,
     fontWeight: '700',
     fontFamily: 'Arimo',
@@ -110,4 +110,5 @@ export default StyleSheet.create({
     lineHeight: 24,
     marginRight: 8
   },
+  optionOverride: { height: 70 },
 })

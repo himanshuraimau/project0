@@ -7,9 +7,10 @@ import {
   StatusBar,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons'
+import { ChevronLeft } from 'lucide-react-native'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { OptionButton } from '../../ui/OptionButton'
 import styles from '../onboarding-styles/teacher2'
 
 export default function Teacher2() {
@@ -21,11 +22,11 @@ export default function Teacher2() {
   }
 
   const options = [
-    { id: 'organize', icon: '🎯', text: 'Create and organize class notes faster' },
-    { id: 'study', icon: '✍️', text: 'Build study materials and quizzes' },
-    { id: 'meetings', icon: '📄', text: 'Capture insights from meetings' },
-    { id: 'students', icon: '📚', text: 'Support students beyond the classroom' },
-    { id: 'other', icon: '✏️', text: 'Something else' },
+    { id: 'organize', icon: '🎯', text: 'Create and organize class notes faster', iconBg: '#FFFFFF' },
+    { id: 'study', icon: '✍️', text: 'Build study materials and quizzes', iconBg: '#FFFFFF' },
+    { id: 'meetings', icon: '📄', text: 'Capture insights from meetings', iconBg: '#FFFFFF' },
+    { id: 'students', icon: '📚', text: 'Support students beyond the classroom', iconBg: '#FFFFFF' },
+    { id: 'other', icon: '✏️', text: 'Something else', iconBg: '#FFFFFF' },
   ]
 
   return (
@@ -55,7 +56,7 @@ export default function Teacher2() {
       {/* Header with back and progress */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#0A0A0A" />
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         </TouchableOpacity>
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
@@ -70,20 +71,16 @@ export default function Teacher2() {
 
         {/* Options Container */}
         <View style={styles.optionsContainer}>
-
           {options.map((option) => (
-            <TouchableOpacity
+            <OptionButton
               key={option.id}
-              style={[
-                styles.optionButton,
-                selectedOption === option.id && styles.optionButtonSelected,
-              ]}
+              icon={option.icon}
+              label={option.text}
+              iconBg={option.iconBg}
+              selected={selectedOption === option.id}
               onPress={() => setSelectedOption(option.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.optionIcon}>{option.icon}</Text>
-              <Text style={styles.optionText}>{option.text}</Text>
-            </TouchableOpacity>
+              style={styles.optionOverride}
+            />
           ))}
         </View>
       </View>
@@ -93,6 +90,7 @@ export default function Teacher2() {
         <ContinueButton
           variant="gradient"
           onPress={handleContinue}
+          disabled={!selectedOption}
         />
       </View>
     </View>

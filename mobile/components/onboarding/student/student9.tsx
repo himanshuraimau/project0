@@ -16,12 +16,12 @@ export default function Student9() {
   const goalGpa = parseFloat(params.goalGpa as string) || 3.8
   const [activeChart, setActiveChart] = useState<'jellinote' | 'self-study'>('jellinote')
 
-  const chartWidth = width - 80
-  const chartHeight = 120
+  const chartWidth = 281.02
+  const chartHeight = 192
 
   // Generate chart data points based on current and goal GPA
   // Y-axis represents GPA (inverted because SVG Y increases downward)
-  // Scale: 0 GPA at y=120, 10 GPA at y=0
+  // Scale: 0 GPA at y=192, 10 GPA at y=0
   const gpaToY = (gpa: number) => chartHeight - (gpa / 10) * chartHeight
 
   // Create 5 points for Jellinote (goal GPA progression - student8)
@@ -107,15 +107,15 @@ export default function Student9() {
           <View style={styles.chartContainer}>
             <Svg width={chartWidth} height={chartHeight}>
               {/* Horizontal grid lines */}
-              {[0, 1, 2, 3, 4].map((i) => (
+              {[0, 47.75, 95.51, 143.26, 191.02].map((y, i) => (
                 <Line
                   key={i}
                   x1="0"
-                  y1={i * 30}
+                  y1={y}
                   x2={chartWidth}
-                  y2={i * 30}
+                  y2={y}
                   stroke="#E5E7EB"
-                  strokeWidth="1"
+                  strokeWidth="0.98"
                 />
               ))}
 
@@ -123,8 +123,8 @@ export default function Student9() {
               <Polyline
                 points={jellinotePolyline}
                 fill="none"
-                stroke={activeChart === 'jellinote' ? '#7C3AED' : '#9CA3AF'}
-                strokeWidth="3"
+                stroke={activeChart === 'jellinote' ? '#7C3AED' : '#D1D1D6'}
+                strokeWidth="4.02"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -133,8 +133,8 @@ export default function Student9() {
               <Polyline
                 points={selfStudyPolyline}
                 fill="none"
-                stroke={activeChart === 'self-study' ? '#7C3AED' : '#9CA3AF'}
-                strokeWidth="3"
+                stroke={activeChart === 'self-study' ? '#7C3AED' : '#D1D1D6'}
+                strokeWidth="4.02"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />

@@ -76,18 +76,13 @@ export default function WorkingProfessional() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.headerRow}>
+        <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
           </TouchableOpacity>
-          <View style={styles.progressBarContainer}>
+          <View style={styles.progressContainer}>
             <View style={styles.progressTrack}>
-              <LinearGradient
-                colors={['#9810FA', '#AD46FF']}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                style={styles.progressFill}
-              />
+              <View style={styles.progressFill} />
             </View>
           </View>
         </View>

@@ -49,13 +49,11 @@ export const workingProfessionalStyles = StyleSheet.create({
   headerContainer: {
     marginBottom: 24,
   },
-  headerRow: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 0,
-    marginTop: 8,
+    paddingVertical: 20,
     gap: 12,
-    height: 32,
   },
   backButton: {
     width: 32,
@@ -69,7 +67,7 @@ export const workingProfessionalStyles = StyleSheet.create({
     color: '#0A0A0A',
     fontWeight: '600',
   },
-  progressBarContainer: {
+  progressContainer: {
     flex: 1,
     paddingLeft: 0,
     paddingRight: 0,
@@ -84,6 +82,7 @@ export const workingProfessionalStyles = StyleSheet.create({
     width: 75.25,
     height: '100%',
     borderRadius: 100,
+    backgroundColor: '#9810FA',
   },
   progressFillGradient: {
     width: '100%',

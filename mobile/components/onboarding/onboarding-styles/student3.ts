@@ -49,7 +49,9 @@ export default StyleSheet.create({
     marginBottom: 0,
   },
   optionSelected: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FBF7FF',
+    borderColor: '#7C3AED',
+    borderWidth: 2,
     shadowColor: 'rgba(0, 0, 0, 0.15)',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
@@ -78,4 +80,5 @@ export default StyleSheet.create({
   continueText: { color: '#fff', fontSize: 16, fontWeight: '600', marginRight: 6 },
   continueArrow: { color: '#fff', fontSize: 18, fontWeight: '600' },
   gesture: { height: 6, backgroundColor: '#E9E9EF', marginHorizontal: 110, borderRadius: 3, marginTop: 10, marginBottom: Platform.OS === 'ios' ? 16 : 8 },
+  optionOverride: { height: 70 },
 })

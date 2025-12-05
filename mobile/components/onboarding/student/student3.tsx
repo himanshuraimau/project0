@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ContinueButton } from '../../ui/ContinueButton'
 import { ChevronLeft } from 'lucide-react-native'
+import { OptionButton } from '../../ui/OptionButton'
 import styles from '../onboarding-styles/student3'
 
 export default function Student3() {
@@ -61,20 +62,17 @@ export default function Student3() {
         <Text style={styles.title}>What is your major or primary area of study?</Text>
 
         <View style={styles.options}>
-          {OPTIONS.map((o) => {
-            const sel = selected === o.id
-            return (
-              <TouchableOpacity
-                key={o.id}
-                activeOpacity={0.85}
-                onPress={() => setSelected(o.id)}
-                style={[styles.option, sel && styles.optionSelected]}
-              >
-                <Text style={[styles.optionIcon, { backgroundColor: o.iconBg }]}>{o.icon}</Text>
-                <Text style={styles.optionLabel}>{o.label}</Text>
-              </TouchableOpacity>
-            )
-          })}
+          {OPTIONS.map((o) => (
+            <OptionButton
+              key={o.id}
+              icon={o.icon}
+              label={o.label}
+              iconBg={o.iconBg}
+              selected={selected === o.id}
+              onPress={() => setSelected(o.id)}
+              style={styles.optionOverride}
+            />
+          ))}
         </View>
       </ScrollView>
 
@@ -82,6 +80,7 @@ export default function Student3() {
         <ContinueButton
           variant="gradient"
           onPress={() => router.push('/(onboarding)/student-flow/student4' as any)}
+          disabled={!selected}
         />
       </View>
     </SafeAreaView>
