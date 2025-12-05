@@ -35,7 +35,9 @@ export default function Parent4() {
       />
 
       <View style={styles.header}>
-        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
+        <TouchableOpacity onPress={() => router.back()}>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
+        </TouchableOpacity>
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
