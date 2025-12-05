@@ -13,14 +13,16 @@ export function ContinueButton({
   onPress,
   variant = 'gradient',
   text = 'Continue',
-  style
-}: ContinueButtonProps) {
+  style,
+  disabled = false
+}: ContinueButtonProps & { disabled?: boolean }) {
   if (variant === 'white') {
     return (
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={onPress}
-        style={[styles.whiteButton, style]}
+        disabled={disabled}
+        style={[styles.whiteButton, style, disabled && { opacity: 0.5 }]}
       >
         <Text style={styles.whiteButtonText}>{text} →</Text>
       </TouchableOpacity>
@@ -28,7 +30,12 @@ export function ContinueButton({
   }
 
   return (
-    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={style}>
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={onPress}
+      disabled={disabled}
+      style={[style, disabled && { opacity: 0.5 }]}
+    >
       <LinearGradient
         colors={["#4C57FF", "#9810FA"]}
         style={styles.gradientButton}
