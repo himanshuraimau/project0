@@ -118,4 +118,5 @@ export default StyleSheet.create({
     textAlign: 'center',
   },
   gesture: { height: 6, backgroundColor: '#E9E9EF', marginHorizontal: 110, borderRadius: 3, marginTop: 10, marginBottom: Platform.OS === 'ios' ? 16 : 8 },
+  optionOverride: { height: 70 },
 })

@@ -7,6 +7,7 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { ChevronLeft } from 'lucide-react-native'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/teacher3'
@@ -44,7 +45,9 @@ export default function Teacher3() {
 
       {/* Header with back and progress */}
       <View style={styles.header}>
-        <Text style={styles.backButton}>{'<'}</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
+        </TouchableOpacity>
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
