@@ -53,6 +53,7 @@ const envSchema = z.object({
   DODO_PAYMENTS_ENVIRONMENT: z.enum(['test_mode', 'live_mode']).default('test_mode'),
   NEXT_PUBLIC_DODO_PRODUCT_ID_PRO: z.string().optional(),
   NEXT_PUBLIC_DODO_PRODUCT_ID_ENTERPRISE: z.string().optional(),
+  NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY: z.string().optional(),
   
   // Environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -178,6 +179,7 @@ export const config = {
       environment: env.DODO_PAYMENTS_ENVIRONMENT,
       products: {
         pro: env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO || '',
+        proYearly: env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY || '',
         enterprise: env.NEXT_PUBLIC_DODO_PRODUCT_ID_ENTERPRISE || '',
       },
     },

@@ -10,6 +10,7 @@ export function getDodoConfig() {
     webhookKey: process.env.DODO_PAYMENTS_WEBHOOK_KEY!,
     returnUrl: process.env.DODO_PAYMENTS_RETURN_URL!,
     subscriptionProductId: process.env.NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID!,
+    subscriptionProductIdYearly: process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY!,
     baseUrl: process.env.DODO_PAYMENTS_ENVIRONMENT === 'live_mode' 
       ? 'https://live.dodopayments.com' 
       : 'https://test.dodopayments.com',
@@ -30,6 +31,13 @@ export const SUBSCRIPTION_CONFIG = {
   trialDays: 0, // No trial period - matches Dodo product settings
 } as const;
 
+export const SUBSCRIPTION_CONFIG_YEARLY = {
+  price: 9999, // $99.99 in cents
+  currency: 'USD',
+  interval: 'Year',
+  trialDays: 0,
+} as const;
+
 // Subscription plan details
 export const SUBSCRIPTION_PLAN = {
   id: 'pro-monthly',
@@ -46,6 +54,25 @@ export const SUBSCRIPTION_PLAN = {
     'Unlimited notes and flashcards',
     'Priority support',
     'Export features',
+  ],
+} as const;
+
+export const SUBSCRIPTION_PLAN_YEARLY = {
+  id: 'pro-yearly',
+  name: 'Pro Plan (Yearly)',
+  description: 'Unlimited access to all features - Save with annual billing',
+  price: SUBSCRIPTION_CONFIG_YEARLY.price,
+  currency: SUBSCRIPTION_CONFIG_YEARLY.currency,
+  interval: 'yearly',
+  features: [
+    'Unlimited PDF processing',
+    'Unlimited audio transcription', 
+    'Unlimited YouTube video processing',
+    'Unlimited course generation',
+    'Unlimited notes and flashcards',
+    'Priority support',
+    'Export features',
+    'Save 17% vs monthly',
   ],
 } as const;
 

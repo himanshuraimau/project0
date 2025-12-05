@@ -79,11 +79,14 @@ export interface SubscriptionBillingAddress {
   zipcode: string;
 }
 
+export type BillingInterval = 'monthly' | 'yearly';
+
 export interface CreateSubscriptionParams {
   userId: string;
   userEmail: string;
   userName: string;
   billingAddress: SubscriptionBillingAddress;
+  billingInterval?: BillingInterval; // Defaults to 'monthly' if not specified
   trialDays?: number;
   metadata?: Record<string, any>;
 }

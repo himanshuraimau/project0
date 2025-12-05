@@ -1,7 +1,7 @@
 // Dodo Payments subscription management service
 
 import { getDodoClient } from './client';
-import { DODO_CONFIG, SUBSCRIPTION_CONFIG } from './constants';
+import { DODO_CONFIG, SUBSCRIPTION_CONFIG, SUBSCRIPTION_CONFIG_YEARLY } from './constants';
 import type { 
   CreateSubscriptionParams, 
   SubscriptionManagementResult,
@@ -17,24 +17,47 @@ export class DodoSubscriptionService {
   }
 
   /**
+   * Get the appropriate product ID based on billing interval
+   */
+  private static getProductId(billingInterval: 'monthly' | 'yearly' = 'monthly'): string {
+    return billingInterval === 'yearly' 
+      ? DODO_CONFIG.subscriptionProductIdYearly 
+      : DODO_CONFIG.subscriptionProductId;
+  }
+
+  /**
+   * Get the appropriate subscription config based on billing interval
+   */
+  private static getSubscriptionConfig(billingInterval: 'monthly' | 'yearly' = 'monthly') {
+    return billingInterval === 'yearly' ? SUBSCRIPTION_CONFIG_YEARLY : SUBSCRIPTION_CONFIG;
+  }
+
+  /**
    * Create a new subscription with Dodo Payments
    */
   static async createSubscription(
     params: CreateSubscriptionParams
   ): Promise<SubscriptionManagementResult> {
     try {
+      const billingInterval = params.billingInterval || 'monthly';
+      const productId = this.getProductId(billingInterval);
+
       // Validate configuration before making the request
       if (!DODO_CONFIG.apiKey) {
         throw new Error('DODO_PAYMENTS_API_KEY is not configured');
       }
       
-      if (!DODO_CONFIG.subscriptionProductId) {
-        throw new Error('NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID is not configured');
+      if (!productId) {
+        const envVar = billingInterval === 'yearly' 
+          ? 'NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY'
+          : 'NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID';
+        throw new Error(`${envVar} is not configured`);
       }
 
       console.log('Creating Dodo subscription with params:', {
         email: params.userEmail,
-        productId: DODO_CONFIG.subscriptionProductId,
+        productId,
+        billingInterval,
         environment: DODO_CONFIG.environment,
         hasApiKey: !!DODO_CONFIG.apiKey,
         apiKeyLength: DODO_CONFIG.apiKey?.length,
@@ -50,7 +73,7 @@ export class DodoSubscriptionService {
           email: params.userEmail,
           name: params.userName,
         },
-        product_id: DODO_CONFIG.subscriptionProductId,
+        product_id: productId,
         quantity: 1,
         payment_link: true,
         return_url: DODO_CONFIG.returnUrl,
@@ -58,6 +81,7 @@ export class DodoSubscriptionService {
         ...(params.trialDays && params.trialDays > 0 ? { trial_period_days: params.trialDays } : {}),
         metadata: {
           userId: params.userId,
+          billingInterval,
           ...params.metadata,
         },
       };
