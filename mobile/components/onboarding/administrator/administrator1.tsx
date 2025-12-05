@@ -2,6 +2,7 @@ import React from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { ChevronLeft } from 'lucide-react-native'
 import { ContinueButton } from '../../ui/ContinueButton'
 import { BlurGradient } from '../../ui/BlurGradient'
 import styles from '../onboarding-styles/administrator1'
@@ -22,7 +23,7 @@ export default function Administrator1() {
         left={265}
         top={200}
       />
-      
+
       <BlurGradient
         colors={['#9810FA', '#441AFF']}
         width={256}
@@ -33,7 +34,7 @@ export default function Administrator1() {
       />
 
       <View style={styles.header}>
-        <Text style={styles.back}>&lt;</Text>
+        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
@@ -68,13 +69,13 @@ export default function Administrator1() {
             <View style={styles.checkContainer}>
               <Ionicons name="checkmark" size={16} color="#2C94CA" />
             </View>
-            <Text style={styles.featureText}>Stay present in meetings—get action items automatically</Text>
+            <Text style={styles.featureText}>Support teachers with resources built by AI</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.footer}>
-        <ContinueButton 
+        <ContinueButton
           variant="gradient"
           onPress={handleContinue}
         />

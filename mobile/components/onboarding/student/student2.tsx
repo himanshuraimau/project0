@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
-import { LinearGradient } from 'expo-linear-gradient'
 import { BlurGradient } from '../../ui/BlurGradient'
+import { ContinueButton } from '../../ui/ContinueButton'
+import { ChevronLeft } from 'lucide-react-native'
 import styles from '../onboarding-styles/student2'
 
 export default function Student2() {
@@ -35,7 +36,7 @@ export default function Student2() {
       />
 
       <View style={styles.header}>
-        <Text style={styles.back}>&lt;</Text>
+        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />

@@ -10,6 +10,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { BlurGradient } from "../../ui/BlurGradient";
 import { workingProfessionalStyles as styles } from "../onboarding-styles/working-professional-styles";
 import { useRouter } from "expo-router";
+import { ChevronLeft } from 'lucide-react-native'
 
 const fields = [
   { id: "business", emoji: "💼", label: "Business / Tech" },
@@ -77,7 +78,7 @@ export default function WorkingProfessional() {
       >
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backArrow}>‹</Text>
+            <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
           </TouchableOpacity>
           <View style={styles.progressBarContainer}>
             <View style={styles.progressTrack}>

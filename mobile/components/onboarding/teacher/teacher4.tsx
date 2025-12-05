@@ -9,6 +9,7 @@ import {
 import { useRouter } from 'expo-router'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { ChevronLeft } from 'lucide-react-native'
 import styles from '../onboarding-styles/teacher4'
 
 export default function Teacher4() {

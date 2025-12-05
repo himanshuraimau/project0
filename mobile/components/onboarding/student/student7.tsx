@@ -3,6 +3,7 @@ import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-nati
 import { useRouter } from 'expo-router'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { ChevronLeft } from 'lucide-react-native'
 import styles from '../onboarding-styles/student7'
 
 export default function Student7() {
@@ -64,7 +65,7 @@ export default function Student7() {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
-          <Text style={styles.back}>&lt;</Text>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         </TouchableOpacity>
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
@@ -79,8 +80,8 @@ export default function Student7() {
         <Text style={styles.subtitle}>Not sure? A close estimate is fine. You can skip.</Text>
 
         <View style={styles.gpaWrap}>
-          <TouchableOpacity 
-            style={styles.gpaButton} 
+          <TouchableOpacity
+            style={styles.gpaButton}
             onPressIn={startDecrement}
             onPressOut={stopCounter}
             activeOpacity={0.8}
@@ -92,8 +93,8 @@ export default function Student7() {
             <Text style={styles.gpaValue}>{gpa.toFixed(1)}</Text>
           </View>
 
-          <TouchableOpacity 
-            style={styles.gpaButton} 
+          <TouchableOpacity
+            style={styles.gpaButton}
             onPressIn={startIncrement}
             onPressOut={stopCounter}
             activeOpacity={0.8}

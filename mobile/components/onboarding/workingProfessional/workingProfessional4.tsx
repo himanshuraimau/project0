@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurGradient } from '../../ui/BlurGradient'
+import { ChevronLeft } from 'lucide-react-native'
 
 export default function WorkingProfessional4() {
   const router = useRouter()
@@ -33,7 +34,7 @@ export default function WorkingProfessional4() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.back}>{'<'}</Text>
+        <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />

@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { SafeAreaView, View, Text, TouchableOpacity, Platform, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
-import { BlurGradient } from '../../ui/BlurGradient'
+import { ContinueButton } from '../../ui/ContinueButton'
+import { ChevronLeft } from 'lucide-react-native'
 import styles from '../onboarding-styles/student3'
 
 export default function Student3() {
@@ -28,28 +29,28 @@ export default function Student3() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Teal-Blue blur gradient - Bottom */}
-      <BlurGradient
+      {/* <BlurGradient
         colors={['#14C3A2', '#4C57FF']}
         width={256}
         height={256}
         opacity={0.1}
         left={-59}
         top={646}
-      />
+      /> */}
 
       {/* Purple blur gradient - Top */}
-      <BlurGradient
+      {/* <BlurGradient
         colors={['#9810FA', '#441AFF']}
         width={256}
         height={256}
         opacity={0.1}
         left={226}
         top={217}
-      />
+      /> */}
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
-          <Text style={styles.back}>&lt;</Text>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         </TouchableOpacity>
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
