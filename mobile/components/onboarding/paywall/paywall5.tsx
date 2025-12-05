@@ -19,6 +19,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { Check } from 'lucide-react-native';
 import { createSubscription } from '@/lib/api/subscription';
 import { useSubscription } from '@/lib/contexts/SubscriptionContext';
+import BackButton from '../../ui/BackButton';
 
 /**
  * PaywallScreen Component
@@ -216,6 +217,7 @@ export default function PaywallScreen() {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
+            <BackButton style={styles.backButton} />
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
@@ -248,16 +250,16 @@ export default function PaywallScreen() {
 
                             <View style={styles.planHeader}>
                                 <Text style={styles.planName}>{plan.name}</Text>
-                                {plan.savings && (
-                                    <View style={styles.savingsBadge}>
-                                        <Text style={styles.savingsText}>{plan.savings}</Text>
-                                    </View>
-                                )}
                             </View>
 
                             <View style={styles.priceContainer}>
                                 <Text style={styles.price}>{plan.price}</Text>
                                 <Text style={styles.period}>{plan.period}</Text>
+                                {plan.savings && (
+                                    <View style={styles.savingsBadge}>
+                                        <Text style={styles.savingsText}>{plan.savings}</Text>
+                                    </View>
+                                )}
                             </View>
 
                             {/* Selection indicator */}
@@ -278,7 +280,7 @@ export default function PaywallScreen() {
                     <Text style={styles.featuresTitle}>What&apos;s Included:</Text>
                     {FEATURES.map((feature, index) => (
                         <View key={index} style={styles.featureRow}>
-                            <Check size={20} color="#10b981" strokeWidth={2.5} />
+                            <Check size={16} color="#10b981" strokeWidth={2.5} />
                             <Text style={styles.featureText}>{feature}</Text>
                         </View>
                     ))}
@@ -305,15 +307,6 @@ export default function PaywallScreen() {
                     </LinearGradient>
                 </TouchableOpacity>
 
-                {/* Skip Button */}
-                <TouchableOpacity
-                    style={styles.skipButton}
-                    onPress={handleSkip}
-                    disabled={isLoading}
-                >
-                    <Text style={styles.skipButtonText}>Skip for now</Text>
-                </TouchableOpacity>
-
                 {/* Terms */}
                 <Text style={styles.terms}>
                     By subscribing, you agree to our Terms of Service and Privacy Policy.
@@ -329,6 +322,12 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#f9fafb',
         paddingVertical: 44,
+    },
+    backButton: {
+        position: 'absolute',
+        top: 44,
+        left: 20,
+        zIndex: 10,
     },
     scrollContent: {
         padding: 20,
@@ -352,13 +351,13 @@ const styles = StyleSheet.create({
         lineHeight: 22,
     },
     plansContainer: {
-        marginBottom: 30,
+        marginBottom: 20,
     },
     planCard: {
         backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 16,
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 8,
         borderWidth: 2,
         borderColor: '#e5e7eb',
         position: 'relative',
@@ -389,7 +388,7 @@ const styles = StyleSheet.create({
     },
     recommendedText: {
         color: '#fff',
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: 'bold',
         letterSpacing: 0.5,
     },
@@ -397,10 +396,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 12,
+        marginBottom: 2,
     },
     planName: {
-        fontSize: 24,
+        fontSize: 18,
         fontWeight: 'bold',
         color: '#111827',
     },
@@ -409,31 +408,32 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 8,
+        marginLeft: 8,
     },
     savingsText: {
         color: '#d97706',
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: '600',
     },
     priceContainer: {
         flexDirection: 'row',
-        alignItems: 'baseline',
+        alignItems: 'center',
         marginBottom: 8,
     },
     price: {
-        fontSize: 36,
+        fontSize: 24,
         fontWeight: 'bold',
         color: '#6366f1',
     },
     period: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#6b7280',
         marginLeft: 4,
     },
     selectionIndicator: {
         position: 'absolute',
-        top: 20,
-        right: 20,
+        top: 12,
+        right: 12,
     },
     selectedCircle: {
         width: 28,
@@ -452,9 +452,9 @@ const styles = StyleSheet.create({
     },
     featuresContainer: {
         backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 30,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 20,
         ...Platform.select({
             ios: {
                 shadowColor: '#000',
@@ -468,23 +468,22 @@ const styles = StyleSheet.create({
         }),
     },
     featuresTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
         color: '#111827',
-        marginBottom: 16,
+        marginBottom: 10,
     },
     featureRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 8,
     },
     featureText: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#374151',
-        marginLeft: 12,
+        marginLeft: 8,
     },
     subscribeButtonContainer: {
-        marginBottom: 16,
         borderRadius: 16,
         overflow: 'hidden',
         ...Platform.select({
@@ -522,7 +521,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#9ca3af',
         textAlign: 'center',
-        marginTop: 20,
+        marginTop: 8,
         lineHeight: 18,
     },
 });
