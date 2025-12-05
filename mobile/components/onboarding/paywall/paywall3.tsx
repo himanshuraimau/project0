@@ -43,11 +43,11 @@ export default function Paywall3() {
             </View>
             <View style={styles.cardRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.planTitle}>Back to school plan</Text>
-                <Text style={styles.planSubtitle}>Billed yearly as $72</Text>
+                <Text style={styles.planTitle}>Yearly Plan</Text>
+                <Text style={styles.planSubtitle}>Billed yearly as $199.99</Text>
               </View>
               <View>
-                <Text style={styles.planPrice}>$6 / month</Text>
+                <Text style={styles.planPrice}>$16.67 / month</Text>
               </View>
             </View>
           </LinearGradient>
@@ -63,7 +63,7 @@ export default function Paywall3() {
                 <Text style={styles.planTitle}>Monthly Plan</Text>
               </View>
               <View>
-                <Text style={styles.planPrice}>$11 / month</Text>
+                <Text style={styles.planPrice}>$19.99 / month</Text>
               </View>
             </View>
           </View>

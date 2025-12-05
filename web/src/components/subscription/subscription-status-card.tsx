@@ -13,6 +13,7 @@ interface SubscriptionStatus {
     id: string;
     status: string;
     displayStatus: string;
+    productId: string;
     currentPeriodStart: string;
     currentPeriodEnd: string;
     nextBillingDate: string;
@@ -170,6 +171,11 @@ export function SubscriptionStatusCard() {
     });
   };
 
+  // Determine if yearly subscription based on product ID
+  const yearlyProductId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY;
+  const isYearly = subscription.productId === yearlyProductId;
+  const planDisplay = isYearly ? 'Pro - $199.99/year' : 'Pro - $19.99/month';
+
   return (
     <div className="neomorphic rounded-3xl p-10 md:p-12">
       {/* Header */}
@@ -206,7 +212,7 @@ export function SubscriptionStatusCard() {
         <div className="space-y-6 mb-10">
           <div className="flex justify-between items-center py-4">
             <span className="text-muted-foreground text-lg">Plan</span>
-            <span className="font-semibold text-xl">Pro - $19.99/month</span>
+            <span className="font-semibold text-xl">{planDisplay}</span>
           </div>
           
           {subscription.nextBillingDate && !subscription.cancelAtPeriodEnd && (

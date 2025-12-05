@@ -17,6 +17,7 @@ import {
   Alert,
 } from 'react-native'
 import BackButton from '@/components/ui/BackButton'
+import { useSubscription } from '@/lib/contexts/SubscriptionContext'
 
 interface InfoCardProps {
   icon: keyof typeof Feather.glyphMap
@@ -51,6 +52,7 @@ export default function AccountInfo() {
   const router = useRouter()
   const { user } = useUser()
   const { t } = useTranslation()
+  const { subscription, isSubscribed } = useSubscription()
 
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return 'N/A'
@@ -59,6 +61,16 @@ export default function AccountInfo() {
       month: 'long',
       day: 'numeric',
     }).format(new Date(date))
+  }
+
+  // Determine subscription display based on status
+  const getSubscriptionDisplay = () => {
+    if (!isSubscribed || !subscription) {
+      return t('accountInfo.free')
+    }
+    // Check if yearly based on productId containing 'yearly'
+    const isYearly = subscription.productId?.toLowerCase().includes('yearly')
+    return isYearly ? 'Pro - $199.99/year' : 'Pro - $19.99/month'
   }
 
   const copyUserId = async () => {
@@ -120,7 +132,7 @@ export default function AccountInfo() {
               <InfoCard
                 icon="award"
                 label={t('accountInfo.subscription')}
-                value={t('accountInfo.free')}
+                value={getSubscriptionDisplay()}
                 iconBackgroundColor="#A78BFA"
                 isPill
               />

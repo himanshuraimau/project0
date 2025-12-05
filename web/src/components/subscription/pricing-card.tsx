@@ -5,10 +5,27 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+type BillingInterval = 'monthly' | 'yearly';
 
 export function PricingCard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
+
+  const pricing = {
+    monthly: {
+      price: 19.99,
+      period: '/month',
+      savings: null,
+    },
+    yearly: {
+      price: 199.99,
+      period: '/year',
+      savings: 'Save $40/year (17% off)',
+    },
+  };
 
   const handleSubscribe = async () => {
     try {
@@ -17,11 +34,17 @@ export function PricingCard() {
 
       const response = await fetch('/api/subscription/create', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ billingInterval }),
       });
 
       const data = await response.json();
 
-      if (data.paymentLink) {
+      if (data.data?.checkoutUrl) {
+        window.location.href = data.data.checkoutUrl;
+      } else if (data.paymentLink) {
         window.location.href = data.paymentLink;
       } else if (data.error) {
         setError(data.error);
@@ -41,6 +64,8 @@ export function PricingCard() {
     'Priority Support',
   ];
 
+  const currentPricing = pricing[billingInterval];
+
   return (
     <div className="neomorphic rounded-3xl p-8 md:p-10">
       {/* Header */}
@@ -57,14 +82,47 @@ export function PricingCard() {
         </p>
       </div>
 
+      {/* Billing Toggle */}
+      <div className="flex items-center justify-center gap-2 mb-8">
+        <div className="inline-flex items-center rounded-full p-1 neomorphic-inset">
+          <button
+            onClick={() => setBillingInterval('monthly')}
+            className={cn(
+              "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+              billingInterval === 'monthly'
+                ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingInterval('yearly')}
+            className={cn(
+              "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+              billingInterval === 'yearly'
+                ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Yearly
+          </button>
+        </div>
+      </div>
+
       {/* Price */}
       <div className="text-center mb-8">
         <div className="flex items-baseline justify-center gap-2 mb-2">
           <span className="text-6xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            $19.99
+            ${currentPricing.price}
           </span>
-          <span className="text-xl text-muted-foreground">/month</span>
+          <span className="text-xl text-muted-foreground">{currentPricing.period}</span>
         </div>
+        {currentPricing.savings && (
+          <p className="text-sm font-medium text-green-500 mb-2">
+            {currentPricing.savings}
+          </p>
+        )}
         <p className="text-sm text-muted-foreground">
           Cancel anytime • No commitment
         </p>

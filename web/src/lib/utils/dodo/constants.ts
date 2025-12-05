@@ -32,7 +32,7 @@ export const SUBSCRIPTION_CONFIG = {
 } as const;
 
 export const SUBSCRIPTION_CONFIG_YEARLY = {
-  price: 9999, // $99.99 in cents
+  price: 19999, // $199.99 in cents
   currency: 'USD',
   interval: 'Year',
   trialDays: 0,

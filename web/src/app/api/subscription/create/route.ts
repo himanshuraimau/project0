@@ -6,6 +6,7 @@ import { SubscriptionService } from '@/lib/subscription-service';
 import { UserService } from '@/lib/user-service';
 import { DodoSubscriptionService } from '@/lib/utils/dodo/subscription';
 import { getUserFromAuth } from '@/lib/auth-helper';
+import type { BillingInterval } from '@/lib/utils/dodo/types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +17,17 @@ export async function POST(request: NextRequest) {
         { error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    // Parse request body for billing interval
+    let billingInterval: BillingInterval = 'monthly';
+    try {
+      const body = await request.json();
+      if (body.billingInterval === 'yearly') {
+        billingInterval = 'yearly';
+      }
+    } catch {
+      // No body or invalid JSON - default to monthly
     }
 
     // Check if user already has an active subscription
@@ -48,10 +60,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get product ID from environment
-    const productId = process.env.NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID;
+    // Get product ID from environment based on billing interval
+    const productId = billingInterval === 'yearly'
+      ? process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY
+      : process.env.NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID;
+    
     if (!productId) {
-      throw new Error('NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID not configured');
+      const envVar = billingInterval === 'yearly'
+        ? 'NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY'
+        : 'NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID';
+      throw new Error(`${envVar} not configured`);
     }
 
     // Create subscription with Dodo using simple billing address
@@ -68,6 +86,7 @@ export async function POST(request: NextRequest) {
         street: 'Default Street',
         zipcode: '00000',
       },
+      billingInterval,
       // No trial - matches Dodo product configuration
     });
 

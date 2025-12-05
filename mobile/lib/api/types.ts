@@ -418,12 +418,15 @@ export interface UserPurchase {
 }
 
 // ==================== Subscription API ====================
+export type BillingInterval = 'monthly' | 'yearly';
+
 export interface CreateSubscriptionRequest {
   planId: string;
   customerEmail: string;
   customerName: string;
   successUrl: string;
   cancelUrl: string;
+  billingInterval?: BillingInterval;
 }
 
 export interface CreateSubscriptionResponse {

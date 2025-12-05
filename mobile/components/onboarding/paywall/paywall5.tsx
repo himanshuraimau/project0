@@ -26,23 +26,24 @@ import { useSubscription } from '@/lib/contexts/SubscriptionContext';
  */
 
 // Subscription plan configuration
-// TODO: Replace these with actual Dodo Payments plan IDs from your dashboard
 const PLANS = [
     {
-        id: 'plan_monthly_999',
+        id: 'plan_monthly',
         name: 'Monthly',
-        price: '$9.99',
+        price: '$19.99',
         period: '/month',
         recommended: false,
         savings: null,
+        billingInterval: 'monthly' as const,
     },
     {
-        id: 'plan_yearly_9999',
+        id: 'plan_yearly',
         name: 'Yearly',
-        price: '$99.99',
+        price: '$199.99',
         period: '/year',
         recommended: true,
         savings: 'Save 17%',
+        billingInterval: 'yearly' as const,
     },
 ];
 
@@ -159,6 +160,10 @@ export default function PaywallScreen() {
 
             console.log('🛒 Creating subscription for:', userEmail);
 
+            // Get the selected plan details
+            const plan = PLANS.find(p => p.id === selectedPlan);
+            const billingInterval = plan?.billingInterval || 'monthly';
+
             // Create subscription checkout session
             const response = await createSubscription({
                 planId: selectedPlan,
@@ -166,6 +171,7 @@ export default function PaywallScreen() {
                 customerName: userName,
                 successUrl: 'mobile://payment-status?status=success',
                 cancelUrl: 'mobile://payment-status?status=canceled',
+                billingInterval,
             });
 
             console.log('✅ Checkout session created:', response);
@@ -269,7 +275,7 @@ export default function PaywallScreen() {
 
                 {/* Features */}
                 <View style={styles.featuresContainer}>
-                    <Text style={styles.featuresTitle}>What's Included:</Text>
+                    <Text style={styles.featuresTitle}>What&apos;s Included:</Text>
                     {FEATURES.map((feature, index) => (
                         <View key={index} style={styles.featureRow}>
                             <Check size={20} color="#10b981" strokeWidth={2.5} />
