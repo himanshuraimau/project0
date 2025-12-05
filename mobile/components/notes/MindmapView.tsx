@@ -30,6 +30,7 @@ import { getMindMapByNoteId, generateMindMap, deleteMindMap } from '@/lib/api/mi
 import type { Note, MindMap } from '@/lib/api/types';
 import { getTranslatedNote } from '@/lib/utils/translation';
 import BackButton from '@/components/ui/BackButton';
+import { useAlert } from '@/lib/contexts/AlertContext';
 
 interface MindmapViewProps {
     noteId: string;
@@ -38,6 +39,7 @@ interface MindmapViewProps {
 const MindmapView = ({ noteId }: MindmapViewProps) => {
     const router = useRouter();
     const { getToken } = useAuth();
+    const { showAlert } = useAlert();
     const webViewRef = useRef<WebView>(null);
     const [note, setNote] = useState<Note | null>(null);
     const [mindmap, setMindmap] = useState<MindMap | null>(null);
@@ -278,7 +280,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         if (isDeleting || !mindmap) return;
 
         // Confirm deletion with native alert
-        Alert.alert(
+        showAlert(
             'Delete Mindmap',
             'Are you sure you want to delete this mindmap? This action cannot be undone.',
             [
@@ -340,7 +342,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             // Request media library permissions
             const { status } = await MediaLibrary.requestPermissionsAsync(true);
             if (status !== 'granted') {
-                Alert.alert('Permission Required', 'Please grant permission to save images to your photo library.');
+                showAlert('Permission Required', 'Please grant permission to save images to your photo library.');
                 setIsSaving(false);
                 return;
             }
@@ -363,7 +365,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
 
         } catch (err: any) {
             console.error('Failed to save image:', err);
-            Alert.alert('Error', 'Failed to save image: ' + err.message);
+            showAlert('Error', 'Failed to save image: ' + err.message);
             setIsSaving(false);
         }
     };
@@ -393,18 +395,18 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                 const asset = await MediaLibrary.createAssetAsync(fileUri);
                 await MediaLibrary.createAlbumAsync('Mindmaps', asset, false);
 
-                Alert.alert('Success', 'Mindmap saved to your photo library!');
+                showAlert('Success', 'Mindmap saved to your photo library!');
                 setIsSaving(false);
             } else if (data.type === 'error') {
                 console.error('WebView error:', data.message);
-                Alert.alert('Error', 'Failed to capture mindmap: ' + data.message);
+                showAlert('Error', 'Failed to capture mindmap: ' + data.message);
                 setIsSaving(false);
             } else if (data.type === 'log') {
                 console.log(`[WebView ${data.type}]:`, data.message);
             }
         } catch (err: any) {
             console.error('Failed to process WebView message:', err);
-            Alert.alert('Error', 'Failed to save image: ' + err.message);
+            showAlert('Error', 'Failed to save image: ' + err.message);
             setIsSaving(false);
         }
     };
@@ -415,7 +417,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         try {
             const uri = await captureMindmapImage();
             if (!uri) {
-                Alert.alert('Error', 'Failed to capture mindmap for sharing');
+                showAlert('Error', 'Failed to capture mindmap for sharing');
                 return;
             }
 
@@ -426,11 +428,11 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                     UTI: 'public.png', // for iOS
                 });
             } else {
-                Alert.alert('Error', 'Sharing is not available on this device');
+                showAlert('Error', 'Sharing is not available on this device');
             }
         } catch (error: any) {
             console.error('Error sharing mindmap:', error);
-            Alert.alert('Error', 'Failed to share mindmap');
+            showAlert('Error', 'Failed to share mindmap');
         }
     };
 

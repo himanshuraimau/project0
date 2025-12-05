@@ -18,6 +18,7 @@ import {
 } from 'react-native'
 import { deleteUserAccount } from '@/lib/api/user'
 import { useClerk } from '@clerk/clerk-expo'
+import { useAlert } from '@/lib/contexts/AlertContext'
 
 interface SettingOption {
   id: string
@@ -31,6 +32,7 @@ export default function Settings() {
   const router = useRouter()
   const { signOut } = useClerk()
   const { t } = useTranslation()
+  const { showAlert } = useAlert()
 
   const handleLogout = async () => {
     try {
@@ -81,7 +83,7 @@ export default function Settings() {
   }
 
   const handleDeleteAccount = () => {
-    Alert.alert(
+    showAlert(
       t('settings.deleteAccount'),
       t('settings.deleteAccountConfirmation'),
       [
@@ -99,7 +101,7 @@ export default function Settings() {
               router.push('/paywall/paywall4' as any)
             } catch (error) {
               console.error('Error deleting account:', error)
-              Alert.alert(t('common.error'), t('settings.deleteAccountError'))
+              showAlert(t('common.error'), t('settings.deleteAccountError'))
             }
           },
         },

@@ -21,6 +21,7 @@ import { notesApi } from "@/lib/api";
 import { setClerkTokenGetter } from "@/lib/api/client";
 import type { Quiz } from "@/lib/api/types";
 import BackButton from "@/components/ui/BackButton";
+import { useAlert } from "@/lib/contexts/AlertContext";
 
 interface QuizViewProps {
   noteId: string;
@@ -45,6 +46,7 @@ export default function QuizView({ noteId }: QuizViewProps) {
   const router = useRouter();
   const { getToken } = useAuth();
   const { t } = useTranslation();
+  const { showAlert } = useAlert();
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -200,7 +202,7 @@ export default function QuizView({ noteId }: QuizViewProps) {
     }
 
     // Confirm deletion with native alert
-    Alert.alert(
+    showAlert(
       "Delete Quiz",
       "Are you sure you want to delete this quiz? This action cannot be undone.",
       [
@@ -302,7 +304,7 @@ export default function QuizView({ noteId }: QuizViewProps) {
         message,
       });
     } catch (error: any) {
-      Alert.alert(error.message);
+      showAlert(error.message);
     }
   };
 
@@ -313,7 +315,7 @@ export default function QuizView({ noteId }: QuizViewProps) {
       await generateQuiz();
     } catch (error: any) {
       console.error("Failed to create new quiz:", error);
-      Alert.alert("Error", "Failed to create new quiz");
+      showAlert("Error", "Failed to create new quiz");
       setLoading(false);
     }
   };

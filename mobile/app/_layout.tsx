@@ -72,6 +72,8 @@ function ThemedRoot() {
   )
 }
 
+import { AlertProvider } from '@/lib/contexts/AlertContext'
+
 export default function RootLayout() {
   const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
 
@@ -80,9 +82,11 @@ export default function RootLayout() {
       <AuthTokenProvider>
         <SubscriptionProvider>
           <ThemeProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <ThemedRoot />
-            </GestureHandlerRootView>
+            <AlertProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <ThemedRoot />
+              </GestureHandlerRootView>
+            </AlertProvider>
           </ThemeProvider>
         </SubscriptionProvider>
       </AuthTokenProvider>

@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { notesApi } from '@/lib/api'
 import { setClerkTokenGetter } from '@/lib/api/client'
 import BackButton from '@/components/ui/BackButton'
+import { useAlert } from '@/lib/contexts/AlertContext'
 
 interface FlashcardViewProps {
   noteId: string
@@ -39,6 +40,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
   const router = useRouter()
   const { getToken } = useAuth()
   const { t } = useTranslation()
+  const { showAlert } = useAlert()
   const [flashcardState, setFlashcardState] = useState<FlashcardState>('loading')
   const [currentCard, setCurrentCard] = useState(0)
   const [flashcards, setFlashcards] = useState<FlashcardItem[]>([])
@@ -202,7 +204,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
     if (isDeleting) return
 
     // Confirm deletion with native alert
-    Alert.alert(
+    showAlert(
       t('flashcards.deleteTitle'),
       t('flashcards.deleteConfirm'),
       [
