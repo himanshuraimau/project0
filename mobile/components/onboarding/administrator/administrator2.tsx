@@ -75,6 +75,7 @@ export default function Administrator2() {
           variant="white"
           onPress={() => router.push('/(onboarding)/administrator-flow/administrator3' as any)}
           style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
+          disabled={!selected}
         />
       </View>
     </SafeAreaView>
