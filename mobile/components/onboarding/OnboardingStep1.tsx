@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import React, { useState } from 'react'
-import { Image, Pressable, ScrollView, StatusBar, Text, View } from 'react-native'
+import { Image, Platform, Pressable, ScrollView, StatusBar, Text, View } from 'react-native'
 import { BlurGradient } from '../ui/BlurGradient'
 import { onboardingStyles as styles } from './onboarding-styles/onboarding-styles'
 
@@ -131,17 +131,25 @@ export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
         opacity={0.1}
       />
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
+      {/* Progress Bar */}
+      <View
+        style={{
+          paddingTop: Platform.OS === 'ios' ? 80 : 60,
+          paddingHorizontal: 24,
+        }}
       >
-        {/* Progress Bar */}
         <View style={styles.progressBarContainer}>
           <View style={styles.progressBarTrack}>
             <View style={styles.progressBarFill} />
           </View>
         </View>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: 0 }]}
+        showsVerticalScrollIndicator={false}
+      >
 
         {/* Header */}
         <View style={styles.headerContainer}>
