@@ -5,72 +5,72 @@ const BG = '#FFFFFF'
 
 export default StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 23.99,
     paddingTop: 71.98,
     gap: 12,
     height: 27.99,
   },
-  back: { 
-    width: 27.99, 
-    height: 27.99, 
-    fontSize: 20, 
+  back: {
+    width: 27.99,
+    height: 27.99,
+    fontSize: 20,
     textAlign: 'center',
     lineHeight: 27.99,
   },
   progressWrap: { flex: 1 },
-  progressTrack: { 
-    height: 5.99, 
-    backgroundColor: '#D1D1D6', 
-    borderRadius: 100, 
-    overflow: 'hidden' 
+  progressTrack: {
+    height: 5.99,
+    backgroundColor: '#D1D1D6',
+    borderRadius: 100,
+    overflow: 'hidden'
   },
   progressFill: { width: '90%', height: '100%', backgroundColor: PURPLE },
-  content: { 
-    paddingHorizontal: 23.99, 
-    paddingTop: 23.99, 
-    flex: 1 
+  content: {
+    paddingHorizontal: 23.99,
+    paddingTop: 23.99,
+    flex: 1
   },
-  context: { 
-    color: '#7C3AED', 
-    fontSize: 15, 
+  context: {
+    color: '#7C3AED',
+    fontSize: 15,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 22,
     marginBottom: 8,
     width: 345,
   },
-  title: { 
-    fontSize: 20, 
-    fontWeight: '400', 
+  title: {
+    fontSize: 20,
+    fontWeight: '400',
     lineHeight: 25,
-    marginBottom: 14, 
+    marginBottom: 14,
     fontFamily: 'Arimo',
     color: '#000000',
     width: 343,
   },
   options: { marginTop: 6, gap: 12, paddingRight: 24 },
-  option: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#FFFFFF', 
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
     paddingLeft: 19.99,
     paddingRight: 19.99,
     paddingVertical: 0,
     gap: 15.99,
     maxWidth: 345,
     width: 315,
-    height: 83.97, 
-    borderRadius: 16, 
+    height: 83.97,
+    borderRadius: 16,
     shadowColor: 'rgba(0, 0, 0, 0.1)',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 1,
     shadowRadius: 3,
     elevation: 2,
   },
-  optionSelected: { 
+  optionSelected: {
     backgroundColor: '#FFFFFF',
     shadowColor: 'rgba(0, 0, 0, 0.15)',
     shadowOffset: { width: 0, height: 2 },
@@ -78,40 +78,40 @@ export default StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  optionIcon: { 
+  optionIcon: {
     width: 43.98,
     height: 43.98,
     backgroundColor: '#DCFCE7',
     borderRadius: 16,
-    fontSize: 24, 
+    fontSize: 24,
     lineHeight: 43.98,
     textAlign: 'center',
   },
-  optionLabel: { 
+  optionLabel: {
     fontSize: 15,
     fontFamily: 'Arimo',
     fontWeight: '400',
     lineHeight: 22,
     color: '#000000',
   },
-  footer: { paddingHorizontal: 35, paddingBottom: 18 },
+  footer: { paddingHorizontal: 25, paddingBottom: 20 },
   continueWrap: { borderRadius: 100, overflow: 'hidden' },
-  continueButton: { 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 100, 
+  continueButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 100,
     paddingVertical: 0,
     paddingRight: 30,
     width: 329,
-    height: 55.98, 
-    alignItems: 'center', 
+    height: 55.98,
+    alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 0,
     flexDirection: 'row',
     marginBottom: 20,
   },
-  continueText: { 
-    fontSize: 20, 
-    fontWeight: '700', 
+  continueText: {
+    fontSize: 20,
+    fontWeight: '700',
     fontFamily: 'Arimo',
     lineHeight: 24,
     color: '#000000',

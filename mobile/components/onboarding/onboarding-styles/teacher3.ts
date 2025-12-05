@@ -34,6 +34,7 @@ export default StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingTop: 20,
+    flex: 1,
   },
   contextText: {
     color: '#7C3AED',
@@ -116,12 +117,8 @@ export default StyleSheet.create({
     color: '#0B0C10',
   },
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 24,
-    paddingBottom: 18,
+    paddingHorizontal: 25,
+    paddingBottom: 20,
   },
   continueButtonWrapper: {
     width: 310,

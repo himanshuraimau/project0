@@ -23,9 +23,9 @@ export default StyleSheet.create({
   progressFill: { width: '85%', height: '100%', backgroundColor: PURPLE },
   scrollContent: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 24 },
-  context: { 
-    color: '#7C3AED', 
-    fontSize: 15, 
+  context: {
+    color: '#7C3AED',
+    fontSize: 15,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 22,
@@ -33,10 +33,10 @@ export default StyleSheet.create({
   },
   title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 16, fontFamily: 'Arimo' },
   options: { marginTop: 6, gap: 12 },
-  option: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#FFFFFF', 
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
     paddingLeft: 13.98,
     width: 296.4,
     height: 63.95,
@@ -48,7 +48,7 @@ export default StyleSheet.create({
     elevation: 2,
     marginBottom: 0,
   },
-  optionSelected: { 
+  optionSelected: {
     backgroundColor: '#FFFFFF',
     shadowColor: 'rgba(0, 0, 0, 0.15)',
     shadowOffset: { width: 0, height: 2 },
@@ -56,24 +56,24 @@ export default StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  optionIcon: { 
+  optionIcon: {
     width: 35.99,
     height: 35.99,
     borderRadius: 100,
-    fontSize: 18, 
+    fontSize: 18,
     lineHeight: 35.99,
     textAlign: 'center',
     marginRight: 12,
   },
-  optionLabel: { 
-    fontSize: 15, 
+  optionLabel: {
+    fontSize: 15,
     fontFamily: 'Arimo',
     fontWeight: '400',
     lineHeight: 22,
-    color: '#000000', 
+    color: '#000000',
     flex: 1,
   },
-  footer: { paddingHorizontal: 20, paddingBottom: 14 },
+  footer: { paddingHorizontal: 25, paddingBottom: 20 },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', paddingVertical: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0' },
   ctaText: { color: '#111827', fontSize: 16, fontWeight: '700', marginRight: 8 },
   ctaArrow: { color: '#111827', fontSize: 18, fontWeight: '700' },

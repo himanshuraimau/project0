@@ -23,9 +23,9 @@ export default StyleSheet.create({
   progressFill: { width: '92%', height: '100%', backgroundColor: PURPLE },
   scrollContent: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 24 },
-  context: { 
-    color: '#7C3AED', 
-    fontSize: 15, 
+  context: {
+    color: '#7C3AED',
+    fontSize: 15,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 22,
@@ -70,7 +70,7 @@ export default StyleSheet.create({
     fontFamily: 'Arimo',
     fontWeight: '400',
   },
-  footer: { paddingHorizontal: 20, paddingBottom: 14 },
+  footer: { paddingHorizontal: 25, paddingBottom: 20 },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', paddingVertical: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0' },
   ctaText: { color: '#111827', fontSize: 16, fontWeight: '700', marginRight: 8 },
   ctaArrow: { color: '#111827', fontSize: 18, fontWeight: '700' },

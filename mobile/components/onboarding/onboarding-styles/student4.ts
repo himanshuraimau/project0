@@ -22,62 +22,62 @@ export default StyleSheet.create({
   progressTrack: { height: 10, backgroundColor: '#F3EFFF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '65%', height: '100%', backgroundColor: PURPLE },
   scrollContent: { flex: 1 },
-  content: { 
-    paddingHorizontal: 24, 
-    paddingTop: 103.08, 
+  content: {
+    paddingHorizontal: 24,
+    paddingTop: 103.08,
     paddingBottom: 24,
   },
-  title: { 
-    fontSize: 24, 
-    fontWeight: '700', 
-    color: '#000000', 
-    marginBottom: 10, 
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 10,
     fontFamily: 'Arimo',
     lineHeight: 28,
     textAlign: 'center',
   },
-  subtitle: { 
-    color: '#7C3AED', 
-    fontSize: 20, 
+  subtitle: {
+    color: '#7C3AED',
+    fontSize: 20,
     marginTop: 50,
-    marginBottom: 54, 
+    marginBottom: 54,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 19,
   },
   bullets: { marginTop: 8, gap: 12 },
-  bulletRow: { 
-    flexDirection: 'row', 
+  bulletRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
   },
-  checkWrap: { 
-    width: 25, 
-    height: 25, 
-    borderRadius: 100, 
-    backgroundColor: '#34C759', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
+  checkWrap: {
+    width: 25,
+    height: 25,
+    borderRadius: 100,
+    backgroundColor: '#34C759',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 8,
   },
-  check: { 
-    color: '#FFFFFF', 
+  check: {
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 14,
   },
-  bulletText: { 
-    flex: 1, 
-    fontSize: 18, 
+  bulletText: {
+    flex: 1,
+    fontSize: 18,
     color: '#000000',
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 22,
   },
-  footer: { paddingHorizontal: 20, paddingBottom: 12 },
-  cta: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
+  footer: { paddingHorizontal: 25, paddingBottom: 20 },
+  cta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 315,
     height: 56,
     borderRadius: 28,
@@ -87,17 +87,17 @@ export default StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
   },
-  ctaText: { 
-    color: '#FFFFFF', 
-    fontSize: 17, 
+  ctaText: {
+    color: '#FFFFFF',
+    fontSize: 17,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 24,
     marginRight: 8,
   },
-  ctaArrow: { 
-    color: '#FFFFFF', 
-    fontSize: 20, 
+  ctaArrow: {
+    color: '#FFFFFF',
+    fontSize: 20,
     fontWeight: '700',
   },
 })

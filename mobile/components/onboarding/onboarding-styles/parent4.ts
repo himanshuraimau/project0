@@ -21,9 +21,9 @@ export default StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '82%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 20, paddingTop: 18, flex: 1 },
-  context: { 
-    color: '#7C3AED', 
-    fontSize: 15, 
+  context: {
+    color: '#7C3AED',
+    fontSize: 15,
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 22,
@@ -38,7 +38,7 @@ export default StyleSheet.create({
   starsContainer: { flexDirection: 'row', gap: 4 },
   star: { fontSize: 16 },
   quote: { fontSize: 15, fontWeight: '500', color: '#374151', lineHeight: 22, fontStyle: 'italic' },
-  footer: { paddingHorizontal: 16, paddingBottom: 20 },
+  footer: { paddingHorizontal: 25, paddingBottom: 20 },
   continueButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 14 },
   continueText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginRight: 8, fontFamily: 'Arimo' },
   continueArrow: { color: '#FFF', fontSize: 18, fontWeight: '700' },

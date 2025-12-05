@@ -3,16 +3,14 @@ import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { BlurGradient } from '../../ui/BlurGradient'
+import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/student1'
 
 export default function Student1() {
   const router = useRouter()
   const [selected, setSelected] = useState<string | null>(null)
 
-  const handleOptionSelect = (id: string) => {
-    setSelected(id)
-    router.push('/(onboarding)/student-flow/student2' as any)
-  }
+
 
   const OPTIONS = [
     { id: 'college', icon: '🏛️', label: 'College / University', iconBg: '#DCFCE7' },
@@ -69,7 +67,7 @@ export default function Student1() {
               <TouchableOpacity
                 key={o.id}
                 activeOpacity={0.85}
-                onPress={() => handleOptionSelect(o.id)}
+                onPress={() => setSelected(o.id)}
                 style={[styles.option, sel && styles.optionSelected]}
               >
                 <Text style={[styles.optionIcon, { backgroundColor: o.iconBg }]}>{o.icon}</Text>
@@ -80,7 +78,12 @@ export default function Student1() {
         </View>
       </View>
 
-      <View style={styles.gesture} />
+      <View style={styles.footer}>
+        <ContinueButton
+          variant="gradient"
+          onPress={() => router.push('/(onboarding)/student-flow/student2' as any)}
+        />
+      </View>
     </SafeAreaView>
   )
 }
