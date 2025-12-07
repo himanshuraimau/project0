@@ -19,7 +19,7 @@ export default StyleSheet.create({
   back: { fontSize: 22, marginRight: 12 },
   progressWrap: { flex: 1, paddingRight: 16 },
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
-  progressFill: { width: '70%', height: '100%', backgroundColor: PURPLE },
+  progressFill: { width: '100%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 20, paddingTop: 18, flex: 1 },
   context: {
     color: '#7C3AED',
