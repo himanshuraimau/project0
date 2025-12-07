@@ -13,12 +13,12 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUser } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import { Check } from 'lucide-react-native';
 import { createSubscription } from '@/lib/api/subscription';
 import { useSubscription } from '@/lib/contexts/SubscriptionContext';
+import { markOnboardingCompleted } from '@/lib/storage/onboardingStorage';
 import BackButton from '../../ui/BackButton';
 
 /**
@@ -68,11 +68,20 @@ export default function PaywallScreen() {
      * Auto-redirect to home if user is already subscribed
      */
     useEffect(() => {
-        if (isSubscribed) {
-            console.log('✅ User already subscribed, redirecting to home');
-            router.replace('/(home)');
-        }
-    }, [isSubscribed]);
+        const handleSubscribedUser = async () => {
+            if (isSubscribed) {
+                console.log('✅ User already subscribed, redirecting to home');
+                try {
+                    await markOnboardingCompleted();
+                } catch (error) {
+                    console.error('Failed to mark onboarding complete:', error);
+                }
+                router.replace('/(home)');
+            }
+        };
+
+        handleSubscribedUser();
+    }, [isSubscribed, router]);
 
     /**
      * Handle deep link for payment status
@@ -94,6 +103,13 @@ export default function PaywallScreen() {
                 if (status === 'success') {
                     // Refresh subscription status
                     await refreshSubscription();
+
+                    // Mark onboarding as completed
+                    try {
+                        await markOnboardingCompleted();
+                    } catch (error) {
+                        console.error('Failed to mark onboarding complete:', error);
+                    }
 
                     // Show success message
                     Alert.alert(
@@ -136,7 +152,7 @@ export default function PaywallScreen() {
         return () => {
             subscription.remove();
         };
-    }, []);
+    }, [refreshSubscription, router]);
 
     /**
      * Handle subscription purchase
@@ -200,7 +216,7 @@ export default function PaywallScreen() {
     /**
      * Handle skip button
      */
-    const handleSkip = () => {
+    const handleSkip = async () => {
         Alert.alert(
             'Skip Premium?',
             'You can always subscribe later to unlock all premium features.',
@@ -209,7 +225,14 @@ export default function PaywallScreen() {
                 {
                     text: 'Skip',
                     style: 'destructive',
-                    onPress: () => router.replace('/(home)'),
+                    onPress: async () => {
+                        try {
+                            await markOnboardingCompleted();
+                        } catch (error) {
+                            console.error('Failed to mark onboarding complete:', error);
+                        }
+                        router.replace('/(home)');
+                    },
                 },
             ]
         );
@@ -305,6 +328,15 @@ export default function PaywallScreen() {
                             <Text style={styles.subscribeButtonText}>Subscribe Now</Text>
                         )}
                     </LinearGradient>
+                </TouchableOpacity>
+
+                {/* Skip Button */}
+                <TouchableOpacity
+                    style={styles.skipButton}
+                    onPress={handleSkip}
+                    activeOpacity={0.7}
+                >
+                    <Text style={styles.skipButtonText}>Skip for now</Text>
                 </TouchableOpacity>
 
                 {/* Terms */}

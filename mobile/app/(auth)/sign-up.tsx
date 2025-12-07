@@ -7,6 +7,7 @@ import { Link, useRouter } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import * as React from 'react'
 import { Pressable, Text, TextInput, View } from 'react-native'
+import { markOnboardingCompleted } from '@/lib/storage/onboardingStorage'
 
 export default function SignUpScreen() {
   const { isLoaded, signUp, setActive } = useSignUp()
@@ -17,6 +18,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = React.useState('')
   const [pendingVerification, setPendingVerification] = React.useState(false)
   const [code, setCode] = React.useState('')
+  const [isGoogleLoading, setIsGoogleLoading] = React.useState(false)
 
   // Handle submission of sign-up form
   const onSignUpPress = async () => {
@@ -53,9 +55,15 @@ export default function SignUpScreen() {
       })
 
       // If verification was completed, set the session to active
-      // and redirect the user to onboarding
+      // and redirect the user to home
       if (signUpAttempt.status === 'complete') {
         await setActive({ session: signUpAttempt.createdSessionId })
+        // Mark onboarding as completed for new users
+        try {
+          await markOnboardingCompleted()
+        } catch (error) {
+          console.error('Failed to mark onboarding complete:', error)
+        }
         router.replace('/(home)' as any)
       } else {
         // If the status is not complete, check why. User may need to
@@ -79,17 +87,53 @@ export default function SignUpScreen() {
 
   const signUpWith = React.useCallback(
     async (strategy: OAuthStrategy) => {
+      setIsGoogleLoading(true)
       try {
-        const { createdSessionId, setActive: setActiveFromSSO } = await startSSOFlow({
+        console.log('🔵 [1/5] Starting Google OAuth sign-up flow...')
+        
+        // Create proper redirect URL for both dev and production
+        const redirectUrl = __DEV__ 
+          ? AuthSession.makeRedirectUri({ scheme: undefined }) // Use exp:// in dev
+          : AuthSession.makeRedirectUri({ scheme: 'mobile' })   // Use mobile:// in production
+        
+        console.log('🔗 Using redirect URL:', redirectUrl)
+        
+        const result = await startSSOFlow({
           strategy,
-          redirectUrl: AuthSession.makeRedirectUri({ scheme: 'mobile' }),
+          redirectUrl,
         })
-        if (createdSessionId) {
-          await setActiveFromSSO!({ session: createdSessionId })
+        
+        console.log('🔵 [2/5] OAuth sign-up flow returned:', {
+          createdSessionId: result.createdSessionId ? `${result.createdSessionId.substring(0, 20)}...` : 'null',
+          hasSetActive: !!result.setActive,
+          strategy: strategy
+        })
+
+        if (result.createdSessionId) {
+          console.log('🔵 [3/5] Session ID found, activating...')
+          await result.setActive!({ session: result.createdSessionId })
+          console.log('✅ [4/5] Session activated successfully!')
+          
+          // Mark onboarding as completed for OAuth sign-up users
+          try {
+            await markOnboardingCompleted()
+            console.log('✅ Onboarding marked as completed')
+          } catch (error) {
+            console.error('Failed to mark onboarding complete:', error)
+          }
+          
+          console.log('🔵 [5/5] Navigating to home...')
           router.replace('/(home)' as any)
+        } else {
+          console.warn('❌ No session ID returned from OAuth sign-up')
+          alert('Could not complete sign up. Please try again.')
         }
-      } catch (err) {
-        console.error(JSON.stringify(err, null, 2))
+      } catch (err: any) {
+        console.error('❌ Google OAuth sign-up error:', err)
+        console.error('❌ Error details:', JSON.stringify(err, null, 2))
+        alert(err?.message || 'Sign up failed. Please try again.')
+      } finally {
+        setIsGoogleLoading(false)
       }
     },
     [router, startSSOFlow]
@@ -156,10 +200,13 @@ export default function SignUpScreen() {
         {/* Social Button */}
         <View style={authStyles.socialButtonWrapper}>
           <Pressable
-            style={authStyles.socialButton}
+            style={[authStyles.socialButton, { opacity: isGoogleLoading ? 0.6 : 1 }]}
             onPress={() => signUpWith('oauth_google')}
+            disabled={isGoogleLoading}
           >
-            <Text style={authStyles.socialButtonText}>Continue with Google</Text>
+            <Text style={authStyles.socialButtonText}>
+              {isGoogleLoading ? 'Signing up...' : 'Continue with Google'}
+            </Text>
           </Pressable>
         </View>
 

@@ -17,7 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             UIStatusBarHidden: false,
             UIStatusBarStyle: "UIStatusBarStyleDefault"
         },
-        bundleIdentifier: "com.kjish.mobile"
+        bundleIdentifier: "com.enghimanshu.mobile"
     },
     android: {
         adaptiveIcon: {
@@ -35,7 +35,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             "android.permission.ACCESS_MEDIA_LOCATION",
             "android.permission.READ_MEDIA_IMAGES"
         ],
-        package: "com.kjish.mobile"
+        package: "com.enghimanshu.mobile"
     },
     web: {
         bundler: "metro",
@@ -47,7 +47,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         [
             "expo-splash-screen",
             {
-                "image": "./assets/images/splash-icon.png",
+                "image": "./assets/images/main-logo.png",
                 "imageWidth": 200,
                 "resizeMode": "contain",
                 "backgroundColor": "#ffffff"
@@ -70,11 +70,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     extra: {
         eas: {
-            projectId: "48443544-2899-42df-a88f-430cc60f236a"
+            projectId: "63f2aafa-b069-4584-9007-73bd05edc824"
         },
 
         // Add your secrets here, e.g.:
         // apiKey: process.env.MY_API_KEY,
     },
-    owner: "k-jish"
+    owner: "enghimanshu"
 });
