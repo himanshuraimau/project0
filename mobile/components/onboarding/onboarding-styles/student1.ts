@@ -16,20 +16,9 @@ export default StyleSheet.create({
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
-  backButton: {
-    width: 27.99,
-    height: 27.99,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backIcon: {
-    fontSize: 20,
-    color: '#000000',
-  },
-  emptySpace: { width: 12 },
   progressWrap: { flex: 1, paddingRight: 16 },
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
-  progressFill: { width: '35%', height: '100%', backgroundColor: PURPLE },
+  progressFill: { width: '11.11%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 20, paddingTop: 18, flex: 1, justifyContent: 'space-between' },
   context: {
     color: PURPLE,
