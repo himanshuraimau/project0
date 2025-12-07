@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StatusBar,
   ScrollView,
+  SafeAreaView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurGradient } from "../../ui/BlurGradient";
@@ -71,48 +72,51 @@ export default function WorkingProfessional() {
         opacity={0.1}
       />
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => router.back()}>
             <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
           </TouchableOpacity>
-          <View style={styles.progressContainer}>
+          <View style={styles.progressWrap}>
             <View style={styles.progressTrack}>
               <View style={styles.progressFill} />
             </View>
           </View>
         </View>
 
-        <View style={styles.headerContainer}>
-          <Text style={styles.subHeading}>Personalizing Jellinote for you...</Text>
-          <Text style={styles.mainHeading}>What field do you work in?</Text>
-        </View>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
 
-        <View style={styles.list}>
-          {fields.map((f) => (
-            <TouchableOpacity
-              key={f.id}
-              style={[
-                styles.fieldButton,
-                selectedOption === f.id ? styles.fieldButtonSelected : null,
-              ]}
-              activeOpacity={0.8}
-              onPress={() => handleFieldSelect(f.id)}
-            >
-              <Text style={styles.fieldEmoji}>{f.emoji}</Text>
-              <Text style={styles.fieldLabel}>{f.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+          <View style={styles.headerContainer}>
+            <Text style={styles.subHeading}>Personalizing Jellinote for you...</Text>
+            <Text style={styles.mainHeading}>What field do you work in?</Text>
+          </View>
 
-        <View style={{ height: 24 }} />
-      </ScrollView>
+          <View style={styles.list}>
+            {fields.map((f) => (
+              <TouchableOpacity
+                key={f.id}
+                style={[
+                  styles.fieldButton,
+                  selectedOption === f.id ? styles.fieldButtonSelected : null,
+                ]}
+                activeOpacity={0.8}
+                onPress={() => handleFieldSelect(f.id)}
+              >
+                <Text style={styles.fieldEmoji}>{f.emoji}</Text>
+                <Text style={styles.fieldLabel}>{f.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-      <View style={styles.gestureBar} />
+          <View style={{ height: 24 }} />
+        </ScrollView>
+
+        <View style={styles.gestureBar} />
+      </SafeAreaView>
     </LinearGradient>
   )
 }
