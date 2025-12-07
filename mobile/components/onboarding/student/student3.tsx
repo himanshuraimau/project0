@@ -47,7 +47,7 @@ export default function Student3() {
       /> */}
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         </TouchableOpacity>
         <View style={styles.progressWrap}>
