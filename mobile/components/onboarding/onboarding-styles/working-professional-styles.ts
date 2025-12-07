@@ -10,7 +10,7 @@ export const workingProfessionalStyles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingTop: 20,
     paddingHorizontal: 24,
     paddingBottom: 40,
     minHeight: height - (Platform.OS === 'ios' ? 60 : 40),
@@ -49,45 +49,10 @@ export const workingProfessionalStyles = StyleSheet.create({
   headerContainer: {
     marginBottom: 24,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 20,
-    gap: 12,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 0,
-  },
-  backArrow: {
-    fontSize: 24,
-    color: '#0A0A0A',
-    fontWeight: '600',
-  },
-  progressContainer: {
-    flex: 1,
-    paddingLeft: 0,
-    paddingRight: 0,
-  },
-  progressTrack: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 100,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    width: 75.25,
-    height: '100%',
-    borderRadius: 100,
-    backgroundColor: '#9810FA',
-  },
-  progressFillGradient: {
-    width: '100%',
-    height: '100%',
-  },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
+  progressWrap: { flex: 1, paddingRight: 16 },
+  progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
+  progressFill: { width: '25%', height: '100%', backgroundColor: '#7C3AED' },
   subHeading: {
     fontSize: 15,
     fontFamily: 'Arimo',

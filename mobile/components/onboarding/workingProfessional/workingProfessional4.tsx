@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, SafeAreaView } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -10,7 +10,7 @@ import { ContinueButton } from '../../ui/ContinueButton'
 export default function WorkingProfessional4() {
   const router = useRouter()
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen}>
       <StatusBar barStyle="dark-content" backgroundColor="#F7F5FF" />
 
       {/* Gaussian Blur 1 - Blue-Teal */}
@@ -38,7 +38,7 @@ export default function WorkingProfessional4() {
         <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         </TouchableOpacity>
-        <View style={styles.progressContainer}>
+        <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
           </View>
@@ -82,7 +82,7 @@ export default function WorkingProfessional4() {
 
         <View style={styles.gestureBar} />
       </View>
-    </View>
+    </SafeAreaView>
   )
 }
 
@@ -90,9 +90,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#F7F5FF' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
   back: { fontSize: 22, marginRight: 16, color: '#0F172A' },
-  progressContainer: { flex: 1 },
-  progressTrack: { height: 6, backgroundColor: '#E6E7F0', borderRadius: 6, overflow: 'hidden' },
-  progressFill: { width: '35%', height: '100%', backgroundColor: '#7C3AED' },
+  progressWrap: { flex: 1, paddingRight: 16 },
+  progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
+  progressFill: { width: '100%', height: '100%', backgroundColor: '#7C3AED' },
   content: { paddingHorizontal: 24, paddingTop: 20 },
   contextText: {
     color: '#7C3AED',
