@@ -5,29 +5,10 @@ const BG = '#FFFFFF'
 
 export default StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 23.99,
-    paddingTop: 71.98,
-    gap: 12,
-    height: 27.99,
-  },
-  back: {
-    width: 27.99,
-    height: 27.99,
-    fontSize: 20,
-    textAlign: 'center',
-    lineHeight: 27.99,
-  },
-  progressWrap: { flex: 1 },
-  progressTrack: {
-    height: 5.99,
-    backgroundColor: '#D1D1D6',
-    borderRadius: 100,
-    overflow: 'hidden'
-  },
-  progressFill: { width: '90%', height: '100%', backgroundColor: PURPLE },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
+  progressWrap: { flex: 1, paddingRight: 16 },
+  progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
+  progressFill: { width: '100%', height: '100%', backgroundColor: '#7C3AED' },
   content: {
     paddingHorizontal: 23.99,
     paddingTop: 23.99,

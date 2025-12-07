@@ -4,40 +4,14 @@ export default StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#F9FAFB',
-    paddingTop: 35,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    marginTop: 0,
-    height: 76
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16
-  },
-  progressContainer: {
-    flex: 1
-  },
-  progressTrack: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 268435,
-    overflow: 'hidden'
-  },
-  progressFill: {
-    width: '50%',
-    height: '100%',
-    backgroundColor: '#9810FA',
-    borderRadius: 268435
-  },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
+  progressWrap: { flex: 1, paddingRight: 16 },
+  progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
+  progressFill: { width: '25%', height: '100%', backgroundColor: '#7C3AED' },
   content: {
     paddingHorizontal: 19,
-    paddingTop: 0,
+    paddingTop: 20,
     flex: 1
   },
   title: {
@@ -52,7 +26,7 @@ export default StyleSheet.create({
   subtitle: {
     fontSize: 17,
     color: '#0B0C10',
-    marginBottom: 24,
+    marginBottom: 32,
     fontFamily: 'Arimo',
     fontWeight: '400',
     lineHeight: 22

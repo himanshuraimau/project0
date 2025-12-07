@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StatusBar,
+  SafeAreaView,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -20,7 +21,7 @@ export default function Teacher3() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" translucent={false} backgroundColor="#FFFFFF" />
 
       {/* Top blur gradient */}
@@ -45,10 +46,10 @@ export default function Teacher3() {
 
       {/* Header with back and progress */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         </TouchableOpacity>
-        <View style={styles.progressContainer}>
+        <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
           </View>
@@ -100,11 +101,11 @@ export default function Teacher3() {
       </View>
 
       <View style={styles.footer}>
-        <ContinueButton 
+        <ContinueButton
           variant="gradient"
           onPress={handleContinue}
         />
       </View>
-    </View>
+    </SafeAreaView>
   )
 }

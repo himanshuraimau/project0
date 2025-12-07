@@ -5,32 +5,10 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 55,
-    paddingBottom: 12,
-  },
-  backButton: {
-    fontSize: 22,
-    marginRight: 16,
-    color: '#0F172A',
-  },
-  progressContainer: {
-    flex: 1,
-  },
-  progressTrack: {
-    height: 6,
-    backgroundColor: '#E6E7F0',
-    borderRadius: 6,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    width: '66%',
-    height: '100%',
-    backgroundColor: '#7C3AED',
-  },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
+  progressWrap: { flex: 1, paddingRight: 16 },
+  progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
+  progressFill: { width: '75%', height: '100%', backgroundColor: '#7C3AED' },
   content: {
     paddingHorizontal: 24,
     paddingTop: 20,
