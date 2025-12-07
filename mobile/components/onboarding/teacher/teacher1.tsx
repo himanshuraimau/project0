@@ -1,7 +1,8 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StatusBar } from 'react-native'
+import { View, Text, TouchableOpacity, StatusBar, SafeAreaView } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { ChevronLeft } from 'lucide-react-native'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
 import styles from '../onboarding-styles/teacher1'
@@ -9,7 +10,7 @@ import styles from '../onboarding-styles/teacher1'
 export default function Teacher1() {
   const router = useRouter()
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen}>
       <StatusBar barStyle="dark-content" translucent={false} backgroundColor="#F9FAFB" />
 
       {/* Bottom left blur gradient */}
@@ -34,10 +35,10 @@ export default function Teacher1() {
 
       {/* Header with back button and progress */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#0A0A0A" />
+        <TouchableOpacity onPress={() => router.back()}>
+          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
         </TouchableOpacity>
-        <View style={styles.progressContainer}>
+        <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
           </View>
@@ -77,12 +78,12 @@ export default function Teacher1() {
       </View>
 
       <View style={styles.footer}>
-        <ContinueButton 
+        <ContinueButton
           variant="gradient"
           onPress={() => router.push('/(onboarding)/teacher-flow/teacher2' as any)}
         />
       </View>
-    </View>
+    </SafeAreaView>
   )
 }
 

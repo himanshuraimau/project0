@@ -51,6 +51,7 @@ export default function Teacher4() {
         top={654}
       />
 
+      {/* Header with back button and progress */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
