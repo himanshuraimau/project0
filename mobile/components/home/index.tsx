@@ -3,8 +3,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { useAuth } from '@clerk/clerk-expo'
 import { useTranslation } from 'react-i18next'
+import { useSession } from '@/lib/auth/auth-client'
 import {
   StatusBar,
   View,
@@ -24,15 +24,14 @@ import UploadAudio from './UploadAudio';
 import UploadTextOrPDF from './UploadTextOrPDF';
 import WebLink from './WebLink';
 import { notesApi } from '@/lib/api';
-import { setClerkTokenGetter } from '@/lib/api/client';
 import type { Note } from '@/lib/api/types';
 import { getTranslatedNote } from '@/lib/utils/translation';
 
 export default function NotesHome() {
   const { theme } = useTheme()
   const router = useRouter()
-  const { getToken } = useAuth()
   const { t } = useTranslation()
+  const { data: session, isPending } = useSession()
   const [modalVisible, setModalVisible] = useState(false)
   const [activeOption, setActiveOption] = useState<number | null>(null)
   const [notes, setNotes] = useState<Note[]>([])
@@ -50,15 +49,16 @@ export default function NotesHome() {
     { id: 4, icon: 'link', label: t('home.newNoteOptions.webLink') },
   ]
 
-  // Set up Clerk token getter on mount
+  // Fetch notes when session is ready
   useEffect(() => {
-    setClerkTokenGetter(getToken)
-  }, [getToken])
-
-  // Fetch notes on mount
-  useEffect(() => {
-    fetchNotes()
-  }, [])
+    if (!isPending && session?.user) {
+      console.log('✅ Session ready, fetching notes...')
+      fetchNotes()
+    } else if (!isPending && !session?.user) {
+      console.log('⚠️ No session found, redirecting to sign-in')
+      router.replace('/(auth)/sign-in')
+    }
+  }, [session, isPending, router])
 
   const fetchNotes = async () => {
     try {
@@ -185,10 +185,12 @@ export default function NotesHome() {
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           >
-            {loading && !refreshing ? (
+            {(loading && !refreshing) || isPending ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#7C3AED" />
-                <Text style={styles.loadingText}>{t('home.loadingNotes')}</Text>
+                <Text style={styles.loadingText}>
+                  {isPending ? 'Checking session...' : t('home.loadingNotes')}
+                </Text>
               </View>
             ) : error ? (
               <View style={styles.errorContainer}>

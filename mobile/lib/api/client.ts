@@ -1,17 +1,16 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, isAxiosError } from 'axios';
-import * as SecureStore from 'expo-secure-store';
-import { getToken } from '@/lib/auth';
 
 // Base API URL - adjust this based on your environment
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
 
-// Store a reference to the Clerk getToken function
-let clerkGetToken: (() => Promise<string | null>) | null = null;
+// Store a reference to the token getter function
+let tokenProvider: (() => string | null | Promise<string | null>) | null = null;
 
-// Function to set the Clerk token getter
-export const setClerkTokenGetter = (getter: () => Promise<string | null>) => {
-  clerkGetToken = getter;
+// Function to set the token provider (called by AuthTokenProvider)
+export const setTokenProvider = (getter: () => string | null | Promise<string | null>) => {
+  tokenProvider = getter;
 };
+
 console.log('🔗 API Client Configuration:');
 console.log('📍 Base URL:', API_BASE_URL);
 console.log('🌐 Environment API URL:', process.env.EXPO_PUBLIC_API_URL);
@@ -23,9 +22,10 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Important for cookie-based auth
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth cookies
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     console.log('📤 Making API Request:');
@@ -34,22 +34,20 @@ apiClient.interceptors.request.use(
     console.log('📝 Headers:', config.headers);
 
     try {
-      // Try to get Clerk token first
-      if (clerkGetToken) {
-        const token = await clerkGetToken();
-        if (token && config.headers) {
-          config.headers.Authorization = `Bearer ${token}`;
+      // Get cookies from Better Auth
+      if (tokenProvider) {
+        const cookies = await tokenProvider(); // FIXED: await the async function
+        if (cookies && config.headers) {
+          console.log('🍪 Adding cookies to request');
+          config.headers.Cookie = cookies;
+        } else {
+          console.log('⚠️ No cookies available from token provider');
         }
       } else {
-        // Fallback to SecureStore (for backward compatibility)
-        const token = await SecureStore.getItemAsync('auth_token');
-        if (token && config.headers) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-
+        console.log('⚠️ Token provider not set');
       }
     } catch (error) {
-      console.error('❌ Error getting auth token:', error);
+      console.error('❌ Error getting auth cookies:', error);
     }
     return config;
   },
@@ -81,9 +79,8 @@ apiClient.interceptors.response.use(
 
       switch (status) {
         case 401:
-          console.log('🔐 Unauthorized - token may be invalid or expired');
-          // Note: With Clerk, we don't manually manage tokens
-          // The token provider should handle refreshing automatically
+          console.log('🔐 Unauthorized - session may be invalid or expired');
+          // Better Auth handles session refresh automatically
           break;
         case 403:
           console.error('🚫 Forbidden - insufficient permissions');

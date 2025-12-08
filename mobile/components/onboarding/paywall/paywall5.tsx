@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useUser } from '@clerk/clerk-expo';
+import { useSession } from '@/lib/auth';
 import * as WebBrowser from 'expo-web-browser';
 import { Check } from 'lucide-react-native';
 import { createSubscription } from '@/lib/api/subscription';
@@ -57,7 +57,8 @@ const FEATURES = [
 ];
 
 export default function PaywallScreen() {
-    const { user } = useUser();
+    const { data: session } = useSession();
+    const user = session?.user;
     const router = useRouter();
     const { isSubscribed, refreshSubscription } = useSubscription();
 
@@ -161,9 +162,9 @@ export default function PaywallScreen() {
         try {
             setIsLoading(true);
 
-            // Get user info from Clerk
-            const userEmail = user?.primaryEmailAddress?.emailAddress;
-            const userName = user?.fullName || user?.firstName || 'User';
+            // Get user info from Better Auth
+            const userEmail = user?.email;
+            const userName = user?.name || 'User';
 
             if (!userEmail) {
                 Alert.alert(

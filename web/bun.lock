@@ -7,6 +7,7 @@
         "@ai-sdk/google": "^2.0.23",
         "@ai-sdk/openai": "^2.0.53",
         "@ai-sdk/react": "^2.0.76",
+        "@better-auth/expo": "^1.4.5",
         "@dodopayments/nextjs": "^0.2.0",
         "@google/generative-ai": "^0.24.1",
         "@hookform/resolvers": "^5.2.2",
@@ -154,6 +155,8 @@
     "@babel/types": ["@babel/types@7.28.4", "", { "dependencies": { "@babel/helper-string-parser": "^7.27.1", "@babel/helper-validator-identifier": "^7.27.1" } }, "sha512-bkFqkLhh3pMBUQQkpVgWDWq/lqzc2678eUyDlTBhRqhCHFguYYGM0Efga7tYk4TogG/3x0EEl66/OQ+WGbWB/Q=="],
 
     "@better-auth/core": ["@better-auth/core@1.4.5", "", { "dependencies": { "@standard-schema/spec": "^1.0.0", "zod": "^4.1.12" }, "peerDependencies": { "@better-auth/utils": "0.3.0", "@better-fetch/fetch": "1.1.18", "better-call": "1.1.4", "jose": "^6.1.0", "kysely": "^0.28.5", "nanostores": "^1.0.1" } }, "sha512-dQ3hZOkUJzeBXfVEPTm2LVbzmWwka1nqd9KyWmB2OMlMfjr7IdUeBX4T7qJctF67d7QDhlX95jMoxu6JG0Eucw=="],
+
+    "@better-auth/expo": ["@better-auth/expo@1.4.5", "", { "dependencies": { "@better-fetch/fetch": "1.1.18", "better-call": "1.1.4", "zod": "^4.1.12" }, "peerDependencies": { "@better-auth/core": "1.4.5", "better-auth": "1.4.5", "expo-constants": ">=17.0.0", "expo-linking": ">=7.0.0", "expo-network": "^8.0.7", "expo-web-browser": ">=14.0.0" }, "optionalPeers": ["expo-constants", "expo-linking", "expo-network", "expo-web-browser"] }, "sha512-TCxy3SYMvfHlMBo0vlUvcQ8Dou8KX3JHBP5mFs5DtfUK/kGG59QnW7QoB6iFQdMwvO5h6Kgq9IKu0i0ON3j0jw=="],
 
     "@better-auth/telemetry": ["@better-auth/telemetry@1.4.5", "", { "dependencies": { "@better-auth/utils": "0.3.0", "@better-fetch/fetch": "1.1.18" }, "peerDependencies": { "@better-auth/core": "1.4.5" } }, "sha512-r3NyksbaBYA10SC86JA6QwmZfHwFutkUGcphgWGfu6MVx1zutYmZehIeC8LxTjOWZqqF9FI8vLjglWBHvPQeTg=="],
 

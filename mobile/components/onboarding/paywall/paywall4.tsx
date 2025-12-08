@@ -11,51 +11,27 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useOAuth } from "@clerk/clerk-expo";
-import * as AuthSession from "expo-auth-session";
-import * as WebBrowser from "expo-web-browser";
-
-WebBrowser.maybeCompleteAuthSession();
+import { authClient } from "@/lib/auth/auth-client";
 
 export default function Paywall4() {
   const router = useRouter();
-  const { startOAuthFlow: startGoogleFlow } = useOAuth({
-    strategy: "oauth_google",
-  });
-  const { startOAuthFlow: startAppleFlow } = useOAuth({
-    strategy: "oauth_apple",
-  });
+  const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
 
-  React.useEffect(() => {
-    void WebBrowser.warmUpAsync();
-    return () => {
-      void WebBrowser.coolDownAsync();
-    };
-  }, []);
-
-  const onSelectAuth = React.useCallback(
-    async (strategy: "oauth_google" | "oauth_apple") => {
-      try {
-        const startOAuthFlow =
-          strategy === "oauth_google" ? startGoogleFlow : startAppleFlow;
-
-        const { createdSessionId, setActive } = await startOAuthFlow({
-          redirectUrl: AuthSession.makeRedirectUri({ scheme: "mobile" }),
-        });
-
-        if (createdSessionId) {
-          setActive!({ session: createdSessionId });
-          // Add a small delay to allow notes to load properly
-          setTimeout(() => {
-            router.replace("/(home)" as any);
-          }, 300);
-        }
-      } catch (err) {
-        console.error("OAuth error", err);
-      }
-    },
-    [startGoogleFlow, startAppleFlow, router]
-  );
+  const handleGoogleAuth = React.useCallback(async () => {
+    setIsGoogleLoading(true);
+    try {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/(home)",
+      });
+      router.replace("/(home)");
+    } catch (err: any) {
+      console.error("Google OAuth error:", err);
+      alert(err?.message || "Authentication failed. Please try again.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  }, [router]);
 
   return (
     <LinearGradient
@@ -111,7 +87,8 @@ export default function Paywall4() {
           <TouchableOpacity
             style={styles.googleBtn}
             activeOpacity={0.9}
-            onPress={() => onSelectAuth("oauth_google")}
+            onPress={handleGoogleAuth}
+            disabled={isGoogleLoading}
           >
             <Image
               source={{
@@ -119,21 +96,9 @@ export default function Paywall4() {
               }}
               style={styles.googleLogo}
             />
-            <Text style={styles.googleText}>Sign up with Google</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.appleBtn}
-            activeOpacity={0.9}
-            onPress={() => onSelectAuth("oauth_apple")}
-          >
-            <Ionicons
-              name="logo-apple"
-              size={24}
-              color="#FFFFFF"
-              style={{ marginRight: 12 }}
-            />
-            <Text style={styles.appleText}>Sign up with Apple</Text>
+            <Text style={styles.googleText}>
+              {isGoogleLoading ? "Signing up..." : "Sign up with Google"}
+            </Text>
           </TouchableOpacity>
 
           <Text style={styles.termsText}>

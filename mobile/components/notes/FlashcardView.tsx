@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { useAuth } from '@clerk/clerk-expo'
 import { useTranslation } from 'react-i18next'
 import {
   StatusBar,
@@ -16,7 +15,6 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { notesApi } from '@/lib/api'
-import { setClerkTokenGetter } from '@/lib/api/client'
 import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
 
@@ -38,7 +36,6 @@ interface FlashcardData {
 
 export default function FlashcardView({ noteId }: FlashcardViewProps) {
   const router = useRouter()
-  const { getToken } = useAuth()
   const { t } = useTranslation()
   const { showAlert } = useAlert()
   const [flashcardState, setFlashcardState] = useState<FlashcardState>('loading')
@@ -51,11 +48,6 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
   const [error, setError] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-
-  // Set up Clerk token getter on mount
-  useEffect(() => {
-    setClerkTokenGetter(getToken)
-  }, [getToken])
 
   // Fetch flashcards data on mount
   useEffect(() => {

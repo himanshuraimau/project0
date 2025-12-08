@@ -1,18 +1,16 @@
 import { ThemeProvider, useTheme } from '@/lib/hooks/useTheme'
-import { ClerkProvider } from '@clerk/clerk-expo'
-import { tokenCache } from '@/lib/auth/cache'
 import { AuthTokenProvider } from '@/components/auth/AuthTokenProvider'
 import { SubscriptionProvider } from '@/lib/contexts/SubscriptionContext'
+import { AlertProvider } from '@/lib/contexts/AlertContext'
 import { useFonts } from 'expo-font'
 import { Slot } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
-import { View, ActivityIndicator, Text } from 'react-native'
+import { View, ActivityIndicator, Text, Platform } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { initI18n } from '@/lib/i18n/i18n'
 import * as NavigationBar from 'expo-navigation-bar'
-import { Platform } from 'react-native'
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync()
@@ -72,24 +70,18 @@ function ThemedRoot() {
   )
 }
 
-import { AlertProvider } from '@/lib/contexts/AlertContext'
-
 export default function RootLayout() {
-  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
-
   return (
-    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
-      <AuthTokenProvider>
-        <SubscriptionProvider>
-          <ThemeProvider>
-            <AlertProvider>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <ThemedRoot />
-              </GestureHandlerRootView>
-            </AlertProvider>
-          </ThemeProvider>
-        </SubscriptionProvider>
-      </AuthTokenProvider>
-    </ClerkProvider>
+    <AuthTokenProvider>
+      <SubscriptionProvider>
+        <ThemeProvider>
+          <AlertProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <ThemedRoot />
+            </GestureHandlerRootView>
+          </AlertProvider>
+        </ThemeProvider>
+      </SubscriptionProvider>
+    </AuthTokenProvider>
   )
 }

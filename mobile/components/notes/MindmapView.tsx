@@ -20,12 +20,10 @@ import { Feather } from '@expo/vector-icons';
 import { Edit, ZoomIn, ZoomOut, Download, Share2, Eye, Save } from 'lucide-react-native';
 import WebView from 'react-native-webview';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@clerk/clerk-expo';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { notesApi } from '@/lib/api';
-import { setClerkTokenGetter } from '@/lib/api/client';
 import { getMindMapByNoteId, generateMindMap, deleteMindMap } from '@/lib/api/mindmap';
 import type { Note, MindMap } from '@/lib/api/types';
 import { getTranslatedNote } from '@/lib/utils/translation';
@@ -38,7 +36,6 @@ interface MindmapViewProps {
 
 const MindmapView = ({ noteId }: MindmapViewProps) => {
     const router = useRouter();
-    const { getToken } = useAuth();
     const { showAlert } = useAlert();
     const webViewRef = useRef<WebView>(null);
     const [note, setNote] = useState<Note | null>(null);
@@ -52,11 +49,6 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     const [markdownInput, setMarkdownInput] = useState('');
     const viewShotRef = useRef(null);
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
-
-    // Set up Clerk token getter on mount
-    useEffect(() => {
-        setClerkTokenGetter(getToken);
-    }, [getToken]);
 
     // Fetch note and mindmap data on mount
     useEffect(() => {

@@ -11,9 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@clerk/clerk-expo';
 import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
-import { setClerkTokenGetter } from '@/lib/api/client';
 import * as DocumentPicker from 'expo-document-picker';
 import GenerateNote from '@/components/ui/GenerateNote';
 import FolderSelect from '@/components/ui/FolderSelect';
@@ -50,7 +48,6 @@ type Props = {
 
 const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inline = false, onNoteCreated }) => {
   const router = useRouter();
-  const { getToken } = useAuth();
   const { generateNoteFromText } = useNoteCreation();
   const [internalVisible, setInternalVisible] = useState<boolean>(visibleProp ?? true);
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
@@ -60,11 +57,6 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedPDFs, setSelectedPDFs] = useState<DocumentPicker.DocumentPickerAsset[]>([]);
-
-  // Set up Clerk token getter
-  React.useEffect(() => {
-    setClerkTokenGetter(getToken);
-  }, [getToken]);
 
   const close = () => {
     if (onClose) onClose();

@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { useUser } from '@clerk/clerk-expo'
+import { useSession } from '@/lib/auth'
 import { useTranslation } from 'react-i18next'
 import * as Clipboard from 'expo-clipboard'
 import {
@@ -50,7 +50,8 @@ const InfoCard: React.FC<InfoCardProps> = ({ icon, label, value, iconBackgroundC
 export default function AccountInfo() {
   const { theme } = useTheme()
   const router = useRouter()
-  const { user } = useUser()
+  const { data: session } = useSession()
+  const user = session?.user
   const { t } = useTranslation()
   const { subscription, isSubscribed } = useSubscription()
 
@@ -80,8 +81,8 @@ export default function AccountInfo() {
     }
   }
 
-  const userName = user?.fullName || user?.firstName || 'User'
-  const userEmail = user?.primaryEmailAddress?.emailAddress || 'No email'
+  const userName = user?.name || 'User'
+  const userEmail = user?.email || 'No email'
   const memberSince = formatDate(user?.createdAt)
 
   return (
@@ -107,7 +108,7 @@ export default function AccountInfo() {
             {/* Profile Section */}
             <View style={styles.profileSection}>
               <View style={styles.profilePicture}>
-                {user?.imageUrl ? (
+                {user?.image ? (
                   <Text style={styles.profileInitial}>
                     {userName.charAt(0).toUpperCase()}
                   </Text>

@@ -3,7 +3,6 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { BookOpen, Brain, Layers } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
-import { useAuth } from '@clerk/clerk-expo'
 import { useTranslation } from 'react-i18next'
 import {
   StatusBar,
@@ -19,7 +18,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { WebView } from 'react-native-webview'
 import { marked } from 'marked'
 import { notesApi } from '@/lib/api'
-import { setClerkTokenGetter } from '@/lib/api/client'
 import type { Note } from '@/lib/api/types'
 import { getTranslatedNote } from '@/lib/utils/translation'
 import BackButton from '@/components/ui/BackButton'
@@ -31,7 +29,6 @@ interface NoteViewProps {
 
 export default function NoteView({ noteId }: NoteViewProps) {
   const router = useRouter()
-  const { getToken } = useAuth()
   const { t, i18n } = useTranslation()
   const { showAlert } = useAlert()
   const [note, setNote] = useState<Note | null>(null)
@@ -39,11 +36,6 @@ export default function NoteView({ noteId }: NoteViewProps) {
   const [error, setError] = useState<string | null>(null)
   const [webViewHeight, setWebViewHeight] = useState(400)
   const [deleting, setDeleting] = useState(false)
-
-  // Set up Clerk token getter on mount
-  useEffect(() => {
-    setClerkTokenGetter(getToken)
-  }, [getToken])
 
   // Fetch note data on mount or when language changes
   useEffect(() => {

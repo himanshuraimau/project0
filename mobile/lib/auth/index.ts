@@ -1,3 +1,6 @@
+// Auth client exports
+export { authClient, signIn, signUp, signOut, useSession } from './auth-client';
+
 // Auth token provider type
 export type TokenProvider = () => Promise<string | null>;
 

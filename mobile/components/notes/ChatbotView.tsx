@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { useAuth } from '@clerk/clerk-expo'
 import { useTranslation } from 'react-i18next'
 import {
   StatusBar,
@@ -16,7 +15,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import Markdown from 'react-native-markdown-display'
-import { setClerkTokenGetter } from '@/lib/api/client'
 import { chatWithNote } from '@/lib/api/notes'
 import { loadChatHistory, saveChatHistory, type ChatMessage } from '@/lib/storage/chatStorage'
 import BackButton from '@/components/ui/BackButton'
@@ -34,18 +32,12 @@ interface Message {
 
 export default function ChatbotView({ noteId }: ChatbotViewProps) {
   const router = useRouter()
-  const { getToken } = useAuth()
   const { t } = useTranslation()
   const scrollViewRef = useRef<KeyboardAwareScrollView>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(true)
-
-  // Set up Clerk token getter on mount
-  useEffect(() => {
-    setClerkTokenGetter(getToken)
-  }, [getToken])
 
   // Load chat history on mount
   useEffect(() => {

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { useAuth } from '@clerk/clerk-expo'
 import {
   StatusBar,
   View,
@@ -20,7 +19,6 @@ import * as FileSystem from 'expo-file-system/legacy'
 import * as Sharing from 'expo-sharing'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { notesApi } from '@/lib/api'
-import { setClerkTokenGetter } from '@/lib/api/client'
 import type { Note } from '@/lib/api/types'
 import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
@@ -31,17 +29,11 @@ interface TranscriptViewProps {
 
 export default function TranscriptView({ noteId }: TranscriptViewProps) {
   const router = useRouter()
-  const { getToken } = useAuth()
   const { showAlert } = useAlert()
   const [note, setNote] = useState<Note | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-
-  // Set up Clerk token getter on mount
-  useEffect(() => {
-    setClerkTokenGetter(getToken)
-  }, [getToken])
 
   // Fetch note data on mount
   useEffect(() => {

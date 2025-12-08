@@ -1,16 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { useAuth } from '@clerk/clerk-expo';
+import { useSession } from '@/lib/auth';
 
 const useRedirectMiddleware = () => {
   const router = useRouter();
-  const { isSignedIn } = useAuth();
+  const { data: session } = useSession();
 
   useEffect(() => {
-    if (isSignedIn) {
+    if (session) {
       router.replace('/(home)');
     }
-  }, [isSignedIn, router]);
+  }, [session, router]);
 };
 
 export default useRedirectMiddleware;

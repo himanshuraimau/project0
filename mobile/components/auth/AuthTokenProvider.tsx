@@ -1,41 +1,41 @@
-import { useAuth } from '@clerk/clerk-expo';
-import { setTokenProvider } from '@/lib/auth';
+import { useSession, authClient } from '@/lib/auth/auth-client';
+import { setTokenProvider } from '@/lib/api/client';
 import { useEffect } from 'react';
 
 export const AuthTokenProvider = ({ children }: { children: React.ReactNode }) => {
-  const { getToken, isSignedIn } = useAuth();
+  const { data: session } = useSession();
 
   useEffect(() => {
-    console.log('🔧 Setting up Clerk token provider');
-    console.log('🔐 User signed in:', isSignedIn);
+    console.log('🔧 Setting up Better Auth token provider');
+    console.log('🔐 User signed in:', !!session?.user);
     
     const tokenProvider = async () => {
       try {
-        // Always try to get token, even if isSignedIn is false
-        // This helps with timing issues after OAuth
-        console.log('🔐 Getting Clerk token...');
-        const token = await getToken();
-        
-        if (token) {
-          console.log('✅ Clerk token:', `${token.substring(0, 20)}...`);
-        } else if (isSignedIn) {
-          console.log('⚠️ User signed in but no token - session may be syncing');
-        } else {
-          console.log('❌ User not signed in, no token available');
+        if (!session?.user) {
+          console.log('❌ No active session');
+          return null;
         }
         
-        return token;
+        // Get session cookies to send with API requests
+        console.log('🔐 Getting Better Auth session cookies...');
+        const cookies = authClient.getCookie();
+        
+        if (cookies) {
+          console.log('✅ Session cookies available:', cookies.substring(0, 50) + '...');
+          return cookies;
+        } else {
+          console.log('⚠️ User signed in but no cookies available');
+          return null;
+        }
       } catch (error) {
-        console.error('❌ Error getting Clerk token:', error);
-        // If user should be signed in but token fetch fails, return null
-        // This will trigger a 401 which can help debug the issue
+        console.error('❌ Error getting session cookies:', error);
         return null;
       }
     };
 
     console.log('🔧 Setting global token provider');
     setTokenProvider(tokenProvider);
-  }, [getToken, isSignedIn]);
+  }, [session]);
 
   return <>{children}</>;
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useAuth, useUser } from "@clerk/clerk-expo";
+import { useSession } from "@/lib/auth";
 import { useTranslation } from "react-i18next";
 import {
   StatusBar,
@@ -18,7 +18,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { notesApi } from "@/lib/api";
-import { setClerkTokenGetter } from "@/lib/api/client";
 import type { Quiz } from "@/lib/api/types";
 import BackButton from "@/components/ui/BackButton";
 import { useAlert } from "@/lib/contexts/AlertContext";
@@ -44,7 +43,8 @@ interface QuizContent {
 
 export default function QuizView({ noteId }: QuizViewProps) {
   const router = useRouter();
-  const { getToken } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
   const { t } = useTranslation();
   const { showAlert } = useAlert();
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -60,11 +60,6 @@ export default function QuizView({ noteId }: QuizViewProps) {
   const [showExplanation, setShowExplanation] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Set up Clerk token getter on mount
-  useEffect(() => {
-    setClerkTokenGetter(getToken);
-  }, [getToken]);
 
   // Fetch quiz data on mount
   useEffect(() => {
@@ -284,8 +279,6 @@ export default function QuizView({ noteId }: QuizViewProps) {
     return questions.length;
   };
 
-  const { user } = useUser();
-
   const handleShare = async () => {
     try {
       const score = getScorePercentage();
@@ -293,7 +286,7 @@ export default function QuizView({ noteId }: QuizViewProps) {
       const wrong = total - correctAnswers;
       const time = getElapsedTime();
 
-      const name = user?.firstName || "Someone";
+      const name = user?.name || "Someone";
       const message = `${name} just scored ${score}% on my quiz! 🎯\n\n` +
         `✅ Correct: ${correctAnswers}/${total}\n` +
         `❌ Wrong: ${wrong}/${total}\n` +

@@ -1,23 +1,15 @@
-import { useOAuth } from '@clerk/clerk-expo'
+import { authClient } from '@/lib/auth/auth-client'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Link, useRouter } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect } from 'react'
 import { Text, View, Image, TouchableOpacity, StyleSheet, StatusBar } from 'react-native'
 import { markOnboardingCompleted } from '@/lib/storage/onboardingStorage'
-import * as AuthSession from 'expo-auth-session'
-import { Ionicons } from '@expo/vector-icons'
 
 WebBrowser.maybeCompleteAuthSession()
 
 export default function Page() {
   const router = useRouter()
-  const { startOAuthFlow: startGoogleFlow } = useOAuth({
-    strategy: "oauth_google",
-  })
-  const { startOAuthFlow: startAppleFlow } = useOAuth({
-    strategy: "oauth_apple",
-  })
 
   useEffect(() => {
     void WebBrowser.warmUpAsync()
@@ -26,44 +18,38 @@ export default function Page() {
     }
   }, [])
 
-  const onSelectAuth = useCallback(
-    async (strategy: "oauth_google" | "oauth_apple") => {
-      try {
-        const startOAuthFlow =
-          strategy === "oauth_google" ? startGoogleFlow : startAppleFlow
+  const handleGoogleSignIn = useCallback(async () => {
+    try {
+      console.log('🔐 Starting Google OAuth with Better Auth...')
+      
+      // The Expo plugin handles everything automatically
+      const response = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/(home)",
+      })
 
-        const redirectUrl = __DEV__ 
-          ? AuthSession.makeRedirectUri({ scheme: undefined }) // Use exp:// in dev
-          : AuthSession.makeRedirectUri({ scheme: 'mobile' })   // Use mobile:// in production
+      console.log('📱 OAuth response:', response)
 
-        console.log('🔗 Using redirect URL:', redirectUrl)
-
-        const { createdSessionId, setActive } = await startOAuthFlow({
-          redirectUrl,
-        })
-
-        if (createdSessionId) {
-          setActive!({ session: createdSessionId })
-          
-          // Mark onboarding as completed
-          try {
-            await markOnboardingCompleted()
-            console.log('✅ Onboarding marked as completed')
-          } catch (error) {
-            console.error('Failed to mark onboarding complete:', error)
-          }
-          
-          // Add a small delay to allow session state to sync
-          setTimeout(() => {
-            router.replace("/(home)" as any)
-          }, 300)
+      // If successful, mark onboarding as complete and navigate
+      if (response.data && !response.error) {
+        console.log('✅ OAuth completed successfully')
+        
+        try {
+          await markOnboardingCompleted()
+          console.log('✅ Onboarding marked as completed')
+        } catch (error) {
+          console.error('Failed to mark onboarding complete:', error)
         }
-      } catch (err) {
-        console.error("OAuth error", err)
+
+        // Navigate to home
+        router.replace("/(home)" as any)
+      } else {
+        console.error('❌ OAuth failed:', response.error)
       }
-    },
-    [startGoogleFlow, startAppleFlow, router]
-  )
+    } catch (err) {
+      console.error("Google OAuth error", err)
+    }
+  }, [router])
 
   return (
     <LinearGradient
@@ -92,7 +78,7 @@ export default function Page() {
           <TouchableOpacity
             style={styles.googleBtn}
             activeOpacity={0.9}
-            onPress={() => onSelectAuth("oauth_google")}
+            onPress={handleGoogleSignIn}
           >
             <Image
               source={{
@@ -101,20 +87,6 @@ export default function Page() {
               style={styles.googleLogo}
             />
             <Text style={styles.googleText}>Sign in with Google</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.appleBtn}
-            activeOpacity={0.9}
-            onPress={() => onSelectAuth("oauth_apple")}
-          >
-            <Ionicons
-              name="logo-apple"
-              size={24}
-              color="#FFFFFF"
-              style={{ marginRight: 12 }}
-            />
-            <Text style={styles.appleText}>Sign in with Apple</Text>
           </TouchableOpacity>
 
           <View style={styles.footerContainer}>

@@ -17,7 +17,7 @@ import {
   Alert,
 } from 'react-native'
 import { deleteUserAccount } from '@/lib/api/user'
-import { useClerk } from '@clerk/clerk-expo'
+import { authClient } from '@/lib/auth/auth-client'
 import { useAlert } from '@/lib/contexts/AlertContext'
 
 interface SettingOption {
@@ -30,14 +30,12 @@ interface SettingOption {
 export default function Settings() {
   const { theme } = useTheme()
   const router = useRouter()
-  const { signOut } = useClerk()
   const { t } = useTranslation()
   const { showAlert } = useAlert()
 
   const handleLogout = async () => {
     try {
-      await signOut()
-      // Clerk will automatically handle the redirect to the auth flow
+      await authClient.signOut()
       router.push('/paywall/paywall4' as any)
     } catch (err) {
       console.error(JSON.stringify(err, null, 2))
@@ -97,7 +95,7 @@ export default function Settings() {
           onPress: async () => {
             try {
               await deleteUserAccount()
-              await signOut()
+              await authClient.signOut()
               router.push('/paywall/paywall4' as any)
             } catch (error) {
               console.error('Error deleting account:', error)
