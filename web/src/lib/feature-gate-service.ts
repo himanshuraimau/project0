@@ -1,8 +1,9 @@
 // Feature Gate Service - Control access to features based on subscription
 
-import { auth } from '@clerk/nextjs/server';
 import { SubscriptionService } from './subscription-service';
 import { prisma } from './prisma';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 
 const FREE_TIER_NOTE_LIMIT = 3;
 
@@ -31,19 +32,21 @@ export class FeatureGateService {
       // If no userId provided, get from auth
       let targetUserId = userId;
       if (!targetUserId) {
-        const { userId: authUserId } = await auth();
+        const session = await auth.api.getSession({ headers: await headers() }); 
+        const authUserId = session?.user?.id;
         if (!authUserId) return { allowed: false, reason: 'NOT_AUTHENTICATED' };
         targetUserId = authUserId;
       }
 
       // Check if user has active subscription
+      if (!targetUserId) return { allowed: false, reason: 'INVALID_USER_ID' };
       const hasSubscription = await SubscriptionService.hasActiveSubscription(targetUserId);
 
       if (hasSubscription) {
         return { allowed: true, reason: 'SUBSCRIPTION_ACTIVE' };
       }
 
-      // Check free tier limit
+      // Free tier: check note count limit
       const noteCount = await this.getUserNoteCount(targetUserId);
 
       if (noteCount >= FREE_TIER_NOTE_LIMIT) {
@@ -75,11 +78,13 @@ export class FeatureGateService {
       // If no userId provided, get from auth
       let targetUserId = userId;
       if (!targetUserId) {
-        const { userId: authUserId } = await auth();
+        const session = await auth.api.getSession({ headers: await headers() }); 
+        const authUserId = session?.user?.id;
         if (!authUserId) return false;
         targetUserId = authUserId;
       }
 
+      if (!targetUserId) return false;
       return await SubscriptionService.hasActiveSubscription(targetUserId);
     } catch (error) {
       console.error('Error checking feature access:', error);
@@ -109,7 +114,7 @@ export class FeatureGateService {
    * Get access info for current user
    */
   static async getAccessInfo() {
-    const { userId } = await auth();
+    const session = await auth.api.getSession({ headers: await headers() }); const userId = session?.user?.id;
     if (!userId) {
       return {
         hasAccess: false,
@@ -149,7 +154,7 @@ export class FeatureGateService {
    * Check feature access for note creation (allows free tier)
    */
   static async checkNoteCreationAccess() {
-    const { userId } = await auth();
+    const session = await auth.api.getSession({ headers: await headers() }); const userId = session?.user?.id;
 
     if (!userId) {
       return {
@@ -231,11 +236,13 @@ export class FeatureGateService {
     try {
       let targetUserId = userId;
       if (!targetUserId) {
-        const { userId: authUserId } = await auth();
+        const session = await auth.api.getSession({ headers: await headers() }); 
+        const authUserId = session?.user?.id;
         if (!authUserId) return false;
         targetUserId = authUserId;
       }
 
+      if (!targetUserId) return false;
       const subscription = await SubscriptionService.getUserSubscription(targetUserId);
       if (!subscription) return false;
 
@@ -251,7 +258,7 @@ export class FeatureGateService {
    */
   static async getFeatureAccessSummary() {
     const accessInfo = await this.getAccessInfo();
-    const { userId } = await auth();
+    const session = await auth.api.getSession({ headers: await headers() }); const userId = session?.user?.id;
 
     let noteAccess: { allowed: boolean; reason?: string; notesUsed?: number; notesLimit?: number } = {
       allowed: false,

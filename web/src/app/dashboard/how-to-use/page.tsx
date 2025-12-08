@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers"
 import { DashboardLayout } from "@/components/dashboard"
 import { Card } from "@/components/ui/card"
 import { YouTubePlayer } from "@/components/course/YouTubePlayer"
 
 export default async function HowToUsePage() {
-  const { userId } = await auth()
+  const session = await auth.api.getSession({ headers: await headers() }); const userId = session?.user?.id
   
   if (!userId) {
     redirect("/sign-in")

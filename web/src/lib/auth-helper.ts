@@ -1,45 +1,48 @@
 import { NextRequest } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { verifyToken } from '@clerk/backend';
-import { cookies } from 'next/headers';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 
 /**
  * Universal authentication helper that works for both same-origin (web) and cross-origin (mobile) requests.
  * 
- * This function attempts two authentication strategies:
- * 1. Standard Clerk auth() - for same-origin requests (web app)
- * 2. Token verification from Authorization header - for cross-origin requests (mobile app)
+ * This function attempts authentication using Better Auth:
+ * 1. Uses auth.api.getSession() with headers for same-origin requests (web app)
+ * 2. For cross-origin requests, the Authorization header is automatically handled by Better Auth
  * 
  * @param request - The NextRequest object
  * @returns The authenticated user ID, or null if authentication fails
  */
 export async function getUserFromAuth(request: NextRequest): Promise<string | null> {
   try {
-    // First try the standard Clerk auth (for same-origin requests)
-    const { userId } = await auth();
-    
-    if (userId) {
-      return userId;
-    }
-
-    // If no userId, try to validate from Authorization header (for cross-origin requests)
-    const authHeader = request.headers.get('authorization');
-    const cookieStore = await cookies();
-    const sessToken = cookieStore.get('__session')?.value;
-    
-    const bearerToken = authHeader?.replace('Bearer ', '');
-    const token = sessToken || bearerToken;
-
-    if (!token) {
-      return null;
-    }
-
-    // Verify the JWT token with Clerk
-    const verifiedToken = await verifyToken(token, {
-      secretKey: process.env.CLERK_SECRET_KEY,
+    // Get session using Better Auth
+    const session = await auth.api.getSession({
+      headers: await headers()
     });
     
-    return verifiedToken.sub;
+    if (session?.user?.id) {
+      return session.user.id;
+    }
+
+    // If no session from headers, check for Authorization header (mobile app)
+    const authHeader = request.headers.get('authorization');
+    
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '');
+      
+      // Verify token with Better Auth
+      // Better Auth will automatically validate the session token
+      const tokenSession = await auth.api.getSession({
+        headers: new Headers({
+          'authorization': `Bearer ${token}`
+        })
+      });
+      
+      if (tokenSession?.user?.id) {
+        return tokenSession.user.id;
+      }
+    }
+
+    return null;
     
   } catch (error) {
     console.error('Auth error:', error instanceof Error ? error.message : 'Unknown error');
@@ -58,3 +61,4 @@ export async function requireAuth(request: NextRequest): Promise<string> {
   }
   return userId;
 }
+

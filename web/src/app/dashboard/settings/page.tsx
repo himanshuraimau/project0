@@ -1,25 +1,25 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
-import { useAuth, useClerk } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard";
 import { toast } from "sonner";
 import { User, Globe, Shield, ChevronRight, LogOut, X } from "lucide-react";
 
 export default function SettingsPage() {
-  const { userId } = useAuth();
-  const { openUserProfile, signOut } = useClerk();
+  const { data: session } = useSession();
   const router = useRouter();
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    if (!userId) {
+    if (!session) {
       router.push("/sign-in");
     }
-  }, [userId, router]);
+  }, [session, router]);
 
   const handleShareClick = async () => {
     try {
@@ -53,11 +53,13 @@ export default function SettingsPage() {
   };
 
   const handleManageAccountClick = () => {
-    openUserProfile();
+    // Navigate to a profile settings page (or show a modal)
+    router.push("/dashboard/profile");
   };
 
-  const handleSignOutClick = () => {
-    signOut(() => router.push("/"));
+  const handleSignOutClick = async () => {
+    await authClient.signOut();
+    router.push("/");
   };
 
   const handleDeleteAccountClick = () => {
@@ -90,10 +92,9 @@ export default function SettingsPage() {
         );
 
         // Give a moment for the toast to show, then sign out and redirect
-        setTimeout(() => {
-          signOut(() => {
-            window.location.href = "/sign-in";
-          });
+        setTimeout(async () => {
+          await authClient.signOut();
+          window.location.href = "/sign-in";
         }, 2000);
       } else {
         const errorData = await response.json();
@@ -116,7 +117,7 @@ export default function SettingsPage() {
     }
   };
 
-  if (!userId) {
+  if (!session) {
     return null;
   }
 

@@ -1,38 +1,52 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
+import { getSessionCookie } from 'better-auth/cookies'
 
-const isPublicRoute = createRouteMatcher([
+// Define public routes that don't require authentication
+const publicRoutes = [
   '/',
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/api/webhooks/clerk', // Clerk webhook endpoint
-  '/api/health', // Health check endpoint for mobile app testing
-  '/api/notes(.*)', // Notes API handles its own authentication
-  '/api/transcripts(.*)', // Transcripts API handles its own authentication
-  '/api/documents(.*)', // Documents API handles its own authentication
-  '/api/folders(.*)', // Folders API handles its own authentication
-  '/api/audio(.*)', // Audio API handles its own authentication
-  '/api/pdf(.*)', // PDF API handles its own authentication
-  '/api/search(.*)', // Search API handles its own authentication
-  '/api/mindmap(.*)', // Mindmap API handles its own authentication
-  '/api/webpage(.*)', // Webpage API handles its own authentication
-  '/api/user(.*)', // User API handles its own authentication
-  '/api/subscription(.*)', // Subscription API handles its own authentication
-])
+  '/sign-in',
+  '/sign-up',
+  '/api/auth', // Better Auth endpoints
+  '/api/health',
+  '/api/notes',
+  '/api/transcripts',
+  '/api/documents',
+  '/api/folders',
+  '/api/audio',
+  '/api/pdf',
+  '/api/search',
+  '/api/mindmap',
+  '/api/webpage',
+  '/api/user',
+  '/api/subscription',
+]
 
-const isProtectedApiRoute = createRouteMatcher([
-  '/api/course/(.*)',
+// Protected API routes that require explicit auth checking
+const protectedApiRoutes = [
+  '/api/course',
   '/api/chatbot',
-  '/api/podcast/(.*)',
-])
+  '/api/podcast',
+]
 
-const isAuthRoute = createRouteMatcher([
-  '/sign-in(.*)',
-  '/sign-up(.*)'
-])
+const authRoutes = ['/sign-in', '/sign-up']
 
-export default clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth()
+function isPublicRoute(pathname: string): boolean {
+  return publicRoutes.some(route => 
+    pathname === route || pathname.startsWith(route + '/')
+  )
+}
+
+function isProtectedApiRoute(pathname: string): boolean {
+  return protectedApiRoutes.some(route => 
+    pathname === route || pathname.startsWith(route + '/')
+  )
+}
+
+function isAuthRoute(pathname: string): boolean {
+  return authRoutes.some(route => pathname.startsWith(route))
+}
+
+export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
   // Handle CORS preflight requests for API routes
@@ -44,42 +58,36 @@ export default clerkMiddleware(async (auth, req) => {
     response.headers.set('Access-Control-Max-Age', '86400')
     return response
   }
-  
-  // Handle CORS for API routes - allow mobile app access
-  if (pathname.startsWith('/api/')) {
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-      return new NextResponse(null, {
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-          'Access-Control-Max-Age': '86400',
-        },
-      })
-    }
-  }
+
+  // Check for session cookie (optimistic redirect)
+  const sessionCookie = getSessionCookie(req, {
+    cookiePrefix: 'better-auth',
+  })
+
+  const isAuthenticated = !!sessionCookie
 
   // If user is authenticated and visiting auth pages, redirect to dashboard
-  if (userId && isAuthRoute(req)) {
+  if (isAuthenticated && isAuthRoute(pathname)) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
   // If user is authenticated and visiting home page, redirect to dashboard
-  // Add a check to prevent redirect loops
-  if (userId && pathname === '/' && !req.nextUrl.searchParams.has('stay')) {
+  if (isAuthenticated && pathname === '/' && !req.nextUrl.searchParams.has('stay')) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // Protect API routes that require authentication
-  if (isProtectedApiRoute(req)) {
-    await auth.protect()
-  }
-
-  // Protect non-public routes
-  if (!isPublicRoute(req)) {
-    await auth.protect()
+  // Protect routes that require authentication
+  if (!isPublicRoute(pathname) && !isAuthenticated) {
+    // For protected API routes, return 401
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+    
+    // For protected pages, redirect to sign-in
+    return NextResponse.redirect(new URL('/sign-in', req.url))
   }
 
   // Add security headers to all responses
@@ -94,45 +102,39 @@ export default clerkMiddleware(async (auth, req) => {
 
   // Security headers
   response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN') // Allow same-origin framing for YouTube embeds
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
   response.headers.set('X-XSS-Protection', '1; mode=block')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(self), geolocation=()')
 
-  // Content Security Policy for additional XSS protection - updated to allow YouTube iframe API, Clerk, and UploadThing
+  // Content Security Policy
   response.headers.set(
     'Content-Security-Policy',
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
-    "https://clerk.com https://*.clerk.accounts.dev https://*.clerk.dev " +
     "https://challenges.cloudflare.com https://static.cloudflareinsights.com " +
     "https://www.youtube.com https://s.ytimg.com https://www.youtube.com/iframe_api; " +
-    "style-src 'self' 'unsafe-inline' " +
-    "https://clerk.com https://*.clerk.accounts.dev; " +
+    "style-src 'self' 'unsafe-inline'; " +
     "img-src 'self' data: https: " +
-    "https://img.youtube.com https://i.ytimg.com https://images.clerk.dev https://*.clerk.dev https://s.ytimg.com " +
-    "https://utfs.io; " + // UploadThing images
-    "font-src 'self' data: " +
-    "https://clerk.com https://*.clerk.accounts.dev; " +
+    "https://img.youtube.com https://i.ytimg.com https://s.ytimg.com " +
+    "https://utfs.io; " +
+    "font-src 'self' data:; " +
     "connect-src 'self' " +
-    "https://api.clerk.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.dev " +
     "https://challenges.cloudflare.com https://cloudflareinsights.com " +
     "https://www.youtube.com https://s.ytimg.com " +
-    "https://utfs.io https://api.uploadthing.com " + // UploadThing API
-
+    "https://utfs.io https://api.uploadthing.com; " +
     "media-src 'self' " +
-    "https://utfs.io " + // UploadThing media files
-    "blob: data:; " + // Allow blob URLs for audio playback
+    "https://utfs.io " +
+    "blob: data:; " +
     "frame-src 'self' " +
     "https://www.youtube.com https://www.youtube-nocookie.com " +
-    "https://clerk.com https://*.clerk.accounts.dev " +
     "https://challenges.cloudflare.com; " +
     "worker-src blob:; " +
     "child-src blob:;"
   )
 
   return response
-})
+}
 
 export const config = {
   matcher: [

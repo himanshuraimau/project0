@@ -1,6 +1,6 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
+import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
@@ -10,12 +10,12 @@ interface AutoRedirectProps {
 }
 
 export function AutoRedirect({ redirectTo = "/dashboard", children }: AutoRedirectProps) {
-  const { isLoaded, userId } = useAuth()
+  const { data: session, isPending } = useSession()
   const router = useRouter()
 
   useEffect(() => {
     // Only redirect if auth is loaded and user is authenticated
-    if (isLoaded && userId) {
+    if (!isPending && session?.user) {
       // Add a small delay to prevent jarring redirects
       const timer = setTimeout(() => {
         router.push(redirectTo)
@@ -23,7 +23,7 @@ export function AutoRedirect({ redirectTo = "/dashboard", children }: AutoRedire
       
       return () => clearTimeout(timer)
     }
-  }, [isLoaded, userId, redirectTo, router])
+  }, [isPending, session, redirectTo, router])
 
   // Show children while auth is loading or user is not authenticated
   return <>{children}</>

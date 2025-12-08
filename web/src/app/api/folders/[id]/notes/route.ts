@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { FolderService } from "@/lib/folder-service";
-import { auth } from "@clerk/nextjs/server";
 import { getUserFromAuth } from "@/lib/auth-helper";
 
 const folderService = new FolderService();

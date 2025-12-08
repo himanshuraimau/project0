@@ -1,8 +1,9 @@
 // Subscription Service - Database operations for subscription management
 
 import { prisma } from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
 import { DodoSubscriptionService } from '@/lib/utils/dodo/subscription';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 import type { SubscriptionStatus } from '@prisma/client';
 
 export class SubscriptionService {
@@ -27,10 +28,12 @@ export class SubscriptionService {
    * Get current user's subscription (requires auth)
    */
   static async getCurrentUserSubscription() {
-    const { userId } = await auth();
-    if (!userId) throw new Error('User not authenticated');
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+    if (!session?.user?.id) throw new Error('User not authenticated');
 
-    return await this.getUserSubscription(userId);
+    return await this.getUserSubscription(session.user.id);
   }
 
   /**
@@ -215,10 +218,12 @@ export class SubscriptionService {
    * Check if current user has active subscription
    */
   static async currentUserHasActiveSubscription(): Promise<boolean> {
-    const { userId } = await auth();
-    if (!userId) return false;
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+    if (!session?.user?.id) return false;
 
-    return await this.hasActiveSubscription(userId);
+    return await this.hasActiveSubscription(session.user.id);
   }
 
   /**

@@ -1,6 +1,7 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 const f = createUploadthing();
 
@@ -19,12 +20,14 @@ export const ourFileRouter = {
   })
     .middleware(async () => {
       // Authenticate user
-      const { userId } = await auth();
+      const session = await auth.api.getSession({
+        headers: await headers()
+      });
       
-      if (!userId) throw new UploadThingError("Unauthorized");
+      if (!session?.user?.id) throw new UploadThingError("Unauthorized");
       
       // Return metadata that will be accessible in onUploadComplete
-      return { userId };
+      return { userId: session.user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       // This runs on the server after upload
@@ -49,12 +52,14 @@ export const ourFileRouter = {
   })
     .middleware(async () => {
       // Authenticate user
-      const { userId } = await auth();
+      const session = await auth.api.getSession({
+        headers: await headers()
+      });
       
-      if (!userId) throw new UploadThingError("Unauthorized");
+      if (!session?.user?.id) throw new UploadThingError("Unauthorized");
       
       // Return metadata that will be accessible in onUploadComplete
-      return { userId };
+      return { userId: session.user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       // This runs on the server after podcast audio upload

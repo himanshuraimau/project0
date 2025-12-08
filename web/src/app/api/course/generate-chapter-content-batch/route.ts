@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { isValidUserId } from "@/lib/utils/validation";
 import { searchYoutube, getTranscript, getQuestionsFromTranscript } from "@/lib/course/youtube";
 import { generateText } from "ai";

@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma'
-import { auth } from '@clerk/nextjs/server'
 
 // NOTE: Credit plans have been removed in favor of subscription-based access
 // See subscription-service.ts for the new subscription implementation
@@ -8,7 +7,7 @@ export class UserService {
   /**
    * Get or create a user in our database
    */
-  static async getOrCreateUser(userId: string, email?: string) {
+  static async getOrCreateUser(userId: string, email: string = '') {
     try {
       let user = await prisma.user.findUnique({
         where: { id: userId },
@@ -19,7 +18,7 @@ export class UserService {
         user = await prisma.user.create({
           data: {
             id: userId,
-            email: email
+            email: email || `user-${userId}@generated.local`
           },
           include: { subscription: true }
         })

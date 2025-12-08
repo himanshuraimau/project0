@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ShareLinkService } from '@/lib/share-link-service';
-import { clerkClient } from '@clerk/nextjs/server';
+import { prisma } from '@/lib/prisma';
 
 interface Params {
   linkId: string;
@@ -24,12 +24,14 @@ export async function GET(
 
     const shareLink = await ShareLinkService.getShareLinkByToken(token);
     
-    // Get author's public info
-    const clerk = await clerkClient();
+    // Get author's public info from database
     let authorName = 'Anonymous';
     try {
-      const user = await clerk.users.getUser(shareLink.createdBy);
-      authorName = user.firstName || user.username || 'Anonymous';
+      const user = await prisma.user.findUnique({
+        where: { id: shareLink.createdBy },
+        select: { name: true, email: true }
+      });
+      authorName = user?.name || user?.email?.split('@')[0] || 'Anonymous';
     } catch (err) {
       console.warn('Could not fetch author info:', err);
     }

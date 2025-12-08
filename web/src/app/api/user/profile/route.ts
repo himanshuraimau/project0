@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { UserService } from '@/lib/user-service'
 import { getUserFromAuth } from '@/lib/auth-helper'
 

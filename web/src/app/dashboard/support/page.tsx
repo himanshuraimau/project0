@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers"
 // Note: The DashboardLayout is now handled by app/dashboard/layout.tsx
 import { DashboardLayout } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
@@ -13,7 +14,7 @@ import {
 import { Mail, Send } from "lucide-react"
 
 export default async function SupportPage() {
-  const { userId } = await auth()
+  const session = await auth.api.getSession({ headers: await headers() }); const userId = session?.user?.id
   
   if (!userId) {
     redirect("/sign-in")

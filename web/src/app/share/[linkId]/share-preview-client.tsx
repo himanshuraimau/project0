@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Save, User, Eye, ArrowLeft } from "lucide-react";
@@ -16,7 +16,7 @@ interface SharePreviewClientProps {
 
 export function SharePreviewClient({ linkId, token }: SharePreviewClientProps) {
   const router = useRouter();
-  const { isSignedIn } = useAuth();
+  const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [noteData, setNoteData] = useState<any>(null);
@@ -47,7 +47,7 @@ export function SharePreviewClient({ linkId, token }: SharePreviewClientProps) {
   };
 
   const handleSaveNote = async () => {
-    if (!isSignedIn) {
+    if (!session) {
       router.push(`/sign-in?redirect_url=/share/${linkId}?token=${token}`);
       return;
     }
@@ -129,7 +129,7 @@ export function SharePreviewClient({ linkId, token }: SharePreviewClientProps) {
             </Button>
           </div>
 
-          {!isSignedIn && (
+          {!session && (
             <div className="bg-accent/10 border border-accent/30 rounded-lg p-4 mt-4">
               <p className="text-sm text-foreground">
                 <strong>Sign in to save this note</strong> - You need an account to save notes

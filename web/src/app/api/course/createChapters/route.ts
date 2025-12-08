@@ -6,7 +6,6 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { getUnsplashImage } from "@/lib/course/unsplash";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
 import z from "zod";
 import { getUserFromAuth } from "@/lib/auth-helper";
 

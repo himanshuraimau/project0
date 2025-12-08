@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ChapterView } from "@/components/course/ChapterView";
@@ -11,7 +12,7 @@ interface ChapterPageProps {
 }
 
 export default async function ChapterPage({ params }: ChapterPageProps) {
-  const { userId } = await auth();
+  const session = await auth.api.getSession({ headers: await headers() }); const userId = session?.user?.id;
   const { chapterId } = await params;
   
   if (!userId) {

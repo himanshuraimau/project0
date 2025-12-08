@@ -3,10 +3,12 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Mic, Play, FileText, Headphones, Zap, Users, LayoutDashboard, Share2, Brain, Sparkles, GraduationCap } from "lucide-react"
-import { SignedIn, SignedOut } from "@clerk/nextjs"
+import { useSession } from "@/lib/auth-client"
 import Link from "next/link"
 
 export function Hero() {
+  const { data: session } = useSession()
+  
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background gradient */}
@@ -53,47 +55,51 @@ export function Hero() {
 
         {/* CTA buttons */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-          <SignedOut>
-            <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-10 py-4 text-lg font-medium  hover: transition-all duration-300 hover:-translate-y-1"
-            >
-              <Zap className="w-5 h-5 mr-3" />
-              Get Started Free
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="border-2 border-primary/30 hover:bg-primary/10 rounded-2xl px-10 py-4 text-lg font-medium hover: transition-all duration-300"
-            >
-              <Play className="w-5 h-5 mr-3" />
-              Watch Demo
-            </Button>
-          </SignedOut>
-
-          <SignedIn>
-            <Link href="/dashboard">
-              <Button 
-                size="lg" 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-10 py-4 text-lg font-medium  hover: transition-all duration-300 hover:-translate-y-1"
-              >
-                <LayoutDashboard className="w-5 h-5 mr-3" />
-                Go to Dashboard
-              </Button>
-            </Link>
-            
-            <Link href="/dashboard/folders">
+          {!session ? (
+            <>
+              <Link href="/sign-up">
+                <Button 
+                  size="lg" 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-10 py-4 text-lg font-medium  hover: transition-all duration-300 hover:-translate-y-1"
+                >
+                  <Zap className="w-5 h-5 mr-3" />
+                  Get Started Free
+                </Button>
+              </Link>
+              
               <Button 
                 variant="outline" 
                 size="lg"
                 className="border-2 border-primary/30 hover:bg-primary/10 rounded-2xl px-10 py-4 text-lg font-medium hover: transition-all duration-300"
               >
-                <FileText className="w-5 h-5 mr-3" />
-                My Notes
+                <Play className="w-5 h-5 mr-3" />
+                Watch Demo
               </Button>
-            </Link>
-          </SignedIn>
+            </>
+          ) : (
+            <>
+              <Link href="/dashboard">
+                <Button 
+                  size="lg" 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-10 py-4 text-lg font-medium  hover: transition-all duration-300 hover:-translate-y-1"
+                >
+                  <LayoutDashboard className="w-5 h-5 mr-3" />
+                  Go to Dashboard
+                </Button>
+              </Link>
+              
+              <Link href="/dashboard/folders">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="border-2 border-primary/30 hover:bg-primary/10 rounded-2xl px-10 py-4 text-lg font-medium hover: transition-all duration-300"
+                >
+                  <FileText className="w-5 h-5 mr-3" />
+                  My Notes
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Feature icons */}

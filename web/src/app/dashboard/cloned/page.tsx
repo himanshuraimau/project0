@@ -1,20 +1,24 @@
-import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { SubscriptionService } from "@/lib/subscription-service";
 import { prisma } from "@/lib/prisma";
 import { NoteCard } from "@/components/notes/note-card";
 import { Share2 } from "lucide-react";
 
 export default async function ClonedNotesPage() {
-  const user = await currentUser();
-  if (!user) redirect("/sign-in");
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+  
+  if (!session?.user) redirect("/sign-in");
 
-  const hasSubscription = await SubscriptionService.hasActiveSubscription(user.id);
+  const hasSubscription = await SubscriptionService.hasActiveSubscription(session.user.id);
   if (!hasSubscription) redirect("/pricing");
 
   const clonedNotes = await prisma.note.findMany({
     where: {
-      userId: user.id,
+      userId: session.user.id,
       isCloned: true,
     },
     include: {

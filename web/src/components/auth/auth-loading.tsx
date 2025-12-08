@@ -1,6 +1,6 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
+import { useSession } from "@/lib/auth-client"
 import { Loader2 } from "lucide-react"
 
 interface AuthLoadingWrapperProps {
@@ -9,9 +9,9 @@ interface AuthLoadingWrapperProps {
 }
 
 export function AuthLoadingWrapper({ children, loadingComponent }: AuthLoadingWrapperProps) {
-  const { isLoaded } = useAuth()
+  const { isPending } = useSession()
 
-  if (!isLoaded) {
+  if (isPending) {
     return loadingComponent || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">

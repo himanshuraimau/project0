@@ -1,11 +1,12 @@
 // API endpoint to create a new subscription and get payment link
 
 import { NextResponse, NextRequest } from 'next/server';
-import { auth, currentUser } from '@clerk/nextjs/server';
 import { SubscriptionService } from '@/lib/subscription-service';
 import { UserService } from '@/lib/user-service';
 import { DodoSubscriptionService } from '@/lib/utils/dodo/subscription';
 import { getUserFromAuth } from '@/lib/auth-helper';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 import type { BillingInterval } from '@/lib/utils/dodo/types';
 
 export async function POST(request: NextRequest) {
@@ -43,16 +44,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user details from Clerk
-    const user = await currentUser();
-    if (!user) {
+    // Get user details from Better Auth session
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+    
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       );
     }
 
-    const email = user.emailAddresses[0]?.emailAddress;
+    const email = session.user.email;
     if (!email) {
       return NextResponse.json(
         { error: 'User email not found' },
@@ -76,9 +80,7 @@ export async function POST(request: NextRequest) {
     const dodoSubscription = await DodoSubscriptionService.createSubscription({
       userId,
       userEmail: email,
-      userName: user.firstName && user.lastName
-        ? `${user.firstName} ${user.lastName}`
-        : email.split('@')[0],
+      userName: session.user.name || email.split('@')[0],
       billingAddress: {
         city: 'Default City',
         country: 'US',

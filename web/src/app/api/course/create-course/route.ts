@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { saveCourseStructure } from "@/lib/course/ai-course-service";
 import type { CreateCourseRequest, CreateCourseResponse } from "@/lib/types/course.types";
 import { ApiValidationSchemas, validateContentSafety, isValidUserId } from "@/lib/utils/validation";
