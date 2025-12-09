@@ -34,7 +34,7 @@ export function ContinueButton({
       activeOpacity={0.85}
       onPress={onPress}
       disabled={disabled}
-      style={[style, disabled && { opacity: 0.5 }]}
+      style={[{ width: '100%' }, style, disabled && { opacity: 0.5 }]}
     >
       <LinearGradient
         colors={["#4C57FF", "#9810FA"]}
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 315,
+    width: '100%',
     height: 56,
     borderRadius: 28,
     shadowColor: 'rgba(76, 87, 255, 0.3)',
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 
   // White variant
   whiteButton: {
-    width: 315,
+    width: '100%',
     height: 55.98,
     backgroundColor: '#FFFFFF',
     borderRadius: 100,
