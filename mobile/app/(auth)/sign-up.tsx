@@ -1,13 +1,12 @@
 import { authStyles } from '@/components/auth/styles'
 import { authClient } from '@/lib/auth/auth-client'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Link, useRouter } from 'expo-router'
+import { Link } from 'expo-router'
 import * as React from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { markOnboardingCompleted } from '@/lib/storage/onboardingStorage'
 
 export default function SignUpScreen() {
-  const router = useRouter()
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false)
 
   const handleGoogleSignUp = React.useCallback(async () => {
@@ -30,14 +29,14 @@ export default function SignUpScreen() {
         console.error('Failed to mark onboarding complete:', error)
       }
       
-      router.replace('/(home)')
+      // Don't manually navigate - auth system will handle redirect
     } catch (err: any) {
       console.error('❌ Google OAuth sign-up error:', err)
       alert(err?.message || 'Sign up failed. Please try again.')
     } finally {
       setIsGoogleLoading(false)
     }
-  }, [router])
+  }, [])
 
   return (
     <LinearGradient

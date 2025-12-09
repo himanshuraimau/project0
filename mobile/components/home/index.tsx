@@ -54,11 +54,9 @@ export default function NotesHome() {
     if (!isPending && session?.user) {
       console.log('✅ Session ready, fetching notes...')
       fetchNotes()
-    } else if (!isPending && !session?.user) {
-      console.log('⚠️ No session found, redirecting to sign-in')
-      router.replace('/(auth)/sign-in')
     }
-  }, [session, isPending, router])
+    // Note: No need to manually redirect - the (home) layout handles auth protection
+  }, [session, isPending])
 
   const fetchNotes = async () => {
     try {

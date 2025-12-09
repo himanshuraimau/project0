@@ -1,6 +1,6 @@
 import { authClient } from '@/lib/auth/auth-client'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Link, useRouter } from 'expo-router'
+import { Link } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect } from 'react'
 import { Text, View, Image, TouchableOpacity, StyleSheet, StatusBar } from 'react-native'
@@ -9,7 +9,6 @@ import { markOnboardingCompleted } from '@/lib/storage/onboardingStorage'
 WebBrowser.maybeCompleteAuthSession()
 
 export default function Page() {
-  const router = useRouter()
 
   useEffect(() => {
     void WebBrowser.warmUpAsync()
@@ -30,7 +29,8 @@ export default function Page() {
 
       console.log('📱 OAuth response:', response)
 
-      // If successful, mark onboarding as complete and navigate
+      // If successful, mark onboarding as complete
+      // Navigation will happen automatically via the auth layout
       if (response.data && !response.error) {
         console.log('✅ OAuth completed successfully')
         
@@ -41,15 +41,15 @@ export default function Page() {
           console.error('Failed to mark onboarding complete:', error)
         }
 
-        // Navigate to home
-        router.replace("/(home)" as any)
+        // Don't manually navigate - let the auth system handle it
+        // The session will update and trigger navigation automatically
       } else {
         console.error('❌ OAuth failed:', response.error)
       }
     } catch (err) {
       console.error("Google OAuth error", err)
     }
-  }, [router])
+  }, [])
 
   return (
     <LinearGradient

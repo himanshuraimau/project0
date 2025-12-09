@@ -43,9 +43,10 @@ export default function Settings() {
   const handleLogout = async () => {
     try {
       await authClient.signOut()
-      router.replace('/(auth)/sign-in' as any)
+      // Don't manually navigate - the home layout will detect no session
+      // and redirect to the landing page automatically
     } catch (err) {
-      console.error(JSON.stringify(err, null, 2))
+      console.error('Logout error:', err)
     }
   }
 
@@ -103,7 +104,7 @@ export default function Settings() {
             try {
               await deleteUserAccount()
               await authClient.signOut()
-              router.push('/paywall/paywall4' as any)
+              // Auth state change will trigger automatic redirect via layout
             } catch (error) {
               console.error('Error deleting account:', error)
               showAlert(t('common.error'), t('settings.deleteAccountError'))

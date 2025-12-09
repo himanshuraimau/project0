@@ -14,10 +14,9 @@ export const SignOutButton = () => {
   const handleSignOut = async () => {
     try {
       await authClient.signOut()
-      // Redirect to sign-in screen
-      router.replace('/(auth)/sign-in' as any)
+      // Don't manually navigate - let auth system handle redirect
     } catch (err) {
-      console.error(JSON.stringify(err, null, 2))
+      console.error('Sign out error:', err)
     }
   }
 
