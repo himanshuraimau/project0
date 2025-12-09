@@ -32,7 +32,7 @@ export default function Teacher2() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" translucent={false} backgroundColor="#FFFFFF" />
+
 
       {/* Top blur gradient */}
       <BlurGradient

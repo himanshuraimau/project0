@@ -10,9 +10,10 @@ export default StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '75%', height: '100%', backgroundColor: '#7C3AED' },
   content: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
     paddingTop: 20,
     flex: 1,
+    width: '100%'
   },
   contextText: {
     color: '#7C3AED',
@@ -33,11 +34,11 @@ export default StyleSheet.create({
   },
   cardContainer: {
     gap: 16,
-    width: 310,
+    width: '100%',
     height: 207.6,
   },
   testimonialCard: {
-    width: 310,
+    width: '100%',
     height: 195,
     backgroundColor: '#FFFFFF',
     borderWidth: 0.8,
@@ -95,11 +96,11 @@ export default StyleSheet.create({
     color: '#0B0C10',
   },
   footer: {
-    paddingHorizontal: 25,
+    paddingHorizontal: 28,
     paddingBottom: 20,
   },
   continueButtonWrapper: {
-    width: 310,
+    width: '100%',
     height: 56,
     borderRadius: 28,
     overflow: 'hidden',
