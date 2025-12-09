@@ -40,11 +40,11 @@ const PLANS = [
     {
         id: 'plan_yearly',
         name: 'Yearly',
-        price: '$199.99',
-        period: '/year',
+        price: '$16.67',
+        period: '/month',
         recommended: true,
         savings: 'Save 17%',
-        billingInterval: 'yearly' as const,
+        billingInterval: 'monthly' as const,
     },
 ];
 
