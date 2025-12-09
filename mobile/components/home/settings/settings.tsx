@@ -14,11 +14,11 @@ import {
   StyleSheet,
   Linking,
   Image,
-  Alert,
 } from 'react-native'
 import { deleteUserAccount } from '@/lib/api/user'
 import { authClient } from '@/lib/auth/auth-client'
 import { useAlert } from '@/lib/contexts/AlertContext'
+import { useSubscription } from '@/lib/contexts/SubscriptionContext'
 
 interface SettingOption {
   id: string
@@ -32,11 +32,19 @@ export default function Settings() {
   const router = useRouter()
   const { t } = useTranslation()
   const { showAlert } = useAlert()
+  const { 
+    subscription, 
+    isSubscribed, 
+    hasAccess,
+    isActive,
+    isTrial,
+    isLoading: subscriptionLoading 
+  } = useSubscription()
 
   const handleLogout = async () => {
     try {
       await authClient.signOut()
-      router.push('/paywall/paywall4' as any)
+      router.replace('/(auth)/sign-in' as any)
     } catch (err) {
       console.error(JSON.stringify(err, null, 2))
     }
@@ -60,7 +68,7 @@ export default function Settings() {
   }
 
   const handleGoToWebsite = () => {
-    Linking.openURL('https://jellinote.ai')
+    Linking.openURL('https://https://project0-nu.vercel.app')
   }
 
   const handleRateUs = () => {
@@ -69,15 +77,37 @@ export default function Settings() {
   }
 
   const handleSubscription = () => {
-    router.push('/(onboarding)/paywall/paywall5' as any)
+    if (hasAccess && isSubscribed) {
+      // Show subscription management options
+      showAlert(
+        t('settings.manageSubscription'),
+        t('settings.subscriptionActiveMessage'),
+        [
+          {
+            text: t('common.cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('settings.viewDetails'),
+            onPress: () => {
+              // Navigate to subscription details or portal
+              router.push('/(onboarding)/paywall/paywall5' as any)
+            },
+          },
+        ]
+      )
+    } else {
+      // Navigate to paywall to subscribe
+      router.push('/(onboarding)/paywall/paywall5' as any)
+    }
   }
 
   const handlePrivacy = () => {
-    Linking.openURL('https://jellinote.ai/privacy')
+    Linking.openURL('https://https://project0-nu.vercel.app/privacy')
   }
 
   const handleTerms = () => {
-    Linking.openURL('https://jellinote.ai/terms')
+    Linking.openURL('https://https://project0-nu.vercel.app/terms')
   }
 
   const handleDeleteAccount = () => {
@@ -114,7 +144,12 @@ export default function Settings() {
     { id: '4', icon: 'message-circle', label: t('settings.contactSupport'), onPress: handleContactSupport },
     { id: '5', icon: 'external-link', label: t('settings.goToWebsite'), onPress: handleGoToWebsite },
     { id: '6', icon: 'star', label: t('settings.rateUs'), onPress: handleRateUs },
-    { id: '7', icon: 'bar-chart-2', label: t('settings.subscription'), onPress: handleSubscription },
+    { 
+      id: '7', 
+      icon: hasAccess ? 'check-circle' : 'bar-chart-2', 
+      label: hasAccess ? t('settings.manageSubscription') || 'Manage Subscription' : t('settings.subscription'), 
+      onPress: handleSubscription 
+    },
     { id: '8', icon: 'log-out', label: t('settings.logout'), onPress: handleLogout },
   ]
 
@@ -148,6 +183,20 @@ export default function Settings() {
             </TouchableOpacity>
           </View>
 
+          {/* Subscription Status Badge */}
+          {!subscriptionLoading && hasAccess && subscription && (
+            <View style={styles.subscriptionBadge}>
+              <Feather name="check-circle" size={16} color="#10B981" />
+              <Text style={styles.subscriptionBadgeText}>
+                {isActive && !isTrial
+                  ? t('settings.premiumActive') || 'Premium Active'
+                  : isTrial
+                  ? t('settings.trialActive') || 'Trial Active'
+                  : t('settings.premiumActive') || 'Premium Active'}
+              </Text>
+            </View>
+          )}
+
           {/* Settings Options List */}
           <ScrollView style={styles.optionsList} showsVerticalScrollIndicator={false}>
             {settingOptions.map((option, index) => (
@@ -162,9 +211,31 @@ export default function Settings() {
               >
                 <View style={styles.optionLeft}>
                   <View style={styles.iconContainer}>
-                    <Feather name={option.icon} size={22} color="#374151" />
+                    <Feather 
+                      name={option.icon} 
+                      size={22} 
+                      color={option.id === '7' && hasAccess ? '#10B981' : '#374151'} 
+                    />
                   </View>
-                  <Text style={styles.optionLabel}>{option.label}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[
+                      styles.optionLabel,
+                      option.id === '7' && hasAccess && { color: '#059669' }
+                    ]}>
+                      {option.label}
+                    </Text>
+                    {option.id === '7' && hasAccess && subscription && (
+                      <Text style={styles.optionSubtext}>
+                        {isActive && !isTrial
+                          ? t('settings.activeUntil') || 'Active' 
+                          : isTrial
+                          ? t('settings.trial') || 'Trial'
+                          : t('settings.activeUntil') || 'Active'}
+                        {subscription.currentPeriodEnd && 
+                          ` • ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`}
+                      </Text>
+                    )}
+                  </View>
                 </View>
                 <Feather name="chevron-right" size={20} color="#9CA3AF" />
               </TouchableOpacity>
@@ -265,6 +336,23 @@ const styles = StyleSheet.create({
   settingsButton: {
     padding: 8,
   },
+  subscriptionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 12,
+    marginBottom: 4,
+    alignSelf: 'flex-start',
+  },
+  subscriptionBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#059669',
+    marginLeft: 6,
+  },
   optionsList: {
     flex: 1,
     marginTop: 8,
@@ -297,6 +385,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#1F2937',
     letterSpacing: -0.2,
+  },
+  optionSubtext: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#6B7280',
+    marginTop: 2,
   },
   bottomLinks: {
     flexDirection: 'row',

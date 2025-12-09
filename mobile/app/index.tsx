@@ -3,12 +3,11 @@ import { Redirect } from 'expo-router'
 import { useSession } from '@/lib/auth'
 import { View, ActivityIndicator } from 'react-native'
 import { useState, useEffect } from 'react'
-import { hasCompletedOnboarding } from '@/lib/storage/onboardingStorage'
+import { hasCompletedOnboarding, markOnboardingCompleted } from '@/lib/storage/onboardingStorage'
 
 export default function Index() {
   const { data: session, isPending } = useSession()
   const [onboardingChecked, setOnboardingChecked] = useState(false)
-  const [hasCompletedOnboardingState, setHasCompletedOnboardingState] = useState(false)
 
   // Check onboarding completion status when auth is loaded
   useEffect(() => {
@@ -16,11 +15,15 @@ export default function Index() {
       if (!isPending) {
         try {
           const completed = await hasCompletedOnboarding()
-          setHasCompletedOnboardingState(completed)
+          
+          // If user is logged in but onboarding isn't marked as complete,
+          // automatically mark it as complete (handles returning users on new devices)
+          if (session && !completed) {
+            console.log('✅ Auto-completing onboarding for logged-in user')
+            await markOnboardingCompleted()
+          }
         } catch (error) {
           console.error('Error checking onboarding status:', error)
-          // Default to false on error
-          setHasCompletedOnboardingState(false)
         } finally {
           setOnboardingChecked(true)
         }
@@ -28,7 +31,7 @@ export default function Index() {
     }
 
     checkOnboardingStatus()
-  }, [isPending])
+  }, [isPending, session])
 
   // Show minimal loading state while checking auth and onboarding
   if (isPending || !onboardingChecked) {
@@ -39,12 +42,11 @@ export default function Index() {
     )
   }
 
-  // If user is signed in AND has completed onboarding, redirect to home
-  if (session && hasCompletedOnboardingState) {
+  // If user is signed in, redirect to home (onboarding auto-completed above)
+  if (session) {
     return <Redirect href="/(home)" />
   }
 
-  // If user is signed in but hasn't completed onboarding, show welcome screen
   // If user is not signed in, show welcome screen
   return <WelcomeScreen />
 }

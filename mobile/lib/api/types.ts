@@ -420,6 +420,21 @@ export interface UserPurchase {
 // ==================== Subscription API ====================
 export type BillingInterval = 'monthly' | 'yearly';
 
+export interface SubscriptionAccessInfo {
+  hasAccess: boolean;
+  isActive: boolean;
+  isTrial: boolean;
+  daysRemaining: number | null;
+  reason?: string;
+}
+
+export interface SubscriptionStatusResponse {
+  hasSubscription: boolean;
+  subscription: Subscription | null;
+  access: SubscriptionAccessInfo;
+  features?: any;
+}
+
 export interface CreateSubscriptionRequest {
   planId: string;
   customerEmail: string;

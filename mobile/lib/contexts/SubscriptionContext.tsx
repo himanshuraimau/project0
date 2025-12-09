@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { getSubscriptionStatus } from '@/lib/api/subscription';
-import { Subscription, SubscriptionStatus } from '@/lib/api/types';
+import { Subscription, SubscriptionStatusResponse } from '@/lib/api/types';
 
 /**
  * Subscription Context
@@ -12,6 +12,10 @@ interface SubscriptionContextType {
     subscription: Subscription | null;
     isLoading: boolean;
     isSubscribed: boolean;
+    hasAccess: boolean;
+    isActive: boolean;
+    isTrial: boolean;
+    daysRemaining: number | null;
     refreshSubscription: () => Promise<void>;
     error: string | null;
 }
@@ -23,31 +27,45 @@ interface SubscriptionProviderProps {
 }
 
 export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ children }) => {
-    const [subscription, setSubscription] = useState<Subscription | null>(null);
+    const [subscriptionData, setSubscriptionData] = useState<SubscriptionStatusResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     /**
      * Calculate if user has an active subscription
-     * Returns true if status is ACTIVE or if trial is still valid
+     * Uses the access info from the API response (matching web implementation)
      */
     const isSubscribed = React.useMemo(() => {
-        if (!subscription) return false;
+        return subscriptionData?.hasSubscription ?? false;
+    }, [subscriptionData]);
 
-        // Check if subscription is active
-        if (subscription.status === SubscriptionStatus.ACTIVE) {
-            return true;
-        }
+    /**
+     * Check if user has access (matching web implementation)
+     */
+    const hasAccess = React.useMemo(() => {
+        return subscriptionData?.access?.hasAccess ?? false;
+    }, [subscriptionData]);
 
-        // Check if trial is still valid
-        if (subscription.trialEnd) {
-            const trialEndDate = new Date(subscription.trialEnd);
-            const now = new Date();
-            return trialEndDate > now;
-        }
+    /**
+     * Check if subscription is active
+     */
+    const isActive = React.useMemo(() => {
+        return subscriptionData?.access?.isActive ?? false;
+    }, [subscriptionData]);
 
-        return false;
-    }, [subscription]);
+    /**
+     * Check if user is on trial
+     */
+    const isTrial = React.useMemo(() => {
+        return subscriptionData?.access?.isTrial ?? false;
+    }, [subscriptionData]);
+
+    /**
+     * Get days remaining
+     */
+    const daysRemaining = React.useMemo(() => {
+        return subscriptionData?.access?.daysRemaining ?? null;
+    }, [subscriptionData]);
 
     /**
      * Fetch subscription status from API
@@ -61,7 +79,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
             const authToken = await SecureStore.getItemAsync('auth_token');
             if (!authToken) {
                 console.log('📭 No auth token found, skipping subscription fetch');
-                setSubscription(null);
+                setSubscriptionData(null);
                 setIsLoading(false);
                 return;
             }
@@ -69,12 +87,12 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
             console.log('🔄 Fetching subscription status...');
             const data = await getSubscriptionStatus();
             console.log('✅ Subscription status fetched:', data);
-            setSubscription(data);
+            setSubscriptionData(data);
         } catch (err: any) {
             console.error('❌ Error fetching subscription:', err);
             // Don't set error for 404 - just means no subscription exists
             if (err.message?.includes('404') || err.message?.includes('not found')) {
-                setSubscription(null);
+                setSubscriptionData(null);
             } else {
                 setError(err.message || 'Failed to fetch subscription status');
             }
@@ -96,9 +114,13 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     }, []);
 
     const value: SubscriptionContextType = {
-        subscription,
+        subscription: subscriptionData?.subscription ?? null,
         isLoading,
         isSubscribed,
+        hasAccess,
+        isActive,
+        isTrial,
+        daysRemaining,
         refreshSubscription,
         error,
     };

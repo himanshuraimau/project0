@@ -8,7 +8,6 @@ export type TokenProvider = () => Promise<string | null>;
 let globalTokenProvider: TokenProvider | null = null;
 
 export const setTokenProvider = (provider: TokenProvider) => {
-  console.log('🔧 Setting global token provider');
   globalTokenProvider = provider;
 };
 

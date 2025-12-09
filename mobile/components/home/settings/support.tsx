@@ -110,7 +110,7 @@ export default function Support() {
 
   const handleSendMessage = () => {
     // TODO: Implement email sending logic
-    const email = 'support@jellinote.ai'
+    const email = 'support@https://project0-nu.vercel.app'
     const emailSubject = encodeURIComponent(subject)
     const emailBody = encodeURIComponent(message)
     Linking.openURL(`mailto:${email}?subject=${emailSubject}&body=${emailBody}`)
@@ -172,10 +172,10 @@ export default function Support() {
               <View style={styles.emailCard}>
                 <Feather name="mail" size={24} color="#8B5CF6" style={styles.emailIcon} />
                 <View style={styles.emailContent}>
-                  <Text style={styles.emailAddress}>support@jellinote.ai</Text>
+                  <Text style={styles.emailAddress}>support@https://project0-nu.vercel.app</Text>
                   <Text style={styles.emailDescription}>
                     Our support team typically responds within 24 hours during business days.
-                    For urgent issues, please include "URGENT" in your subject line.
+                    For urgent issues, please include &quot;URGENT&quot; in your subject line.
                   </Text>
                 </View>
               </View>

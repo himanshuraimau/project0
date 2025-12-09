@@ -1,6 +1,6 @@
 import apiClient, { handleApiResponse, handleApiError } from './client';
 import {
-  Subscription,
+  SubscriptionStatusResponse,
   CreateSubscriptionRequest,
   CreateSubscriptionResponse,
   SubscriptionPortalResponse,
@@ -14,11 +14,12 @@ import {
 
 /**
  * Get subscription status for the authenticated user
+ * Returns full subscription status including access info
  */
-export const getSubscriptionStatus = async (): Promise<Subscription> => {
+export const getSubscriptionStatus = async (): Promise<SubscriptionStatusResponse> => {
   try {
-    const response = await apiClient.get<ApiResponse<Subscription>>('/subscription/status');
-    return handleApiResponse<Subscription>(response);
+    const response = await apiClient.get<ApiResponse<SubscriptionStatusResponse>>('/subscription/status');
+    return handleApiResponse<SubscriptionStatusResponse>(response);
   } catch (error) {
     return handleApiError(error);
   }

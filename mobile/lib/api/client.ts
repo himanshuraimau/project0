@@ -11,10 +11,6 @@ export const setTokenProvider = (getter: () => string | null | Promise<string | 
   tokenProvider = getter;
 };
 
-console.log('🔗 API Client Configuration:');
-console.log('📍 Base URL:', API_BASE_URL);
-console.log('🌐 Environment API URL:', process.env.EXPO_PUBLIC_API_URL);
-
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -28,23 +24,13 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor to add auth cookies
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    console.log('📤 Making API Request:');
-    console.log('🎯 URL:', `${config.baseURL || 'undefined'}${config.url || 'undefined'}`);
-    console.log('🔧 Method:', config.method?.toUpperCase());
-    console.log('📝 Headers:', config.headers);
-
     try {
       // Get cookies from Better Auth
       if (tokenProvider) {
-        const cookies = await tokenProvider(); // FIXED: await the async function
+        const cookies = await tokenProvider();
         if (cookies && config.headers) {
-          console.log('🍪 Adding cookies to request');
           config.headers.Cookie = cookies;
-        } else {
-          console.log('⚠️ No cookies available from token provider');
         }
-      } else {
-        console.log('⚠️ Token provider not set');
       }
     } catch (error) {
       console.error('❌ Error getting auth cookies:', error);
@@ -60,9 +46,6 @@ apiClient.interceptors.request.use(
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => {
-    console.log('📥 API Response:');
-    console.log('✅ Status:', response.status);
-    console.log('📊 Data:', response.data);
     return response;
   },
   async (error: AxiosError) => {
@@ -108,13 +91,7 @@ apiClient.interceptors.response.use(
 
 // Helper function to handle API responses
 export const handleApiResponse = <T>(response: any): T => {
-  console.log('🔍 handleApiResponse called');
-  console.log('📊 Response object:', response);
-  console.log('📝 Response data:', response.data);
-
   if (response.data.success) {
-    console.log('✅ Response marked as successful');
-    console.log('🎯 Returning data:', response.data.data);
     return response.data.data as T;
   }
 
