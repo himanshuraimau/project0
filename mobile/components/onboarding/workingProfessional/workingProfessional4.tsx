@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   progressWrap: { flex: 1, paddingRight: 16 },
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '100%', height: '100%', backgroundColor: '#7C3AED' },
-  content: { paddingHorizontal: 24, paddingTop: 20 },
+  content: { paddingHorizontal: 28, paddingTop: 20, width: '100%' },
   contextText: {
     color: '#7C3AED',
     fontSize: 15,
@@ -105,11 +105,11 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '700', color: '#0F172A', marginBottom: 18 },
   cardContainer: {
     gap: 16,
-    width: 310,
+    width: '100%',
     height: 207.6,
   },
   card: {
-    width: 310,
+    width: '100%',
     height: 195,
     backgroundColor: '#FFFFFF',
     borderWidth: 0.8,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 25,
+    paddingHorizontal: 28,
     paddingBottom: 20,
   },
   gestureBar: { height: 4, backgroundColor: '#E5E7EB', borderRadius: 3, marginTop: 8, marginHorizontal: 120 },
