@@ -14,11 +14,11 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   Modal,
 } from 'react-native'
 import BackButton from '@/components/ui/BackButton'
+import { useAlert } from '@/lib/contexts/AlertContext';
 
 interface LanguageOptionProps {
   code: string
@@ -88,6 +88,7 @@ export default function ChangeLanguage() {
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language)
   const [translationProgress, setTranslationProgress] = useState<TranslationProgress | null>(null)
   const [showTranslationModal, setShowTranslationModal] = useState(false)
+  const { showAlert } = useAlert();
 
   const handleLanguageChange = async (languageCode: string) => {
     if (languageCode === i18n.language) {
@@ -121,7 +122,7 @@ export default function ChangeLanguage() {
         if (result.success) {
           if (result.failedCount === 0) {
             // All notes translated successfully
-            Alert.alert(
+            showAlert(
               t('language.translationComplete'),
               t('language.translationCompleteMessage', {
                 count: result.translatedCount,
@@ -136,7 +137,7 @@ export default function ChangeLanguage() {
             )
           } else {
             // Partial success
-            Alert.alert(
+            showAlert(
               t('language.translationPartialSuccess'),
               t('language.translationPartialMessage', {
                 success: result.translatedCount,
@@ -152,7 +153,7 @@ export default function ChangeLanguage() {
           }
         } else {
           // Translation failed but language was changed
-          Alert.alert(
+          showAlert(
             t('language.languageChanged'),
             t('language.translationFailedMessage'),
             [
@@ -168,7 +169,7 @@ export default function ChangeLanguage() {
       console.error('Error changing language:', error)
       setShowTranslationModal(false)
       setTranslationProgress(null)
-      Alert.alert(t('common.error'), t('language.errorChanging'))
+      showAlert(t('common.error'), t('language.errorChanging'))
       setSelectedLanguage(i18n.language) // Revert selection
     } finally {
       setIsChanging(false)

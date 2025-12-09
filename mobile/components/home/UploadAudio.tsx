@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Alert,
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
@@ -16,6 +15,7 @@ import { Upload } from 'lucide-react-native';
 import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
 import GenerateNote from '@/components/ui/GenerateNote';
 import FolderSelect from '@/components/ui/FolderSelect';
+import { useAlert } from '@/lib/contexts/AlertContext';
 
 // Local emoji icon fallback (keeps component dependency-free)
 const Icon: React.FC<{ name: string; size?: number; color?: string; style?: any }> = ({
@@ -45,6 +45,7 @@ type Props = {
 const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = false, onNoteGenerated }) => {
   const { transcribeAudio, generateAINote } = useNoteCreation();
   const [internalVisible, setInternalVisible] = useState<boolean>(visibleProp ?? true);
+  const { showAlert } = useAlert();
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [language, setLanguage] = useState('english');
   const [folder, setFolder] = useState('all_notes');
@@ -71,13 +72,13 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
       }
     } catch (error) {
       console.error('Error picking audio file:', error);
-      Alert.alert('Error', 'Failed to pick audio file. Please try again.');
+      showAlert('Error', 'Failed to pick audio file. Please try again.');
     }
   };
 
   const handleGenerateNotes = async () => {
     if (!selectedFile) {
-      Alert.alert('No File Selected', 'Please select an audio file first.');
+      showAlert('No File Selected', 'Please select an audio file first.');
       return;
     }
 
@@ -130,7 +131,7 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
       }
 
       // Success!
-      Alert.alert(
+      showAlert(
         'Success!',
         'Your notes have been generated successfully.',
         [

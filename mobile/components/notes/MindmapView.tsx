@@ -7,7 +7,6 @@ import {
     ScrollView,
     TouchableOpacity,
     ActivityIndicator,
-    Alert,
     Share,
     Platform,
     TextInput,
