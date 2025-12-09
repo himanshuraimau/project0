@@ -109,8 +109,6 @@ export default function Paywall4() {
           </Text>
         </View>
       </View>
-
-      <View style={styles.homeIndicator} />
     </LinearGradient>
   );
 }
