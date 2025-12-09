@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { BookOpen, Brain, Layers } from 'lucide-react-native'
@@ -21,6 +21,7 @@ import type { Note } from '@/lib/api/types'
 import { getTranslatedNote } from '@/lib/utils/translation'
 import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
+import LanguageSelector from '@/components/notes/LanguageSelector'
 
 interface NoteViewProps {
   noteId: string
@@ -35,15 +36,10 @@ export default function NoteView({ noteId }: NoteViewProps) {
   const [error, setError] = useState<string | null>(null)
   const [webViewHeight, setWebViewHeight] = useState(400)
   const [deleting, setDeleting] = useState(false)
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false)
 
   // Fetch note data on mount or when language changes
-  useEffect(() => {
-    if (noteId) {
-      fetchNote()
-    }
-  }, [noteId, i18n.language])
-
-  const fetchNote = async () => {
+  const fetchNote = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -55,7 +51,13 @@ export default function NoteView({ noteId }: NoteViewProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [noteId])
+
+  useEffect(() => {
+    if (noteId) {
+      fetchNote()
+    }
+  }, [noteId, i18n.language, fetchNote])
 
   // Get translated content based on current language
   const getDisplayContent = () => {
@@ -121,12 +123,28 @@ export default function NoteView({ noteId }: NoteViewProps) {
     if (chipId === 2) { // Transcript chip
       router.push(`/notes/${noteId}/transcript`)
     } else if (chipId === 1) { // Translate chip
-      // Handle translate action
-      console.log('Translate pressed')
+      setShowLanguageSelector(true)
     } else if (chipId === 3) { // Folder chip
       // Handle folder action
       console.log('Folder pressed')
     }
+  }
+
+  // Handle language selection
+  const handleLanguageSelect = async (languageCode: string) => {
+    try {
+      await i18n.changeLanguage(languageCode)
+      // Note will automatically update because of the useEffect dependency on i18n.language
+    } catch (error) {
+      console.error('Failed to change language:', error)
+      showAlert(t('common.error'), 'Failed to change language')
+    }
+  }
+
+  // Get available translation languages for this note
+  const getAvailableLanguages = () => {
+    if (!note?.translations) return ['en']
+    return ['en', ...note.translations.map(t => t.language)]
   }
 
   // Handle study tool press
@@ -535,6 +553,15 @@ export default function NoteView({ noteId }: NoteViewProps) {
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
+
+      {/* Language Selector Modal */}
+      <LanguageSelector
+        visible={showLanguageSelector}
+        onClose={() => setShowLanguageSelector(false)}
+        onSelectLanguage={handleLanguageSelect}
+        currentLanguage={i18n.language}
+        availableLanguages={getAvailableLanguages()}
+      />
     </>
   )
 }

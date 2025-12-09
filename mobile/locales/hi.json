@@ -54,7 +54,11 @@
     "failedToLoad": "नोट लोड करने में विफल",
     "deleteNote": "नोट हटाएं",
     "deleteConfirmation": "क्या आप वाकई इस नोट को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
-    "failedToDelete": "नोट हटाने में विफल"
+    "failedToDelete": "नोट हटाने में विफल",
+    "selectLanguage": "भाषा चुनें",
+    "selectLanguageDescription": "इस नोट की सामग्री देखने के लिए एक भाषा चुनें",
+    "notTranslated": "उपलब्ध नहीं",
+    "translationInfo": "अनुवाद AI द्वारा उत्पन्न किए गए हैं और सही नहीं हो सकते हैं"
   },
   "quiz": {
     "title": "क्विज़",
