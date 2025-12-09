@@ -10,7 +10,7 @@ export default StyleSheet.create({
   progressWrap: { flex: 1, paddingRight: 16 },
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '33%', height: '100%', backgroundColor: PURPLE },
-  content: { paddingHorizontal: 16, paddingTop: 18, flex: 1 },
+  content: { paddingHorizontal: 16, paddingTop: 18, flex: 1, width: '100%' },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 8, fontFamily: 'Arimo' },
   subtitle: { color: '#0B0C10', fontSize: 17, lineHeight: 22, marginBottom: 24, fontFamily: 'Arimo', fontWeight: '400' },
   features: { marginTop: 6 },
