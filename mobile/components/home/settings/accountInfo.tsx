@@ -14,10 +14,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
 } from 'react-native'
 import BackButton from '@/components/ui/BackButton'
 import { useSubscription } from '@/lib/contexts/SubscriptionContext'
+import { useAlert } from '@/lib/contexts/AlertContext';
 
 interface InfoCardProps {
   icon: keyof typeof Feather.glyphMap
@@ -54,6 +54,7 @@ export default function AccountInfo() {
   const user = session?.user
   const { t } = useTranslation()
   const { subscription, isSubscribed } = useSubscription()
+  const { showAlert } = useAlert();
 
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return 'N/A'
@@ -77,7 +78,7 @@ export default function AccountInfo() {
   const copyUserId = async () => {
     if (user?.id) {
       await Clipboard.setStringAsync(user.id)
-      Alert.alert(t('accountInfo.idCopied'), t('accountInfo.idCopiedMessage'))
+      showAlert(t('accountInfo.idCopied'), t('accountInfo.idCopiedMessage'))
     }
   }
 
@@ -100,8 +101,8 @@ export default function AccountInfo() {
             <BackButton iconColor="#1F2937" />
           </View>
 
-          <ScrollView 
-            style={styles.scrollView} 
+          <ScrollView
+            style={styles.scrollView}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >

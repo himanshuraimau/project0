@@ -8,7 +8,6 @@ import {
   SafeAreaView,
   Animated,
   Easing,
-  Alert,
   Platform,
   Dimensions,
 } from "react-native";

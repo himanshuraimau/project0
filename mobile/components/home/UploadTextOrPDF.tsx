@@ -7,7 +7,6 @@ import {
   StyleSheet,
   SafeAreaView,
   TextInput,
-  Alert,
   Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -15,6 +14,7 @@ import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
 import * as DocumentPicker from 'expo-document-picker';
 import GenerateNote from '@/components/ui/GenerateNote';
 import FolderSelect from '@/components/ui/FolderSelect';
+import { useAlert } from '@/lib/contexts/AlertContext';
 
 // Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient in all environments
 let Icon: any = null;
@@ -50,6 +50,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
   const router = useRouter();
   const { generateNoteFromText } = useNoteCreation();
   const [internalVisible, setInternalVisible] = useState<boolean>(visibleProp ?? true);
+  const { showAlert } = useAlert();
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [titleValue, setTitleValue] = useState('');
   const [textValue, setTextValue] = useState('');
@@ -70,7 +71,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
 
     // Validation: Must have content (text OR PDF)
     if (!hasTextContent && !hasPDFs) {
-      Alert.alert('Missing Content', 'Please enter some text or select PDF files.');
+      showAlert('Missing Content', 'Please enter some text or select PDF files.');
       return;
     }
 
@@ -124,7 +125,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
       console.log('Transcript created:', response.transcript.id);
 
       // Show success message
-      Alert.alert(
+      showAlert(
         'Success!',
         'Your note has been created successfully.',
         [
@@ -179,7 +180,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
 
       // Show success message
       const fileNames = result.assets.map(asset => asset.name).join(', ');
-      Alert.alert(
+      showAlert(
         'PDFs Selected',
         `Selected ${result.assets.length} file(s): ${fileNames}`,
         [{ text: 'OK' }]
@@ -188,7 +189,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
       console.log('Selected PDFs:', result.assets);
     } catch (err: any) {
       console.error('Failed to pick PDF:', err);
-      Alert.alert('Error', 'Failed to select PDF files. Please try again.');
+      showAlert('Error', 'Failed to select PDF files. Please try again.');
     }
   };
 

@@ -8,7 +8,6 @@ import {
     StatusBar,
     TextInput,
     ActivityIndicator,
-    Alert,
     KeyboardAvoidingView,
     Platform,
 } from 'react-native';
@@ -19,6 +18,7 @@ import { notesApi } from '@/lib/api';
 import type { Note } from '@/lib/api/types';
 import BackButton from '@/components/ui/BackButton';
 import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
+import { useAlert } from '@/lib/contexts/AlertContext';
 import { marked } from 'marked';
 
 interface EditViewProps {
@@ -36,6 +36,7 @@ export default function EditView({ noteId }: EditViewProps) {
     const [error, setError] = useState<string | null>(null);
     const [showFontSizePicker, setShowFontSizePicker] = useState(false);
     const [showFontStylePicker, setShowFontStylePicker] = useState(false);
+    const { showAlert } = useAlert();
 
     useEffect(() => {
         fetchNote();
@@ -70,7 +71,7 @@ export default function EditView({ noteId }: EditViewProps) {
 
     const handleSave = async () => {
         if (!title.trim()) {
-            Alert.alert('Error', 'Title cannot be empty');
+            showAlert('Error', 'Title cannot be empty');
             return;
         }
 
@@ -86,7 +87,7 @@ export default function EditView({ noteId }: EditViewProps) {
             router.back();
         } catch (err: any) {
             console.error('Failed to update note:', err);
-            Alert.alert('Error', 'Failed to save changes');
+            showAlert('Error', 'Failed to save changes');
         } finally {
             setSaving(false);
         }

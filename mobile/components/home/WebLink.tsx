@@ -7,7 +7,6 @@ import {
   StyleSheet,
   SafeAreaView,
   TextInput,
-  Alert,
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
@@ -15,6 +14,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
 import GenerateNote from '@/components/ui/GenerateNote';
 import FolderSelect from '@/components/ui/FolderSelect';
+import { useAlert } from '@/lib/contexts/AlertContext';
 
 // Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient
 let Icon: any = null;
@@ -44,6 +44,7 @@ type Props = {
 const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = false, onNoteGenerated }) => {
   const { processWebpage, generateAINote } = useNoteCreation();
   const [internalVisible, setInternalVisible] = useState<boolean>(visibleProp ?? true);
+  const { showAlert } = useAlert();
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [link, setLink] = useState('');
   const [folder, setFolder] = useState('all_notes');
@@ -68,12 +69,12 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
 
   const handleGenerateNotes = async () => {
     if (!link.trim()) {
-      Alert.alert('Link Required', 'Please enter a website URL or YouTube link.');
+      showAlert('Link Required', 'Please enter a website URL or YouTube link.');
       return;
     }
 
     if (!isValidUrl(link.trim())) {
-      Alert.alert('Invalid URL', 'Please enter a valid URL (e.g., youtube.com/watch?v=...)');
+      showAlert('Invalid URL', 'Please enter a valid URL (e.g., youtube.com/watch?v=...)');
       return;
     }
 
@@ -121,7 +122,7 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
       }
 
       // Success!
-      Alert.alert(
+      showAlert(
         'Success!',
         'Your notes have been generated successfully.',
         [
