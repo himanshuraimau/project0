@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   cardTag: { position: 'absolute', left: 20, top: -12, backgroundColor: '#6366F1', width: 85, height: 28, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
   cardTagText: { color: '#fff', fontWeight: '700', fontSize: 11, lineHeight: 16 },
   cardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cardRowSecondary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, gap: 80 },
+  cardRowSecondary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 },
   planTitle: { fontSize: 20, fontWeight: '400', color: '#000000', lineHeight: 30, fontFamily: 'Arimo' },
   planSubtitle: { fontSize: 14, color: '#000000', marginTop: 0, fontWeight: '400', lineHeight: 21, fontFamily: 'Arimo' },
   planPrice: { fontSize: 18, fontWeight: '400', color: '#000000', lineHeight: 27, fontFamily: 'Arimo' },
