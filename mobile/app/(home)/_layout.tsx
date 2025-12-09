@@ -14,9 +14,9 @@ export default function Layout() {
     )
   }
 
-  // Redirect to landing page if not authenticated
+  // Redirect to auth if not authenticated
   if (!session) {
-    return <Redirect href="/" />
+    return <Redirect href="/(auth)/sign-in" />
   }
 
   return <Stack screenOptions={{ headerShown: false }} />
