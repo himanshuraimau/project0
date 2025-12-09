@@ -27,7 +27,7 @@ export default StyleSheet.create({
     fontFamily: 'Arimo',
     fontWeight: '700',
     lineHeight: 22,
-    marginBottom: 70,
+    marginBottom: 8,
   },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 16, fontFamily: 'Arimo' },
   testimonialCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 6 },
