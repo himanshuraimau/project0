@@ -92,9 +92,10 @@ export default function Paywall4() {
           >
             <Image
               source={{
-                uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png",
+                uri: "https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png",
               }}
               style={styles.googleLogo}
+              resizeMode="contain"
             />
             <Text style={styles.googleText}>
               {isGoogleLoading ? "Signing up..." : "Sign up with Google"}
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-  googleLogo: { width: 16, height: 16, marginRight: 16 },
+  googleLogo: { width: 24, height: 24, marginRight: 12 },
   googleText: {
     fontFamily: "Arimo",
     fontWeight: "400",
