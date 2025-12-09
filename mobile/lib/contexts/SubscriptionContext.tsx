@@ -86,7 +86,10 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
 
             console.log('🔄 Fetching subscription status...');
             const data = await getSubscriptionStatus();
-            console.log('✅ Subscription status fetched:', data);
+            console.log('✅ Subscription status fetched:', JSON.stringify(data, null, 2));
+            console.log('📊 Has subscription:', data?.hasSubscription);
+            console.log('📊 Has access:', data?.access?.hasAccess);
+            console.log('📊 Subscription object:', data?.subscription);
             setSubscriptionData(data);
         } catch (err: any) {
             console.error('❌ Error fetching subscription:', err);

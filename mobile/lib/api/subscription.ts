@@ -18,8 +18,9 @@ import {
  */
 export const getSubscriptionStatus = async (): Promise<SubscriptionStatusResponse> => {
   try {
-    const response = await apiClient.get<ApiResponse<SubscriptionStatusResponse>>('/subscription/status');
-    return handleApiResponse<SubscriptionStatusResponse>(response);
+    const response = await apiClient.get<SubscriptionStatusResponse>('/subscription/status');
+    // The subscription status endpoint returns data directly, not wrapped in ApiResponse
+    return response.data;
   } catch (error) {
     return handleApiError(error);
   }

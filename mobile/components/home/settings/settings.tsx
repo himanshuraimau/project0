@@ -34,7 +34,6 @@ export default function Settings() {
   const { showAlert } = useAlert()
   const { 
     subscription, 
-    isSubscribed, 
     hasAccess,
     isActive,
     isTrial,
@@ -72,34 +71,12 @@ export default function Settings() {
   }
 
   const handleRateUs = () => {
-    console.log('Navigate to Rate Us')
     // Add app store rating logic
   }
 
   const handleSubscription = () => {
-    if (hasAccess && isSubscribed) {
-      // Show subscription management options
-      showAlert(
-        t('settings.manageSubscription'),
-        t('settings.subscriptionActiveMessage'),
-        [
-          {
-            text: t('common.cancel'),
-            style: 'cancel',
-          },
-          {
-            text: t('settings.viewDetails'),
-            onPress: () => {
-              // Navigate to subscription details or portal
-              router.push('/(onboarding)/paywall/paywall5' as any)
-            },
-          },
-        ]
-      )
-    } else {
-      // Navigate to paywall to subscribe
-      router.push('/(onboarding)/paywall/paywall5' as any)
-    }
+    // Navigate to dedicated subscription manager
+    router.push('/settings/subscription' as any)
   }
 
   const handlePrivacy = () => {

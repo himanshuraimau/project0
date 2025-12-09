@@ -22,7 +22,6 @@ export const hasCompletedOnboarding = async (): Promise<boolean> => {
 export const markOnboardingCompleted = async (): Promise<void> => {
   try {
     await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
-    console.log('✅ Onboarding marked as completed');
   } catch (error) {
     console.error('Error marking onboarding as completed:', error);
     throw error;
