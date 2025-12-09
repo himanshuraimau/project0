@@ -10,10 +10,12 @@ export default StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '50%', height: '100%', backgroundColor: '#7C3AED' },
   content: {
+    paddingHorizontal: 28,
+    paddingTop: 20,
     flex: 1,
+    width: '100%'
   },
   mainQuestion: {
-    marginHorizontal: 24,
     marginTop: 16,
     marginBottom: 32,
     fontSize: 24,
@@ -23,7 +25,6 @@ export default StyleSheet.create({
     color: '#0A0A0A',
   },
   optionsContainer: {
-    marginHorizontal: 24,
     gap: 12,
   },
   optionButton: {
@@ -59,11 +60,11 @@ export default StyleSheet.create({
     flex: 1,
   },
   footer: {
-    paddingHorizontal: 25,
+    paddingHorizontal: 28,
     paddingBottom: 20,
   },
   continueButton: {
-    width: 310,
+    width: '100%',
     height: 56,
     flexDirection: 'row',
     alignItems: 'center',

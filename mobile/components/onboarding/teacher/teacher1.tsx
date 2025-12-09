@@ -11,7 +11,7 @@ export default function Teacher1() {
   const router = useRouter()
   return (
     <SafeAreaView style={styles.screen}>
-      <StatusBar barStyle="dark-content" translucent={false} backgroundColor="#F9FAFB" />
+
 
       {/* Bottom left blur gradient */}
       <BlurGradient

@@ -10,9 +10,10 @@ export default StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '100%', height: '100%', backgroundColor: '#7C3AED' },
   content: {
-    paddingHorizontal: 23.99,
-    paddingTop: 23.99,
-    flex: 1
+    paddingHorizontal: 28,
+    paddingTop: 20,
+    flex: 1,
+    width: '100%'
   },
   context: {
     color: '#7C3AED',
@@ -21,7 +22,7 @@ export default StyleSheet.create({
     fontWeight: '700',
     lineHeight: 22,
     marginBottom: 8,
-    width: 345,
+    width: '100%',
   },
   title: {
     fontSize: 20,
@@ -30,9 +31,9 @@ export default StyleSheet.create({
     marginBottom: 14,
     fontFamily: 'Arimo',
     color: '#000000',
-    width: 343,
+    width: '100%',
   },
-  options: { marginTop: 6, gap: 12, paddingRight: 24 },
+  options: { marginTop: 6, gap: 12 },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -41,8 +42,7 @@ export default StyleSheet.create({
     paddingRight: 19.99,
     paddingVertical: 0,
     gap: 15.99,
-    maxWidth: 345,
-    width: 315,
+    width: '100%',
     height: 83.97,
     borderRadius: 16,
     shadowColor: 'rgba(0, 0, 0, 0.1)',
@@ -75,14 +75,14 @@ export default StyleSheet.create({
     lineHeight: 22,
     color: '#000000',
   },
-  footer: { paddingHorizontal: 25, paddingBottom: 20 },
+  footer: { paddingHorizontal: 28, paddingBottom: 20 },
   continueWrap: { borderRadius: 100, overflow: 'hidden' },
   continueButton: {
     backgroundColor: '#FFFFFF',
     borderRadius: 100,
     paddingVertical: 0,
     paddingRight: 30,
-    width: 329,
+    width: '100%',
     height: 55.98,
     alignItems: 'center',
     justifyContent: 'center',
