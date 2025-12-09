@@ -47,6 +47,7 @@ export default StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Arimo',
     marginBottom: 32,
+    paddingHorizontal: 60,
   },
   card: {
     backgroundColor: '#FFFFFF',
