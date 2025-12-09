@@ -18,7 +18,7 @@ export function TestimonialCard({ name, title, quote, stars = 5 }: TestimonialCa
         end={{ x: 1, y: 1 }}
         style={styles.blurGradient}
       />
-      
+
       <View style={styles.card}>
         <View style={styles.content}>
           <View style={styles.header}>
@@ -32,7 +32,7 @@ export function TestimonialCard({ name, title, quote, stars = 5 }: TestimonialCa
               ))}
             </View>
           </View>
-          
+
           <Text style={styles.quote}>{quote}</Text>
         </View>
       </View>
@@ -42,12 +42,12 @@ export function TestimonialCard({ name, title, quote, stars = 5 }: TestimonialCa
 
 const styles = StyleSheet.create({
   container: {
-    width: 345,
+    width: '100%',
     position: 'relative',
     // height removed for auto-sizing
   },
   card: {
-    width: 320,
+    width: '100%',
     backgroundColor: '#FFFFFF',
     borderWidth: 0.8,
     borderColor: '#EBEDF2',
