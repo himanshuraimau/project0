@@ -1,24 +1,48 @@
+"use client";
+
 import { Header } from "@/components/landing/header";
 import { AuthLoadingWrapper } from "@/components/auth/auth-loading";
+import { useTheme } from "next-themes";
 
 interface Props {
   children: React.ReactNode;
 }
 
 const Layout = ({ children }: Props) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  
+  const colors = {
+    bg: isDark ? '#000000' : '#ffffff',
+    grid: isDark ? '#262626' : '#e5e5e5',
+    gridOpacity: isDark ? 0.2 : 0.3,
+    text: isDark ? '#ffffff' : '#000000',
+  };
+
   return (
     <AuthLoadingWrapper>
-      {/* Global Background Texture */}
-      <div className="fixed inset-0 -z-50 h-full w-full bg-background bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-      
-      {/* Radial Gradient for subtle center focus */}
-      <div className="fixed inset-0 -z-40 h-full w-full bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.1),rgba(255,255,255,0))]" />
+      {/* 1. Base Layer */}
+      <div 
+        className="fixed inset-0 -z-50 h-full w-full"
+        style={{ backgroundColor: colors.bg }}
+      />
 
-      <div className="flex flex-col min-h-screen">
+      {/* 2. Grid Texture */}
+      <div 
+        className="fixed inset-0 -z-40 h-full w-full pointer-events-none"
+        style={{
+          backgroundImage: `linear-gradient(to right, ${colors.grid} 1px, transparent 1px), linear-gradient(to bottom, ${colors.grid} 1px, transparent 1px)`,
+          backgroundSize: '40px 40px',
+          opacity: colors.gridOpacity,
+        }}
+      />
+
+      <div 
+        className="flex flex-col min-h-screen font-sans antialiased"
+        style={{ color: colors.text }}
+      >
         <Header />
-        <main className="flex-1 flex flex-col relative">
-          {children}
-        </main>
+        <main className="flex-1 flex flex-col relative">{children}</main>
       </div>
     </AuthLoadingWrapper>
   );

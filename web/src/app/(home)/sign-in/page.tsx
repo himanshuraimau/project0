@@ -3,21 +3,47 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Sparkles, Quote } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 
 export default function SignIn() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
+  // Theme-aware colors that don't use global CSS
+  const isDark = theme === 'dark';
+  const colors = {
+    bg: isDark ? '#000000' : '#ffffff',
+    bgSecondary: isDark ? '#171717' : '#f9fafb',
+    text: isDark ? '#ffffff' : '#000000',
+    textMuted: isDark ? '#a3a3a3' : '#737373',
+    textSubtle: isDark ? '#737373' : '#a3a3a3',
+    border: isDark ? '#262626' : '#e5e5e5',
+    borderLight: isDark ? '#404040' : '#d4d4d4',
+    input: isDark ? '#171717' : '#f4f4f5',
+    inputBorder: isDark ? '#262626' : '#d4d4d4',
+    buttonPrimary: isDark ? '#ffffff' : '#000000',
+    buttonPrimaryText: isDark ? '#000000' : '#ffffff',
+    buttonSecondary: isDark ? '#000000' : '#ffffff',
+    buttonSecondaryText: isDark ? '#ffffff' : '#000000',
+    buttonSecondaryBorder: isDark ? '#262626' : '#e5e5e5',
+    buttonSecondaryHover: isDark ? '#171717' : '#f4f4f5',
+    grid: isDark ? '#404040' : '#e5e5e5',
+    gridOpacity: isDark ? 0.2 : 0.4,
+    glow: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+    glowSize: isDark ? '500px' : '400px',
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,45 +76,37 @@ export default function SignIn() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      const result = await authClient.signIn.social({
+      await authClient.signIn.social({
         provider: "google",
         callbackURL: "/dashboard",
       });
-      
-      // If we get here without error, the redirect should happen automatically
-      console.log("Google sign in initiated:", result);
     } catch (error: any) {
       console.error("Google sign in error:", error);
-      
-      // More detailed error message
-      if (error.message?.includes("fetch")) {
-        toast.error("Cannot connect to authentication server. Make sure the dev server is running.");
-      } else {
-        toast.error(error.message || "Failed to sign in with Google");
-      }
-      
+      toast.error(error.message || "Failed to sign in with Google");
       setIsGoogleLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full grid lg:grid-cols-2">
+    <div 
+      className="min-h-screen w-full grid lg:grid-cols-2"
+      style={{ 
+        backgroundColor: colors.bg,
+        color: colors.text 
+      }}
+    >
       {/* Left Column: Form */}
-      <div className="flex flex-col justify-between p-8 md:p-12 lg:p-16 bg-background relative">
-        <Link
-          href="/"
-          className="absolute top-8 left-8 md:left-12 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Home
-        </Link>
-
+      <div className="flex flex-col justify-between p-8 md:p-12 lg:p-16 relative">
         <div className="flex flex-col justify-center flex-1 max-w-[400px] mx-auto w-full animate-in fade-in slide-in-from-left-4 duration-500">
-          <div className="mb-8 text-center lg:text-left">
-            <h1 className="text-3xl font-bold tracking-tight mb-2">
+          
+          <div className="mb-8">
+            <h1 
+              className="text-3xl font-bold tracking-tight mb-2"
+              style={{ color: colors.text }}
+            >
               Welcome back
             </h1>
-            <p className="text-muted-foreground">
+            <p style={{ color: colors.textMuted }}>
               Enter your credentials to access your workspace.
             </p>
           </div>
@@ -97,14 +115,29 @@ export default function SignIn() {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-11 relative"
+              className="w-full h-12 relative transition-colors"
+              style={{
+                backgroundColor: colors.buttonSecondary,
+                borderColor: colors.buttonSecondaryBorder,
+                color: colors.buttonSecondaryText,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = colors.buttonSecondaryHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = colors.buttonSecondary;
+              }}
               onClick={handleGoogleSignIn}
               disabled={isGoogleLoading || isLoading}
             >
               {isGoogleLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                <svg 
+                  className="mr-2 h-4 w-4" 
+                  viewBox="0 0 24 24"
+                  style={{ color: colors.buttonSecondaryText }}
+                >
                   <path
                     fill="currentColor"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -128,10 +161,19 @@ export default function SignIn() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border/50" />
+                <span 
+                  className="w-full border-t"
+                  style={{ borderColor: colors.border }}
+                />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
+                <span 
+                  className="px-2"
+                  style={{ 
+                    backgroundColor: colors.bg,
+                    color: colors.textSubtle 
+                  }}
+                >
                   Or sign in with email
                 </span>
               </div>
@@ -139,12 +181,22 @@ export default function SignIn() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label 
+                  htmlFor="email"
+                  style={{ color: colors.textMuted }}
+                >
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@example.com"
-                  className="h-11 bg-secondary/20 border-border/50 focus:border-primary/50 transition-colors"
+                  className="h-11 transition-all"
+                  style={{
+                    backgroundColor: colors.input,
+                    borderColor: colors.inputBorder,
+                    color: colors.text,
+                  }}
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
@@ -156,10 +208,22 @@ export default function SignIn() {
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label 
+                    htmlFor="password"
+                    style={{ color: colors.textMuted }}
+                  >
+                    Password
+                  </Label>
                   <Link
                     href="/forgot-password"
-                    className="text-xs text-primary hover:underline"
+                    className="text-xs transition-colors"
+                    style={{ color: colors.textMuted }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = colors.text;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = colors.textMuted;
+                    }}
                   >
                     Forgot password?
                   </Link>
@@ -168,7 +232,12 @@ export default function SignIn() {
                   id="password"
                   type="password"
                   placeholder="••••••••"
-                  className="h-11 bg-secondary/20 border-border/50 focus:border-primary/50 transition-colors"
+                  className="h-11 transition-all"
+                  style={{
+                    backgroundColor: colors.input,
+                    borderColor: colors.inputBorder,
+                    color: colors.text,
+                  }}
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
@@ -181,7 +250,11 @@ export default function SignIn() {
 
             <Button
               type="submit"
-              className="w-full h-11 text-base"
+              className="w-full h-12 text-base font-semibold transition-transform hover:scale-[1.02]"
+              style={{
+                backgroundColor: colors.buttonPrimary,
+                color: colors.buttonPrimaryText,
+              }}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -195,44 +268,76 @@ export default function SignIn() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground mt-8">
+          <p 
+            className="text-center text-sm mt-8"
+            style={{ color: colors.textSubtle }}
+          >
             Don&apos;t have an account?{" "}
             <Link
               href="/sign-up"
-              className="font-medium text-primary hover:underline transition-all"
+              className="font-medium transition-all hover:underline"
+              style={{ color: colors.text }}
             >
               Sign up
             </Link>
           </p>
         </div>
-
-        {/* Footer Text */}
-        <div className="hidden lg:block text-xs text-muted-foreground">
-          © 2024 JelliNote AI.
-        </div>
       </div>
 
       {/* Right Column: Visual */}
-      <div className="hidden lg:flex flex-col justify-center items-center relative bg-muted/20 text-foreground overflow-hidden">
+      <div 
+        className="hidden lg:flex flex-col justify-center items-center relative overflow-hidden border-l"
+        style={{
+          backgroundColor: colors.bgSecondary,
+          borderColor: colors.border,
+        }}
+      >
         {/* Background Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `linear-gradient(to right, ${colors.grid} 1px, transparent 1px), linear-gradient(to bottom, ${colors.grid} 1px, transparent 1px)`,
+            backgroundSize: '40px 40px',
+            opacity: colors.gridOpacity,
+          }}
+        />
 
         {/* Abstract Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
+        <div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[100px]"
+          style={{
+            width: colors.glowSize,
+            height: colors.glowSize,
+            backgroundColor: colors.glow,
+          }}
+        />
 
         <div className="relative z-10 p-12 max-w-lg text-center">
-          <div className="w-16 h-16 bg-background rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-sm border border-border/50">
-            <Sparkles className="w-8 h-8 text-primary" />
+          <div 
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl border"
+            style={{
+              backgroundColor: colors.bg,
+              borderColor: colors.border,
+            }}
+          >
+            <Sparkles className="w-8 h-8" style={{ color: colors.text }} />
           </div>
 
           <blockquote className="space-y-6">
-            <div className="text-2xl font-medium leading-relaxed">
-              &ldquo;JelliNote completely transformed how I study for my medical
-              exams. The automated flashcards are a lifesaver.&rdquo;
+            <div 
+              className="text-2xl font-medium leading-relaxed"
+              style={{ color: colors.text }}
+            >
+              &ldquo;JelliNote completely transformed how I study. The AI clarity and {isDark ? 'dark mode' : 'light mode'} focus is unmatched.&rdquo;
             </div>
             <footer className="text-sm">
-              <div className="font-semibold">Sarah Chen</div>
-              <div className="text-muted-foreground">
+              <div 
+                className="font-semibold"
+                style={{ color: colors.text }}
+              >
+                Sarah Chen
+              </div>
+              <div style={{ color: colors.textSubtle }}>
                 Med Student @ Stanford
               </div>
             </footer>
