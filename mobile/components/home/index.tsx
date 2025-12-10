@@ -19,6 +19,7 @@ import {
   RefreshControl,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Folder } from 'lucide-react-native';
 import RecordAudio from './RecordAudio';
 import UploadAudio from './UploadAudio';
 import UploadTextOrPDF from './UploadTextOrPDF';
@@ -26,6 +27,7 @@ import WebLink from './WebLink';
 import { notesApi } from '@/lib/api';
 import type { Note } from '@/lib/api/types';
 import { getTranslatedNote } from '@/lib/utils/translation';
+import { useFolders } from '@/lib/hooks/useFolders';
 
 export default function NotesHome() {
   const { theme } = useTheme()
@@ -41,6 +43,7 @@ export default function NotesHome() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilter, setSelectedFilter] = useState('All')
   const [isDevelopmentMode, setIsDevelopmentMode] = useState(false)
+  const { folders, fetchFolders } = useFolders()
 
   const newNoteOptions = [
     { id: 1, icon: 'mic', label: t('home.newNoteOptions.recordAudio') },
@@ -49,11 +52,12 @@ export default function NotesHome() {
     { id: 4, icon: 'link', label: t('home.newNoteOptions.webLink') },
   ]
 
-  // Fetch notes when session is ready
+  // Fetch notes and folders when session is ready
   useEffect(() => {
     if (!isPending && session?.user) {
-      console.log('✅ Session ready, fetching notes...')
+      console.log('✅ Session ready, fetching notes and folders...')
       fetchNotes()
+      fetchFolders()
     }
     // Note: No need to manually redirect - the (home) layout handles auth protection
   }, [session, isPending])
@@ -168,7 +172,12 @@ export default function NotesHome() {
                   <Pressable
                     key={f.key}
                     style={[styles.filterPill, selected && styles.filterPillSelected]}
-                    onPress={() => setSelectedFilter(f.key)}
+                    onPress={() => {
+                      setSelectedFilter(f.key)
+                      if (f.key === 'Folders') {
+                        router.push('/(home)/folders')
+                      }
+                    }}
                   >
                     <Text style={[styles.filterText, selected && styles.filterTextSelected]}>{f.label}</Text>
                   </Pressable>
@@ -176,6 +185,49 @@ export default function NotesHome() {
               })}
             </ScrollView>
           </View>
+
+          {/* Folders Section */}
+          {folders.length > 0 && (
+            <View style={styles.foldersSection}>
+              <View style={styles.foldersSectionHeader}>
+                <Text style={styles.foldersSectionTitle}>My Folders</Text>
+                <TouchableOpacity onPress={() => router.push('/(home)/folders')}>
+                  <Text style={styles.viewAllText}>View All</Text>
+                </TouchableOpacity>
+              </View>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.foldersScroll}
+              >
+                {folders.slice(0, 6).map((folder) => {
+                  const folderColor = folder.color || '#6366f1';
+                  return (
+                    <Pressable
+                      key={folder.id}
+                      style={styles.folderItem}
+                      onPress={() => router.push(`/(home)/folders/${folder.id}`)}
+                    >
+                      <View
+                        style={[
+                          styles.folderItemIcon,
+                          { backgroundColor: `${folderColor}15` },
+                        ]}
+                      >
+                        <Folder size={24} color={folderColor} />
+                      </View>
+                      <Text style={styles.folderItemName} numberOfLines={1}>
+                        {folder.name}
+                      </Text>
+                      <Text style={styles.folderItemCount}>
+                        {folder.noteCount} {folder.noteCount === 1 ? 'note' : 'notes'}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
 
           <ScrollView
             style={styles.notesList}
@@ -661,5 +713,59 @@ const styles = StyleSheet.create({
     color: '#92400E',
     fontSize: 13,
     fontWeight: '600',
+  },
+  foldersSection: {
+    marginBottom: 16,
+  },
+  foldersSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  foldersSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#7C3AED',
+  },
+  foldersScroll: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  folderItem: {
+    width: 140,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  folderItemIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  folderItemName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  folderItemCount: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontWeight: '500',
   },
 })

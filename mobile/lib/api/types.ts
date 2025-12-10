@@ -82,6 +82,7 @@ export interface Note {
   content: string;
   transcriptId: string;
   userId?: string;
+  folderId?: string | null;
   createdAt: string;
   updatedAt: string;
   translations?: NoteTranslation[]; // Optional array of translations
@@ -488,4 +489,35 @@ export interface SemanticSearchResult {
   text: string;
   score: number;
   noteId: string;
+}
+
+// ==================== Folders API ====================
+export interface Folder {
+  id: string;
+  name: string;
+  description?: string | null;
+  color?: string | null;
+  icon?: string | null;
+  userId: string;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FolderWithCount extends Folder {
+  noteCount: number;
+}
+
+export interface CreateFolderRequest {
+  name: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+}
+
+export interface UpdateFolderRequest {
+  name?: string;
+  description?: string;
+  color?: string;
+  icon?: string;
 }
