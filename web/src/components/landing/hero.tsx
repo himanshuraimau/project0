@@ -2,154 +2,83 @@
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Mic, Play, FileText, Headphones, Zap, Users, LayoutDashboard, Share2, Brain, Sparkles, GraduationCap } from "lucide-react"
+import { ArrowRight, Play, Sparkles } from "lucide-react"
 import { useSession } from "@/lib/auth-client"
 import Link from "next/link"
+import Image from "next/image"
 
 export function Hero() {
   const { data: session } = useSession()
   
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/20" />
+    <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
       
-      {/* Floating elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-32 h-32 rounded-full bg-primary/10 blur-3xl animate-pulse" />
-        <div className="absolute bottom-32 right-32 w-48 h-48 rounded-full bg-secondary/20 blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/3 w-24 h-24 rounded-full bg-accent/30 blur-2xl animate-pulse delay-500" />
-      </div>
+      {/* Glow Effect */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-primary/20 blur-[100px] rounded-full opacity-50 pointer-events-none" />
 
-      <div className="container relative z-10 mx-auto px-8 text-center">
-        {/* Logo */}
-        <div className="mb-8 flex justify-center">
-          <img
-            src="/logo.png"
-            alt="JelliNote AI"
-            className="h-20 w-auto rounded-2xl  hover: transition-all duration-300 hover:scale-105"
-          />
+      <div className="container relative z-10 mx-auto px-6 text-center">
+        
+        {/* Announcement Pill */}
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 border border-border/50 backdrop-blur-sm mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Badge variant="secondary" className="rounded-full px-2 py-0.5 text-[10px] h-5">New</Badge>
+          <span className="text-sm font-medium text-muted-foreground">JelliNote 2.0 is now live</span>
+          <ArrowRight className="w-3 h-3 text-muted-foreground" />
         </div>
 
-        {/* Status badge */}
-        <div className="mb-8 flex justify-center">
-          <Badge className="bg-primary/10 text-primary border-primary/20 rounded-full px-6 py-2 text-sm font-medium">
-            <Sparkles className="w-4 h-4 mr-2" />
-            AI-Powered Study Revolution
-          </Badge>
-        </div>
-
-        {/* Main heading */}
-        <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-8 bg-gradient-to-br from-foreground via-foreground to-foreground/80 bg-clip-text text-transparent">
-          Transform Learning with
-          <span className="block text-primary mt-4">
-            JelliNote AI
+        {/* Main Heading */}
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          Study smarter, <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-b from-foreground to-foreground/50">
+            not harder.
           </span>
         </h1>
 
         {/* Subtitle */}
-        <p className="text-xl lg:text-2xl text-muted-foreground leading-relaxed mb-12 max-w-4xl mx-auto">
-          AI-powered note-taking with smart flashcards, interactive quizzes, mindmaps, 
-          and podcasts. Generate complete courses, share notes, organize in folders, and learn in 100+ languages.
+        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+          The all-in-one workspace for students. Turn messy lectures into organized notes, 
+          flashcards, and quizzes instantly. 
         </p>
 
-        {/* CTA buttons */}
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
           {!session ? (
             <>
               <Link href="/sign-up">
-                <Button 
-                  size="lg" 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-10 py-4 text-lg font-medium  hover: transition-all duration-300 hover:-translate-y-1"
-                >
-                  <Zap className="w-5 h-5 mr-3" />
-                  Get Started Free
+                <Button size="lg" className="rounded-full px-8 h-12 text-base font-medium shadow-lg shadow-primary/20">
+                  Start Learning Free
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
-              
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="border-2 border-primary/30 hover:bg-primary/10 rounded-2xl px-10 py-4 text-lg font-medium hover: transition-all duration-300"
-              >
-                <Play className="w-5 h-5 mr-3" />
-                Watch Demo
+              <Button variant="outline" size="lg" className="rounded-full px-8 h-12 text-base font-medium bg-background/50 backdrop-blur-sm">
+                <Play className="w-4 h-4 mr-2" />
+                See how it works
               </Button>
             </>
           ) : (
-            <>
-              <Link href="/dashboard">
-                <Button 
-                  size="lg" 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-10 py-4 text-lg font-medium  hover: transition-all duration-300 hover:-translate-y-1"
-                >
-                  <LayoutDashboard className="w-5 h-5 mr-3" />
-                  Go to Dashboard
-                </Button>
-              </Link>
-              
-              <Link href="/dashboard/folders">
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="border-2 border-primary/30 hover:bg-primary/10 rounded-2xl px-10 py-4 text-lg font-medium hover: transition-all duration-300"
-                >
-                  <FileText className="w-5 h-5 mr-3" />
-                  My Notes
-                </Button>
-              </Link>
-            </>
+            <Link href="/dashboard">
+              <Button size="lg" className="rounded-full px-8 h-12 text-base font-medium">
+                Go to Dashboard
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
           )}
         </div>
 
-        {/* Feature icons */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 max-w-4xl mx-auto">
-          <div className="flex flex-col items-center gap-3 group">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
-              <FileText className="w-8 h-8 text-primary" />
-            </div>
-            <span className="text-sm font-medium text-muted-foreground">Smart Notes</span>
-          </div>
-          
-          <div className="flex flex-col items-center gap-3 group">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
-              <GraduationCap className="w-8 h-8 text-primary" />
-            </div>
-            <span className="text-sm font-medium text-muted-foreground">AI Courses</span>
-          </div>
-          
-          <div className="flex flex-col items-center gap-3 group">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
-              <Share2 className="w-8 h-8 text-primary" />
-            </div>
-            <span className="text-sm font-medium text-muted-foreground">Share Notes</span>
-          </div>
-          
-          <div className="flex flex-col items-center gap-3 group">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
-              <Brain className="w-8 h-8 text-primary" />
-            </div>
-            <span className="text-sm font-medium text-muted-foreground">Mindmaps</span>
-          </div>
-
-          <div className="flex flex-col items-center gap-3 group">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
-              <Headphones className="w-8 h-8 text-primary" />
-            </div>
-            <span className="text-sm font-medium text-muted-foreground">Podcasts</span>
-          </div>
+        {/* Dashboard Preview / Visual Anchor */}
+        <div className="relative mx-auto max-w-5xl rounded-xl border border-border/50 bg-background/50 backdrop-blur-sm shadow-2xl animate-in fade-in zoom-in-95 duration-1000 delay-300 overflow-hidden">
+          <Image
+            src="/hero.png"
+            alt="JelliNote Dashboard Preview"
+            width={1920}
+            height={1080}
+            className="w-full h-auto rounded-xl"
+            priority
+          />
         </div>
 
-        {/* Social proof */}
-        <div className="mt-16 text-center">
-          <p className="text-sm text-muted-foreground mb-4">
-            Trusted by 10,000+ students worldwide
-          </p>
-          <div className="flex justify-center items-center gap-2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="w-2 h-2 rounded-full bg-primary/40" />
-            ))}
-          </div>
+        {/* Social Proof Text */}
+        <div className="mt-12 text-sm text-muted-foreground">
+          Trusted by 10,000+ top students from MIT, Stanford, and Harvard
         </div>
       </div>
     </section>

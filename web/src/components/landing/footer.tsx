@@ -1,159 +1,68 @@
-"use client"
-
-import { Github, Twitter, Linkedin, Mail } from "lucide-react"
+import Link from "next/link"
+import { Github, Twitter, Linkedin } from "lucide-react"
 
 export function Footer() {
-  const footerLinks = {
-    product: [
-      { name: "Features", href: "#features" },
-      { name: "API", href: "#api" },
-      { name: "Integrations", href: "#integrations" }
-    ],
-    company: [
-      { name: "About", href: "#about" },
-      { name: "Blog", href: "#blog" },
-      { name: "Careers", href: "#careers" },
-      { name: "Contact", href: "#contact" }
-    ],
-    resources: [
-      { name: "Help Center", href: "#help" },
-      { name: "Documentation", href: "#docs" },
-      { name: "Community", href: "#community" },
-      { name: "Status", href: "#status" }
-    ],
-    legal: [
-      { name: "Privacy", href: "#privacy" },
-      { name: "Terms", href: "#terms" },
-      { name: "Security", href: "#security" },
-      { name: "Cookies", href: "#cookies" }
-    ]
-  }
-
-  const socialLinks = [
-    { name: "GitHub", icon: Github, href: "#github" },
-    { name: "Twitter", icon: Twitter, href: "#twitter" },
-    { name: "LinkedIn", icon: Linkedin, href: "#linkedin" },
-    { name: "Email", icon: Mail, href: "#email" }
-  ]
-
   return (
-    <footer className="bg-gradient-to-t from-secondary/20 to-background border-t border-border/50">
-      <div className="container mx-auto px-8 py-16">
-        {/* Main footer content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12 mb-12">
-          {/* Brand section */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-6">
-              <img src="/logo.png" alt="JelliNote AI" className="h-10 w-auto rounded-md" />
-              <div>
-                <div className="text-xl font-bold text-foreground">JelliNote AI</div>
-                <div className="text-xs text-muted-foreground">Smart Notes</div>
+    <footer className="border-t border-border/40 bg-background/50 backdrop-blur-xl">
+      <div className="container mx-auto px-6 py-12 md:py-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+          
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold">
+                J
               </div>
+              <span className="font-bold text-xl">JelliNote</span>
             </div>
-            <p className="text-muted-foreground leading-relaxed mb-6 max-w-sm">
-              Revolutionizing learning with AI-powered study tools. Create, share, and master 
-              your notes with intelligent features and seamless organization.
+            <p className="text-sm text-muted-foreground mb-4">
+              Making education accessible, intelligent, and efficient for everyone.
             </p>
-            
-            {/* Social links */}
-            <div className="flex gap-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.href}
-                  className="w-10 h-10 rounded-2xl bg-secondary hover:bg-primary/10 flex items-center justify-center transition-all duration-300 hover:-translate-y-1 group"
-                >
-                  <social.icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
-                </a>
-              ))}
-            </div>
           </div>
 
-          {/* Product links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-6">Product</h3>
-            <ul className="space-y-4">
-              {footerLinks.product.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-muted-foreground hover:text-foreground transition-colors duration-200"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
+            <h4 className="font-semibold mb-4">Product</h4>
+            <ul className="space-y-3 text-sm text-muted-foreground">
+              <li><Link href="#" className="hover:text-foreground transition-colors">Features</Link></li>
+              <li><Link href="#" className="hover:text-foreground transition-colors">Pricing</Link></li>
+              <li><Link href="#" className="hover:text-foreground transition-colors">Changelog</Link></li>
+              <li><Link href="#" className="hover:text-foreground transition-colors">Docs</Link></li>
             </ul>
           </div>
 
-          {/* Company links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-6">Company</h3>
-            <ul className="space-y-4">
-              {footerLinks.company.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-muted-foreground hover:text-foreground transition-colors duration-200"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
+            <h4 className="font-semibold mb-4">Company</h4>
+            <ul className="space-y-3 text-sm text-muted-foreground">
+              <li><Link href="#" className="hover:text-foreground transition-colors">About</Link></li>
+              <li><Link href="#" className="hover:text-foreground transition-colors">Blog</Link></li>
+              <li><Link href="#" className="hover:text-foreground transition-colors">Careers</Link></li>
+              <li><Link href="#" className="hover:text-foreground transition-colors">Contact</Link></li>
             </ul>
           </div>
 
-          {/* Resources links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-6">Resources</h3>
-            <ul className="space-y-4">
-              {footerLinks.resources.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-muted-foreground hover:text-foreground transition-colors duration-200"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Legal links */}
-          <div>
-            <h3 className="font-semibold text-foreground mb-6">Legal</h3>
-            <ul className="space-y-4">
-              {footerLinks.legal.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-muted-foreground hover:text-foreground transition-colors duration-200"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
+            <h4 className="font-semibold mb-4">Legal</h4>
+            <ul className="space-y-3 text-sm text-muted-foreground">
+              <li><Link href="#" className="hover:text-foreground transition-colors">Privacy</Link></li>
+              <li><Link href="#" className="hover:text-foreground transition-colors">Terms</Link></li>
+              <li><Link href="#" className="hover:text-foreground transition-colors">Security</Link></li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom section */}
-        <div className="pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-muted-foreground text-sm">
-            © 2024 JelliNote AI. All rights reserved.
+        <div className="pt-8 border-t border-border/40 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} JelliNote AI. All rights reserved.
           </p>
-          
-          <div className="flex items-center gap-6 text-sm">
-            <a href="#status" className="text-muted-foreground hover:text-foreground transition-colors duration-200">
-              System Status
-            </a>
-            <a href="#accessibility" className="text-muted-foreground hover:text-foreground transition-colors duration-200">
-              Accessibility
-            </a>
-            <a href="#sitemap" className="text-muted-foreground hover:text-foreground transition-colors duration-200">
-              Sitemap
-            </a>
+          <div className="flex gap-4">
+            <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Twitter className="w-5 h-5" />
+            </Link>
+            <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Github className="w-5 h-5" />
+            </Link>
+            <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Linkedin className="w-5 h-5" />
+            </Link>
           </div>
         </div>
       </div>

@@ -1,193 +1,125 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { 
-  Mic, 
   FileText, 
-  Zap, 
-  Headphones, 
+  Brain, 
+  Share2, 
+  Mic, 
   Languages, 
-  Smartphone,
-  Clock,
-  TrendingUp,
-  Shield,
-  Sparkles,
-  Share2,
-  Brain,
-  Folder,
-  MessageSquare,
-  GraduationCap
+  Zap,
+  FolderOpen
 } from "lucide-react"
-
-const features = [
-  {
-    icon: FileText,
-    title: "Smart Note Generation",
-    description: "Create comprehensive notes from PDFs, audio, video, and web content with AI-powered extraction.",
-    badge: "Core Feature",
-    gradient: "from-primary/20 to-primary/5"
-  },
-  {
-    icon: GraduationCap,
-    title: "AI Course Generator",
-    description: "Generate complete courses with structured units, chapters, and video recommendations in seconds.",
-    badge: "Featured",
-    gradient: "from-violet-500/20 to-violet-500/5"
-  },
-  {
-    icon: Share2,
-    title: "Share & Collaborate",
-    description: "Share notes via secure links. Recipients can preview and save copies with full content including quizzes and flashcards.",
-    badge: "New",
-    gradient: "from-blue-500/20 to-blue-500/5"
-  },
-  {
-    icon: Folder,
-    title: "Organize with Folders",
-    description: "Keep your notes organized in custom folders with color coding and easy navigation.",
-    badge: "Productivity",
-    gradient: "from-green-500/20 to-green-500/5"
-  },
-  {
-    icon: Zap,
-    title: "Smart Flashcards",
-    description: "Automatically generate interactive flashcards from your notes for effective memorization.",
-    badge: "Study Tool",
-    gradient: "from-yellow-500/20 to-yellow-500/5"
-  },
-  {
-    icon: MessageSquare,
-    title: "Interactive Quizzes",
-    description: "Test your knowledge with AI-generated quizzes based on your note content.",
-    badge: "Assessment",
-    gradient: "from-purple-500/20 to-purple-500/5"
-  },
-  {
-    icon: Brain,
-    title: "Visual Mindmaps",
-    description: "Transform complex concepts into clear mindmaps for better understanding and retention.",
-    badge: "Visual Learning",
-    gradient: "from-pink-500/20 to-pink-500/5"
-  },
-  {
-    icon: Headphones,
-    title: "AI Podcasts",
-    description: "Convert your notes into engaging podcast-style audio for learning on the go.",
-    badge: "Audio Learning",
-    gradient: "from-indigo-500/20 to-indigo-500/5"
-  },
-  {
-    icon: Languages,
-    title: "100+ Languages",
-    description: "Support for over 100 languages with accurate transcription and translation capabilities.",
-    badge: "Global",
-    gradient: "from-red-500/20 to-red-500/5"
-  },
-  {
-    icon: Smartphone,
-    title: "Cross-Platform Sync",
-    description: "Access your notes seamlessly across web and mobile with real-time synchronization.",
-    badge: "Everywhere",
-    gradient: "from-cyan-500/20 to-cyan-500/5"
-  }
-]
-
-const benefits = [
-  {
-    icon: Clock,
-    title: "Save Time",
-    description: "Reduce study preparation time by 70% with automated content processing and organization."
-  },
-  {
-    icon: TrendingUp,
-    title: "Better Retention",
-    description: "Students report 15-25% improvement in knowledge retention using JelliNote AI."
-  },
-  {
-    icon: Shield,
-    title: "Secure & Private",
-    description: "Your notes are encrypted and secure. Share only what you want, when you want."
-  },
-  {
-    icon: Sparkles,
-    title: "AI-Powered",
-    description: "Advanced AI adapts to your learning style and creates personalized study materials."
-  }
-]
 
 export function Features() {
   return (
-    <section className="py-24 bg-gradient-to-b from-background to-secondary/10">
-      <div className="container mx-auto px-8">
-        {/* Section header */}
-        <div className="text-center mb-20">
-          <Badge className="bg-primary/10 text-primary border-primary/20 rounded-full px-6 py-2 text-sm font-medium mb-6">
-            Powerful Features
-          </Badge>
-          <h2 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text text-transparent">
-            Everything You Need to
-            <span className="block text-primary">Excel in Your Studies</span>
+    <section className="py-24 md:py-32 relative">
+      <div className="container mx-auto px-6">
+        
+        <div className="mb-16 md:mb-24">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">
+            Everything you need <br/>
+            <span className="text-muted-foreground">to ace your exams.</span>
           </h2>
-          <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-            JelliNote AI combines cutting-edge AI technology with intuitive design to transform how you learn.
+          <p className="text-lg text-muted-foreground max-w-xl">
+            JelliNote handles the busy work so you can focus on actually understanding the material.
           </p>
         </div>
 
-        {/* Main features grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-24">
-          {features.map((feature, index) => (
-            <Card 
-              key={index}
-              className="group rounded-3xl border-0 p-8  hover: transition-all duration-300 hover:-translate-y-2 bg-gradient-to-br from-card to-card/95 overflow-hidden relative"
-            >
-              {/* Background gradient */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-              
-              <CardContent className="p-0 relative z-10">
-                {/* Icon and badge */}
-                <div className="flex items-start justify-between mb-6">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors duration-300">
-                    <feature.icon className="w-8 h-8 text-primary" />
-                  </div>
-                  <Badge variant="secondary" className="rounded-full text-xs">
-                    {feature.badge}
-                  </Badge>
-                </div>
-
-                {/* Content */}
-                <h3 className="text-xl font-semibold mb-4 text-foreground">
-                  {feature.title}
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Benefits section */}
-        <div className="text-center mb-16">
-          <h3 className="text-3xl font-bold mb-12 text-foreground">
-            Why Students Choose JelliNote AI
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {benefits.map((benefit, index) => (
-            <div key={index} className="text-center group">
-              <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110">
-                <benefit.icon className="w-10 h-10 text-primary" />
+        {/* Bento Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+          
+          {/* Feature 1: Large Card (Spans 2 columns) */}
+          <div className="md:col-span-2 rounded-3xl bg-secondary/30 border border-border/50 p-8 md:p-12 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:opacity-20 transition-opacity">
+              <FileText className="w-64 h-64" />
+            </div>
+            <div className="relative z-10">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6">
+                <FileText className="w-6 h-6 text-blue-500" />
               </div>
-              <h4 className="text-lg font-semibold mb-3 text-foreground">
-                {benefit.title}
-              </h4>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {benefit.description}
+              <h3 className="text-2xl font-bold mb-3">Smart Note Generation</h3>
+              <p className="text-muted-foreground max-w-md">
+                Upload PDFs, record lectures, or paste links. We extract the key concepts and 
+                format them into beautiful, readable notes automatically.
               </p>
             </div>
-          ))}
+          </div>
+
+          {/* Feature 2: Tall Card */}
+          <div className="md:row-span-2 rounded-3xl bg-secondary/30 border border-border/50 p-8 md:p-12 relative overflow-hidden group">
+            <div className="absolute bottom-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Brain className="w-48 h-48" />
+            </div>
+            <div className="relative z-10">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-6">
+                <Zap className="w-6 h-6 text-purple-500" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Active Recall</h3>
+              <p className="text-muted-foreground mb-6">
+                Stop passively reading. JelliNote turns your content into:
+              </p>
+              <ul className="space-y-3 text-muted-foreground font-medium">
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  Interactive Quizzes
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  Smart Flashcards
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  Spaced Repetition
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Feature 3: Standard Card */}
+          <div className="rounded-3xl bg-secondary/30 border border-border/50 p-8 group hover:bg-secondary/40 transition-colors">
+            <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center mb-4">
+              <Mic className="w-5 h-5 text-green-500" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Audio to Text</h3>
+            <p className="text-sm text-muted-foreground">
+              Record your lectures. We'll transcribe them and highlight what's important.
+            </p>
+          </div>
+
+          {/* Feature 4: Standard Card */}
+          <div className="rounded-3xl bg-secondary/30 border border-border/50 p-8 group hover:bg-secondary/40 transition-colors">
+            <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center mb-4">
+              <Share2 className="w-5 h-5 text-orange-500" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Collaboration</h3>
+            <p className="text-sm text-muted-foreground">
+              Share folders with classmates. Study together in real-time.
+            </p>
+          </div>
+
+          {/* Feature 5: Wide Card */}
+          <div className="md:col-span-2 rounded-3xl bg-secondary/30 border border-border/50 p-8 flex flex-col md:flex-row md:items-center gap-6 group hover:bg-secondary/40 transition-colors">
+            <div className="flex-1">
+              <div className="w-10 h-10 rounded-lg bg-pink-500/10 flex items-center justify-center mb-4">
+                <Languages className="w-5 h-5 text-pink-500" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Polyglot Learning</h3>
+              <p className="text-muted-foreground">
+                Study in your native language. Instant translation and support for over 100+ languages.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground bg-background/50 px-4 py-2 rounded-full border border-border/50">
+               <span className="text-foreground">Supports:</span>
+               <span>English</span>
+               <span>•</span>
+               <span>Spanish</span>
+               <span>•</span>
+               <span>Mandarin</span>
+               <span>•</span>
+               <span>Hindi</span>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
