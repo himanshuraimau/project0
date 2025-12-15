@@ -45,7 +45,7 @@ export const welcomeScreenStyles = StyleSheet.create({
   },
   headlineSection: {
     alignItems: 'center',
-    marginTop: -height * 0.01,
+    marginTop: -height * 0.1,
   },
   headlineText: {
     fontFamily: 'Arimo',
@@ -72,6 +72,7 @@ export const welcomeScreenStyles = StyleSheet.create({
     gap: 6,
     justifyContent: 'center',
     paddingLeft: 20,
+    marginTop: -20,
   },
   featureTag: {
     borderRadius: 9999,
@@ -107,6 +108,7 @@ export const welcomeScreenStyles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     marginBottom: 8,
+    marginTop: 30,
   },
   glassButton: {
     borderRadius: 9999,
@@ -169,7 +171,7 @@ export const welcomeScreenStyles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     marginBottom: 28,
-    marginTop: -20,
+    marginTop: -65,
   },
   footerText: {
     fontFamily: 'Arimo',
