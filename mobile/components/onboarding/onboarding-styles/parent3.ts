@@ -35,7 +35,7 @@ export default StyleSheet.create({
   optionSelected: { borderColor: PURPLE, backgroundColor: '#FBF7FF' },
   optionIcon: { fontSize: 20, marginRight: 12 },
   optionLabel: { fontSize: 16 },
-  footer: { paddingHorizontal: 25, paddingBottom: 20 },
+  footer: { paddingHorizontal: 25, paddingBottom: 40 },
   continueWrap: { borderRadius: 14, overflow: 'hidden' },
   continueButton: { backgroundColor: '#fff', borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#E6E6E6' },
   continueText: { fontSize: 16, fontWeight: '700', color: '#000' },

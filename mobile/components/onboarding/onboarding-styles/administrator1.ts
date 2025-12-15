@@ -25,5 +25,5 @@ export default StyleSheet.create({
     marginRight: 12,
   },
   featureText: { fontSize: 16, lineHeight: 22, color: '#0B0C10', fontFamily: 'Arimo', flex: 1 },
-  footer: { paddingHorizontal: 16, paddingBottom: 20 },
+  footer: { paddingHorizontal: 16, paddingBottom: 40 },
 })

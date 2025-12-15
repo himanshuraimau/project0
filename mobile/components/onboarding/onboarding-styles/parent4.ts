@@ -38,7 +38,7 @@ export default StyleSheet.create({
   starsContainer: { flexDirection: 'row', gap: 4 },
   star: { fontSize: 16 },
   quote: { fontSize: 15, fontWeight: '500', color: '#374151', lineHeight: 22, fontStyle: 'italic' },
-  footer: { paddingHorizontal: 25, paddingBottom: 20 },
+  footer: { paddingHorizontal: 25, paddingBottom: 40 },
   continueButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 14 },
   continueText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginRight: 8, fontFamily: 'Arimo' },
   continueArrow: { color: '#FFF', fontSize: 18, fontWeight: '700' },

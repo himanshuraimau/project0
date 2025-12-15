@@ -17,7 +17,7 @@ export default StyleSheet.create({
   option: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0', marginBottom: 12 },
   optionIcon: { fontSize: 18, marginRight: 12 },
   optionLabel: { fontSize: 16, color: '#111827', flex: 1, fontFamily: 'Arimo' },
-  footer: { paddingHorizontal: 28, paddingBottom: 20 },
+  footer: { paddingHorizontal: 28, paddingBottom: 40 },
   continueWrap: { borderRadius: 14, overflow: 'hidden' },
   continueButton: { backgroundColor: '#fff', borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#E6E6E6' },
   continueText: { fontSize: 16, fontWeight: '700', color: '#000' },

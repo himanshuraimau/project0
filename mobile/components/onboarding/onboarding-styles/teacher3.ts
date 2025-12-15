@@ -97,7 +97,7 @@ export default StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 28,
-    paddingBottom: 20,
+    paddingBottom: 40,
   },
   continueButtonWrapper: {
     width: '100%',
