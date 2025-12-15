@@ -1,10 +1,10 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Link, useRouter } from 'expo-router'
 import MaskedView from '@react-native-masked-view/masked-view'
 import React from 'react'
 import { Pressable, StatusBar, Text, View, Image } from 'react-native'
+import { MessageSquare, Globe, ArrowDown, FileText } from 'lucide-react-native'
 import { welcomeScreenStyles as styles } from './onboarding-styles/welcome-screen-styles'
 
 interface FeatureTagProps {
@@ -64,8 +64,8 @@ export default function WelcomeScreen() {
       >
         {/* Logo Section */}
         <View style={styles.logoSection}>
-          <Image 
-            source={require('../../assets/images/main-logo.png')} 
+          <Image
+            source={require('../../assets/images/main-logo.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -98,8 +98,7 @@ export default function WelcomeScreen() {
         <View style={styles.featureTagsContainer}>
           <FeatureTag
             icon={
-              <Ionicons
-                name="chatbubble-outline"
+              <MessageSquare
                 size={18}
                 color="white"
               />
@@ -108,8 +107,7 @@ export default function WelcomeScreen() {
           />
           <FeatureTag
             icon={
-              <Ionicons
-                name="globe-outline"
+              <Globe
                 size={18}
                 color="white"
               />
@@ -118,8 +116,7 @@ export default function WelcomeScreen() {
           />
           <FeatureTag
             icon={
-              <MaterialCommunityIcons
-                name="file-document-outline"
+              <FileText 
                 size={18}
                 color="white"
               />
@@ -134,8 +131,7 @@ export default function WelcomeScreen() {
           <GlassButton
             text="try for $0"
             icon={
-              <Ionicons
-                name="arrow-down"
+              <ArrowDown
                 size={16}
                 color="white"
               />
@@ -143,7 +139,7 @@ export default function WelcomeScreen() {
           />
 
           {/* Primary CTA */}
-          <Pressable 
+          <Pressable
             style={styles.primaryButton}
             onPress={() => router.push('/(onboarding)/step1' as any)}
           >
@@ -156,10 +152,10 @@ export default function WelcomeScreen() {
             <LinearGradient
               colors={['rgba(0, 0, 0, 0)', 'rgba(255, 255, 255, 0.2)', 'rgba(0, 0, 0, 0)']}
               start={{ x: 0.2, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }} 
+              end={{ x: 1, y: 0.5 }}
               style={[styles.primaryButtonOverlay, { position: 'absolute', width: '100%', height: '100%' }]}
             />
-            <Text style={styles.primaryButtonText}>Continue 👉</Text>    
+            <Text style={styles.primaryButtonText}>Continue 👉</Text>
           </Pressable>
         </View>
 
