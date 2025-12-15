@@ -1,90 +1,313 @@
-import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Platform, StatusBar, ScrollView } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
-import { Ionicons } from '@expo/vector-icons'
-import { useRouter } from 'expo-router'
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  SafeAreaView,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+  Platform,
+  Animated
+} from 'react-native';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
-export default function Paywall2() {
-  const router = useRouter()
+const features = [
+  { name: 'Instant notes', basic: true, unlimited: true },
+  { name: 'Unlimited notes', basic: false, unlimited: true },
+  { name: 'Flashcards, Quizzes', basic: false, unlimited: true },
+  { name: 'AI Mindmaps', basic: false, unlimited: true },
+  { name: 'Upload images, PDFs', basic: false, unlimited: true },
+  { name: 'YouTube videos', basic: false, unlimited: true },
+  { name: 'Chat with notes', basic: false, unlimited: true },
+  { name: 'Priority support', basic: false, unlimited: true },
+];
 
-  const FEATURES = [
-    'Instant notes',
-    'Unlimited notes',
-    'Flashcards, Quizzes',
-    'AI Mindmaps',
-    'Upload images, PDFs',
-    'YouTube videos',
-    'Chat with notes',
-    'Priority support',
-  ]
+export default function App() {
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'unlimited'>('unlimited');
+  const slideAnim = useRef(new Animated.Value(1)).current; // 0 for basic, 1 for unlimited
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: selectedPlan === 'basic' ? 0 : 1,
+      useNativeDriver: false,
+      damping: 15,
+      stiffness: 150,
+    }).start();
+  }, [selectedPlan]);
 
   return (
-    <LinearGradient colors={["#FFFFFF", "#F7F5FF"]} start={{ x: 1, y: 0 }} end={{ x: 0.3, y: 1 }} style={styles.container}>
+    <View style={styles.mainContainer}>
       <StatusBar barStyle="dark-content" />
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.headerTitle}>Unlimited notes, better grades</Text>
+      {/* Background Gradient */}
+      <LinearGradient
+        colors={['#F3F0FF', '#FFFFFF']}
+        style={styles.backgroundGradient}
+      />
 
-        <View style={styles.card}>
-          {/* Toggle */}
-          <View style={styles.toggleRow}>
-            <View style={styles.toggleOption}><Text style={styles.toggleTextInactive}>Basic</Text></View>
-            <View style={styles.toggleOptionActive}><Text style={styles.toggleTextActive}>Unlimited</Text></View>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Unlimited notes,</Text>
+            <Text style={styles.headerTitle}>better grades</Text>
           </View>
 
-          {/* Feature comparison */}
-          <View style={styles.featureHeaderRow}>
-            <Text style={[styles.featureHeader, { flex: 1 }]}></Text>
-            <Text style={[styles.featureHeader, styles.colHeader]}>Basic</Text>
-            <Text style={[styles.featureHeader, styles.colHeader]}>Unlimited</Text>
-          </View>
+          {/* Main Card */}
+          <View style={styles.card}>
 
-          {FEATURES.map((f) => (
-            <View key={f} style={styles.featureRow}>
-              <Text style={[styles.featureName, { flex: 1 }]}>{f}</Text>
-              <Text style={[styles.featureVal, styles.greyCheck]}>✓</Text>
-              <Text style={[styles.featureVal, styles.purpleCheck]}>✓</Text>
+            {/* Toggle Switch */}
+            <View style={styles.toggleContainer}>
+              <View style={styles.toggleWrapper}>
+                {/* Animated Background */}
+                <Animated.View
+                  style={[
+                    styles.toggleActiveBackground,
+                    {
+                      transform: [
+                        {
+                          translateX: slideAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0, 88], // Half of toggle width (180/2 - 2px padding)
+                          }),
+                        },
+                      ],
+                    },
+                  ]}
+                />
+
+                {/* Buttons */}
+                <TouchableOpacity
+                  style={styles.toggleOption}
+                  onPress={() => setSelectedPlan('basic')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={selectedPlan === 'basic' ? styles.toggleTextActive : styles.toggleTextInactive}>
+                    Basic
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.toggleOption}
+                  onPress={() => setSelectedPlan('unlimited')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={selectedPlan === 'unlimited' ? styles.toggleTextActive : styles.toggleTextInactive}>
+                    Unlimited
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          ))}
-        </View>
-      </ScrollView>
 
-      <View style={styles.bottom}>
-        <TouchableOpacity activeOpacity={0.9} onPress={() => router.push('/(onboarding)/paywall/paywall3' as any)}>
-          <LinearGradient colors={["#7C3AED", "#3B82F6"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cta}>
-            <Text style={styles.ctaText}>Try 3 days FREE 🔥</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    </LinearGradient>
-  )
+            {/* Features List */}
+            <View style={styles.tableContainer}>
+              {features.map((item, index) => (
+                <View key={index} style={styles.row}>
+                  {/* Feature Name */}
+                  <Text style={styles.featureText}>{item.name}</Text>
+
+                  {/* Basic Column */}
+                  <View style={styles.iconColumn}>
+                    {item.basic ? (
+                      <View style={selectedPlan === 'basic' ? styles.checkCirclePurple : styles.checkCircleGray}>
+                        <Feather
+                          name="check"
+                          size={selectedPlan === 'basic' ? 14 : 12}
+                          color={selectedPlan === 'basic' ? '#FFF' : '#9CA3AF'}
+                        />
+                      </View>
+                    ) : (
+                      <View style={styles.dashLine} />
+                    )}
+                  </View>
+
+                  {/* Unlimited Column */}
+                  <View style={styles.iconColumn}>
+                    <View style={selectedPlan === 'unlimited' ? styles.checkCirclePurple : styles.checkCircleGray}>
+                      <Feather
+                        name="check"
+                        size={selectedPlan === 'unlimited' ? 14 : 12}
+                        color={selectedPlan === 'unlimited' ? '#FFF' : '#9CA3AF'}
+                      />
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+
+        </ScrollView>
+
+        {/* Bottom Button */}
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.button}>
+            <LinearGradient
+              colors={['#7C3AED', '#6D28D9']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buttonGradient}
+            >
+              <Text style={styles.buttonText}>Try 3 days FREE 🔥</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  statusBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 50 : 18 },
-  statusLeft: { flexDirection: 'row', alignItems: 'center' },
-  statusRight: { flexDirection: 'row', alignItems: 'center' },
-  timeBg: { backgroundColor: '#DC2626', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  timeText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  content: { paddingHorizontal: 24, paddingTop: 56, paddingBottom: 16, alignItems: 'center' },
-  headerTitle: { fontSize: 24, fontWeight: '800', textAlign: 'center', marginBottom: 20, color: '#0F172A' },
-  card: { width: '100%', backgroundColor: '#fff', borderRadius: 16, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.06, shadowRadius: 24, elevation: 6 },
-  toggleRow: { flexDirection: 'row', backgroundColor: '#F3F4F6', padding: 4, borderRadius: 12, alignSelf: 'center', marginBottom: 12 },
-  toggleOption: { paddingVertical: 8, paddingHorizontal: 20, borderRadius: 8 },
-  toggleOptionActive: { paddingVertical: 8, paddingHorizontal: 20, borderRadius: 8, backgroundColor: '#7C3AED' },
-  toggleTextInactive: { color: '#6B7280', fontWeight: '700' },
-  toggleTextActive: { color: '#fff', fontWeight: '800' },
-  featureHeaderRow: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F3F4F6', marginBottom: 8, alignItems: 'center' },
-  featureHeader: { fontSize: 12, color: '#6B7280', textAlign: 'center' },
-  colHeader: { width: 88, textAlign: 'center' },
-  featureRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  featureName: { fontSize: 14, color: '#111827' },
-  featureVal: { width: 88, textAlign: 'center', fontSize: 16, fontWeight: '700' },
-  greyCheck: { color: '#9CA3AF' },
-  purpleCheck: { color: '#7C3AED' },
-  bottom: { paddingHorizontal: 24, paddingBottom: 56, paddingTop: 12 },
-  cta: { paddingVertical: 16, borderRadius: 28, alignItems: 'center' },
-  ctaText: { color: '#fff', fontWeight: '800', fontSize: 16 },
-  homeIndicator: { height: 4, width: 140, backgroundColor: '#D1D5DB', borderRadius: 2, alignSelf: 'center', marginTop: 12 },
-})
+  mainContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: '40%', // Fade out halfway down
+  },
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 100, // Space for footer
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#000',
+    textAlign: 'center',
+    lineHeight: 36,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    // Shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    // Elevation for Android
+    elevation: 5,
+  },
+  toggleContainer: {
+    alignItems: 'flex-end', // Align to right
+    marginBottom: 20,
+  },
+  toggleWrapper: {
+    flexDirection: 'row',
+    backgroundColor: '#E5E7EB', // Light gray background
+    borderRadius: 20,
+    padding: 2,
+    width: 180,
+    height: 36,
+    position: 'relative',
+  },
+  toggleActiveBackground: {
+    position: 'absolute',
+    width: 88, // Half of toggle width minus padding
+    height: 32,
+    backgroundColor: '#8B5CF6', // Purple
+    borderRadius: 18,
+    left: 2,
+    top: 2,
+  },
+  toggleOption: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 18,
+    zIndex: 1,
+  },
+  toggleActive: {
+    backgroundColor: '#8B5CF6', // Purple
+  },
+  toggleTextInactive: {
+    color: '#4B5563',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  toggleTextActive: {
+    color: '#FFF',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  tableContainer: {
+    marginTop: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  featureText: {
+    flex: 1,
+    fontSize: 15,
+    color: '#1F2937',
+    fontWeight: '500',
+  },
+  iconColumn: {
+    width: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkCircleGray: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkCirclePurple: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#8B5CF6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dashLine: {
+    width: 12,
+    height: 2,
+    backgroundColor: '#9CA3AF',
+    borderRadius: 1,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 20,
+    right: 20,
+  },
+  button: {
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  buttonGradient: {
+    paddingVertical: 18,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
