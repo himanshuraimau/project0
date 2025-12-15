@@ -75,7 +75,7 @@ export default StyleSheet.create({
     lineHeight: 22,
     color: '#000000',
   },
-  footer: { paddingHorizontal: 28, paddingBottom: 20 },
+  footer: { paddingHorizontal: 28, paddingBottom: 40 },
   continueWrap: { borderRadius: 100, overflow: 'hidden' },
   continueButton: {
     backgroundColor: '#FFFFFF',

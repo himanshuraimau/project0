@@ -72,7 +72,7 @@ export default function Teacher1() {
             <View style={styles.checkContainer}>
               <Ionicons name="checkmark" size={16} color="#2C94CA" />
             </View>
-            <Text style={styles.featureText}>Stay present in meetings—get action items automati</Text>
+            <Text style={styles.featureText}>Turn classroom discussions into shareable notes</Text>
           </View>
         </View>
       </View>

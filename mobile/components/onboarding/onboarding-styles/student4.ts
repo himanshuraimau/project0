@@ -78,7 +78,7 @@ export default StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 25,
-    paddingBottom: 20
+    paddingBottom: 40
   },
   cta: {
     flexDirection: 'row',

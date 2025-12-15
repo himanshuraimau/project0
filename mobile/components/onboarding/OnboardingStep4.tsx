@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 52,
+    paddingBottom: 72,
     paddingTop: 12,
   },
   continueButton: {

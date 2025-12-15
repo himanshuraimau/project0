@@ -74,7 +74,7 @@ export default StyleSheet.create({
     color: '#000000',
     flex: 1,
   },
-  footer: { paddingHorizontal: 25, paddingBottom: 20 },
+  footer: { paddingHorizontal: 25, paddingBottom: 40 },
   continueButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 12 },
   continueText: { color: '#fff', fontSize: 16, fontWeight: '600', marginRight: 6 },
   continueArrow: { color: '#fff', fontSize: 18, fontWeight: '600' },

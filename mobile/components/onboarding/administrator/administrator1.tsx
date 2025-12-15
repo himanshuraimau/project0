@@ -46,7 +46,7 @@ export default function Administrator1() {
 
       <View style={styles.content}>
         <Text style={styles.title}>You're in the right place.</Text>
-        <Text style={styles.subtitle}>Trusted by thousands of school leaders of professionals like you</Text>
+        <Text style={styles.subtitle}>Trusted by thousands of school leaders or professionals like you</Text>
 
         <View style={styles.features}>
           <View style={styles.featureRow}>
