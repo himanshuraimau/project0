@@ -19,7 +19,7 @@ import { Feather } from '@expo/vector-icons';
 import { Edit, ZoomIn, ZoomOut, Download, Share2, Eye, Save } from 'lucide-react-native';
 import WebView from 'react-native-webview';
 import { useRouter } from 'expo-router';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { notesApi } from '@/lib/api';
@@ -48,6 +48,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     const [markdownInput, setMarkdownInput] = useState('');
     const viewShotRef = useRef(null);
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+    const captureResolveRef = useRef<((uri: string | null) => void) | null>(null);
 
     // Fetch note and mindmap data on mount
     useEffect(() => {
@@ -309,32 +310,178 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     };
 
     const captureMindmapImage = async () => {
-        if (!viewShotRef.current) return null;
-
-        try {
-            const uri = await captureRef(viewShotRef, {
-                format: 'png',
-                quality: 1.0,
-                result: 'tmpfile',
-            });
-            return uri;
-        } catch (err) {
-            console.error('Failed to capture mindmap:', err);
+        if (!webViewRef.current) {
+            console.error('WebView ref not available');
             return null;
         }
+
+        return new Promise<string | null>((resolve) => {
+            // Store the resolve function so handleWebViewMessage can call it
+            captureResolveRef.current = resolve;
+
+            // Set timeout for capture
+            const timeout = setTimeout(() => {
+                console.error('Capture timeout reached');
+                if (captureResolveRef.current) {
+                    captureResolveRef.current(null);
+                    captureResolveRef.current = null;
+                }
+            }, 15000);
+
+            // Store timeout ID for cleanup
+            const originalResolve = resolve;
+            captureResolveRef.current = (uri: string | null) => {
+                clearTimeout(timeout);
+                originalResolve(uri);
+            };
+
+            // Inject JavaScript to capture the full SVG
+            const captureScript = `
+                (function() {
+                    try {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'log',
+                            message: 'Starting capture...'
+                        }));
+
+                        const svg = document.querySelector('svg');
+                        if (!svg) {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({
+                                type: 'capture_error',
+                                message: 'No SVG found'
+                            }));
+                            return;
+                        }
+
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'log',
+                            message: 'SVG found, getting bbox...'
+                        }));
+
+                        // Get the actual bounding box of all SVG content
+                        const bbox = svg.getBBox();
+                        
+                        // Add padding around the content (increased for better visibility)
+                        const padding = 80;
+                        const width = bbox.width + (padding * 2);
+                        const height = bbox.height + (padding * 2);
+                        
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'log',
+                            message: 'Size: ' + width + 'x' + height
+                        }));
+                        
+                        // Clone the SVG
+                        const svgClone = svg.cloneNode(true);
+                        
+                        // Set proper dimensions and viewBox to capture all content
+                        svgClone.setAttribute('width', width);
+                        svgClone.setAttribute('height', height);
+                        svgClone.setAttribute('viewBox', 
+                            (bbox.x - padding) + ' ' + 
+                            (bbox.y - padding) + ' ' + 
+                            width + ' ' + 
+                            height
+                        );
+                        
+                        // Serialize the SVG
+                        const svgData = new XMLSerializer().serializeToString(svgClone);
+                        
+                        // Create a canvas to convert SVG to PNG
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Set canvas size (scale up for ultra-high quality - 6x resolution)
+                        const scale = 6;
+                        canvas.width = width * scale;
+                        canvas.height = height * scale;
+                        
+                        // Create an image
+                        const img = new Image();
+                        
+                        img.onload = function() {
+                            try {
+                                window.ReactNativeWebView.postMessage(JSON.stringify({
+                                    type: 'log',
+                                    message: 'Image loaded, drawing to canvas...'
+                                }));
+
+                                // Enable image smoothing for better quality
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
+
+                                // Fill white background
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                
+                                // Draw the image scaled with high quality
+                                ctx.scale(scale, scale);
+                                ctx.drawImage(img, 0, 0, width, height);
+                                
+                                // Convert to PNG data URL with maximum quality
+                                const dataUrl = canvas.toDataURL('image/png', 1.0);
+                                
+                                window.ReactNativeWebView.postMessage(JSON.stringify({
+                                    type: 'log',
+                                    message: 'Canvas converted to PNG, size: ' + dataUrl.length
+                                }));
+                                
+                                // Send to React Native
+                                window.ReactNativeWebView.postMessage(JSON.stringify({
+                                    type: 'capture_image',
+                                    data: dataUrl
+                                }));
+                            } catch (drawErr) {
+                                window.ReactNativeWebView.postMessage(JSON.stringify({
+                                    type: 'capture_error',
+                                    message: 'Error drawing: ' + drawErr.toString()
+                                }));
+                            }
+                        };
+                        
+                        img.onerror = function(err) {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({
+                                type: 'capture_error',
+                                message: 'Failed to load SVG as image'
+                            }));
+                        };
+                        
+                        // Convert SVG to base64 data URL (works in React Native WebView)
+                        const svgBase64 = btoa(unescape(encodeURIComponent(svgData)));
+                        const svgDataUrl = 'data:image/svg+xml;base64,' + svgBase64;
+                        
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'log',
+                            message: 'Loading SVG into image...'
+                        }));
+                        
+                        img.src = svgDataUrl;
+                        
+                    } catch (err) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'capture_error',
+                            message: err.toString()
+                        }));
+                    }
+                })();
+                true;
+            `;
+
+            // Inject the script
+            webViewRef.current?.injectJavaScript(captureScript);
+        });
     };
 
     const handleSaveAsImage = async () => {
         if (isSaving) return;
 
+        setIsSaving(true);
+        
         try {
-            setIsSaving(true);
-
             // Request media library permissions
             const { status } = await MediaLibrary.requestPermissionsAsync(true);
             if (status !== 'granted') {
                 showAlert('Permission Required', 'Please grant permission to save images to your photo library.');
-                setIsSaving(false);
                 return;
             }
 
@@ -349,14 +496,15 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
 
             Toast.show({
                 type: 'success',
-                text1: 'Saved to Gallery',
-                text2: 'Mindmap image saved successfully!',
+                text1: 'Mindmap saved',
+                position: 'bottom',
+                visibilityTime: 2000,
             });
-            setIsSaving(false);
 
         } catch (err: any) {
             console.error('Failed to save image:', err);
             showAlert('Error', 'Failed to save image: ' + err.message);
+        } finally {
             setIsSaving(false);
         }
     };
@@ -365,40 +513,48 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         try {
             const data = JSON.parse(event.nativeEvent.data);
 
-            if (data.type === 'image') {
-                // Remove data URL prefix
+            if (data.type === 'capture_image') {
+                // Handle capture for download
                 const base64Data = data.data.replace(/^data:image\/png;base64,/, '');
 
                 // Create file path
                 const filename = `mindmap_${Date.now()}.png`;
-                const cacheDir = (FileSystem as any).cacheDirectory;
+                const cacheDir = FileSystem.cacheDirectory;
                 if (!cacheDir) {
-                    throw new Error('Cache directory not available');
+                    console.error('Cache directory not available');
+                    if (captureResolveRef.current) {
+                        captureResolveRef.current(null);
+                        captureResolveRef.current = null;
+                    }
+                    return;
                 }
                 const fileUri = cacheDir + filename;
 
                 // Write base64 to file
                 await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-                    encoding: 'base64' as any,
+                    encoding: FileSystem.EncodingType.Base64,
                 });
 
-                // Save to media library
-                const asset = await MediaLibrary.createAssetAsync(fileUri);
-                await MediaLibrary.createAlbumAsync('Mindmaps', asset, false);
-
-                showAlert('Success', 'Mindmap saved to your photo library!');
-                setIsSaving(false);
-            } else if (data.type === 'error') {
-                console.error('WebView error:', data.message);
-                showAlert('Error', 'Failed to capture mindmap: ' + data.message);
-                setIsSaving(false);
+                // Resolve the promise with the file URI
+                if (captureResolveRef.current) {
+                    captureResolveRef.current(fileUri);
+                    captureResolveRef.current = null;
+                }
+            } else if (data.type === 'capture_error') {
+                console.error('Capture error:', data.message);
+                if (captureResolveRef.current) {
+                    captureResolveRef.current(null);
+                    captureResolveRef.current = null;
+                }
             } else if (data.type === 'log') {
-                console.log(`[WebView ${data.type}]:`, data.message);
+                console.log(`[WebView]:`, data.message);
             }
         } catch (err: any) {
             console.error('Failed to process WebView message:', err);
-            showAlert('Error', 'Failed to save image: ' + err.message);
-            setIsSaving(false);
+            if (captureResolveRef.current) {
+                captureResolveRef.current(null);
+                captureResolveRef.current = null;
+            }
         }
     };
 

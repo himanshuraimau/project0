@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 
 const features = [
   { name: 'Instant notes', basic: true, unlimited: true },
@@ -25,6 +26,7 @@ const features = [
 ];
 
 export default function App() {
+  const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'unlimited'>('unlimited');
   const slideAnim = useRef(new Animated.Value(1)).current; // 0 for basic, 1 for unlimited
 
@@ -142,7 +144,7 @@ export default function App() {
 
         {/* Bottom Button */}
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/(onboarding)/paywall/paywall3' as any)}>
             <LinearGradient
               colors={['#7C3AED', '#6D28D9']}
               start={{ x: 0, y: 0 }}
