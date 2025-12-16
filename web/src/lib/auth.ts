@@ -8,12 +8,12 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  
+
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false, // Set to true in production with email service
   },
-  
+
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -31,7 +31,9 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:8081", // Expo dev server
     "mobile://", // Mobile app scheme
-    "exp://192.168.1.6:8081", // Expo local network
+    "exp://192.168.1.6:8081", // Expo local network (old)
+    "exp://192.168.1.8:8081", // Expo local network (current)
+    "exp://192.168.1.6:8081", // Match any local network IP for Expo
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   ],
 
