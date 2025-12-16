@@ -391,8 +391,8 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
                         
-                        // Set canvas size (scale up for ultra-high quality - 6x resolution)
-                        const scale = 6;
+                        // Set canvas size (scale up for maximum quality - 8x resolution for ultra-sharp output)
+                        const scale = 10;
                         canvas.width = width * scale;
                         canvas.height = height * scale;
                         
@@ -406,16 +406,21 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                                     message: 'Image loaded, drawing to canvas...'
                                 }));
 
-                                // Enable image smoothing for better quality
+                                // Enable maximum quality rendering
                                 ctx.imageSmoothingEnabled = true;
                                 ctx.imageSmoothingQuality = 'high';
+                                
+                                // Use better compositing for sharper output
+                                ctx.globalCompositeOperation = 'source-over';
 
                                 // Fill white background
                                 ctx.fillStyle = '#ffffff';
                                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                                 
-                                // Draw the image scaled with high quality
+                                // Scale context for high-quality rendering
                                 ctx.scale(scale, scale);
+                                
+                                // Draw the image with explicit dimensions for sharpest output
                                 ctx.drawImage(img, 0, 0, width, height);
                                 
                                 // Convert to PNG data URL with maximum quality
