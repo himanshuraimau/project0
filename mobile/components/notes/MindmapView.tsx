@@ -28,6 +28,7 @@ import type { Note, MindMap } from '@/lib/api/types';
 import { getTranslatedNote } from '@/lib/utils/translation';
 import BackButton from '@/components/ui/BackButton';
 import { useAlert } from '@/lib/contexts/AlertContext';
+import CustomAlert from '@/components/ui/CustomAlert';
 
 interface MindmapViewProps {
     noteId: string;
@@ -46,6 +47,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     const [isSaving, setIsSaving] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [markdownInput, setMarkdownInput] = useState('');
+    const [showSavedAlert, setShowSavedAlert] = useState(false);
     const viewShotRef = useRef(null);
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
     const captureResolveRef = useRef<((uri: string | null) => void) | null>(null);
@@ -499,12 +501,8 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             const asset = await MediaLibrary.createAssetAsync(uri);
             await MediaLibrary.createAlbumAsync('Mindmaps', asset, false);
 
-            Toast.show({
-                type: 'success',
-                text1: 'Mindmap saved',
-                position: 'bottom',
-                visibilityTime: 2000,
-            });
+            // Show success alert
+            setShowSavedAlert(true);
 
         } catch (err: any) {
             console.error('Failed to save image:', err);
@@ -798,6 +796,21 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                     )}
                 </ScrollView>
             </View>
+            
+            {/* Custom Alert for Mindmap Saved */}
+            <CustomAlert
+                visible={showSavedAlert}
+                title="Mindmap Saved"
+                message="Your mindmap has been saved to your photo library."
+                buttons={[
+                    {
+                        text: 'OK',
+                        style: 'default',
+                        onPress: () => setShowSavedAlert(false),
+                    },
+                ]}
+                onClose={() => setShowSavedAlert(false)}
+            />
         </SafeAreaView>
     );
 };
