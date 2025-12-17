@@ -29,6 +29,7 @@ import type { Note } from '@/lib/api/types';
 import { getTranslatedNote } from '@/lib/utils/translation';
 import { useFolders } from '@/lib/hooks/useFolders';
 import { ShareLinkModal } from '@/components/notes';
+import FolderSelectorModal from '@/components/folders/FolderSelectorModal';
 
 export default function NotesHome() {
   const { theme } = useTheme()
@@ -47,6 +48,8 @@ export default function NotesHome() {
   const { folders, fetchFolders } = useFolders()
   const [shareModalVisible, setShareModalVisible] = useState(false)
   const [selectedNoteForShare, setSelectedNoteForShare] = useState<Note | null>(null)
+  const [folderModalVisible, setFolderModalVisible] = useState(false)
+  const [selectedNoteForFolder, setSelectedNoteForFolder] = useState<Note | null>(null)
 
   const newNoteOptions = [
     { id: 1, icon: 'mic', label: t('home.newNoteOptions.recordAudio') },
@@ -117,13 +120,26 @@ export default function NotesHome() {
     if (selectedFilter === 'Shared') {
       return matchesSearch && note.isCloned === true;
     }
-    // Add filter logic here for Pinned, Folders, Archive when implemented
-    return matchesSearch
+    if (selectedFilter === 'Pinned') {
+      // TODO: Implement when backend adds isPinned field
+      return matchesSearch; // For now, show all
+    }
+    if (selectedFilter === 'Archive') {
+      // TODO: Implement when backend adds isArchived field  
+      return matchesSearch; // For now, show all
+    }
+    // 'All' filter - show all non-archived notes
+    return matchesSearch; // TODO: Add && !note.isArchived when backend ready
   })
-  
+
   const handleShareNote = (note: Note) => {
     setSelectedNoteForShare(note);
     setShareModalVisible(true);
+  }
+
+  const handleMoveToFolder = (note: Note) => {
+    setSelectedNoteForFolder(note);
+    setFolderModalVisible(true);
   }
 
   const handleNotePress = (note: Note) => {
@@ -207,8 +223,8 @@ export default function NotesHome() {
                   <Text style={styles.viewAllText}>View All</Text>
                 </TouchableOpacity>
               </View>
-              <ScrollView 
-                horizontal 
+              <ScrollView
+                horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.foldersScroll}
               >
@@ -316,6 +332,15 @@ export default function NotesHome() {
                         </View>
                       </View>
                       <View style={styles.noteActions}>
+                        <TouchableOpacity
+                          style={styles.actionButton}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            handleMoveToFolder(note);
+                          }}
+                        >
+                          <Feather name="folder" size={16} color="#6B7280" />
+                        </TouchableOpacity>
                         <TouchableOpacity
                           style={styles.shareButton}
                           onPress={(e) => {
@@ -431,6 +456,23 @@ export default function NotesHome() {
           }}
           noteId={selectedNoteForShare.id}
           noteTitle={selectedNoteForShare.title}
+        />
+      )}
+
+      {/* Folder Selector Modal */}
+      {selectedNoteForFolder && (
+        <FolderSelectorModal
+          visible={folderModalVisible}
+          onClose={() => {
+            setFolderModalVisible(false);
+            setSelectedNoteForFolder(null);
+          }}
+          noteId={selectedNoteForFolder.id}
+          currentFolderId={selectedNoteForFolder.folderId}
+          onFolderSelected={() => {
+            fetchNotes(); // Refresh notes list
+            fetchFolders(); // Refresh folders list
+          }}
         />
       )}
     </>
@@ -608,6 +650,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  actionButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
   },
   shareButton: {
     padding: 8,

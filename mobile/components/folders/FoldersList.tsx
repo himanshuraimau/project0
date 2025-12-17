@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Folder as FolderIcon, Plus, AlertCircle } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useFolders } from '@/lib/hooks/useFolders';
@@ -104,59 +105,67 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
   );
 
   return (
-    <View style={styles.container}>
-      {renderHeader()}
-      
-      <FlatList
-        data={folders}
-        renderItem={renderFolder}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[
-          styles.listContent,
-          folders.length === 0 && styles.listContentEmpty,
-        ]}
-        ListEmptyComponent={renderEmpty}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#7C3AED"
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      />
+    <LinearGradient
+      colors={['#FFFFFF', '#FBF7FF']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        {renderHeader()}
 
-      {/* FAB - Create Folder Button */}
-      {folders.length > 0 && (
-        <LinearGradient
-          colors={['#7C3AED', '#4F46E5']}
-          style={styles.fabGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <TouchableOpacity
-            style={styles.fab}
-            onPress={handleCreatePress}
-            accessibilityLabel="Create folder"
+        <FlatList
+          data={folders}
+          renderItem={renderFolder}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[
+            styles.listContent,
+            folders.length === 0 && styles.listContentEmpty,
+          ]}
+          ListEmptyComponent={renderEmpty}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#7C3AED"
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        />
+
+        {/* FAB - Create Folder Button */}
+        {folders.length > 0 && (
+          <LinearGradient
+            colors={['#7C3AED', '#4F46E5']}
+            style={styles.fabGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
-            <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
-          </TouchableOpacity>
-        </LinearGradient>
-      )}
-    </View>
+            <TouchableOpacity
+              style={styles.fab}
+              onPress={handleCreatePress}
+              accessibilityLabel="Create folder"
+            >
+              <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
+            </TouchableOpacity>
+          </LinearGradient>
+        )}
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 20,
-    backgroundColor: '#F9FAFB',
   },
   headerTitle: {
     fontSize: 28,
