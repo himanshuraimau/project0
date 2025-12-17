@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import { useFocusEffect } from '@react-navigation/native'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { useTranslation } from 'react-i18next'
 import { useSession } from '@/lib/auth/auth-client'
@@ -58,15 +59,18 @@ export default function NotesHome() {
     { id: 4, icon: 'link', label: t('home.newNoteOptions.webLink') },
   ]
 
-  // Fetch notes and folders when session is ready
+  // Fetch notes on mount
   useEffect(() => {
-    if (!isPending && session?.user) {
-      console.log('✅ Session ready, fetching notes and folders...')
-      fetchNotes()
-      fetchFolders()
-    }
-    // Note: No need to manually redirect - the (home) layout handles auth protection
-  }, [session, isPending])
+    fetchNotes()
+  }, [])
+
+  // Refresh notes and folders when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchNotes();
+      fetchFolders();
+    }, [])
+  );
 
   const fetchNotes = async () => {
     try {
