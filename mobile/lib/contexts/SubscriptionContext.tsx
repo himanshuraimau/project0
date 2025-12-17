@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import * as SecureStore from 'expo-secure-store';
 import { getSubscriptionStatus } from '@/lib/api/subscription';
 import { Subscription, SubscriptionStatusResponse } from '@/lib/api/types';
+import { useSession } from '@/lib/auth/auth-client';
 
 /**
  * Subscription Context
@@ -27,6 +27,9 @@ interface SubscriptionProviderProps {
 }
 
 export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ children }) => {
+    console.log('🎯 SubscriptionProvider component rendering...');
+
+    const { data: session, isPending } = useSession();
     const [subscriptionData, setSubscriptionData] = useState<SubscriptionStatusResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -75,10 +78,9 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
             setIsLoading(true);
             setError(null);
 
-            // Check if user is authenticated (has auth token)
-            const authToken = await SecureStore.getItemAsync('auth_token');
-            if (!authToken) {
-                console.log('📭 No auth token found, skipping subscription fetch');
+            // Check if user is authenticated using Better Auth session
+            if (!session?.user) {
+                console.log('📭 No active session, skipping subscription fetch');
                 setSubscriptionData(null);
                 setIsLoading(false);
                 return;
@@ -86,13 +88,40 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
 
             console.log('🔄 Fetching subscription status...');
             const data = await getSubscriptionStatus();
-            console.log('✅ Subscription status fetched:', JSON.stringify(data, null, 2));
-            console.log('📊 Has subscription:', data?.hasSubscription);
-            console.log('📊 Has access:', data?.access?.hasAccess);
-            console.log('📊 Subscription object:', data?.subscription);
+
+            // DETAILED LOGGING FOR DEBUGGING
+            console.log('═══════════════════════════════════════════');
+            console.log('📊 SUBSCRIPTION STATUS RESPONSE:');
+            console.log('═══════════════════════════════════════════');
+            console.log('Full response:', JSON.stringify(data, null, 2));
+            console.log('-------------------------------------------');
+            console.log('hasSubscription:', data?.hasSubscription);
+            console.log('-------------------------------------------');
+            console.log('subscription object:', data?.subscription);
+            if (data?.subscription) {
+                console.log('  - id:', data.subscription.id);
+                console.log('  - status:', data.subscription.status);
+                console.log('  - productId:', data.subscription.productId);
+                console.log('  - currentPeriodEnd:', data.subscription.currentPeriodEnd);
+            }
+            console.log('-------------------------------------------');
+            console.log('access object:', data?.access);
+            if (data?.access) {
+                console.log('  - hasAccess:', data.access.hasAccess);
+                console.log('  - isActive:', data.access.isActive);
+                console.log('  - isTrial:', data.access.isTrial);
+                console.log('  - daysRemaining:', data.access.daysRemaining);
+            }
+            console.log('═══════════════════════════════════════════');
+
             setSubscriptionData(data);
         } catch (err: any) {
             console.error('❌ Error fetching subscription:', err);
+            console.error('Error details:', {
+                message: err.message,
+                response: err.response?.data,
+                status: err.response?.status,
+            });
             // Don't set error for 404 - just means no subscription exists
             if (err.message?.includes('404') || err.message?.includes('not found')) {
                 setSubscriptionData(null);
@@ -108,13 +137,20 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
      * Refresh subscription status (can be called manually)
      */
     const refreshSubscription = async () => {
+        console.log('🔄 Manual refresh subscription called');
         await fetchSubscriptionStatus();
     };
 
-    // Fetch subscription status on mount
+    // Fetch subscription status when session is ready
     useEffect(() => {
-        fetchSubscriptionStatus();
-    }, []);
+        console.log('🚀 SubscriptionContext useEffect triggered');
+        console.log('  - isPending:', isPending);
+        console.log('  - session:', session?.user ? 'User logged in' : 'No user');
+
+        if (!isPending) {
+            fetchSubscriptionStatus();
+        }
+    }, [session, isPending]);
 
     const value: SubscriptionContextType = {
         subscription: subscriptionData?.subscription ?? null,
