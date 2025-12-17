@@ -7,7 +7,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/main-logo.png",
-    scheme: "mobile",
+    scheme: "jellinote",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     ios: {
@@ -26,8 +26,24 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
         edgeToEdgeEnabled: true,
         softwareKeyboardLayoutMode: "pan",
-
-
+        intentFilters: [
+            {
+                action: "VIEW",
+                autoVerify: true,
+                data: [
+                    {
+                        scheme: "https",
+                        host: "*.jellinote.com",
+                        pathPrefix: "/share"
+                    },
+                    {
+                        scheme: "jellinote",
+                        host: "share"
+                    }
+                ],
+                category: ["BROWSABLE", "DEFAULT"]
+            }
+        ],
         permissions: [
             "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.WRITE_EXTERNAL_STORAGE",

@@ -32,13 +32,33 @@ export default function Settings() {
   const router = useRouter()
   const { t } = useTranslation()
   const { showAlert } = useAlert()
-  const { 
-    subscription, 
+  const {
+    subscription,
     hasAccess,
     isActive,
     isTrial,
-    isLoading: subscriptionLoading 
+    isLoading: subscriptionLoading
   } = useSubscription()
+
+  // DEBUG LOGGING
+  React.useEffect(() => {
+    console.log('═══════════════════════════════════════════');
+    console.log('⚙️ SETTINGS SCREEN - SUBSCRIPTION STATE:');
+    console.log('═══════════════════════════════════════════');
+    console.log('subscriptionLoading:', subscriptionLoading);
+    console.log('hasAccess:', hasAccess);
+    console.log('isActive:', isActive);
+    console.log('isTrial:', isTrial);
+    console.log('subscription:', subscription);
+    console.log('Display logic result:');
+    console.log('  - Should show badge:', !subscriptionLoading && hasAccess && subscription);
+    console.log('  - Badge text:', isActive && !isTrial
+      ? 'Premium Active'
+      : isTrial
+        ? 'Trial Active'
+        : 'Premium Active');
+    console.log('═══════════════════════════════════════════');
+  }, [subscriptionLoading, hasAccess, isActive, isTrial, subscription]);
 
   const handleLogout = async () => {
     try {
@@ -122,11 +142,11 @@ export default function Settings() {
     { id: '4', icon: 'message-circle', label: t('settings.contactSupport'), onPress: handleContactSupport },
     { id: '5', icon: 'external-link', label: t('settings.goToWebsite'), onPress: handleGoToWebsite },
     { id: '6', icon: 'star', label: t('settings.rateUs'), onPress: handleRateUs },
-    { 
-      id: '7', 
-      icon: hasAccess ? 'check-circle' : 'bar-chart-2', 
-      label: hasAccess ? t('settings.manageSubscription') || 'Manage Subscription' : t('settings.subscription'), 
-      onPress: handleSubscription 
+    {
+      id: '7',
+      icon: hasAccess ? 'check-circle' : 'bar-chart-2',
+      label: hasAccess ? t('settings.manageSubscription') || 'Manage Subscription' : t('settings.subscription'),
+      onPress: handleSubscription
     },
     { id: '8', icon: 'log-out', label: t('settings.logout'), onPress: handleLogout },
   ]
@@ -169,8 +189,8 @@ export default function Settings() {
                 {isActive && !isTrial
                   ? t('settings.premiumActive') || 'Premium Active'
                   : isTrial
-                  ? t('settings.trialActive') || 'Trial Active'
-                  : t('settings.premiumActive') || 'Premium Active'}
+                    ? t('settings.trialActive') || 'Trial Active'
+                    : t('settings.premiumActive') || 'Premium Active'}
               </Text>
             </View>
           )}
@@ -189,10 +209,10 @@ export default function Settings() {
               >
                 <View style={styles.optionLeft}>
                   <View style={styles.iconContainer}>
-                    <Feather 
-                      name={option.icon} 
-                      size={22} 
-                      color={option.id === '7' && hasAccess ? '#10B981' : '#374151'} 
+                    <Feather
+                      name={option.icon}
+                      size={22}
+                      color={option.id === '7' && hasAccess ? '#10B981' : '#374151'}
                     />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -205,11 +225,11 @@ export default function Settings() {
                     {option.id === '7' && hasAccess && subscription && (
                       <Text style={styles.optionSubtext}>
                         {isActive && !isTrial
-                          ? t('settings.activeUntil') || 'Active' 
+                          ? t('settings.activeUntil') || 'Active'
                           : isTrial
-                          ? t('settings.trial') || 'Trial'
-                          : t('settings.activeUntil') || 'Active'}
-                        {subscription.currentPeriodEnd && 
+                            ? t('settings.trial') || 'Trial'
+                            : t('settings.activeUntil') || 'Active'}
+                        {subscription.currentPeriodEnd &&
                           ` • ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`}
                       </Text>
                     )}

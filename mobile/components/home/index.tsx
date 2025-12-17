@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import { useFocusEffect } from '@react-navigation/native'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { useTranslation } from 'react-i18next'
 import { useSession } from '@/lib/auth/auth-client'
@@ -28,6 +29,8 @@ import { notesApi } from '@/lib/api';
 import type { Note } from '@/lib/api/types';
 import { getTranslatedNote } from '@/lib/utils/translation';
 import { useFolders } from '@/lib/hooks/useFolders';
+import { ShareLinkModal } from '@/components/notes';
+import FolderSelectorModal from '@/components/folders/FolderSelectorModal';
 
 export default function NotesHome() {
   const { theme } = useTheme()
@@ -44,6 +47,10 @@ export default function NotesHome() {
   const [selectedFilter, setSelectedFilter] = useState('All')
   const [isDevelopmentMode, setIsDevelopmentMode] = useState(false)
   const { folders, fetchFolders } = useFolders()
+  const [shareModalVisible, setShareModalVisible] = useState(false)
+  const [selectedNoteForShare, setSelectedNoteForShare] = useState<Note | null>(null)
+  const [folderModalVisible, setFolderModalVisible] = useState(false)
+  const [selectedNoteForFolder, setSelectedNoteForFolder] = useState<Note | null>(null)
 
   const newNoteOptions = [
     { id: 1, icon: 'mic', label: t('home.newNoteOptions.recordAudio') },
@@ -52,15 +59,18 @@ export default function NotesHome() {
     { id: 4, icon: 'link', label: t('home.newNoteOptions.webLink') },
   ]
 
-  // Fetch notes and folders when session is ready
+  // Fetch notes on mount
   useEffect(() => {
-    if (!isPending && session?.user) {
-      console.log('✅ Session ready, fetching notes and folders...')
-      fetchNotes()
-      fetchFolders()
-    }
-    // Note: No need to manually redirect - the (home) layout handles auth protection
-  }, [session, isPending])
+    fetchNotes()
+  }, [])
+
+  // Refresh notes and folders when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchNotes();
+      fetchFolders();
+    }, [])
+  );
 
   const fetchNotes = async () => {
     try {
@@ -102,7 +112,7 @@ export default function NotesHome() {
     })
   }
 
-  // Filter notes based on search query
+  // Filter notes based on search query and selected filter
   const filteredNotes = notes.filter(note => {
     // Get translated content for search
     const { title, content } = getTranslatedNote(note);
@@ -110,9 +120,31 @@ export default function NotesHome() {
       title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       content.toLowerCase().includes(searchQuery.toLowerCase())
 
-    // Add filter logic here for Pinned, Shared, Folders, Archive when implemented
-    return matchesSearch
+    // Filter logic for different tabs
+    if (selectedFilter === 'Shared') {
+      return matchesSearch && note.isCloned === true;
+    }
+    if (selectedFilter === 'Pinned') {
+      // TODO: Implement when backend adds isPinned field
+      return matchesSearch; // For now, show all
+    }
+    if (selectedFilter === 'Archive') {
+      // TODO: Implement when backend adds isArchived field  
+      return matchesSearch; // For now, show all
+    }
+    // 'All' filter - show all non-archived notes
+    return matchesSearch; // TODO: Add && !note.isArchived when backend ready
   })
+
+  const handleShareNote = (note: Note) => {
+    setSelectedNoteForShare(note);
+    setShareModalVisible(true);
+  }
+
+  const handleMoveToFolder = (note: Note) => {
+    setSelectedNoteForFolder(note);
+    setFolderModalVisible(true);
+  }
 
   const handleNotePress = (note: Note) => {
     // Navigate to note detail screen
@@ -195,8 +227,8 @@ export default function NotesHome() {
                   <Text style={styles.viewAllText}>View All</Text>
                 </TouchableOpacity>
               </View>
-              <ScrollView 
-                horizontal 
+              <ScrollView
+                horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.foldersScroll}
               >
@@ -277,24 +309,55 @@ export default function NotesHome() {
               filteredNotes.map((note) => {
                 const { title } = getTranslatedNote(note);
                 return (
-                  <Pressable
-                    key={note.id}
-                    style={styles.noteCard}
-                    onPress={() => handleNotePress(note)}
-                  >
-                    <View style={styles.noteLeftIcon}>
-                      <Feather name="file-text" size={20} color="#6B7280" />
-                    </View>
-                    <View style={styles.noteBody}>
-                      <Text numberOfLines={2} style={styles.noteTitle}>
-                        {title}
-                      </Text>
-                      <Text style={styles.noteDate}>
-                        {formatDate(note.createdAt)}
-                      </Text>
-                    </View>
-                    <Feather name="chevron-right" size={20} color="#9CA3AF" />
-                  </Pressable>
+                  <View key={note.id} style={styles.noteCardContainer}>
+                    <Pressable
+                      style={styles.noteCard}
+                      onPress={() => handleNotePress(note)}
+                    >
+                      <View style={styles.noteLeftIcon}>
+                        <Feather name="file-text" size={20} color="#6B7280" />
+                      </View>
+                      <View style={styles.noteBody}>
+                        <Text numberOfLines={2} style={styles.noteTitle}>
+                          {title}
+                        </Text>
+                        <View style={styles.noteFooter}>
+                          <Text style={styles.noteDate}>
+                            {formatDate(note.createdAt)}
+                          </Text>
+                          {note.isCloned && (
+                            <View style={styles.sharedBadge}>
+                              <Feather name="users" size={10} color="#7C3AED" />
+                              <Text style={styles.sharedBadgeText}>
+                                {t('share.sharedWithMe')}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                      <View style={styles.noteActions}>
+                        <TouchableOpacity
+                          style={styles.actionButton}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            handleMoveToFolder(note);
+                          }}
+                        >
+                          <Feather name="folder" size={16} color="#6B7280" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.shareButton}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            handleShareNote(note);
+                          }}
+                        >
+                          <Feather name="share-2" size={16} color="#7C3AED" />
+                        </TouchableOpacity>
+                        <Feather name="chevron-right" size={20} color="#9CA3AF" />
+                      </View>
+                    </Pressable>
+                  </View>
                 );
               })
             )}
@@ -386,6 +449,36 @@ export default function NotesHome() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* Share Link Modal */}
+      {selectedNoteForShare && (
+        <ShareLinkModal
+          visible={shareModalVisible}
+          onClose={() => {
+            setShareModalVisible(false);
+            setSelectedNoteForShare(null);
+          }}
+          noteId={selectedNoteForShare.id}
+          noteTitle={selectedNoteForShare.title}
+        />
+      )}
+
+      {/* Folder Selector Modal */}
+      {selectedNoteForFolder && (
+        <FolderSelectorModal
+          visible={folderModalVisible}
+          onClose={() => {
+            setFolderModalVisible(false);
+            setSelectedNoteForFolder(null);
+          }}
+          noteId={selectedNoteForFolder.id}
+          currentFolderId={selectedNoteForFolder.folderId}
+          onFolderSelected={() => {
+            fetchNotes(); // Refresh notes list
+            fetchFolders(); // Refresh folders list
+          }}
+        />
+      )}
     </>
   )
 }
@@ -532,6 +625,45 @@ const styles = StyleSheet.create({
   noteDate: {
     color: '#6B7280',
     fontSize: 13,
+  },
+  noteCardContainer: {
+    marginTop: 2,
+    marginBottom: 10,
+    marginHorizontal: 1,
+  },
+  noteFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sharedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F3E8FF',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  sharedBadgeText: {
+    color: '#7C3AED',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  noteActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
+  },
+  shareButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
   },
   fabGradient: {
     position: 'absolute',

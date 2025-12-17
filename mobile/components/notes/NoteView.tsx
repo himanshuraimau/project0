@@ -21,7 +21,9 @@ import { notesApi } from '@/lib/api'
 import type { Note } from '@/lib/api/types'
 import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
-import TranslationModal from './TranslationModal'
+import LanguageSelector from '@/components/notes/LanguageSelector'
+import { ShareLinkModal } from '@/components/notes'
+
 
 interface NoteViewProps {
   noteId: string
@@ -38,33 +40,10 @@ export default function NoteView({ noteId }: NoteViewProps) {
   const [error, setError] = useState<string | null>(null)
   const [webViewHeight, setWebViewHeight] = useState(400)
   const [deleting, setDeleting] = useState(false)
-  const [showTranslationModal, setShowTranslationModal] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('en') // Track note's display language
 
-  // Load saved language preference for this note
-  useEffect(() => {
-    const loadSavedLanguage = async () => {
-      try {
-        const savedLanguage = await AsyncStorage.getItem(`${NOTE_LANGUAGE_KEY}${noteId}`);
-        if (savedLanguage) {
-          setSelectedLanguage(savedLanguage);
-        }
-      } catch (error) {
-        console.error('Error loading saved language:', error);
-      }
-    };
-    loadSavedLanguage();
-  }, [noteId]);
 
-  // Save language preference whenever it changes
-  const handleLanguageChange = async (language: string) => {
-    setSelectedLanguage(language);
-    try {
-      await AsyncStorage.setItem(`${NOTE_LANGUAGE_KEY}${noteId}`, language);
-    } catch (error) {
-      console.error('Error saving language preference:', error);
-    }
-  };
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false)
+  const [shareModalVisible, setShareModalVisible] = useState(false)
 
   // Fetch note data on mount or when language changes
   const fetchNote = useCallback(async () => {
@@ -307,7 +286,10 @@ export default function NoteView({ noteId }: NoteViewProps) {
             </View>
 
             <View style={styles.headerRight}>
-              <TouchableOpacity style={styles.shareButton}>
+              <TouchableOpacity
+                style={styles.shareButton}
+                onPress={() => setShareModalVisible(true)}
+              >
                 <Text style={styles.shareButtonText}>SHARE</Text>
               </TouchableOpacity>
             </View>
@@ -602,6 +584,16 @@ export default function NoteView({ noteId }: NoteViewProps) {
           fetchNote() // Refresh to ensure translations are loaded
         }}
       />
+
+      {/* Share Link Modal */}
+      {note && (
+        <ShareLinkModal
+          visible={shareModalVisible}
+          onClose={() => setShareModalVisible(false)}
+          noteId={note.id}
+          noteTitle={displayTitle}
+        />
+      )}
     </>
   )
 }

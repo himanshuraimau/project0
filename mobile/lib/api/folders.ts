@@ -92,7 +92,7 @@ export const deleteFolder = async (id: string): Promise<{ success: boolean; mess
   try {
     const response = await apiClient.delete<ApiResponse<{ message: string }>>(`/folders/${id}`);
     const data = handleApiResponse<{ message: string }>(response);
-    return { success: true, message: data.message };
+    return { success: true, message: data?.message || 'Folder deleted successfully' };
   } catch (error) {
     console.error('❌ deleteFolder error:', error);
     return handleApiError(error);
@@ -116,7 +116,7 @@ export const moveNoteToFolder = async (
       { folderId }
     );
     const data = handleApiResponse<{ message: string }>(response);
-    return { success: true, message: data.message };
+    return { success: true, message: data?.message || 'Note moved successfully' };
   } catch (error) {
     console.error('❌ moveNoteToFolder error:', error);
     return handleApiError(error);
