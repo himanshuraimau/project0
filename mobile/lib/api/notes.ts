@@ -14,6 +14,11 @@ import {
   Quiz,
   NoteTranslation,
   ApiResponse,
+  CreateShareLinkResponse,
+  SharedNoteData,
+  CloneNoteRequest,
+  CloneNoteResponse,
+  SharedLink,
 } from './types';
 
 /**
@@ -344,6 +349,86 @@ export const chatWithNote = async (noteId: string, message: string): Promise<str
   }
 };
 
+// ==================== Share & Clone ====================
+
+/**
+ * Create or get share link for a note
+ * @param noteId - Note ID
+ */
+export const createShareLink = async (noteId: string): Promise<CreateShareLinkResponse> => {
+  try {
+    const response = await apiClient.post<ApiResponse<CreateShareLinkResponse>>(
+      `/notes/${noteId}/share-link`
+    );
+    return handleApiResponse<CreateShareLinkResponse>(response);
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
+
+/**
+ * Get all share links for a note
+ * @param noteId - Note ID
+ */
+export const getShareLinks = async (noteId: string): Promise<SharedLink[]> => {
+  try {
+    const response = await apiClient.get<ApiResponse<SharedLink[]>>(
+      `/notes/${noteId}/share-link`
+    );
+    return handleApiResponse<SharedLink[]>(response);
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
+
+/**
+ * Revoke/deactivate a share link
+ * @param noteId - Note ID
+ * @param linkId - Share link ID
+ */
+export const revokeShareLink = async (noteId: string, linkId: string): Promise<{ message: string }> => {
+  try {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/notes/${noteId}/share-link?linkId=${linkId}`
+    );
+    return handleApiResponse<{ message: string }>(response);
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
+
+/**
+ * Get shared note data by link ID and token (public endpoint)
+ * @param linkId - Share link ID
+ * @param token - Share token
+ */
+export const getSharedNote = async (linkId: string, token: string): Promise<SharedNoteData> => {
+  try {
+    const response = await apiClient.get<ApiResponse<SharedNoteData>>(
+      `/share/${linkId}?token=${encodeURIComponent(token)}`
+    );
+    return handleApiResponse<SharedNoteData>(response);
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
+
+/**
+ * Clone a shared note to user's account
+ * @param token - Share token
+ */
+export const cloneSharedNote = async (token: string): Promise<Note> => {
+  try {
+    const response = await apiClient.post<ApiResponse<Note>>(
+      '/notes/clone',
+      { token }
+    );
+    return handleApiResponse<Note>(response);
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
+
 export default {
   getNotes,
   getNoteById,
@@ -363,4 +448,9 @@ export default {
   translateNote,
   deleteTranslation,
   chatWithNote,
+  createShareLink,
+  getShareLinks,
+  revokeShareLink,
+  getSharedNote,
+  cloneSharedNote,
 };

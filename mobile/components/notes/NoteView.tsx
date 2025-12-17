@@ -22,6 +22,7 @@ import { getTranslatedNote } from '@/lib/utils/translation'
 import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
 import LanguageSelector from '@/components/notes/LanguageSelector'
+import { ShareLinkModal } from '@/components/notes'
 
 interface NoteViewProps {
   noteId: string
@@ -37,6 +38,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
   const [webViewHeight, setWebViewHeight] = useState(400)
   const [deleting, setDeleting] = useState(false)
   const [showLanguageSelector, setShowLanguageSelector] = useState(false)
+  const [shareModalVisible, setShareModalVisible] = useState(false)
 
   // Fetch note data on mount or when language changes
   const fetchNote = useCallback(async () => {
@@ -270,7 +272,10 @@ export default function NoteView({ noteId }: NoteViewProps) {
             </View>
 
             <View style={styles.headerRight}>
-              <TouchableOpacity style={styles.shareButton}>
+              <TouchableOpacity
+                style={styles.shareButton}
+                onPress={() => setShareModalVisible(true)}
+              >
                 <Text style={styles.shareButtonText}>SHARE</Text>
               </TouchableOpacity>
             </View>
@@ -562,6 +567,16 @@ export default function NoteView({ noteId }: NoteViewProps) {
         currentLanguage={i18n.language}
         availableLanguages={getAvailableLanguages()}
       />
+
+      {/* Share Link Modal */}
+      {note && (
+        <ShareLinkModal
+          visible={shareModalVisible}
+          onClose={() => setShareModalVisible(false)}
+          noteId={note.id}
+          noteTitle={displayTitle}
+        />
+      )}
     </>
   )
 }
