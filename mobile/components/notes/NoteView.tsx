@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons'
 import { BookOpen, Brain, Layers } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
   StatusBar,
   View,
@@ -18,15 +19,17 @@ import { WebView } from 'react-native-webview'
 import { marked } from 'marked'
 import { notesApi } from '@/lib/api'
 import type { Note } from '@/lib/api/types'
-import { getTranslatedNote } from '@/lib/utils/translation'
 import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
 import LanguageSelector from '@/components/notes/LanguageSelector'
 import { ShareLinkModal } from '@/components/notes'
 
+
 interface NoteViewProps {
   noteId: string
 }
+
+const NOTE_LANGUAGE_KEY = 'note_language_';
 
 export default function NoteView({ noteId }: NoteViewProps) {
   const router = useRouter()
@@ -37,6 +40,8 @@ export default function NoteView({ noteId }: NoteViewProps) {
   const [error, setError] = useState<string | null>(null)
   const [webViewHeight, setWebViewHeight] = useState(400)
   const [deleting, setDeleting] = useState(false)
+
+
   const [showLanguageSelector, setShowLanguageSelector] = useState(false)
   const [shareModalVisible, setShareModalVisible] = useState(false)
 
@@ -61,10 +66,35 @@ export default function NoteView({ noteId }: NoteViewProps) {
     }
   }, [noteId, i18n.language, fetchNote])
 
-  // Get translated content based on current language
+  // Get translated content based on selected language for this note
   const getDisplayContent = () => {
     if (!note) return { title: '', content: '' }
-    return getTranslatedNote(note)
+
+    // If English or no translations, return original
+    if (selectedLanguage === 'en' || !note.translations || note.translations.length === 0) {
+      return {
+        title: note.title,
+        content: note.content,
+      }
+    }
+
+    // Find translation for selected language
+    const translation = note.translations.find(
+      (t) => t.language === selectedLanguage
+    )
+
+    // Return translation if found, otherwise return original
+    if (translation) {
+      return {
+        title: translation.title,
+        content: translation.content,
+      }
+    }
+
+    return {
+      title: note.title,
+      content: note.content,
+    }
   }
 
   const { title: displayTitle, content: displayContent } = getDisplayContent()
@@ -122,32 +152,16 @@ export default function NoteView({ noteId }: NoteViewProps) {
 
   // Handle action chip press
   const handleChipPress = (chipId: number) => {
-    if (chipId === 2) { // Transcript chip
+    if (chipId === 1) { // Translate chip
+      setShowTranslationModal(true)
+    } else if (chipId === 2) { // Transcript chip
       router.push(`/notes/${noteId}/transcript`)
-    } else if (chipId === 1) { // Translate chip
-      setShowLanguageSelector(true)
     } else if (chipId === 3) { // Folder chip
       // Handle folder action
       console.log('Folder pressed')
     }
   }
 
-  // Handle language selection
-  const handleLanguageSelect = async (languageCode: string) => {
-    try {
-      await i18n.changeLanguage(languageCode)
-      // Note will automatically update because of the useEffect dependency on i18n.language
-    } catch (error) {
-      console.error('Failed to change language:', error)
-      showAlert(t('common.error'), 'Failed to change language')
-    }
-  }
-
-  // Get available translation languages for this note
-  const getAvailableLanguages = () => {
-    if (!note?.translations) return ['en']
-    return ['en', ...note.translations.map(t => t.language)]
-  }
 
   // Handle study tool press
   const handleStudyToolPress = (toolId: number) => {
@@ -559,13 +573,16 @@ export default function NoteView({ noteId }: NoteViewProps) {
         </SafeAreaView>
       </LinearGradient>
 
-      {/* Language Selector Modal */}
-      <LanguageSelector
-        visible={showLanguageSelector}
-        onClose={() => setShowLanguageSelector(false)}
-        onSelectLanguage={handleLanguageSelect}
-        currentLanguage={i18n.language}
-        availableLanguages={getAvailableLanguages()}
+      {/* Translation Modal */}
+      <TranslationModal
+        visible={showTranslationModal}
+        onClose={() => setShowTranslationModal(false)}
+        noteId={noteId}
+        currentLanguage={selectedLanguage}
+        onLanguageSelect={(language: string) => {
+          handleLanguageChange(language)
+          fetchNote() // Refresh to ensure translations are loaded
+        }}
       />
 
       {/* Share Link Modal */}

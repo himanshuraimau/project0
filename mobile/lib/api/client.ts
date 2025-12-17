@@ -102,15 +102,15 @@ export const handleApiResponse = <T>(response: any): T => {
 
 // Helper function to handle API errors
 export const handleApiError = (error: any): never => {
-  console.error('🔥 handleApiError called with:', error);
   if (isAxiosError(error)) {
     const message = error.response?.data?.message || error.message;
     const statusCode = error.response?.status;
     const errorData = error.response?.data;
 
-    console.error('🎯 Axios error message:', message);
-    console.error('📊 Status code:', statusCode);
-    console.error('📦 Error data:', errorData);
+    // Only log detailed errors for unexpected status codes (not 404)
+    if (statusCode && statusCode !== 404) {
+      console.error('🔥 API Error:', message, `(${statusCode})`);
+    }
 
     // Create enhanced error with additional fields
     const enhancedError: any = new Error(message);
@@ -121,7 +121,6 @@ export const handleApiError = (error: any): never => {
 
     throw enhancedError;
   }
-  console.error('🔥 Non-Axios error:', error);
   throw error;
 };
 

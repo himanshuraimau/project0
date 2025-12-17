@@ -56,11 +56,18 @@
     "failedToLoad": "नोट लोड करने में विफल",
     "deleteNote": "नोट हटाएं",
     "deleteConfirmation": "क्या आप वाकई इस नोट को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
-    "failedToDelete": "नोट हटाने में विफल",
+    "failedToDelete": "नोट हटाने में विफल"
+  },
+  "translation": {
     "selectLanguage": "भाषा चुनें",
-    "selectLanguageDescription": "इस नोट की सामग्री देखने के लिए एक भाषा चुनें",
-    "notTranslated": "उपलब्ध नहीं",
-    "translationInfo": "अनुवाद AI द्वारा उत्पन्न किए गए हैं और सही नहीं हो सकते हैं"
+    "original": "मूल",
+    "available": "उपलब्ध",
+    "tapToTranslate": "अनुवाद के लिए टैप करें",
+    "translationInfo": "अनुवाद AI का उपयोग करके उत्पन्न किए जाते हैं। अनुवाद देखने या उत्पन्न करने के लिए एक भाषा पर टैप करें।",
+    "currentLanguage": "वर्तमान: {{language}}",
+    "translating": "अनुवाद हो रहा है...",
+    "translationFailed": "अनुवाद विफल",
+    "translationSuccess": "अनुवाद पूर्ण"
   },
   "quiz": {
     "title": "क्विज़",

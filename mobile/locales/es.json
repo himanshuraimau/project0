@@ -56,11 +56,18 @@
     "failedToLoad": "Error al cargar la nota",
     "deleteNote": "Eliminar Nota",
     "deleteConfirmation": "¿Estás seguro de que quieres eliminar esta nota? Esta acción no se puede deshacer.",
-    "failedToDelete": "Error al eliminar la nota",
+    "failedToDelete": "Error al eliminar la nota"
+  },
+  "translation": {
     "selectLanguage": "Seleccionar Idioma",
-    "selectLanguageDescription": "Elige un idioma para ver el contenido de esta nota",
-    "notTranslated": "No disponible",
-    "translationInfo": "Las traducciones son generadas por IA y pueden no ser perfectas"
+    "original": "Original",
+    "available": "Disponible",
+    "tapToTranslate": "Toca para traducir",
+    "translationInfo": "Las traducciones se generan usando IA. Toca un idioma para ver o generar una traducción.",
+    "currentLanguage": "Actual: {{language}}",
+    "translating": "Traduciendo...",
+    "translationFailed": "Traducción falló",
+    "translationSuccess": "Traducción completa"
   },
   "quiz": {
     "title": "Cuestionario",
