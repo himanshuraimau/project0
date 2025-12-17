@@ -115,11 +115,7 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
         </View>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={[styles.scrollView, styles.contentContainer]}>
         {/* Title Section */}
         <View style={styles.titleContainer}>
           <Text style={styles.subTitle}>Personalizing Jellinote for you...</Text>
@@ -140,7 +136,7 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
             />
           ))}
         </View>
-      </ScrollView>
+      </View>
 
       {/* Continue Button */}
       <View style={styles.bottomContainer}>
@@ -196,9 +192,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingTop: 24,
+    paddingTop: 10,
     paddingHorizontal: 24,
-    paddingBottom: 20,
   },
   progressBarContainer: {
     flex: 1,
@@ -280,7 +275,7 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 72,
+    paddingBottom: 52,
     paddingTop: 12,
   },
   continueButton: {
