@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -11,7 +10,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Pressable,
 } from 'react-native'
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { notesApi } from '@/lib/api'
 import BackButton from '@/components/ui/BackButton'
@@ -33,6 +39,78 @@ interface FlashcardData {
   flashcards: FlashcardItem[]
 }
 
+// FlipCard Component
+const FlipCard = ({
+  isFlipped,
+  cardStyle,
+  direction = 'x',
+  duration = 300,
+  RegularContent,
+  FlippedContent,
+}: {
+  isFlipped: any
+  cardStyle: any
+  direction?: 'x' | 'y'
+  duration?: number
+  RegularContent: React.ReactNode
+  FlippedContent: React.ReactNode
+}) => {
+  const isDirectionX = direction === 'x'
+
+  const regularCardAnimatedStyle = useAnimatedStyle(() => {
+    const spinValue = interpolate(Number(isFlipped.value), [0, 1], [0, 180])
+    const rotateValue = withTiming(`${spinValue}deg`, { duration })
+
+    return {
+      transform: [
+        isDirectionX ? { rotateX: rotateValue } : { rotateY: rotateValue },
+      ],
+      zIndex: isFlipped.value ? 1 : 2,
+    }
+  })
+
+  const flippedCardAnimatedStyle = useAnimatedStyle(() => {
+    const spinValue = interpolate(Number(isFlipped.value), [0, 1], [180, 360])
+    const rotateValue = withTiming(`${spinValue}deg`, { duration })
+
+    return {
+      transform: [
+        isDirectionX ? { rotateX: rotateValue } : { rotateY: rotateValue },
+      ],
+      zIndex: isFlipped.value ? 2 : 1,
+    }
+  })
+
+  return (
+    <View>
+      <Animated.View
+        style={[
+          flipCardStyles.regularCard,
+          cardStyle,
+          regularCardAnimatedStyle,
+        ]}>
+        {RegularContent}
+      </Animated.View>
+      <Animated.View
+        style={[
+          flipCardStyles.flippedCard,
+          cardStyle,
+          flippedCardAnimatedStyle,
+        ]}>
+        {FlippedContent}
+      </Animated.View>
+    </View>
+  )
+}
+
+const flipCardStyles = StyleSheet.create({
+  regularCard: {
+    position: 'absolute',
+  },
+  flippedCard: {
+  },
+})
+
 export default function FlashcardView({ noteId }: FlashcardViewProps) {
   const router = useRouter()
   const { t } = useTranslation()
@@ -47,6 +125,9 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
   const [error, setError] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Flip animation using react-native-reanimated
+  const isFlipped = useSharedValue(false)
 
   // Fetch flashcards data on mount
   useEffect(() => {
@@ -232,6 +313,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
   const handleFlipCard = () => {
     if (flashcardState === 'front') {
+      isFlipped.value = true
       setFlashcardState('back')
     }
   }
@@ -250,6 +332,8 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
     if (currentCard < flashcards.length - 1) {
       setCurrentCard(prev => prev + 1)
       setFlashcardState('front')
+      // Reset flip animation
+      isFlipped.value = false
     } else {
       // Quiz complete - check score
       const totalAnswered = correctAnswers + wrongAnswers + 1
@@ -268,6 +352,8 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
     if (currentCard > 0) {
       setCurrentCard(prev => prev - 1)
       setFlashcardState('front')
+      // Reset flip animation
+      isFlipped.value = false
     }
   }
 
@@ -276,6 +362,8 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
     setCorrectAnswers(0)
     setWrongAnswers(0)
     setFlashcardState('front')
+    // Reset flip animation
+    isFlipped.value = false
   }
 
   const handleShare = () => {
@@ -434,20 +522,27 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                 <Text style={styles.cardsLeft}>{t('flashcards.cardsLeft', { count: cardsLeft })}</Text>
               </View>
 
-              {/* Flashcard */}
-              <TouchableOpacity
-                style={[
-                  styles.flashcard,
-                  flashcardState === 'back' && styles.flashcardBack,
-                ]}
-                onPress={handleFlipCard}
-                activeOpacity={flashcardState === 'front' ? 0.7 : 1}
-                disabled={flashcardState === 'back'}
-              >
-                <Text style={styles.flashcardText}>
-                  {flashcardState === 'front' ? currentFlashcard.front : currentFlashcard.back}
-                </Text>
-              </TouchableOpacity>
+              {/* Flashcard with Flip Animation */}
+              <FlipCard
+                isFlipped={isFlipped}
+                cardStyle={styles.flipCardContainer}
+                direction='x'
+                duration={500}
+                RegularContent={
+                  <Pressable onPress={handleFlipCard} style={styles.flashcard}>
+                    <Text style={styles.flashcardText}>
+                      {currentFlashcard.front}
+                    </Text>
+                  </Pressable>
+                }
+                FlippedContent={
+                  <View style={[styles.flashcard, styles.flashcardBack]}>
+                    <Text style={styles.flashcardText}>
+                      {currentFlashcard.back}
+                    </Text>
+                  </View>
+                }
+              />
 
               {/* Helper Text / Action Buttons */}
               {flashcardState === 'front' ? (
@@ -650,6 +745,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#6B7280',
+  },
+  flipCardContainer: {
+    width: '100%',
+    minHeight: 300,
+    backfaceVisibility: 'hidden',
+    marginBottom: 24,
   },
   flashcard: {
     backgroundColor: '#FFFFFF',

@@ -65,17 +65,17 @@ export async function POST(request: NextRequest) {
       prompt: `
 MASTER FLASHCARD CREATOR & LEARNING SPECIALIST
 
-You are the ultimate flashcard designer! Your mission is to transform educational content into engaging, comprehensive, and powerful study materials that make learning both effective and enjoyable.
+You are the ultimate flashcard designer! Your mission is to transform educational content into engaging, comprehensive, and powerful study materials optimized for rapid recall and active retrieval practice.
 
-YOUR CHALLENGE: Create exactly 20 brilliant flashcards that thoroughly test understanding and promote deep learning mastery!
+YOUR CHALLENGE: Create exactly 20 brilliant flashcards that thoroughly test understanding through concise, focused questions and answers!
 
 FLASHCARD EXCELLENCE GOALS:
 - Cover most important concepts, definitions, processes, and relationships
 - Range from foundational recall to complex analytical questions
 - Be crystal clear, specific, and unambiguous
-- Provide detailed, comprehensive answers (3-6 sentences typically)
+- Provide concise, focused answers (ONE WORD or ONE SENTENCE maximum)
 - Test different cognitive levels: knowledge, comprehension, application, analysis, evaluation
-- Include context and reasoning, not just bare facts
+- Ensure answers are specific and directly address the question
 
 CONTENT ANALYSIS STRATEGY:
 
@@ -88,29 +88,29 @@ Phase 1 - Deep Content Mining
 Phase 2 - Strategic Question Design
 
 Create exactly 20 flashcards with diverse types:
-- Definitional (3-4 cards): What is X? Define Y in context of Z
-- Explanatory (4-5 cards): How does X work? Why does Y occur? Explain process of Z
-- Comparative (2-3 cards): Compare X and Y. Differences between A and B?
-- Application (3-4 cards): Apply X in situation Y. What happens if Z?
-- Analytical (3-4 cards): Implications of X? Why is Y significant? Factors influencing Z?
-- Evaluative (2-3 cards): Advantages/disadvantages of X? When use Y over Z?
+- Definitional (4-5 cards): What is X? Define Y. Key term for Z?
+- Explanatory (3-4 cards): What does X do? Main purpose of Y? Primary function of Z?
+- Comparative (2-3 cards): Key difference between X and Y? Main advantage of A over B?
+- Application (3-4 cards): What happens when X? Result of Y? Outcome of Z?
+- Analytical (3-4 cards): Main reason for X? Primary factor in Y? Core principle of Z?
+- Evaluative (2-3 cards): Primary benefit of X? Main limitation of Y? Best use case for Z?
 
 ANSWER EXCELLENCE REQUIREMENTS:
 
 Each answer MUST:
-- Provide comprehensive explanations with sufficient detail
-- Include relevant context and background when necessary
-- Explain the "why" behind facts, not just "what"
-- Use specific examples or scenarios when applicable
-- Connect concepts to broader themes and implications
-- Be self-contained (readable without source material)
+- Be EXACTLY one word OR one complete sentence (maximum 20 words)
+- Directly and precisely answer the question asked
+- Be specific and factually accurate
+- Avoid unnecessary elaboration or context
+- Stand alone as a clear, unambiguous response
+- Focus on the essential information only
 
 TECHNICAL SPECIFICATIONS:
 
 Requirements:
 - Each flashcard: id (number), question (string), answer (string)
-- Questions: specific, unambiguous, test meaningful understanding
-- Avoid overly simplistic yes/no or trivial details
+- Questions: specific, unambiguous, designed for concise answers
+- Answers: ONE WORD or ONE SENTENCE (max 20 words) only
 - Ensure comprehensive coverage across all major sections
 - Progressive difficulty from basic to advanced concepts
 
@@ -120,31 +120,31 @@ Return ONLY valid JSON in this EXACT format. NO markdown, NO code blocks, NO bac
 [
 {
 "id": 1,
-"question": "[Engaging question testing core concept with depth]",
-"answer": "[Comprehensive 3-6 sentence answer explaining concept, significance, how it works, and why it matters. Includes context, reasoning, and connections]"
+"question": "[Focused question requiring one-word or one-sentence answer]",
+"answer": "[Single word or single sentence answer, maximum 20 words]"
 },
 {
 "id": 2,
-"question": "[Question testing process/methodology understanding]",
-"answer": "[Detailed explanation covering process steps, principles, effectiveness rationale, and practical implications. Self-contained with complete context]"
+"question": "[Specific question with clear, concise answer]",
+"answer": "[Direct one-word or one-sentence response]"
 }
 ]
 
 QUALITY EXCELLENCE CHECKLIST:
 
 Before finalizing, ensure each flashcard:
-- Tests meaningful understanding, not trivial recall
-- Answer provides detailed explanation with reasoning
-- Answer includes relevant context and implications
-- Question and answer are clear and unambiguous
+- Tests meaningful understanding through focused recall
+- Answer is EXACTLY one word or one sentence (max 20 words)
+- Question is phrased to elicit concise response
+- Answer directly addresses the question
 - Content accurately reflects source material
 - Covers different aspects and difficulty levels
-- Answers comprehensive enough for thorough learning
+- Answer is specific and unambiguous
 
 INPUT CONTENT TO TRANSFORM:
 ${note.content}
 
-Generate exactly 20 amazing flashcards in JSON format! Focus on creating detailed, comprehensive answers that promote deep understanding. Output ONLY the JSON array - no extra text, no markdown, no code blocks!
+Generate exactly 20 amazing flashcards in JSON format! Focus on creating precise, concise answers of ONE WORD or ONE SENTENCE only. Output ONLY the JSON array - no extra text, no markdown, no code blocks!
       `,
     });
 
