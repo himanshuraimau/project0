@@ -37,6 +37,15 @@ export default function FolderSelectorModal({
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [newFolderName, setNewFolderName] = useState('');
+    const [newFolderColor, setNewFolderColor] = useState('#7C3AED');
+    const [creating, setCreating] = useState(false);
+
+    const folderColors = [
+        '#7C3AED', '#EC4899', '#F59E0B', '#10B981',
+        '#3B82F6', '#8B5CF6', '#EF4444', '#14B8A6'
+    ];
 
     useEffect(() => {
         if (visible) {
@@ -78,6 +87,37 @@ export default function FolderSelectorModal({
             showAlert(t('common.error'), error.message || t('folders.failedToMove'));
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleCreateFolder = async () => {
+        if (!newFolderName.trim()) {
+            showAlert(t('common.error'), t('folders.nameRequired'));
+            return;
+        }
+
+        try {
+            setCreating(true);
+            const newFolder = await foldersApi.createFolder({
+                name: newFolderName.trim(),
+                color: newFolderColor,
+            });
+
+            // Add to folders list
+            setFolders(prev => [...prev, { ...newFolder, noteCount: 0 }]);
+
+            // Automatically select the new folder
+            await handleSelectFolder(newFolder.id);
+
+            // Reset form
+            setNewFolderName('');
+            setNewFolderColor('#7C3AED');
+            setShowCreateForm(false);
+        } catch (error: any) {
+            console.error('Failed to create folder:', error);
+            showAlert(t('common.error'), error.message || t('folders.failedToCreate'));
+        } finally {
+            setCreating(false);
         }
     };
 
@@ -184,7 +224,85 @@ export default function FolderSelectorModal({
                                     </TouchableOpacity>
                                 ))}
 
-                                {filteredFolders.length === 0 && !loading && (
+                                {/* Create New Folder Button */}
+                                {!showCreateForm && (
+                                    <TouchableOpacity
+                                        style={styles.createFolderButton}
+                                        onPress={() => setShowCreateForm(true)}
+                                        disabled={saving}
+                                    >
+                                        <View style={styles.createFolderIcon}>
+                                            <Feather name="plus" size={20} color="#7C3AED" />
+                                        </View>
+                                        <Text style={styles.createFolderText}>
+                                            {t('folders.createFolder')}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
+
+                                {/* Create Folder Form */}
+                                {showCreateForm && (
+                                    <View style={styles.createForm}>
+                                        <Text style={styles.createFormTitle}>Create New Folder</Text>
+
+                                        <TextInput
+                                            style={styles.createInput}
+                                            placeholder="Folder name"
+                                            placeholderTextColor="#9CA3AF"
+                                            value={newFolderName}
+                                            onChangeText={setNewFolderName}
+                                            autoFocus
+                                        />
+
+                                        {/* Color Picker */}
+                                        <Text style={styles.colorLabel}>Color</Text>
+                                        <View style={styles.colorPicker}>
+                                            {folderColors.map((color) => (
+                                                <TouchableOpacity
+                                                    key={color}
+                                                    style={[
+                                                        styles.colorOption,
+                                                        { backgroundColor: color },
+                                                        newFolderColor === color && styles.colorOptionSelected,
+                                                    ]}
+                                                    onPress={() => setNewFolderColor(color)}
+                                                >
+                                                    {newFolderColor === color && (
+                                                        <Feather name="check" size={16} color="#FFFFFF" />
+                                                    )}
+                                                </TouchableOpacity>
+                                            ))}
+                                        </View>
+
+                                        {/* Form Actions */}
+                                        <View style={styles.formActions}>
+                                            <TouchableOpacity
+                                                style={styles.cancelButton}
+                                                onPress={() => {
+                                                    setShowCreateForm(false);
+                                                    setNewFolderName('');
+                                                    setNewFolderColor('#7C3AED');
+                                                }}
+                                                disabled={creating}
+                                            >
+                                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={styles.createButton}
+                                                onPress={handleCreateFolder}
+                                                disabled={creating || !newFolderName.trim()}
+                                            >
+                                                {creating ? (
+                                                    <ActivityIndicator size="small" color="#FFFFFF" />
+                                                ) : (
+                                                    <Text style={styles.createButtonText}>Create & Select</Text>
+                                                )}
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                )}
+
+                                {filteredFolders.length === 0 && !loading && !showCreateForm && (
                                     <View style={styles.emptyContainer}>
                                         <Text style={styles.emptyText}>
                                             {searchQuery ? t('folders.noFoldersFound') : t('folders.noFoldersYet')}
@@ -330,5 +448,113 @@ const styles = StyleSheet.create({
         marginTop: 12,
         fontSize: 14,
         color: '#6B7280',
+    },
+    createFolderButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 14,
+        borderRadius: 12,
+        marginBottom: 8,
+        backgroundColor: '#F3E8FF',
+        borderWidth: 1,
+        borderColor: '#E9D5FF',
+        borderStyle: 'dashed',
+    },
+    createFolderIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+        backgroundColor: '#FFFFFF',
+    },
+    createFolderText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#7C3AED',
+    },
+    createForm: {
+        backgroundColor: '#F9FAFB',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+    },
+    createFormTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#111827',
+        marginBottom: 12,
+    },
+    createInput: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        fontSize: 14,
+        color: '#111827',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        marginBottom: 12,
+    },
+    colorLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#6B7280',
+        marginBottom: 8,
+    },
+    colorPicker: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+        marginBottom: 16,
+    },
+    colorOption: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    colorOptionSelected: {
+        borderWidth: 3,
+        borderColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    formActions: {
+        flexDirection: 'row',
+        gap: 10,
+    },
+    cancelButton: {
+        flex: 1,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        backgroundColor: '#F3F4F6',
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#6B7280',
+    },
+    createButton: {
+        flex: 1,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        backgroundColor: '#7C3AED',
+        alignItems: 'center',
+    },
+    createButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#FFFFFF',
     },
 });
