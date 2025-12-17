@@ -1,23 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react'
+import BackButton from '@/components/ui/BackButton'
+import { chatWithNote } from '@/lib/api/notes'
+import { loadChatHistory, saveChatHistory } from '@/lib/storage/chatStorage'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  StatusBar,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  Platform,
   ActivityIndicator,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import Markdown from 'react-native-markdown-display'
-import { chatWithNote } from '@/lib/api/notes'
-import { loadChatHistory, saveChatHistory, type ChatMessage } from '@/lib/storage/chatStorage'
-import BackButton from '@/components/ui/BackButton'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface ChatbotViewProps {
   noteId: string
@@ -200,7 +200,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="dark-content" />
       <View style={styles.container}>
         {/* Header */}
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 12,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
     backgroundColor: '#FFFFFF',

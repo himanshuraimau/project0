@@ -1,25 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { notesApi } from '@/lib/api';
+import type { Note } from '@/lib/api/types';
+import { useAlert } from '@/lib/contexts/AlertContext';
+import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { marked } from 'marked';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    ScrollView,
-    StatusBar,
-    TextInput,
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Check, List, ListOrdered, AlignLeft, Play, Bold, Italic, Underline, Type } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import { notesApi } from '@/lib/api';
-import type { Note } from '@/lib/api/types';
-import BackButton from '@/components/ui/BackButton';
 import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
-import { useAlert } from '@/lib/contexts/AlertContext';
-import { marked } from 'marked';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface EditViewProps {
     noteId: string;
@@ -27,553 +25,377 @@ interface EditViewProps {
 
 export default function EditView({ noteId }: EditViewProps) {
     const router = useRouter();
+    const { showAlert } = useAlert();
     const richText = useRef<RichEditor>(null);
+
     const [note, setNote] = useState<Note | null>(null);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [showFontSizePicker, setShowFontSizePicker] = useState(false);
-    const [showFontStylePicker, setShowFontStylePicker] = useState(false);
-    const { showAlert } = useAlert();
 
+    // Fetch note data
     useEffect(() => {
-        fetchNote();
+        const fetchNote = async () => {
+            try {
+                setLoading(true);
+                const fetchedNote = await notesApi.getNoteById(noteId);
+                setNote(fetchedNote);
+                setTitle(fetchedNote.title);
+
+                // Convert Markdown to HTML for the editor
+                const htmlContent = convertMarkdownToHTML(fetchedNote.content);
+                setContent(htmlContent);
+            } catch (err: any) {
+                console.error('Failed to fetch note:', err);
+                showAlert('Error', err.message || 'Failed to load note');
+                router.back();
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (noteId) {
+            fetchNote();
+        }
     }, [noteId]);
 
-    const fetchNote = async () => {
+    // Convert Markdown to HTML and normalize heading levels
+    const convertMarkdownToHTML = (markdown: string): string => {
         try {
-            setLoading(true);
-            setError(null);
-            const fetchedNote = await notesApi.getNoteById(noteId);
-            setNote(fetchedNote);
-            setTitle(fetchedNote.title);
-
-            // Convert Markdown to HTML if needed
-            let contentToSet = fetchedNote.content;
-            if (!contentToSet.includes('<p>') && !contentToSet.includes('<div>') && !contentToSet.includes('<h1>')) {
-                // Content appears to be Markdown, convert it
-                try {
-                    contentToSet = marked(contentToSet, { breaks: true, gfm: true }) as string;
-                } catch (e) {
-                    console.error('Error converting markdown:', e);
-                }
+            // Check if content is already HTML
+            if (markdown.includes('<p>') || markdown.includes('<div>') || markdown.includes('<h')) {
+                return normalizeHTMLHeadings(markdown);
             }
-            setContent(contentToSet);
-        } catch (err: any) {
-            console.error('Failed to fetch note:', err);
-            setError(err.message || 'Failed to load note');
-        } finally {
-            setLoading(false);
+
+            // Convert Markdown to HTML
+            let html = marked(markdown, {
+                breaks: true,
+                gfm: true,
+            }) as string;
+
+            // Normalize heading levels
+            return normalizeHTMLHeadings(html);
+        } catch (error) {
+            console.error('Error converting markdown to HTML:', error);
+            return markdown;
         }
     };
 
-    const handleSave = async () => {
-        if (!title.trim()) {
-            showAlert('Error', 'Title cannot be empty');
-            return;
-        }
+    // Normalize HTML headings: H1 -> H2, remove any H1
+    const normalizeHTMLHeadings = (html: string): string => {
+        // Replace all H1 tags (with or without attributes) with H2
+        html = html.replace(/<h1(\s[^>]*)?\s*>/gi, '<h2$1>');
+        html = html.replace(/<\/h1>/gi, '</h2>');
 
+        // Extra safety: strip any remaining h1 tags that might have slipped through
+        html = html.replace(/<h1[^>]*>.*?<\/h1>/gi, '');
+
+        return html;
+    };
+
+    // Convert HTML back to Markdown for storage
+    const convertHTMLToMarkdown = (html: string): string => {
+        // Simple HTML to Markdown conversion
+        let markdown = html;
+
+        // Convert headings (H1 should not exist, but handle it just in case)
+        markdown = markdown.replace(/<h1>(.*?)<\/h1>/gi, '# $1\n');
+        markdown = markdown.replace(/<h2>(.*?)<\/h2>/gi, '# $1\n');
+        markdown = markdown.replace(/<h3>(.*?)<\/h3>/gi, '## $1\n');
+
+        // Convert bold
+        markdown = markdown.replace(/<strong>(.*?)<\/strong>/gi, '**$1**');
+        markdown = markdown.replace(/<b>(.*?)<\/b>/gi, '**$1**');
+
+        // Convert italic
+        markdown = markdown.replace(/<em>(.*?)<\/em>/gi, '*$1*');
+        markdown = markdown.replace(/<i>(.*?)<\/i>/gi, '*$1*');
+
+        // Convert underline (Markdown doesn't have native underline, keep as HTML)
+        // markdown = markdown.replace(/<u>(.*?)<\/u>/gi, '<u>$1</u>');
+
+        // Convert lists
+        markdown = markdown.replace(/<ul>(.*?)<\/ul>/gis, (match, content) => {
+            return content.replace(/<li>(.*?)<\/li>/gi, '* $1\n');
+        });
+
+        markdown = markdown.replace(/<ol>(.*?)<\/ol>/gis, (match, content) => {
+            let counter = 1;
+            return content.replace(/<li>(.*?)<\/li>/gi, () => `${counter++}. $1\n`);
+        });
+
+        // Convert blockquotes
+        markdown = markdown.replace(/<blockquote>(.*?)<\/blockquote>/gi, '> $1\n');
+
+        // Convert paragraphs
+        markdown = markdown.replace(/<p>(.*?)<\/p>/gi, '$1\n\n');
+
+        // Remove remaining HTML tags
+        markdown = markdown.replace(/<[^>]*>/g, '');
+
+        // Clean up extra newlines
+        markdown = markdown.replace(/\n{3,}/g, '\n\n').trim();
+
+        return markdown;
+    };
+
+    // Handle save
+    const handleSave = async () => {
         try {
             setSaving(true);
+
             // Get HTML content from editor
             const htmlContent = await richText.current?.getContentHtml();
 
+            if (!htmlContent) {
+                showAlert('Error', 'Failed to get editor content');
+                return;
+            }
+
+            // Convert HTML back to Markdown for storage
+            const markdownContent = convertHTMLToMarkdown(htmlContent);
+
+            // Update note
             await notesApi.updateNote(noteId, {
-                title,
-                content: htmlContent || content,
+                title: title.trim(),
+                content: markdownContent,
             });
+
+            showAlert('Success', 'Note saved successfully');
             router.back();
         } catch (err: any) {
-            console.error('Failed to update note:', err);
-            showAlert('Error', 'Failed to save changes');
+            console.error('Failed to save note:', err);
+            showAlert('Error', err.message || 'Failed to save note');
         } finally {
             setSaving(false);
         }
     };
 
-    const handleFontSize = (size: number) => {
-        // Inject JavaScript to wrap selected text with font size
-        const script = `
-            (function() {
-                var selection = window.getSelection();
-                if (selection.rangeCount > 0) {
-                    var range = selection.getRangeAt(0);
-                    var selectedText = range.toString();
-                    
-                    if (selectedText) {
-                        try {
-                            // Extract the content
-                            var fragment = range.extractContents();
-                            
-                            // Create wrapper span
-                            var span = document.createElement('span');
-                            span.style.fontSize = '${size}px';
-                            span.appendChild(fragment);
-                            
-                            // Insert the wrapped content
-                            range.insertNode(span);
-                            
-                            // Update selection
-                            selection.removeAllRanges();
-                            var newRange = document.createRange();
-                            newRange.selectNodeContents(span);
-                            selection.addRange(newRange);
-                        } catch (e) {
-                            console.log('Font size error:', e);
-                        }
-                    } else {
-                        // Insert placeholder for typing
-                        var span = document.createElement('span');
-                        span.style.fontSize = '${size}px';
-                        span.innerHTML = '&nbsp;';
-                        range.insertNode(span);
-                        
-                        // Move cursor inside span
-                        var newRange = document.createRange();
-                        newRange.setStart(span.firstChild, 1);
-                        newRange.collapse(true);
-                        selection.removeAllRanges();
-                        selection.addRange(newRange);
-                    }
-                }
-            })();
-        `;
-
-        richText.current?.injectJavascript(script);
-        setShowFontSizePicker(false);
-    };
-
-    const handleFontStyle = (fontFamily: string) => {
-        // Inject JavaScript to wrap selected text with font family
-        const script = `
-            (function() {
-                var selection = window.getSelection();
-                if (selection.rangeCount > 0) {
-                    var range = selection.getRangeAt(0);
-                    var selectedText = range.toString();
-                    
-                    if (selectedText) {
-                        try {
-                            // Extract the content
-                            var fragment = range.extractContents();
-                            
-                            // Create wrapper span
-                            var span = document.createElement('span');
-                            span.style.fontFamily = '${fontFamily}';
-                            span.appendChild(fragment);
-                            
-                            // Insert the wrapped content
-                            range.insertNode(span);
-                            
-                            // Update selection
-                            selection.removeAllRanges();
-                            var newRange = document.createRange();
-                            newRange.selectNodeContents(span);
-                            selection.addRange(newRange);
-                        } catch (e) {
-                            console.log('Font style error:', e);
-                        }
-                    } else {
-                        // Insert placeholder for typing
-                        var span = document.createElement('span');
-                        span.style.fontFamily = '${fontFamily}';
-                        span.innerHTML = '&nbsp;';
-                        range.insertNode(span);
-                        
-                        // Move cursor inside span
-                        var newRange = document.createRange();
-                        newRange.setStart(span.firstChild, 1);
-                        newRange.collapse(true);
-                        selection.removeAllRanges();
-                        selection.addRange(newRange);
-                    }
-                }
-            })();
-        `;
-
-        richText.current?.injectJavascript(script);
-        setShowFontStylePicker(false);
-    };
-
     if (loading) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#7C3AED" />
-            </View>
-        );
-    }
-
-    if (error) {
-        return (
-            <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={fetchNote}>
-                    <Text style={styles.retryButtonText}>Retry</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Text style={styles.backButtonText}>Go Back</Text>
-                </TouchableOpacity>
-            </View>
+            <SafeAreaView style={styles.container}>
+                <StatusBar barStyle="dark-content" />
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#FF6900" />
+                    <Text style={styles.loadingText}>Loading note...</Text>
+                </View>
+            </SafeAreaView>
         );
     }
 
     return (
-        <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="dark-content" />
-            <View style={styles.container}>
-                {/* Header */}
-                <View style={styles.header}>
-                    <BackButton />
-                    <View style={styles.titleContainer}>
-                        <Text style={styles.title}>Edit Note</Text>
-                    </View>
-                    <TouchableOpacity
-                        style={[styles.saveButton, saving && styles.disabledButton]}
-                        onPress={handleSave}
-                        disabled={saving}
-                    >
-                        {saving ? (
-                            <ActivityIndicator size="small" color="#7C3AED" />
-                        ) : (
-                            <Check color="#7C3AED" size={24} />
-                        )}
-                    </TouchableOpacity>
+
+            {/* Header */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
+                    <Feather name="arrow-left" size={24} color="#111827" />
+                </TouchableOpacity>
+
+                <Text style={styles.headerTitle}>Edit Note</Text>
+
+                <TouchableOpacity
+                    onPress={handleSave}
+                    style={styles.headerButton}
+                    disabled={saving}
+                >
+                    {saving ? (
+                        <ActivityIndicator size="small" color="#FF6900" />
+                    ) : (
+                        <Feather name="check" size={24} color="#FF6900" />
+                    )}
+                </TouchableOpacity>
+            </View>
+
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.keyboardView}
+                keyboardVerticalOffset={0}
+            >
+                {/* Title Input - Outside Editor */}
+                <View style={styles.titleContainer}>
+                    <TextInput
+                        style={styles.titleInput}
+                        value={title}
+                        onChangeText={setTitle}
+                        placeholder="Note Title"
+                        placeholderTextColor="#9CA3AF"
+                        multiline
+                    />
                 </View>
 
-                {/* Body Content */}
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={styles.body}
-                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-                >
-                    <ScrollView
-                        style={styles.scrollView}
-                        contentContainerStyle={styles.bodyContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <TextInput
-                            style={styles.titleInput}
-                            value={title}
-                            onChangeText={setTitle}
-                            placeholder="Note Title"
-                            placeholderTextColor="#9CA3AF"
-                            multiline
-                        />
+                {/* Rich Text Editor */}
+                <RichEditor
+                    ref={richText}
+                    style={styles.richEditor}
+                    initialContentHTML={content}
+                    placeholder="Start writing your note..."
+                    onChange={(html) => setContent(html)}
+                    editorStyle={{
+                        backgroundColor: '#FFFFFF',
+                        color: '#111827',
+                        placeholderColor: '#9CA3AF',
+                        contentCSSText: `
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+              font-size: 16px;
+              line-height: 26px;
+              color: #111827;
+              padding: 0 20px;
+              padding-bottom: 100px;
+            `,
+                        cssText: `
+              h1 {
+                display: none !important;
+              }
+              h2 {
+                font-size: 22px;
+                font-weight: 600;
+                color: #7C3AED;
+                margin-top: 20px;
+                margin-bottom: 12px;
+                line-height: 30px;
+              }
+              h3 {
+                font-size: 19px;
+                font-weight: 600;
+                color: #4B5563;
+                margin-top: 16px;
+                margin-bottom: 10px;
+                line-height: 26px;
+              }
+              p {
+                font-size: 16px;
+                line-height: 26px;
+                color: #111827;
+                margin-bottom: 14px;
+              }
+              ul, ol {
+                margin-bottom: 14px;
+                padding-left: 24px;
+              }
+              li {
+                margin-bottom: 8px;
+                line-height: 26px;
+              }
+              blockquote {
+                border-left: 4px solid #7C3AED;
+                padding-left: 16px;
+                margin: 16px 0;
+                color: #4B5563;
+                font-style: italic;
+              }
+              strong {
+                font-weight: 700;
+                color: #111827;
+              }
+              em {
+                font-style: italic;
+              }
+              u {
+                text-decoration: underline;
+              }
+            `,
+                    }}
+                    useContainer={false}
+                    scrollEnabled={true}
+                />
 
-                        <RichEditor
-                            ref={richText}
-                            initialContentHTML={content}
-                            onChange={setContent}
-                            placeholder="Start typing..."
-                            editorStyle={{
-                                backgroundColor: '#FFFFFF',
-                                color: '#374151',
-                                placeholderColor: '#9CA3AF',
-                                contentCSSText: `
-                                    font-size: 16px; 
-                                    line-height: 24px; 
-                                    color: #374151;
-                                    padding: 0;
-                                    margin: 0;
-                                    min-height: 200px;
-                                `,
-                            }}
-                            style={styles.richEditor}
-                            useContainer={true}
-                            initialHeight={250}
-                        />
-
-                        {/* Extra space for scrolling above toolbar */}
-                        <View style={{ height: 80 }} />
-                    </ScrollView>
-
-                    {/* Bottom Toolbar */}
-                    <View style={styles.toolbar}>
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.toolbarScrollContent}
-                        >
-                            <RichToolbar
-                                editor={richText}
-                                actions={[
-                                    actions.heading1,
-                                    actions.insertBulletsList,
-                                    actions.insertOrderedList,
-                                    actions.alignLeft,
-                                    actions.indent,
-                                    actions.setBold,
-                                    actions.setItalic,
-                                    actions.setUnderline,
-                                ]}
-                                iconMap={{
-                                    [actions.heading1]: () => (
-                                        <View style={styles.pillButton}>
-                                            <Text style={[styles.pillButtonText, { color: '#7C3AED', opacity: 1 }]}>Header 1</Text>
-                                        </View>
-                                    ),
-                                    [actions.insertBulletsList]: () => <List color="#333" size={20} />,
-                                    [actions.insertOrderedList]: () => <ListOrdered color="#333" size={20} />,
-                                    [actions.alignLeft]: () => <AlignLeft color="#333" size={20} />,
-                                    [actions.indent]: () => <Play color="#333" size={20} style={{ transform: [{ rotate: '90deg' }] }} />,
-                                    [actions.setBold]: () => <Bold color="#333" size={20} />,
-                                    [actions.setItalic]: () => <Italic color="#333" size={20} />,
-                                    [actions.setUnderline]: () => <Underline color="#333" size={20} />,
-                                }}
-                                style={styles.richToolbar}
-                                selectedIconTint="#7C3AED"
-                                iconTint="#333"
-                            />
-
-                            {/* Font Size Button */}
-                            <TouchableOpacity
-                                style={styles.fontButton}
-                                onPress={() => setShowFontSizePicker(!showFontSizePicker)}
-                            >
-                                <Type color="#333" size={20} />
-                                <Text style={styles.fontButtonText}>Size</Text>
-                            </TouchableOpacity>
-
-                            {/* Font Style Button */}
-                            <TouchableOpacity
-                                style={styles.fontButton}
-                                onPress={() => setShowFontStylePicker(!showFontStylePicker)}
-                            >
-                                <Text style={[styles.fontButtonText, { fontSize: 16, fontWeight: '700' }]}>Aa</Text>
-                                <Text style={styles.fontButtonText}>Font</Text>
-                            </TouchableOpacity>
-                        </ScrollView>
-                    </View>
-
-                    {/* Font Size Picker */}
-                    {showFontSizePicker && (
-                        <View style={styles.fontSizePicker}>
-                            <Text style={styles.fontSizePickerTitle}>Font Size</Text>
-                            <View style={styles.fontSizeOptions}>
-                                {[12, 14, 16, 18, 20, 24, 28, 32].map((size) => (
-                                    <TouchableOpacity
-                                        key={size}
-                                        style={styles.fontSizeOption}
-                                        onPress={() => handleFontSize(size)}
-                                    >
-                                        <Text style={styles.fontSizeOptionText}>{size}px</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-                    )}
-
-                    {/* Font Style Picker */}
-                    {showFontStylePicker && (
-                        <View style={styles.fontSizePicker}>
-                            <Text style={styles.fontSizePickerTitle}>Font Family</Text>
-                            <View style={styles.fontSizeOptions}>
-                                {[
-                                    { name: 'Default', value: '-apple-system, BlinkMacSystemFont, sans-serif' },
-                                    { name: 'Arial', value: 'Arial, sans-serif' },
-                                    { name: 'Georgia', value: 'Georgia, serif' },
-                                    { name: 'Times', value: 'Times New Roman, serif' },
-                                    { name: 'Courier', value: 'Courier New, monospace' },
-                                    { name: 'Verdana', value: 'Verdana, sans-serif' },
-                                    { name: 'Helvetica', value: 'Helvetica, sans-serif' },
-                                    { name: 'Comic Sans', value: 'Comic Sans MS, cursive' },
-                                ].map((font) => (
-                                    <TouchableOpacity
-                                        key={font.name}
-                                        style={styles.fontSizeOption}
-                                        onPress={() => handleFontStyle(font.value)}
-                                    >
-                                        <Text style={[styles.fontSizeOptionText, { fontFamily: font.value }]}>
-                                            {font.name}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-                    )}
-                </KeyboardAvoidingView>
-            </View>
+                {/* Rich Text Toolbar */}
+                <RichToolbar
+                    editor={richText}
+                    actions={[
+                        actions.heading3,
+                        actions.setBold,
+                        actions.setItalic,
+                        actions.setUnderline,
+                        actions.insertBulletsList,
+                        actions.insertOrderedList,
+                        actions.blockquote,
+                    ]}
+                    iconMap={{
+                        [actions.heading3]: ({ tintColor }: any) => (
+                            <Text style={[styles.toolbarIcon, { color: tintColor }]}>H3</Text>
+                        ),
+                    }}
+                    style={styles.richToolbar}
+                    selectedIconTint="#FF6900"
+                    iconTint="#6B7280"
+                    disabledIconTint="#D1D5DB"
+                />
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
     container: {
         flex: 1,
         backgroundColor: '#FFFFFF',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    titleContainer: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        alignItems: 'center',
-        pointerEvents: 'none',
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#111827',
-    },
-    saveButton: {
-        padding: 4,
-    },
-    disabledButton: {
-        opacity: 0.5,
-    },
-    body: {
-        flex: 1,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    bodyContent: {
-        padding: 20,
-    },
-    titleInput: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#111827',
-        marginBottom: 16,
-    },
-    richEditor: {
-        minHeight: 200,
-        flex: 1,
-    },
-    toolbar: {
-        borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
-        backgroundColor: '#FFFFFF',
-    },
-    toolbarScrollContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        gap: 8,
-    },
-    richToolbar: {
-        backgroundColor: '#FFFFFF',
-        height: 60,
-        flex: 0,
-    },
-    toolbarContent: {
-        paddingHorizontal: 16,
-        alignItems: 'center',
-        gap: 12,
-    },
-    pillButton: {
-        backgroundColor: '#FFFFFF',
-        borderWidth: 1,
-        borderColor: '#7C3AED',
-        borderRadius: 20,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: 36,
-        minWidth: 80,
-    },
-    pillButtonText: {
-        color: '#7C3AED',
-        fontWeight: '600',
-        fontSize: 14,
-        lineHeight: 20,
-    },
-    fontButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 8,
-        marginLeft: 8,
-        height: 40,
-    },
-    fontButtonText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#333',
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
     },
-    errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        padding: 20,
-    },
-    errorText: {
+    loadingText: {
+        marginTop: 12,
         fontSize: 16,
-        color: '#EF4444',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    retryButton: {
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        backgroundColor: '#7C3AED',
-        borderRadius: 8,
-        marginBottom: 10,
-    },
-    retryButtonText: {
-        color: '#FFFFFF',
-        fontWeight: '600',
-    },
-    backButton: {
-        padding: 10,
-    },
-    backButtonText: {
         color: '#6B7280',
     },
-    fontSizePicker: {
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
         backgroundColor: '#FFFFFF',
-        borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
-        padding: 16,
     },
-    fontSizePickerTitle: {
-        fontSize: 14,
+    headerButton: {
+        padding: 8,
+        width: 40,
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontSize: 17,
+        fontWeight: '600',
+        color: '#111827',
+    },
+    keyboardView: {
+        flex: 1,
+    },
+    titleContainer: {
+        paddingHorizontal: 20,
+        paddingTop: 20,
+        paddingBottom: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+        backgroundColor: '#FFFFFF',
+    },
+    titleInput: {
+        fontSize: 28,
         fontWeight: '700',
         color: '#111827',
-        marginBottom: 12,
+        lineHeight: 36,
+        padding: 0,
+        margin: 0,
     },
-    fontSizeOptions: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
+    richEditor: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
     },
-    fontSizeOption: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
+    richToolbar: {
+        backgroundColor: '#F9FAFB',
+        borderTopWidth: 1,
+        borderTopColor: '#E5E7EB',
+        height: 50,
+        paddingHorizontal: 8,
     },
-    fontSizeOptionText: {
+    toolbarIcon: {
         fontSize: 14,
-        fontWeight: '600',
-        color: '#374151',
+        fontWeight: '700',
     },
 });
