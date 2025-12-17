@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import { Image, Platform, Pressable, ScrollView, StatusBar, Text, View, StyleSheet } from 'react-native'
+import { ContinueButton } from '../ui/ContinueButton'
 
 interface FeatureCardProps {
   icon: React.ReactNode
@@ -140,17 +141,12 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
 
       {/* Continue Button */}
       <View style={styles.bottomContainer}>
-        <Pressable
-          style={[
-            styles.continueButton,
-            selectedFeatures.length === 0 && styles.continueButtonDisabled,
-          ]}
+        <ContinueButton
+          variant="white"
           onPress={handleContinue}
           disabled={selectedFeatures.length === 0}
-        >
-          <Text style={styles.continueButtonText}>Continue</Text>
-          <Ionicons name="arrow-forward" size={20} color="#000000" style={{ marginLeft: 8 }} />
-        </Pressable>
+          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
+        />
       </View>
     </LinearGradient>
   )
@@ -275,33 +271,8 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 52,
+    paddingBottom: 20,
     paddingTop: 12,
-  },
-  continueButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  continueButtonDisabled: {
-    opacity: 0.5,
-  },
-  continueButtonText: {
-    color: '#000000',
-    fontSize: 16,
-    fontWeight: '700',
   },
   homeIndicator: {
     height: 4,
