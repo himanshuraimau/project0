@@ -21,8 +21,12 @@ import { notesApi } from '@/lib/api'
 import type { Note } from '@/lib/api/types'
 import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
-import LanguageSelector from '@/components/notes/LanguageSelector'
+
 import { ShareLinkModal } from '@/components/notes'
+
+
+import TranslationModal from './TranslationModal'
+
 
 
 interface NoteViewProps {
@@ -42,8 +46,35 @@ export default function NoteView({ noteId }: NoteViewProps) {
   const [deleting, setDeleting] = useState(false)
 
 
-  const [showLanguageSelector, setShowLanguageSelector] = useState(false)
+  const [showTranslationModal, setShowTranslationModal] = useState(false)
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en') // Track note's display language
+
   const [shareModalVisible, setShareModalVisible] = useState(false)
+
+  // Load saved language preference for this note
+  useEffect(() => {
+    const loadSavedLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem(`${NOTE_LANGUAGE_KEY}${noteId}`);
+        if (savedLanguage) {
+          setSelectedLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error loading saved language:', error);
+      }
+    };
+    loadSavedLanguage();
+  }, [noteId]);
+
+  // Save language preference whenever it changes
+  const handleLanguageChange = async (language: string) => {
+    setSelectedLanguage(language);
+    try {
+      await AsyncStorage.setItem(`${NOTE_LANGUAGE_KEY}${noteId}`, language);
+    } catch (error) {
+      console.error('Error saving language preference:', error);
+    }
+  };
 
   // Fetch note data on mount or when language changes
   const fetchNote = useCallback(async () => {
