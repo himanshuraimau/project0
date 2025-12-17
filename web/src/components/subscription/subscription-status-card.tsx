@@ -48,7 +48,7 @@ export function SubscriptionStatusCard() {
     try {
       setLoading(true);
       const response = await fetch('/api/subscription/status');
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch subscription status');
       }
@@ -214,11 +214,13 @@ export function SubscriptionStatusCard() {
             <span className="text-muted-foreground text-lg">Plan</span>
             <span className="font-semibold text-xl">{planDisplay}</span>
           </div>
-          
-          {subscription.nextBillingDate && !subscription.cancelAtPeriodEnd && (
+
+          {!subscription.cancelAtPeriodEnd && (subscription.nextBillingDate || subscription.currentPeriodEnd) && (
             <div className="flex justify-between items-center py-4">
               <span className="text-muted-foreground text-lg">Next billing</span>
-              <span className="font-medium text-lg">{formatDate(subscription.nextBillingDate)}</span>
+              <span className="font-medium text-lg">
+                {formatDate(subscription.nextBillingDate || subscription.currentPeriodEnd)}
+              </span>
             </div>
           )}
 

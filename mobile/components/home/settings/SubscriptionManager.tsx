@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import BackButton from '@/components/ui/BackButton'
 
 export default function SubscriptionManager() {
   const { t } = useTranslation()
@@ -67,9 +68,7 @@ export default function SubscriptionManager() {
         <SafeAreaView style={styles.safeArea}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Feather name="arrow-left" size={24} color="#374151" />
-            </TouchableOpacity>
+            <BackButton iconColor="#374151" />
             <Text style={styles.headerTitle}>Subscription</Text>
             <View style={{ width: 24 }} />
           </View>
@@ -115,13 +114,13 @@ export default function SubscriptionManager() {
                   </View>
                 </View>
 
-                {subscription.currentPeriodEnd && (
+                {(isActive || isTrial) && (subscription.nextBillingDate || subscription.currentPeriodEnd) && (
                   <View style={styles.planInfoItem}>
                     <Text style={styles.planInfoLabel}>
                       {isTrial ? 'Trial Ends' : 'Next Billing'}
                     </Text>
                     <Text style={styles.planInfoValue}>
-                      {new Date(subscription.currentPeriodEnd).toLocaleDateString('en-US', {
+                      {new Date((subscription.nextBillingDate || subscription.currentPeriodEnd)!).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric'
@@ -235,9 +234,7 @@ export default function SubscriptionManager() {
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Feather name="arrow-left" size={24} color="#374151" />
-          </TouchableOpacity>
+          <BackButton iconColor="#374151" />
           <Text style={styles.headerTitle}>Upgrade to Premium</Text>
           <View style={{ width: 24 }} />
         </View>
@@ -329,10 +326,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 20,
+    marginTop: 30,
     marginBottom: 8,
-  },
-  backButton: {
-    padding: 8,
   },
   headerTitle: {
     fontSize: 20,
