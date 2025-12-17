@@ -23,7 +23,17 @@ export async function GET(request: NextRequest) {
         email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-        hasSubscription: !!user.subscription
+        hasSubscription: !!user.subscription,
+        subscription: user.subscription ? {
+          status: user.subscription.status,
+          productId: user.subscription.productId,
+          currentPeriodStart: user.subscription.currentPeriodStart,
+          currentPeriodEnd: user.subscription.currentPeriodEnd,
+          nextBillingDate: user.subscription.nextBillingDate,
+          cancelAtPeriodEnd: user.subscription.cancelAtPeriodEnd,
+          cancelledAt: user.subscription.cancelledAt,
+          trialEnd: user.subscription.trialEnd,
+        } : null
       }
     })
   } catch (error) {
@@ -59,7 +69,17 @@ export async function POST(request: NextRequest) {
         email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-        hasSubscription: !!user.subscription
+        hasSubscription: !!user.subscription,
+        subscription: user.subscription ? {
+          status: user.subscription.status,
+          productId: user.subscription.productId,
+          currentPeriodStart: user.subscription.currentPeriodStart,
+          currentPeriodEnd: user.subscription.currentPeriodEnd,
+          nextBillingDate: user.subscription.nextBillingDate,
+          cancelAtPeriodEnd: user.subscription.cancelAtPeriodEnd,
+          cancelledAt: user.subscription.cancelledAt,
+          trialEnd: user.subscription.trialEnd,
+        } : null
       }
     })
   } catch (error) {
