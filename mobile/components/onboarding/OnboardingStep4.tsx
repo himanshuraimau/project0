@@ -1,8 +1,8 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
-import { Image, Platform, Pressable, ScrollView, StatusBar, Text, View, StyleSheet } from 'react-native'
+import { Image, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native'
 import { ContinueButton } from '../ui/ContinueButton'
 
 interface FeatureCardProps {
@@ -121,7 +121,7 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
         <View style={styles.titleContainer}>
           <Text style={styles.subTitle}>Personalizing Jellinote for you...</Text>
           <Text style={styles.mainTitle}>
-            Which part of Coconote will help you most?
+            Which part of Jellinote will help you most?
           </Text>
         </View>
 
@@ -142,10 +142,8 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
       {/* Continue Button */}
       <View style={styles.bottomContainer}>
         <ContinueButton
-          variant="white"
           onPress={handleContinue}
           disabled={selectedFeatures.length === 0}
-          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
         />
       </View>
     </LinearGradient>

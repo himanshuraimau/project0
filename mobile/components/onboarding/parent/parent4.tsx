@@ -59,7 +59,6 @@ export default function Parent4() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="gradient"
           onPress={handleContinue}
         />
       </View>

@@ -74,7 +74,7 @@ export default StyleSheet.create({
     color: '#000000',
     flex: 1,
   },
-  footer: { paddingHorizontal: 25, paddingBottom: 40 },
+  footer: { paddingHorizontal: 16, paddingBottom: 40 },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', paddingVertical: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0' },
   ctaText: { color: '#111827', fontSize: 16, fontWeight: '700', marginRight: 8 },
   ctaArrow: { color: '#111827', fontSize: 18, fontWeight: '700' },

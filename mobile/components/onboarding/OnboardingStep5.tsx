@@ -1,8 +1,8 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
-import { Platform, Pressable, ScrollView, StatusBar, Text, View, StyleSheet } from 'react-native'
+import { Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native'
 import { ContinueButton } from '../ui/ContinueButton'
 
 interface StudyOptionProps {
@@ -221,9 +221,7 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
       {/* Continue Button */}
       <View style={styles.bottomContainer}>
         <ContinueButton
-          variant="white"
           onPress={handleContinue}
-          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
         />
       </View>
     </LinearGradient>

@@ -97,7 +97,6 @@ export default function Student8() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="gradient"
           onPress={() => router.push(`/(onboarding)/student-flow/student9?currentGpa=${currentGpa}&goalGpa=${gpa}` as any)}
         />
       </View>

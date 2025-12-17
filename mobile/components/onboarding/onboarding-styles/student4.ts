@@ -77,7 +77,7 @@ export default StyleSheet.create({
     lineHeight: 22,
   },
   footer: {
-    paddingHorizontal: 25,
+    paddingHorizontal: 16,
     paddingBottom: 40
   },
   cta: {

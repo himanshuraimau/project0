@@ -74,7 +74,7 @@ export default StyleSheet.create({
     fontFamily: 'Arimo',
     fontWeight: '400',
   },
-  footer: { paddingHorizontal: 25, paddingBottom: 40 },
+  footer: { paddingHorizontal: 16, paddingBottom: 40 },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 12 },
   ctaText: { color: '#fff', fontSize: 16, fontWeight: '700', marginRight: 8 },
   ctaArrow: { color: '#fff', fontSize: 18, fontWeight: '700' },

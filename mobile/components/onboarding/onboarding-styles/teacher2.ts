@@ -10,7 +10,7 @@ export default StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '50%', height: '100%', backgroundColor: '#7C3AED' },
   content: {
-    paddingHorizontal: 28,
+    paddingHorizontal: 16,
     paddingTop: 20,
     flex: 1,
     width: '100%'
@@ -60,7 +60,7 @@ export default StyleSheet.create({
     flex: 1,
   },
   footer: {
-    paddingHorizontal: 28,
+    paddingHorizontal: 16,
     paddingBottom: 40,
   },
   continueButton: {

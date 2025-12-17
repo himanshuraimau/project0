@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from 'react-native'
+import { Platform, StyleSheet } from 'react-native'
 
 const PURPLE = '#7C3AED'
 const BG = '#FFFFFF'
@@ -19,7 +19,7 @@ export default StyleSheet.create({
   progressWrap: { flex: 1, paddingRight: 16 },
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '20%', height: '100%', backgroundColor: PURPLE },
-  content: { paddingHorizontal: 25, paddingTop: 24, paddingBottom: 20 },
+  content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 20 },
   title: { fontSize: 28, fontWeight: '700', color: '#0F172A', marginBottom: 8, fontFamily: 'Arimo' },
   subtitle: {
     fontSize: 17,
@@ -53,7 +53,7 @@ export default StyleSheet.create({
     fontFamily: 'Arimo',
     fontWeight: '400',
   },
-  footer: { paddingHorizontal: 25, paddingBottom: 40 },
+  footer: { paddingHorizontal: 16, paddingBottom: 40 },
   continueButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 14 },
   continueText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginRight: 8, fontFamily: 'Arimo' },
   continueArrow: { color: '#FFF', fontSize: 18, fontWeight: '700' },

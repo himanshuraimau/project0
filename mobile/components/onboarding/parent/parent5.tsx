@@ -71,9 +71,7 @@ export default function Parent5() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="white"
           onPress={() => router.push('/(onboarding)/step4' as any)}
-          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
           disabled={!selected}
         />
       </View>

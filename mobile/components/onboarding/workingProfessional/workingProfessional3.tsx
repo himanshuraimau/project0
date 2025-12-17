@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView, SafeAreaView } from 'react-native'
 import { useRouter } from 'expo-router'
+import { ChevronLeft } from 'lucide-react-native'
+import React, { useState } from 'react'
+import { SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
-import { ChevronLeft } from 'lucide-react-native'
 import { OptionButton } from '../../ui/OptionButton'
 
 export default function WorkinProfessional3() {
@@ -82,9 +82,7 @@ export default function WorkinProfessional3() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="white"
           onPress={handleContinue}
-          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
           disabled={!selected}
         />
       </View>
@@ -111,5 +109,5 @@ const styles = StyleSheet.create({
   question: { fontSize: 22, fontWeight: '700', color: '#0F172A', marginBottom: 18 },
   options: { marginTop: 6, gap: 12 },
   optionOverride: { height: 70 },
-  footer: { paddingHorizontal: 25, paddingBottom: 20 },
+  footer: { paddingHorizontal: 16, paddingBottom: 40 },
 })

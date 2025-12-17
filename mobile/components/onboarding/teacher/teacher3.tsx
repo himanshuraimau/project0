@@ -102,7 +102,6 @@ export default function Teacher3() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="gradient"
           onPress={handleContinue}
         />
       </View>

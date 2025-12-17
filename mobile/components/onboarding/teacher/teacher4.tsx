@@ -84,9 +84,7 @@ export default function Teacher4() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="white"
           onPress={handleContinue}
-          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
           disabled={!selected}
         />
       </View>

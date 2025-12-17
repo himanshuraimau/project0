@@ -67,7 +67,6 @@ export default function Student2() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="gradient"
           onPress={() => router.push('/(onboarding)/student-flow/student3' as any)}
           disabled={!selected}
         />

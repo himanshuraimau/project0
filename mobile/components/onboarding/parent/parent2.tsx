@@ -61,9 +61,7 @@ export default function Parent2() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="white"
           onPress={() => router.push('/(onboarding)/parent/parent3' as any)}
-          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
           disabled={!selected}
         />
       </View>
@@ -71,5 +69,3 @@ export default function Parent2() {
     </SafeAreaView>
   )
 }
-
-// styles imported from onboarding-styles/parent2

@@ -62,9 +62,7 @@ export default function Student6() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="white"
           onPress={() => router.push('/(onboarding)/student-flow/student7' as any)}
-          style={{ borderWidth: 1, borderColor: '#BFBFBF' }}
           disabled={!selected}
         />
       </View>

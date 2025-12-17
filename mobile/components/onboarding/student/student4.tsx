@@ -65,7 +65,6 @@ export default function Student4() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="gradient"
           onPress={() => router.push('/(onboarding)/student-flow/student5' as any)}
         />
       </View>

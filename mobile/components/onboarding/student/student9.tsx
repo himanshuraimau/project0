@@ -145,7 +145,6 @@ export default function Student9() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="gradient"
           onPress={() => router.push('/(onboarding)/step4' as any)}
         />
       </View>

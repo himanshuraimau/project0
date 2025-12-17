@@ -59,7 +59,6 @@ export default function Administrator3() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="gradient"
           onPress={handleContinue}
         />
       </View>

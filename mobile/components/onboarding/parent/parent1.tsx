@@ -69,7 +69,6 @@ export default function Parent1() {
 
       <View style={styles.footer}>
         <ContinueButton
-          variant="gradient"
           onPress={() => router.push('/(onboarding)/parent/parent2' as any)}
         />
       </View>

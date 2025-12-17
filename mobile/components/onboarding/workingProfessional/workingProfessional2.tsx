@@ -1,10 +1,9 @@
-import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, SafeAreaView } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
-import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { BlurGradient } from '../../ui/BlurGradient'
+import { useRouter } from 'expo-router'
 import { ChevronLeft } from 'lucide-react-native'
+import React from 'react'
+import { SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { BlurGradient } from '../../ui/BlurGradient'
 import { ContinueButton } from '../../ui/ContinueButton'
 
 export default function WorkingProfessional2() {
@@ -72,7 +71,6 @@ export default function WorkingProfessional2() {
       {/* Continue button */}
       <View style={styles.footer}>
         <ContinueButton
-          variant="gradient"
           onPress={() => router.push('/(onboarding)/workingProfessional/workingProfessional3' as any)}
         />
       </View>
@@ -137,7 +135,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   featureText: { fontSize: 16, color: '#0F172A', flex: 1 },
-  footer: { paddingHorizontal: 25, paddingBottom: 20 },
+  footer: { paddingHorizontal: 16, paddingBottom: 40 },
 
   gestureBar: {
     height: 4,

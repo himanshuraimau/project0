@@ -89,7 +89,6 @@ export default function Teacher2() {
       {/* Continue Button */}
       <View style={styles.footer}>
         <ContinueButton
-          variant="gradient"
           onPress={handleContinue}
           disabled={!selectedOption}
         />

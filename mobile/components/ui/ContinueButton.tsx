@@ -1,6 +1,6 @@
-import React from 'react'
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, StyleProp } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import React from 'react'
+import { StyleProp, StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native'
 
 interface ContinueButtonProps {
   onPress: () => void
@@ -16,25 +16,29 @@ export function ContinueButton({
   style,
   disabled = false
 }: ContinueButtonProps & { disabled?: boolean }) {
-  if (variant === 'white') {
+  // Disabled state: white background, gray text, not clickable
+  if (disabled) {
     return (
       <TouchableOpacity
-        activeOpacity={0.85}
+        activeOpacity={1}
         onPress={onPress}
-        disabled={disabled}
-        style={[styles.whiteButton, style, disabled && { opacity: 0.5 }]}
+        disabled={true}
+        style={[styles.disabledButton, style]}
       >
-        <Text style={styles.whiteButtonText}>{text} →</Text>
+        <Text style={styles.disabledButtonText}>
+          {text} →
+        </Text>
       </TouchableOpacity>
     )
   }
 
+  // Enabled state: purple gradient, white text, clickable
   return (
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
-      disabled={disabled}
-      style={[{ width: '100%' }, style, disabled && { opacity: 0.5 }]}
+      disabled={false}
+      style={[{ width: '100%' }, style]}
     >
       <LinearGradient
         colors={["#4C57FF", "#9810FA"]}
@@ -79,26 +83,28 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // White variant
-  whiteButton: {
+  // Disabled state (white background, not clickable)
+  disabledButton: {
     width: '100%',
-    height: 55.98,
+    height: 56,
     backgroundColor: '#FFFFFF',
-    borderRadius: 100,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: 'rgba(0, 0, 0, 0.1)',
+    shadowColor: 'rgba(0, 0, 0, 0.08)',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 4,
     elevation: 2,
     marginBottom: 30,
   },
-  whiteButtonText: {
+  disabledButtonText: {
     fontFamily: 'Arimo',
     fontWeight: '700',
-    fontSize: 20,
+    fontSize: 17,
     lineHeight: 24,
-    color: '#000000',
+    color: '#AAAAAA',
   },
 })
