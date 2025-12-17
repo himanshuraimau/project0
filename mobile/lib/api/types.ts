@@ -83,9 +83,25 @@ export interface Note {
   transcriptId: string;
   userId?: string;
   folderId?: string | null;
+  isCloned?: boolean;
+  sourceNoteId?: string | null;
+  originalAuthor?: string | null;
   createdAt: string;
   updatedAt: string;
   translations?: NoteTranslation[]; // Optional array of translations
+  sharedLinks?: SharedLink[]; // Optional array of share links
+  transcript?: Transcript; // Optional transcript data
+}
+
+export interface SharedLink {
+  id: string;
+  noteId: string;
+  token: string;
+  createdBy: string;
+  createdAt: string;
+  expiresAt?: string | null;
+  viewCount: number;
+  isActive: boolean;
 }
 
 export interface NoteTranslation {
@@ -285,6 +301,53 @@ export interface GenerateQuizRequest {
 
 export interface TranslateNoteRequest {
   language: string;
+}
+
+// ==================== Share API ====================
+export interface CreateShareLinkResponse {
+  id: string;
+  noteId: string;
+  token: string;
+  shareUrl: string;
+  viewCount: number;
+  createdAt: string;
+  expiresAt?: string | null;
+  isActive: boolean;
+}
+
+export interface SharedNoteData {
+  note: {
+    id: string;
+    title: string;
+    content: string;
+    createdAt: string;
+  };
+  quiz: Quiz | null;
+  mindmap: MindMap | null;
+  flashcard: Flashcard | null;
+  podcasts: Podcast[];
+  author: {
+    name: string;
+    userId: string;
+  };
+  shareInfo: {
+    viewCount: number;
+    createdAt: string;
+    expiresAt?: string | null;
+  };
+}
+
+export interface CloneNoteRequest {
+  token: string;
+}
+
+export interface CloneNoteResponse {
+  id: string;
+  title: string;
+  content: string;
+  isCloned: boolean;
+  sourceNoteId: string;
+  originalAuthor: string;
 }
 
 // ==================== Transcripts API ====================

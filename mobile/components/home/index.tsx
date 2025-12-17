@@ -28,6 +28,7 @@ import { notesApi } from '@/lib/api';
 import type { Note } from '@/lib/api/types';
 import { getTranslatedNote } from '@/lib/utils/translation';
 import { useFolders } from '@/lib/hooks/useFolders';
+import { ShareLinkModal } from '@/components/notes';
 
 export default function NotesHome() {
   const { theme } = useTheme()
@@ -44,6 +45,8 @@ export default function NotesHome() {
   const [selectedFilter, setSelectedFilter] = useState('All')
   const [isDevelopmentMode, setIsDevelopmentMode] = useState(false)
   const { folders, fetchFolders } = useFolders()
+  const [shareModalVisible, setShareModalVisible] = useState(false)
+  const [selectedNoteForShare, setSelectedNoteForShare] = useState<Note | null>(null)
 
   const newNoteOptions = [
     { id: 1, icon: 'mic', label: t('home.newNoteOptions.recordAudio') },
@@ -102,7 +105,7 @@ export default function NotesHome() {
     })
   }
 
-  // Filter notes based on search query
+  // Filter notes based on search query and selected filter
   const filteredNotes = notes.filter(note => {
     // Get translated content for search
     const { title, content } = getTranslatedNote(note);
@@ -110,9 +113,18 @@ export default function NotesHome() {
       title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       content.toLowerCase().includes(searchQuery.toLowerCase())
 
-    // Add filter logic here for Pinned, Shared, Folders, Archive when implemented
+    // Filter logic for different tabs
+    if (selectedFilter === 'Shared') {
+      return matchesSearch && note.isCloned === true;
+    }
+    // Add filter logic here for Pinned, Folders, Archive when implemented
     return matchesSearch
   })
+  
+  const handleShareNote = (note: Note) => {
+    setSelectedNoteForShare(note);
+    setShareModalVisible(true);
+  }
 
   const handleNotePress = (note: Note) => {
     // Navigate to note detail screen
@@ -277,24 +289,46 @@ export default function NotesHome() {
               filteredNotes.map((note) => {
                 const { title } = getTranslatedNote(note);
                 return (
-                  <Pressable
-                    key={note.id}
-                    style={styles.noteCard}
-                    onPress={() => handleNotePress(note)}
-                  >
-                    <View style={styles.noteLeftIcon}>
-                      <Feather name="file-text" size={20} color="#6B7280" />
-                    </View>
-                    <View style={styles.noteBody}>
-                      <Text numberOfLines={2} style={styles.noteTitle}>
-                        {title}
-                      </Text>
-                      <Text style={styles.noteDate}>
-                        {formatDate(note.createdAt)}
-                      </Text>
-                    </View>
-                    <Feather name="chevron-right" size={20} color="#9CA3AF" />
-                  </Pressable>
+                  <View key={note.id} style={styles.noteCardContainer}>
+                    <Pressable
+                      style={styles.noteCard}
+                      onPress={() => handleNotePress(note)}
+                    >
+                      <View style={styles.noteLeftIcon}>
+                        <Feather name="file-text" size={20} color="#6B7280" />
+                      </View>
+                      <View style={styles.noteBody}>
+                        <Text numberOfLines={2} style={styles.noteTitle}>
+                          {title}
+                        </Text>
+                        <View style={styles.noteFooter}>
+                          <Text style={styles.noteDate}>
+                            {formatDate(note.createdAt)}
+                          </Text>
+                          {note.isCloned && (
+                            <View style={styles.sharedBadge}>
+                              <Feather name="users" size={10} color="#7C3AED" />
+                              <Text style={styles.sharedBadgeText}>
+                                {t('share.sharedWithMe')}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                      <View style={styles.noteActions}>
+                        <TouchableOpacity
+                          style={styles.shareButton}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            handleShareNote(note);
+                          }}
+                        >
+                          <Feather name="share-2" size={16} color="#7C3AED" />
+                        </TouchableOpacity>
+                        <Feather name="chevron-right" size={20} color="#9CA3AF" />
+                      </View>
+                    </Pressable>
+                  </View>
                 );
               })
             )}
@@ -386,6 +420,19 @@ export default function NotesHome() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* Share Link Modal */}
+      {selectedNoteForShare && (
+        <ShareLinkModal
+          visible={shareModalVisible}
+          onClose={() => {
+            setShareModalVisible(false);
+            setSelectedNoteForShare(null);
+          }}
+          noteId={selectedNoteForShare.id}
+          noteTitle={selectedNoteForShare.title}
+        />
+      )}
     </>
   )
 }
@@ -532,6 +579,40 @@ const styles = StyleSheet.create({
   noteDate: {
     color: '#6B7280',
     fontSize: 13,
+  },
+  noteCardContainer: {
+    marginTop: 2,
+    marginBottom: 10,
+    marginHorizontal: 1,
+  },
+  noteFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sharedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F3E8FF',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  sharedBadgeText: {
+    color: '#7C3AED',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  noteActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  shareButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
   },
   fabGradient: {
     position: 'absolute',
