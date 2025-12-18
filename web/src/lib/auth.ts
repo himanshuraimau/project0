@@ -31,9 +31,6 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:8081", // Expo dev server
     "mobile://", // Mobile app scheme
-    "exp://192.168.1.6:8081", // Expo local network (old)
-    "exp://192.168.1.8:8081", // Expo local network (current)
-    "exp://192.168.1.6:8081", // Match any local network IP for Expo
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   ],
 
