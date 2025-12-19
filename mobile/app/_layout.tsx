@@ -11,8 +11,6 @@ import { View, ActivityIndicator, Text, Platform } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { initI18n } from '@/lib/i18n/i18n'
 import * as NavigationBar from 'expo-navigation-bar'
-import { TamaguiProvider } from 'tamagui'
-import config from '../tamagui.config'
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync()
@@ -74,18 +72,16 @@ function ThemedRoot() {
 
 export default function RootLayout() {
   return (
-    <TamaguiProvider config={config}>
-      <AuthTokenProvider>
-        <SubscriptionProvider>
-          <ThemeProvider>
-            <AlertProvider>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <ThemedRoot />
-              </GestureHandlerRootView>
-            </AlertProvider>
-          </ThemeProvider>
-        </SubscriptionProvider>
-      </AuthTokenProvider>
-    </TamaguiProvider>
+    <AuthTokenProvider>
+      <SubscriptionProvider>
+        <ThemeProvider>
+          <AlertProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <ThemedRoot />
+            </GestureHandlerRootView>
+          </AlertProvider>
+        </ThemeProvider>
+      </SubscriptionProvider>
+    </AuthTokenProvider>
   )
 }

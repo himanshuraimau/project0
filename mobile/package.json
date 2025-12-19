@@ -20,7 +20,6 @@
     "@react-navigation/drawer": "^7.3.9",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
-    "@tamagui/config": "^1.141.5",
     "@tiptap/core": "^3.14.0",
     "@tiptap/pm": "^3.14.0",
     "axios": "^1.13.2",
@@ -73,12 +72,10 @@
     "react-native-vector-icons": "^10.3.0",
     "react-native-view-shot": "^4.0.3",
     "react-native-web": "^0.21.0",
-    "react-native-webview": "^13.16.0",
-    "tamagui": "^1.141.5"
+    "react-native-webview": "^13.16.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
-    "@tamagui/babel-plugin": "^1.141.5",
     "@types/react": "~19.1.10",
     "eas-cli": "^16.28.0",
     "eslint": "^9.25.0",
