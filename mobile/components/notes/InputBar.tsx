@@ -5,7 +5,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput as TextInputType,
+  Platform,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 
 interface InputBarProps {
@@ -35,6 +37,7 @@ export default function InputBar({
   const [isFocused, setIsFocused] = useState(false)
   const hasTriggeredLayoutFix = useRef(false)
   const inputRef = useRef<TextInputType>(null)
+  const insets = useSafeAreaInsets()
 
   // Check if input has non-whitespace content (Requirements 4.4, 4.5, 4.6, 4.7)
   const hasContent = value.trim().length > 0
@@ -75,7 +78,10 @@ export default function InputBar({
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[
+      styles.container,
+      { paddingBottom: Math.max(insets.bottom, 8) }
+    ]}>
       <View
         style={[
           styles.inputContainer,
@@ -119,8 +125,9 @@ export default function InputBar({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingTop: 8,
     backgroundColor: '#FFFFFF',
+    minHeight: 60,
   },
   inputContainer: {
     flexDirection: 'row',

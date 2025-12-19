@@ -3,6 +3,8 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import ChatHeader from './ChatHeader'
@@ -156,26 +158,30 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
   }, [inputValue, isLoading, messages, noteId, addMessage, generateMessageId])
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* ChatHeader positioned outside KeyboardAvoidingView (Requirements 1.4) */}
       <ChatHeader />
 
       {/* KeyboardAvoidingView with behavior="padding" (Requirements 5.1, 5.2, 5.3, 5.4) */}
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
-        {/* ChatBody - scrollable message list */}
-        <ChatBody ref={chatBodyRef} messages={messages} />
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <>
+            {/* ChatBody - scrollable message list */}
+            <ChatBody ref={chatBodyRef} messages={messages} />
 
-        {/* InputBar - fixed at bottom, moves with keyboard */}
-        <InputBar
-          value={inputValue}
-          onChangeText={setInputValue}
-          onSend={handleSend}
-          placeholder="Ask anything…"
-        />
+            {/* InputBar - fixed at bottom, moves with keyboard */}
+            <InputBar
+              value={inputValue}
+              onChangeText={setInputValue}
+              onSend={handleSend}
+              placeholder="Ask anything…"
+            />
+          </>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
   )

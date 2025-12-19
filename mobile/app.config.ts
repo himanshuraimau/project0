@@ -25,7 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             backgroundColor: "#ffffff"
         },
         edgeToEdgeEnabled: true,
-        softwareKeyboardLayoutMode: "pan",
+        softwareKeyboardLayoutMode: "resize",
         permissions: [
             "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.WRITE_EXTERNAL_STORAGE",
