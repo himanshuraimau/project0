@@ -1,12 +1,8 @@
 import React, { useState, useRef } from 'react'
-import {
-  View,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  TextInput as TextInputType,
-} from 'react-native'
+import { TextInput as RNTextInput } from 'react-native'
+import { styled, YStack, XStack, Input } from 'tamagui'
 import { Feather } from '@expo/vector-icons'
+import { Pressable } from 'react-native'
 
 interface InputBarProps {
   value: string
@@ -14,6 +10,51 @@ interface InputBarProps {
   onSend: () => void
   placeholder?: string
 }
+
+// Styled components for input bar
+const Container = styled(YStack, {
+  paddingHorizontal: '$4',
+  paddingVertical: 6,
+  backgroundColor: '$background',
+})
+
+const InputContainer = styled(XStack, {
+  alignItems: 'center',
+  height: 44,
+  borderRadius: 22,
+  backgroundColor: '$background',
+  paddingHorizontal: '$4',
+  variants: {
+    focused: {
+      true: {
+        borderWidth: 1.5,
+        borderColor: '$borderFocus',
+      },
+      false: {
+        borderWidth: 1,
+        borderColor: '$borderDark',
+      },
+    },
+  } as const,
+})
+
+const StyledInput = styled(Input, {
+  flex: 1,
+  fontSize: 16,
+  color: '$text',
+  paddingVertical: 0,
+  borderWidth: 0,
+  backgroundColor: 'transparent',
+  outlineWidth: 0,
+})
+
+const SendButton = styled(Pressable, {
+  width: 36,
+  height: 36,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginLeft: 8,
+})
 
 /**
  * InputBar component - Bottom input component with send button
@@ -34,23 +75,21 @@ export default function InputBar({
 }: InputBarProps) {
   const [isFocused, setIsFocused] = useState(false)
   const hasTriggeredLayoutFix = useRef(false)
-  const inputRef = useRef<TextInputType>(null)
+  const inputRef = useRef<RNTextInput>(null)
 
-  // Check if input has non-whitespace content (Requirements 4.4, 4.5, 4.6, 4.7)
+  // Check if input has non-whitespace content
   const hasContent = value.trim().length > 0
 
-  // Send button opacity: 0.5 when empty, 1.0 when has content (Requirements 4.4, 4.5)
+  // Send button opacity: 0.5 when empty, 1.0 when has content
   const sendButtonOpacity = hasContent ? 1.0 : 0.5
 
-  // Handle focus state (Requirements 4.2, 4.3)
+  // Handle focus state
   const handleFocus = () => {
     setIsFocused(true)
     
     // Workaround: Trigger a dummy input interaction on first focus
-    // to force the keyboard layout to adjust correctly immediately
     if (!hasTriggeredLayoutFix.current) {
       hasTriggeredLayoutFix.current = true
-      // Simulate a space input and immediately remove it to trigger layout recalculation
       setTimeout(() => {
         if (value === '') {
           onChangeText(' ')
@@ -66,25 +105,18 @@ export default function InputBar({
     setIsFocused(false)
   }
 
-  // Handle send action (Requirements 4.6, 4.7)
+  // Handle send action
   const handleSend = () => {
     if (hasContent) {
       onSend()
     }
-    // Do nothing when input is empty or whitespace-only (Requirement 4.7)
   }
 
   return (
-    <View style={styles.container}>
-      <View
-        style={[
-          styles.inputContainer,
-          isFocused ? styles.inputContainerFocused : styles.inputContainerUnfocused,
-        ]}
-      >
-        <TextInput
+    <Container>
+      <InputContainer focused={isFocused}>
+        <StyledInput
           ref={inputRef}
-          style={styles.input}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -97,9 +129,9 @@ export default function InputBar({
           accessibilityLabel="Message input field, Ask anything"
           accessibilityRole="none"
         />
-        <TouchableOpacity
+        <SendButton
           onPress={handleSend}
-          style={[styles.sendButton, { opacity: sendButtonOpacity }]}
+          style={{ opacity: sendButtonOpacity }}
           accessibilityLabel="Send message, button"
           accessibilityRole="button"
           disabled={!hasContent}
@@ -109,48 +141,8 @@ export default function InputBar({
             size={20}
             color={hasContent ? '#7A2EFF' : '#A0A0A0'}
           />
-        </TouchableOpacity>
-      </View>
-    </View>
+        </SendButton>
+      </InputContainer>
+    </Container>
   )
 }
-
-
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    backgroundColor: '#FFFFFF',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-  },
-  // Unfocused border state (Requirement 4.2)
-  inputContainerUnfocused: {
-    borderWidth: 1,
-    borderColor: '#333333',
-  },
-  // Focused border state (Requirement 4.3)
-  inputContainerFocused: {
-    borderWidth: 1.5,
-    borderColor: '#000000',
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000000',
-    paddingVertical: 0, // Remove default padding
-  },
-  sendButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-})

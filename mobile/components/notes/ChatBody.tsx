@@ -7,11 +7,10 @@ import React, {
   useCallback,
 } from 'react'
 import {
-  ScrollView,
-  StyleSheet,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native'
+import { ScrollView, YStack } from 'tamagui'
 import MessageBubble, { ChatMessage } from './MessageBubble'
 
 interface ChatBodyProps {
@@ -37,7 +36,7 @@ export interface ChatBodyRef {
  */
 const ChatBody = forwardRef<ChatBodyRef, ChatBodyProps>(
   ({ messages }, ref) => {
-    const scrollViewRef = useRef<ScrollView>(null)
+    const scrollViewRef = useRef<any>(null)
     const [isAtBottom, setIsAtBottom] = useState(true)
     const prevMessagesLengthRef = useRef(messages.length)
 
@@ -49,17 +48,15 @@ const ChatBody = forwardRef<ChatBodyRef, ChatBodyProps>(
     }))
 
     // Sort messages by timestamp in ascending order (oldest first, newest last)
-    // Requirements: 3.1
     const sortedMessages = [...messages].sort(
       (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     )
 
     // Track scroll position to detect if user is at bottom (within 50px threshold)
-    // Requirements: 3.3, 3.4
     const handleScroll = useCallback(
       (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent
-        const paddingToBottom = 50 // 50px threshold
+        const paddingToBottom = 50
         const isNearBottom =
           layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom
         setIsAtBottom(isNearBottom)
@@ -68,14 +65,11 @@ const ChatBody = forwardRef<ChatBodyRef, ChatBodyProps>(
     )
 
     // Auto-scroll to bottom when new message is added (if user was at bottom)
-    // Requirements: 3.3, 3.4
     useEffect(() => {
       const currentLength = messages.length
       const prevLength = prevMessagesLengthRef.current
 
-      // Only auto-scroll if a new message was added and user was at bottom
       if (currentLength > prevLength && isAtBottom) {
-        // Small delay to ensure content is rendered
         setTimeout(() => {
           scrollViewRef.current?.scrollToEnd({ animated: true })
         }, 100)
@@ -87,31 +81,22 @@ const ChatBody = forwardRef<ChatBodyRef, ChatBodyProps>(
     return (
       <ScrollView
         ref={scrollViewRef}
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
+        flex={1}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
       >
-        {sortedMessages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
-        ))}
+        <YStack paddingHorizontal="$4" paddingVertical={8}>
+          {sortedMessages.map((message) => (
+            <MessageBubble key={message.id} message={message} />
+          ))}
+        </YStack>
       </ScrollView>
     )
   }
 )
 
 ChatBody.displayName = 'ChatBody'
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingHorizontal: 16, // 16px horizontal padding (Requirements 3.1)
-    paddingVertical: 8,
-  },
-})
 
 export default ChatBody

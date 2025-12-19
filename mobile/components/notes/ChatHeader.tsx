@@ -1,13 +1,48 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { styled, XStack, YStack, Text } from 'tamagui'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import { Pressable } from 'react-native'
 
 interface ChatHeaderProps {
   onBackPress?: () => void
   title?: string
 }
+
+// Styled components for header
+const HeaderContainer = styled(XStack, {
+  height: 68,
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: '$4',
+  backgroundColor: '$background',
+  borderBottomWidth: 1,
+  borderBottomColor: '$border',
+})
+
+const BackButtonWrapper = styled(Pressable, {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  borderWidth: 1,
+  borderColor: '$buttonBorder',
+  backgroundColor: '$background',
+  justifyContent: 'center',
+  alignItems: 'center',
+})
+
+const HeaderTitle = styled(Text, {
+  fontSize: 19,
+  fontWeight: '600',
+  color: '$text',
+  textAlign: 'center',
+})
+
+const Spacer = styled(YStack, {
+  width: 40,
+  height: 40,
+})
 
 /**
  * ChatHeader component - Static header for the chat interface
@@ -30,60 +65,20 @@ export default function ChatHeader({
   }
 
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <View style={styles.header}>
-        {/* Back Button - Circular with border and left-arrow icon */}
-        <TouchableOpacity
+    <SafeAreaView edges={['top']} style={{ backgroundColor: '#FFFFFF' }}>
+      <HeaderContainer>
+        <BackButtonWrapper
           onPress={handleBackPress}
-          style={styles.backButton}
           accessibilityLabel="Back, button"
           accessibilityRole="button"
         >
           <Feather name="arrow-left" size={20} color="#000000" />
-        </TouchableOpacity>
+        </BackButtonWrapper>
 
-        {/* Centered Title */}
-        <Text style={styles.title}>{title}</Text>
+        <HeaderTitle>{title}</HeaderTitle>
 
-        {/* Spacer to balance the header layout */}
-        <View style={styles.spacer} />
-      </View>
+        <Spacer />
+      </HeaderContainer>
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    height: 68, // 64-72px range, using 68px as middle value
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EAEAEA',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20, // Circular
-    borderWidth: 1,
-    borderColor: '#D0D0D0',
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 19, // 18-20px range, using 19px as middle value
-    fontWeight: '600', // semibold
-    color: '#000000',
-    textAlign: 'center',
-  },
-  spacer: {
-    width: 40, // Same width as back button to center the title
-    height: 40,
-  },
-})

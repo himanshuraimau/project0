@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import {
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native'
+import { KeyboardAvoidingView, Platform } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { YStack } from 'tamagui'
 import ChatHeader from './ChatHeader'
 import ChatBody, { ChatBodyRef } from './ChatBody'
 import InputBar from './InputBar'
@@ -33,7 +30,7 @@ interface ChatbotViewProps {
  * Requirements: 1.4, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3
  */
 export default function ChatbotView({ noteId }: ChatbotViewProps) {
-  // Message state array (Requirements 6.1, 6.2, 6.3)
+  // Message state array
   const [messages, setMessages] = useState<ChatMessage[]>([])
   // Input state for the InputBar
   const [inputValue, setInputValue] = useState('')
@@ -42,7 +39,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
   // Ref for ChatBody scroll control
   const chatBodyRef = useRef<ChatBodyRef>(null)
 
-  // Load chat history from AsyncStorage on mount (Requirements 6.1, 6.2)
+  // Load chat history from AsyncStorage on mount
   useEffect(() => {
     const loadHistory = async () => {
       try {
@@ -52,7 +49,6 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
         }
       } catch (error) {
         console.error('Failed to load chat history:', error)
-        // Graceful degradation - continue without history
       }
     }
     loadHistory()
@@ -60,7 +56,6 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
 
   /**
    * Add a message to the messages array (optimistic update)
-   * Requirements: 6.3
    */
   const addMessage = useCallback((message: ChatMessage) => {
     setMessages((prev) => [...prev, message])
@@ -75,11 +70,6 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
 
   /**
    * Handle sending a message
-   * - Display user message immediately (optimistic update)
-   * - Call chatWithNote API
-   * - Add bot response on success
-   * - Handle errors gracefully
-   * Requirements: 4.6, 6.1, 6.2, 6.3
    */
   const handleSend = useCallback(async () => {
     const trimmedInput = inputValue.trim()
@@ -93,19 +83,18 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
       timestamp: new Date(),
     }
 
-    // Optimistic update - display user message immediately (Requirements 6.3)
+    // Optimistic update - display user message immediately
     addMessage(userMessage)
 
     // Clear input immediately
     setInputValue('')
 
-    // Save messages with user message to storage (Requirements 6.1)
+    // Save messages with user message to storage
     const updatedMessagesWithUser = [...messages, userMessage]
     try {
       await saveChatHistory(noteId, updatedMessagesWithUser)
     } catch (error) {
       console.error('Failed to save user message:', error)
-      // Continue even if save fails (graceful degradation)
     }
 
     // Call API for bot response
@@ -124,16 +113,15 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
       // Add bot response to messages
       addMessage(botMessage)
 
-      // Save messages with bot response to storage (Requirements 6.1)
+      // Save messages with bot response to storage
       const updatedMessagesWithBot = [...updatedMessagesWithUser, botMessage]
       try {
         await saveChatHistory(noteId, updatedMessagesWithBot)
       } catch (error) {
         console.error('Failed to save bot message:', error)
-        // Continue even if save fails (graceful degradation)
       }
     } catch (error) {
-      // Handle API errors gracefully - show error as bot message
+      // Handle API errors gracefully
       console.error('Chat API error:', error)
       const errorMessage: ChatMessage = {
         id: generateMessageId(),
@@ -156,37 +144,29 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
   }, [inputValue, isLoading, messages, noteId, addMessage, generateMessageId])
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      {/* ChatHeader positioned outside KeyboardAvoidingView (Requirements 1.4) */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['bottom']}>
+      {/* ChatHeader positioned outside KeyboardAvoidingView */}
       <ChatHeader />
 
-      {/* KeyboardAvoidingView with behavior="padding" (Requirements 5.1, 5.2, 5.3, 5.4) */}
+      {/* KeyboardAvoidingView with behavior="padding" */}
       <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
-        {/* ChatBody - scrollable message list */}
-        <ChatBody ref={chatBodyRef} messages={messages} />
+        <YStack flex={1}>
+          {/* ChatBody - scrollable message list */}
+          <ChatBody ref={chatBodyRef} messages={messages} />
 
-        {/* InputBar - fixed at bottom, moves with keyboard */}
-        <InputBar
-          value={inputValue}
-          onChangeText={setInputValue}
-          onSend={handleSend}
-          placeholder="Ask anything…"
-        />
+          {/* InputBar - fixed at bottom, moves with keyboard */}
+          <InputBar
+            value={inputValue}
+            onChangeText={setInputValue}
+            onSend={handleSend}
+            placeholder="Ask anything…"
+          />
+        </YStack>
       </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-})
