@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { styled, YStack, Text } from 'tamagui'
 
 /**
  * ChatMessage interface representing a single message in the chat
@@ -15,6 +15,50 @@ interface MessageBubbleProps {
   message: ChatMessage
 }
 
+// Styled components for message bubbles using Tamagui
+const MessageContainer = styled(YStack, {
+  width: '100%',
+  marginVertical: 5,
+  variants: {
+    align: {
+      left: {
+        alignItems: 'flex-start',
+      },
+      right: {
+        alignItems: 'flex-end',
+      },
+    },
+  } as const,
+})
+
+const BotBubble = styled(YStack, {
+  backgroundColor: '$botBubble',
+  borderRadius: 19,
+  maxWidth: '77%',
+  paddingVertical: 12,
+  paddingHorizontal: 14,
+})
+
+const UserBubble = styled(YStack, {
+  backgroundColor: '$userBubble',
+  borderRadius: 21,
+  maxWidth: '65%',
+  paddingVertical: 12,
+  paddingHorizontal: 14,
+})
+
+const BotText = styled(Text, {
+  color: '$textDark',
+  fontSize: 15.5,
+  lineHeight: 23.25,
+})
+
+const UserText = styled(Text, {
+  color: '#FFFFFF',
+  fontSize: 15.5,
+  lineHeight: 21.7,
+})
+
 /**
  * MessageBubble component - Displays a single chat message with sender-specific styling
  * 
@@ -27,80 +71,22 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.isUser
 
   // Accessibility label based on sender type
-  // Requirements 7.2, 7.3
   const accessibilityLabel = isUser
     ? `You said, ${message.text}`
     : `Bot says, ${message.text}`
 
+  const Bubble = isUser ? UserBubble : BotBubble
+  const MessageText = isUser ? UserText : BotText
+
   return (
-    <View
-      style={[
-        styles.container,
-        isUser ? styles.userContainer : styles.botContainer,
-      ]}
-    >
-      <View
-        style={[
-          styles.bubble,
-          isUser ? styles.userBubble : styles.botBubble,
-        ]}
+    <MessageContainer align={isUser ? 'right' : 'left'}>
+      <Bubble
         accessible={true}
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="text"
       >
-        <Text
-          style={[
-            styles.text,
-            isUser ? styles.userText : styles.botText,
-          ]}
-        >
-          {message.text}
-        </Text>
-      </View>
-    </View>
+        <MessageText>{message.text}</MessageText>
+      </Bubble>
+    </MessageContainer>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    marginVertical: 5, // 10-12px gap between messages (5px top + 5px bottom = 10px)
-  },
-  // Bot message container - left aligned (Requirements 2.1)
-  botContainer: {
-    alignItems: 'flex-start',
-  },
-  // User message container - right aligned (Requirements 2.2)
-  userContainer: {
-    alignItems: 'flex-end',
-  },
-  bubble: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-  },
-  // Bot bubble styling (Requirements 2.1)
-  botBubble: {
-    backgroundColor: '#F2F2F2',
-    borderRadius: 19, // 18-20px range
-    maxWidth: '77%', // 75-80% range
-  },
-  // User bubble styling (Requirements 2.2)
-  userBubble: {
-    backgroundColor: '#7A2EFF',
-    borderRadius: 21, // 20-22px range
-    maxWidth: '65%', // 60-70% range
-  },
-  text: {
-    fontSize: 15.5, // 15-16px range
-  },
-  // Bot text styling (Requirements 2.1, 2.4)
-  botText: {
-    color: '#222222',
-    lineHeight: 23.25, // 15.5 * 1.5 = 23.25
-  },
-  // User text styling (Requirements 2.2, 2.4)
-  userText: {
-    color: '#FFFFFF',
-    lineHeight: 21.7, // 15.5 * 1.4 = 21.7
-  },
-})
