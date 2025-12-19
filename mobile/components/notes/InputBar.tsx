@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import {
   View,
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  TextInput as TextInputType,
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 
@@ -32,6 +33,8 @@ export default function InputBar({
   placeholder = 'Ask anything…',
 }: InputBarProps) {
   const [isFocused, setIsFocused] = useState(false)
+  const hasTriggeredLayoutFix = useRef(false)
+  const inputRef = useRef<TextInputType>(null)
 
   // Check if input has non-whitespace content (Requirements 4.4, 4.5, 4.6, 4.7)
   const hasContent = value.trim().length > 0
@@ -42,6 +45,21 @@ export default function InputBar({
   // Handle focus state (Requirements 4.2, 4.3)
   const handleFocus = () => {
     setIsFocused(true)
+    
+    // Workaround: Trigger a dummy input interaction on first focus
+    // to force the keyboard layout to adjust correctly immediately
+    if (!hasTriggeredLayoutFix.current) {
+      hasTriggeredLayoutFix.current = true
+      // Simulate a space input and immediately remove it to trigger layout recalculation
+      setTimeout(() => {
+        if (value === '') {
+          onChangeText(' ')
+          setTimeout(() => {
+            onChangeText('')
+          }, 0)
+        }
+      }, 50)
+    }
   }
 
   const handleBlur = () => {
@@ -65,6 +83,7 @@ export default function InputBar({
         ]}
       >
         <TextInput
+          ref={inputRef}
           style={styles.input}
           value={value}
           onChangeText={onChangeText}
@@ -100,14 +119,14 @@ export default function InputBar({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 6,
     backgroundColor: '#FFFFFF',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 50, // 48-52px range, using 50px as middle value
-    borderRadius: 25, // 24-26px range, using 25px as middle value (pill-shaped)
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
   },
