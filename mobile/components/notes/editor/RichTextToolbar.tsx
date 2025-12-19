@@ -200,20 +200,21 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
+    gap: 4,
   },
 
   /**
    * Toolbar button
    * - 44×44px touch target (Requirement 8.7)
-   * - 12px spacing between buttons (Requirement 8.7)
+   * - Proper spacing between buttons
    */
   toolbarButton: {
     width: LAYOUT.touchTargetSize,
     height: LAYOUT.touchTargetSize,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: LAYOUT.buttonSpacing / 2,
+    marginHorizontal: 2,
   },
 
   /**
@@ -223,6 +224,6 @@ const styles = StyleSheet.create({
     width: 1,
     height: 24,
     backgroundColor: COLORS.dividerGray,
-    marginHorizontal: 8,
+    marginHorizontal: 12,
   },
 });
