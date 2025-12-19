@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   View,
   TextInput,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TextInput as TextInputType,
   Platform,
+  Keyboard,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
@@ -35,9 +36,28 @@ export default function InputBar({
   placeholder = 'Ask anything…',
 }: InputBarProps) {
   const [isFocused, setIsFocused] = useState(false)
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
   const hasTriggeredLayoutFix = useRef(false)
   const inputRef = useRef<TextInputType>(null)
   const insets = useSafeAreaInsets()
+
+  // Track keyboard visibility to adjust bottom padding
+  useEffect(() => {
+    const keyboardShowEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
+    const keyboardHideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
+
+    const showSubscription = Keyboard.addListener(keyboardShowEvent, () => {
+      setIsKeyboardVisible(true)
+    })
+    const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
+      setIsKeyboardVisible(false)
+    })
+
+    return () => {
+      showSubscription.remove()
+      hideSubscription.remove()
+    }
+  }, [])
 
   // Check if input has non-whitespace content (Requirements 4.4, 4.5, 4.6, 4.7)
   const hasContent = value.trim().length > 0
@@ -80,7 +100,7 @@ export default function InputBar({
   return (
     <View style={[
       styles.container,
-      { paddingBottom: Math.max(insets.bottom, 8) }
+      { paddingBottom: isKeyboardVisible ? 8 : Math.max(insets.bottom, 8) }
     ]}>
       <View
         style={[
