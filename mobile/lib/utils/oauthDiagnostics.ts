@@ -23,7 +23,7 @@ export const logOAuthDiagnostics = () => {
   
   if (__DEV__ && !currentRedirectUrl.startsWith('exp://')) {
     console.warn('⚠️ Dev redirect URL format unexpected:', currentRedirectUrl)
-  } else if (!__DEV__ && !currentRedirectUrl.startsWith('mobile://')) {
+  } else if (!__DEV__ && !currentRedirectUrl.startsWith('jellinote://')) {
     console.warn('⚠️ Prod redirect URL format may be incorrect:', currentRedirectUrl)
   } else {
     console.log('✅ Redirect URL format is correct for current environment')

@@ -6,7 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     slug: "jellinote-ai",
     version: "1.0.0",
     orientation: "portrait",
-    scheme: "mobile",
+    scheme: "jellinote",
     icon: "./assets/images/main-logo.png",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,

@@ -187,8 +187,8 @@ export default function PaywallScreen() {
                 planId: selectedPlan,
                 customerEmail: userEmail,
                 customerName: userName,
-                successUrl: 'mobile://payment-status?status=success',
-                cancelUrl: 'mobile://payment-status?status=canceled',
+                successUrl: 'jellinote://payment-status?status=success',
+                cancelUrl: 'jellinote://payment-status?status=canceled',
                 billingInterval,
             });
 

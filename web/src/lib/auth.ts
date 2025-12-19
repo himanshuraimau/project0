@@ -30,9 +30,11 @@ export const auth = betterAuth({
   // Trust requests from mobile app
   trustedOrigins: [
     "http://localhost:8081", // Expo dev server
-    "mobile://", // Mobile app scheme
+    "jellinote://", // Mobile app scheme
+    "exp://", // Expo Go scheme
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-  ],
+    process.env.BETTER_AUTH_URL || "",
+  ].filter(Boolean),
 
   // Enable the nextCookies plugin for server actions
   plugins: [
