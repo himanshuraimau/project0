@@ -47,7 +47,7 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
   const { showAlert } = useAlert();
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [link, setLink] = useState('');
-  const [folder, setFolder] = useState('all_notes');
+  const [folder, setFolder] = useState('');  // Empty string = no folder (uncategorized)
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<'extracting' | 'generating' | null>(null);
 
@@ -183,7 +183,6 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
         <FolderSelect
           value={folder}
           onValueChange={(val: string) => setFolder(val)}
-          options={[{ label: 'All notes', value: 'all_notes' }]}
           style={{ marginTop: 10 }}
         />
 

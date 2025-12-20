@@ -54,7 +54,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [titleValue, setTitleValue] = useState('');
   const [textValue, setTextValue] = useState('');
-  const [folder, setFolder] = useState('all_notes');
+  const [folder, setFolder] = useState('');  // Empty string = no folder (uncategorized)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedPDFs, setSelectedPDFs] = useState<DocumentPicker.DocumentPickerAsset[]>([]);
@@ -142,7 +142,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
               // Clear form
               setTitleValue('');
               setTextValue('');
-              setFolder('all_notes');
+              setFolder('');  // Reset to no folder
               setSelectedPDFs([]);
 
               // Call refresh callback
@@ -228,7 +228,6 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
         <FolderSelect
           value={folder}
           onValueChange={(val: string) => setFolder(val)}
-          options={[{ label: 'All notes', value: 'all_notes' }]}
         />
 
         {selectedPDFs.length > 0 && (

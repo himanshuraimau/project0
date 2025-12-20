@@ -48,7 +48,7 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
   const { showAlert } = useAlert();
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [language, setLanguage] = useState('english');
-  const [folder, setFolder] = useState('all_notes');
+  const [folder, setFolder] = useState('');  // Empty string = no folder (uncategorized)
   const [selectedFile, setSelectedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<'transcribing' | 'generating' | null>(null);
@@ -200,7 +200,6 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
         <FolderSelect
           value={folder}
           onValueChange={(val: string) => setFolder(val)}
-          options={[{ label: 'All notes', value: 'all_notes' }]}
         />
 
         <GenerateNote

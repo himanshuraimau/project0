@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { ChevronDown } from 'lucide-react-native';
+import { useFolders } from '@/lib/hooks/useFolders';
 
 type FolderOption = {
   label: string;
@@ -11,7 +12,6 @@ type FolderOption = {
 type FolderSelectProps = {
   value: string;
   onValueChange: (value: string) => void;
-  options?: FolderOption[];
   style?: any;
   disabled?: boolean;
   placeholder?: { label?: string; value?: string | null };
@@ -20,24 +20,49 @@ type FolderSelectProps = {
 const FolderSelect: React.FC<FolderSelectProps> = ({
   value,
   onValueChange,
-  options = [{ label: 'All notes', value: 'all_notes' }],
   style,
   disabled = false,
-  placeholder = {},
+  placeholder = { label: 'Select folder...', value: null },
 }) => {
+  const { folders, loading, fetchFolders } = useFolders();
+  const [options, setOptions] = useState<FolderOption[]>([]);
+
+  useEffect(() => {
+    fetchFolders();
+  }, []);
+
+  useEffect(() => {
+    // Build options from fetched folders
+    const folderOptions: FolderOption[] = [
+      { label: 'No folder (Uncategorized)', value: '' },
+      ...folders.map(folder => ({
+        label: folder.name,
+        value: folder.id,
+      })),
+    ];
+    setOptions(folderOptions);
+  }, [folders]);
+
   return (
     <View style={[styles.pickerWrap, style]}>
       <Text style={styles.label}>Folder</Text>
-      <RNPickerSelect
-        onValueChange={onValueChange}
-        items={options}
-        value={value}
-        style={pickerStyles}
-        useNativeAndroidPickerStyle={false}
-        placeholder={placeholder}
-        disabled={disabled}
-        Icon={() => <ChevronDown size={18} color="#6b6b6b" />}
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color="#7C3AED" />
+          <Text style={styles.loadingText}>Loading folders...</Text>
+        </View>
+      ) : (
+        <RNPickerSelect
+          onValueChange={onValueChange}
+          items={options}
+          value={value}
+          style={pickerStyles}
+          useNativeAndroidPickerStyle={false}
+          placeholder={placeholder}
+          disabled={disabled}
+          Icon={() => <ChevronDown size={18} color="#6b6b6b" />}
+        />
+      )}
     </View>
   );
 };
@@ -55,6 +80,23 @@ const styles = StyleSheet.create({
     lineHeight: 32,
     color: '#364153',
     marginBottom: 6,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 10,
+    borderWidth: 1.26,
+    borderColor: '#D4D4D4',
+    height: 53,
+  },
+  loadingText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#6B7280',
   },
 });
 

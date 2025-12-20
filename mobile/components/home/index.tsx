@@ -122,18 +122,22 @@ export default function NotesHome() {
 
     // Filter logic for different tabs
     if (selectedFilter === 'Shared') {
+      // Only show notes that were shared with the user (cloned notes)
       return matchesSearch && note.isCloned === true;
     }
     if (selectedFilter === 'Pinned') {
-      // TODO: Implement when backend adds isPinned field
-      return matchesSearch; // For now, show all
+      // TODO: Backend needs to add isPinned field to Note model
+      // For now, return empty to avoid confusion
+      return false;
     }
     if (selectedFilter === 'Archive') {
-      // TODO: Implement when backend adds isArchived field  
-      return matchesSearch; // For now, show all
+      // TODO: Backend needs to add isArchived field to Note model
+      // For now, return empty to avoid confusion
+      return false;
     }
-    // 'All' filter - show all non-archived notes
-    return matchesSearch; // TODO: Add && !note.isArchived when backend ready
+    // 'All' filter - show all notes (excluding archived when field is added)
+    // TODO: Add && !note.isArchived when backend adds the field
+    return matchesSearch;
   })
 
   const handleShareNote = (note: Note) => {
@@ -847,13 +851,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   foldersSection: {
-    marginBottom: 16,
+    marginBottom: 24,
   },
   foldersSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
     marginBottom: 12,
   },
   foldersSectionTitle: {
@@ -867,7 +870,7 @@ const styles = StyleSheet.create({
     color: '#7C3AED',
   },
   foldersScroll: {
-    paddingHorizontal: 20,
+    paddingRight: 20,
     gap: 12,
   },
   folderItem: {

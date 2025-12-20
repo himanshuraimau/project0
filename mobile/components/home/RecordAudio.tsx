@@ -65,7 +65,7 @@ const RecordAudio: React.FC<Props> = ({
     typeof visibleProp === "boolean" ? visibleProp : internalVisible;
   const [phase, setPhase] = useState<Phase>("initial");
   const [language, setLanguage] = useState("english");
-  const [folder, setFolder] = useState("all_notes");
+  const [folder, setFolder] = useState("");  // Empty string = no folder (uncategorized)
   const [seconds, setSeconds] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -416,7 +416,6 @@ const RecordAudio: React.FC<Props> = ({
         <FolderSelect
           value={folder}
           onValueChange={(val: string) => setFolder(val)}
-          options={[{ label: "All notes", value: "all_notes" }]}
           style={{ marginTop: 10 }}
         />
 
