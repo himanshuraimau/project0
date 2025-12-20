@@ -110,7 +110,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 16, // 16px horizontal padding (Requirements 3.1)
-    paddingVertical: 8,
   },
 })
 

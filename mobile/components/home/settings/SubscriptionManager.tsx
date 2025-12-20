@@ -2,13 +2,11 @@ import { useSubscription } from '@/lib/contexts/SubscriptionContext'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
-import React from 'react'
-import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React, { useEffect } from 'react'
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
 import BackButton from '@/components/ui/BackButton'
 
 export default function SubscriptionManager() {
-  const { t } = useTranslation()
   const router = useRouter()
   const {
     subscription,
@@ -18,6 +16,13 @@ export default function SubscriptionManager() {
     daysRemaining,
     isLoading
   } = useSubscription()
+
+  // Redirect to paywall if user doesn't have a subscription
+  useEffect(() => {
+    if (!isLoading && !hasAccess) {
+      router.replace('/(onboarding)/paywall/paywall5' as any)
+    }
+  }, [isLoading, hasAccess, router])
 
   if (isLoading) {
     return (
@@ -54,7 +59,7 @@ export default function SubscriptionManager() {
     return { name: 'Pro', price: '$19.99', interval: 'month' }
   }
 
-  // If user has an active subscription
+  // If user has an active subscription, show details
   if (hasAccess && subscription) {
     const planDetails = getPlanDetails()
 
@@ -223,7 +228,8 @@ export default function SubscriptionManager() {
     )
   }
 
-  // If user doesn't have a subscription - show upgrade options
+  // If user doesn't have a subscription, they'll be redirected by useEffect
+  // Show loading state while redirecting
   return (
     <LinearGradient
       colors={['#FFFFFF', '#FBF7FF', '#F3E8FF']}
@@ -232,81 +238,10 @@ export default function SubscriptionManager() {
       style={styles.container}
     >
       <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
-        <View style={styles.header}>
-          <BackButton iconColor="#374151" />
-          <Text style={styles.headerTitle}>Upgrade to Premium</Text>
-          <View style={{ width: 24 }} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#7C3AED" />
+          <Text style={styles.loadingText}>Redirecting...</Text>
         </View>
-
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {/* Hero Section */}
-          <View style={styles.heroSection}>
-            <View style={styles.iconCircle}>
-              <Feather name="star" size={32} color="#7C3AED" />
-            </View>
-            <Text style={styles.heroTitle}>Unlock All Features</Text>
-            <Text style={styles.heroSubtitle}>
-              Boost your productivity with premium access
-            </Text>
-          </View>
-
-          {/* Features */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Premium Features</Text>
-
-            {[
-              'Unlimited Audio Recording',
-              'Upload Audio & PDF Files',
-              'AI-Powered Note Generation',
-              'Flashcards & Quizzes',
-              'Multi-Language Support',
-              'Cloud Sync & Backup',
-            ].map((feature, index) => (
-              <View key={index} style={styles.featureRow}>
-                <Feather name="check" size={16} color="#7C3AED" />
-                <Text style={styles.featureText}>{feature}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Pricing */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Choose Your Plan</Text>
-
-            {/* Monthly Plan */}
-            <TouchableOpacity
-              style={styles.planOption}
-              onPress={() => router.push('/(onboarding)/paywall/paywall5' as any)}
-            >
-              <View style={styles.planInfo}>
-                <Text style={styles.planName}>Monthly</Text>
-                <Text style={styles.planDesc}>Perfect for trying out</Text>
-              </View>
-              <Text style={styles.planPrice}>$9.99<Text style={styles.planPeriod}>/mo</Text></Text>
-            </TouchableOpacity>
-
-            {/* Yearly Plan */}
-            <TouchableOpacity
-              style={[styles.planOption, styles.planOptionPopular]}
-              onPress={() => router.push('/(onboarding)/paywall/paywall5' as any)}
-            >
-              <View style={styles.popularBadge}>
-                <Text style={styles.popularText}>POPULAR</Text>
-              </View>
-              <View style={styles.planInfo}>
-                <Text style={styles.planName}>Yearly</Text>
-                <Text style={styles.planDesc}>Save 17% annually</Text>
-              </View>
-              <View style={styles.planPriceContainer}>
-                <Text style={styles.planPrice}>$99.99<Text style={styles.planPeriod}>/yr</Text></Text>
-                <View style={styles.savingsBadge}>
-                  <Text style={styles.savingsText}>Save $20</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
       </SafeAreaView>
     </LinearGradient>
   )
@@ -615,5 +550,24 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '600',
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  emptyStateText: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 22,
   },
 })
