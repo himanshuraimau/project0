@@ -274,11 +274,13 @@ export interface UpdateNoteRequest {
 
 export interface GenerateNoteRequest {
   transcriptId: string;
+  folderId?: string;
 }
 
 export interface GenerateNoteFromTextRequest {
   text: string;
   title: string;
+  folderId?: string;
 }
 
 export interface GenerateNoteFromTextResponse {
@@ -532,6 +534,7 @@ export interface UpdateDocumentRequest {
 // ==================== Webpage API ====================
 export interface ProcessWebpageRequest {
   url: string;
+  folderId?: string;
 }
 
 export interface ProcessWebpageResponse {

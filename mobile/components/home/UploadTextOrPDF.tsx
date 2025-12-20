@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
 import * as DocumentPicker from 'expo-document-picker';
-import GenerateNote from '@/components/ui/GenerateNote';
+import FullWidthButton from '@/components/ui/FullWidthButton';
 import FolderSelect from '@/components/ui/FolderSelect';
 import { useAlert } from '@/lib/contexts/AlertContext';
 
@@ -113,6 +113,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
       const response = await generateNoteFromText({
         title: title,
         text: text,
+        folderId: folder || undefined,
       });
 
       if (!response) {
@@ -255,24 +256,22 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
         )}
 
         <View style={styles.actionsColumn}>
-          <TouchableOpacity
-            style={[styles.importBtn, loading && styles.buttonDisabled]}
-            activeOpacity={0.85}
-            disabled={loading}
+          <FullWidthButton
             onPress={handleImportPDF}
-          >
-            <Icon name="file" size={30} color="#101828" />
-            <Text style={styles.importText}>Import PDF(s)</Text>
-          </TouchableOpacity>
+            disabled={loading}
+            buttonText="Import PDF(s)"
+            icon={<Icon name="file" size={20} color="#101828" style={{ marginRight: 8 }} />}
+            backgroundColor="#E6E6E6"
+            textColor="#101828"
+            style={{ marginTop: 0 }}
+          />
 
-          <GenerateNote
+          <FullWidthButton
             onPress={handleGenerateNote}
             disabled={false}
             loading={loading}
             loadingText="Creating..."
             buttonText="Generate Note"
-            style={styles.customGenerateBtn}
-            textStyle={styles.customGenerateText}
           />
         </View>
       </View>
@@ -406,47 +405,13 @@ const styles = StyleSheet.create({
     padding: 4,
     marginLeft: 8,
   },
-  actionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 18 },
-  actionsColumn: { flexDirection: 'column', marginTop: 18 },
-  importBtn: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 0,
-    gap: 11.99,
-    width: 300,
-    height: 51,
-    backgroundColor: '#E6E6E6',
-    borderRadius: 14,
-  },
-  importText: {
-    width: 126,
-    height: 29,
-    fontFamily: 'Arimo',
-    fontWeight: '700',
-    fontSize: 19,
-    lineHeight: 28,
-    color: '#101828',
-  },
-  generateBtn: {
-    flex: 1,
+  actionsColumn: { 
+    flexDirection: 'column', 
+    marginTop: 18,
+    paddingHorizontal: 24,
   },
   buttonDisabled: {
     opacity: 0.5,
-  },
-  customGenerateBtn: {
-    height: 56,
-    borderRadius: 15,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-  },
-  customGenerateText: {
-    fontFamily: 'Arimo',
-    fontSize: 19,
-    lineHeight: 28,
   },
 });
 

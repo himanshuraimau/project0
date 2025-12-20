@@ -84,7 +84,8 @@ export class NoteService {
    */
   async generateAINote(
     transcriptId: string,
-    userId?: string
+    userId?: string,
+    folderId?: string
   ): Promise<GeneratedNoteResult> {
     try {
 
@@ -331,6 +332,7 @@ Generate ONE perfect educational title (no quotes, no extra text, just the title
         content: result.text,
         transcriptId,
         userId,
+        folderId,
       });
 
       return note;
@@ -346,7 +348,8 @@ Generate ONE perfect educational title (no quotes, no extra text, just the title
   async generateFocusedNote(
     transcriptId: string,
     noteType: NoteType = "summary",
-    userId?: string
+    userId?: string,
+    folderId?: string
   ): Promise<GeneratedNoteResult> {
     try {
 
@@ -570,6 +573,7 @@ Generate ONE perfect title (no quotes, just the title):`,
         content: result.text,
         transcriptId,
         userId,
+        folderId,
       });
 
       return note;
@@ -595,6 +599,7 @@ Generate ONE perfect title (no quotes, just the title):`,
           content: data.content,
           transcriptId: data.transcriptId,
           userId: data.userId,
+          folderId: data.folderId,
         },
       });
 

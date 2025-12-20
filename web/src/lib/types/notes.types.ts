@@ -62,17 +62,20 @@ export interface NoteData {
   content: string;
   transcriptId: string;
   userId?: string;
+  folderId?: string;
 }
 
 export interface CreateNoteRequest {
   title: string;
   content: string;
   transcriptId: string;
+  folderId?: string;
 }
 
 export interface UpdateNoteRequest {
   title?: string;
   content?: string;
+  folderId?: string;
 }
 
 // Note generation types
@@ -81,11 +84,13 @@ export type NoteType = 'summary' | 'detailed' | 'action-items' | 'technical' | '
 export interface GenerateNoteRequest {
   transcriptId: string;
   noteType?: NoteType;
+  folderId?: string;
 }
 
 export interface GenerateNotesFromTextRequest {
   text: string;
   title?: string;
+  folderId?: string;
 }
 
 // PDF processing and note generation

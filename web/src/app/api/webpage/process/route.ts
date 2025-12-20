@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { url, generateNotes = true } = body;
+    const { url, generateNotes = true, folderId } = body;
 
     if (!url) {
       return NextResponse.json(
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     if (generateNotes && crawlResult.documentId) {
       try {
         console.log(`Generating AI notes for transcript: ${crawlResult.documentId}`);
-        noteResult = await noteService.generateAINote(crawlResult.documentId, userId);
+        noteResult = await noteService.generateAINote(crawlResult.documentId, userId, folderId || undefined);
         console.log(`Successfully generated AI notes: ${noteResult.id}`);
 
         // Increment user's notes count after successful note creation

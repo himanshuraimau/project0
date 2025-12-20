@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request);
     const body: GenerateNoteRequest = await request.json();
-    const { transcriptId } = body;
+    const { transcriptId, folderId } = body;
 
     if (!userId) {
       const errorResponse: ApiErrorResponse = {
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate AI note from the transcript
-    const note = await noteService.generateAINote(transcriptId, userId || undefined);
+    const note = await noteService.generateAINote(transcriptId, userId || undefined, folderId);
 
     // Increment user's notes count
     const { prisma } = await import('@/lib/prisma');

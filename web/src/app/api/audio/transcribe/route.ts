@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const audioFile = formData.get('audio') as File;
     const fileName = formData.get('fileName') as string || 'recorded-audio';
+    const folderId = formData.get('folderId') as string | null;
 
     if (!audioFile) {
       return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
@@ -144,7 +145,7 @@ export async function POST(req: NextRequest) {
     try {
       // Use the NoteService directly (same pattern as PDF and webpage processing)
       console.log('Generating notes using NoteService...');
-      noteResult = await noteService.generateAINote(transcriptRecord.id, userId);
+      noteResult = await noteService.generateAINote(transcriptRecord.id, userId, folderId || undefined);
       console.log('Notes generation completed successfully');
 
       // Increment user's notes count after successful note creation

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 401 });
     }
 
-    const { text, title }: GenerateNotesFromTextRequest = await request.json();
+    const { text, title, folderId }: GenerateNotesFromTextRequest = await request.json();
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {
       const errorResponse: ApiErrorResponse = {
@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
         content: aiNote.content,
         transcriptId: transcript.id,
         userId,
+        folderId,
       });
 
       // Increment user's notes count

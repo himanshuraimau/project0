@@ -15,7 +15,7 @@ import RNPickerSelect from "react-native-picker-select";
 import { Audio } from "expo-av";
 import { useNoteCreation } from "@/lib/hooks/useNoteCreation";
 import { Mic } from "lucide-react-native";
-import GenerateNote from "@/components/ui/GenerateNote";
+import FullWidthButton from "@/components/ui/FullWidthButton";
 import FolderSelect from "@/components/ui/FolderSelect";
 import { useAlert } from "@/lib/contexts/AlertContext";
 
@@ -315,6 +315,11 @@ const RecordAudio: React.FC<Props> = ({
         type: fileType,
         name: filename,
       } as any);
+      
+      // Add folderId if selected
+      if (folder) {
+        formData.append('folderId', folder);
+      }
 
       // Use hook for transcription
       const transcriptionResult = await transcribeAudio(formData);
@@ -339,6 +344,7 @@ const RecordAudio: React.FC<Props> = ({
         // Use hook for note generation
         note = await generateAINote({
           transcriptId: transcriptionResult.transcript.id,
+          folderId: folder || undefined,
         });
 
         if (!note) {
@@ -421,14 +427,16 @@ const RecordAudio: React.FC<Props> = ({
 
         <View style={styles.content}>
           {phase === "initial" && (
-            <TouchableOpacity
-              style={styles.recordButtonGradient}
-              onPress={startRecording}
-              activeOpacity={0.85}
-            >
-              <Mic size={24} color="#FFFFFF" style={{ borderRadius: 0 }} />
-              <Text style={styles.recordButtonText}>Start recording</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+              <FullWidthButton
+                onPress={startRecording}
+                buttonText="Start recording"
+                icon={<Mic size={20} color="#FFFFFF" style={{ marginRight: 8 }} />}
+                backgroundColor="#FF6467"
+                textColor="#FFFFFF"
+                style={{ marginTop: 0 }}
+              />
+            </View>
           )}
 
           {phase !== "initial" && (
@@ -468,19 +476,19 @@ const RecordAudio: React.FC<Props> = ({
             </>
           )}
 
-          <GenerateNote
-            onPress={handleGenerateNotes}
-            disabled={phase !== "recorded"}
-            loading={isProcessing}
-            loadingText={
-              processingStep === "transcribing"
-                ? "Transcribing..."
-                : "Generating Notes..."
-            }
-            buttonText="Generate Notes"
-            style={styles.customGenerateBtn}
-            textStyle={styles.customGenerateText}
-          />
+          <View style={styles.buttonContainer}>
+            <FullWidthButton
+              onPress={handleGenerateNotes}
+              disabled={phase !== "recorded"}
+              loading={isProcessing}
+              loadingText={
+                processingStep === "transcribing"
+                  ? "Transcribing..."
+                  : "Generating Notes..."
+              }
+              buttonText="Generate Notes"
+            />
+          </View>
         </View>
       </View>
     </>
@@ -555,33 +563,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 8,
   },
-  content: { marginTop: 20, alignItems: "center" },
-  recordButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 0,
-    gap: 12,
-    width: 300,
-    height: 56,
-    backgroundColor: "#FF6467", // Fallback for gradient
-    borderRadius: 16,
-    // button shadow
-    shadowColor: "#ff5f7a",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  recordButtonText: {
-    color: "#FFFFFF",
-    fontFamily: "Arimo",
-    fontWeight: "700",
-    fontSize: 19,
-    lineHeight: 28,
-    width: 137,
-    height: 29,
-    borderRadius: 0,
+  content: { marginTop: 20, alignItems: "center", width: "100%" },
+  buttonContainer: {
+    width: "100%",
+    paddingHorizontal: 24,
   },
   timerButton: {
     flexDirection: "row",
@@ -673,31 +658,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   playText: { color: "#fff", fontWeight: "600" },
-  saveBtn: {
-    flex: 1,
-    backgroundColor: "#3bb273",
-    borderRadius: 16,
-    alignItems: "center",
-    paddingVertical: 10,
-  },
-  saveText: { color: "#fff", fontWeight: "600" },
-  customGenerateBtn: {
-    width: 300,
-    height: 56,
-    borderRadius: 15,
-    marginTop: 18,
-    alignSelf: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-  },
-  customGenerateText: {
-    fontFamily: "Arimo",
-    fontSize: 19,
-    lineHeight: 28,
-  },
   demoRow: {
     flexDirection: "row",
     justifyContent: "space-between",

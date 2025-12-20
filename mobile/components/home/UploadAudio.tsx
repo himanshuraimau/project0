@@ -13,7 +13,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import * as DocumentPicker from 'expo-document-picker';
 import { Upload } from 'lucide-react-native';
 import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
-import GenerateNote from '@/components/ui/GenerateNote';
+import FullWidthButton from '@/components/ui/FullWidthButton';
 import FolderSelect from '@/components/ui/FolderSelect';
 import { useAlert } from '@/lib/contexts/AlertContext';
 
@@ -96,6 +96,11 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
         type: selectedFile.mimeType || 'audio/mpeg',
         name: selectedFile.name,
       } as any);
+      
+      // Add folderId if selected
+      if (folder) {
+        formData.append('folderId', folder);
+      }
 
       // Use hook for transcription
       const transcriptionResult = await transcribeAudio(formData);
@@ -120,6 +125,7 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
         // Use hook for note generation
         note = await generateAINote({
           transcriptId: transcriptionResult.transcript.id,
+          folderId: folder || undefined,
         });
 
         if (!note) {
@@ -202,15 +208,15 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
           onValueChange={(val: string) => setFolder(val)}
         />
 
-        <GenerateNote
-          onPress={handleGenerateNotes}
-          disabled={!selectedFile}
-          loading={isProcessing}
-          loadingText={processingStep === 'transcribing' ? 'Transcribing Audio...' : 'Generating Notes...'}
-          buttonText="Generate Notes"
-          style={styles.customGenerateBtn}
-          textStyle={styles.customGenerateText}
-        />
+        <View style={styles.buttonContainer}>
+          <FullWidthButton
+            onPress={handleGenerateNotes}
+            disabled={!selectedFile}
+            loading={isProcessing}
+            loadingText={processingStep === 'transcribing' ? 'Transcribing Audio...' : 'Generating Notes...'}
+            buttonText="Generate Notes"
+          />
+        </View>
       </View>
     </>
   );
@@ -299,21 +305,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
-  customGenerateBtn: {
-    width: 300,
-    height: 56,
-    borderRadius: 15,
-    marginTop: 18,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-  },
-  customGenerateText: {
-    fontFamily: 'Arimo',
-    fontSize: 19,
-    lineHeight: 28,
+  buttonContainer: {
+    paddingHorizontal: 24,
   },
 });
 

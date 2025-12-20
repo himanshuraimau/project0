@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
-import GenerateNote from '@/components/ui/GenerateNote';
+import FullWidthButton from '@/components/ui/FullWidthButton';
 import FolderSelect from '@/components/ui/FolderSelect';
 import { useAlert } from '@/lib/contexts/AlertContext';
 
@@ -89,7 +89,7 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
       const url = link.trim().startsWith('http') ? link.trim() : `https://${link.trim()}`;
 
       // Use hook for webpage processing
-      const webpageResult = await processWebpage({ url });
+      const webpageResult = await processWebpage({ url, folderId: folder || undefined });
 
       if (!webpageResult) {
         // Error handled by hook
@@ -111,6 +111,7 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
         // Use hook for note generation
         note = await generateAINote({
           transcriptId: webpageResult.transcript.id,
+          folderId: folder || undefined,
         });
 
         if (!note) {
@@ -186,15 +187,15 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
           style={{ marginTop: 10 }}
         />
 
-        <GenerateNote
-          onPress={handleGenerateNotes}
-          disabled={!link.trim()}
-          loading={isProcessing}
-          loadingText={processingStep === 'extracting' ? 'Extracting Content...' : 'Generating Notes...'}
-          buttonText="Generate Notes"
-          style={styles.customGenerateBtn}
-          textStyle={styles.customGenerateText}
-        />
+        <View style={styles.buttonContainer}>
+          <FullWidthButton
+            onPress={handleGenerateNotes}
+            disabled={!link.trim()}
+            loading={isProcessing}
+            loadingText={processingStep === 'extracting' ? 'Extracting Content...' : 'Generating Notes...'}
+            buttonText="Generate Notes"
+          />
+        </View>
       </View>
     </>
   );
@@ -281,21 +282,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
-  customGenerateBtn: {
-    width: 300,
-    height: 56,
-    borderRadius: 15,
-    marginTop: 18,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-  },
-  customGenerateText: {
-    fontFamily: 'Arimo',
-    fontSize: 19,
-    lineHeight: 28,
+  buttonContainer: {
+    paddingHorizontal: 24,
   },
 });
 
