@@ -447,31 +447,47 @@ const RecordAudio: React.FC<Props> = ({
           )}
 
           {phase === "recording" && (
-            <TouchableOpacity style={styles.stopButton} onPress={stopRecording}>
-              <Text style={styles.stopText}>Stop</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+              <FullWidthButton
+                onPress={stopRecording}
+                buttonText="Stop"
+                backgroundColor="#8F8F8F"
+                textColor="#FFFFFF"
+                style={{ marginTop: 12, height: 48 }}
+              />
+            </View>
           )}
 
           {phase === "recorded" && (
             <>
-              <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.deleteBtn} onPress={reset}>
-                  <Text style={styles.deleteText}>Delete</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.resumeBtn}
-                  onPress={startRecording}
-                >
-                  <Text style={styles.resumeText}>Resume</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.playBtn}
-                  onPress={togglePlayback}
-                >
-                  <Text style={styles.playText}>
-                    {isPlaying ? "Pause" : "Play"}
-                  </Text>
-                </TouchableOpacity>
+              <View style={styles.actionRowContainer}>
+                <View style={styles.actionButton}>
+                  <FullWidthButton
+                    onPress={reset}
+                    buttonText="Delete"
+                    backgroundColor="#FFE2E2"
+                    textColor="#FB2C36"
+                    style={{ marginTop: 12, height: 48 }}
+                  />
+                </View>
+                <View style={styles.actionButton}>
+                  <FullWidthButton
+                    onPress={startRecording}
+                    buttonText="Resume"
+                    backgroundColor="#FB2C36"
+                    textColor="#FFFFFF"
+                    style={{ marginTop: 12, height: 48 }}
+                  />
+                </View>
+                <View style={styles.actionButton}>
+                  <FullWidthButton
+                    onPress={togglePlayback}
+                    buttonText={isPlaying ? "Pause" : "Play"}
+                    backgroundColor="#8F8F8F"
+                    textColor="#FFFFFF"
+                    style={{ marginTop: 12, height: 48 }}
+                  />
+                </View>
               </View>
             </>
           )}
@@ -579,85 +595,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   timerText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  stopButton: {
+  actionRowContainer: {
     flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 0,
-    width: 300,
-    height: 47.99,
-    backgroundColor: "#8F8F8F",
-    borderRadius: 16,
-    marginTop: 12,
-  },
-  stopText: {
-    width: 43,
-    height: 29,
-    fontFamily: "Arimo",
-    fontWeight: "700",
-    fontSize: 19,
-    lineHeight: 28,
-    color: "#FFFFFF",
-  },
-  actionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     width: "100%",
-    marginTop: 12,
+    paddingHorizontal: 24,
+    gap: 8,
   },
-  deleteBtn: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 0,
-    width: 99.13,
-    height: 47.99,
-    backgroundColor: "#FFE2E2",
-    borderRadius: 16,
+  actionButton: {
     flex: 1,
   },
-  deleteText: {
-    width: 47,
-    height: 24,
-    fontFamily: "Arimo",
-    fontWeight: "400",
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#FB2C36",
-  },
-  resumeBtn: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 0,
-    width: 99.13,
-    height: 47.99,
-    backgroundColor: "#FB2C36",
-    borderRadius: 16,
-    flex: 1,
-    marginHorizontal: 6,
-  },
-  resumeText: {
-    width: 60,
-    height: 24,
-    fontFamily: "Arimo",
-    fontWeight: "400",
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#FFFFFF",
-    borderRadius: 16,
-  },
-  playBtn: {
-    flex: 1,
-    backgroundColor: "#8F8F8F",
-    borderRadius: 16,
-    alignItems: "center",
-    paddingVertical: 10,
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 6,
-  },
-  playText: { color: "#fff", fontWeight: "600" },
   demoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
