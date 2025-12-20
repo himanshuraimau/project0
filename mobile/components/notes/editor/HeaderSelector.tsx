@@ -115,16 +115,18 @@ const styles = StyleSheet.create({
   /**
    * Selector button
    * - Gray border when inactive (Requirement 8.3)
+   * - Fixed width to prevent expansion when text changes
    */
   selector: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: COLORS.borderGray,
     borderRadius: 6,
-    minWidth: 100,
+    width: 100,
   },
 
   /**
@@ -150,8 +152,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: COLORS.darkGray,
-    marginRight: 4,
-    flex: 1,
   },
 
   /**
@@ -174,8 +174,8 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'flex-end',
-    paddingBottom: LAYOUT.toolbarHeight + 60,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   /**
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
    */
   dropdown: {
     backgroundColor: COLORS.white,
-    marginHorizontal: 16,
+    width: 200,
     borderRadius: 12,
     overflow: 'hidden',
     shadowColor: COLORS.black,

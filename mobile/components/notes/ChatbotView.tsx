@@ -159,7 +159,7 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
   }, [inputValue, isLoading, messages, noteId, addMessage, generateMessageId])
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* ChatHeader positioned outside KeyboardAvoidingView (Requirements 1.4) */}
       <ChatHeader />
 
