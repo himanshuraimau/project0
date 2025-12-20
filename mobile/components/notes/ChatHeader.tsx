@@ -30,7 +30,7 @@ export default function ChatHeader({
   }
 
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <View style={styles.header}>
         {/* Back Button - Circular with border and left-arrow icon */}
         <TouchableOpacity
@@ -48,7 +48,7 @@ export default function ChatHeader({
         {/* Spacer to balance the header layout */}
         <View style={styles.spacer} />
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
 
