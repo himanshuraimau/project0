@@ -31,6 +31,7 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:8081", // Expo dev server
     "jellinote://", // Mobile app scheme
+    "mobile://", // Legacy mobile scheme (for backward compatibility)
     "exp://", // Expo Go scheme
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     process.env.BETTER_AUTH_URL || "",

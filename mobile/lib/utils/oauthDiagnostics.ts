@@ -9,7 +9,7 @@ export const logOAuthDiagnostics = () => {
   
   // Show both development and production redirect URLs
   const devRedirectUrl = AuthSession.makeRedirectUri({ scheme: undefined })
-  const prodRedirectUrl = AuthSession.makeRedirectUri({ scheme: 'mobile' })
+  const prodRedirectUrl = AuthSession.makeRedirectUri({ scheme: 'jellinote' })
   
   console.log('📱 Dev Redirect URL:', devRedirectUrl)
   console.log('📱 Prod Redirect URL:', prodRedirectUrl)

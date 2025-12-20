@@ -12,7 +12,7 @@ export const authClient = createAuthClient({
   baseURL: AUTH_BASE_URL,
   plugins: [
     expoClient({
-      scheme: "mobile", // MUST match app scheme
+      scheme: "jellinote", // MUST match app scheme
       storagePrefix: "better-auth", // MUST match backend cookiePrefix
       storage: SecureStore,
     })
