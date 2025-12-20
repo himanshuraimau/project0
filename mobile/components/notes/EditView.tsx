@@ -14,7 +14,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useKeyboard } from '@10play/tentap-editor';
 
@@ -40,7 +40,6 @@ export default function EditView({ noteId }: EditViewProps) {
   const router = useRouter();
   const { showAlert } = useAlert();
   const editorRef = useRef<ContentEditorRef>(null);
-  const insets = useSafeAreaInsets();
 
   // Note state
   const [note, setNote] = useState<Note | null>(null);
@@ -349,13 +348,12 @@ export default function EditView({ noteId }: EditViewProps) {
     );
   }
 
-  // When keyboard is visible, no need for safe area bottom inset
-  // When keyboard is hidden, account for safe area bottom inset
-  const toolbarBottomInset = isKeyboardUp ? 0 : insets.bottom;
-  const contentBottomPadding = keyboardHeight + LAYOUT.toolbarHeight + toolbarBottomInset;
+  // Calculate bottom padding for content area
+  // SafeAreaView with edges=['top', 'bottom'] handles safe area insets
+  const contentBottomPadding = keyboardHeight + LAYOUT.toolbarHeight;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
       <EditorHeader onBack={handleBack} onSave={handleSave} saving={saving} />
       <View style={[styles.editorContainer, { paddingBottom: contentBottomPadding }]}>
@@ -371,7 +369,6 @@ export default function EditView({ noteId }: EditViewProps) {
         styles.toolbarContainer, 
         { 
           bottom: toolbarPosition,
-          paddingBottom: toolbarBottomInset,
         }
       ]}>
         <RichTextToolbar

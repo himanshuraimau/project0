@@ -1,14 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import {
   View,
   TextInput,
   TouchableOpacity,
   StyleSheet,
   TextInput as TextInputType,
-  Platform,
-  Keyboard,
 } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 
 interface InputBarProps {
@@ -36,28 +33,8 @@ export default function InputBar({
   placeholder = 'Ask anything…',
 }: InputBarProps) {
   const [isFocused, setIsFocused] = useState(false)
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
   const hasTriggeredLayoutFix = useRef(false)
   const inputRef = useRef<TextInputType>(null)
-  const insets = useSafeAreaInsets()
-
-  // Track keyboard visibility to adjust bottom padding
-  useEffect(() => {
-    const keyboardShowEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
-    const keyboardHideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
-
-    const showSubscription = Keyboard.addListener(keyboardShowEvent, () => {
-      setIsKeyboardVisible(true)
-    })
-    const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
-      setIsKeyboardVisible(false)
-    })
-
-    return () => {
-      showSubscription.remove()
-      hideSubscription.remove()
-    }
-  }, [])
 
   // Check if input has non-whitespace content (Requirements 4.4, 4.5, 4.6, 4.7)
   const hasContent = value.trim().length > 0
@@ -68,21 +45,6 @@ export default function InputBar({
   // Handle focus state (Requirements 4.2, 4.3)
   const handleFocus = () => {
     setIsFocused(true)
-    
-    // Workaround: Trigger a dummy input interaction on first focus
-    // to force the keyboard layout to adjust correctly immediately
-    if (!hasTriggeredLayoutFix.current) {
-      hasTriggeredLayoutFix.current = true
-      // Simulate a space input and immediately remove it to trigger layout recalculation
-      setTimeout(() => {
-        if (value === '') {
-          onChangeText(' ')
-          setTimeout(() => {
-            onChangeText('')
-          }, 0)
-        }
-      }, 50)
-    }
   }
 
   const handleBlur = () => {
@@ -98,10 +60,7 @@ export default function InputBar({
   }
 
   return (
-    <View style={[
-      styles.container,
-      { paddingBottom: isKeyboardVisible ? 8 : Math.max(insets.bottom, 8) }
-    ]}>
+    <View style={styles.container}>
       <View
         style={[
           styles.inputContainer,
@@ -146,8 +105,8 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingTop: 8,
+    paddingBottom: 8,
     backgroundColor: '#FFFFFF',
-    minHeight: 60,
   },
   inputContainer: {
     flexDirection: 'row',
