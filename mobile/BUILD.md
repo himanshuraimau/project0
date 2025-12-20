@@ -28,6 +28,10 @@ eas build --platform ios --profile production
 
 # Build both
 eas build --platform all --profile production
+
+
+
+npx eas build --platform android --profile preview --no-wait
 ```
 
 Check `eas.json` for build profiles. Builds run on EAS cloud servers.
