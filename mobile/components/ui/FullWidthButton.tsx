@@ -18,6 +18,7 @@ type Props = {
   backgroundColor?: string;
   textColor?: string;
   style?: any;
+  textStyle?: any;
 };
 
 const FullWidthButton: React.FC<Props> = ({
@@ -30,6 +31,7 @@ const FullWidthButton: React.FC<Props> = ({
   backgroundColor = '#000',
   textColor = '#fff',
   style,
+  textStyle,
 }) => {
   const isDisabled = disabled || loading;
 
@@ -48,14 +50,14 @@ const FullWidthButton: React.FC<Props> = ({
       {loading ? (
         <>
           <ActivityIndicator color={textColor} size="small" style={styles.icon} />
-          <Text style={[styles.buttonText, { color: textColor }]}>
+          <Text style={[styles.buttonText, { color: textColor }, textStyle]}>
             {loadingText}
           </Text>
         </>
       ) : (
         <>
           {icon || <Sparkles size={20} color={textColor} style={styles.icon} />}
-          <Text style={[styles.buttonText, { color: textColor }]}>{buttonText}</Text>
+          <Text style={[styles.buttonText, { color: textColor }, textStyle]}>{buttonText}</Text>
         </>
       )}
     </TouchableOpacity>

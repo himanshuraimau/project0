@@ -271,7 +271,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
             disabled={false}
             loading={loading}
             loadingText="Creating..."
-            buttonText="Generate Note"
+            buttonText="Generate Notes"
           />
         </View>
       </View>
@@ -408,7 +408,6 @@ const styles = StyleSheet.create({
   actionsColumn: { 
     flexDirection: 'column', 
     marginTop: 18,
-    paddingHorizontal: 24,
   },
   buttonDisabled: {
     opacity: 0.5,

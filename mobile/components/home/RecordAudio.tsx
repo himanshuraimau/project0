@@ -468,6 +468,7 @@ const RecordAudio: React.FC<Props> = ({
                     backgroundColor="#FFE2E2"
                     textColor="#FB2C36"
                     style={{ marginTop: 12, height: 48 }}
+                    textStyle={{ fontSize: 14 }}
                   />
                 </View>
                 <View style={styles.actionButton}>
@@ -477,6 +478,7 @@ const RecordAudio: React.FC<Props> = ({
                     backgroundColor="#FB2C36"
                     textColor="#FFFFFF"
                     style={{ marginTop: 12, height: 48 }}
+                    textStyle={{ fontSize: 14 }}
                   />
                 </View>
                 <View style={styles.actionButton}>
@@ -486,6 +488,7 @@ const RecordAudio: React.FC<Props> = ({
                     backgroundColor="#8F8F8F"
                     textColor="#FFFFFF"
                     style={{ marginTop: 12, height: 48 }}
+                    textStyle={{ fontSize: 14 }}
                   />
                 </View>
               </View>
@@ -582,7 +585,6 @@ const styles = StyleSheet.create({
   content: { marginTop: 20, alignItems: "center", width: "100%" },
   buttonContainer: {
     width: "100%",
-    paddingHorizontal: 24,
   },
   timerButton: {
     flexDirection: "row",
@@ -598,7 +600,6 @@ const styles = StyleSheet.create({
   actionRowContainer: {
     flexDirection: "row",
     width: "100%",
-    paddingHorizontal: 24,
     gap: 8,
   },
   actionButton: {
