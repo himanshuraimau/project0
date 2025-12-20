@@ -8,15 +8,15 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
-  Keyboard,
   Platform,
   StatusBar,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useKeyboard } from '@10play/tentap-editor';
 
 import { notesApi } from '@/lib/api';
 import type { Note } from '@/lib/api/types';
@@ -40,6 +40,7 @@ export default function EditView({ noteId }: EditViewProps) {
   const router = useRouter();
   const { showAlert } = useAlert();
   const editorRef = useRef<ContentEditorRef>(null);
+  const insets = useSafeAreaInsets();
 
   // Note state
   const [note, setNote] = useState<Note | null>(null);
@@ -55,8 +56,8 @@ export default function EditView({ noteId }: EditViewProps) {
     offset: 0,
   });
 
-  // Keyboard state with animated value for smooth transitions
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  // Use TenTap's keyboard hook for proper WebView keyboard handling
+  const { isKeyboardUp, keyboardHeight } = useKeyboard();
   const toolbarPosition = useRef(new Animated.Value(0)).current;
 
   // Formatting state (reactive from editor)
@@ -67,37 +68,14 @@ export default function EditView({ noteId }: EditViewProps) {
   const [isOrderedListActive, setIsOrderedListActive] = useState(false);
   const [currentAlignment, setCurrentAlignment] = useState<TextAlignment>('left');
 
+  // Animate toolbar position when keyboard state changes
   useEffect(() => {
-    const keyboardWillShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (event) => {
-        const height = event.endCoordinates.height;
-        setKeyboardHeight(height);
-        Animated.timing(toolbarPosition, {
-          toValue: height,
-          duration: 250,
-          useNativeDriver: false,
-        }).start();
-      }
-    );
-
-    const keyboardWillHideListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => {
-        setKeyboardHeight(0);
-        Animated.timing(toolbarPosition, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: false,
-        }).start();
-      }
-    );
-
-    return () => {
-      keyboardWillShowListener.remove();
-      keyboardWillHideListener.remove();
-    };
-  }, [toolbarPosition]);
+    Animated.timing(toolbarPosition, {
+      toValue: keyboardHeight,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  }, [keyboardHeight, toolbarPosition]);
 
   /**
    * Load note and convert markdown to HTML for editor
@@ -371,7 +349,10 @@ export default function EditView({ noteId }: EditViewProps) {
     );
   }
 
-  const contentBottomPadding = keyboardHeight + LAYOUT.toolbarHeight;
+  // When keyboard is visible, no need for safe area bottom inset
+  // When keyboard is hidden, account for safe area bottom inset
+  const toolbarBottomInset = isKeyboardUp ? 0 : insets.bottom;
+  const contentBottomPadding = keyboardHeight + LAYOUT.toolbarHeight + toolbarBottomInset;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -386,7 +367,13 @@ export default function EditView({ noteId }: EditViewProps) {
           onCursorChange={handleCursorChange}
         />
       </View>
-      <Animated.View style={[styles.toolbarContainer, { bottom: toolbarPosition }]}>
+      <Animated.View style={[
+        styles.toolbarContainer, 
+        { 
+          bottom: toolbarPosition,
+          paddingBottom: toolbarBottomInset,
+        }
+      ]}>
         <RichTextToolbar
           currentBlockType={currentBlockType}
           isTitleBlock={cursorPosition.blockType === 'title'}
@@ -433,7 +420,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    height: LAYOUT.toolbarHeight,
     backgroundColor: COLORS.white,
   },
 });
