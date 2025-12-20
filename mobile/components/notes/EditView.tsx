@@ -8,11 +8,12 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
-  Platform,
   StatusBar,
   StyleSheet,
   Text,
   View,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -56,8 +57,7 @@ export default function EditView({ noteId }: EditViewProps) {
   });
 
   // Use TenTap's keyboard hook for proper WebView keyboard handling
-  const { isKeyboardUp, keyboardHeight } = useKeyboard();
-  const toolbarPosition = useRef(new Animated.Value(0)).current;
+  const { keyboardHeight } = useKeyboard();
 
   // Formatting state (reactive from editor)
   const [isBoldActive, setIsBoldActive] = useState(false);
@@ -66,15 +66,6 @@ export default function EditView({ noteId }: EditViewProps) {
   const [isBulletListActive, setIsBulletListActive] = useState(false);
   const [isOrderedListActive, setIsOrderedListActive] = useState(false);
   const [currentAlignment, setCurrentAlignment] = useState<TextAlignment>('left');
-
-  // Animate toolbar position when keyboard state changes
-  useEffect(() => {
-    Animated.timing(toolbarPosition, {
-      toValue: keyboardHeight,
-      duration: 250,
-      useNativeDriver: false,
-    }).start();
-  }, [keyboardHeight, toolbarPosition]);
 
   /**
    * Load note and convert markdown to HTML for editor
@@ -338,7 +329,7 @@ export default function EditView({ noteId }: EditViewProps) {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar barStyle="dark-content" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.saveOrange} />
@@ -348,48 +339,45 @@ export default function EditView({ noteId }: EditViewProps) {
     );
   }
 
-  // Calculate bottom padding for content area
-  // SafeAreaView with edges=['top', 'bottom'] handles safe area insets
-  const contentBottomPadding = keyboardHeight + LAYOUT.toolbarHeight;
-
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="dark-content" />
-      <EditorHeader onBack={handleBack} onSave={handleSave} saving={saving} />
-      <View style={[styles.editorContainer, { paddingBottom: contentBottomPadding }]}>
-        <ContentEditor
-          ref={editorRef}
-          initialContent={initialContent}
-          onContentChange={handleContentChange}
-          onBlockTypeChange={handleBlockTypeChange}
-          onCursorChange={handleCursorChange}
-        />
-      </View>
-      <Animated.View style={[
-        styles.toolbarContainer, 
-        { 
-          bottom: toolbarPosition,
-        }
-      ]}>
-        <RichTextToolbar
-          currentBlockType={currentBlockType}
-          isTitleBlock={cursorPosition.blockType === 'title'}
-          keyboardHeight={0}
-          onBlockTypeChange={handleBlockTypeSelect}
-          onToggleBold={handleToggleBold}
-          onToggleItalic={handleToggleItalic}
-          onToggleUnderline={handleToggleUnderline}
-          onToggleBulletList={handleToggleBulletList}
-          onToggleOrderedList={handleToggleOrderedList}
-          onSetAlignment={handleSetAlignment}
-          isBoldActive={isBoldActive}
-          isItalicActive={isItalicActive}
-          isUnderlineActive={isUnderlineActive}
-          isBulletListActive={isBulletListActive}
-          isOrderedListActive={isOrderedListActive}
-          currentAlignment={currentAlignment}
-        />
-      </Animated.View>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
+        <EditorHeader onBack={handleBack} onSave={handleSave} saving={saving} />
+        <View style={styles.editorContainer}>
+          <ContentEditor
+            ref={editorRef}
+            initialContent={initialContent}
+            onContentChange={handleContentChange}
+            onBlockTypeChange={handleBlockTypeChange}
+            onCursorChange={handleCursorChange}
+          />
+        </View>
+        <View style={styles.toolbarContainer}>
+          <RichTextToolbar
+            currentBlockType={currentBlockType}
+            isTitleBlock={cursorPosition.blockType === 'title'}
+            keyboardHeight={keyboardHeight}
+            onBlockTypeChange={handleBlockTypeSelect}
+            onToggleBold={handleToggleBold}
+            onToggleItalic={handleToggleItalic}
+            onToggleUnderline={handleToggleUnderline}
+            onToggleBulletList={handleToggleBulletList}
+            onToggleOrderedList={handleToggleOrderedList}
+            onSetAlignment={handleSetAlignment}
+            isBoldActive={isBoldActive}
+            isItalicActive={isItalicActive}
+            isUnderlineActive={isUnderlineActive}
+            isBulletListActive={isBulletListActive}
+            isOrderedListActive={isOrderedListActive}
+            currentAlignment={currentAlignment}
+          />
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -398,6 +386,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.white,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -414,9 +405,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   toolbarContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
     backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.dividerGray,
   },
 });
