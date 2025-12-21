@@ -1,120 +1,130 @@
-# Audio Upload 413 Error - Complete Fix Guide
+# Audio Upload 413 Error - VERCEL LIMIT!
 
 ## Problem
-15MB audio files were being rejected with a **413 Request Entity Too Large** error when uploading from the mobile app.
+15MB audio files fail with **413 error** when uploading from mobile app to Vercel.
 
 ---
 
-## Quick Start (TL;DR)
+## Root Cause: Vercel Body Size Limit
 
-### 1. Restart Next.js Server
-```bash
-cd web
-npm run dev
-```
+You're using Vercel (`https://project0-nu.vercel.app`), which has strict limits:
 
-### 2. Rebuild Mobile App (REQUIRED)
+**Vercel Limits:**
+- **Hobby Plan:** 4.5MB body size (CANNOT be changed)
+- **Pro Plan:** 4.5MB default (can request increase to 100MB)
+- **Enterprise:** Custom limits
+
+Your 15MB audio file exceeds Vercel's limit, so it returns 413.
+
+**Why web app might work:**
+- If testing on `localhost` → No Vercel limit
+- If testing on Vercel → Should also fail with 15MB
+
+---
+
+## Solutions
+
+### Option 1: Client-Side Compression ⭐ (Recommended)
+
+Compress audio before upload (15MB → 2-3MB):
+
+**Pros:**
+- Works with Vercel Hobby plan (free)
+- Faster uploads
+- Better user experience
+
+**Cons:**
+- Requires mobile app rebuild
+- Can't use Expo Go (need development build)
+
+**Implementation:** I can add this back - it will compress files automatically before upload.
+
+---
+
+### Option 2: Upgrade Vercel to Pro
+
+**Cost:** $20/month per member
+**Benefit:** Can request body size increase to 100MB
+**Process:** 
+1. Upgrade to Pro
+2. Contact Vercel support to increase limit
+3. Wait for approval
+
+---
+
+### Option 3: Use Vercel Blob Storage
+
+Upload large files to Vercel Blob, then process:
+
+1. Mobile app uploads to Vercel Blob (no size limit)
+2. Get blob URL
+3. Send URL to your API
+4. API downloads from blob and processes
+
+**Pros:** Works with Hobby plan
+**Cons:** Requires code refactoring + Blob storage costs
+
+---
+
+### Option 4: Use Different Hosting
+
+Deploy to platforms with higher limits:
+- **Railway:** 100MB default
+- **Render:** 100MB default  
+- **Self-hosted:** Unlimited
+
+---
+
+## Recommended Solution
+
+**For your situation (no emulator, using Vercel Hobby):**
+
+I recommend **Option 1: Client-Side Compression**
+
+**Why:**
+- ✅ Free (no Vercel upgrade needed)
+- ✅ Works with your current setup
+- ✅ Reduces 15MB → 2-3MB (well under 4.5MB limit)
+- ✅ Faster uploads for users
+- ✅ Can build with EAS (no emulator needed)
+
+**Build with EAS (Cloud Build):**
 ```bash
 cd mobile
-npx expo prebuild --clean
-npx expo run:android  # or: npx expo run:ios
-```
 
-**⚠️ Important:** You CANNOT use Expo Go. Must create a development build.
+# Build in the cloud (no emulator needed!)
+eas build --profile development --platform android
+
+# After build completes:
+# 1. Download APK from EAS dashboard
+# 2. Install on your physical device
+# 3. Test upload - will compress automatically
+```
 
 ---
 
-## Solution Implemented
+## Quick Test
 
-### 1. Server-Side Fix (Next.js)
-**File: `web/next.config.ts`**
+Want to verify it's Vercel's limit?
 
-Added body size limit configuration to allow uploads up to 50MB:
+1. **Test with a 4MB file** - should work
+2. **Test with a 5MB file** - should fail with 413
 
-```typescript
-experimental: {
-  serverActions: {
-    bodySizeLimit: '50mb', // Increased from default 1MB
-  },
-}
-```
+This confirms it's Vercel's 4.5MB limit.
 
-### 2. Client-Side Fix (Mobile App)
-**Files Modified:**
-- `mobile/app.config.ts` - Added react-native-compressor plugin
-- `mobile/lib/utils/audioCompression.ts` (NEW)
-- `mobile/components/home/UploadAudio.tsx`
-- `mobile/components/home/RecordAudio.tsx`
+---
 
-**Package Added:**
-- `react-native-compressor` - For audio compression (native module)
+## Next Steps
 
-**How it works:**
-1. Before upload, audio files > 10MB are automatically compressed
-2. Compression settings optimized for speech transcription:
-   - **Bitrate:** 64kbps (good quality for speech)
-   - **Sample rate:** 16kHz (standard for Whisper API)
-   - **Channels:** Mono (speech doesn't need stereo)
-3. Reduces 15MB files to ~2-3MB (80-85% reduction)
-4. User sees "Compressing Audio..." progress indicator
+**Option A: Add compression (I can do this now)**
+- I'll add back the compression code
+- You build with EAS cloud build
+- Install on your phone
+- Test - should work!
 
-## Expected Results
+**Option B: Upgrade Vercel**
+- Upgrade to Pro ($20/month)
+- Request limit increase
+- Wait for approval
 
-| Metric | Before | After |
-|--------|--------|-------|
-| File Size | 15 MB | 2-3 MB |
-| Upload Success | ❌ 413 Error | ✅ Success |
-| Compression Time | N/A | < 5 seconds |
-| Audio Quality | Original | Optimized for speech |
-
-## Testing Steps
-
-1. **Restart Next.js server** (required for config changes):
-   ```bash
-   cd web
-   npm run dev
-   ```
-
-2. **Rebuild mobile app** (REQUIRED - native module needs linking):
-   ```bash
-   cd mobile
-   
-   # Clean rebuild (recommended)
-   npx expo prebuild --clean
-   npx expo run:android  # or: npx expo run:ios
-   
-   # OR use EAS build
-   eas build --profile development --platform android
-   ```
-   
-   **⚠️ Important:** `react-native-compressor` requires native code. You CANNOT use Expo Go. You must create a development build or production build.
-
-3. **Test upload:**
-   - Record or upload a 15MB audio file
-   - Watch for "Compressing Audio..." message
-   - Verify successful transcription
-
-## Notes
-
-- Compression only happens for files > 10MB
-- Smaller files upload without compression (faster)
-- If compression fails, original file is uploaded as fallback
-- Server can now handle up to 50MB files (safety buffer)
-- Audio quality remains excellent for transcription purposes
-
-## Troubleshooting
-
-**Error: "package doesn't seem to be linked"**
-- You're trying to use Expo Go (not supported for native modules)
-- Solution: Create a development build:
-  ```bash
-  cd mobile
-  npx expo prebuild --clean
-  npx expo run:android  # or: npx expo run:ios
-  ```
-
-If 413 error persists:
-1. Verify Next.js server was restarted
-2. Check mobile app was rebuilt with development build (not Expo Go)
-3. Verify hosting provider doesn't have separate upload limits (Vercel, etc.)
-4. Check browser/network proxy settings
+Which option do you prefer?

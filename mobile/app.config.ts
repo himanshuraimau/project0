@@ -61,8 +61,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
                 "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
                 "isAccessMediaLocationEnabled": false
             }
-        ],
-        "react-native-compressor"
+        ]
     ],
     experiments: {
         typedRoutes: true

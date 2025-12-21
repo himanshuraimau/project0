@@ -45,13 +45,13 @@ function createContextString(chunks: Array<{ chunkText: string }>): string {
       context += `${chunk.chunkText}\n\n`;
     }
   }
-  
+
   // Truncate if too long (around 15k chars to be safe)
   const MAX_CONTEXT_LENGTH = 15000;
   if (context.length > MAX_CONTEXT_LENGTH) {
     context = context.substring(0, MAX_CONTEXT_LENGTH) + '... (context truncated)';
   }
-  
+
   return context;
 }
 
@@ -99,43 +99,70 @@ export async function POST(req: NextRequest) {
   try {
     // Parse and validate the request body
     const body = await req.json();
+    console.log('🤖 Chatbot request received:', {
+      hasMessage: !!body.message,
+      hasNoteId: !!body.noteId,
+      messageLength: body.message?.length,
+      noteId: body.noteId
+    });
+
     const validationResult = RequestSchema.safeParse(body);
-    
+
     if (!validationResult.success) {
+      console.error('❌ Validation failed:', validationResult.error.issues);
       return Response.json({ error: 'Invalid request body', details: validationResult.error.issues }, { status: 400 });
     }
-    
+
     const { message, noteId, topK = 6 } = validationResult.data;
-    
+
+    console.log('✅ Validated request:', { message: message.substring(0, 50), noteId, topK });
+
     // Use our enhanced embedding service to find similar chunks
+    console.log('🔍 Querying similar chunks for noteId:', noteId);
     const similarChunks = await querySimilarChunks(message, noteId, topK);
-    
+
     // Debug logging to understand what's happening
-    console.log('🔍 Similar chunks found:', similarChunks.length);
+    console.log('📊 Query results:', {
+      chunksFound: similarChunks.length,
+      noteId: noteId,
+      topK: topK,
+      query: message.substring(0, 50)
+    });
+
     if (similarChunks.length > 0) {
       console.log('📄 First chunk preview:', similarChunks[0].chunk_text?.substring(0, 200) + '...');
+      console.log('📄 First chunk note_id:', similarChunks[0].note_id);
+    } else {
+      console.warn('⚠️ NO CHUNKS FOUND for noteId:', noteId);
+      console.warn('⚠️ This could mean:');
+      console.warn('   1. Note was not indexed yet');
+      console.warn('   2. Indexing failed silently');
+      console.warn('   3. Wrong noteId being sent');
+      console.warn('   4. Database query issue');
     }
-    
+
     // Map results to the expected format
     const mappedChunks = mapChunkResults(similarChunks);
-    
+
     // Create a context string from the chunks
     const context = createContextString(mappedChunks);
-    
-    console.log('📝 Context length:', context.length);
-    console.log('📝 Context preview:', context.substring(0, 300) + '...');
-    
+
+    console.log('📝 Context created:', {
+      contextLength: context.length,
+      contextPreview: context.substring(0, 100) + '...'
+    });
+
     // Generate a streaming response
     const response = await generateResponse(context, message);
-    
+
     // Return the streaming response from AI SDK
     return response;
   } catch (error) {
-    console.error('Error handling chatbot request:', error);
-    
+    console.error('❌ Error handling chatbot request:', error);
+
     // Return a friendly error response
     return Response.json(
-      { error: 'An error occurred while processing your request. Please try again later.' }, 
+      { error: 'An error occurred while processing your request. Please try again later.' },
       { status: 500 }
     );
   }

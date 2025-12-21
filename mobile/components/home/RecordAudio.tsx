@@ -18,7 +18,6 @@ import { Mic } from "lucide-react-native";
 import FullWidthButton from "@/components/ui/FullWidthButton";
 import FolderSelect from "@/components/ui/FolderSelect";
 import { useAlert } from "@/lib/contexts/AlertContext";
-import { compressAudioForUpload, shouldCompressAudio } from "@/lib/utils/audioCompression";
 
 // Lightweight local Icon fallback using emoji so the component works without extra deps
 const Icon: React.FC<{
@@ -71,7 +70,7 @@ const RecordAudio: React.FC<Props> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<
-    "compressing" | "transcribing" | "generating" | null
+    "transcribing" | "generating" | null
   >(null);
 
   const timerRef = useRef<number | null>(null);
@@ -293,41 +292,21 @@ const RecordAudio: React.FC<Props> = ({
         setIsPlaying(false);
       }
 
-      let audioUri = recordingUriRef.current;
-      let audioName = `recording-${Date.now()}.m4a`;
-      let audioType = Platform.OS === "ios" ? "audio/x-m4a" : "audio/mp4";
-
-      // Step 1: Compress audio if needed (files > 10MB)
-      const needsCompression = await shouldCompressAudio(recordingUriRef.current);
-      
-      if (needsCompression) {
-        setProcessingStep('compressing');
-        
-        try {
-          const compressionResult = await compressAudioForUpload(recordingUriRef.current);
-          audioUri = compressionResult.uri;
-          audioType = 'audio/m4a'; // Compressed format
-          
-          if (__DEV__) {
-            console.log(`✅ Compressed: ${(compressionResult.originalSize / 1024 / 1024).toFixed(2)}MB → ${(compressionResult.compressedSize / 1024 / 1024).toFixed(2)}MB (${compressionResult.compressionRatio}% reduction)`);
-          }
-        } catch (compressionError) {
-          console.error('Compression failed, uploading original:', compressionError);
-          // Continue with original file if compression fails
-        }
-      }
-
-      // Step 2: Transcribe audio
+      // Step 1: Transcribe audio
       setProcessingStep("transcribing");
 
       // Create FormData for audio file
       const formData = new FormData();
 
-      // Create FormData for audio file (compressed or original)
+      // Get file info
+      const filename = `recording-${Date.now()}.m4a`;
+      const fileType = Platform.OS === "ios" ? "audio/x-m4a" : "audio/mp4";
+
+      // Create FormData for audio file
       formData.append("audio", {
-        uri: audioUri,
-        type: audioType,
-        name: audioName,
+        uri: recordingUriRef.current,
+        type: fileType,
+        name: filename,
       } as any);
       
       // Add folderId if selected
@@ -510,9 +489,7 @@ const RecordAudio: React.FC<Props> = ({
               disabled={phase !== "recorded"}
               loading={isProcessing}
               loadingText={
-                processingStep === "compressing"
-                  ? "Compressing Audio..."
-                  : processingStep === "transcribing"
+                processingStep === "transcribing"
                   ? "Transcribing..."
                   : "Generating Notes..."
               }
