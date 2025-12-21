@@ -115,6 +115,7 @@ export async function POST(request: NextRequest) {
     const maxPagesParam = formData.get('maxPages');
     const maxPages = maxPagesParam ? Math.min(parseInt(maxPagesParam as string) || 50, 50) : undefined;
     const generateNotes = formData.get('generateNotes') !== 'false'; // Default to true
+    const folderId = formData.get('folderId') as string | null;
 
     // Step 1: Extract text from PDF and save to database
     let parseResult;
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest) {
     // Step 2: Generate AI notes if requested
     if (generateNotes && parseResult.documentId) {
       try {
-        noteResult = await noteService.generateAINote(parseResult.documentId, userId);
+        noteResult = await noteService.generateAINote(parseResult.documentId, userId, folderId || undefined);
 
         // Increment user's notes count after successful note creation
         const { prisma } = await import('@/lib/prisma');

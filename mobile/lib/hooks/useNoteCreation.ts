@@ -5,6 +5,7 @@ import notesApi from '@/lib/api/notes';
 import { transcribeAudio } from '@/lib/api/audio';
 import { processWebpage } from '@/lib/api/webpage';
 import { processYouTube, ProcessYouTubeRequest, ProcessYouTubeResponse } from '@/lib/api/transcripts';
+import { processPDF } from '@/lib/api/pdf';
 import {
     CreateNoteRequest,
     GenerateNoteRequest,
@@ -27,6 +28,7 @@ interface UseNoteCreationResult {
     transcribeAudio: (data: FormData) => Promise<TranscribeAudioResponse | null>;
     processWebpage: (data: ProcessWebpageRequest) => Promise<ProcessWebpageResponse | null>;
     processYouTube: (data: ProcessYouTubeRequest) => Promise<ProcessYouTubeResponse | null>;
+    processPDF: (data: FormData) => Promise<any>;
 }
 
 export const useNoteCreation = (): UseNoteCreationResult => {
@@ -134,6 +136,13 @@ export const useNoteCreation = (): UseNoteCreationResult => {
         );
     };
 
+    const processPDFWrapper = async (data: FormData) => {
+        return wrapApiCall(
+            () => processPDF(data),
+            'Failed to process PDF'
+        );
+    };
+
     return {
         isLoading,
         error,
@@ -144,5 +153,6 @@ export const useNoteCreation = (): UseNoteCreationResult => {
         transcribeAudio: transcribeAudioWrapper,
         processWebpage: processWebpageWrapper,
         processYouTube: processYouTubeWrapper,
+        processPDF: processPDFWrapper,
     };
 };

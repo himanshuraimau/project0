@@ -24,7 +24,7 @@ export const parsePDF = async (file: FormData): Promise<any> => {
 };
 
 /**
- * Process a PDF file (extract text, create transcript)
+ * Process a PDF file (extract text, create transcript, generate notes)
  * @param file - PDF file as FormData
  */
 export const processPDF = async (file: FormData): Promise<any> => {

@@ -48,7 +48,7 @@ type Props = {
 
 const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inline = false, onNoteCreated }) => {
   const router = useRouter();
-  const { generateNoteFromText } = useNoteCreation();
+  const { generateNoteFromText, processPDF } = useNoteCreation();
   const [internalVisible, setInternalVisible] = useState<boolean>(visibleProp ?? true);
   const { showAlert } = useAlert();
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
@@ -79,30 +79,15 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
     setError(null);
 
     try {
-      let title = '';
-      let text = '';
-
-      // Generate title if not provided
-      if (hasTitle) {
-        title = titleValue.trim();
-      } else if (hasPDFs) {
-        // Use first PDF name as title
-        title = selectedPDFs[0].name.replace('.pdf', '');
-      } else {
-        title = 'Untitled Note';
-      }
-
-      // Generate content
+      // If PDFs are selected, process them through the PDF API
       if (hasPDFs) {
-        // Create note with PDF information
-        // TODO: Implement actual PDF text extraction or upload to backend
-        const pdfInfo = selectedPDFs.map(pdf => `[PDF: ${pdf.name}]`).join('\n\n');
-        text = hasTextContent
-          ? `${textValue.trim()}\n\n--- Attached PDFs ---\n${pdfInfo}`
-          : pdfInfo;
-      } else {
-        text = textValue.trim();
+        await handlePDFUpload();
+        return;
       }
+
+      // Otherwise, create a text note
+      let title = hasTitle ? titleValue.trim() : 'Untitled Note';
+      let text = textValue.trim();
 
       // Use generateNoteFromText hook - it handles limits automatically
       const response = await generateNoteFromText({
@@ -138,7 +123,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
               // Clear form
               setTitleValue('');
               setTextValue('');
-              setFolder('');  // Reset to no folder
+              setFolder('');
               setSelectedPDFs([]);
               close();
             },
@@ -146,10 +131,64 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
         ]
       );
     } catch (err: any) {
-      // Hook handles most errors, but if something slips through:
       setError(err.message || 'Failed to create note. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePDFUpload = async () => {
+    try {
+      // Process each PDF file
+      for (const pdf of selectedPDFs) {
+        const formData = new FormData();
+        
+        // Append the PDF file
+        formData.append('file', {
+          uri: pdf.uri,
+          type: 'application/pdf',
+          name: pdf.name,
+        } as any);
+
+        // Add folder if selected
+        if (folder) {
+          formData.append('folderId', folder);
+        }
+
+        // Add generateNotes flag
+        formData.append('generateNotes', 'true');
+
+        // Upload and process PDF using the hook
+        const result = await processPDF(formData);
+
+        if (!result || !result.success) {
+          throw new Error(result?.message || 'Failed to process PDF');
+        }
+      }
+
+      // Trigger refresh callback
+      if (onNoteCreated) onNoteCreated();
+
+      // Show success message
+      showAlert(
+        'Success!',
+        `${selectedPDFs.length} PDF${selectedPDFs.length > 1 ? 's' : ''} processed successfully!`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Clear form
+              setTitleValue('');
+              setTextValue('');
+              setFolder('');
+              setSelectedPDFs([]);
+              close();
+            },
+          },
+        ]
+      );
+    } catch (err: any) {
+      throw new Error(err.message || 'Failed to upload PDF');
     }
   };
 
