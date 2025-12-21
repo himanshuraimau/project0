@@ -26,7 +26,6 @@ model User {
   @@map("users")
 }
 
-// Better Auth Session Model
 model Session {
   id        String   @id
   expiresAt DateTime

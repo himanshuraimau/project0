@@ -531,7 +531,7 @@ export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden">
+                  <div className="h-[400px] sm:h-[500px] lg:h-[600px]">
                     <DynamicInlineChatbot noteId={note.id} className="h-full" />
                   </div>
                 </CardContent>
