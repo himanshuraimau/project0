@@ -23,7 +23,7 @@ import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
 
 import { ShareLinkModal } from '@/components/notes'
-
+import FolderSelectorModal from '@/components/folders/FolderSelectorModal'
 
 import TranslationModal from './TranslationModal'
 
@@ -50,6 +50,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en') // Track note's display language
 
   const [shareModalVisible, setShareModalVisible] = useState(false)
+  const [showFolderModal, setShowFolderModal] = useState(false)
 
   // Load saved language preference for this note
   useEffect(() => {
@@ -188,8 +189,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
     } else if (chipId === 2) { // Transcript chip
       router.push(`/notes/${noteId}/transcript`)
     } else if (chipId === 3) { // Folder chip
-      // Handle folder action
-      console.log('Folder pressed')
+      setShowFolderModal(true)
     }
   }
 
@@ -625,6 +625,18 @@ export default function NoteView({ noteId }: NoteViewProps) {
           noteTitle={displayTitle}
         />
       )}
+
+      {/* Folder Selector Modal */}
+      <FolderSelectorModal
+        visible={showFolderModal}
+        onClose={() => setShowFolderModal(false)}
+        noteId={noteId}
+        currentFolderId={note?.folderId}
+        onFolderSelected={() => {
+          // Refresh note to get updated folder info
+          fetchNote()
+        }}
+      />
     </>
   )
 }

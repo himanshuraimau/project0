@@ -8,6 +8,8 @@ import {
     ScrollView,
     ActivityIndicator,
     TextInput,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Folder as FolderIcon } from 'lucide-react-native';
@@ -133,7 +135,11 @@ export default function FolderSelectorModal({
             onRequestClose={onClose}
         >
             <View style={styles.overlay}>
-                <View style={styles.modalContainer}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={styles.keyboardAvoidingView}
+                >
+                    <View style={styles.modalContainer}>
                     {/* Header */}
                     <View style={styles.header}>
                         <View style={styles.headerLeft}>
@@ -320,7 +326,8 @@ export default function FolderSelectorModal({
                             <Text style={styles.savingText}>{t('common.loading')}</Text>
                         </View>
                     )}
-                </View>
+                    </View>
+                </KeyboardAvoidingView>
             </View>
         </Modal>
     );
@@ -331,6 +338,9 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'flex-end',
+    },
+    keyboardAvoidingView: {
+        width: '100%',
     },
     modalContainer: {
         backgroundColor: 'white',
