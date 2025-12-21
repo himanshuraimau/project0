@@ -86,7 +86,7 @@ export async function generateEmbeddings(chunks: string[]): Promise<number[][]> 
           model: openai.textEmbeddingModel(EMBEDDING_MODEL),
           value: chunks[i],
         });
-        
+
         embeddings.push(embedding);
         console.log(`Generated embedding ${i + 1}/${chunks.length}`);
       } catch (error) {
@@ -252,7 +252,7 @@ export async function querySimilarChunks(query: string, noteId?: string, topK: n
 
       if (noteId) {
         // Search within a specific note
-        // Use <=> for cosine distance which is optimized by our index
+        // Use <= for cosine distance which is optimized by our index
         queryText = `
           SELECT id, note_id, chunk_text, embedding <=> $1::vector as distance
           FROM note_chunks
@@ -261,9 +261,10 @@ export async function querySimilarChunks(query: string, noteId?: string, topK: n
           LIMIT $3
         `;
         queryParams = [vectorString, noteId, topK];
+        console.log('🔍 Executing note-specific query:', { noteId, topK, queryLength: query.length });
       } else {
         // Search across all notes
-        // Use <=> for cosine distance which is optimized by our index
+        // Use <= for cosine distance which is optimized by our index
         queryText = `
           SELECT id, note_id, chunk_text, embedding <=> $1::vector as distance
           FROM note_chunks
@@ -271,26 +272,34 @@ export async function querySimilarChunks(query: string, noteId?: string, topK: n
           LIMIT $2
         `;
         queryParams = [vectorString, topK];
+        console.log('🔍 Executing global query:', { topK, queryLength: query.length });
       }
 
       try {
         const { rows } = await client.query(queryText, queryParams);
+        console.log('✅ Vector query successful:', {
+          rowsFound: rows.length,
+          noteId: noteId || 'all',
+          firstRowNoteId: rows[0]?.note_id
+        });
         return rows;
       } catch (error) {
-        console.error('Error in vector query, falling back to simple text match:', error);
+        console.error('❌ Error in vector query, falling back to simple text match:', error);
         // Fallback to simple text search if vector search fails
         const fallbackQuery = noteId
           ? `SELECT id, note_id, chunk_text FROM note_chunks WHERE note_id = $1 LIMIT $2`
           : `SELECT id, note_id, chunk_text FROM note_chunks LIMIT $1`;
         const fallbackParams = noteId ? [noteId, topK] : [topK];
+        console.log('🔄 Executing fallback query:', { noteId: noteId || 'all', topK });
         const { rows } = await client.query(fallbackQuery, fallbackParams);
+        console.log('✅ Fallback query result:', { rowsFound: rows.length });
         return rows;
       }
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error('Error in querySimilarChunks:', error);
+    console.error('❌ Error in querySimilarChunks:', error);
     return []; // Return empty array instead of throwing
   }
 }
