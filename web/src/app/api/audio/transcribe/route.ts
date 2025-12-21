@@ -9,16 +9,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Configure route segment to handle large file uploads
-export const config = {
-  api: {
-    bodyParser: false, // Disable default body parser for file uploads
-    responseLimit: false, // Disable response size limit
-  },
-};
-
-// Increase max duration for audio transcription (Vercel Pro: 300s, Hobby: 10s)
+// Configure route segment for large file uploads
 export const maxDuration = 300; // 5 minutes
+export const dynamic = 'force-dynamic'; // Ensure dynamic rendering
+export const runtime = 'nodejs'; // Use Node.js runtime for file handling
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,13 +22,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const formData = await req.formData();
+    // Parse FormData with proper error handling
+    let formData: FormData;
+    try {
+      formData = await req.formData();
+    } catch (error) {
+      console.error('FormData parsing error:', error);
+      return NextResponse.json({ 
+        error: 'Invalid form data. Please ensure you are sending a properly formatted multipart/form-data request.' 
+      }, { status: 400 });
+    }
+
     const audioFile = formData.get('audio') as File;
     const fileName = formData.get('fileName') as string || 'recorded-audio';
     const folderId = formData.get('folderId') as string | null;
 
-    if (!audioFile) {
-      return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
+    // Validate that audioFile is actually a File object
+    if (!audioFile || !(audioFile instanceof File)) {
+      return NextResponse.json({ error: 'No valid audio file provided' }, { status: 400 });
+    }
+
+    // Validate file has content
+    if (audioFile.size === 0) {
+      return NextResponse.json({ error: 'Audio file is empty' }, { status: 400 });
     }
 
     // Check file size limit (OpenAI Whisper has a 25MB limit)
@@ -209,8 +219,31 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Audio transcription error:', error);
+    
+    // Provide more specific error messages based on error type
+    if (error instanceof Error) {
+      if (error.message.includes('FormData')) {
+        return NextResponse.json(
+          { error: 'Invalid form data format. Please check your request.' },
+          { status: 400 }
+        );
+      }
+      if (error.message.includes('boundary')) {
+        return NextResponse.json(
+          { error: 'Malformed multipart data. Please try uploading again.' },
+          { status: 400 }
+        );
+      }
+      if (error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
+        return NextResponse.json(
+          { error: 'Transcription timeout. Please try with a shorter audio file.' },
+          { status: 408 }
+        );
+      }
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to transcribe audio' },
+      { error: 'Failed to transcribe audio. Please try again.' },
       { status: 500 }
     );
   }

@@ -302,13 +302,14 @@ const RecordAudio: React.FC<Props> = ({
       const filename = `recording-${Date.now()}.m4a`;
       const fileType = Platform.OS === "ios" ? "audio/x-m4a" : "audio/mp4";
 
+      // Create FormData for audio file (same as PDF)
       formData.append("audio", {
         uri: recordingUriRef.current,
         type: fileType,
         name: filename,
       } as any);
       
-      // Add folderId if selected
+      // Add folderId if selected (same as PDF)
       if (folder) {
         formData.append('folderId', folder);
       }

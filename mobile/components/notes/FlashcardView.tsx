@@ -187,12 +187,14 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
           setFlashcardState('front')
           setLoading(false)  // Turn off loading after successful set
         } else {
-          console.error('Empty flashcards array')
+          console.warn('Empty flashcards array received')
+          setError('No flashcards could be generated from this note. The content might not be suitable for flashcard creation.')
           setFlashcards([])
           setLoading(false)
         }
       } else {
-        console.error('No content in response')
+        console.warn('No content in flashcard response')
+        setError('No flashcard content was received. Please try generating flashcards again.')
         setFlashcards([])
         setLoading(false)
       }
