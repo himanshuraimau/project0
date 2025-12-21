@@ -1,7 +1,28 @@
-# Audio Upload 413 Error - Fixed ✅
+# Audio Upload 413 Error - Complete Fix Guide
 
 ## Problem
 15MB audio files were being rejected with a **413 Request Entity Too Large** error when uploading from the mobile app.
+
+---
+
+## Quick Start (TL;DR)
+
+### 1. Restart Next.js Server
+```bash
+cd web
+npm run dev
+```
+
+### 2. Rebuild Mobile App (REQUIRED)
+```bash
+cd mobile
+npx expo prebuild --clean
+npx expo run:android  # or: npx expo run:ios
+```
+
+**⚠️ Important:** You CANNOT use Expo Go. Must create a development build.
+
+---
 
 ## Solution Implemented
 
@@ -20,12 +41,13 @@ experimental: {
 
 ### 2. Client-Side Fix (Mobile App)
 **Files Modified:**
+- `mobile/app.config.ts` - Added react-native-compressor plugin
 - `mobile/lib/utils/audioCompression.ts` (NEW)
 - `mobile/components/home/UploadAudio.tsx`
 - `mobile/components/home/RecordAudio.tsx`
 
 **Package Added:**
-- `react-native-compressor` - For audio compression
+- `react-native-compressor` - For audio compression (native module)
 
 **How it works:**
 1. Before upload, audio files > 10MB are automatically compressed
@@ -53,12 +75,19 @@ experimental: {
    npm run dev
    ```
 
-2. **Rebuild mobile app** (required for new package):
+2. **Rebuild mobile app** (REQUIRED - native module needs linking):
    ```bash
    cd mobile
-   npx expo prebuild
-   npm run ios  # or npm run android
+   
+   # Clean rebuild (recommended)
+   npx expo prebuild --clean
+   npx expo run:android  # or: npx expo run:ios
+   
+   # OR use EAS build
+   eas build --profile development --platform android
    ```
+   
+   **⚠️ Important:** `react-native-compressor` requires native code. You CANNOT use Expo Go. You must create a development build or production build.
 
 3. **Test upload:**
    - Record or upload a 15MB audio file
@@ -75,8 +104,17 @@ experimental: {
 
 ## Troubleshooting
 
+**Error: "package doesn't seem to be linked"**
+- You're trying to use Expo Go (not supported for native modules)
+- Solution: Create a development build:
+  ```bash
+  cd mobile
+  npx expo prebuild --clean
+  npx expo run:android  # or: npx expo run:ios
+  ```
+
 If 413 error persists:
 1. Verify Next.js server was restarted
-2. Check mobile app was rebuilt with new package
+2. Check mobile app was rebuilt with development build (not Expo Go)
 3. Verify hosting provider doesn't have separate upload limits (Vercel, etc.)
 4. Check browser/network proxy settings
