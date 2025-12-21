@@ -3,7 +3,7 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 export default ({ config }: ConfigContext): ExpoConfig => ({
     ...config,
     name: "Jellinote AI",
-    slug: "mobile",
+    slug: "jellinote-ai",
     version: "1.0.0",
     orientation: "portrait",
     scheme: "jellinote",
@@ -17,7 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             UIStatusBarHidden: false,
             UIStatusBarStyle: "UIStatusBarStyleDefault"
         },
-        bundleIdentifier: "com.kjish.mobile"
+        bundleIdentifier: "com.himanshuraimau.mobile"
     },
     android: {
         adaptiveIcon: {
@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             "android.permission.ACCESS_MEDIA_LOCATION",
             "android.permission.READ_MEDIA_IMAGES"
         ],
-        package: "com.kjish.mobile"
+        package: "com.himanshuraimau.mobile"
     },
     web: {
         bundler: "metro",
@@ -68,11 +68,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     extra: {
         eas: {
-            projectId: "48443544-2899-42df-a88f-430cc60f236a"
+            projectId: "3bb4e1c6-e9fe-4d1a-a361-d90cf3d871db"
         },
 
         // Add your secrets here, e.g.:
         // apiKey: process.env.MY_API_KEY,
     },
-    owner: "k-jish"
+    owner: "himanshuraimau-organization"
 });
