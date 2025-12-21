@@ -121,15 +121,17 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
       // Step 1: Transcribe audio and generate notes
       setProcessingStep('transcribing');
 
-      // Create FormData for audio file
+      // Create FormData for audio file (same as PDF)
       const formData = new FormData();
+      
+      // Append the audio file (same structure as PDF)
       formData.append('audio', {
         uri: selectedFile.uri,
         type: selectedFile.mimeType || 'audio/mpeg',
-        name: selectedFile.name,
+        name: selectedFile.name || 'uploaded-audio.mp3',
       } as any);
       
-      // Add folderId if selected
+      // Add folderId if selected (same as PDF)
       if (folder) {
         formData.append('folderId', folder);
       }

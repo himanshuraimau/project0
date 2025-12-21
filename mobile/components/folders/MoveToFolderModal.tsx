@@ -8,6 +8,7 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { X, Folder, Check } from 'lucide-react-native';
 import { useFolders } from '@/lib/hooks/useFolders';
@@ -72,8 +73,11 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
       animationType="slide"
       transparent={true}
       onRequestClose={onClose}
+      statusBarTranslucent={true}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
+      <StatusBar backgroundColor="rgba(0, 0, 0, 0.5)" barStyle="light-content" />
+      <View style={styles.overlay}>
+        <Pressable style={styles.backdrop} onPress={onClose} />
         <View style={styles.modal}>
           {/* Header */}
           <View style={styles.header}>
@@ -177,7 +181,7 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
             </View>
           )}
         </View>
-      </Pressable>
+      </View>
     </Modal>
   );
 };
@@ -185,8 +189,16 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+    backgroundColor: 'transparent', // Let backdrop handle the background
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modal: {
     backgroundColor: '#FFFFFF',
