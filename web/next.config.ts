@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Enable standalone output for Docker
   output: 'standalone',
+  // Increase body size limit for audio uploads (fixes 413 error)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb', // Allow up to 50MB uploads
+    },
+  },
   // Allow ngrok domain for development
   allowedDevOrigins: [
     'binate-nonperceptively-celestina.ngrok-free.dev'

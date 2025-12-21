@@ -16,6 +16,7 @@ import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
 import FullWidthButton from '@/components/ui/FullWidthButton';
 import FolderSelect from '@/components/ui/FolderSelect';
 import { useAlert } from '@/lib/contexts/AlertContext';
+import { compressAudioForUpload, shouldCompressAudio } from '@/lib/utils/audioCompression';
 
 // Local emoji icon fallback (keeps component dependency-free)
 const Icon: React.FC<{ name: string; size?: number; color?: string; style?: any }> = ({
@@ -51,7 +52,7 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
   const [folder, setFolder] = useState('');  // Empty string = no folder (uncategorized)
   const [selectedFile, setSelectedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStep, setProcessingStep] = useState<'transcribing' | 'generating' | null>(null);
+  const [processingStep, setProcessingStep] = useState<'compressing' | 'transcribing' | 'generating' | null>(null);
 
   const close = () => {
     if (onClose) onClose();
@@ -118,20 +119,45 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
     setIsProcessing(true);
 
     try {
-      // Step 1: Transcribe audio and generate notes
+      let audioUri = selectedFile.uri;
+      let audioName = selectedFile.name || 'uploaded-audio.mp3';
+      let audioType = selectedFile.mimeType || 'audio/mpeg';
+
+      // Step 1: Compress audio if needed (files > 10MB)
+      const needsCompression = await shouldCompressAudio(selectedFile.uri);
+      
+      if (needsCompression) {
+        setProcessingStep('compressing');
+        
+        try {
+          const compressionResult = await compressAudioForUpload(selectedFile.uri);
+          audioUri = compressionResult.uri;
+          audioType = 'audio/m4a'; // Compressed format
+          audioName = audioName.replace(/\.[^/.]+$/, '.m4a'); // Change extension
+          
+          if (__DEV__) {
+            console.log(`✅ Compressed: ${(compressionResult.originalSize / 1024 / 1024).toFixed(2)}MB → ${(compressionResult.compressedSize / 1024 / 1024).toFixed(2)}MB (${compressionResult.compressionRatio}% reduction)`);
+          }
+        } catch (compressionError) {
+          console.error('Compression failed, uploading original:', compressionError);
+          // Continue with original file if compression fails
+        }
+      }
+
+      // Step 2: Transcribe audio and generate notes
       setProcessingStep('transcribing');
 
-      // Create FormData for audio file (same as PDF)
+      // Create FormData for audio file
       const formData = new FormData();
       
-      // Append the audio file (same structure as PDF)
+      // Append the audio file (compressed or original)
       formData.append('audio', {
-        uri: selectedFile.uri,
-        type: selectedFile.mimeType || 'audio/mpeg',
-        name: selectedFile.name || 'uploaded-audio.mp3',
+        uri: audioUri,
+        type: audioType,
+        name: audioName,
       } as any);
       
-      // Add folderId if selected (same as PDF)
+      // Add folderId if selected
       if (folder) {
         formData.append('folderId', folder);
       }
@@ -149,7 +175,7 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
       if (transcriptionResult.note && transcriptionResult.note.id) {
         note = transcriptionResult.note;
       } else {
-        // Fallback: Generate AI note from transcript if not already done
+        // Step 3: Generate AI note from transcript if not already done
         setProcessingStep('generating');
 
         // Use hook for note generation
@@ -242,7 +268,13 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
             onPress={handleGenerateNotes}
             disabled={!selectedFile}
             loading={isProcessing}
-            loadingText={processingStep === 'transcribing' ? 'Transcribing Audio...' : 'Generating Notes...'}
+            loadingText={
+              processingStep === 'compressing' 
+                ? 'Compressing Audio...' 
+                : processingStep === 'transcribing' 
+                ? 'Transcribing Audio...' 
+                : 'Generating Notes...'
+            }
             buttonText="Generate Notes"
           />
         </View>
