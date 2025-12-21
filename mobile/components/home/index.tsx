@@ -389,6 +389,7 @@ export default function NotesHome() {
           style={styles.modalOverlay}
           onPress={() => setModalVisible(false)}
         >
+          <SafeAreaView edges={['bottom']} style={styles.modalSafeArea}>
           <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
             {activeOption === null && (
               <View style={styles.modalHeader}>
@@ -451,6 +452,7 @@ export default function NotesHome() {
               )}
             </View>
           </Pressable>
+          </SafeAreaView>
         </Pressable>
       </Modal>
 
@@ -703,14 +705,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'flex-end',
   },
-  modalContainer: {
+  modalSafeArea: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
     paddingTop: 24,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    minHeight: '50%',
   },
   modalHeader: {
     flexDirection: 'row',
