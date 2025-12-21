@@ -63,19 +63,33 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
     return text
   }
 
+  // Get the transcript content (original content, not AI-generated notes)
+  const getTranscriptContent = () => {
+    if (note?.transcript?.content) {
+      return note.transcript.content
+    }
+    if (note?.transcript?.cleanContent) {
+      return note.transcript.cleanContent
+    }
+    // Fallback to note content if transcript is not available
+    return note?.content || ''
+  }
+
+  const transcriptContent = getTranscriptContent()
+
   // Action Handlers
   const handleCopy = async () => {
-    if (!note?.content) return
-    await Clipboard.setStringAsync(note.content)
+    if (!transcriptContent) return
+    await Clipboard.setStringAsync(transcriptContent)
     showAlert('Copied', 'Transcript copied to clipboard')
   }
 
   const handleDownload = async () => {
-    if (!note?.content) return
+    if (!transcriptContent) return
     try {
-      const fileName = `${note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_transcript.txt`
+      const fileName = `${note?.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_transcript.txt`
       const fileUri = (FileSystem.documentDirectory || '') + fileName
-      await FileSystem.writeAsStringAsync(fileUri, note.content)
+      await FileSystem.writeAsStringAsync(fileUri, transcriptContent)
 
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri)
@@ -89,11 +103,11 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
   }
 
   const handleShare = async () => {
-    if (!note?.content) return
+    if (!transcriptContent) return
     try {
       await Share.share({
-        message: note.content,
-        title: note.title,
+        message: transcriptContent,
+        title: note?.title || 'Transcript',
       })
     } catch (error) {
       console.error('Share error:', error)
@@ -205,7 +219,7 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
             {/* Transcript Content */}
             <View style={styles.transcriptContent}>
               <Text style={styles.contentText}>
-                {highlightText(note.content, searchQuery)}
+                {highlightText(transcriptContent, searchQuery)}
               </Text>
             </View>
 
