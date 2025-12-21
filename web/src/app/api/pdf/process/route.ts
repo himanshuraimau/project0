@@ -8,6 +8,17 @@ import { getUserFromAuth } from '@/lib/auth-helper';
 const parser = new PDFParser();
 const noteService = new NoteService();
 
+// Configure route segment to handle large file uploads
+export const config = {
+  api: {
+    bodyParser: false, // Disable default body parser for file uploads
+    responseLimit: false, // Disable response size limit
+  },
+};
+
+// Increase max duration for PDF processing (Vercel Pro: 300s, Hobby: 10s)
+export const maxDuration = 300; // 5 minutes
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();

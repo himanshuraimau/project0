@@ -61,12 +61,47 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
   const pickAudioFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'audio/*',
-        copyToCacheDirectory: true,
+        type: '*/*', // Allow all files - we'll validate audio types ourselves
+        copyToCacheDirectory: false, // Don't copy to cache - allows larger files and faster picking
+        multiple: false,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
+        
+        // Validate audio file type
+        const allowedMimeTypes = [
+          'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave',
+          'audio/flac', 'audio/m4a', 'audio/x-m4a', 'audio/ogg',
+          'audio/webm', 'audio/mp4', 'audio/aac'
+        ];
+        
+        const allowedExtensions = [
+          '.mp3', '.wav', '.m4a', '.flac', '.ogg', '.webm', '.mp4', '.aac', '.mpeg'
+        ];
+        
+        const fileExtension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+        const isValidMimeType = file.mimeType && allowedMimeTypes.includes(file.mimeType.toLowerCase());
+        const isValidExtension = allowedExtensions.includes(fileExtension);
+        
+        if (!isValidMimeType && !isValidExtension) {
+          showAlert(
+            'Invalid File Type',
+            `Please select an audio file. Supported formats: MP3, WAV, M4A, FLAC, OGG, WebM, MP4, AAC.\n\nSelected: ${file.name}`
+          );
+          return;
+        }
+        
+        // Check file size (25MB limit for OpenAI Whisper)
+        const maxSize = 25 * 1024 * 1024; // 25MB
+        if (file.size && file.size > maxSize) {
+          showAlert(
+            'File Too Large',
+            `Audio file is too large. Maximum size is 25MB. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`
+          );
+          return;
+        }
+        
         setSelectedFile(file);
       }
     } catch (error) {

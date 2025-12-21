@@ -212,10 +212,26 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
       const result = await DocumentPicker.getDocumentAsync({
         type: 'application/pdf',
         multiple: true,
-        copyToCacheDirectory: true,
+        copyToCacheDirectory: false, // Don't copy to cache - allows larger files
       });
 
       if (result.canceled) {
+        return;
+      }
+
+      // Check file sizes (25MB limit per file)
+      const maxSize = 25 * 1024 * 1024; // 25MB
+      const oversizedFiles = result.assets.filter(file => file.size && file.size > maxSize);
+      
+      if (oversizedFiles.length > 0) {
+        const fileList = oversizedFiles.map(f => 
+          `${f.name} (${(f.size! / 1024 / 1024).toFixed(2)}MB)`
+        ).join(', ');
+        
+        showAlert(
+          'Files Too Large',
+          `The following files exceed the 25MB limit: ${fileList}. Please select smaller files.`
+        );
         return;
       }
 

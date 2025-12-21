@@ -9,6 +9,17 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Configure route segment to handle large file uploads
+export const config = {
+  api: {
+    bodyParser: false, // Disable default body parser for file uploads
+    responseLimit: false, // Disable response size limit
+  },
+};
+
+// Increase max duration for audio transcription (Vercel Pro: 300s, Hobby: 10s)
+export const maxDuration = 300; // 5 minutes
+
 export async function POST(req: NextRequest) {
   try {
     const userId = await getUserFromAuth(req);

@@ -14,11 +14,13 @@ export const setTokenProvider = (getter: () => string | null | Promise<string | 
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 100000,
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true, // Important for cookie-based auth
+  maxBodyLength: 50 * 1024 * 1024, // 50MB - Allow large file uploads (audio, PDF, etc.)
+  maxContentLength: 50 * 1024 * 1024, // 50MB - Allow large responses
 });
 
 // Request interceptor to add auth cookies
