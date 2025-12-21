@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import notesApi from '@/lib/api/notes';
 import { transcribeAudio } from '@/lib/api/audio';
 import { processWebpage } from '@/lib/api/webpage';
+import { processYouTube, ProcessYouTubeRequest, ProcessYouTubeResponse } from '@/lib/api/transcripts';
 import {
     CreateNoteRequest,
     GenerateNoteRequest,
@@ -25,6 +26,7 @@ interface UseNoteCreationResult {
     generateFocusedNote: (data: GenerateFocusedNoteRequest) => Promise<Note | null>;
     transcribeAudio: (data: FormData) => Promise<TranscribeAudioResponse | null>;
     processWebpage: (data: ProcessWebpageRequest) => Promise<ProcessWebpageResponse | null>;
+    processYouTube: (data: ProcessYouTubeRequest) => Promise<ProcessYouTubeResponse | null>;
 }
 
 export const useNoteCreation = (): UseNoteCreationResult => {
@@ -125,6 +127,13 @@ export const useNoteCreation = (): UseNoteCreationResult => {
         );
     };
 
+    const processYouTubeWrapper = async (data: ProcessYouTubeRequest) => {
+        return wrapApiCall(
+            () => processYouTube(data),
+            'Failed to process YouTube video'
+        );
+    };
+
     return {
         isLoading,
         error,
@@ -134,5 +143,6 @@ export const useNoteCreation = (): UseNoteCreationResult => {
         generateFocusedNote,
         transcribeAudio: transcribeAudioWrapper,
         processWebpage: processWebpageWrapper,
+        processYouTube: processYouTubeWrapper,
     };
 };

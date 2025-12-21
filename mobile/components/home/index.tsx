@@ -426,11 +426,27 @@ export default function NotesHome() {
                 // render the selected option inline inside the modal
                 <View>
                   {activeOption === 1 && (
-                    <RecordAudio inline onClose={() => setActiveOption(null)} />
+                    <RecordAudio
+                      inline
+                      onClose={() => setActiveOption(null)}
+                      onNoteGenerated={() => {
+                        fetchNotes();
+                        setModalVisible(false);
+                        setActiveOption(null);
+                      }}
+                    />
                   )}
 
                   {activeOption === 2 && (
-                    <UploadAudio inline onClose={() => setActiveOption(null)} />
+                    <UploadAudio
+                      inline
+                      onClose={() => setActiveOption(null)}
+                      onNoteGenerated={() => {
+                        fetchNotes();
+                        setModalVisible(false);
+                        setActiveOption(null);
+                      }}
+                    />
                   )}
 
                   {activeOption === 3 && (
@@ -446,7 +462,15 @@ export default function NotesHome() {
                   )}
 
                   {activeOption === 4 && (
-                    <WebLink inline onClose={() => setActiveOption(null)} />
+                    <WebLink
+                      inline
+                      onClose={() => setActiveOption(null)}
+                      onNoteGenerated={() => {
+                        fetchNotes();
+                        setModalVisible(false);
+                        setActiveOption(null);
+                      }}
+                    />
                   )}
                 </View>
               )}

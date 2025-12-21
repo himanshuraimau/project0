@@ -161,14 +161,15 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingTop: 0,
+    paddingBottom: 14,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 34,
     fontWeight: '800',
     color: '#111827',
     marginBottom: 4,
@@ -178,7 +179,9 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   listContent: {
-    paddingBottom: 100,
+    paddingTop: 20,
+    paddingBottom: 120,
+    marginHorizontal: -20,
   },
   listContentEmpty: {
     flexGrow: 1,
@@ -266,7 +269,7 @@ const styles = StyleSheet.create({
   fabGradient: {
     position: 'absolute',
     right: 20,
-    bottom: 24,
+    bottom: 60,
     borderRadius: 999,
     shadowColor: '#7C3AED',
     shadowOffset: { width: 0, height: 4 },

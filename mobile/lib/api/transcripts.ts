@@ -1,10 +1,32 @@
 import apiClient, { handleApiResponse, handleApiError } from './client';
-import { Transcript, CreateTranscriptRequest, ApiResponse } from './types';
+import { Transcript, CreateTranscriptRequest, ApiResponse, Note } from './types';
 
 /**
  * Transcripts API Module
  * Handles transcript management operations
  */
+
+export interface ProcessYouTubeRequest {
+  url: string;
+  generateNotes?: boolean;
+  folderId?: string;
+}
+
+// The backend returns a Transcript directly in data field
+export type ProcessYouTubeResponse = Transcript;
+
+/**
+ * Process a YouTube URL and extract transcript
+ * @param data - YouTube URL and options
+ */
+export const processYouTube = async (data: ProcessYouTubeRequest): Promise<ProcessYouTubeResponse> => {
+  try {
+    const response = await apiClient.post<ApiResponse<ProcessYouTubeResponse>>('/transcripts', data);
+    return handleApiResponse<ProcessYouTubeResponse>(response);
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
 
 /**
  * Get all transcripts for the authenticated user
@@ -60,6 +82,7 @@ export const deleteTranscript = async (id: string): Promise<{ message: string }>
 };
 
 export default {
+  processYouTube,
   getTranscripts,
   getTranscriptById,
   createTranscript,
