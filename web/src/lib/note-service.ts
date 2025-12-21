@@ -133,7 +133,7 @@ export class NoteService {
       // Add timestamp and uniqueness factors to the prompt
       const timestamp = new Date().toISOString();
       const analysisId = Math.random().toString(36).substring(2, 15);
-      
+
       // Determine content-specific prompt based on transcript type
       const contentType = transcript.type || 'text';
       const contentSpecificInstructions = this.getContentSpecificInstructions(contentType);
@@ -603,14 +603,18 @@ Generate ONE perfect title (no quotes, just the title):`,
         },
       });
 
-      // Index the note content for vector search (non-blocking)
-      setTimeout(() => {
-        indexNoteContent(note.id, note.content)
-          .then(() => console.log(`Successfully indexed note: ${note.id}`))
-          .catch((error) =>
-            console.error(`Error indexing note ${note.id}:`, error)
-          );
-      }, 0);
+      // Index the note content for vector search synchronously
+      // This ensures the chatbot will work immediately after note creation
+      console.log(`🔄 Starting indexing for note: ${note.id}`);
+      try {
+        await indexNoteContent(note.id, note.content);
+        console.log(`✅ Successfully indexed note: ${note.id}`);
+      } catch (error) {
+        console.error(`❌ Error indexing note ${note.id}:`, error);
+        // Don't fail note creation if indexing fails
+        // The note is still usable, just chatbot won't work until manual reindex
+        console.warn(`⚠️ Note ${note.id} created but chatbot may not work until reindexed`);
+      }
 
       return note;
     } catch (error) {
@@ -733,11 +737,11 @@ Generate ONE perfect title (no quotes, just the title):`,
       });
     } catch (error) {
       console.error("Error retrieving user notes:", error);
-      
+
       // Check if it's a Prisma error
       if (error && typeof error === 'object' && 'code' in error) {
         const prismaError = error as { code: string; message: string };
-        
+
         switch (prismaError.code) {
           case 'P2021':
             throw new Error("Database table 'notes' does not exist. Please check your database migration status.");
@@ -751,12 +755,12 @@ Generate ONE perfect title (no quotes, just the title):`,
             throw new Error(`Database error (${prismaError.code}): ${prismaError.message}`);
         }
       }
-      
+
       // Handle other types of errors
       if (error instanceof Error) {
         throw new Error(`Failed to retrieve user notes: ${error.message}`);
       }
-      
+
       throw new Error("An unexpected error occurred while retrieving user notes");
     }
   }

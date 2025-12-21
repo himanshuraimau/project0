@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Folder, Check } from 'lucide-react-native';
 import { useFolders } from '@/lib/hooks/useFolders';
 import type { Note } from '@/lib/api/types';
@@ -30,6 +31,7 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
   onSuccess,
 }) => {
   const { folders, fetchFolders, moveNote, loading } = useFolders();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
@@ -76,9 +78,11 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
       statusBarTranslucent={true}
     >
       <StatusBar backgroundColor="rgba(0, 0, 0, 0.5)" barStyle="light-content" />
-      <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={styles.modal}>
+      <Pressable style={styles.overlay} onPress={onClose}>
+        <Pressable
+          style={[styles.modalContainer, { paddingBottom: Math.max(insets.bottom, 20) }]}
+          onPress={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerContent}>
@@ -180,8 +184,8 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
               <ActivityIndicator size="large" color="#7C3AED" />
             </View>
           )}
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
@@ -189,28 +193,21 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'transparent', // Let backdrop handle the background
-  },
-  backdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
-  modal: {
+  modalContainer: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 20,
     maxHeight: '80%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    padding: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
@@ -233,7 +230,6 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   content: {
-    paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 20,
   },

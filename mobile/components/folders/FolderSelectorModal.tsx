@@ -10,7 +10,9 @@ import {
     TextInput,
     KeyboardAvoidingView,
     Platform,
+    Pressable,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { Folder as FolderIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +37,7 @@ export default function FolderSelectorModal({
 }: FolderSelectorModalProps) {
     const { t } = useTranslation();
     const { showAlert } = useAlert();
+    const insets = useSafeAreaInsets();
     const [folders, setFolders] = useState<FolderWithCount[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -133,202 +136,211 @@ export default function FolderSelectorModal({
             transparent
             animationType="slide"
             onRequestClose={onClose}
+            statusBarTranslucent
         >
-            <View style={styles.overlay}>
+            {/* Full screen backdrop with solid background */}
+            <Pressable style={styles.overlay} onPress={onClose}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={styles.keyboardAvoidingView}
                 >
-                    <View style={styles.modalContainer}>
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <View style={styles.headerLeft}>
-                            <FolderIcon size={24} color="#7C3AED" />
-                            <Text style={styles.title}>{t('folders.moveToFolder')}</Text>
-                        </View>
-                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                            <Feather name="x" size={24} color="#6B7280" />
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Search */}
-                    <View style={styles.searchContainer}>
-                        <Feather name="search" size={16} color="#9CA3AF" style={styles.searchIcon} />
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder={t('common.search')}
-                            placeholderTextColor="#9CA3AF"
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
-                        {searchQuery.length > 0 && (
-                            <TouchableOpacity onPress={() => setSearchQuery('')}>
-                                <Feather name="x" size={16} color="#9CA3AF" />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-
-                    {/* Folders List */}
-                    <ScrollView style={styles.foldersList} showsVerticalScrollIndicator={false}>
-                        {loading ? (
-                            <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="large" color="#7C3AED" />
+                    {/* Modal content - prevent close on tap */}
+                    <Pressable
+                        style={[
+                            styles.modalContainer,
+                            { paddingBottom: Math.max(insets.bottom, 20) }
+                        ]}
+                        onPress={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <View style={styles.header}>
+                            <View style={styles.headerLeft}>
+                                <FolderIcon size={24} color="#7C3AED" />
+                                <Text style={styles.title}>{t('folders.moveToFolder')}</Text>
                             </View>
-                        ) : (
-                            <>
-                                {/* No Folder Option */}
-                                <TouchableOpacity
-                                    style={[
-                                        styles.folderItem,
-                                        currentFolderId === null && styles.folderItemSelected,
-                                    ]}
-                                    onPress={() => handleSelectFolder(null)}
-                                    disabled={saving}
-                                >
-                                    <View style={[styles.folderIcon, { backgroundColor: '#F3F4F6' }]}>
-                                        <Feather name="inbox" size={20} color="#6B7280" />
-                                    </View>
-                                    <View style={styles.folderInfo}>
-                                        <Text style={styles.folderName}>{t('folders.uncategorized')}</Text>
-                                        <Text style={styles.folderDescription}>
-                                            {t('folders.notesWithoutFolder')}
-                                        </Text>
-                                    </View>
-                                    {currentFolderId === null && (
-                                        <Feather name="check" size={20} color="#7C3AED" />
-                                    )}
-                                </TouchableOpacity>
+                            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                                <Feather name="x" size={24} color="#6B7280" />
+                            </TouchableOpacity>
+                        </View>
 
-                                {/* User Folders */}
-                                {filteredFolders.map((folder) => (
+                        {/* Search */}
+                        <View style={styles.searchContainer}>
+                            <Feather name="search" size={16} color="#9CA3AF" style={styles.searchIcon} />
+                            <TextInput
+                                style={styles.searchInput}
+                                placeholder={t('common.search')}
+                                placeholderTextColor="#9CA3AF"
+                                value={searchQuery}
+                                onChangeText={setSearchQuery}
+                            />
+                            {searchQuery.length > 0 && (
+                                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                                    <Feather name="x" size={16} color="#9CA3AF" />
+                                </TouchableOpacity>
+                            )}
+                        </View>
+
+                        {/* Folders List */}
+                        <ScrollView style={styles.foldersList} showsVerticalScrollIndicator={false}>
+                            {loading ? (
+                                <View style={styles.loadingContainer}>
+                                    <ActivityIndicator size="large" color="#7C3AED" />
+                                </View>
+                            ) : (
+                                <>
+                                    {/* No Folder Option */}
                                     <TouchableOpacity
-                                        key={folder.id}
                                         style={[
                                             styles.folderItem,
-                                            currentFolderId === folder.id && styles.folderItemSelected,
+                                            currentFolderId === null && styles.folderItemSelected,
                                         ]}
-                                        onPress={() => handleSelectFolder(folder.id)}
+                                        onPress={() => handleSelectFolder(null)}
                                         disabled={saving}
                                     >
-                                        <View
-                                            style={[
-                                                styles.folderIcon,
-                                                { backgroundColor: `${folder.color || '#7C3AED'}15` },
-                                            ]}
-                                        >
-                                            <FolderIcon size={20} color={folder.color || '#7C3AED'} />
+                                        <View style={[styles.folderIcon, { backgroundColor: '#F3F4F6' }]}>
+                                            <Feather name="inbox" size={20} color="#6B7280" />
                                         </View>
                                         <View style={styles.folderInfo}>
-                                            <Text style={styles.folderName}>{folder.name}</Text>
-                                            <Text style={styles.folderCount}>
-                                                {folder.noteCount} {folder.noteCount === 1 ? t('folders.note') : t('folders.notes')}
+                                            <Text style={styles.folderName}>{t('folders.uncategorized')}</Text>
+                                            <Text style={styles.folderDescription}>
+                                                {t('folders.notesWithoutFolder')}
                                             </Text>
                                         </View>
-                                        {currentFolderId === folder.id && (
+                                        {currentFolderId === null && (
                                             <Feather name="check" size={20} color="#7C3AED" />
                                         )}
                                     </TouchableOpacity>
-                                ))}
 
-                                {/* Create New Folder Button */}
-                                {!showCreateForm && (
-                                    <TouchableOpacity
-                                        style={styles.createFolderButton}
-                                        onPress={() => setShowCreateForm(true)}
-                                        disabled={saving}
-                                    >
-                                        <View style={styles.createFolderIcon}>
-                                            <Feather name="plus" size={20} color="#7C3AED" />
-                                        </View>
-                                        <Text style={styles.createFolderText}>
-                                            {t('folders.createFolder')}
-                                        </Text>
-                                    </TouchableOpacity>
-                                )}
+                                    {/* User Folders */}
+                                    {filteredFolders.map((folder) => (
+                                        <TouchableOpacity
+                                            key={folder.id}
+                                            style={[
+                                                styles.folderItem,
+                                                currentFolderId === folder.id && styles.folderItemSelected,
+                                            ]}
+                                            onPress={() => handleSelectFolder(folder.id)}
+                                            disabled={saving}
+                                        >
+                                            <View
+                                                style={[
+                                                    styles.folderIcon,
+                                                    { backgroundColor: `${folder.color || '#7C3AED'}15` },
+                                                ]}
+                                            >
+                                                <FolderIcon size={20} color={folder.color || '#7C3AED'} />
+                                            </View>
+                                            <View style={styles.folderInfo}>
+                                                <Text style={styles.folderName}>{folder.name}</Text>
+                                                <Text style={styles.folderCount}>
+                                                    {folder.noteCount} {folder.noteCount === 1 ? t('folders.note') : t('folders.notes')}
+                                                </Text>
+                                            </View>
+                                            {currentFolderId === folder.id && (
+                                                <Feather name="check" size={20} color="#7C3AED" />
+                                            )}
+                                        </TouchableOpacity>
+                                    ))}
 
-                                {/* Create Folder Form */}
-                                {showCreateForm && (
-                                    <View style={styles.createForm}>
-                                        <Text style={styles.createFormTitle}>Create New Folder</Text>
+                                    {/* Create New Folder Button */}
+                                    {!showCreateForm && (
+                                        <TouchableOpacity
+                                            style={styles.createFolderButton}
+                                            onPress={() => setShowCreateForm(true)}
+                                            disabled={saving}
+                                        >
+                                            <View style={styles.createFolderIcon}>
+                                                <Feather name="plus" size={20} color="#7C3AED" />
+                                            </View>
+                                            <Text style={styles.createFolderText}>
+                                                {t('folders.createFolder')}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    )}
 
-                                        <TextInput
-                                            style={styles.createInput}
-                                            placeholder="Folder name"
-                                            placeholderTextColor="#9CA3AF"
-                                            value={newFolderName}
-                                            onChangeText={setNewFolderName}
-                                            autoFocus
-                                        />
+                                    {/* Create Folder Form */}
+                                    {showCreateForm && (
+                                        <View style={styles.createForm}>
+                                            <Text style={styles.createFormTitle}>Create New Folder</Text>
 
-                                        {/* Color Picker */}
-                                        <Text style={styles.colorLabel}>Color</Text>
-                                        <View style={styles.colorPicker}>
-                                            {folderColors.map((color) => (
+                                            <TextInput
+                                                style={styles.createInput}
+                                                placeholder="Folder name"
+                                                placeholderTextColor="#9CA3AF"
+                                                value={newFolderName}
+                                                onChangeText={setNewFolderName}
+                                                autoFocus
+                                            />
+
+                                            {/* Color Picker */}
+                                            <Text style={styles.colorLabel}>Color</Text>
+                                            <View style={styles.colorPicker}>
+                                                {folderColors.map((color) => (
+                                                    <TouchableOpacity
+                                                        key={color}
+                                                        style={[
+                                                            styles.colorOption,
+                                                            { backgroundColor: color },
+                                                            newFolderColor === color && styles.colorOptionSelected,
+                                                        ]}
+                                                        onPress={() => setNewFolderColor(color)}
+                                                    >
+                                                        {newFolderColor === color && (
+                                                            <Feather name="check" size={16} color="#FFFFFF" />
+                                                        )}
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+
+                                            {/* Form Actions */}
+                                            <View style={styles.formActions}>
                                                 <TouchableOpacity
-                                                    key={color}
-                                                    style={[
-                                                        styles.colorOption,
-                                                        { backgroundColor: color },
-                                                        newFolderColor === color && styles.colorOptionSelected,
-                                                    ]}
-                                                    onPress={() => setNewFolderColor(color)}
+                                                    style={styles.cancelButton}
+                                                    onPress={() => {
+                                                        setShowCreateForm(false);
+                                                        setNewFolderName('');
+                                                        setNewFolderColor('#7C3AED');
+                                                    }}
+                                                    disabled={creating}
                                                 >
-                                                    {newFolderColor === color && (
-                                                        <Feather name="check" size={16} color="#FFFFFF" />
+                                                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={styles.createButton}
+                                                    onPress={handleCreateFolder}
+                                                    disabled={creating || !newFolderName.trim()}
+                                                >
+                                                    {creating ? (
+                                                        <ActivityIndicator size="small" color="#FFFFFF" />
+                                                    ) : (
+                                                        <Text style={styles.createButtonText}>Create & Select</Text>
                                                     )}
                                                 </TouchableOpacity>
-                                            ))}
+                                            </View>
                                         </View>
+                                    )}
 
-                                        {/* Form Actions */}
-                                        <View style={styles.formActions}>
-                                            <TouchableOpacity
-                                                style={styles.cancelButton}
-                                                onPress={() => {
-                                                    setShowCreateForm(false);
-                                                    setNewFolderName('');
-                                                    setNewFolderColor('#7C3AED');
-                                                }}
-                                                disabled={creating}
-                                            >
-                                                <Text style={styles.cancelButtonText}>Cancel</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity
-                                                style={styles.createButton}
-                                                onPress={handleCreateFolder}
-                                                disabled={creating || !newFolderName.trim()}
-                                            >
-                                                {creating ? (
-                                                    <ActivityIndicator size="small" color="#FFFFFF" />
-                                                ) : (
-                                                    <Text style={styles.createButtonText}>Create & Select</Text>
-                                                )}
-                                            </TouchableOpacity>
+                                    {filteredFolders.length === 0 && !loading && !showCreateForm && (
+                                        <View style={styles.emptyContainer}>
+                                            <Text style={styles.emptyText}>
+                                                {searchQuery ? t('folders.noFoldersFound') : t('folders.noFoldersYet')}
+                                            </Text>
                                         </View>
-                                    </View>
-                                )}
+                                    )}
+                                </>
+                            )}
+                        </ScrollView>
 
-                                {filteredFolders.length === 0 && !loading && !showCreateForm && (
-                                    <View style={styles.emptyContainer}>
-                                        <Text style={styles.emptyText}>
-                                            {searchQuery ? t('folders.noFoldersFound') : t('folders.noFoldersYet')}
-                                        </Text>
-                                    </View>
-                                )}
-                            </>
+                        {/* Loading Overlay */}
+                        {saving && (
+                            <View style={styles.savingOverlay}>
+                                <ActivityIndicator size="large" color="#7C3AED" />
+                                <Text style={styles.savingText}>{t('common.loading')}</Text>
+                            </View>
                         )}
-                    </ScrollView>
-
-                    {/* Loading Overlay */}
-                    {saving && (
-                        <View style={styles.savingOverlay}>
-                            <ActivityIndicator size="large" color="#7C3AED" />
-                            <Text style={styles.savingText}>{t('common.loading')}</Text>
-                        </View>
-                    )}
-                    </View>
+                    </Pressable>
                 </KeyboardAvoidingView>
-            </View>
+            </Pressable>
         </Modal>
     );
 }
@@ -343,11 +355,12 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     modalContainer: {
-        backgroundColor: 'white',
+        backgroundColor: '#FFFFFF',
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
-        padding: 24,
-        maxHeight: '80%',
+        paddingTop: 24,
+        paddingHorizontal: 24,
+        maxHeight: '85%',
     },
     header: {
         flexDirection: 'row',

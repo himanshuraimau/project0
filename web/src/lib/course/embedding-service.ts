@@ -121,16 +121,18 @@ export async function insertChunks(
   chunkIndices: [number, number][],
   embeddings: number[][]
 ): Promise<void> {
+  console.log(`🔧 insertChunks called for noteId: ${noteId}, chunks: ${chunks.length}`);
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
 
     // First delete any existing chunks for this note
-    await client.query(
+    const deleteResult = await client.query(
       'DELETE FROM note_chunks WHERE note_id = $1',
       [noteId]
     );
+    console.log(`🗑️ Deleted ${deleteResult.rowCount} existing chunks for note ${noteId}`);
 
     // Make sure vector extension is available
     await client.query('CREATE EXTENSION IF NOT EXISTS vector');
@@ -161,11 +163,19 @@ export async function insertChunks(
         vectorString
       ]);
 
-      console.log(`Inserted chunk ${i + 1}/${chunks.length} for note ${noteId}`);
+      console.log(`✅ Inserted chunk ${i + 1}/${chunks.length} for note ${noteId} (chunk length: ${chunk.length})`);
     }
 
     await client.query('COMMIT');
-    console.log(`Successfully indexed ${chunks.length} chunks for note ${noteId}`);
+    console.log(`✅ Successfully indexed ${chunks.length} chunks for note ${noteId}`);
+
+    // Verify chunks were inserted
+    const verifyResult = await client.query(
+      'SELECT COUNT(*) as count FROM note_chunks WHERE note_id = $1',
+      [noteId]
+    );
+    console.log(`🔍 Verification: ${verifyResult.rows[0].count} chunks found in database for note ${noteId}`);
+
     return;
   } catch (error) {
     await client.query('ROLLBACK');
