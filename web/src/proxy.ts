@@ -46,7 +46,7 @@ function isAuthRoute(pathname: string): boolean {
   return authRoutes.some(route => pathname.startsWith(route))
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
   // Handle CORS preflight requests for API routes
