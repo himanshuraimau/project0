@@ -33,6 +33,7 @@ export const processPDF = async (file: FormData): Promise<any> => {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 300000, // 2 minutes timeout for PDF processing
     });
     return handleApiResponse<any>(response);
   } catch (error) {

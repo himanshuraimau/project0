@@ -170,11 +170,9 @@ export default function ChatbotView({ noteId }: ChatbotViewProps) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         {/* ChatBody - scrollable message list */}
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.chatBodyContainer}>
-            <ChatBody ref={chatBodyRef} messages={messages} />
-          </View>
-        </TouchableWithoutFeedback>
+        <View style={styles.chatBodyContainer}>
+          <ChatBody ref={chatBodyRef} messages={messages} />
+        </View>
 
         {/* InputBar - fixed at bottom, moves with keyboard */}
         <InputBar

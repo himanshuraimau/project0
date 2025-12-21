@@ -139,6 +139,8 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
 
   const handlePDFUpload = async () => {
     try {
+      let lastNoteId: string | null = null;
+      
       // Process each PDF file
       for (const pdf of selectedPDFs) {
         const formData = new FormData();
@@ -161,21 +163,34 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
         // Upload and process PDF using the hook
         const result = await processPDF(formData);
 
-        if (!result || !result.success) {
-          throw new Error(result?.message || 'Failed to process PDF');
+        if (!result) {
+          throw new Error('Failed to process PDF');
+        }
+
+        // Get the note ID from the result
+        if (result.note?.id) {
+          lastNoteId = result.note.id;
         }
       }
 
       // Trigger refresh callback
       if (onNoteCreated) onNoteCreated();
 
-      // Show success message
+      // Show success message with option to view the note
       showAlert(
         'Success!',
-        `${selectedPDFs.length} PDF${selectedPDFs.length > 1 ? 's' : ''} processed successfully!`,
+        'Your notes have been generated successfully.',
         [
+          ...(lastNoteId ? [{
+            text: 'View Notes',
+            onPress: () => {
+              close();
+              router.push(`/notes/${lastNoteId}`);
+            },
+          }] : []),
           {
-            text: 'OK',
+            text: 'Close',
+            style: 'cancel' as const,
             onPress: () => {
               // Clear form
               setTitleValue('');
