@@ -315,6 +315,9 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
     if (flashcardState === 'front') {
       isFlipped.value = true
       setFlashcardState('back')
+    } else if (flashcardState === 'back') {
+      isFlipped.value = false
+      setFlashcardState('front')
     }
   }
 
@@ -536,19 +539,20 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                   </Pressable>
                 }
                 FlippedContent={
-                  <View style={[styles.flashcard, styles.flashcardBack]}>
+                  <Pressable onPress={handleFlipCard} style={[styles.flashcard, styles.flashcardBack]}>
                     <Text style={styles.flashcardText}>
                       {currentFlashcard.back}
                     </Text>
-                  </View>
+                  </Pressable>
                 }
               />
 
               {/* Helper Text / Action Buttons */}
-              {flashcardState === 'front' ? (
-                <Text style={styles.helperText}>{t('flashcards.flipCard')}</Text>
-              ) : (
-                <View style={styles.actionButtons}>
+              <View style={styles.actionButtons}>
+                {flashcardState === 'front' ? (
+                  <Text style={styles.helperText}>{t('flashcards.flipCard')}</Text>
+                ) : (
+                  <>
                   <TouchableOpacity
                     style={styles.navigationButton}
                     onPress={moveToPreviousCard}
@@ -571,8 +575,9 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                   >
                     <Feather name="arrow-right" size={16} color="#374151" />
                   </TouchableOpacity>
-                </View>
-              )}
+                  </>
+                )}
+              </View>
             </>
           )}
 
