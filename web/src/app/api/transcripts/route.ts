@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate YouTube URL format
-        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)/;
+        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)/;
         if (!youtubeRegex.test(videoUrl)) {
             const errorResponse: ApiErrorResponse = {
                 success: false,
@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
 
         // Check subscription access
         const accessCheck = await FeatureGateService.checkAccessForAPI();
+        
         if (!accessCheck.allowed) {
             const errorResponse: ApiErrorResponse = {
                 success: false,
@@ -89,8 +90,6 @@ export async function POST(request: NextRequest) {
             userId
         );
 
-        // No credit deduction needed - subscription system handles access
-
         const response: ApiSuccessResponse = {
             success: true,
             data: transcript,
@@ -99,8 +98,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(response);
 
     } catch (error) {
-        console.error('Error creating transcript:', error);
-
         // Handle specific error types
         if (error instanceof Error) {
             if (error.message.includes('API Error')) {

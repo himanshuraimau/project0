@@ -100,14 +100,9 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
         text = hasTextContent
           ? `${textValue.trim()}\n\n--- Attached PDFs ---\n${pdfInfo}`
           : pdfInfo;
-
-        console.log('Creating note with PDFs:', selectedPDFs.map(p => p.name));
-        console.log('PDF URIs for future processing:', selectedPDFs.map(p => p.uri));
       } else {
         text = textValue.trim();
       }
-
-      console.log('Creating note with:', { title, textLength: text.length });
 
       // Use generateNoteFromText hook - it handles limits automatically
       const response = await generateNoteFromText({
@@ -122,8 +117,8 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
         return;
       }
 
-      console.log('Note created successfully:', response.note.id);
-      console.log('Transcript created:', response.transcript.id);
+      // Trigger refresh callback immediately on success
+      if (onNoteCreated) onNoteCreated();
 
       // Show success message
       showAlert(
@@ -145,17 +140,12 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
               setTextValue('');
               setFolder('');  // Reset to no folder
               setSelectedPDFs([]);
-
-              // Call refresh callback
-              if (onNoteCreated) onNoteCreated();
-
               close();
             },
           },
         ]
       );
     } catch (err: any) {
-      console.error('Failed to create note:', err);
       // Hook handles most errors, but if something slips through:
       setError(err.message || 'Failed to create note. Please try again.');
     } finally {
@@ -172,7 +162,6 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
       });
 
       if (result.canceled) {
-        console.log('User cancelled PDF selection');
         return;
       }
 
@@ -186,10 +175,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
         `Selected ${result.assets.length} file(s): ${fileNames}`,
         [{ text: 'OK' }]
       );
-
-      console.log('Selected PDFs:', result.assets);
     } catch (err: any) {
-      console.error('Failed to pick PDF:', err);
       showAlert('Error', 'Failed to select PDF files. Please try again.');
     }
   };

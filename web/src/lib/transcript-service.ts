@@ -32,17 +32,13 @@ export class TranscriptService {
         const axiosError = error as AxiosError;
 
         if (axiosError.response) {
-          console.error('API Error:', axiosError.response.status, axiosError.response.data);
           throw new Error(`API Error: ${axiosError.response.status} - ${JSON.stringify(axiosError.response.data)}`);
         } else if (axiosError.request) {
-          console.error('Network Error: No response received');
           throw new Error('Network Error: Unable to reach the API server');
         } else {
-          console.error('Request Error:', axiosError.message);
           throw new Error(`Request Error: ${axiosError.message}`);
         }
       } else {
-        console.error('Unexpected Error:', error);
         throw new Error(`Unexpected Error: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
@@ -54,7 +50,6 @@ export class TranscriptService {
   private wrapText(text: string, lineLength: number = 80): string {
     // Validate input
     if (!text || typeof text !== 'string') {
-      console.warn('Invalid text provided to wrapText:', text);
       return '';
     }
 
@@ -98,7 +93,6 @@ export class TranscriptService {
 
       return transcript;
     } catch (error) {
-      console.error('Error saving transcript to database:', error);
       throw new Error('Failed to save transcript to database');
     }
   }
@@ -152,7 +146,6 @@ export class TranscriptService {
 
       return savedTranscript;
     } catch (error) {
-      console.error('Error processing YouTube transcript:', error);
       throw new Error('Failed to process YouTube transcript');
     }
   }
@@ -166,7 +159,6 @@ export class TranscriptService {
         where: { id },
       });
     } catch (error) {
-      console.error('Error retrieving transcript:', error);
       throw new Error('Failed to retrieve transcript');
     }
   }
@@ -191,7 +183,6 @@ export class TranscriptService {
         },
       });
     } catch (error) {
-      console.error('Error retrieving user transcripts:', error);
       throw new Error('Failed to retrieve user transcripts');
     }
   }
@@ -205,7 +196,6 @@ export class TranscriptService {
         where: { id },
       });
     } catch (error) {
-      console.error('Error deleting transcript:', error);
       throw new Error('Failed to delete transcript');
     }
   }
@@ -229,7 +219,6 @@ export class TranscriptService {
         },
       });
     } catch (error) {
-      console.error('Error retrieving all transcripts:', error);
       throw new Error('Failed to retrieve transcripts');
     }
   }
