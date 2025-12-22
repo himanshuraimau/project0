@@ -73,7 +73,9 @@ export async function generateEmbeddings(chunks: string[]): Promise<number[][]> 
   try {
     // If OpenAI API key is not available, use mock embeddings
     if (!hasValidApiKey) {
-      console.log('OpenAI API key not available - using mock embeddings');
+      console.warn('⚠️ OPENAI_API_KEY not configured - using mock embeddings');
+      console.warn('⚠️ Mock embeddings will NOT work for semantic search in chatbot!');
+      console.warn('⚠️ Please set OPENAI_API_KEY environment variable for production use');
       return generateMockEmbeddings(chunks.length);
     }
 
@@ -88,26 +90,41 @@ export async function generateEmbeddings(chunks: string[]): Promise<number[][]> 
         });
 
         embeddings.push(embedding);
-        console.log(`Generated embedding ${i + 1}/${chunks.length}`);
+        console.log(`✅ Generated embedding ${i + 1}/${chunks.length} using OpenAI`);
       } catch (error) {
-        console.error(`Error generating embedding for chunk ${i}:`, error);
+        console.error(`❌ Error generating embedding for chunk ${i}:`, error);
+
+        if (error instanceof Error) {
+          console.error(`❌ OpenAI API Error: ${error.message}`);
+        }
+
         // In production, rethrow. In development, fallback to mock
         if (process.env.NODE_ENV === 'production') {
+          console.error(`❌ Production mode: throwing error instead of using mock embeddings`);
           throw error;
         } else {
-          console.log('Falling back to mock embedding for this chunk');
+          console.warn(`⚠️ Development mode: falling back to mock embedding for chunk ${i}`);
+          console.warn(`⚠️ This mock embedding will NOT work for semantic search!`);
           embeddings.push(generateMockEmbeddings(1)[0]);
         }
       }
     }
 
-    console.log(`Successfully generated embeddings for ${chunks.length} chunks using OpenAI`);
+    console.log(`✅ Successfully generated ${embeddings.length} embeddings for ${chunks.length} chunks using OpenAI`);
     return embeddings;
   } catch (error) {
-    console.error('Error in generateEmbeddings:', error);
+    console.error('❌ Critical error in generateEmbeddings:', error);
+
+    if (error instanceof Error) {
+      console.error(`❌ Error details: ${error.message}`);
+      if (error.stack) {
+        console.error(`❌ Stack trace:`, error.stack);
+      }
+    }
 
     // Always fall back to mock embeddings if there's an error
-    console.log('Falling back to mock embeddings due to error');
+    console.warn('⚠️ Falling back to mock embeddings due to error');
+    console.warn('⚠️ Chatbot will NOT work with mock embeddings!');
     return generateMockEmbeddings(chunks.length);
   }
 }
@@ -193,27 +210,48 @@ export async function insertChunks(
  */
 export async function indexNoteContent(noteId: string, content: string): Promise<void> {
   try {
+    console.log(`📝 indexNoteContent called for note: ${noteId}`);
+    console.log(`📊 Content length: ${content.length} characters`);
+
     // Skip indexing if content is empty
     if (!content || content.trim().length === 0) {
-      console.log(`Note ${noteId} has no content to index`);
-      return;
+      console.warn(`⚠️ Note ${noteId} has no content to index`);
+      throw new Error(`Cannot index note ${noteId}: content is empty`);
     }
 
-    // Chunk the text
+    // Step 1: Chunk the text
+    console.log(`🔪 Step 1/3: Chunking text for note ${noteId}...`);
     const { chunks, chunkIndices } = chunkText(content);
+    console.log(`✅ Generated ${chunks.length} chunks for note ${noteId}`);
 
     if (chunks.length === 0) {
-      console.log(`No chunks generated for note ${noteId}`);
-      return;
+      console.warn(`⚠️ No chunks generated for note ${noteId}`);
+      throw new Error(`No chunks generated for note ${noteId} despite having content`);
     }
 
-    // Generate embeddings
+    // Step 2: Generate embeddings
+    console.log(`🤖 Step 2/3: Generating embeddings for ${chunks.length} chunks...`);
     const embeddings = await generateEmbeddings(chunks);
+    console.log(`✅ Generated ${embeddings.length} embeddings for note ${noteId}`);
 
-    // Store chunks and embeddings
+    if (embeddings.length !== chunks.length) {
+      throw new Error(`Embedding count mismatch: ${embeddings.length} embeddings for ${chunks.length} chunks`);
+    }
+
+    // Step 3: Store chunks and embeddings
+    console.log(`💾 Step 3/3: Storing chunks and embeddings in database...`);
     await insertChunks(noteId, chunks, chunkIndices, embeddings);
+    console.log(`✅ Successfully completed all indexing steps for note ${noteId}`);
   } catch (error) {
-    console.error(`Failed to index note ${noteId}:`, error);
+    console.error(`❌ Failed to index note ${noteId}:`, error);
+
+    if (error instanceof Error) {
+      console.error(`❌ Indexing error details - Name: ${error.name}, Message: ${error.message}`);
+      if (error.stack) {
+        console.error(`❌ Stack trace:`, error.stack);
+      }
+    }
+
     throw error;
   }
 }

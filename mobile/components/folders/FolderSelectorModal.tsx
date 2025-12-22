@@ -140,10 +140,7 @@ export default function FolderSelectorModal({
         >
             {/* Full screen backdrop with solid background */}
             <Pressable style={styles.overlay} onPress={onClose}>
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={styles.keyboardAvoidingView}
-                >
+                
                     {/* Modal content - prevent close on tap */}
                     <Pressable
                         style={[
@@ -339,7 +336,6 @@ export default function FolderSelectorModal({
                             </View>
                         )}
                     </Pressable>
-                </KeyboardAvoidingView>
             </Pressable>
         </Modal>
     );
@@ -350,9 +346,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'flex-end',
-    },
-    keyboardAvoidingView: {
-        width: '100%',
     },
     modalContainer: {
         backgroundColor: '#FFFFFF',

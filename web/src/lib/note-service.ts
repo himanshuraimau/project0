@@ -606,14 +606,36 @@ Generate ONE perfect title (no quotes, just the title):`,
       // Index the note content for vector search synchronously
       // This ensures the chatbot will work immediately after note creation
       console.log(`🔄 Starting indexing for note: ${note.id}`);
-      try {
-        await indexNoteContent(note.id, note.content);
-        console.log(`✅ Successfully indexed note: ${note.id}`);
-      } catch (error) {
-        console.error(`❌ Error indexing note ${note.id}:`, error);
-        // Don't fail note creation if indexing fails
-        // The note is still usable, just chatbot won't work until manual reindex
-        console.warn(`⚠️ Note ${note.id} created but chatbot may not work until reindexed`);
+      console.log(`📊 Note content length: ${note.content.length} characters`);
+
+      // Pre-indexing validation
+      if (!note.content || note.content.trim().length === 0) {
+        console.error(`❌ Cannot index note ${note.id}: content is empty`);
+        console.warn(`⚠️ Note ${note.id} created but chatbot will not work (empty content)`);
+      } else if (!process.env.OPENAI_API_KEY) {
+        console.error(`❌ Cannot index note ${note.id}: OPENAI_API_KEY not configured`);
+        console.warn(`⚠️ Note ${note.id} created but chatbot will not work (missing API key)`);
+      } else {
+        try {
+          await indexNoteContent(note.id, note.content);
+          console.log(`✅ Successfully indexed note: ${note.id}`);
+        } catch (error) {
+          // Enhanced error logging with full details
+          console.error(`❌ Error indexing note ${note.id}:`, error);
+
+          if (error instanceof Error) {
+            console.error(`❌ Error name: ${error.name}`);
+            console.error(`❌ Error message: ${error.message}`);
+            console.error(`❌ Error stack: ${error.stack}`);
+          } else {
+            console.error(`❌ Unknown error type:`, typeof error, error);
+          }
+
+          // Don't fail note creation if indexing fails
+          // The note is still usable, just chatbot won't work until manual reindex
+          console.warn(`⚠️ Note ${note.id} created but chatbot may not work until reindexed`);
+          console.warn(`⚠️ Please check the error logs above for details on why indexing failed`);
+        }
       }
 
       return note;
