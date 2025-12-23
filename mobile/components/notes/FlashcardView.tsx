@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -22,6 +22,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { notesApi } from '@/lib/api'
 import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
+import ViewShot from 'react-native-view-shot'
+import * as Sharing from 'expo-sharing'
 
 interface FlashcardViewProps {
   noteId: string
@@ -128,6 +130,9 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
   // Flip animation using react-native-reanimated
   const isFlipped = useSharedValue(false)
+
+  // Ref for screenshot capture
+  const completionScreenRef = useRef<ViewShot>(null)
 
   // Fetch flashcards data on mount
   useEffect(() => {
@@ -371,9 +376,40 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
     isFlipped.value = false
   }
 
-  const handleShare = () => {
-    // TODO: Implement share functionality
-    console.log('Share flashcard results')
+  const handleShare = async () => {
+    try {
+      if (!completionScreenRef.current || !completionScreenRef.current.capture) {
+        console.error('Completion screen ref not available')
+        return
+      }
+
+      // Capture screenshot
+      const uri = await completionScreenRef.current.capture()
+
+      // Check if sharing is available
+      const isAvailable = await Sharing.isAvailableAsync()
+      if (!isAvailable) {
+        showAlert(
+          'Sharing not available',
+          'Sharing is not available on this device',
+          [{ text: 'OK', style: 'default' }]
+        )
+        return
+      }
+
+      // Share the screenshot
+      await Sharing.shareAsync(uri, {
+        mimeType: 'image/png',
+        dialogTitle: 'Share your flashcard results',
+      })
+    } catch (error) {
+      console.error('Error sharing screenshot:', error)
+      showAlert(
+        'Share failed',
+        'Failed to share screenshot. Please try again.',
+        [{ text: 'OK', style: 'default' }]
+      )
+    }
   }
 
   const handleCreateNew = () => {
@@ -415,7 +451,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.header}>
+          <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 }}>
             <BackButton />
           </View>
           <View style={styles.errorContainer}>
@@ -482,169 +518,188 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
-        <View style={styles.header}>
-          <BackButton />
-          {/* Pagination Dots */}
-          <View style={styles.paginationContainer}>
-            <View style={styles.paginationDots}>
-              {Array.from({ length: Math.min(5, flashcards.length) }).map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.paginationDot,
-                    index === Math.min(currentCard, 4) && styles.paginationDotActive,
-                  ]}
-                />
-              ))}
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          {/* Top Row: Back Button and Delete Button */}
+          <View style={styles.headerTopRow}>
+            {/* Left: Circular Back Button */}
+            <TouchableOpacity
+              style={styles.circularBackButton}
+              onPress={() => router.back()}
+            >
+              <Feather name="chevron-left" size={24} color="#374151" />
+            </TouchableOpacity>
+
+            {/* Spacer */}
+            <View style={{ flex: 1 }} />
+
+            {/* Right: Delete Button */}
+            <View>
+              {flashcards.length > 0 ? (
+                <TouchableOpacity
+                  onPress={handleDeleteFlashcards}
+                  style={[styles.deleteButton, isDeleting && styles.deleteButtonDisabled]}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <ActivityIndicator size="small" color="#EF4444" />
+                  ) : (
+                    <Feather name="trash-2" size={20} color="#EF4444" />
+                  )}
+                </TouchableOpacity>
+              ) : (
+                <View style={{ width: 40 }} />
+              )}
             </View>
           </View>
-          <View style={styles.headerRight}>
-            {flashcards.length > 0 ? (
-              <TouchableOpacity
-                onPress={handleDeleteFlashcards}
-                style={[styles.deleteButton, isDeleting && styles.deleteButtonDisabled]}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <ActivityIndicator size="small" color="#EF4444" />
-                ) : (
-                  <Feather name="trash-2" size={20} color="#EF4444" />
-                )}
-              </TouchableOpacity>
-            ) : (
-              <View style={{ width: 40 }} />
-            )}
+
+          {/* Second Row: Card Info */}
+          <View style={styles.headerSecondRow}>
+            <Text style={styles.cardLabel}>Card {currentCard + 1}</Text>
+            <Text style={styles.remainingCount}>{cardsLeft} left</Text>
+          </View>
+
+          {/* Progress Bar */}
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBarBackground}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: `${((currentCard + 1) / flashcards.length) * 100}%` }
+                ]}
+              />
+            </View>
           </View>
         </View>
 
         <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
           {!isComplete && currentFlashcard && (
             <>
-              {/* Card Info */}
-              <View style={styles.cardInfo}>
-                <Text style={styles.cardInfoText}>{t('flashcards.cardNumber', { number: currentCard + 1 })}</Text>
-                <Text style={styles.cardsLeft}>{t('flashcards.cardsLeft', { count: cardsLeft })}</Text>
+              {/* Card Stack Effect */}
+              <View style={styles.cardStackContainer}>
+                {/* Background stacked cards */}
+                <View style={[styles.stackedCard, styles.stackedCard3]} />
+                <View style={[styles.stackedCard, styles.stackedCard2]} />
+
+                {/* Main Flashcard with Flip Animation */}
+                <FlipCard
+                  isFlipped={isFlipped}
+                  cardStyle={styles.flipCardContainer}
+                  direction='y'
+                  duration={500}
+                  RegularContent={
+                    <Pressable onPress={handleFlipCard} style={styles.flashcard}>
+                      <Text style={styles.flashcardText}>
+                        {currentFlashcard.front}
+                      </Text>
+                      <Text style={styles.helperText}>{t('flashcards.flipCard')}</Text>
+                    </Pressable>
+                  }
+                  FlippedContent={
+                    <Pressable onPress={handleFlipCard} style={[styles.flashcard, styles.flashcardBack]}>
+                      <Text style={styles.flashcardText}>
+                        {currentFlashcard.back}
+                      </Text>
+                    </Pressable>
+                  }
+                />
               </View>
 
-              {/* Flashcard with Flip Animation */}
-              <FlipCard
-                isFlipped={isFlipped}
-                cardStyle={styles.flipCardContainer}
-                direction='y'
-                duration={500}
-                RegularContent={
-                  <Pressable onPress={handleFlipCard} style={styles.flashcard}>
-                    <Text style={styles.flashcardText}>
-                      {currentFlashcard.front}
-                    </Text>
-                    <Text style={styles.helperText}>{t('flashcards.flipCard')}</Text>
-                  </Pressable>
-                }
-                FlippedContent={
-                  <Pressable onPress={handleFlipCard} style={[styles.flashcard, styles.flashcardBack]}>
-                    <Text style={styles.flashcardText}>
-                      {currentFlashcard.back}
-                    </Text>
-                  </Pressable>
-                }
-              />
+              {/* Bottom Feedback Controls */}
+              <View style={styles.feedbackCard}>
+                <View style={styles.feedbackContainer}>
+                  <Text style={styles.feedbackText}>Get it right?</Text>
+                  <View style={styles.feedbackButtons}>
+                    <TouchableOpacity
+                      style={styles.thumbsDownButton}
+                      onPress={handleGotItWrong}
+                    >
+                      <Feather name="thumbs-down" size={20} color="#FFFFFF" />
+                    </TouchableOpacity>
 
-              {/* Action Buttons - Always Visible on Both Sides */}
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={styles.navigationButton}
-                  onPress={moveToPreviousCard}
-                  disabled={currentCard === 0}
-                >
-                  <Feather name="arrow-left" size={16} color={currentCard === 0 ? '#D1D5DB' : '#374151'} />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.wrongButton} onPress={handleGotItWrong}>
-                  <Text style={styles.wrongButtonText}>{t('flashcards.gotItWrong')}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.correctButton} onPress={handleGotItRight}>
-                  <Text style={styles.correctButtonText}>{t('flashcards.gotItRight')}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.navigationButton}
-                  onPress={moveToNextCard}
-                >
-                  <Feather name="arrow-right" size={16} color="#374151" />
-                </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.thumbsUpButton}
+                      onPress={handleGotItRight}
+                    >
+                      <Feather name="thumbs-up" size={20} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
             </>
           )}
 
           {/* Completion Screen - Success */}
           {isSuccess && (
-            <View style={styles.completionContainer}>
-              <View style={[styles.completionCircle, styles.completionCircleSuccess]}>
-                <Text style={styles.emojiIcon}>🏆</Text>
+            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: '#FFFFFF' }}>
+              <View style={styles.completionContainer}>
+                <View style={[styles.completionCircle, styles.completionCircleSuccess]}>
+                  <Text style={styles.emojiIcon}>🏆</Text>
+                </View>
+
+                <View style={styles.completionScoreContainer}>
+                  <Text style={styles.completionScoreText}>
+                    {completionPercentage}%
+                  </Text>
+                </View>
+
+                <Text style={styles.completionMessage}>{t('flashcards.nicelyDone')}</Text>
+
+                <View style={styles.completionStats}>
+                  <Text style={styles.completionStat}>{t('flashcards.percentCorrect', { percent: completionPercentage })}</Text>
+                </View>
+
+                <View style={styles.completionActions}>
+                  <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+                    <Text style={styles.shareButtonText}>{t('flashcards.share')}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.createNewButton} onPress={handleCreateNew}>
+                    <Feather name="plus" size={20} color="#374151" />
+                    <Text style={styles.createNewButtonText}>{t('flashcards.createNew')}</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-
-              <View style={styles.completionScoreContainer}>
-                <Text style={styles.completionScoreText}>
-                  {completionPercentage}%
-                </Text>
-              </View>
-
-              <Text style={styles.completionMessage}>{t('flashcards.nicelyDone')}</Text>
-
-              <View style={styles.completionStats}>
-                <Text style={styles.completionStat}>{t('flashcards.percentCorrect', { percent: completionPercentage })}</Text>
-              </View>
-
-              <View style={styles.completionActions}>
-                <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-                  <Text style={styles.shareButtonText}>{t('flashcards.share')}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.createNewButton} onPress={handleCreateNew}>
-                  <Feather name="plus" size={20} color="#374151" />
-                  <Text style={styles.createNewButtonText}>{t('flashcards.createNew')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            </ViewShot>
           )}
 
           {/* Completion Screen - Retry */}
           {isRetry && (
-            <View style={styles.completionContainer}>
-              <View style={[styles.completionCircle, styles.completionCircleRetry]}>
-                <Text style={styles.emojiIcon}>😅</Text>
+            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: '#FFFFFF' }}>
+              <View style={styles.completionContainer}>
+                <View style={[styles.completionCircle, styles.completionCircleRetry]}>
+                  <Text style={styles.emojiIcon}>😅</Text>
+                </View>
+
+                <View style={styles.completionScoreContainer}>
+                  <Text style={[styles.completionScoreText, styles.completionScoreRetryText]}>
+                    {completionPercentage}%
+                  </Text>
+                </View>
+
+                <Text style={styles.completionMessage}>{t('flashcards.tryAgain')}</Text>
+
+                <View style={styles.completionStats}>
+                  <Text style={styles.completionStat}>{t('flashcards.percentCorrect', { percent: completionPercentage })}</Text>
+                </View>
+
+                <View style={styles.completionActionsRetry}>
+                  <TouchableOpacity style={styles.retakeButton} onPress={handleRetake}>
+                    <Feather name="rotate-cw" size={20} color="#374151" />
+                    <Text style={styles.retakeButtonText}>{t('flashcards.retake')}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.shareButtonBlack} onPress={handleShare}>
+                    <Text style={styles.shareButtonBlackText}>{t('flashcards.share')}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.createNewButton} onPress={handleCreateNew}>
+                    <Feather name="plus" size={20} color="#374151" />
+                    <Text style={styles.createNewButtonText}>{t('flashcards.createNew')}</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-
-              <View style={styles.completionScoreContainer}>
-                <Text style={[styles.completionScoreText, styles.completionScoreRetryText]}>
-                  {completionPercentage}%
-                </Text>
-              </View>
-
-              <Text style={styles.completionMessage}>{t('flashcards.tryAgain')}</Text>
-
-              <View style={styles.completionStats}>
-                <Text style={styles.completionStat}>{t('flashcards.percentCorrect', { percent: completionPercentage })}</Text>
-              </View>
-
-              <View style={styles.completionActionsRetry}>
-                <TouchableOpacity style={styles.retakeButton} onPress={handleRetake}>
-                  <Feather name="rotate-cw" size={20} color="#374151" />
-                  <Text style={styles.retakeButtonText}>{t('flashcards.retake')}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.shareButtonBlack} onPress={handleShare}>
-                  <Text style={styles.shareButtonBlackText}>{t('flashcards.share')}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.createNewButton} onPress={handleCreateNew}>
-                  <Feather name="plus" size={20} color="#374151" />
-                  <Text style={styles.createNewButtonText}>{t('flashcards.createNew')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            </ViewShot>
           )}
 
           <View style={{ height: 40 }} />
@@ -662,14 +717,61 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  header: {
+  headerSection: {
+    backgroundColor: '#FFFFFF',
+    paddingBottom: 8,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  circularBackButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  headerSecondRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    paddingBottom: 16,
+  },
+  cardLabel: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  remainingCount: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  progressBarContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  progressBarBackground: {
+    height: 10,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#3B82F6',
+    borderRadius: 4,
   },
   titleContainer: {
     flex: 1,
@@ -708,141 +810,123 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     flexGrow: 1,
   },
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  cardStackContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginTop: 40,
+    marginBottom: 40,
+    position: 'relative',
   },
-  paginationDots: {
-    flexDirection: 'row',
-    gap: 8,
+  stackedCard: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#D1D5DB',
+  stackedCard2: {
+    width: '92%',
+    height: 380,
+    top: -8,
+    zIndex: 1,
   },
-  paginationDotActive: {
-    backgroundColor: '#3B82F6',
-  },
-  cardCounter: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  cardInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  cardInfoText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  cardsLeft: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6B7280',
+  stackedCard3: {
+    width: '88%',
+    height: 380,
+    top: -16,
+    zIndex: 0,
   },
   flipCardContainer: {
     width: '100%',
-    minHeight: 300,
+    minHeight: 380,
     backfaceVisibility: 'hidden',
-    marginBottom: 24,
+    zIndex: 2,
   },
   flashcard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    minHeight: 300,
+    borderRadius: 32,
+    paddingVertical: 60,
+    paddingHorizontal: 28,
+    minHeight: 380,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    marginBottom: 24,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 5,
   },
   flashcardBack: {
     backgroundColor: '#F1FCF5',
   },
   flashcardText: {
-    fontSize: 17,
-    lineHeight: 32,
+    fontSize: 19,
+    lineHeight: 34,
     textAlign: 'center',
     color: '#111827',
     fontWeight: '500',
   },
   helperText: {
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 15,
     color: '#9CA3AF',
     fontWeight: '400',
-    marginTop: 16,
+    marginTop: 24,
   },
-  actionButtons: {
+  feedbackCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  feedbackContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  feedbackText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  feedbackButtons: {
+    flexDirection: 'row',
     gap: 12,
   },
-  navigationButton: {
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.25,
-    borderColor: '#E5E7EB',
+  thumbsDownButton: {
+    width: 48,
+    height: 48,
     borderRadius: 24,
+    backgroundColor: '#EF4444',
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  wrongButton: {
-    width: 110,
-    height: 38,
-    backgroundColor: '#FEF2F2',
-    borderWidth: 0.8,
-    borderColor: '#FFC9C9',
-    borderRadius: 8,
+  thumbsUpButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  wrongButtonText: {
-    fontFamily: 'Arimo',
-    fontStyle: 'normal',
-    fontWeight: '400',
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#E7000B',
-  },
-  correctButton: {
-    width: 110,
-    height: 38,
-    backgroundColor: '#00C950',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  correctButtonText: {
-    fontFamily: 'Arimo',
-    fontStyle: 'normal',
-    fontWeight: '400',
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   completionContainer: {
     flex: 1,

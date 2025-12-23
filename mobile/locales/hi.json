@@ -110,7 +110,7 @@
     "deleteFailed": "फ्लैशकार्ड हटाने में विफल",
     "cardsLeft": "{{count}} शेष",
     "cardNumber": "कार्ड {{number}}",
-    "flipCard": "उत्तर देखने के लिए कार्ड फ्लिप करें",
+    "flipCard": "फ्लिप करने के लिए टैप करें",
     "gotItRight": "सही समझा",
     "gotItWrong": "गलत समझा",
     "nicelyDone": "बहुत अच्छा!",

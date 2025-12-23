@@ -110,7 +110,7 @@
     "deleteFailed": "Error al eliminar tarjetas",
     "cardsLeft": "{{count}} restantes",
     "cardNumber": "Tarjeta {{number}}",
-    "flipCard": "Voltea la tarjeta para ver la respuesta",
+    "flipCard": "Toca para voltear",
     "gotItRight": "Lo entendí bien",
     "gotItWrong": "Lo entendí mal",
     "nicelyDone": "¡Muy bien hecho!",

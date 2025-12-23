@@ -110,7 +110,7 @@
     "deleteFailed": "Failed to delete flashcards",
     "cardsLeft": "{{count}} left",
     "cardNumber": "Card {{number}}",
-    "flipCard": "Flip the card to see the answer",
+    "flipCard": "Tap to flip",
     "gotItRight": "Got it right",
     "gotItWrong": "Got it wrong",
     "nicelyDone": "Nicely done!",
