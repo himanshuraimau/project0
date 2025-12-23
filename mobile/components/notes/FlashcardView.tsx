@@ -531,13 +531,14 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
               <FlipCard
                 isFlipped={isFlipped}
                 cardStyle={styles.flipCardContainer}
-                direction='x'
+                direction='y'
                 duration={500}
                 RegularContent={
                   <Pressable onPress={handleFlipCard} style={styles.flashcard}>
                     <Text style={styles.flashcardText}>
                       {currentFlashcard.front}
                     </Text>
+                    <Text style={styles.helperText}>{t('flashcards.flipCard')}</Text>
                   </Pressable>
                 }
                 FlippedContent={
@@ -549,36 +550,30 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                 }
               />
 
-              {/* Helper Text / Action Buttons */}
+              {/* Action Buttons - Always Visible on Both Sides */}
               <View style={styles.actionButtons}>
-                {flashcardState === 'front' ? (
-                  <Text style={styles.helperText}>{t('flashcards.flipCard')}</Text>
-                ) : (
-                  <>
-                  <TouchableOpacity
-                    style={styles.navigationButton}
-                    onPress={moveToPreviousCard}
-                    disabled={currentCard === 0}
-                  >
-                    <Feather name="arrow-left" size={16} color={currentCard === 0 ? '#D1D5DB' : '#374151'} />
-                  </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.navigationButton}
+                  onPress={moveToPreviousCard}
+                  disabled={currentCard === 0}
+                >
+                  <Feather name="arrow-left" size={16} color={currentCard === 0 ? '#D1D5DB' : '#374151'} />
+                </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.wrongButton} onPress={handleGotItWrong}>
-                    <Text style={styles.wrongButtonText}>{t('flashcards.gotItWrong')}</Text>
-                  </TouchableOpacity>
+                <TouchableOpacity style={styles.wrongButton} onPress={handleGotItWrong}>
+                  <Text style={styles.wrongButtonText}>{t('flashcards.gotItWrong')}</Text>
+                </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.correctButton} onPress={handleGotItRight}>
-                    <Text style={styles.correctButtonText}>{t('flashcards.gotItRight')}</Text>
-                  </TouchableOpacity>
+                <TouchableOpacity style={styles.correctButton} onPress={handleGotItRight}>
+                  <Text style={styles.correctButtonText}>{t('flashcards.gotItRight')}</Text>
+                </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.navigationButton}
-                    onPress={moveToNextCard}
-                  >
-                    <Feather name="arrow-right" size={16} color="#374151" />
-                  </TouchableOpacity>
-                  </>
-                )}
+                <TouchableOpacity
+                  style={styles.navigationButton}
+                  onPress={moveToNextCard}
+                >
+                  <Feather name="arrow-right" size={16} color="#374151" />
+                </TouchableOpacity>
               </View>
             </>
           )}
@@ -789,6 +784,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9CA3AF',
     fontWeight: '400',
+    marginTop: 16,
   },
   actionButtons: {
     flexDirection: 'row',
