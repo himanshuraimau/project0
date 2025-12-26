@@ -205,7 +205,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
     } else if (toolId === 4) { // Flashcards
       router.push(`/notes/${noteId}/flashcards`)
     } else if (toolId === 5) { // Podcast
-      console.log('Podcast pressed')
+      router.push(`/notes/${noteId}/podcasts`)
     } else if (toolId === 6) { // MindMap
       router.push(`/notes/${noteId}/mindmap`)
     }
