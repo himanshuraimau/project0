@@ -4,10 +4,10 @@ const PODCAST_API_URL = process.env.PODCAST_API_URL;
 
 export async function GET(
     request: Request,
-    { params }: { params: { jobId: string } }
+    { params }: { params: Promise<{ jobId: string }> }
 ) {
     try {
-        const { jobId } = params;
+        const { jobId } = await params;
 
         // Check job status from microservice
         const response = await fetch(`${PODCAST_API_URL}/jobs/${jobId}`);

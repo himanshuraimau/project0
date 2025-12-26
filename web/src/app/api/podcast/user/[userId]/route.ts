@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse  } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { userId: string } }
+    { params }: { params: Promise<{ userId: string }> }
 ) {
     try {
         const authUserId = await getUserFromAuth(request);
@@ -15,7 +15,7 @@ export async function GET(
             );
         }
 
-        const { userId } = params;
+        const { userId } = await params;
 
         // Verify user can only access their own podcasts
         if (authUserId !== userId) {

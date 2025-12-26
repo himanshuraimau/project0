@@ -69,39 +69,21 @@ export class UserService {
       // Use a transaction with increased timeout to ensure all deletions happen atomically
       await prisma.$transaction(async (tx) => {
         // Delete in batches and optimize order to reduce foreign key constraint issues
-        
+
         // 1. Delete progress records first (no foreign key dependencies)
         const [courseProgressCount, chapterProgressCount] = await Promise.all([
           tx.userCourseProgress.deleteMany({ where: { userId } }),
           tx.userChapterProgress.deleteMany({ where: { userId } })
         ])
         console.log(`Deleted progress records: ${courseProgressCount.count + chapterProgressCount.count}`)
-        
+
         // 2. Delete subscription if exists
         const subscriptionCount = await tx.subscription.deleteMany({ where: { userId } })
         console.log(`Deleted subscriptions: ${subscriptionCount.count}`)
 
         // 3. Clean up podcast audio files before deleting podcasts
-        let podcastFileCleanupCount = 0;
-        try {
-          const userPodcasts = await tx.podcast.findMany({
-            where: { userId },
-            select: { audioFileKey: true }
-          });
-          
-          const audioFileKeys = userPodcasts
-            .filter(podcast => podcast.audioFileKey)
-            .map(podcast => podcast.audioFileKey!);
-
-          if (audioFileKeys.length > 0) {
-            const { uploadThingAudioStorageService } = await import('./uploadthing');
-            await uploadThingAudioStorageService.deleteAudioFiles(audioFileKeys);
-            podcastFileCleanupCount = audioFileKeys.length;
-          }
-        } catch (fileError) {
-          console.warn(`Failed to clean up some podcast audio files for user ${userId}:`, fileError);
-          // Continue with deletion even if file cleanup fails
-        }
+        // Note: Podcast audio files are managed by the microservice
+        // No need to clean up audio files here
 
         // 4. Delete study materials that depend on notes (in parallel for efficiency)
         const [mindmapCount, quizCount, flashcardCount, podcastCount] = await Promise.all([
@@ -111,7 +93,6 @@ export class UserService {
           tx.podcast.deleteMany({ where: { userId } })
         ])
         console.log(`Deleted study materials: ${mindmapCount.count + quizCount.count + flashcardCount.count + podcastCount.count}`)
-        console.log(`Cleaned up ${podcastFileCleanupCount} podcast audio files`)
 
         // 5. Delete notes (this will cascade to note chunks)
         const noteCount = await tx.note.deleteMany({

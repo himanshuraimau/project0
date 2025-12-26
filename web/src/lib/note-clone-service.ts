@@ -100,29 +100,25 @@ export class NoteCloneService {
         });
       }
 
-      // 5. Clone all podcasts (1:many relation)
-      if (originalNoteWithContent.podcasts && originalNoteWithContent.podcasts.length > 0) {
-        await tx.podcast.createMany({
-          data: originalNoteWithContent.podcasts.map((podcast) => ({
+      // 5. Clone podcasts (if any)
+      const podcasts = await tx.podcast.findMany({
+        where: { noteId: originalNote.id },
+      });
+
+      for (const podcast of podcasts) {
+        await tx.podcast.create({
+          data: {
             noteId: newNote.id,
-            userId,
+            userId: userId,
             title: podcast.title,
             description: podcast.description,
             audioUrl: podcast.audioUrl,
-            audioFileKey: podcast.audioFileKey,
             duration: podcast.duration,
-            fileSize: podcast.fileSize,
-            mode: podcast.mode,
-            hostVoiceId: podcast.hostVoiceId,
-            guestVoiceId: podcast.guestVoiceId,
-            qualityPreset: podcast.qualityPreset,
-            durationScale: podcast.durationScale,
-            language: podcast.language,
-            intro: podcast.intro,
-            outro: podcast.outro,
-            status: podcast.status,
-            metadata: podcast.metadata as any,
-          })),
+            transcript: podcast.transcript as any,
+            status: 'GENERATING', // Reset status for cloned podcast
+            jobId: podcast.jobId,
+            podcastId: podcast.podcastId,
+          },
         });
       }
 

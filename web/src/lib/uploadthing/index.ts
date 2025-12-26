@@ -5,8 +5,15 @@
  */
 
 import { UTApi } from "uploadthing/server";
-import type { AudioMetadata } from "../types/podcast";
 
+// Define AudioMetadata locally since podcast types were removed
+export interface AudioMetadata {
+    title: string;
+    podcastId?: string;
+    duration?: number;
+    size?: number;
+    mimeType?: string;
+}
 
 
 /**
@@ -57,7 +64,7 @@ export class UploadThingAudioStorageService {
     async downloadAndUploadAudio(
         audioUrl: string,
         metadata: AudioMetadata
-    ): Promise<{url: string, fileKey: string}> {
+    ): Promise<{ url: string, fileKey: string }> {
         try {
             // Download audio from ElevenLabs
             const response = await fetch(audioUrl);
@@ -86,7 +93,7 @@ export class UploadThingAudioStorageService {
     async uploadPodcastAudio(
         audioBuffer: Buffer,
         metadata: AudioMetadata
-    ): Promise<{url: string, fileKey: string}> {
+    ): Promise<{ url: string, fileKey: string }> {
         try {
             // Validate file size
             if (audioBuffer.length > this.maxFileSize) {
@@ -149,7 +156,7 @@ export class UploadThingAudioStorageService {
             language?: string;
             duration?: string;
         }
-    ): Promise<{url: string, fileKey: string}> {
+    ): Promise<{ url: string, fileKey: string }> {
         try {
             // Validate file size
             if (audioBuffer.length > this.maxFileSize) {
@@ -255,12 +262,12 @@ export class UploadThingAudioStorageService {
             // Note: UploadThing doesn't provide easy way to list files by prefix
             // In a real implementation, you'd need to track file keys in your database
             // For now, this is a placeholder - you should store file keys when uploading
-            
+
             console.warn('deleteAudio: UploadThing requires file keys to delete. Store file keys in database when uploading.');
-            
+
             // If you have the file keys stored in your database, you can delete them like this:
             // await this.utapi.deleteFiles([fileKey1, fileKey2, ...]);
-            
+
         } catch (error) {
             console.error('Failed to delete audio from UploadThing:', error);
             throw new Error(
@@ -294,7 +301,7 @@ export class UploadThingAudioStorageService {
     async deleteAudioFiles(fileKeys: string[]): Promise<void> {
         try {
             if (fileKeys.length === 0) return;
-            
+
             await this.utapi.deleteFiles(fileKeys);
         } catch (error) {
             console.error('Failed to delete audio files from UploadThing:', error);
@@ -485,7 +492,7 @@ export class UploadThingAudioStorageService {
         }
 
         // ID3v2 tag (MP3 with metadata)
-        if (buffer.length >= 3 && 
+        if (buffer.length >= 3 &&
             buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33) {
             return true;
         }

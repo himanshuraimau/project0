@@ -789,46 +789,16 @@ Generate ONE perfect title (no quotes, just the title):`,
 
   /**
    * Delete note by ID
-   * Requirements: 7.4 - Cascade delete associated podcasts and clean up audio files
+   * Requirements: 7.4 - Cascade delete associated podcasts
    */
   async deleteNote(id: string) {
     try {
-      // First, get all podcasts associated with this note to clean up audio files
-      const podcasts = await prisma.podcast.findMany({
-        where: { noteId: id },
-        select: {
-          id: true,
-          audioFileKey: true,
-          status: true,
-        },
-      });
-
-      // Clean up audio files for all podcasts before deleting the note
-      const audioFileKeys = podcasts
-        .filter(podcast => podcast.audioFileKey && podcast.audioFileKey.trim().length > 0)
-        .map(podcast => podcast.audioFileKey!);
-
-      if (audioFileKeys.length > 0) {
-        try {
-          // Import UploadThing service for bulk file deletion
-          const { uploadThingAudioStorageService } = await import('./uploadthing');
-          await uploadThingAudioStorageService.deleteAudioFiles(audioFileKeys);
-          console.log(`Successfully deleted ${audioFileKeys.length} audio files for note ${id}`);
-        } catch (fileError) {
-          console.warn(`Failed to delete some audio files for note ${id}:`, fileError);
-          // Continue with note deletion even if file cleanup fails
-          // This prevents orphaned database records due to storage issues
-        }
-      } else if (podcasts.length > 0) {
-        console.log(`Note ${id} has ${podcasts.length} podcasts but no audio files to clean up`);
-      }
-
       // Delete the note (this will cascade delete podcasts due to database constraints)
       const deletedNote = await prisma.note.delete({
         where: { id },
       });
 
-      console.log(`Successfully deleted note ${id} and ${podcasts.length} associated podcasts`);
+      console.log(`Successfully deleted note ${id} and associated podcasts`);
       return deletedNote;
     } catch (error) {
       console.error("Error deleting note:", error);
