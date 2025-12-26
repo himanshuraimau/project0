@@ -154,22 +154,32 @@ export default function PodcastPlayerScreen() {
         try {
             setIsDownloading(true);
 
-            // Create a directory for podcasts in the cache
+            // Create a directory for podcasts
             const podcastsDir = new Directory(Paths.cache, 'podcasts');
-            podcastsDir.create();
+            await podcastsDir.create();
 
-            // Download the file using the new API
+            // Generate a filename from the podcast title
+            const filename = `${podcast.title?.replace(/[^a-z0-9]/gi, '_') || 'podcast'}_${Date.now()}.mp3`;
+
+            // Download the file
             const downloadedFile = await File.downloadFileAsync(
                 podcast.audioUrl,
-                podcastsDir
+                podcastsDir,
+                { fileName: filename }
             );
 
             if (downloadedFile && downloadedFile.exists) {
-                Alert.alert('Success', 'Podcast downloaded successfully');
+                Alert.alert(
+                    'Success',
+                    'Podcast downloaded successfully to cache folder',
+                    [{ text: 'OK' }]
+                );
+            } else {
+                throw new Error('Download failed');
             }
         } catch (error) {
             console.error('Error downloading:', error);
-            Alert.alert('Error', 'Failed to download podcast');
+            Alert.alert('Error', 'Failed to download podcast. Please try again.');
         } finally {
             setIsDownloading(false);
         }
@@ -180,14 +190,40 @@ export default function PodcastPlayerScreen() {
 
         try {
             const isAvailable = await Sharing.isAvailableAsync();
-            if (isAvailable) {
-                await Sharing.shareAsync(podcast.audioUrl);
-            } else {
+            if (!isAvailable) {
                 Alert.alert('Error', 'Sharing is not available on this device');
+                return;
+            }
+
+            // Download the file first to share it
+            setIsDownloading(true);
+
+            const podcastsDir = new Directory(Paths.cache, 'podcasts');
+            await podcastsDir.create();
+
+            const filename = `${podcast.title?.replace(/[^a-z0-9]/gi, '_') || 'podcast'}_${Date.now()}.mp3`;
+
+            const downloadedFile = await File.downloadFileAsync(
+                podcast.audioUrl,
+                podcastsDir,
+                { fileName: filename }
+            );
+
+            setIsDownloading(false);
+
+            if (downloadedFile && downloadedFile.exists) {
+                await Sharing.shareAsync(downloadedFile.uri, {
+                    mimeType: 'audio/mpeg',
+                    dialogTitle: 'Share Podcast',
+                    UTI: 'public.audio'
+                });
+            } else {
+                throw new Error('Download failed');
             }
         } catch (error) {
             console.error('Error sharing:', error);
-            Alert.alert('Error', 'Failed to share podcast');
+            Alert.alert('Error', 'Failed to share podcast. Please try again.');
+            setIsDownloading(false);
         }
     };
 
