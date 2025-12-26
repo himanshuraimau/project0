@@ -21,7 +21,7 @@ const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.9;
 
 export default function PodcastPlayerScreen() {
-    const { id: noteId } = useLocalSearchParams();
+    const { id: noteId, podcastId } = useLocalSearchParams();
     const router = useRouter();
 
     const [podcast, setPodcast] = useState<any>(null);
@@ -41,7 +41,7 @@ export default function PodcastPlayerScreen() {
                 soundRef.current.unloadAsync();
             }
         };
-    }, [noteId]);
+    }, [noteId, podcastId]);
 
     const loadPodcast = async () => {
         try {
@@ -49,11 +49,20 @@ export default function PodcastPlayerScreen() {
             const podcasts = await podcastApi.getPodcastsByNoteId(noteId as string);
 
             if (podcasts && podcasts.length > 0) {
-                const latestPodcast = podcasts[0];
-                setPodcast(latestPodcast);
+                // If podcastId is provided, find that specific podcast
+                // Otherwise, use the latest (first) podcast
+                const selectedPodcast = podcastId
+                    ? podcasts.find(p => p.id === podcastId)
+                    : podcasts[0];
 
-                if (latestPodcast.audioUrl) {
-                    await setupAudio(latestPodcast.audioUrl);
+                if (selectedPodcast) {
+                    setPodcast(selectedPodcast);
+
+                    if (selectedPodcast.audioUrl) {
+                        await setupAudio(selectedPodcast.audioUrl);
+                    }
+                } else if (podcastId) {
+                    Alert.alert('Error', 'Podcast not found');
                 }
             }
         } catch (error) {

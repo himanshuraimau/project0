@@ -10,8 +10,9 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { podcastApi } from '@/lib/api';
+import { podcastApi, notesApi } from '@/lib/api';
 import { LinearGradient } from 'expo-linear-gradient';
+import PodcastGenerationModal from '@/components/podcast/PodcastGenerationModal';
 
 export default function AllPodcastsScreen() {
     const { id: noteId } = useLocalSearchParams();
@@ -19,10 +20,22 @@ export default function AllPodcastsScreen() {
 
     const [podcasts, setPodcasts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showGenerationModal, setShowGenerationModal] = useState(false);
+    const [noteContent, setNoteContent] = useState('');
 
     useEffect(() => {
         loadPodcasts();
+        loadNoteContent();
     }, [noteId]);
+
+    const loadNoteContent = async () => {
+        try {
+            const note = await notesApi.getNoteById(noteId as string);
+            setNoteContent(note.content || '');
+        } catch (error) {
+            console.error('Error loading note content:', error);
+        }
+    };
 
     const loadPodcasts = async () => {
         try {
@@ -31,7 +44,10 @@ export default function AllPodcastsScreen() {
             setPodcasts(data || []);
         } catch (error) {
             console.error('Error loading podcasts:', error);
-            Alert.alert('Error', 'Failed to load podcasts');
+            // Don't show alert for 404 - just means no podcasts yet
+            if (error && (error as any).statusCode !== 404) {
+                Alert.alert('Error', 'Failed to load podcasts');
+            }
         } finally {
             setLoading(false);
         }
@@ -53,7 +69,15 @@ export default function AllPodcastsScreen() {
     };
 
     const handlePodcastPress = (podcast: any) => {
-        router.push(`/notes/${noteId}/podcast`);
+        // Navigate to player with podcast ID
+        router.push(`/notes/${noteId}/podcast?podcastId=${podcast.id}`);
+    };
+
+    const handleGenerationComplete = async (podcast: any) => {
+        // Refresh the podcasts list
+        await loadPodcasts();
+        // Navigate to the player
+        router.push(`/notes/${noteId}/podcast?podcastId=${podcast.jobId}`);
     };
 
     const renderPodcastItem = ({ item }: { item: any }) => (
@@ -130,9 +154,14 @@ export default function AllPodcastsScreen() {
                     <Ionicons name="arrow-back" size={24} color="#1F2937" />
                 </TouchableOpacity>
 
-                <Text style={styles.headerTitle}>All Podcasts</Text>
+                <Text style={styles.headerTitle}>Podcasts</Text>
 
-                <View style={styles.headerButton} />
+                <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => setShowGenerationModal(true)}
+                >
+                    <Ionicons name="add" size={24} color="#6366F1" />
+                </TouchableOpacity>
             </View>
 
             {podcasts.length === 0 ? (
@@ -142,6 +171,15 @@ export default function AllPodcastsScreen() {
                     <Text style={styles.emptySubtext}>
                         Generate a podcast from your note to get started
                     </Text>
+                    <TouchableOpacity
+                        style={styles.generateButton}
+                        onPress={() => setShowGenerationModal(true)}
+                    >
+                        <Ionicons name="add-circle" size={20} color="#FFFFFF" />
+                        <Text style={styles.generateButtonText}>
+                            Generate Podcast
+                        </Text>
+                    </TouchableOpacity>
                 </View>
             ) : (
                 <FlatList
@@ -152,6 +190,15 @@ export default function AllPodcastsScreen() {
                     showsVerticalScrollIndicator={false}
                 />
             )}
+
+            {/* Generation Modal */}
+            <PodcastGenerationModal
+                visible={showGenerationModal}
+                onClose={() => setShowGenerationModal(false)}
+                noteId={noteId as string}
+                noteContent={noteContent}
+                onComplete={handleGenerationComplete}
+            />
         </View>
     );
 }
@@ -188,6 +235,14 @@ const styles = StyleSheet.create({
         height: 40,
         borderRadius: 20,
         backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    addButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#EEF2FF',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -276,5 +331,21 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#9CA3AF',
         textAlign: 'center',
+        marginBottom: 24,
+    },
+    generateButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#6366F1',
+        paddingVertical: 14,
+        paddingHorizontal: 24,
+        borderRadius: 12,
+        gap: 8,
+    },
+    generateButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#FFFFFF',
     },
 });
