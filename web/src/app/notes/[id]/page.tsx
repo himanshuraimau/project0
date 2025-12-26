@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useNotes } from "@/hooks/use-notes";
 import { Note } from "@/lib/types";
 import { useFlashcards } from "@/hooks/use-flashcards";
-import { usePodcast } from "@/hooks/use-podcast";
 import { useMindmap } from "@/hooks/use-mindmap";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -47,9 +46,6 @@ export default function NoteViewPage() {
   const noteId = params.id as string;
   const { getNote, loading, error } = useNotes();
   const { loading: flashcardsLoading } = useFlashcards();
-
-  const { loading: podcastLoading, generating: podcastGenerating } =
-    usePodcast(noteId);
 
   const {
     loading: mindmapLoading,
@@ -126,8 +122,7 @@ export default function NoteViewPage() {
     } catch (error) {
       console.error("Error deleting note:", error);
       toast.error(
-        `Failed to delete note: ${
-          error instanceof Error ? error.message : "Unknown error"
+        `Failed to delete note: ${error instanceof Error ? error.message : "Unknown error"
         }`,
         {
           duration: 5000,
@@ -241,10 +236,10 @@ export default function NoteViewPage() {
   };
 
   useFlashcardKeyboard(
-    () => {},
-    () => {},
-    () => {},
-    () => {},
+    () => { },
+    () => { },
+    () => { },
+    () => { },
     handleCloseFlashcards
   );
 
@@ -384,8 +379,6 @@ export default function NoteViewPage() {
 
       {/* Screen reader announcements */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
-        {podcastLoading && "Podcast is loading"}
-        {podcastGenerating && "Podcast is being generated"}
         {currentView === "podcast" &&
           "Podcast view is active. Use Escape to return to notes, or Alt+Arrow keys to navigate between views."}
         {currentView === "notes" &&
@@ -484,7 +477,6 @@ export default function NoteViewPage() {
               onDeleteNote={handleDeleteNote}
               quizLoading={false}
               flashcardsLoading={flashcardsLoading}
-              podcastLoading={podcastLoading || podcastGenerating}
               mindmapLoading={mindmapLoading}
             />
 
