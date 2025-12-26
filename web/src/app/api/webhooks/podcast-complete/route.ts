@@ -4,7 +4,9 @@ import { prisma } from '@/lib/prisma';
 export async function POST(request: Request) {
     try {
         // 1. Verify webhook secret for security
-        const secret = request.headers.get('x-webhook-secret');
+        const secret = request.headers.get('x-webhook-secret') ||
+            request.headers.get('X-Webhook-Secret');
+
         if (secret !== process.env.WEBHOOK_SECRET) {
             console.error('❌ Invalid webhook secret');
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

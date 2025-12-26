@@ -1,151 +1,162 @@
-# Complete Next.js Integration Guide
+# Complete Webhook Setup & Testing Guide
 
-This guide shows you **exactly** how to integrate the Podcast Microservice into your Next.js app, including webhooks, API routes, frontend components, and local testing.
+This guide covers everything you need to set up webhooks for podcast generation, test them locally, and deploy to production (Vercel).
 
 ---
 
 ## 📋 Table of Contents
 
-1. [Prerequisites](#prerequisites)
-2. [Environment Setup](#environment-setup)
-3. [Database Schema](#database-schema)
-4. [Backend Implementation](#backend-implementation)
-   - [Webhook Endpoint](#webhook-endpoint)
-   - [API Routes](#api-routes)
-5. [Frontend Implementation](#frontend-implementation)
-6. [Local Testing](#local-testing)
-7. [Production Deployment](#production-deployment)
+1. [What Are Webhooks?](#what-are-webhooks)
+2. [Local Testing Setup](#local-testing-setup)
+3. [Production Setup (Vercel)](#production-setup-vercel)
+4. [Troubleshooting](#troubleshooting)
+5. [Testing Checklist](#testing-checklist)
 
 ---
 
-## Prerequisites
+## What Are Webhooks?
 
-### What You Need
+Webhooks allow the microservice to **notify your Next.js app** when a podcast completes, instead of your app constantly polling for updates.
 
-- ✅ Next.js app (App Router or Pages Router)
-- ✅ Database (Prisma, MongoDB, or any DB)
-- ✅ Podcast microservice running (this repo)
-- ✅ ngrok (for local webhook testing)
+**Benefits:**
+- ✅ Instant notifications when podcasts complete
+- ✅ No need for constant polling
+- ✅ Can trigger push notifications to users
+- ✅ Better user experience
 
-### Microservice Setup
+**Flow:**
+```
+User generates podcast → Microservice processes → Webhook fires → Your app saves data → User gets notified
+```
 
-Make sure your microservice is running:
+---
+
+## Local Testing Setup
+
+### Step 1: Generate a Webhook Secret
 
 ```bash
-cd /path/to/podnex-proto
-bun install
-bun run dev  # Runs on http://localhost:3005
+openssl rand -base64 32
 ```
 
----
+**Example output:** `giQqgEcKKffbpy2/8AwVGNyO05FXMaP+xP8F9fD1S/o=`
 
-## Environment Setup
+Save this - you'll use it in both apps!
 
-### 1. Next.js App Environment Variables
-
-Create or update your `.env.local`:
-
-```env
-# Podcast Microservice
-PODCAST_API_URL=http://localhost:3005/api/podcast
-PODCAST_API_KEY=your-api-key-here
-
-# Webhook Security (use a strong random string)
-WEBHOOK_SECRET=your-webhook-secret-key-here
-
-# For production
-# PODCAST_API_URL=https://your-microservice.com/api/podcast
-```
-
-### 2. Microservice Environment Variables
+### Step 2: Configure Microservice
 
 Update your microservice `.env`:
 
 ```env
-# ... other variables ...
-
-# Webhook Configuration (OPTIONAL)
-WEBHOOK_URL=http://localhost:3000/api/webhooks/podcast-complete
-WEBHOOK_SECRET=your-webhook-secret-key-here
-
-# For local testing with ngrok
-# WEBHOOK_URL=https://abc123.ngrok.io/api/webhooks/podcast-complete
+# For local testing
+WEBHOOK_URL=http://localhost:3099/webhook
+WEBHOOK_SECRET=giQqgEcKKffbpy2/8AwVGNyO05FXMaP+xP8F9fD1S/o=
 ```
 
-**Note:** Webhooks are **optional**. The microservice works fine without them, but webhooks provide better UX.
+### Step 3: Restart Microservice
 
----
-
-## Database Schema
-
-### Option A: Prisma
-
-Add to your `schema.prisma`:
-
-```prisma
-model Podcast {
-  id            String   @id @default(cuid())
-  noteId        String   @unique
-  userId        String
-  
-  // Podcast data
-  podcastId     String   // ID from microservice
-  audioUrl      String
-  duration      Int      // in seconds
-  transcript    Json
-  
-  // Status tracking
-  status        String   // 'generating' | 'completed' | 'failed'
-  error         String?
-  
-  // Timestamps
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  @@index([userId])
-  @@index([noteId])
-  @@index([status])
-}
-```
-
-Then run:
 ```bash
-npx prisma migrate dev --name add_podcast_model
+# Stop current server (Ctrl+C)
+bun run dev
 ```
 
-### Option B: MongoDB (Mongoose)
-
-```typescript
-// models/Podcast.ts
-import mongoose from 'mongoose';
-
-const podcastSchema = new mongoose.Schema({
-  noteId: { type: String, required: true, unique: true },
-  userId: { type: String, required: true, index: true },
-  podcastId: { type: String, required: true },
-  audioUrl: { type: String, required: true },
-  duration: { type: Number, required: true },
-  transcript: { type: Array, required: true },
-  status: { 
-    type: String, 
-    enum: ['generating', 'completed', 'failed'],
-    default: 'generating'
-  },
-  error: { type: String },
-}, { timestamps: true });
-
-export const Podcast = mongoose.models.Podcast || mongoose.model('Podcast', podcastSchema);
+You should see:
+```
+✓ Server running on port 3005
+🚀 Job processor started
 ```
 
-### Option C: No Database
+### Step 4: Run the Test
 
-If you don't want to store podcasts in your DB, you can skip this and just use the microservice's database directly via API calls.
+```bash
+./test-webhook.sh
+```
+
+**What the test does:**
+1. Starts a local webhook server on port 3099
+2. Triggers async podcast generation
+3. Polls for job status with real-time progress
+4. Receives webhook notification when complete
+5. Verifies webhook payload is correct
+
+**Expected output:**
+
+```
+🧪 WEBHOOK-BASED ASYNC PODCAST GENERATION TEST
+============================================================
+
+[Step 1] Starting local webhook server
+✅ Webhook server listening on http://localhost:3099/webhook
+
+[Step 2] Starting podcast generation (async)
+✅ Job created: job_1766774372675_q2ro62lbr
+ℹ️  Status: queued
+
+[Step 3] Polling for job status
+⏳ 5% - Creating database record... (2s elapsed)
+⏳ 15% - Generating podcast script... (5s elapsed)
+⏳ 30% - Generating audio for segment 1/17... (15s elapsed)
+⏳ 50% - Generating audio for segment 10/17... (35s elapsed)
+⏳ 75% - Combining audio segments... (50s elapsed)
+⏳ 90% - Uploading to S3... (55s elapsed)
+
+============================================================
+✅ PODCAST COMPLETED in 60s!
+============================================================
+Audio URL: https://podnext-audio-storage.s3.us-east-1.amazonaws.com/...
+Duration: 285s
+Podcast ID: 694ed6641c8a3403e4486390
+============================================================
+
+============================================================
+🔔 WEBHOOK RECEIVED!
+============================================================
+✅ Webhook secret verified
+Event: podcast.completed
+Job ID: job_1766774372675_q2ro62lbr
+Note ID: test-note-1766774372675
+Audio URL: https://podnext-audio-storage.s3.us-east-1.amazonaws.com/...
+Duration: 285s
+✅ Podcast generation completed!
+============================================================
+
+[Step 4] Verifying webhook delivery
+✅ Webhook received successfully!
+✅ Job ID matches
+✅ Event type is correct
+
+============================================================
+📊 TEST SUMMARY
+============================================================
+✅ Podcast generated successfully
+✅ Job polling worked correctly
+✅ Webhook received and verified
+
+⏱️  Total test time: 62s
+🎉 TEST COMPLETED SUCCESSFULLY!
+============================================================
+```
+
+### Step 5: Verify in Microservice Logs
+
+You should see in your `bun dev` terminal:
+
+```
+📋 Created job: job_xxx
+▶️  Started job: job_xxx
+📊 Job job_xxx: 5% - Creating database record...
+📊 Job job_xxx: 15% - Generating podcast script...
+...
+✅ Completed job: job_xxx
+📤 Sending webhook to http://localhost:3099/webhook
+✅ Webhook delivered successfully (200)
+```
 
 ---
 
-## Backend Implementation
+## Production Setup (Vercel)
 
-### Webhook Endpoint
+### Step 1: Create Webhook Endpoint in Next.js
 
 Create: `app/api/webhooks/podcast-complete/route.ts`
 
@@ -156,7 +167,9 @@ import { db } from '@/lib/db'; // Your database client
 export async function POST(request: Request) {
   try {
     // 1. Verify webhook secret for security
-    const secret = request.headers.get('x-webhook-secret');
+    const secret = request.headers.get('x-webhook-secret') || 
+                   request.headers.get('X-Webhook-Secret');
+    
     if (secret !== process.env.WEBHOOK_SECRET) {
       console.error('❌ Invalid webhook secret');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -217,12 +230,6 @@ export async function POST(request: Request) {
       });
 
       console.error(`❌ Podcast failed for note ${payload.noteId}: ${payload.error}`);
-
-      // Optional: Notify user of failure
-      // await sendNotification(payload.userId, {
-      //   title: 'Podcast Generation Failed',
-      //   body: 'Please try again',
-      // });
     }
 
     return NextResponse.json({ success: true });
@@ -236,568 +243,401 @@ export async function POST(request: Request) {
 }
 ```
 
-### API Routes
+### Step 2: Handle Middleware (Important!)
 
-#### 1. Generate Podcast (Async)
+If you have authentication middleware, you need to **bypass it for webhooks**.
 
-Create: `app/api/podcast/generate/route.ts`
-
-```typescript
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-
-const PODCAST_API_URL = process.env.PODCAST_API_URL;
-const PODCAST_API_KEY = process.env.PODCAST_API_KEY;
-
-export async function POST(request: Request) {
-  try {
-    const { noteId, noteContent, userId, duration = 'short' } = await request.json();
-
-    // Validate input
-    if (!noteId || !noteContent || !userId) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    // Create initial database record
-    await db.podcast.create({
-      data: {
-        noteId,
-        userId,
-        status: 'generating',
-      },
-    });
-
-    // Call microservice async endpoint (returns instantly!)
-    const response = await fetch(`${PODCAST_API_URL}/generate/async`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': PODCAST_API_KEY!,
-      },
-      body: JSON.stringify({
-        noteId,
-        noteContent,
-        userId,
-        duration,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to start podcast generation');
-    }
-
-    const data = await response.json();
-
-    return NextResponse.json({
-      success: true,
-      jobId: data.jobId,
-      status: data.status,
-      message: 'Podcast generation started',
-    });
-  } catch (error: any) {
-    console.error('Generate podcast error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to generate podcast' },
-      { status: 500 }
-    );
-  }
-}
-```
-
-#### 2. Check Job Status
-
-Create: `app/api/podcast/status/[jobId]/route.ts`
+**Option A: Update existing middleware.ts**
 
 ```typescript
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-const PODCAST_API_URL = process.env.PODCAST_API_URL;
-
-export async function GET(
-  request: Request,
-  { params }: { params: { jobId: string } }
-) {
-  try {
-    const { jobId } = params;
-
-    // Check job status from microservice
-    const response = await fetch(`${PODCAST_API_URL}/jobs/${jobId}`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to get job status');
-    }
-
-    const data = await response.json();
-
-    return NextResponse.json(data);
-  } catch (error: any) {
-    console.error('Job status error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to get job status' },
-      { status: 500 }
-    );
+export function middleware(request: NextRequest) {
+  // Skip middleware for webhook endpoints
+  if (request.nextUrl.pathname.startsWith('/api/webhooks')) {
+    return NextResponse.next();
   }
+  
+  // Your existing middleware logic here
+  // ...
 }
+
+export const config = {
+  matcher: [
+    // Exclude webhooks from middleware
+    '/((?!api/webhooks|_next/static|_next/image|favicon.ico).*)',
+  ],
+};
 ```
 
-#### 3. Get User's Podcasts
-
-Create: `app/api/podcast/user/[userId]/route.ts`
+**Option B: Create middleware.ts if you don't have one**
 
 ```typescript
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import type { NextRequest } from 'next/server';
 
-export async function GET(
-  request: Request,
-  { params }: { params: { userId: string } }
-) {
-  try {
-    const { userId } = params;
-
-    // Get from YOUR database
-    const podcasts = await db.podcast.findMany({
-      where: { 
-        userId,
-        status: 'completed' // Only return completed podcasts
-      },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        noteId: true,
-        audioUrl: true,
-        duration: true,
-        transcript: true,
-        createdAt: true,
-      },
-    });
-
-    return NextResponse.json({ success: true, podcasts });
-  } catch (error: any) {
-    console.error('Get user podcasts error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to get podcasts' },
-      { status: 500 }
-    );
-  }
+export function middleware(request: NextRequest) {
+  // Allow webhooks to pass through
+  return NextResponse.next();
 }
+
+export const config = {
+  matcher: [
+    '/((?!api/webhooks|_next/static|_next/image|favicon.ico).*)',
+  ],
+};
 ```
 
----
+### Step 3: Set Environment Variables in Vercel
 
-## Frontend Implementation
+1. **Go to Vercel Dashboard:**
+   - https://vercel.com → Your Project → Settings → Environment Variables
 
-### React Hook for Podcast Generation
+2. **Add the webhook secret:**
+   ```
+   Key: WEBHOOK_SECRET
+   Value: giQqgEcKKffbpy2/8AwVGNyO05FXMaP+xP8F9fD1S/o=
+   ```
 
-Create: `hooks/usePodcastGeneration.ts`
+3. **Set for all environments:**
+   - ✅ Production
+   - ✅ Preview
+   - ✅ Development
 
-```typescript
-'use client';
+4. **Click "Save"**
 
-import { useState, useEffect, useCallback } from 'react';
+### Step 4: Redeploy Your App
 
-interface PodcastJob {
-  jobId: string;
-  status: 'queued' | 'processing' | 'completed' | 'failed';
-  progress: number;
-  currentStep?: string;
-  audioUrl?: string;
-  audioDuration?: number;
-  transcript?: any[];
-  error?: string;
-}
+**Important:** Vercel doesn't auto-redeploy when you add environment variables!
 
-export function usePodcastGeneration() {
-  const [job, setJob] = useState<PodcastJob | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
+**Option A: Trigger redeploy from dashboard**
+- Go to Deployments → Click "..." → Redeploy
 
-  // Start podcast generation
-  const generate = useCallback(async (
-    noteId: string,
-    noteContent: string,
-    userId: string,
-    duration: 'short' | 'long' = 'short'
-  ) => {
-    try {
-      setIsGenerating(true);
-
-      const response = await fetch('/api/podcast/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ noteId, noteContent, userId, duration }),
-      });
-
-      if (!response.ok) throw new Error('Failed to start generation');
-
-      const data = await response.json();
-      
-      setJob({
-        jobId: data.jobId,
-        status: data.status,
-        progress: 0,
-      });
-
-      return data.jobId;
-    } catch (error) {
-      console.error('Generation error:', error);
-      setIsGenerating(false);
-      throw error;
-    }
-  }, []);
-
-  // Poll for job status
-  useEffect(() => {
-    if (!job?.jobId || job.status === 'completed' || job.status === 'failed') {
-      setIsGenerating(false);
-      return;
-    }
-
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`/api/podcast/status/${job.jobId}`);
-        const data = await response.json();
-
-        if (data.success && data.job) {
-          setJob(data.job);
-
-          if (data.job.status === 'completed' || data.job.status === 'failed') {
-            clearInterval(interval);
-            setIsGenerating(false);
-          }
-        }
-      } catch (error) {
-        console.error('Status check error:', error);
-      }
-    }, 3000); // Poll every 3 seconds
-
-    return () => clearInterval(interval);
-  }, [job?.jobId, job?.status]);
-
-  return {
-    job,
-    isGenerating,
-    generate,
-  };
-}
-```
-
-### React Component Example
-
-Create: `components/PodcastGenerator.tsx`
-
-```typescript
-'use client';
-
-import { usePodcastGeneration } from '@/hooks/usePodcastGeneration';
-
-interface Props {
-  noteId: string;
-  noteContent: string;
-  userId: string;
-}
-
-export function PodcastGenerator({ noteId, noteContent, userId }: Props) {
-  const { job, isGenerating, generate } = usePodcastGeneration();
-
-  const handleGenerate = async (duration: 'short' | 'long') => {
-    try {
-      await generate(noteId, noteContent, userId, duration);
-    } catch (error) {
-      alert('Failed to start podcast generation');
-    }
-  };
-
-  return (
-    <div className="podcast-generator">
-      {/* Idle state */}
-      {!job && !isGenerating && (
-        <div className="flex gap-4">
-          <button 
-            onClick={() => handleGenerate('short')}
-            className="btn btn-primary"
-          >
-            Generate Short Podcast (3-5 min)
-          </button>
-          <button 
-            onClick={() => handleGenerate('long')}
-            className="btn btn-secondary"
-          >
-            Generate Long Podcast (8-10 min)
-          </button>
-        </div>
-      )}
-
-      {/* Generating state */}
-      {isGenerating && job && (
-        <div className="generating-state">
-          <div className="progress-bar">
-            <div 
-              className="progress-fill"
-              style={{ width: `${job.progress}%` }}
-            />
-          </div>
-          <p className="text-sm text-gray-600 mt-2">
-            {job.progress}% - {job.currentStep || 'Processing...'}
-          </p>
-        </div>
-      )}
-
-      {/* Completed state */}
-      {job?.status === 'completed' && job.audioUrl && (
-        <div className="completed-state">
-          <h3 className="text-lg font-semibold mb-4">
-            🎉 Your podcast is ready!
-          </h3>
-          <audio 
-            controls 
-            src={job.audioUrl}
-            className="w-full"
-          />
-          <p className="text-sm text-gray-600 mt-2">
-            Duration: {Math.floor(job.audioDuration! / 60)}:{(job.audioDuration! % 60).toString().padStart(2, '0')}
-          </p>
-        </div>
-      )}
-
-      {/* Failed state */}
-      {job?.status === 'failed' && (
-        <div className="failed-state">
-          <p className="text-red-600">
-            ❌ Generation failed: {job.error || 'Unknown error'}
-          </p>
-          <button 
-            onClick={() => handleGenerate('short')}
-            className="btn btn-primary mt-4"
-          >
-            Try Again
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-```
-
----
-
-## Local Testing
-
-### Step-by-Step Testing Guide
-
-#### 1. Start Your Microservice
-
+**Option B: Push a commit**
 ```bash
-cd /path/to/podnex-proto
-bun run dev
-# Should run on http://localhost:3005
+git commit --allow-empty -m "Trigger redeploy for webhook env vars"
+git push
 ```
 
-#### 2. Start Your Next.js App
+### Step 5: Update Microservice Configuration
 
-```bash
-cd /path/to/your-nextjs-app
-npm run dev
-# Should run on http://localhost:3000
-```
-
-#### 3. Expose Your Next.js App with ngrok
-
-```bash
-# Install ngrok if you don't have it
-# Download from: https://ngrok.com/download
-
-# Start ngrok
-ngrok http 3000
-```
-
-You'll see output like:
-```
-Forwarding  https://abc123.ngrok.io -> http://localhost:3000
-```
-
-#### 4. Update Microservice Webhook URL
-
-Update your microservice `.env`:
+Update your microservice `.env` for production:
 
 ```env
-WEBHOOK_URL=https://abc123.ngrok.io/api/webhooks/podcast-complete
-WEBHOOK_SECRET=your-webhook-secret-key-here
-```
-
-Restart your microservice:
-```bash
-bun run dev
-```
-
-#### 5. Test the Complete Flow
-
-1. **Open your Next.js app** in browser: `http://localhost:3000`
-2. **Navigate to a note** with the podcast generator
-3. **Click "Generate Podcast"**
-4. **Watch the progress bar** update in real-time
-5. **Check the logs**:
-   - Microservice logs: See job processing
-   - Next.js logs: See webhook received
-6. **When complete**: Audio player appears!
-
-#### 6. Verify Webhook
-
-Check your Next.js terminal for:
-```
-📥 Webhook received: podcast.completed job_1766646278_abc123
-✅ Podcast saved for note note-123
-```
-
----
-
-## Testing Without Webhooks
-
-If you don't want to use webhooks (simpler setup), you can rely on polling:
-
-1. **Skip** the webhook endpoint creation
-2. **Remove** `WEBHOOK_URL` from microservice `.env`
-3. **Use** only the status polling in your frontend
-
-The frontend will still work perfectly with polling every 3 seconds!
-
----
-
-## Production Deployment
-
-### 1. Deploy Microservice
-
-Deploy to a server (Railway, Render, DigitalOcean, etc.):
-
-```env
-# Production .env
-PODCAST_API_URL=https://your-microservice.com/api/podcast
+# Production webhook
 WEBHOOK_URL=https://your-app.vercel.app/api/webhooks/podcast-complete
+WEBHOOK_SECRET=giQqgEcKKffbpy2/8AwVGNyO05FXMaP+xP8F9fD1S/o=
 ```
 
-### 2. Deploy Next.js App
+**Important:** Use the **same secret** in both places!
 
-Add environment variables in Vercel:
+### Step 6: Restart Microservice
 
-```env
-PODCAST_API_URL=https://your-microservice.com/api/podcast
-PODCAST_API_KEY=your-production-api-key
-WEBHOOK_SECRET=your-production-webhook-secret
+```bash
+# If running locally
+bun run dev
+
+# If deployed (Railway, Render, etc.)
+# Restart via your hosting platform
 ```
 
-### 3. Security Checklist
+### Step 7: Test Production Webhook
 
-- ✅ Use HTTPS for all URLs
-- ✅ Use strong, random webhook secret
-- ✅ Verify webhook secret on every request
-- ✅ Rate limit your API endpoints
-- ✅ Add authentication to your API routes
-- ✅ Validate all user inputs
+Generate a podcast from your production app and check:
 
----
-
-## Architecture Overview
-
+**In Vercel Function Logs:**
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        User Flow                             │
-└─────────────────────────────────────────────────────────────┘
+📥 Webhook received: podcast.completed job_xxx
+✅ Podcast saved for note note-xxx
+```
 
-1. User clicks "Generate Podcast" in Next.js app
-   ↓
-2. Next.js calls /api/podcast/generate
-   ↓
-3. Next.js API route calls microservice /generate/async
-   ↓
-4. Microservice returns jobId instantly (<100ms)
-   ↓
-5. Next.js returns jobId to frontend
-   ↓
-6. Frontend starts polling /api/podcast/status/:jobId every 3s
-   ↓
-7. Microservice processes in background (30-120s)
-   │
-   ├─ Generates script with OpenAI
-   ├─ Generates audio with TTS
-   ├─ Combines audio segments
-   └─ Uploads to S3
-   ↓
-8. When complete, microservice calls webhook
-   ↓
-9. Next.js webhook saves to database
-   ↓
-10. Frontend polling detects completion
-   ↓
-11. Audio player appears with podcast!
+**In Microservice Logs:**
+```
+✅ Completed job: job_xxx
+📤 Sending webhook to https://your-app.vercel.app/api/webhooks/podcast-complete
+✅ Webhook delivered successfully (200)
 ```
 
 ---
 
 ## Troubleshooting
 
-### Webhook Not Receiving Calls
+### Issue 1: "401 Unauthorized" in Vercel
 
-1. **Check ngrok is running**: `ngrok http 3000`
-2. **Verify webhook URL** in microservice `.env`
-3. **Check webhook secret** matches in both apps
-4. **Look at microservice logs** for webhook errors
-5. **Test webhook manually**:
-   ```bash
-   curl -X POST http://localhost:3000/api/webhooks/podcast-complete \
-     -H "Content-Type: application/json" \
-     -H "x-webhook-secret: your-secret" \
-     -d '{"event":"podcast.completed","noteId":"test"}'
-   ```
+**Symptoms:**
+```
+❌ Webhook delivery failed: Request failed with status code 401
+```
 
-### Polling Not Working
+**Causes:**
+1. `WEBHOOK_SECRET` not set in Vercel
+2. Secret doesn't match between microservice and Vercel
+3. Middleware is blocking the request
 
-1. **Check API route** is accessible: `/api/podcast/status/:jobId`
-2. **Verify jobId** is being stored in state
-3. **Check browser console** for errors
-4. **Verify microservice** is running and accessible
+**Solutions:**
 
-### Generation Fails
+**A. Check Vercel Environment Variables**
+```bash
+# Verify the secret is set
+vercel env ls
 
-1. **Check microservice logs** for errors
-2. **Verify all environment variables** are set
-3. **Test microservice directly**:
-   ```bash
-   curl -X POST http://localhost:3005/api/podcast/generate/async \
-     -H "Content-Type: application/json" \
-     -H "x-api-key: your-key" \
-     -d '{"noteId":"test","noteContent":"Test content","userId":"test","duration":"short"}'
-   ```
+# Or check in Vercel dashboard
+# Settings → Environment Variables → WEBHOOK_SECRET
+```
+
+**B. Verify Secrets Match**
+```bash
+# Microservice .env
+WEBHOOK_SECRET=giQqgEcKKffbpy2/8AwVGNyO05FXMaP+xP8F9fD1S/o=
+
+# Vercel env var (must be identical)
+WEBHOOK_SECRET=giQqgEcKKffbpy2/8AwVGNyO05FXMaP+xP8F9fD1S/o=
+```
+
+**C. Check Middleware**
+Make sure webhook routes are excluded from auth middleware (see Step 2 above).
+
+**D. Test the endpoint directly**
+```bash
+curl -X POST https://your-app.vercel.app/api/webhooks/podcast-complete \
+  -H "Content-Type: application/json" \
+  -H "X-Webhook-Secret: YOUR_SECRET" \
+  -d '{"event":"podcast.completed","noteId":"test","userId":"test","duration":"short","timestamp":"2024-01-01T00:00:00Z"}'
+```
+
+Expected: `{"success":true}`
+If you get 401: Secret is wrong or middleware is blocking
+
+### Issue 2: "ECONNREFUSED" (Local Testing)
+
+**Symptoms:**
+```
+❌ Webhook delivery failed: ECONNREFUSED
+```
+
+**Cause:** Webhook server isn't running or wrong port
+
+**Solution:**
+```bash
+# Make sure test server is running
+./test-webhook.sh
+
+# Or check webhook URL in .env
+WEBHOOK_URL=http://localhost:3099/webhook  # Correct port
+```
+
+### Issue 3: "404 Not Found"
+
+**Symptoms:**
+```
+❌ Webhook delivery failed: Request failed with status code 404
+```
+
+**Cause:** Webhook endpoint doesn't exist
+
+**Solution:**
+1. Verify file exists: `app/api/webhooks/podcast-complete/route.ts`
+2. Check file exports `POST` function
+3. Redeploy your Next.js app
+
+### Issue 4: Webhook Received but Data Not Saved
+
+**Symptoms:**
+- Webhook logs show "received"
+- But database has no data
+
+**Cause:** Database error or logic issue
+
+**Solution:**
+1. Check Vercel function logs for errors
+2. Verify database connection works
+3. Test database operations manually
+4. Add more logging to webhook handler
+
+### Issue 5: Header Case Sensitivity
+
+**Symptoms:**
+- Works locally but fails in production
+- 401 errors
+
+**Cause:** Different header casing
+
+**Solution:**
+```typescript
+// Handle both cases
+const secret = request.headers.get('x-webhook-secret') || 
+               request.headers.get('X-Webhook-Secret');
+```
+
+---
+
+## Testing Checklist
+
+### ✅ Local Testing
+
+- [ ] Generated webhook secret with `openssl rand -base64 32`
+- [ ] Updated microservice `.env` with local webhook URL
+- [ ] Updated microservice `.env` with webhook secret
+- [ ] Restarted microservice
+- [ ] Ran `./test-webhook.sh`
+- [ ] Test completed successfully
+- [ ] Webhook received and verified
+- [ ] Checked microservice logs show webhook success
+
+### ✅ Production Testing (Vercel)
+
+- [ ] Created webhook endpoint: `app/api/webhooks/podcast-complete/route.ts`
+- [ ] Updated/created `middleware.ts` to bypass webhooks
+- [ ] Added `WEBHOOK_SECRET` to Vercel environment variables
+- [ ] Set secret for Production, Preview, and Development
+- [ ] Redeployed Next.js app
+- [ ] Updated microservice `.env` with production webhook URL
+- [ ] Updated microservice `.env` with same webhook secret
+- [ ] Restarted microservice
+- [ ] Generated test podcast from production app
+- [ ] Checked Vercel function logs for webhook received
+- [ ] Checked microservice logs for webhook success (200)
+- [ ] Verified data saved to database
+- [ ] Tested failure scenario (optional)
+
+### ✅ Security Checklist
+
+- [ ] Using strong random webhook secret (32+ characters)
+- [ ] Secret is different for local vs production
+- [ ] Secret is stored in environment variables (not hardcoded)
+- [ ] Webhook endpoint verifies secret on every request
+- [ ] Using HTTPS for production webhook URL
+- [ ] Webhook route excluded from public access middleware
+- [ ] Database operations use proper validation
+- [ ] Error messages don't leak sensitive information
+
+---
+
+## Webhook Payload Reference
+
+### Success Event
+
+```json
+{
+  "event": "podcast.completed",
+  "jobId": "job_1766774372675_q2ro62lbr",
+  "noteId": "note-456",
+  "userId": "user-789",
+  "duration": "short",
+  "podcastId": "694ed6641c8a3403e4486390",
+  "audioUrl": "https://podnext-audio-storage.s3.us-east-1.amazonaws.com/podcasts/podcast-xxx.mp3",
+  "audioDuration": 285,
+  "transcript": [
+    {
+      "speaker": "host",
+      "text": "Welcome to today's discussion...",
+      "startTime": 0,
+      "endTime": 12.5
+    },
+    {
+      "speaker": "guest",
+      "text": "Thanks for having me...",
+      "startTime": 12.5,
+      "endTime": 25.3
+    }
+  ],
+  "timestamp": "2025-12-27T00:00:00.000Z"
+}
+```
+
+### Failure Event
+
+```json
+{
+  "event": "podcast.failed",
+  "jobId": "job_1766774372675_q2ro62lbr",
+  "noteId": "note-456",
+  "userId": "user-789",
+  "duration": "short",
+  "error": "Failed to generate audio: API timeout",
+  "timestamp": "2025-12-27T00:00:00.000Z"
+}
+```
+
+### Headers
+
+```
+Content-Type: application/json
+X-Webhook-Secret: giQqgEcKKffbpy2/8AwVGNyO05FXMaP+xP8F9fD1S/o=
+User-Agent: PodcastMicroservice/1.0
+```
+
+---
+
+## Quick Reference
+
+### Local Testing Commands
+
+```bash
+# Generate secret
+openssl rand -base64 32
+
+# Run test
+./test-webhook.sh
+
+# Check microservice logs
+# (in terminal running bun dev)
+```
+
+### Vercel Commands
+
+```bash
+# Check environment variables
+vercel env ls
+
+# Add environment variable
+vercel env add WEBHOOK_SECRET
+
+# Trigger redeploy
+git commit --allow-empty -m "Redeploy"
+git push
+```
+
+### Debug Commands
+
+```bash
+# Test webhook endpoint directly
+curl -X POST https://your-app.vercel.app/api/webhooks/podcast-complete \
+  -H "Content-Type: application/json" \
+  -H "X-Webhook-Secret: YOUR_SECRET" \
+  -d '{"event":"podcast.completed","noteId":"test","userId":"test","duration":"short","timestamp":"2024-01-01T00:00:00Z"}'
+
+# Check if endpoint exists
+curl https://your-app.vercel.app/api/webhooks/podcast-complete
+
+# View Vercel logs
+vercel logs
+```
 
 ---
 
 ## Summary
 
-### What You Created
+**Local Testing:**
+1. Generate secret → Update `.env` → Run `./test-webhook.sh` → ✅
 
-1. ✅ **Webhook endpoint** to receive completion notifications
-2. ✅ **API routes** for generation and status checking
-3. ✅ **React hook** for easy frontend integration
-4. ✅ **React component** with progress tracking
-5. ✅ **Database schema** to store podcasts
+**Production (Vercel):**
+1. Create webhook endpoint → Update middleware → Add env var → Redeploy → ✅
 
-### Benefits
+**Common Issues:**
+- 401 = Secret mismatch or middleware blocking
+- 404 = Endpoint doesn't exist
+- ECONNREFUSED = Server not running
 
-- 🚀 **No timeouts** - Works perfectly with Vercel
-- 📊 **Real-time progress** - Users see what's happening
-- 🔔 **Instant notifications** - Via webhooks
-- 💾 **Data persistence** - Stored in your database
-- 🎯 **Great UX** - Loading states, progress bars, audio player
-
-### Next Steps
-
-1. Customize the UI to match your app's design
-2. Add push notifications for mobile users
-3. Implement podcast sharing features
-4. Add analytics tracking
-5. Consider Redis for production job queue
+**Need Help?**
+- Check Vercel function logs
+- Check microservice logs
+- Test endpoint with curl
+- Verify secrets match exactly
 
 ---
 
-**You're all set! 🎉**
+**You're all set!** 🎉
+
+Your webhook system is now ready for both local development and production use.

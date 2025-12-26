@@ -54,11 +54,15 @@ export interface GeneratePodcastResponse {
  */
 export const getPodcasts = async (userId: string): Promise<Podcast[]> => {
   try {
-    const response = await apiClient.get<ApiResponse<{ podcasts: Podcast[] }>>(`/podcast/user/${userId}`);
-    const data = handleApiResponse<{ podcasts: Podcast[] }>(response);
-    return data.podcasts;
+    const response = await apiClient.get<{ success: boolean; podcasts: Podcast[] }>(`/podcast/user/${userId}`);
+    // Backend returns { success: true, podcasts: [...] } directly
+    if (response.data.success) {
+      return response.data.podcasts || [];
+    }
+    return [];
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error fetching user podcasts:', error);
+    return [];
   }
 };
 
@@ -68,11 +72,16 @@ export const getPodcasts = async (userId: string): Promise<Podcast[]> => {
  */
 export const getPodcastsByNoteId = async (noteId: string): Promise<Podcast[]> => {
   try {
-    const response = await apiClient.get<ApiResponse<{ podcasts: Podcast[] }>>(`/podcast/note/${noteId}`);
-    const data = handleApiResponse<{ podcasts: Podcast[] }>(response);
-    return data.podcasts;
+    const response = await apiClient.get<{ success: boolean; podcasts: Podcast[] }>(`/podcast/note/${noteId}`);
+    // Backend returns { success: true, podcasts: [...] } directly
+    if (response.data.success) {
+      return response.data.podcasts || [];
+    }
+    return [];
   } catch (error) {
-    return handleApiError(error);
+    // Return empty array on error instead of throwing
+    console.error('Error fetching podcasts:', error);
+    return [];
   }
 };
 
@@ -82,8 +91,9 @@ export const getPodcastsByNoteId = async (noteId: string): Promise<Podcast[]> =>
  */
 export const generatePodcast = async (data: GeneratePodcastRequest): Promise<GeneratePodcastResponse> => {
   try {
-    const response = await apiClient.post<ApiResponse<GeneratePodcastResponse>>('/podcast/generate', data);
-    return handleApiResponse<GeneratePodcastResponse>(response);
+    const response = await apiClient.post<GeneratePodcastResponse>('/podcast/generate', data);
+    // Backend returns the response directly without nesting under 'data'
+    return response.data;
   } catch (error) {
     return handleApiError(error);
   }
@@ -95,9 +105,14 @@ export const generatePodcast = async (data: GeneratePodcastRequest): Promise<Gen
  */
 export const getPodcastStatus = async (jobId: string): Promise<PodcastJob> => {
   try {
-    const response = await apiClient.get<ApiResponse<{ job: PodcastJob }>>(`/podcast/status/${jobId}`);
-    const data = handleApiResponse<{ job: PodcastJob }>(response);
-    return data.job;
+    const response = await apiClient.get<any>(`/podcast/status/${jobId}`);
+    // Backend proxies microservice response - handle both formats
+    const jobData = response.data.job || response.data;
+
+    if (jobData && jobData.jobId) {
+      return jobData as PodcastJob;
+    }
+    throw new Error('Invalid job status response');
   } catch (error) {
     return handleApiError(error);
   }

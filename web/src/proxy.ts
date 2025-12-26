@@ -8,6 +8,7 @@ const publicRoutes = [
   '/sign-up',
   '/api/auth', // Better Auth endpoints
   '/api/health',
+  '/api/webhooks', // Webhook endpoints (authenticated via secret header)
   '/api/notes',
   '/api/transcripts',
   '/api/documents',
@@ -31,13 +32,13 @@ const protectedApiRoutes = [
 const authRoutes = ['/sign-in', '/sign-up']
 
 function isPublicRoute(pathname: string): boolean {
-  return publicRoutes.some(route => 
+  return publicRoutes.some(route =>
     pathname === route || pathname.startsWith(route + '/')
   )
 }
 
 function isProtectedApiRoute(pathname: string): boolean {
-  return protectedApiRoutes.some(route => 
+  return protectedApiRoutes.some(route =>
     pathname === route || pathname.startsWith(route + '/')
   )
 }
@@ -85,7 +86,7 @@ export async function proxy(req: NextRequest) {
         { status: 401 }
       )
     }
-    
+
     // For protected pages, redirect to sign-in
     return NextResponse.redirect(new URL('/sign-in', req.url))
   }
