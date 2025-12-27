@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -30,6 +30,30 @@ export default function PodcastGenerationModal({
     onComplete,
 }: Props) {
     const { job, isGenerating, generate, reset } = usePodcastGeneration();
+    const hasAutoNavigated = useRef(false);
+
+    // Auto-close and navigate when podcast generation completes
+    useEffect(() => {
+        if (job?.status === 'completed' && !hasAutoNavigated.current) {
+            hasAutoNavigated.current = true;
+            // Small delay to show the success state briefly
+            const timer = setTimeout(() => {
+                if (onComplete && job) {
+                    onComplete(job);
+                }
+                reset();
+                onClose();
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [job?.status, job, onComplete, reset, onClose]);
+
+    // Reset the auto-navigate flag when modal opens
+    useEffect(() => {
+        if (visible) {
+            hasAutoNavigated.current = false;
+        }
+    }, [visible]);
 
     const handleGenerate = async (duration: 'short' | 'long') => {
         try {
@@ -46,13 +70,6 @@ export default function PodcastGenerationModal({
     const handleClose = () => {
         reset();
         onClose();
-    };
-
-    const handleListenNow = () => {
-        if (onComplete && job) {
-            onComplete(job);
-        }
-        handleClose();
     };
 
     return (
@@ -202,23 +219,14 @@ export default function PodcastGenerationModal({
                                     Podcast Ready! 🎉
                                 </Text>
                                 <Text style={styles.description}>
-                                    Your podcast has been generated successfully
+                                    Opening your podcast...
                                 </Text>
 
-                                <TouchableOpacity
-                                    style={[
-                                        styles.generateButton,
-                                        { backgroundColor: '#10B981', width: '100%' },
-                                    ]}
-                                    onPress={handleListenNow}
-                                >
-                                    <Ionicons
-                                        name="headset"
-                                        size={20}
-                                        color="#FFFFFF"
-                                    />
-                                    <Text style={styles.buttonText}>Listen Now</Text>
-                                </TouchableOpacity>
+                                <ActivityIndicator 
+                                    size="small" 
+                                    color="#10B981" 
+                                    style={{ marginTop: 8 }}
+                                />
                             </View>
                         )}
 
