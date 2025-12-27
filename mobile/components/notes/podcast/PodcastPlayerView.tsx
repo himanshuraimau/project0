@@ -185,11 +185,13 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
     const [isSharing, setIsSharing] = useState(false);
 
     const soundRef = useRef<Audio.Sound | null>(null);
-    const positionIntervalRef = useRef<any>(null);
-    const isUpdatingPositionRef = useRef(false);
-    const isPlayingRef = useRef(false);
     const playbackSpeedRef = useRef(1.0);
+    const positionRef = useRef(0);
+    const isPlayingRef = useRef(false);
     const durationRef = useRef(0);
+    const animationFrameRef = useRef<number | null>(null);
+    const lastUpdateTimeRef = useRef<number>(0);
+    const ignoreNextCallbackRef = useRef(false); // Flag to ignore stale callbacks after seek
 
     useEffect(() => {
         loadPodcast();
@@ -197,32 +199,111 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
             if (soundRef.current) {
                 soundRef.current.unloadAsync();
             }
-            stopPositionUpdates();
+            stopPositionAnimation();
         };
     }, [noteId, podcastId]);
 
-    const startPositionUpdates = () => {
-        if (positionIntervalRef.current) {
-            clearInterval(positionIntervalRef.current);
-        }
+    // Smooth position animation using requestAnimationFrame
+    const startPositionAnimation = () => {
+        lastUpdateTimeRef.current = Date.now();
         
-        positionIntervalRef.current = setInterval(() => {
-            setPosition(prev => {
-                // Use refs to get current values to avoid stale closure
-                if (isPlayingRef.current && prev < durationRef.current) {
-                    // Account for playback speed in position updates
-                    const increment = 100 * playbackSpeedRef.current; // 100ms * current speed
-                    return Math.min(prev + increment, durationRef.current);
-                }
-                return prev;
-            });
-        }, 100);
+        const animate = () => {
+            if (!isPlayingRef.current) return;
+            
+            const now = Date.now();
+            const deltaTime = now - lastUpdateTimeRef.current;
+            lastUpdateTimeRef.current = now;
+            
+            // Calculate new position based on elapsed time and playback speed
+            const increment = deltaTime * playbackSpeedRef.current;
+            const newPosition = Math.min(positionRef.current + increment, durationRef.current);
+            
+            positionRef.current = newPosition;
+            setPosition(newPosition);
+            
+            // Continue animation if still playing
+            if (isPlayingRef.current && newPosition < durationRef.current) {
+                animationFrameRef.current = requestAnimationFrame(animate);
+            }
+        };
+        
+        animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    const stopPositionUpdates = () => {
-        if (positionIntervalRef.current) {
-            clearInterval(positionIntervalRef.current);
-            positionIntervalRef.current = null;
+    const stopPositionAnimation = () => {
+        if (animationFrameRef.current !== null) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+        }
+    };
+
+    const setupAudio = async (audioUrl: string) => {
+        try {
+            await Audio.setAudioModeAsync({
+                playsInSilentModeIOS: true,
+                staysActiveInBackground: true,
+                shouldDuckAndroid: true,
+            });
+
+            const { sound } = await Audio.Sound.createAsync(
+                { uri: audioUrl },
+                { 
+                    shouldPlay: false,
+                    progressUpdateIntervalMillis: 500, // Sync every 500ms for accuracy
+                },
+                onPlaybackStatusUpdate
+            );
+
+            soundRef.current = sound;
+        } catch (error) {
+            console.error('Error setting up audio:', error);
+            Alert.alert('Error', 'Failed to load audio');
+        }
+    };
+
+    const onPlaybackStatusUpdate = (status: any) => {
+        if (status.isLoaded) {
+            // Update duration
+            if (status.durationMillis) {
+                setDuration(status.durationMillis);
+                durationRef.current = status.durationMillis;
+            }
+            
+            // Sync position from actual playback (source of truth)
+            // But skip if we just did a seek operation to avoid jumping back
+            if (status.positionMillis !== undefined && !ignoreNextCallbackRef.current) {
+                positionRef.current = status.positionMillis;
+                setPosition(status.positionMillis);
+                lastUpdateTimeRef.current = Date.now();
+            }
+            
+            // Reset the ignore flag after processing
+            if (ignoreNextCallbackRef.current) {
+                ignoreNextCallbackRef.current = false;
+            }
+            
+            // Handle play state changes
+            if (status.isPlaying !== isPlayingRef.current) {
+                isPlayingRef.current = status.isPlaying;
+                setIsPlaying(status.isPlaying);
+                
+                if (status.isPlaying) {
+                    lastUpdateTimeRef.current = Date.now();
+                    startPositionAnimation();
+                } else {
+                    stopPositionAnimation();
+                }
+            }
+
+            // Handle playback completion
+            if (status.didJustFinish) {
+                isPlayingRef.current = false;
+                setIsPlaying(false);
+                stopPositionAnimation();
+                positionRef.current = 0;
+                setPosition(0);
+                soundRef.current?.setPositionAsync(0);
+            }
         }
     };
 
@@ -304,83 +385,20 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
         }
     };
 
-    const setupAudio = async (audioUrl: string) => {
-        try {
-            await Audio.setAudioModeAsync({
-                playsInSilentModeIOS: true,
-                staysActiveInBackground: true,
-                shouldDuckAndroid: true,
-            });
-
-            const { sound } = await Audio.Sound.createAsync(
-                { uri: audioUrl },
-                { shouldPlay: false },
-                onPlaybackStatusUpdate
-            );
-
-            soundRef.current = sound;
-        } catch (error) {
-            console.error('Error setting up audio:', error);
-            Alert.alert('Error', 'Failed to load audio');
-        }
-    };
-
-    const onPlaybackStatusUpdate = (status: any) => {
-        if (status.isLoaded) {
-            // Always update duration
-            setDuration(status.durationMillis || 0);
-            durationRef.current = status.durationMillis || 0;
-            
-            // Only update position if we're not actively playing or if there's a significant difference
-            if (!isPlaying || !isUpdatingPositionRef.current) {
-                setPosition(status.positionMillis);
-            }
-            
-            // Only update isPlaying if it's different to avoid conflicts
-            if (status.isPlaying !== isPlaying) {
-                setIsPlaying(status.isPlaying);
-                isPlayingRef.current = status.isPlaying;
-            }
-
-            if (status.didJustFinish) {
-                setIsPlaying(false);
-                isPlayingRef.current = false;
-                stopPositionUpdates();
-                soundRef.current?.setPositionAsync(0);
-                setPosition(0);
-            }
-        }
-    };
-
     const togglePlayPause = async () => {
         if (!soundRef.current) return;
 
         try {
-            const wasPlaying = isPlaying;
-            const newPlayingState = !isPlaying;
-            
-            // Update UI immediately for responsive feedback
-            setIsPlaying(newPlayingState);
-            isPlayingRef.current = newPlayingState;
-            
-            if (wasPlaying) {
-                // Pausing
+            if (isPlaying) {
+                stopPositionAnimation();
                 await soundRef.current.pauseAsync();
-                stopPositionUpdates();
-                isUpdatingPositionRef.current = false;
             } else {
-                // Playing
+                lastUpdateTimeRef.current = Date.now();
                 await soundRef.current.playAsync();
-                startPositionUpdates();
-                isUpdatingPositionRef.current = true;
+                // Animation will start via onPlaybackStatusUpdate callback
             }
         } catch (error) {
             console.error('Error toggling playback:', error);
-            // Revert the state if there's an error
-            setIsPlaying(isPlaying);
-            isPlayingRef.current = isPlaying;
-            stopPositionUpdates();
-            isUpdatingPositionRef.current = false;
         }
     };
 
@@ -388,20 +406,22 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
         if (!soundRef.current) return;
 
         try {
-            const newPosition = Math.max(0, Math.min(duration, position + seconds * 1000));
+            // Calculate new position
+            const newPosition = Math.max(0, Math.min(durationRef.current, positionRef.current + seconds * 1000));
             
-            // Update position immediately for responsive UI
+            // Update local state immediately for responsive UI
+            positionRef.current = newPosition;
             setPosition(newPosition);
+            lastUpdateTimeRef.current = Date.now();
             
+            // Set flag to ignore the next callback (which will have stale position)
+            ignoreNextCallbackRef.current = true;
+            
+            // Seek the audio
             await soundRef.current.setPositionAsync(newPosition);
-            
-            // If we're playing, restart the position updates from the new position
-            if (isPlaying) {
-                startPositionUpdates();
-            }
         } catch (error) {
             console.error('Error skipping:', error);
-            // The onPlaybackStatusUpdate will correct the position if there's an error
+            ignoreNextCallbackRef.current = false;
         }
     };
 
@@ -410,13 +430,21 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
         const currentIndex = speeds.indexOf(playbackSpeed);
         const nextSpeed = speeds[(currentIndex + 1) % speeds.length];
 
+        // Update speed in state and ref immediately
         setPlaybackSpeed(nextSpeed);
+        playbackSpeedRef.current = nextSpeed;
+        
+        // Reset timing to prevent jumps when speed changes
+        lastUpdateTimeRef.current = Date.now();
 
         if (soundRef.current) {
             try {
+                // Set flag to ignore stale callback
+                ignoreNextCallbackRef.current = true;
                 await soundRef.current.setRateAsync(nextSpeed, true);
             } catch (error) {
                 console.error('Error changing speed:', error);
+                ignoreNextCallbackRef.current = false;
             }
         }
     };
@@ -667,19 +695,6 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                         </TouchableOpacity>
                     </View>
                 </View>
-
-                {/* Transcript Section (if available) */}
-                {podcast.transcript && podcast.transcript.length > 0 && (
-                    <View style={styles.transcriptContainer}>
-                        <Text style={styles.transcriptTitle}>Transcript</Text>
-                        {podcast.transcript.map((item: any, index: number) => (
-                            <View key={index} style={styles.transcriptItem}>
-                                <Text style={styles.transcriptSpeaker}>{item.speaker}:</Text>
-                                <Text style={styles.transcriptText}>{item.text}</Text>
-                            </View>
-                        ))}
-                    </View>
-                )}
             </ScrollView>
         </View>
     );
@@ -895,38 +910,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 8,
         elevation: 8,
-    },
-    transcriptContainer: {
-        width: CARD_WIDTH,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        padding: 20,
-        marginTop: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
-    },
-    transcriptTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#1F2937',
-        marginBottom: 16,
-    },
-    transcriptItem: {
-        marginBottom: 12,
-    },
-    transcriptSpeaker: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#6366F1',
-        marginBottom: 4,
-    },
-    transcriptText: {
-        fontSize: 14,
-        color: '#4B5563',
-        lineHeight: 20,
     },
 });
 
