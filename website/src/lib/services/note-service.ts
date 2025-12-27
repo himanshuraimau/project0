@@ -14,72 +14,6 @@ export class NoteService {
   private model = openai("gpt-4o");
 
   /**
-   * Get content-specific instructions based on transcript type
-   */
-  private getContentSpecificInstructions(contentType: string): string {
-    const instructions = {
-      'pdf': `## CONTENT TYPE: PDF Document
-
-**Special Focus Areas for PDF Content:**
-- This content comes from a document, likely containing structured information, diagrams, or formal content
-- Pay attention to any tables, figures, or structured data that may be referenced
-- Academic or professional documents may contain citations, references, or formal terminology
-- Preserve the logical flow and hierarchical structure of the original document
-- If the content appears to be from textbooks or academic papers, emphasize theoretical foundations
-- For technical manuals or guides, focus on step-by-step procedures and practical implementation
-- Business documents should emphasize strategic insights, data analysis, and actionable recommendations`,
-
-      'audio': `## CONTENT TYPE: Audio Recording / Transcription
-
-**Special Focus Areas for Audio Content:**
-- This content comes from spoken audio (lecture, meeting, or voice recording)
-- The original format was conversational - translate verbal explanations into clear written concepts
-- Speaker may have used informal language, filler words, or repetition - distill the core message
-- Verbal emphasis and tone cannot be conveyed - ensure critical points are clearly highlighted in text
-- Multiple speakers may be present - organize ideas logically rather than chronologically
-- Anecdotes or examples from speech should be preserved as they aid understanding
-- Transcription may contain errors - use context to ensure accuracy of technical terms
-- Focus on extracting the key insights and organizing them into coherent study material`,
-
-      'youtube': `## CONTENT TYPE: YouTube Video Transcript
-
-**Special Focus Areas for YouTube Content:**
-- This content comes from a video, likely including visual demonstrations or screen content
-- The speaker may reference "as you can see" or point to visual elements - describe these conceptually
-- Tutorial videos: Focus on the step-by-step process being demonstrated
-- Educational videos: Extract the teaching methodology and key learning points
-- Presentation videos: Capture both the verbal content and implied visual structure
-- The casual or engaging tone of video content should be translated into clear, professional notes
-- Time-sensitive information (current events, trends) should be noted with appropriate context
-- If demonstrations were shown, describe the process and outcomes in detailed written form`,
-
-      'webpage': `## CONTENT TYPE: Web Article / Blog Post
-
-**Special Focus Areas for Web Content:**
-- This content comes from online publication, optimized for web reading
-- May contain hyperlinks, embedded media, or interactive elements - focus on the core information
-- Web articles often have a journalistic or informal tone - maintain professionalism while preserving clarity
-- Content may be time-sensitive - note dates, current contexts, or evolving situations
-- Multiple formats may be mixed (lists, quotes, images) - integrate into coherent study notes
-- Author's perspective and potential bias should be noted for balanced understanding
-- Practical tips, how-to guides, or tutorials should maintain their actionable nature
-- Blog content: Extract substantive knowledge while filtering opinion from fact`,
-
-      'text': `## CONTENT TYPE: Plain Text / General Content
-
-**Special Focus Areas for Text Content:**
-- This is general text content without specific source formatting
-- Focus on extracting the core knowledge and organizing it logically
-- Identify the main themes, concepts, and relationships between ideas
-- Structure the information in a way that facilitates learning and retention
-- Ensure clarity and comprehension regardless of the original format
-- Adapt the depth of explanation based on the complexity of the content`
-    };
-
-    return instructions[contentType as keyof typeof instructions] || instructions['text'];
-  }
-
-  /**
    * Generate AI summary notes from transcript content
    */
   async generateAINote(
@@ -129,156 +63,69 @@ export class NoteService {
         );
       }
 
-      // Add timestamp and uniqueness factors to the prompt
-      const timestamp = new Date().toISOString();
-      const analysisId = Math.random().toString(36).substring(2, 15);
-      
-      // Determine content-specific prompt based on transcript type
-      const contentType = transcript.type || 'text';
-      const contentSpecificInstructions = this.getContentSpecificInstructions(contentType);
-
-      // Generate AI summary using content-specific prompts
+      // Generate AI summary using SOURCE-GROUNDED approach
       const result = await generateText({
         model: this.model,
-        prompt: `You are an expert educational content specialist. Transform the following content into comprehensive, well-structured study notes.
+        prompt: `You are a SOURCE-GROUNDED NOTE GENERATOR.
 
-Analysis ID: ${analysisId}
-Timestamp: ${timestamp}
-Document: ${transcript.originalName}
-Content Type: ${contentType}
+Goal: Convert the provided SOURCE (PDF text / transcript / pasted text) into clean, simple study notes that focus only on what the SOURCE says.
 
-${contentSpecificInstructions}
+HARD RULES:
+- SOURCE ONLY: Use only information in SOURCE. No outside knowledge.
+- NO HALLUCINATION: If it's not in SOURCE, do not include it.
+- NO META TALK: Do not mention "PDF/paper/transcript/source" or talk about the document itself.
+- NO EXTRAS: Do not add quizzes, flashcards, self-tests, or follow-up questions.
+- NO GENERIC FILLER: Avoid vague "this is important/valuable" lines unless SOURCE explicitly says so.
+- DATA CAUTION: Include numbers/percentages only if they are explicitly written in SOURCE text you received. If values are only in charts/images and not written, do not guess—omit them.
 
-## CORE STRUCTURE REQUIREMENTS
+RELEVANCE FILTER (critical):
+- First infer the MAIN TOPIC of the SOURCE (do this silently).
+- Include only content that directly supports understanding the MAIN TOPIC: definitions, key ideas, arguments, steps, examples, applications.
+- Do NOT create a section for "meta" content about the document itself (e.g., literature review methodology, research steps, protocol, sampling details), unless the MAIN TOPIC is actually about that methodology.
+- If "process/methodology" is mentioned but not central: either omit it OR compress it to ONE bullet inside the most relevant section.
+- Do NOT create a standalone section for a minor mention that appears briefly.
 
-### 1. Introduction and Overview (400-600 words)
-**What You'll Learn:**
-- Comprehensive breakdown of knowledge and skills covered
-- Specific competencies and practical abilities you'll gain
-- Level of expertise expected after studying this material
+SECTIONING (dynamic, content-driven):
+- Decide section titles based on the SOURCE.
+- Prefer using the SOURCE's own headings if available (but skip headings that are mostly meta).
+- If headings are missing, infer 4–8 section titles from the main themes (topic-driven).
+- Section titles must be short (2–6 words) and reflect the actual content (e.g., "Key Concepts", "How It Works", "Examples", "Steps", "Pros/Cons", "Case Studies", "Timeline", "Applications", "Takeaways").
 
-**Why This Matters:**
-- Real-world significance and practical applications
-- Industry relevance and professional impact
-- Problems this knowledge solves and opportunities it creates
+OUTPUT FORMAT (exact structure):
 
-**Prerequisites:**
-- Required background knowledge with clear explanations
-- Recommended preparation or foundational concepts needed
-- Skill level assumptions and how to bridge any gaps
+# Title
+Use the title from SOURCE if present; otherwise create a neutral descriptive title using SOURCE words only.
 
-**Study Strategy:**
-- Optimal approach for learning this material effectively
-- Recommended study sequence and time investment
-- Learning techniques that work best for this subject
+## Overview
+3–5 bullets summarizing what the content covers (content-only).
 
-### 2. Foundational Knowledge (500-800 words)
+## Notes
+Create 4–8 sections (dynamic titles).
+Each section must have 3–8 bullets.
+Bullets must be short, clear, and skimmable.
 
-**Essential Context:**
+### [Dynamic Section Title]
+- bullet
+- bullet
+- bullet
 
-*Historical Evolution:*
-- Complete development story of these concepts
-- Problems that led to innovations and breakthrough solutions
-- Key milestones and important moments in the field
+(Repeat for each section)
 
-*Theoretical Foundation:*
-- Underlying principles and core theories explained clearly
-- Mathematical or scientific basis where applicable
-- Fundamental laws or rules that govern this subject
+## Key Takeaways
+3–7 bullets of the most important points from SOURCE.
 
-*Current Landscape:*
-- State of the field today with recent developments
-- Major players, tools, and methodologies currently used
-- Emerging trends and future directions
+STYLE CONSTRAINTS:
+- Markdown headings + bullet points only.
+- No tables.
+- No long paragraphs.
+- No emojis.
+- Minimal explanation; prioritize capturing the source's points clearly.
+- Do not add any closing questions or suggestions.
 
-### 3. Detailed Concept Explanations
+Return ONLY the notes in this format.
 
-For each major topic (400-600 words per concept):
-
-**Complete Understanding:**
-- Clear definition progressing from simple to detailed
-- Core mechanism: exactly HOW it works in sequential steps
-- Underlying reasoning and governing principles
-- Visual description as if explaining a diagram or process
-
-**Technical Deep Dive:**
-- Process breakdown in numbered, sequential steps
-- Mathematical, quantitative, or technical aspects explained
-- Component analysis for complex systems
-- Input-processing-output flow description
-
-**Practical Examples:**
-- Primary example with every step thoroughly explained
-- Alternative scenarios showing versatility and adaptability
-- Common real-world use cases with context
-- Problem-solving applications with detailed walkthroughs
-
-**Learning Reinforcement:**
-- Essential takeaways for permanent retention
-- Common misconceptions and their corrections
-- Connections to other concepts in the material
-- Memory aids, analogies, or conceptual frameworks
-
-### 4. Comprehensive Glossary
-
-For each important term provide:
-- Clear, jargon-free definition accessible to students
-- Detailed contextual description with relevant background
-- Practical examples showing proper usage
-- Significance for understanding the broader subject
-
-### 5. Practical Application Guide (400-600 words)
-
-**Complete Learning Pathway:**
-
-*Foundation Phase:*
-- Recommended concept learning sequence and progression
-- Specific study techniques optimized for each concept
-- Comprehension checkpoints and verification methods
-
-*Application Phase:*
-- Methods for integrating different concepts together
-- Practical scenarios for knowledge application
-- Problem-solving frameworks and systematic approaches
-
-*Mastery Phase:*
-- Distinguishing deep mastery from surface knowledge
-- Teaching others to solidify and test understanding
-- Staying current with ongoing field developments
-
-### 6. Growth and Next Steps (500-800 words)
-
-**Mastery Verification:**
-- Self-assessment criteria for measuring true understanding
-- Practical application tests and real-world scenarios
-- Common knowledge gaps and methods to identify them
-
-**Educational Impact:**
-- How this knowledge transforms your understanding
-- Specific skills gained and pathways for development
-- Professional readiness and career preparation insights
-
-**Continued Learning:**
-- Next-level topics with specific learning pathways outlined
-- Specialization options and strategic direction choices
-- Advanced resources for continued growth and expertise
-
-## FORMATTING REQUIREMENTS
-
-- Use clear markdown formatting with proper headers (##, ###)
-- Utilize **bold** for key terms and *italics* for emphasis
-- Include numbered lists for sequential steps
-- Include bulleted lists for related points
-- Create clear visual hierarchy with consistent formatting
-- Add blockquotes (>) for important callouts or warnings
-- Use code blocks (\`\`\`) for technical examples when relevant
-- NO EMOJIS - Keep formatting professional and clean
-
-## INPUT TO PROCESS
-
-${contentToAnalyze}
-
-Generate comprehensive, professional study notes following this structure exactly. Adapt the depth and technical level based on the content complexity. Focus on clarity, accuracy, and practical learning value.`,
+SOURCE TO PROCESS:
+${contentToAnalyze}`,
       });
 
       // Validate AI response
@@ -286,44 +133,21 @@ Generate comprehensive, professional study notes following this structure exactl
         throw new Error("AI failed to generate meaningful content");
       }
 
-      // Generate an AI-powered descriptive title
+      // Generate a simple descriptive title from the content
       const titleResult = await generateText({
         model: this.model,
-        prompt: `EDUCATIONAL TITLE GENERATOR
+        prompt: `Generate a clear, descriptive title (3-8 words) for study notes based on this content. Use only words and concepts from the content itself. No quotes, just the title.
 
-You are an expert at creating clear, descriptive titles for educational content. Create ONE perfect title that accurately represents the content and makes students interested to learn.
+Content preview:
+${result.text.substring(0, 500)}...
 
-Content Analysis: Based on the following educational content, create a title that:
-- Clearly describes what students will learn
-- Is specific and descriptive (not vague)
-- Sounds educational and professional
-- Makes the topic sound interesting and valuable
-- Is 3-8 words long (concise but descriptive)
-
-Examples of GOOD titles:
-- "Advanced React Hooks and State Management"
-- "Machine Learning Fundamentals and Applications"
-- "Financial Analysis and Investment Strategies"
-- "Digital Marketing and SEO Optimization"
-
-Examples of BAD titles (avoid these):
-- "Notes" (too vague)
-- "Analysis of document" (generic)
-- "Important information" (not specific)
-
-Educational Content to Analyze:
-${result.text.substring(0, 1000)}...
-
-Source Document: ${transcript.originalName}
-
-Generate ONE perfect educational title (no quotes, no extra text, just the title):`,
+Title:`,
       });
 
-      const aiGeneratedTitle = titleResult.text.trim().replace(/^["'`]|["'`]$/g, '') || `Educational Notes on ${transcript.originalName}`;
+      const aiGeneratedTitle = titleResult.text.trim().replace(/^["'`]|["'`]$/g, '') || `Notes on ${transcript.originalName}`;
 
-      // Ensure title is reasonable length and add timestamp for uniqueness
-      const baseTitle = aiGeneratedTitle.length > 80 ? aiGeneratedTitle.substring(0, 77) + "..." : aiGeneratedTitle;
-      const title = `${baseTitle}`;
+      // Ensure title is reasonable length
+      const title = aiGeneratedTitle.length > 80 ? aiGeneratedTitle.substring(0, 77) + "..." : aiGeneratedTitle;
 
       // Save the generated note to database
       const note = await this.saveNote({
@@ -372,194 +196,85 @@ Generate ONE perfect educational title (no quotes, no extra text, just the title
         );
       }
 
-      const analysisId = Math.random().toString(36).substring(2, 15);
-      const timestamp = new Date().toISOString();
-
-      // Different prompts based on note type
-      // Enhanced prompts based on note type with educational and comprehensive focus
-      const prompts = {
-        summary: `
-COMPREHENSIVE EXECUTIVE LEARNING SUMMARY
-
-Create a comprehensive executive summary that serves as a complete learning overview:
-
-EXECUTIVE LEARNING SUMMARY STRUCTURE:
-- **Key Insights and Discoveries:** Most important findings and breakthrough concepts (200-300 words)
-- **Strategic Implications:** Business impact, decisions enabled, and strategic value (150-200 words)
-- **Core Concepts Mastered:** Essential knowledge gained from this material (150-200 words)
-- **Actionable Intelligence:** Immediate applications and implementation opportunities (100-150 words)
-- **Future Pathways:** Next steps, continued learning, and growth opportunities (100-150 words)
-
-Focus on creating a summary that enables executives to understand both the immediate value and long-term learning implications. Make complex concepts accessible while maintaining depth and accuracy.
-  `,
-
-        detailed: `
-COMPREHENSIVE EDUCATIONAL MASTERY FRAMEWORK
-
-Provide a comprehensive educational analysis that enables complete mastery of all content:
-
-COMPREHENSIVE MASTERY FRAMEWORK:
-- **Learning Foundation:** Historical context, theoretical basis, and prerequisite knowledge (400-500 words)
-- **Detailed Concept Exploration:** In-depth analysis of every major topic with step-by-step explanations (500-800 words per major concept)
-- **Technical Deep Dives:** Methodologies, processes, and technical implementations explained thoroughly (300-400 words per technical aspect)
-- **Practical Application Analysis:** Real-world use cases, examples, and implementation strategies (400-600 words)
-- **Integration Framework:** How concepts connect and build upon each other (200-300 words)
-- **Mastery Assessment:** Self-check criteria and knowledge verification methods (200-300 words)
-
-Explain everything as if teaching someone who needs to become an expert. Include multiple examples, analogies, and practical applications for each concept.
-  `,
-
-        "action-items": `
-STRATEGIC ACTION FRAMEWORK AND IMPLEMENTATION GUIDE
-
-Create a comprehensive action-oriented guide that enables immediate implementation and long-term strategy:
-
-STRATEGIC ACTION FRAMEWORK:
-- **Immediate Actions (0-30 days):** Specific, implementable steps with clear success criteria and resource requirements (300-400 words)
-- **Short-term Strategy (1-6 months):** Tactical initiatives with timelines, dependencies, and measurable outcomes (400-500 words)
-- **Long-term Vision (6+ months):** Strategic recommendations with growth pathways and scalability considerations (300-400 words)
-- **Resource Requirements:** Personnel, budget, tools, and infrastructure needed for each phase (200-300 words)
-- **Risk Mitigation:** Potential challenges and proactive solutions (200-300 words)
-- **Success Metrics:** KPIs, measurement frameworks, and evaluation criteria (200-250 words)
-- **Implementation Roadmap:** Step-by-step execution plan with checkpoints and decision points (300-400 words)
-
-Focus on creating actionable intelligence that bridges the gap between knowledge and implementation. Include specific tools, methodologies, and best practices.
-  `,
-
-        technical: `
-COMPREHENSIVE TECHNICAL MASTERY FRAMEWORK
-
-Provide a comprehensive technical analysis that enables deep technical mastery and implementation:
-    
-TECHNICAL MASTERY FRAMEWORK:
-- **Technical Foundation:** Core technologies, architectures, and theoretical principles (400-500 words)
-- **Detailed Methodologies:** Step-by-step technical processes with implementation details (500-700 words)
-- **Technology Stack Analysis:** Tools, platforms, APIs, and technical requirements with specific recommendations (400-500 words)
-- **Architecture and Design Patterns:** System design principles, best practices, and scalability considerations (400-600 words)
-- **Implementation Guidelines:** Code examples, configuration details, and technical specifications (500-700 words)
-- **Technical Troubleshooting:** Common issues, debugging approaches, and solution strategies (300-400 words)
-- **Performance and Optimization:** Efficiency considerations, monitoring, and improvement strategies (300-400 words)
-- **Integration and APIs:** Technical connectivity, data flows, and system interactions (300-400 words)
-    
-Explain technical concepts with sufficient depth for implementation while maintaining clarity. Include specific examples, code snippets where relevant, and practical technical guidance.
-  `,
-
-        executive: `
-STRATEGIC EXECUTIVE BRIEFING AND DECISION FRAMEWORK
-
-Create a strategic executive briefing that enables informed decision-making and strategic planning:
-    
-EXECUTIVE DECISION FRAMEWORK:
-- **Strategic Overview:** Business context, market implications, and competitive advantages (300-400 words)
-- **Financial Impact Analysis:** Cost-benefit analysis, ROI projections, and budget considerations (300-400 words)
-- **Risk and Opportunity Assessment:** Strategic risks, market opportunities, and mitigation strategies (300-400 words)
-- **Resource Requirements:** Personnel, infrastructure, and investment needs with timeline implications (250-300 words)
-- **Competitive Intelligence:** Market positioning, competitive advantages, and differentiation opportunities (300-350 words)
-- **Implementation Strategy:** High-level roadmap, key milestones, and success criteria (300-400 words)
-- **Stakeholder Impact:** Effects on customers, employees, partners, and other stakeholders (200-300 words)
-- **Decision Points:** Critical choices, trade-offs, and strategic alternatives (250-300 words)
-    
-Focus on strategic insights that enable confident decision-making. Present complex information in executive-friendly format while maintaining analytical rigor and actionable recommendations.
-  `,
-
-        tutorial: `
-COMPREHENSIVE TUTORIAL MASTERY FRAMEWORK
-
-Create comprehensive tutorial-style educational content that enables complete skill mastery:
-    
-TUTORIAL MASTERY FRAMEWORK:
-- **Learning Journey Introduction:** What you'll master, why it matters, prerequisites, and study strategy (400-600 words)
-- **Foundational Knowledge Building:** Historical context, theoretical foundation, and current landscape (500-800 words)
-- **Step-by-Step Concept Mastery:** Detailed explanations of each concept with examples and applications (400-600 words per major concept)
-- **Practical Application Guide:** Hands-on exercises, real-world scenarios, and implementation strategies (400-600 words)
-- **Comprehensive Learning Glossary:** Detailed definitions with context and examples (4-6 sentences per term)
-- **Mastery Assessment:** Self-check criteria, knowledge gaps identification, and remediation strategies (300-400 words)
-- **Continued Learning Pathway:** Next steps, advanced topics, and specialization options (400-500 words)
-    
-Write as if teaching someone who needs deep mastery, not just surface understanding. Include multiple examples, clear explanations, and practical applications throughout.
-  `,
-
-        research: `
-COMPREHENSIVE RESEARCH ANALYSIS FRAMEWORK
-
-Provide comprehensive research analysis that enables evidence-based understanding and decision-making:
-    
-RESEARCH ANALYSIS FRAMEWORK:
-- **Research Context and Methodology:** Study background, research methods, and analytical approach (300-400 words)
-- **Key Findings and Evidence:** Primary discoveries with supporting data and statistical significance (500-700 words)
-- **Comparative Analysis:** How findings relate to existing research, contradictions, and confirmations (400-500 words)
-- **Implications and Applications:** Practical significance, real-world applications, and impact assessment (400-500 words)
-- **Limitations and Considerations:** Research constraints, potential biases, and interpretive cautions (300-400 words)
-- **Future Research Directions:** Unanswered questions, recommended studies, and research opportunities (300-400 words)
-- **Evidence Quality Assessment:** Reliability, validity, and confidence levels of findings (200-300 words)
-    
-Present research with academic rigor while making findings accessible and actionable. Include critical analysis and practical implications.
-  `,
-
-        creative: `
-CREATIVE LEARNING TRANSFORMATION FRAMEWORK
-
-Transform content into engaging, creative educational material that inspires and educates:
-    
-CREATIVE LEARNING FRAMEWORK:
-- **Engaging Introduction:** Hook the reader with compelling stories, analogies, or thought experiments (300-400 words)
-- **Narrative-Driven Explanations:** Use storytelling to explain complex concepts and make them memorable (400-600 words per major concept)
-- **Visual Descriptions:** Paint vivid mental pictures of abstract concepts and processes (300-400 words)
-- **Creative Analogies and Metaphors:** Use familiar concepts to explain unfamiliar ones (200-300 words per analogy)
-- **Interactive Elements:** Thought experiments, hypothetical scenarios, and engaging questions (300-400 words)
-- **Memorable Frameworks:** Create acronyms, mnemonics, and memorable structures for complex information (200-300 words)
-- **Inspirational Applications:** Show the exciting possibilities and transformative potential (300-400 words)
-    
-Make learning enjoyable and memorable while maintaining educational value. Use creativity to enhance understanding, not replace substance.
-  `
-      };
-
-      const specificPrompt = prompts[noteType];
-
       const result = await generateText({
         model: this.model,
-        prompt: `
-SPECIALIZED EDUCATIONAL CONTENT ARCHITECT
+        prompt: `You are a SOURCE-GROUNDED NOTE GENERATOR.
 
-Analysis ID: ${analysisId}
-Timestamp: ${timestamp}
-Note Type: ${noteType.toUpperCase()}
-Document: ${transcript.originalName}
+Goal: Convert the provided SOURCE (PDF text / transcript / pasted text) into clean, simple study notes that focus only on what the SOURCE says.
 
-${specificPrompt}
+Note Type Focus: ${noteType.toUpperCase()}
 
-Content to Transform into Professional Educational Notes:
-${contentToAnalyze}
+HARD RULES:
+- SOURCE ONLY: Use only information in SOURCE. No outside knowledge.
+- NO HALLUCINATION: If it's not in SOURCE, do not include it.
+- NO META TALK: Do not mention "PDF/paper/transcript/source" or talk about the document itself.
+- NO EXTRAS: Do not add quizzes, flashcards, self-tests, or follow-up questions.
+- NO GENERIC FILLER: Avoid vague "this is important/valuable" lines unless SOURCE explicitly says so.
+- DATA CAUTION: Include numbers/percentages only if they are explicitly written in SOURCE text you received. If values are only in charts/images and not written, do not guess—omit them.
 
-Provide a structured, professional analysis that is unique to this specific document and context. Make it comprehensive and valuable for learning. Use clear markdown formatting with NO EMOJIS.
-        `,
+RELEVANCE FILTER (critical):
+- First infer the MAIN TOPIC of the SOURCE (do this silently).
+- Include only content that directly supports understanding the MAIN TOPIC: definitions, key ideas, arguments, steps, examples, applications.
+- Do NOT create a section for "meta" content about the document itself (e.g., literature review methodology, research steps, protocol, sampling details), unless the MAIN TOPIC is actually about that methodology.
+- If "process/methodology" is mentioned but not central: either omit it OR compress it to ONE bullet inside the most relevant section.
+- Do NOT create a standalone section for a minor mention that appears briefly.
+
+SECTIONING (dynamic, content-driven):
+- Decide section titles based on the SOURCE.
+- Prefer using the SOURCE's own headings if available (but skip headings that are mostly meta).
+- If headings are missing, infer 4–8 section titles from the main themes (topic-driven).
+- Section titles must be short (2–6 words) and reflect the actual content (e.g., "Key Concepts", "How It Works", "Examples", "Steps", "Pros/Cons", "Case Studies", "Timeline", "Applications", "Takeaways").
+
+OUTPUT FORMAT (exact structure):
+
+# Title
+Use the title from SOURCE if present; otherwise create a neutral descriptive title using SOURCE words only.
+
+## Overview
+3–5 bullets summarizing what the content covers (content-only).
+
+## Notes
+Create 4–8 sections (dynamic titles).
+Each section must have 3–8 bullets.
+Bullets must be short, clear, and skimmable.
+
+### [Dynamic Section Title]
+- bullet
+- bullet
+- bullet
+
+(Repeat for each section)
+
+## Key Takeaways
+3–7 bullets of the most important points from SOURCE.
+
+STYLE CONSTRAINTS:
+- Markdown headings + bullet points only.
+- No tables.
+- No long paragraphs.
+- No emojis.
+- Minimal explanation; prioritize capturing the source's points clearly.
+- Do not add any closing questions or suggestions.
+
+Return ONLY the notes in this format.
+
+SOURCE TO PROCESS:
+${contentToAnalyze}`,
       });
 
       if (!result.text || result.text.trim().length === 0) {
         throw new Error("AI failed to generate meaningful content");
       }
 
-      // Generate an AI-powered descriptive title based on note type and content
+      // Generate a simple descriptive title
       const titleResult = await generateText({
         model: this.model,
-        prompt: `FOCUSED NOTE TITLE GENERATOR
+        prompt: `Generate a clear, descriptive title (3-8 words) for ${noteType} notes based on this content. Use only words and concepts from the content itself. No quotes, just the title.
 
-Create a perfect title for a ${noteType.toUpperCase()} note based on the content below.
-
-Note Type: ${noteType} 
-Source: ${transcript.originalName}
-
-Title Requirements:
-- Should reflect the ${noteType} focus (${noteType === 'summary' ? 'concise overview' : noteType === 'detailed' ? 'comprehensive analysis' : noteType === 'action-items' ? 'actionable strategies' : noteType === 'technical' ? 'technical implementation' : 'executive briefing'})
-- Be specific and descriptive (3-8 words)
-- Sound professional and educational
-- Make the content type clear
-- NO EMOJIS - Keep it professional
-
-Content Preview:
+Content preview:
 ${result.text.substring(0, 500)}...
 
-Generate ONE perfect title (no quotes, just the title):`,
+Title:`,
       });
 
       const aiGeneratedTitle = titleResult.text.trim().replace(/^["'`]|["'`]$/g, '') || `${noteType.charAt(0).toUpperCase() + noteType.slice(1)} Notes`;
@@ -813,97 +528,86 @@ Generate ONE perfect title (no quotes, just the title):`,
         throw new Error('Content is required to generate notes');
       }
 
-      const analysisId = Math.random().toString(36).substring(2, 15);
-      const timestamp = new Date().toISOString();
-
       const result = await generateText({
         model: this.model,
-        prompt: `SPECIALIZED AI TUTOR AND EDUCATIONAL CONTENT ARCHITECT
+        prompt: `You are a SOURCE-GROUNDED NOTE GENERATOR.
 
-Analysis ID: ${analysisId}
-Timestamp: ${timestamp}
-Source: Text Input
-Title: ${title}
+Goal: Convert the provided SOURCE (PDF text / transcript / pasted text) into clean, simple study notes that focus only on what the SOURCE says.
 
-You are a specialized AI tutor, designed to transform text content into comprehensive, tutorial-style educational notes that make learning both engaging and effective. Your mission is to create detailed study materials that teach concepts thoroughly, as if you were an expert teacher explaining everything step-by-step to help someone truly master the subject.
+HARD RULES:
+- SOURCE ONLY: Use only information in SOURCE. No outside knowledge.
+- NO HALLUCINATION: If it's not in SOURCE, do not include it.
+- NO META TALK: Do not mention "PDF/paper/transcript/source" or talk about the document itself.
+- NO EXTRAS: Do not add quizzes, flashcards, self-tests, or follow-up questions.
+- NO GENERIC FILLER: Avoid vague "this is important/valuable" lines unless SOURCE explicitly says so.
+- DATA CAUTION: Include numbers/percentages only if they are explicitly written in SOURCE text you received. If values are only in charts/images and not written, do not guess—omit them.
 
-TRANSFORMATION MISSION: Convert the following text content into professional educational notes that students will find valuable for learning.
+RELEVANCE FILTER (critical):
+- First infer the MAIN TOPIC of the SOURCE (do this silently).
+- Include only content that directly supports understanding the MAIN TOPIC: definitions, key ideas, arguments, steps, examples, applications.
+- Do NOT create a section for "meta" content about the document itself (e.g., literature review methodology, research steps, protocol, sampling details), unless the MAIN TOPIC is actually about that methodology.
+- If "process/methodology" is mentioned but not central: either omit it OR compress it to ONE bullet inside the most relevant section.
+- Do NOT create a standalone section for a minor mention that appears briefly.
 
-Content to Transform:
-${content}
+SECTIONING (dynamic, content-driven):
+- Decide section titles based on the SOURCE.
+- Prefer using the SOURCE's own headings if available (but skip headings that are mostly meta).
+- If headings are missing, infer 4–8 section titles from the main themes (topic-driven).
+- Section titles must be short (2–6 words) and reflect the actual content (e.g., "Key Concepts", "How It Works", "Examples", "Steps", "Pros/Cons", "Case Studies", "Timeline", "Applications", "Takeaways").
 
-CREATE STRUCTURED, PROFESSIONAL EDUCATIONAL NOTES THAT INCLUDE:
+OUTPUT FORMAT (exact structure):
 
-### 1. Clear Overview of Main Concepts
-- What students will learn and master
-- Why this knowledge is valuable and important
-- Key themes and main ideas to focus on
-- Learning objectives and goals
+# Title
+Use the title from SOURCE if present; otherwise create a neutral descriptive title using SOURCE words only.
 
-### 2. Detailed Explanations of Key Points
-- Step-by-step breakdowns of complex concepts
-- Clear reasoning and logical connections
-- How different ideas relate to each other
-- In-depth coverage with examples and context
+## Overview
+3–5 bullets summarizing what the content covers (content-only).
 
-### 3. Important Insights and Takeaways
-- Key insights and essential understanding
-- Critical points for long-term retention
-- Breakthrough moments and deep understanding
-- Concepts that unlock deeper learning
+## Notes
+Create 4–8 sections (dynamic titles).
+Each section must have 3–8 bullets.
+Bullets must be short, clear, and skimmable.
 
-### 4. Practical Applications (where relevant)
-- Real-world examples and use cases
-- Professional or academic applications
-- Interactive scenarios and problem-solving
-- How to apply knowledge in practice
+### [Dynamic Section Title]
+- bullet
+- bullet
+- bullet
 
-### 5. Summary of Essential Information
-- Quick reference points and key facts
-- Most important concepts to remember
-- Review points for reinforcement
-- Memorable frameworks or structures
+(Repeat for each section)
 
-STYLE GUIDELINES:
-- Use engaging, professional tone that facilitates learning
-- Include clear headings with markdown (##, ###) and bullet points for easy navigation
-- Add emphasis with **bold** and *italics* strategically
-- Make complex concepts accessible and understandable
-- Build confidence through structured, logical progression
-- Create notes suitable for both learning and quick reference
-- NO EMOJIS - Keep formatting clean and professional
-- Use blockquotes (>) for important callouts
-- Use code blocks when showing technical examples
+## Key Takeaways
+3–7 bullets of the most important points from SOURCE.
 
-Make the notes comprehensive yet accessible, suitable for both deep learning and quick reference.`,
+STYLE CONSTRAINTS:
+- Markdown headings + bullet points only.
+- No tables.
+- No long paragraphs.
+- No emojis.
+- Minimal explanation; prioritize capturing the source's points clearly.
+- Do not add any closing questions or suggestions.
+
+Return ONLY the notes in this format.
+
+SOURCE TO PROCESS:
+${content}`,
       });
 
       if (!result.text || result.text.trim().length === 0) {
         throw new Error('AI failed to generate meaningful content');
       }
 
-      // Generate an AI-powered descriptive title
+      // Generate a simple descriptive title
       const titleResult = await generateText({
         model: this.model,
-        prompt: `TEXT NOTE TITLE GENERATOR
+        prompt: `Generate a clear, descriptive title (3-8 words) for study notes based on this content. Use only words and concepts from the content itself. No quotes, just the title.
 
-Create a perfect educational title for notes generated from the text content below.
+Content preview:
+${result.text.substring(0, 500)}...
 
-Requirements:
-- Clearly describe what the content is about
-- Be specific and engaging (3-8 words)
-- Sound educational and valuable
-- Make students want to read these notes
-- NO EMOJIS - Keep it professional
-
-Original Title Provided: ${title}
-Generated Content Preview:
-${result.text.substring(0, 600)}...
-
-Generate ONE perfect educational title (no quotes, just the title):`,
+Title:`,
       });
 
-      const aiGeneratedTitle = titleResult.text.trim().replace(/^["'`]|["'`]$/g, '') || title || 'Educational Text Notes';
+      const aiGeneratedTitle = titleResult.text.trim().replace(/^["'`]|["'`]$/g, '') || title || 'Study Notes';
       const finalTitle = aiGeneratedTitle.length > 80 ? aiGeneratedTitle.substring(0, 77) + "..." : aiGeneratedTitle;
 
       return {
