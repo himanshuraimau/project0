@@ -233,16 +233,64 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
 
             if (podcasts && podcasts.length > 0) {
                 // If podcastId is provided, find that specific podcast
-                // Otherwise, use the latest (first) podcast
-                const selectedPodcast = podcastId
+                // Otherwise, use the latest (first) podcast that has audio available
+                let selectedPodcast = podcastId
                     ? podcasts.find(p => p.id === podcastId)
-                    : podcasts[0];
+                    : podcasts.find(p => p.status === 'COMPLETED' && p.audioUrl) || podcasts[0];
 
                 if (selectedPodcast) {
+                    const status = selectedPodcast.status as string;
+                    
+                    // Check if podcast is completed but audio is not yet available
+                    if (status === 'COMPLETED' && !selectedPodcast.audioUrl) {
+                        Alert.alert(
+                            'Processing', 
+                            'Your podcast is being finalized. Please wait a moment and try again.',
+                            [{ text: 'OK', onPress: () => router.back() }]
+                        );
+                        return;
+                    }
+
+                    // Check if podcast is still generating
+                    if (status === 'GENERATING' || status === 'IN_PROGRESS') {
+                        Alert.alert(
+                            'Still Generating', 
+                            'Your podcast is still being generated. Please check back in a few minutes.',
+                            [{ text: 'OK', onPress: () => router.back() }]
+                        );
+                        return;
+                    }
+
+                    // Check if podcast failed
+                    if (status === 'FAILED') {
+                        Alert.alert(
+                            'Generation Failed', 
+                            'This podcast failed to generate. Please try generating a new one.',
+                            [{ text: 'OK', onPress: () => router.back() }]
+                        );
+                        return;
+                    }
+
+                    // Check if podcast is superseded
+                    if (status === 'SUPERSEDED') {
+                        Alert.alert(
+                            'Outdated Podcast', 
+                            'This podcast has been replaced by a newer version.',
+                            [{ text: 'OK', onPress: () => router.back() }]
+                        );
+                        return;
+                    }
+
                     setPodcast(selectedPodcast);
 
                     if (selectedPodcast.audioUrl) {
                         await setupAudio(selectedPodcast.audioUrl);
+                    } else {
+                        Alert.alert(
+                            'Audio Not Available', 
+                            'The podcast audio is not yet available. Please try again in a moment.',
+                            [{ text: 'OK', onPress: () => router.back() }]
+                        );
                     }
                 } else if (podcastId) {
                     Alert.alert('Error', 'Podcast not found');

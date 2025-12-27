@@ -5,6 +5,7 @@
  */
 
 import * as crypto from 'crypto';
+import { Buffer } from 'buffer';
 import { config } from '@/lib/config/environment';
 import { podcastService } from './podcast-service';
 import { PodcastStatus } from '@prisma/client';
@@ -268,6 +269,16 @@ export class WebhookService {
 
       // Validate required data
       if (!data.audio_url) {
+        console.error('No audio URL provided in completion webhook for project:', projectId);
+        
+        // Update podcast status to failed instead of completed
+        await podcastService.getInstance().updatePodcastStatus(
+          podcast.id,
+          PodcastStatus.FAILED,
+          undefined,
+          'Audio URL not provided by ElevenLabs'
+        );
+        
         return {
           success: false,
           processed: true,

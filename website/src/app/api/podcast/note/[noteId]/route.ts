@@ -69,6 +69,19 @@ export async function GET(
       podcasts = podcasts.filter(podcast => podcast.status !== 'SUPERSEDED');
     }
 
+    // Filter out completed podcasts without audioUrl (incomplete processing)
+    // These should be treated as still in progress
+    podcasts = podcasts.map(podcast => {
+      if (podcast.status === 'COMPLETED' && !podcast.audioUrl) {
+        console.warn(`Podcast ${podcast.id} marked as COMPLETED but missing audioUrl, treating as IN_PROGRESS`);
+        return {
+          ...podcast,
+          status: 'IN_PROGRESS' as any,
+        };
+      }
+      return podcast;
+    });
+
     // Check if any podcasts were found and verify access
     if (podcasts.length > 0) {
       // Verify user has access to at least one podcast (which means they have access to the note)

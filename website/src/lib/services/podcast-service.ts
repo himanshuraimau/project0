@@ -334,6 +334,12 @@ class PodcastService {
     fileSize?: number
   ): Promise<Podcast | null> {
     try {
+      // Validate: Cannot mark as COMPLETED without audioUrl
+      if (status === PodcastStatus.COMPLETED && !audioUrl) {
+        console.error(`Attempted to mark podcast ${podcastId} as COMPLETED without audioUrl`);
+        throw new Error('Cannot mark podcast as COMPLETED without audioUrl');
+      }
+
       const updateData: any = {
         status,
         updatedAt: new Date(),
