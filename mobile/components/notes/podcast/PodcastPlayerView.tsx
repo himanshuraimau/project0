@@ -307,17 +307,30 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
         }
     };
 
-    const loadPodcast = async () => {
+    const loadPodcast = async (retryCount = 0) => {
+        const MAX_RETRIES = 3;
+        const RETRY_DELAY = 2000; // 2 seconds
+
         try {
             setLoading(true);
             const podcasts = await podcastApi.getPodcastsByNoteId(noteId);
 
             if (podcasts && podcasts.length > 0) {
                 // If podcastId is provided, find that specific podcast
+                // Check both 'id' and 'jobId' since navigation might use either
                 // Otherwise, use the latest (first) podcast that has audio available
                 let selectedPodcast = podcastId
-                    ? podcasts.find(p => p.id === podcastId)
+                    ? podcasts.find(p => p.id === podcastId || p.jobId === podcastId)
                     : podcasts.find(p => p.status === 'COMPLETED' && p.audioUrl) || podcasts[0];
+
+                // If we're looking for a specific podcast by jobId and didn't find it,
+                // it might still be syncing - retry a few times
+                if (!selectedPodcast && podcastId && retryCount < MAX_RETRIES) {
+                    setTimeout(() => {
+                        loadPodcast(retryCount + 1);
+                    }, RETRY_DELAY);
+                    return;
+                }
 
                 if (selectedPodcast) {
                     const status = selectedPodcast.status as string;
@@ -376,6 +389,13 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                 } else if (podcastId) {
                     Alert.alert('Error', 'Podcast not found');
                 }
+            } else if (podcastId && retryCount < MAX_RETRIES) {
+                // Podcasts list is empty but we're looking for a specific one
+                // It might still be syncing - retry
+                setTimeout(() => {
+                    loadPodcast(retryCount + 1);
+                }, RETRY_DELAY);
+                return;
             }
         } catch (error) {
             console.error('Error loading podcast:', error);
