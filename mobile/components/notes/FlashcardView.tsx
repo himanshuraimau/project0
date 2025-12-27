@@ -199,7 +199,6 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
         }
       } else {
         console.warn('No content in flashcard response')
-        setError('No flashcard content was received. Please try generating flashcards again.')
         setFlashcards([])
         setLoading(false)
       }
@@ -608,22 +607,47 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
               {/* Bottom Feedback Controls */}
               <View style={styles.feedbackCard}>
                 <View style={styles.feedbackContainer}>
-                  <Text style={styles.feedbackText}>Get it right?</Text>
-                  <View style={styles.feedbackButtons}>
+
+                  {/* Feedback Buttons */}
+                  <View style={styles.feedbackButtonsContainer}>
+                    {/* Back Button */}
                     <TouchableOpacity
-                      style={styles.thumbsDownButton}
-                      onPress={handleGotItWrong}
+                      style={[styles.backButton, currentCard === 0 && styles.navButtonDisabled]}
+                      onPress={moveToPreviousCard}
+                      disabled={currentCard === 0}
                     >
-                      <Feather name="thumbs-down" size={20} color="#FFFFFF" />
+                      <Feather name="chevron-left" size={20} color={currentCard === 0 ? "#9CA3AF" : "#000"} />
                     </TouchableOpacity>
 
+                    {/* Got it wrong Button */}
                     <TouchableOpacity
-                      style={styles.thumbsUpButton}
+                      style={styles.gotItWrongButton}
+                      onPress={handleGotItWrong}
+                    >
+                      <Feather name="chevron-left" size={24} color="#EF4444" />
+                      <Text style={styles.gotItWrongText}>Got it wrong</Text>
+                    </TouchableOpacity>
+
+                    {/* Got it right Button */}
+                    <TouchableOpacity
+                      style={styles.gotItRightButton}
                       onPress={handleGotItRight}
                     >
-                      <Feather name="thumbs-up" size={20} color="#FFFFFF" />
+                      <Text style={styles.gotItRightText}>Got it right</Text>
+                      <Feather name="chevron-right" size={24} color="#FFFFFF" />
+                    </TouchableOpacity>
+
+                    {/* Next Button */}
+                    <TouchableOpacity
+                      style={[styles.nextButton, currentCard >= flashcards.length - 1 && styles.navButtonDisabled]}
+                      onPress={moveToNextCard}
+                      disabled={currentCard >= flashcards.length - 1}
+                    >
+                      <Feather name="chevron-right" size={20} color={currentCard >= flashcards.length - 1 ? "#9CA3AF" : "#000"} />
                     </TouchableOpacity>
                   </View>
+
+                  
                 </View>
               </View>
             </>
@@ -807,7 +831,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 20,
-    paddingTop: 40,
+    paddingTop: 10,
     flexGrow: 1,
   },
   cardStackContainer: {
@@ -876,62 +900,106 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   feedbackCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    marginTop: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    paddingHorizontal: 12,
   },
   feedbackContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 8,
+    gap: 16,
   },
-  feedbackText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#374151',
+  navButton: {
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  feedbackButtons: {
+  navButtonDisabled: {
+    opacity: 0.5,
+  },
+  feedbackButtonsContainer: {
     flexDirection: 'row',
-    gap: 12,
-  },
-  thumbsDownButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#EF4444',
+    gap: 5,
+    flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  thumbsUpButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  gotItWrongButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 10,
+  },
+  gotItWrongText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#EF4444',
+  },
+  gotItRightButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     backgroundColor: '#10B981',
+    borderRadius: 10,
+  },
+  gotItRightText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#FFFFFF',
+  },
+  backButton: {
+    width: 48,
+    height: 48,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.25,
+    borderColor: '#E5E7EB',
+    borderRadius: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  nextButton: {
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.25,
+    borderColor: '#E5E7EB',
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   completionContainer: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 60,
+    paddingTop: 20,
   },
   completionCircle: {
     width: 128,
