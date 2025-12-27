@@ -47,7 +47,7 @@ export default function Teacher1() {
 
       <View style={styles.content}>
         <Text style={styles.title}>You're in the right place.</Text>
-        <Text style={styles.subtitle}>Trusted by educators of professionals like you</Text>
+        <Text style={styles.subtitle}>Trusted by educators or professionals like you</Text>
 
         <View style={styles.features}>
           <View style={styles.featureItem}>
