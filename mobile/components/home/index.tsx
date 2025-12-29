@@ -125,16 +125,6 @@ export default function NotesHome() {
       // Only show notes that were shared with the user (cloned notes)
       return matchesSearch && note.isCloned === true;
     }
-    if (selectedFilter === 'Pinned') {
-      // TODO: Backend needs to add isPinned field to Note model
-      // For now, return empty to avoid confusion
-      return false;
-    }
-    if (selectedFilter === 'Archive') {
-      // TODO: Backend needs to add isArchived field to Note model
-      // For now, return empty to avoid confusion
-      return false;
-    }
     // 'All' filter - show all notes (excluding archived when field is added)
     // TODO: Add && !note.isArchived when backend adds the field
     return matchesSearch;
@@ -198,10 +188,8 @@ export default function NotesHome() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
               {[
                 { key: 'All', label: t('home.filters.all') },
-                { key: 'Pinned', label: t('home.filters.pinned') },
                 { key: 'Shared', label: t('home.filters.shared') },
                 { key: 'Folders', label: t('home.filters.folders') },
-                { key: 'Archive', label: t('home.filters.archive') },
               ].map((f) => {
                 const selected = f.key === selectedFilter
                 return (
@@ -367,13 +355,14 @@ export default function NotesHome() {
             )}
           </ScrollView>
 
-          <LinearGradient colors={['#7C3AED', '#4F46E5']} style={styles.fabGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+          <LinearGradient colors={['#9a69fb', '#9a69fb']} style={styles.fabGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
             <TouchableOpacity
               style={styles.fab}
               accessibilityLabel="Add note"
               onPress={() => setModalVisible(true)}
             >
               <Text style={styles.fabPlus}>+</Text>
+              <Text style={styles.fabText}>New Note</Text>
             </TouchableOpacity>
           </LinearGradient>
         </SafeAreaView>
@@ -697,22 +686,29 @@ const styles = StyleSheet.create({
   },
   fabGradient: {
     position: 'absolute',
-    right: 18,
+    alignSelf: 'center',
     bottom: 60,
     borderRadius: 999,
   },
   fab: {
-    width: 66,
-    height: 66,
-    borderRadius: 33,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 33,
+    gap: 8,
   },
   fabPlus: {
     color: '#fff',
-    fontSize: 34,
-    lineHeight: 36,
+    fontSize: 24,
+    lineHeight: 26,
     fontWeight: '700',
+  },
+  fabText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   homeIndicator: {
     height: 6,
@@ -899,13 +895,15 @@ const styles = StyleSheet.create({
   },
   foldersScroll: {
     paddingRight: 20,
-    gap: 12,
+    paddingLeft: 4
   },
   folderItem: {
     width: 140,
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 14,
+    marginRight: 12,
+    marginVertical: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
