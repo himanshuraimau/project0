@@ -576,10 +576,6 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
             <>
               {/* Card Stack Effect */}
               <View style={styles.cardStackContainer}>
-                {/* Background stacked cards */}
-                <View style={[styles.stackedCard, styles.stackedCard3]} />
-                <View style={[styles.stackedCard, styles.stackedCard2]} />
-
                 {/* Main Flashcard with Flip Animation */}
                 <FlipCard
                   isFlipped={isFlipped}
