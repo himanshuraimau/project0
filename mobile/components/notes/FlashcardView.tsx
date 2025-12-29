@@ -11,12 +11,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Pressable,
+  Dimensions,
 } from 'react-native'
 import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  withSpring,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { notesApi } from '@/lib/api'
@@ -24,6 +26,10 @@ import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
 import ViewShot from 'react-native-view-shot'
 import * as Sharing from 'expo-sharing'
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const CARD_WIDTH = SCREEN_WIDTH * 0.88
+const CARD_HEIGHT = Math.min(SCREEN_HEIGHT * 0.45, 380)
 
 interface FlashcardViewProps {
   noteId: string
@@ -41,7 +47,7 @@ interface FlashcardData {
   flashcards: FlashcardItem[]
 }
 
-// FlipCard Component
+// FlipCard Component with stacked deck effect
 const FlipCard = ({
   isFlipped,
   cardStyle,
@@ -110,6 +116,42 @@ const flipCardStyles = StyleSheet.create({
     position: 'absolute',
   },
   flippedCard: {
+  },
+})
+
+// Stacked Card Component for background cards
+const StackedCard = ({ index }: { index: number }) => {
+  const offset = (index + 1) * 8
+  const scale = 1 - (index + 1) * 0.04
+  const opacity = 1 - (index + 1) * 0.15
+
+  return (
+    <View
+      style={[
+        stackStyles.stackedCard,
+        {
+          width: CARD_WIDTH * scale,
+          height: CARD_HEIGHT,
+          top: -offset,
+          opacity: Math.max(opacity, 0.5),
+          zIndex: -index - 1,
+        },
+      ]}
+    />
+  )
+}
+
+const stackStyles = StyleSheet.create({
+  stackedCard: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
 })
 
@@ -576,6 +618,10 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
             <>
               {/* Card Stack Effect */}
               <View style={styles.cardStackContainer}>
+                {/* Background stacked cards for deck illusion */}
+                {cardsLeft >= 2 && <StackedCard index={1} />}
+                {cardsLeft >= 1 && <StackedCard index={0} />}
+                
                 {/* Main Flashcard with Flip Animation */}
                 <FlipCard
                   isFlipped={isFlipped}
@@ -832,65 +878,46 @@ const styles = StyleSheet.create({
   },
   cardStackContainer: {
     alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 40,
+    justifyContent: 'center',
+    marginTop: 30,
+    marginBottom: 30,
     position: 'relative',
-  },
-  stackedCard: {
-    position: 'absolute',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  stackedCard2: {
-    width: '92%',
-    height: 380,
-    top: -8,
-    zIndex: 1,
-  },
-  stackedCard3: {
-    width: '88%',
-    height: 380,
-    top: -16,
-    zIndex: 0,
+    minHeight: CARD_HEIGHT + 20,
   },
   flipCardContainer: {
-    width: '100%',
-    minHeight: 380,
+    width: CARD_WIDTH,
+    minHeight: CARD_HEIGHT,
     backfaceVisibility: 'hidden',
-    zIndex: 2,
+    zIndex: 10,
   },
   flashcard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 32,
-    paddingVertical: 60,
-    paddingHorizontal: 28,
-    minHeight: 380,
+    borderRadius: 28,
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+    width: CARD_WIDTH,
+    minHeight: CARD_HEIGHT,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   flashcardBack: {
     backgroundColor: '#F1FCF5',
   },
   flashcardText: {
-    fontSize: 19,
-    lineHeight: 34,
+    fontSize: 18,
+    lineHeight: 30,
     textAlign: 'center',
     color: '#111827',
     fontWeight: '500',
   },
   helperText: {
     textAlign: 'center',
-    fontSize: 15,
+    fontSize: 14,
     color: '#9CA3AF',
     fontWeight: '400',
     marginTop: 24,
