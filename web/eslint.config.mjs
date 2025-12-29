@@ -13,7 +13,6 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
-      // Disable problematic rules to clean up build output
       "@typescript-eslint/no-explicit-any": "off", // Disable any type warnings
       "@typescript-eslint/no-unused-vars": "off", // Disable unused variables/imports warnings
       "react/no-unescaped-entities": "off", // Disable unescaped entities warnings
