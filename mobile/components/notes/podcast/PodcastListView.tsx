@@ -26,6 +26,7 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
     const [loading, setLoading] = useState(true);
     const [showGenerationModal, setShowGenerationModal] = useState(false);
     const [noteContent, setNoteContent] = useState('');
+    const [hasPodcast, setHasPodcast] = useState(false);
 
     useEffect(() => {
         loadPodcasts();
@@ -46,12 +47,14 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
             setLoading(true);
             const data = await podcastApi.getPodcastsByNoteId(noteId);
             setPodcasts(data || []);
+            setHasPodcast((data || []).length > 0);
         } catch (error) {
             console.error('Error loading podcasts:', error);
             // Don't show alert for 404 - just means no podcasts yet
             if (error && (error as any).statusCode !== 404) {
                 Alert.alert('Error', 'Failed to load podcasts');
             }
+            setHasPodcast(false);
         } finally {
             setLoading(false);
         }
@@ -82,6 +85,18 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
         await loadPodcasts();
         // Navigate to the player
         router.push(`/notes/${noteId}/podcast?podcastId=${podcast.jobId}`);
+    };
+
+    const handleAddButtonPress = () => {
+        if (hasPodcast) {
+            Alert.alert(
+                'Podcast Already Exists',
+                'You can only generate one podcast per note. A podcast has already been created for this note.',
+                [{ text: 'OK', style: 'default' }]
+            );
+        } else {
+            setShowGenerationModal(true);
+        }
     };
 
     const renderPodcastItem = ({ item }: { item: any }) => (
@@ -156,10 +171,18 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
                 <Text style={styles.headerTitle}>Podcasts</Text>
 
                 <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => setShowGenerationModal(true)}
+                    style={[
+                        styles.addButton,
+                        hasPodcast && styles.disabledButton
+                    ]}
+                    onPress={handleAddButtonPress}
+                    disabled={hasPodcast}
                 >
-                    <Ionicons name="add" size={24} color="#6366F1" />
+                    <Ionicons 
+                        name="add" 
+                        size={24} 
+                        color={hasPodcast ? "#9CA3AF" : "#6366F1"} 
+                    />
                 </TouchableOpacity>
             </View>
 
@@ -171,12 +194,23 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
                         Generate a podcast from your note to get started
                     </Text>
                     <TouchableOpacity
-                        style={styles.generateButton}
-                        onPress={() => setShowGenerationModal(true)}
+                        style={[
+                            styles.generateButton,
+                            hasPodcast && styles.disabledGenerateButton
+                        ]}
+                        onPress={handleAddButtonPress}
+                        disabled={hasPodcast}
                     >
-                        <Ionicons name="add-circle" size={20} color="#FFFFFF" />
-                        <Text style={styles.generateButtonText}>
-                            Generate Podcast
+                        <Ionicons 
+                            name="add-circle" 
+                            size={20} 
+                            color={hasPodcast ? "#9CA3AF" : "#FFFFFF"} 
+                        />
+                        <Text style={[
+                            styles.generateButtonText,
+                            hasPodcast && styles.disabledGenerateButtonText
+                        ]}>
+                            {hasPodcast ? "Podcast Limit Reached" : "Generate Podcast"}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -244,6 +278,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#EEF2FF',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    disabledButton: {
+        backgroundColor: '#F3F4F6',
+        opacity: 0.6,
     },
     headerTitle: {
         fontSize: 18,
@@ -342,9 +380,16 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         gap: 8,
     },
+    disabledGenerateButton: {
+        backgroundColor: '#9CA3AF',
+        opacity: 0.6,
+    },
     generateButtonText: {
         fontSize: 16,
         fontWeight: '600',
         color: '#FFFFFF',
+    },
+    disabledGenerateButtonText: {
+        color: '#6B7280',
     },
 });

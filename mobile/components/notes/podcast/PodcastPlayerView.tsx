@@ -789,14 +789,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     scrollContent: {
-        paddingVertical: 24,
+        paddingVertical: 10,
         alignItems: 'center',
     },
     card: {
         width: CARD_WIDTH,
         backgroundColor: '#F5F5F5',
         borderRadius: 24,
-        padding: 24,
+        padding: 20,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 24,
+        marginBottom: 12,
     },
     speedButton: {
         paddingHorizontal: 16,
@@ -833,7 +833,7 @@ const styles = StyleSheet.create({
     artworkContainer: {
         width: '100%',
         aspectRatio: 1,
-        marginBottom: 12,
+        marginBottom: 8,
     },
     artwork: {
         width: '100%',
