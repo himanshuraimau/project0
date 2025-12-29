@@ -844,64 +844,75 @@ Generate ONE perfect title (no quotes, just the title):`,
 
       const result = await generateText({
         model: this.model,
-        prompt: `SPECIALIZED AI TUTOR AND EDUCATIONAL CONTENT ARCHITECT
+        prompt: `You are a SOURCE-GROUNDED NOTE GENERATOR.
 
-Analysis ID: ${analysisId}
-Timestamp: ${timestamp}
-Source: Text Input
-Title: ${title}
+Goal: Convert the provided SOURCE (PDF text / transcript / pasted text) into clean, simple notes that focus only on what the SOURCE says.
 
-You are a specialized AI tutor, designed to transform text content into comprehensive, tutorial-style educational notes that make learning both engaging and effective. Your mission is to create detailed study materials that teach concepts thoroughly, as if you were an expert teacher explaining everything step-by-step to help someone truly master the subject.
+HARD RULES:
+1) SOURCE ONLY: Use only information in SOURCE. No outside knowledge.
+2) NO HALLUCINATION: If it's not in SOURCE, do not include it.
+3) NO META TALK: Do not mention "PDF/paper/transcript/source" or talk about the document itself.
+4) NO EXTRAS: Do not add quizzes, flashcards, self-tests, or follow-up questions.
+5) NO GENERIC FILLER: Avoid vague filler like "this is important/valuable" unless SOURCE explicitly says so.
+6) DATA CAUTION:
+   - Include numbers/percentages only if they are explicitly written in SOURCE text you received.
+   - If values are only in charts/images and not written, do not guess—omit them.
+7) RELEVANCE FILTER (critical):
+   - First infer the MAIN TOPIC of the SOURCE (do this silently).
+   - Include only content that helps understand the MAIN TOPIC: definitions, key ideas, key claims, steps, examples, use-cases, and conclusions.
+   - Avoid standalone sections for minor side-mentions; fold into another section or omit.
+   - If a "process/how-it-was-done" point is mentioned but not central: either omit it OR compress it to ONE bullet inside the most relevant section.
+   - Do NOT create a standalone section for a minor mention that appears briefly.
+   - A section should be supported by multiple points in SOURCE; otherwise fold it into another section or omit.
+8) NO "STUDY MATERIAL" VOICE:
+   - Do not use "study", "learner", "student", "learning", "mastery", "prerequisites", "study strategy", "learning path", "next steps".
+   - Do not add sections like "What you'll learn", "Why this matters", "Prerequisites", "Study Strategy", "Growth/Next Steps".
+   - Notes must sound neutral and content-focused.
+9) CONTENT-ONLY OUTPUT:
+   - Every bullet must summarize a specific point from SOURCE.
+   - If a bullet cannot be traced to SOURCE, delete it.
 
-TRANSFORMATION MISSION: Convert the following text content into professional educational notes that students will find valuable for learning.
+SECTIONING (dynamic, content-driven):
+- Decide section titles based on the SOURCE.
+- Prefer using the SOURCE's own headings if available.
+- If headings are missing, infer 4–8 section titles from the main themes.
+- Section titles must be short (2–6 words) and reflect content (e.g., "Key Concepts", "How It Works", "Examples", "Steps", "Timeline", "Applications", "Takeaways").
 
-Content to Transform:
-${content}
+OUTPUT FORMAT (exact structure):
 
-CREATE STRUCTURED, PROFESSIONAL EDUCATIONAL NOTES THAT INCLUDE:
+# Title
+Use the title from SOURCE if present; otherwise create a neutral descriptive title using SOURCE words only.
 
-### 1. Clear Overview of Main Concepts
-- What students will learn and master
-- Why this knowledge is valuable and important
-- Key themes and main ideas to focus on
-- Learning objectives and goals
+## Overview
+3–5 bullets summarizing what the content covers (content-only).
 
-### 2. Detailed Explanations of Key Points
-- Step-by-step breakdowns of complex concepts
-- Clear reasoning and logical connections
-- How different ideas relate to each other
-- In-depth coverage with examples and context
+## Notes
+Create 4–8 sections (dynamic titles).
+Each section must have 3–8 bullets.
+Bullets must be short, clear, and skimmable.
 
-### 3. Important Insights and Takeaways
-- Key insights and essential understanding
-- Critical points for long-term retention
-- Breakthrough moments and deep understanding
-- Concepts that unlock deeper learning
+### [Dynamic Section Title]
+- bullet
+- bullet
+- bullet
 
-### 4. Practical Applications (where relevant)
-- Real-world examples and use cases
-- Professional or academic applications
-- Interactive scenarios and problem-solving
-- How to apply knowledge in practice
+(Repeat for each section)
 
-### 5. Summary of Essential Information
-- Quick reference points and key facts
-- Most important concepts to remember
-- Review points for reinforcement
-- Memorable frameworks or structures
+## Key Takeaways
+3–7 bullets of the most important points from SOURCE.
 
-STYLE GUIDELINES:
-- Use engaging, professional tone that facilitates learning
-- Include clear headings with markdown (##, ###) and bullet points for easy navigation
-- Add emphasis with **bold** and *italics* strategically
-- Make complex concepts accessible and understandable
-- Build confidence through structured, logical progression
-- Create notes suitable for both learning and quick reference
-- NO EMOJIS - Keep formatting clean and professional
-- Use blockquotes (>) for important callouts
-- Use code blocks when showing technical examples
+STYLE CONSTRAINTS:
+- Markdown headings + bullet points only.
+- No tables.
+- No long paragraphs.
+- No emojis.
+- Minimal explanation; prioritize capturing the source's points clearly.
+- Do not add any closing questions or suggestions.
 
-Make the notes comprehensive yet accessible, suitable for both deep learning and quick reference.`,
+Return ONLY the notes in this format.
+
+SOURCE TO PROCESS:
+${content}`,
       });
 
       if (!result.text || result.text.trim().length === 0) {
