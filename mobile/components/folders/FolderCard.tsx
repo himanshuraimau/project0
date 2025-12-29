@@ -26,7 +26,7 @@ export const FolderCard: React.FC<FolderCardProps> = ({ folder, onPress }) => {
           { backgroundColor: `${folderColor}15` },
         ]}
       >
-        <Folder size={28} color={folderColor} />
+        <Folder size={32} color={folderColor} />
       </View>
 
       {/* Folder Info */}
@@ -48,7 +48,7 @@ export const FolderCard: React.FC<FolderCardProps> = ({ folder, onPress }) => {
 
       {/* Chevron */}
       <View style={styles.chevronContainer}>
-        <ChevronRight size={20} color="#9CA3AF" />
+        <ChevronRight size={22} color="#9CA3AF" />
       </View>
     </Pressable>
   );
@@ -59,10 +59,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 20,
-    marginVertical: 6,
+    borderRadius: 18,
+    padding: 20,
+    marginHorizontal: 4,
+    marginVertical: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -74,37 +74,37 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
+    width: 64,
+    height: 64,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: 16,
   },
   contentContainer: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 10,
   },
   folderName: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   folderDescription: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#6B7280',
-    marginBottom: 6,
-    lineHeight: 18,
+    marginBottom: 8,
+    lineHeight: 20,
   },
   noteCount: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#9CA3AF',
     fontWeight: '500',
   },
   chevronContainer: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },

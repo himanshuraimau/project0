@@ -12,12 +12,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Folder as FolderIcon, Plus, AlertCircle } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useFolders } from '@/lib/hooks/useFolders';
 import { FolderCard } from './FolderCard';
 import type { FolderWithCount } from '@/lib/api/types';
 
 interface FoldersListProps {
-  onCreatePress?: () => void;
+  onCreatePress?: (onSuccess?: () => void) => void;
 }
 
 export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
@@ -28,6 +29,13 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
   useEffect(() => {
     fetchFolders();
   }, []);
+
+  // Refresh folders when screen comes into focus (e.g., after creating a folder)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchFolders();
+    }, [fetchFolders])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -41,7 +49,10 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
 
   const handleCreatePress = () => {
     if (onCreatePress) {
-      onCreatePress();
+      // Pass a callback that will be called when folder creation is successful
+      onCreatePress(() => {
+        fetchFolders();
+      });
     }
   };
 
@@ -180,8 +191,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingTop: 20,
-    paddingBottom: 120,
-    marginHorizontal: -20,
+    paddingBottom: 120
   },
   listContentEmpty: {
     flexGrow: 1,
