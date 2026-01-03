@@ -28,7 +28,7 @@ import {
   FlashcardGenerator,
 } from "@/components/flashcards";
 import { QuizGenerator } from "@/components/quiz";
-import { PodcastGenerator } from "@/components/podcast";
+import { PodcastPage } from "@/components/podcast";
 import { MindmapGenerator } from "@/components/mindmap";
 import { Trash2, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -578,14 +578,14 @@ export default function NoteViewPage() {
 
                   {currentView === "podcast" && (
                     <div
-                      className="w-full bg-transparent p-6 focus:outline-none transition-all duration-300 ease-in-out"
+                      className="w-full bg-transparent focus:outline-none transition-all duration-300 ease-in-out"
                       data-testid="podcast-generator"
                       tabIndex={-1}
                       role="main"
                       aria-label="Podcast generation interface"
                     >
                       <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-                        <PodcastGenerator
+                        <PodcastPage
                           key={`podcast-${noteId}`}
                           noteId={noteId}
                           noteTitle={note?.title}
