@@ -28,8 +28,8 @@ export function PodcastSectionsList({
 }: PodcastSectionsListProps) {
   if (!sections || sections.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-8 border border-gray-200 dark:border-gray-700 text-center">
-        <p className="text-gray-500 dark:text-gray-400">
+      <div className="bg-[#F9FAFB] dark:bg-gray-800 rounded-lg p-8 border border-neutral-200 dark:border-gray-700 text-center">
+        <p className="text-base font-normal text-muted-foreground">
           No sections available for this podcast.
         </p>
       </div>

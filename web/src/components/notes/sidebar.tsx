@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   FileText,
@@ -153,6 +152,14 @@ export function NotesSidebar({
       disabled: mindmapLoading || false,
       loading: mindmapLoading || false,
     },
+    {
+      title: "Podcast",
+      icon: Zap,
+      onClick: onGeneratePodcast,
+      isActive: showPodcast,
+      disabled: podcastLoading || false,
+      loading: podcastLoading || false,
+    }
   ];
 
   return (
@@ -242,7 +249,7 @@ export function NotesSidebar({
                       aria-current={item.isActive ? "page" : undefined}
                     >
                       {item.loading ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
                       ) : (
                         <item.icon className="w-3.5 h-3.5" />
                       )}
@@ -273,7 +280,7 @@ export function NotesSidebar({
                       aria-label="Delete note permanently"
                       role="button"
                     >
-                      <Trash2 className="flex-shrink-0" size={12} />
+                      <Trash2 className="shrink-0" size={12} />
                       {!isCollapsed && (
                         <span className="leading-4 text-[15px] font-normal">
                           Delete Notes

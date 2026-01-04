@@ -481,19 +481,7 @@ export default function NoteViewPage() {
             />
 
             <SidebarInset className="flex flex-col flex-1">
-              <header className="sticky top-0 z-40 bg-white dark:bg-background ">
-                <div className="flex h-16 items-center px-5 mr-4 mb-4 border-b border-border/40">
-                  <Link
-                    href="/dashboard"
-                    className="flex items-center gap-3 text-foreground hover:text-muted-foreground transition-colors"
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                    <h1 className="text-xl font-medium">Notes</h1>
-                  </Link>
-                </div>
-              </header>
-
-              <main className="flex-1 p-0">
+              <main className="flex-1 p-0 pt-4">
                 <div className="border-none transition-colors duration-200 w-full">
                   {currentView === "notes" && (
                     <div data-testid="view-note" tabIndex={-1}>

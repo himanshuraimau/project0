@@ -178,21 +178,24 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
   };
 
   const handleDownload = async () => {
-    if (!podcast?.audioUrl) return;
+    if (!podcast?.audioUrl) {
+      alert('No audio URL available for download');
+      return;
+    }
 
     try {
-      const response = await fetch(podcast.audioUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      // Try to download directly using the URL (for same-origin or CORS-enabled resources)
       const a = document.createElement('a');
-      a.href = url;
+      a.href = podcast.audioUrl;
       a.download = `${noteTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_podcast.mp3`;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
       console.error('Download failed:', error);
+      alert('Failed to download podcast. The audio file may not be accessible.');
     }
   };
 
@@ -201,7 +204,7 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-600 mx-auto mb-3" />
+          <Loader2 className="h-8 w-8 animate-spin text-gray-600 dark:text-gray-400 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">Loading podcast...</p>
         </div>
       </div>
@@ -236,14 +239,14 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
             <div className="flex gap-4 justify-center">
               <Button
                 onClick={() => handleGenerate('short')}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-6 text-lg"
+                className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 px-8 py-6 text-lg"
                 size="lg"
               >
                 Generate Short Podcast (3-5 min)
               </Button>
               <Button
                 onClick={() => handleGenerate('long')}
-                className="bg-purple-700 hover:bg-purple-800 text-white px-8 py-6 text-lg"
+                className="bg-gray-800 hover:bg-gray-700 dark:bg-gray-200 dark:hover:bg-gray-300 text-white dark:text-gray-900 px-8 py-6 text-lg"
                 size="lg"
               >
                 Generate Long Podcast (8-10 min)
@@ -269,7 +272,7 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
           <div className="space-y-2">
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
               <div
-                className="h-full bg-purple-600 transition-all duration-500"
+                className="h-full bg-gray-900 dark:bg-gray-100 transition-all duration-500"
                 style={{ width: `${job.progress || 0}%` }}
               />
             </div>
@@ -299,7 +302,7 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
               reset();
               handleGenerate('short');
             }}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
+            className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
           >
             Try Again
           </Button>
@@ -312,7 +315,7 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
   if (!podcast) return null;
 
   return (
-    <div className="w-full bg-white dark:bg-gray-950 min-h-screen p-6">
+    <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         <PodcastHeader
           title={podcast.title}
@@ -320,11 +323,13 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
           onShare={handleShare}
         />
 
-        <PodcastTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Sections or Transcript */}
-          <div className="lg:col-span-1">
+          {/* Left Column - Tabs and Sections/Transcript (50%) */}
+          <div className="lg:col-span-1 space-y-4 lg:pr-6 lg:border-r" style={{
+            borderColor: 'rgba(0, 0, 0, 0.08)'
+          }}>
+            <PodcastTabs activeTab={activeTab} onTabChange={setActiveTab} />
+            
             {activeTab === 'sections' ? (
               <PodcastSectionsList
                 sections={podcast.sections || []}
@@ -338,8 +343,8 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
             )}
           </div>
 
-          {/* Right Column - Player */}
-          <div className="lg:col-span-1">
+          {/* Right Column - Player (50%) */}
+          <div className="lg:col-span-1 px-6 py-4">
             <PodcastPlayer
               audioUrl={podcast.audioUrl}
               title={podcast.title}

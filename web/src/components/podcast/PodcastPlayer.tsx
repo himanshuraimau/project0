@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Share2, Download, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import { Share2, Download, Play, Pause, SkipBack, SkipForward, Volume2, User, UserRound, X } from 'lucide-react';
 import { PodcastAskInput } from './PodcastAskInput';
 import { PodcastSpeaker } from './types';
 
@@ -40,6 +40,7 @@ export function PodcastPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [volume, setVolume] = useState(1);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -55,12 +56,26 @@ export function PodcastPlayer({
       setCurrentTime(0);
     };
 
+    const handleError = (e: Event) => {
+      console.error('Audio playback error:', e);
+      setIsPlaying(false);
+      setAudioError('Unable to load or play this audio file. Please check the audio URL.');
+    };
+
+    const handleCanPlay = () => {
+      setAudioError(null);
+    };
+
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('canplay', handleCanPlay);
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('canplay', handleCanPlay);
     };
   }, [onTimeUpdate]);
 
@@ -79,16 +94,23 @@ export function PodcastPlayer({
     }
   }, [seekTo]);
 
-  const togglePlayPause = () => {
+  const togglePlayPause = async () => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
+    try {
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        await audio.play();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Playback error:', error);
+      setIsPlaying(false);
+      setAudioError('Unable to play audio. Please check your internet connection or try again.');
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,19 +168,36 @@ export function PodcastPlayer({
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 sticky top-6">
-      <audio ref={audioRef} src={audioUrl} preload="metadata" />
+    <div 
+      className="rounded-[28px] w-full h-fit"
+      style={{
+        background: '#ECEFF3',
+        boxShadow: '0px 12px 30px rgba(0,0,0,0.08), 0px 4px 10px rgba(0,0,0,0.04)',
+        padding: '24px 24px 28px 24px'
+      }}
+    >
+      <audio ref={audioRef} preload="metadata" crossOrigin="anonymous">
+        {audioUrl && (
+          <>
+            <source src={audioUrl} type="audio/mpeg" />
+            <source src={audioUrl} type="audio/mp3" />
+            <source src={audioUrl} type="audio/wav" />
+            <source src={audioUrl} type="audio/ogg" />
+          </>
+        )}
+        Your browser does not support the audio element.
+      </audio>
 
       {/* Cover Image */}
-      <div className="relative mb-4 rounded-lg overflow-hidden bg-linear-to-br from-purple-900 via-blue-900 to-pink-900">
+      <div className="relative mb-4 rounded-[18px] overflow-hidden bg-gradient-to-br from-gray-800 via-gray-700 to-gray-600">
         {coverImage ? (
           <img
             src={coverImage}
             alt={title}
-            className="w-full h-64 object-cover"
+            className="w-full h-80 object-cover"
           />
         ) : (
-          <div className="w-full h-64 flex items-center justify-center">
+          <div className="w-full h-80 flex items-center justify-center">
             <div className="text-center text-white">
               <div className="text-6xl mb-2">🎙️</div>
               <p className="text-sm opacity-75">Podcast Cover</p>
@@ -169,114 +208,222 @@ export function PodcastPlayer({
         {/* Share Icon Overlay */}
         <button
           onClick={onShare}
-          className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full p-2 transition-colors"
+          className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm hover:bg-white/90 rounded-full p-2.5 transition-all"
+          style={{
+            boxShadow: '0px 2px 8px rgba(0,0,0,0.1), inset 0px 1px 2px rgba(255,255,255,0.5)'
+          }}
         >
-          <Share2 className="h-4 w-4 text-white" />
+          <Share2 className="h-4 w-4 text-gray-700" />
         </button>
       </div>
 
       {/* Title */}
-      <h2 className="text-lg font-semibold text-center mb-4 text-foreground">
+      <h2 
+        className="text-center font-medium leading-tight mb-3 line-clamp-2"
+        style={{
+          fontSize: '17px',
+          color: '#1C1C1E'
+        }}
+      >
         {title}
       </h2>
 
-      {/* Speakers */}
-      <div className="flex items-center justify-center gap-6 mb-6">
+      {/* Speakers/Hosts */}
+      <div className="flex items-center justify-center gap-4 mb-5">
         {speakers.map((speaker, index) => (
-          <div key={index} className="flex flex-col items-center gap-2">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={speaker.avatar} alt={speaker.name} />
-              <AvatarFallback className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300">
-                {speaker.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              {speaker.name}
-            </span>
-          </div>
+          <React.Fragment key={index}>
+            <div className="flex flex-col items-center gap-2">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={speaker.avatar} alt={speaker.name} />
+                <AvatarFallback 
+                  className="flex items-center justify-center"
+                  style={{ background: '#D1D5DB', color: '#6B7280' }}
+                >
+                  {speaker.name.toLowerCase() === 'leo' ? (
+                    <User className="h-5 w-5" />
+                  ) : (
+                    <UserRound className="h-5 w-5" />
+                  )}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-xs font-medium" style={{ color: '#6B7280' }}>
+                {speaker.name}
+              </span>
+            </div>
+            {index < speakers.length - 1 && (
+              <X className="h-4 w-4" style={{ color: '#9CA3AF' }} />
+            )}
+          </React.Fragment>
         ))}
       </div>
 
+      {/* Error Message */}
+      {audioError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-700 text-center">
+            {audioError}
+          </p>
+        </div>
+      )}
+
       {/* Progress Bar */}
-      <div className="mb-4">
+      <div className="mb-5 flex flex-col items-center">
         <input
           type="range"
           min="0"
           max={duration || 0}
           value={currentTime}
           onChange={handleSeek}
-          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-600 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-purple-600 [&::-moz-range-thumb]:border-0"
+          className="appearance-none bg-transparent cursor-pointer"
+          style={{
+            height: '4px',
+            width: '50%'
+          }}
         />
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
+        <style jsx>{`
+          input[type="range"] {
+            -webkit-appearance: none;
+          }
+          input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, #9CA3AF 0%, #9CA3AF ${(currentTime / (duration || 1)) * 100}%, #E5E7EB ${(currentTime / (duration || 1)) * 100}%, #E5E7EB 100%);
+            border-radius: 2px;
+          }
+          input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #9CA3AF;
+            cursor: pointer;
+            margin-top: -4px;
+          }
+          input[type="range"]::-moz-range-track {
+            width: 100%;
+            height: 4px;
+            background: #E5E7EB;
+            border-radius: 2px;
+          }
+          input[type="range"]::-moz-range-progress {
+            height: 4px;
+            background: #9CA3AF;
+            border-radius: 2px;
+          }
+          input[type="range"]::-moz-range-thumb {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #9CA3AF;
+            cursor: pointer;
+            border: none;
+          }
+        `}</style>
+        <div className="flex items-center justify-between mt-2" style={{ width: '50%' }}>
+          <span className="text-xs tabular-nums" style={{ color: '#9CA3AF' }}>
+            {formatTime(currentTime)}
+          </span>
+          <span className="text-xs tabular-nums" style={{ color: '#9CA3AF' }}>
+            {formatTime(duration)}
+          </span>
         </div>
       </div>
 
-      {/* Playback Controls */}
-      <div className="flex items-center justify-center gap-4 mb-6">
-        <Button
-          variant="ghost"
-          size="icon"
+      {/* Control Cluster */}
+      <div className="flex items-center justify-center gap-4 mb-5">
+        {/* Volume Button */}
+        <button
           onClick={() => setVolume(volume > 0 ? 0 : 1)}
-          className="text-gray-600 dark:text-gray-400"
+          className="rounded-full p-2.5 transition-all"
+          style={{
+            background: '#ECEFF3',
+            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
+            color: '#6B7280'
+          }}
         >
-          <Volume2 className="h-5 w-5" />
-        </Button>
+          <Volume2 className="h-4 w-4" />
+        </button>
 
-        <Button
-          variant="ghost"
-          size="icon"
+        {/* Previous/Skip Back Button */}
+        <button
           onClick={() => skipTime(-10)}
-          className="text-gray-600 dark:text-gray-400"
+          className="rounded-full p-2.5 transition-all"
+          style={{
+            background: '#ECEFF3',
+            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
+            color: '#6B7280'
+          }}
         >
-          <SkipBack className="h-5 w-5" />
-        </Button>
+          <SkipBack className="h-4 w-4" />
+        </button>
 
-        <Button
-          size="icon"
+        {/* Play Button (Primary) */}
+        <button
           onClick={togglePlayPause}
-          className="h-12 w-12 rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200"
+          className="rounded-full p-4 transition-all"
+          style={{
+            background: '#1C1C1E',
+            boxShadow: '0px 4px 12px rgba(0,0,0,0.2)',
+            color: '#FFFFFF'
+          }}
         >
           {isPlaying ? (
             <Pause className="h-6 w-6" fill="currentColor" />
           ) : (
             <Play className="h-6 w-6" fill="currentColor" />
           )}
-        </Button>
+        </button>
 
-        <Button
-          variant="ghost"
-          size="icon"
+        {/* Next/Skip Forward Button */}
+        <button
           onClick={() => skipTime(10)}
-          className="text-gray-600 dark:text-gray-400"
+          className="rounded-full p-2.5 transition-all"
+          style={{
+            background: '#ECEFF3',
+            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
+            color: '#6B7280'
+          }}
         >
-          <SkipForward className="h-5 w-5" />
-        </Button>
+          <SkipForward className="h-4 w-4" />
+        </button>
 
-        <Button
-          variant="ghost"
-          size="sm"
+        {/* Speed Button */}
+        <button
           onClick={toggleSpeed}
-          className="text-gray-600 dark:text-gray-400 font-medium min-w-[3rem]"
+          className="rounded-full px-3 py-2 transition-all"
+          style={{
+            background: '#ECEFF3',
+            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
+            color: '#6B7280',
+            fontSize: '13px',
+            fontWeight: 500
+          }}
         >
-          {playbackSpeed}x
-        </Button>
+          {playbackSpeed}×
+        </button>
       </div>
 
       {/* Download Button */}
-      <Button
-        variant="outline"
+      <button
         onClick={handleDownload}
-        className="w-full mb-4 gap-2"
+        className="w-full py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+        style={{
+          background: '#ECEFF3',
+          boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
+          color: '#4B5563',
+          fontSize: '14px',
+          fontWeight: 500
+        }}
       >
         <Download className="h-4 w-4" />
         Download Podcast
-      </Button>
+      </button>
 
-      {/* Ask Input */}
+      {/* AI Input (Separate Component Below) */}
       {onAskQuestion && (
-        <PodcastAskInput onSubmit={onAskQuestion} />
+        <div className="mt-6 pt-6" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+          <PodcastAskInput onSubmit={onAskQuestion} />
+        </div>
       )}
     </div>
   );
