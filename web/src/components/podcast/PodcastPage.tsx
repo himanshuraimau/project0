@@ -16,6 +16,7 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
   const [podcast, setPodcast] = useState<PodcastData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
   
   const { job, isGenerating, generate, reset } = usePodcastGeneration();
 
@@ -332,13 +333,15 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
             
             {activeTab === 'sections' ? (
               <PodcastSectionsList
-                sections={podcast.sections || []}
-                onSectionClick={(timestamp) => console.log('Jump to:', timestamp)}
+                transcript={podcast.transcript || []}
+                currentTime={currentTime}
+                onSectionClick={(time) => console.log('Jump to:', time)}
               />
             ) : (
               <PodcastTranscript
                 transcript={podcast.transcript || []}
                 title={podcast.title}
+                currentTime={currentTime}
               />
             )}
           </div>
@@ -354,6 +357,7 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
               onAskQuestion={handleAskQuestion}
               onShare={handleShare}
               onDownload={handleDownload}
+              onTimeUpdate={setCurrentTime}
             />
           </div>
         </div>
