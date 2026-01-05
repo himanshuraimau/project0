@@ -120,14 +120,7 @@ export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
 
   return (
     <div className="w-full">
-      <div className="mb-4">
-        <h2 className="text-2xl font-medium">
-          {title.replace(/- Mindmap/i, '').trim()}
-        </h2>
-      </div>
-
-
-      <div className="relative w-full borde border-gray-200 dark:border-gray-700 rounded-lg bg-card dark:bg-card" style={{ height: '700px' }}>
+      <div className="relative w-full border-2 border-gray-200 dark:border-gray-800 rounded-lg bg-card dark:bg-card neomorphic" style={{ height: '700px' }}>
         <svg
           ref={refSvg}
           className="w-full h-full text-black dark:text-white "

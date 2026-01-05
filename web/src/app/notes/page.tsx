@@ -3,9 +3,7 @@
 import React, { useState, useRef } from "react";
 import { NotesList, NotesListRef } from "@/components/notes/notes-list";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
-import { ChevronLeft, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { DashboardRefreshProvider } from "@/contexts/dashboard-refresh-context";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/AppSidebar";
