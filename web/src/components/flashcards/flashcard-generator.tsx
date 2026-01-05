@@ -38,7 +38,10 @@ interface FlashcardGeneratorProps {
   noteTitle?: string;
 }
 
-export function FlashcardGenerator({ noteId, noteTitle }: FlashcardGeneratorProps) {
+export function FlashcardGenerator({
+  noteId,
+  noteTitle,
+}: FlashcardGeneratorProps) {
   const [flashcard, setFlashcard] = useState<Flashcard | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +75,9 @@ export function FlashcardGenerator({ noteId, noteTitle }: FlashcardGeneratorProp
     } catch (error) {
       console.error("Error generating flashcards:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to generate flashcards";
+        error instanceof Error
+          ? error.message
+          : "Failed to generate flashcards";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -145,13 +150,17 @@ export function FlashcardGenerator({ noteId, noteTitle }: FlashcardGeneratorProp
 
             {/* Loading Text */}
             <div className="text-center space-y-3">
-              <h3 className="text-2xl font-semibold text-foreground">Loading Flashcards</h3>
-              <p className="text-muted-foreground leading-relaxed">Checking for existing content...</p>
+              <h3 className="text-2xl font-semibold text-foreground">
+                Loading Flashcards
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Checking for existing content...
+              </p>
             </div>
 
             {/* Neomorphic Loading Bar */}
             <div className="w-64 h-2 neomorphic rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full animate-loading-bar" />
+              <div className="h-full bg-linear-to-r from-primary to-primary/80 rounded-full animate-loading-bar" />
             </div>
           </div>
         </div>
@@ -162,48 +171,14 @@ export function FlashcardGenerator({ noteId, noteTitle }: FlashcardGeneratorProp
   // If we have flashcards, show the viewer
   if (flashcard && flashcard.content && flashcard.content.length > 0) {
     return (
-      <div className="space-y-4 p-6 mb-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Flashcards</h2>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={generateFlashcards}
-              disabled={loading}
-              variant="outline"
-              className="border-accent text-black hover:text-black dark:hover:bg-slate-400 cursor-pointer dark:text-white hover:bg-accent/10 hover:border-accent flex items-center px-4 py-2 transition-all duration-200 hover:scale-105"
-            >
-              Regenerate
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button className="text-red-600 p-4 cursor-pointer bg-red-950/20 hover:bg-red-950/30 flex items-center dark:text-red-600 dark:hover:bg-red-950/30 transition-all duration-200 hover:scale-105">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Flashcards</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete these flashcards? This action
-                    cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={deleteFlashcards}
-                    className="text-red-600 p-4 cursor-pointer bg-red-950/20 hover:bg-red-950/30 flex items-center dark:text-red-600 dark:hover:bg-red-950/30"
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between"></div>
 
-        <FlashcardViewer flashcards={flashcard.content} onClose={() => {}} noteTitle={noteTitle} />
+        <FlashcardViewer
+          flashcards={flashcard.content}
+          onClose={() => {}}
+          noteTitle={noteTitle}
+        />
       </div>
     );
   }
@@ -235,7 +210,9 @@ export function FlashcardGenerator({ noteId, noteTitle }: FlashcardGeneratorProp
 
           {/* Content */}
           <div className="text-center space-y-3">
-            <h3 className="text-2xl font-semibold text-foreground">Generate Flashcards</h3>
+            <h3 className="text-2xl font-semibold text-foreground">
+              Generate Flashcards
+            </h3>
             <p className="text-muted-foreground leading-relaxed max-w-md">
               Create interactive flashcards from your notes to enhance memory
               retention and support active recall learning.

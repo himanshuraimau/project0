@@ -481,7 +481,7 @@ export default function NoteViewPage() {
             />
 
             <SidebarInset className="flex flex-col flex-1">
-              <main className="flex-1 p-0 pt-4">
+              <main className="flex-1 p-0">
                 <div className="border-none transition-colors duration-200 w-full">
                   {currentView === "notes" && (
                     <div data-testid="view-note" tabIndex={-1}>
