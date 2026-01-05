@@ -171,7 +171,7 @@ export function FlashcardGenerator({
   // If we have flashcards, show the viewer
   if (flashcard && flashcard.content && flashcard.content.length > 0) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 pt-4">
         <div className="flex items-center justify-between"></div>
 
         <FlashcardViewer

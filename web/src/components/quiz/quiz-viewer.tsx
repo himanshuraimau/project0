@@ -8,10 +8,14 @@ import {
   X,
   Check,
   AlertCircle,
+  Share2,
+  Star,
 } from "lucide-react";
 import { QuizViewerProps } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
-export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
+export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({ quiz, onClose, noteTitle }) => {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<{
     [key: number]: string | boolean;
@@ -20,6 +24,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
   const [showExplanation, setShowExplanation] = useState<{
     [key: number]: boolean;
   }>({});
+  const [isFavorite, setIsFavorite] = useState(false);
 
   if (quiz.length === 0) {
     return (
@@ -80,6 +85,28 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
 
   const handleFinishQuiz = () => {
     setShowResults(true);
+  };
+
+  const handleShare = async () => {
+    try {
+      const shareUrl = window.location.href;
+      if (navigator.share) {
+        await navigator.share({
+          title: `Quiz: ${noteTitle}`,
+          text: 'Check out this AI-generated quiz!',
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  };
+
+  const handleToggleFavorite = () => {
+    setIsFavorite(!isFavorite);
   };
 
   const calculateScore = () => {
@@ -200,37 +227,97 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
   }
 
   return (
-    <div className="w-full p-5 space-y-4 bg-card rounded-2xl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <span className="text-black dark:text-white  bg-accent/10 text-sm font-medium px-3 py-1.5 rounded-full border border-accent/20">
-            Question {currentIndex + 1} of {quiz.length}
-          </span>
-          <span className="text-sm text-black dark:text-white font-medium">
-            Score: {score.totalPoints}/{score.maxTotalPoints} pts
-          </span>
+    <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen px-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header with Breadcrumb and Actions */}
+        <div className="mb-4 pb-4 border-b border-transparent" style={{
+          boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
+        }}>
+          {/* Breadcrumb with Actions */}
+          <nav className="mb-2">
+            <div className="flex items-center justify-between">
+              <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
+                <li>
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="hover:text-foreground transition-colors"
+                  >
+                   Notes
+                  </button>
+                </li>
+                <li>
+                  <span className="mx-2">&gt;</span>
+                </li>
+                <li className="text-foreground font-medium truncate max-w-[300px] sm:max-w-[500px]">
+                  Quiz
+                </li>
+              </ol>
+
+              {/* Share and Star Buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShare}
+                  className="gap-2 rounded-none"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Share</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleToggleFavorite}
+                  className="text-yellow-500 hover:text-yellow-600 rounded-none"
+                >
+                  <Star
+                    className="h-5 w-5"
+                    fill={isFavorite ? "currentColor" : "none"}
+                  />
+                </Button>
+              </div>
+            </div>
+          </nav>
+
+          {/* Title */}
+          <div>
+            <h1 className="text-[19px] font-bold text-foreground leading-tight">
+              {noteTitle || "Quiz"}
+            </h1>
+          </div>
         </div>
-        <div className="flex items-center gap-2.5">
-          <Button
-            onClick={handleReset}
-            variant="outline"
-            className="border-stone-200 text-stone-600 dark:text-white hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800 cursor-pointer"
-            size="sm"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
-          <Button
-            onClick={onClose}
-            variant="outline"
-            className="border-stone-200 text-stone-600 hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:text-white dark:hover:bg-stone-800 cursor-pointer"
-            size="sm"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+
+        {/* Quiz Stats and Progress */}
+        <div className="mb-4 max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-4">
+              <span className="text-[13px] text-muted-foreground">
+                Question {currentIndex + 1} of {quiz.length}
+              </span>
+              <span className="text-[13px] text-muted-foreground">
+                Score: {score.totalPoints}/{score.maxTotalPoints} pts
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleReset}
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset
+              </Button>
+            </div>
+          </div>
+          <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-accent transition-all duration-300"
+              style={{ width: `${((currentIndex + 1) / quiz.length) * 100}%` }}
+            />
+          </div>
         </div>
-      </div>
 
       {/* Progress Bar */}
       <div className="w-full bg-stone-200 dark:bg-stone-800 rounded-full h-2.5">
@@ -445,6 +532,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
           Next
           <ChevronRight className="h-4 w-4" />
         </Button>
+      </div>
       </div>
     </div>
   );

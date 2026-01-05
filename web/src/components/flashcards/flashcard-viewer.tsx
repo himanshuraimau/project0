@@ -128,14 +128,14 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
                     onClick={() => router.push('/dashboard')}
                     className="hover:text-foreground transition-colors"
                   >
-                    My Flashcards
+                    Notes
                   </button>
                 </li>
                 <li>
                   <span className="mx-2">&gt;</span>
                 </li>
                 <li className="text-foreground font-medium truncate max-w-[300px] sm:max-w-[500px]">
-                  {noteTitle || "Your Notes"}
+                 Flashcards
                 </li>
               </ol>
 

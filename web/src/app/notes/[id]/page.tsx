@@ -561,7 +561,7 @@ export default function NoteViewPage() {
                   )}
 
                   {currentView === "quiz" && (
-                    <QuizGenerator key={`quiz-${noteId}`} noteId={noteId} />
+                    <QuizGenerator key={`quiz-${noteId}`} noteId={noteId} noteTitle={note?.title} />
                   )}
 
                   {currentView === "podcast" && (

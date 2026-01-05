@@ -35,11 +35,13 @@ interface QuizGeneratorProps {
   noteId: string;
   onClose?: () => void;
   variant?: "neomorphic" | "clean";
+  noteTitle?: string;
 }
 
 export function QuizGenerator({
   noteId,
   variant = "neomorphic",
+  noteTitle,
 }: QuizGeneratorProps) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(false);
@@ -174,47 +176,13 @@ export function QuizGenerator({
 
     return (
       <div className={containerClass}>
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-medium">Quiz</h2>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={generateQuiz}
-              disabled={loading}
-              variant="outline"
-              className="border-accent text-black hover:text-black dark:hover:bg-slate-400 cursor-pointer dark:text-white hover:bg-accent/10 hover:border-accent flex items-center px-4 py-2 transition-all duration-200 hover:scale-105"
-            >
-              Regenerate
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button className="text-red-600 p-4 cursor-pointer bg-red-950/20 hover:bg-red-950/30 flex items-center dark:text-red-600 dark:hover:bg-red-950/30 transition-all duration-200 hover:scale-105">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Quiz</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this quiz? This action
-                    cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={deleteQuiz}
-                    className="text-red-600 p-4 cursor-pointer bg-red-950/20 hover:bg-red-950/30 flex items-center dark:text-red-600 dark:hover:bg-red-950/30"
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
+        <div className="flex items-center justify-between"></div>
 
-        <QuizViewer quiz={quiz.content.quiz as any} onClose={() => {}} />
+        <QuizViewer
+          quiz={quiz.content.quiz as any}
+          onClose={() => {}}
+          noteTitle={noteTitle}
+        />
       </div>
     );
   }
