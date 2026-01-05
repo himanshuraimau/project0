@@ -77,6 +77,7 @@ const nextConfig: NextConfig = {
               "ws://localhost:* http://localhost:*; " + // Allow dev server websockets
               "media-src 'self' " +
               "https://utfs.io " + // UploadThing media files
+              "https://*.amazonaws.com " + // AWS S3 buckets (all regions and formats)
               "blob: data:; " + // Allow blob URLs for audio playback
               "frame-src 'self' " +
               "https://www.youtube.com https://www.youtube-nocookie.com " +

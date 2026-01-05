@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Brain, Trash2 } from "lucide-react";
+import { Brain, Share, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { MarkmapViewer } from "./MarkmapViewer";
 import { LoadingState } from "@/components/ui/loading-spinner";
@@ -147,7 +147,7 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
 
             {/* Neomorphic Loading Bar */}
             <div className="w-64 h-2 neomorphic rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full animate-loading-bar" />
+              <div className="h-full bg-linear-to-r from-primary to-primary/80 rounded-full animate-loading-bar" />
             </div>
           </div>
         </div>
@@ -155,52 +155,25 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
     );
   }
 
-  // If we have a mindmap, show the viewer
   if (mindmap) {
     return (
-      <div className="space-y-4 px-6 py-4 mx-4 my-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-semibold">Mindmap</h2>
+      <div className="space-y-6 px-6 pt-2 pb-4 mx-4 my-2">
+        <div className="flex items-center justify-between pb-4 border-b-2 border-gray-200 dark:border-gray-800" style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05), 0 -2px 4px rgba(255, 255, 255, 0.05)' }}>
+          <h2 className="text-3xl font-semibold">{mindmap.title.replace(/- Mindmap/i, '').trim()}</h2>
           <div className="flex items-center gap-2">
             <Button
               onClick={generateMindmap}
               disabled={loading}
               variant="outline"
-              size="sm"
+              size="lg"
               className="border-accent text-black hover:text-black dark:hover:bg-slate-400 cursor-pointer dark:text-white hover:bg-accent/10 hover:border-accent flex items-center px-4 py-2 transition-all duration-200 hover:scale-105"
             >
-              Regenerate
+              <Share className="mr-2 h-4 w-4" />
+             Share
             </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-red-600 hover:text-red-600 p-4 cursor-pointer bg-red-950/20 hover:bg-red-950/30 flex items-center dark:text-red-600 dark:hover:bg-red-950/30 transition-all duration-200 hover:scale-105"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Mindmap</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this mindmap? This action
-                    cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={deleteMindmap}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            
+           <Star fill="yellow"/>
+          
           </div>
         </div>
 

@@ -126,6 +126,7 @@ export async function proxy(req: NextRequest) {
     "https://utfs.io https://api.uploadthing.com; " +
     "media-src 'self' " +
     "https://utfs.io " +
+    "https://*.amazonaws.com " +
     "blob: data:; " +
     "frame-src 'self' " +
     "https://www.youtube.com https://www.youtube-nocookie.com " +

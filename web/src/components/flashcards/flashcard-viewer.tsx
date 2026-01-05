@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, RotateCcw, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Share2, Star } from "lucide-react";
 import { FlashcardViewerProps } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
 export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   flashcards,
@@ -10,8 +11,12 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   onGenerate,
   noteTitle,
 }) => {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [gotRight, setGotRight] = useState<number[]>([]);
+  const [gotWrong, setGotWrong] = useState<number[]>([]);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   if (flashcards.length === 0) {
     return (
@@ -28,7 +33,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
 
             <Button
               onClick={onGenerate}
-              className="flex items-center gap-2 bg-accent hover:bg-accent/90 cursor-pointer text-accent-foreground text-base px-6 py-3 rounded-lg  transition-all duration-200 hover:"
+              className="flex items-center gap-2 bg-accent hover:bg-accent/90 cursor-pointer text-accent-foreground text-base px-6 py-3 rounded-lg transition-all duration-200"
             >
               Generate Flashcards
             </Button>
@@ -45,122 +50,216 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   const currentFlashcard = flashcards[currentIndex];
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % flashcards.length);
-    setShowAnswer(false);
+    if (currentIndex < flashcards.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+      setShowAnswer(false);
+    }
   };
 
   const handlePrevious = () => {
-    setCurrentIndex(
-      (prev) => (prev - 1 + flashcards.length) % flashcards.length
-    );
-    setShowAnswer(false);
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+      setShowAnswer(false);
+    }
   };
 
   const handleFlip = () => {
     setShowAnswer(!showAnswer);
   };
 
-  const handleReset = () => {
-    setCurrentIndex(0);
-    setShowAnswer(false);
+  const handleGotRight = () => {
+    if (!gotRight.includes(currentIndex)) {
+      setGotRight([...gotRight, currentIndex]);
+      // Remove from wrong if it was there
+      setGotWrong(gotWrong.filter(i => i !== currentIndex));
+    }
+    if (currentIndex < flashcards.length - 1) {
+      handleNext();
+    }
+  };
+
+  const handleGotWrong = () => {
+    if (!gotWrong.includes(currentIndex)) {
+      setGotWrong([...gotWrong, currentIndex]);
+      // Remove from right if it was there
+      setGotRight(gotRight.filter(i => i !== currentIndex));
+    }
+    if (currentIndex < flashcards.length - 1) {
+      handleNext();
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      const shareUrl = window.location.href;
+      if (navigator.share) {
+        await navigator.share({
+          title: `Flashcards: ${noteTitle}`,
+          text: 'Check out these AI-generated flashcards!',
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  };
+
+  const handleToggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    // You can add API call here to save favorite status
   };
 
   return (
-    <div className="w-full mx-auto space-y-4 p-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-medium">{noteTitle || "Flashcards"}</h2>
-          <span className="text-black dark:text-white bg-accent/10 text-xs font-medium px-3 py-1.5 rounded-full border border-accent/20">
-            {currentIndex + 1} of {flashcards.length}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={handleReset}
-            variant="outline"
-            className="border-stone-200 text-black dark:text-white hover:text-black cursor-pointer hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
-          <Button
-            onClick={onClose}
-            variant="outline"
-            className="border-stone-200 text-black dark:text-white hover:text-black cursor-pointer hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+    <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen px-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header with Breadcrumb and Actions */}
+        <div className="mb-6 pb-6 border-b border-transparent" style={{
+          boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
+        }}>
+          {/* Breadcrumb with Actions */}
+          <nav className="mb-4">
+            <div className="flex items-center justify-between">
+              <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
+                <li>
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Notes
+                  </button>
+                </li>
+                <li>
+                  <span className="mx-2">&gt;</span>
+                </li>
+                <li className="text-foreground font-medium truncate max-w-[300px] sm:max-w-[500px]">
+                 Flashcards
+                </li>
+              </ol>
 
-      {/* Progress Bar */}
-      <div className="w-full bg-stone-200 dark:bg-stone-800 rounded-full h-2.5">
-        <div
-          className="bg-accent h-2.5 rounded-full transition-all duration-300 "
-          style={{
-            width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
-          }}
-        />
-      </div>
+              {/* Share and Star Buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShare}
+                  className="gap-2 rounded-none"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Share</span>
+                </Button>
 
-      {/* Flashcard */}
-      <div className="perspective-1000 w-full">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleToggleFavorite}
+                  className="text-yellow-500 hover:text-yellow-600 rounded-none"
+                >
+                  <Star
+                    className="h-5 w-5"
+                    fill={isFavorite ? "currentColor" : "none"}
+                  />
+                </Button>
+              </div>
+            </div>
+          </nav>
+
+          {/* Title */}
+          <div>
+            <h1 className="text-[19px] font-bold text-foreground leading-tight">
+              {noteTitle || "Flashcards"}
+            </h1>
+          </div>
+        </div>
+
+        {/* Progress Indicator */}
+        <div className="mb-6 max-w-[1280px] mx-auto">
+          <div className="text-[13px] text-muted-foreground mb-2">
+            Card {currentIndex + 1} of {flashcards.length}
+          </div>
+          <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-accent transition-all duration-300"
+              style={{
+                width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
+              }}
+            />
+          </div>
+        </div>
+
+      {/* Flashcard Container */}
+      <div className="flex justify-center items-start mb-6 max-w-[1280px] mx-auto"
+        style={{ minHeight: '400px' }}>
         <Card
-          className={`min-h-[420px] p-6 rounded-xl my-6 bg-card dark:bg-stone-900 cursor-pointer transition-all duration-500 transform hover:scale-[1.02]  hover: border border-stone-200 dark:border-stone-700`}
+          className="w-full max-w-[560px] p-8 rounded-xl bg-card border shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
           onClick={handleFlip}
         >
-          <CardContent className="flex flex-col items-center justify-center min-h-[320px] space-y-6">
-            <div className={`w-24 h-24 rounded-full flex items-center justify-center mb-2 ${showAnswer ? 'bg-accent/20' : 'bg-accent/10 dark:bg-accent/20'}`}>
-              <span className="text-xl">
-                {showAnswer ? 'Answer' : 'Question'}
-              </span>
-            </div>
-            
-            <div className="text-center space-y-4">
-              <div className="text-lg text-black dark:text-white leading-relaxed max-w-4xl">
+          <CardContent className="flex flex-col items-center justify-center min-h-[240px] p-0">
+            <div className="text-center space-y-3 w-full">
+              <div className="text-[19px] font-medium leading-[1.5] text-foreground">
                 {showAnswer ? currentFlashcard.answer : currentFlashcard.question}
               </div>
             </div>
             
             {!showAnswer && (
-              <div className="flex items-center gap-2 text-sm text-black dark:text-white animate-bounce">
-                <span>👆</span>
-                <span>Click to reveal answer</span>
+              <div className="text-[13px] text-muted-foreground mt-3 opacity-60">
+                Click or press space to flip
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between">
-        <Button
-          onClick={handlePrevious}
-          disabled={flashcards.length <= 1}
-          variant="outline"
-          className="flex items-center gap-2 bg-accent/10 border border-accent/20 text-stone-600 hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Previous
-        </Button>
+      {/* Bottom Action Controls */}
+      <div className="flex flex-col items-center mt-6 max-w-7xl mx-auto">
+        <div className="flex items-center gap-3">
+          {/* Previous Arrow */}
+          <Button
+            onClick={handlePrevious}
+            disabled={currentIndex === 0}
+            variant="ghost"
+            size="icon"
+            className="w-9 h-9 rounded-full disabled:opacity-30"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
 
-        <Button
-          onClick={handleNext}
-          disabled={flashcards.length <= 1}
-          variant="outline"
-          className="flex items-center gap-2 bg-accent/10 border border-accent/20 text-stone-600 hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
-        >
-          Next
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+          {/* Got it Wrong */}
+          <Button
+            onClick={handleGotWrong}
+            variant="outline"
+            className="px-4 py-2 rounded-full border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive transition-all"
+          >
+            Got it wrong
+          </Button>
+
+          {/* Got it Right */}
+          <Button
+            onClick={handleGotRight}
+            className="px-4 py-2 rounded-full bg-accent hover:bg-accent/90 text-accent-foreground transition-all"
+          >
+            Got it right
+          </Button>
+
+          {/* Next Arrow */}
+          <Button
+            onClick={handleNext}
+            disabled={currentIndex === flashcards.length - 1}
+            variant="ghost"
+            size="icon"
+            className="w-9 h-9 rounded-full disabled:opacity-30"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Footer Utility */}
+        <button className="text-xs text-muted-foreground mt-4 hover:underline">
+          Report a problem
+        </button>
       </div>
-
-      {/* Keyboard shortcuts hint */}
-      <div className="text-xs text-stone-500 text-center space-x-4">
-        <span>Space: Flip card</span>
-        <span>←/→: Navigate</span>
-        <span>R: Reset</span>
       </div>
     </div>
   );

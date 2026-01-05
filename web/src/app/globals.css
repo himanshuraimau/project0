@@ -200,9 +200,9 @@
   }
 }
 
-/* Using a reduced root font-size (93.75% = 15px when base is 16px) */
+/* Using a reduced root font-size (87.5% = 14px when base is 16px) */
 html {
-  font-size: 93.75%;
+  font-size: 87.5%;
 }
 
 @layer utilities {

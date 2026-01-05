@@ -1,41 +1,36 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   ChevronLeft,
   ChevronRight,
-  RotateCcw,
-  X,
-  Check,
-  AlertCircle,
+  Share2,
+  Star,
+  Send,
 } from "lucide-react";
 import { QuizViewerProps } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
-export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
+export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({ quiz, onClose, noteTitle }) => {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<{
     [key: number]: string | boolean;
   }>({});
   const [showResults, setShowResults] = useState(false);
-  const [showExplanation, setShowExplanation] = useState<{
-    [key: number]: boolean;
-  }>({});
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [helpQuestion, setHelpQuestion] = useState("");
 
   if (quiz.length === 0) {
     return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Quiz</span>
-            <Button onClick={onClose} variant="outline" size="sm">
-              <X className="h-4 w-4" />
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-stone-600 ">No quiz available</p>
-        </CardContent>
-      </Card>
+      <div className="w-full max-w-7xl mx-auto px-8 pt-6 pb-8">
+        <Card>
+          <CardContent className="p-8">
+            <p className="text-center text-muted-foreground">No quiz available</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -64,37 +59,44 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
     });
   };
 
-  const handleShowExplanation = () => {
-    setShowExplanation({
-      ...showExplanation,
-      [currentIndex]: true,
-    });
+  const handleShare = async () => {
+    try {
+      const shareUrl = window.location.href;
+      if (navigator.share) {
+        await navigator.share({
+          title: `Quiz: ${noteTitle}`,
+          text: 'Check out this AI-generated quiz!',
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+    }
   };
 
-  const handleReset = () => {
-    setCurrentIndex(0);
-    setSelectedAnswers({});
-    setShowResults(false);
-    setShowExplanation({});
+  const handleToggleFavorite = () => {
+    setIsFavorite(!isFavorite);
   };
 
-  const handleFinishQuiz = () => {
-    setShowResults(true);
+  const handleAskQuestion = () => {
+    if (helpQuestion.trim()) {
+      // Handle AI question here
+      console.log('Question:', helpQuestion);
+      setHelpQuestion("");
+    }
   };
 
   const calculateScore = () => {
     let correct = 0;
-    let totalPoints = 0;
-    const maxPointsPerQuestion = 5; // 5 points per correct answer
-    const maxTotalPoints = quiz.length * maxPointsPerQuestion;
-
     quiz.forEach((question, index) => {
       if (
         selectedAnswers[index] ===
         (question.correctAnswer || question.correct_answer)
       ) {
         correct++;
-        totalPoints += maxPointsPerQuestion;
       }
     });
 
@@ -102,77 +104,25 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
       correct,
       total: quiz.length,
       percentage: Math.round((correct / quiz.length) * 100),
-      totalPoints,
-      maxTotalPoints,
-      pointsPerQuestion: maxPointsPerQuestion,
     };
   };
 
   const score = calculateScore();
-  const allAnswered = quiz.every(
-    (_, index) => selectedAnswers[index] !== undefined
-  );
 
+  // Results view - keep existing but wrap in proper container
   if (showResults) {
     return (
-      <div className="w-full space-y-4">
-        <Card className="bg-transparent border-none">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span></span>
-              <Button onClick={onClose} variant="outline" size="sm">
-                <X className="h-4 w-4" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-6">
-            <div className=" flex items-center gap-10">
-              <div className="text-6xl font-bold text-accent">
-                {score.totalPoints}
-              </div>
-              <div className="text-lg text-stone-600 dark:text-stone-400">
-                out of {score.maxTotalPoints} points
-              </div>
-              <div className="text-3xl font-semibold text-green-600">
+      <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen px-8 pt-6 pb-8">
+        <div className="max-w-7xl mx-auto">
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="p-8 text-center space-y-6">
+              <div className="text-6xl font-bold text-accent mb-4">
                 {score.percentage}%
               </div>
-            </div>
-
-            <div className="bg-white dark:bg-stone-900/50 rounded-lg p-4 space-y-3">
-              <div className="text-lg font-medium">Quiz Summary</div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Correct Answers:</span>
-                    <span className="font-semibold text-green-600">
-                      {score.correct}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Incorrect Answers:</span>
-                    <span className="font-semibold text-red-600">
-                      {score.total - score.correct}
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Points per Question:</span>
-                    <span className="font-semibold">
-                      {score.pointsPerQuestion}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Total Questions:</span>
-                    <span className="font-semibold">{score.total}</span>
-                  </div>
-                </div>
+              <div className="text-lg text-muted-foreground">
+                {score.correct} out of {score.total} correct
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="text-lg font-medium">Performance Rating</div>
-              <div className="text-lg">
+              <div className="text-2xl font-semibold">
                 {score.percentage >= 90
                   ? "🏆 Excellent!"
                   : score.percentage >= 80
@@ -183,268 +133,273 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onClose }) => {
                   ? "📚 Keep Studying!"
                   : "Try Again!"}
               </div>
-            </div>
-            <div className="flex justify-center gap-2">
-              <Button onClick={handleReset} className="text-white dark:text-black">
-                <RotateCcw className="h-4 w-4 mr-2 text-white dark:text-black" />
+              <Button onClick={() => {
+                setCurrentIndex(0);
+                setSelectedAnswers({});
+                setShowResults(false);
+              }} className="mt-6">
                 Retake Quiz
               </Button>
-              <Button onClick={onClose} variant="outline">
-                Close
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
+  // Get option letters
+  const optionLabels = ['A', 'B', 'C', 'D', 'E', 'F'];
+
   return (
-    <div className="w-full p-5 space-y-4 bg-card rounded-2xl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <span className="text-black dark:text-white  bg-accent/10 text-sm font-medium px-3 py-1.5 rounded-full border border-accent/20">
-            Question {currentIndex + 1} of {quiz.length}
-          </span>
-          <span className="text-sm text-black dark:text-white font-medium">
-            Score: {score.totalPoints}/{score.maxTotalPoints} pts
-          </span>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <Button
-            onClick={handleReset}
-            variant="outline"
-            className="border-stone-200 text-stone-600 dark:text-white hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800 cursor-pointer"
-            size="sm"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
-          <Button
-            onClick={onClose}
-            variant="outline"
-            className="border-stone-200 text-stone-600 hover:text-black hover:bg-stone-50 dark:border-stone-700 dark:text-white dark:hover:bg-stone-800 cursor-pointer"
-            size="sm"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+    <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen px-8 pt-2 pb-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="mb-6 pb-6 border-b border-transparent" style={{
+          boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
+        }}>
+          {/* Breadcrumb with Actions */}
+          <nav className="mb-4">
+            <div className="flex items-center justify-between">
+              <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
+                <li>
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Notes
+                  </button>
+                </li>
+                <li>
+                  <span className="mx-2">&gt;</span>
+                </li>
+                <li className="text-foreground font-medium">
+                  Quiz
+                </li>
+              </ol>
 
-      {/* Progress Bar */}
-      <div className="w-full bg-stone-200 dark:bg-stone-800 rounded-full h-2.5">
-        <div
-          className="bg-accent h-2.5 rounded-full transition-all duration-300 "
-          style={{ width: `${((currentIndex + 1) / quiz.length) * 100}%` }}
-        />
-      </div>
+              {/* Share and Star Buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShare}
+                  className="gap-2 rounded-none"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Share</span>
+                </Button>
 
-      {/* Question Card */}
-      <Card className="min-h-[400px] bg-transparent border-none">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-stone-600 border-none flex items-center">
-            {isAnswered && (
-              <span
-                className={`flex items-center gap-1 ${
-                  isCorrect ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {isCorrect ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <AlertCircle className="h-4 w-4" />
-                )}
-                {isCorrect
-                  ? `Correct (+${score.pointsPerQuestion} pts)`
-                  : "Incorrect (+0 pts)"}
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 mt-4">
-          {/* Question */}
-          <div className="text-lg leading-relaxed">
-            {currentQuestion.question}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleToggleFavorite}
+                  className="text-yellow-500 hover:text-yellow-600 rounded-none"
+                >
+                  <Star
+                    className="h-5 w-5"
+                    fill={isFavorite ? "currentColor" : "none"}
+                  />
+                </Button>
+              </div>
+            </div>
+          </nav>
+
+          {/* Title */}
+          <div>
+            <h1 className="text-[19px] font-bold text-foreground leading-tight">
+              {noteTitle || "Your Notes"}
+            </h1>
           </div>
+        </div>
 
-          {/* Answer Options */}
-          <div className="space-y-3">
-            {currentQuestion.type === "multiple_choice" &&
-              currentQuestion.options && (
-                <div className="space-y-2">
-                  {currentQuestion.options.map((option, index) => {
+        {/* Progress Indicator */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-[13px] text-muted-foreground">
+              Question {currentIndex + 1} of {quiz.length}
+            </div>
+            <button className="text-[13px] text-accent hover:underline">
+              Hint
+            </button>
+          </div>
+          <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-accent transition-all duration-300"
+              style={{
+                width: `${((currentIndex + 1) / quiz.length) * 100}%`,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Question Card - Primary Focus */}
+        <div className="flex justify-center mb-6">
+          <Card className="w-full max-w-[580px] rounded-xl border shadow-sm">
+            <CardContent className="p-8">
+              {/* Question Text */}
+              <div className="text-[17px] font-medium leading-[1.5] text-foreground mb-6">
+                {currentQuestion.question}
+              </div>
+
+              {/* Answer Options */}
+              <div className="space-y-3 mb-6">
+                {currentQuestion.type === "multiple_choice" &&
+                  currentQuestion.options?.map((option, index) => {
                     const isSelected = selectedAnswers[currentIndex] === option;
                     const isCorrectAnswer =
                       option ===
                       (currentQuestion.correctAnswer ||
                         currentQuestion.correct_answer);
-                    const showCorrect =
-                      isAnswered && !isCorrect && isCorrectAnswer;
+                    const showResult = isAnswered;
 
-                    let buttonClass =
-                      "w-full text-left px-6 py-3 rounded-lg border transition-all duration-200 cursor-pointer ";
+                    let containerClass =
+                      "w-full flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ";
 
-                    if (isSelected) {
-                      // User selected this option
-                      if (isCorrect) {
-                        buttonClass +=
-                          " border-green-500 bg-green-50 text-green-800  dark:bg-green-950/20 dark:text-green-400 dark:border-green-600";
+                    if (showResult) {
+                      if (isSelected && isCorrect) {
+                        containerClass += "border-green-500 bg-green-50 dark:bg-green-950/20";
+                      } else if (isSelected && !isCorrect) {
+                        containerClass += "border-red-500 bg-red-50 dark:bg-red-950/20";
+                      } else if (isCorrectAnswer) {
+                        containerClass += "border-green-500 bg-green-50 dark:bg-green-950/20";
                       } else {
-                        buttonClass +=
-                          " border-red-500 bg-red-50 text-red-800  dark:bg-red-950/20 dark:text-red-400 dark:border-red-600";
+                        containerClass += "border-border bg-transparent";
                       }
-                    } else if (showCorrect) {
-                      // Show correct answer in green when user was wrong
-                      buttonClass +=
-                        " border-green-500 bg-green-100 text-green-800  dark:bg-green-950/30 dark:text-green-400 dark:border-green-600";
                     } else {
-                      buttonClass +=
-                        " bg-stone-50 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-accent hover:bg-accent/5 hover:";
+                      if (isSelected) {
+                        containerClass += "border-accent bg-accent/10";
+                      } else {
+                        containerClass += "border-border bg-transparent hover:border-accent/50 hover:bg-accent/5";
+                      }
                     }
 
                     return (
                       <button
                         key={index}
-                        onClick={() => handleAnswerSelect(option)}
+                        onClick={() => !isAnswered && handleAnswerSelect(option)}
                         disabled={isAnswered}
-                        className={buttonClass}
+                        className={containerClass}
                       >
-                        <span className="font-medium mr-2">
-                          {String.fromCharCode(65 + index)}.
-                        </span>
-                        {option}
-                        {showCorrect && (
-                          <span className="ml-2 text-green-600 font-medium">
-                            (Correct Answer)
-                          </span>
-                        )}
+                        {/* Circular Label Badge */}
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full border border-current flex items-center justify-center text-xs font-medium">
+                          {optionLabels[index]}
+                        </div>
+                        {/* Option Text */}
+                        <div className="flex-1 text-left text-[14px] leading-[1.4]">
+                          {option}
+                        </div>
                       </button>
                     );
                   })}
-                </div>
-              )}
 
-            {currentQuestion.type === "true_false" && (
-              <div className="flex gap-4">
-                {[true, false].map((value) => {
-                  const isSelected = selectedAnswers[currentIndex] === value;
-                  const isCorrectAnswer =
-                    value ===
-                    (currentQuestion.correctAnswer ||
-                      currentQuestion.correct_answer);
-                  const showCorrect =
-                    isAnswered && !isCorrect && isCorrectAnswer;
+                {currentQuestion.type === "true_false" && (
+                  <>
+                    {[true, false].map((value) => {
+                      const isSelected = selectedAnswers[currentIndex] === value;
+                      const isCorrectAnswer =
+                        value ===
+                        (currentQuestion.correctAnswer ||
+                          currentQuestion.correct_answer);
+                      const showResult = isAnswered;
 
-                  let buttonClass =
-                    "flex-1 p-4 rounded-lg border transition-all duration-200 cursor-pointer ";
+                      let containerClass =
+                        "w-full flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ";
 
-                  if (isSelected) {
-                    // User selected this option
-                    if (isCorrect) {
-                      buttonClass +=
-                        " border-green-500 bg-green-50 text-green-800  dark:bg-green-950/20 dark:text-green-400 dark:border-green-600";
-                    } else {
-                      buttonClass += 
-                        " border-red-500 bg-red-50 text-red-800  dark:bg-red-950/20 dark:text-red-400 dark:border-red-600";
-                    }
-                  } else if (showCorrect) {
-                    // Show correct answer in green when user was wrong
-                    buttonClass +=
-                      " border-green-500 bg-green-100 text-green-800  dark:bg-green-950/30 dark:text-green-400 dark:border-green-600";
-                  } else {
-                    buttonClass += 
-                      " bg-stone-50 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-accent hover:bg-accent/5 hover:";
-                  }
+                      if (showResult) {
+                        if (isSelected && isCorrect) {
+                          containerClass += "border-green-500 bg-green-50 dark:bg-green-950/20";
+                        } else if (isSelected && !isCorrect) {
+                          containerClass += "border-red-500 bg-red-50 dark:bg-red-950/20";
+                        } else if (isCorrectAnswer) {
+                          containerClass += "border-green-500 bg-green-50 dark:bg-green-950/20";
+                        } else {
+                          containerClass += "border-border bg-transparent";
+                        }
+                      } else {
+                        if (isSelected) {
+                          containerClass += "border-accent bg-accent/10";
+                        } else {
+                          containerClass += "border-border bg-transparent hover:border-accent/50 hover:bg-accent/5";
+                        }
+                      }
 
-                  return (
-                    <button
-                      key={value.toString()}
-                      onClick={() => handleAnswerSelect(value)}
-                      disabled={isAnswered}
-                      className={buttonClass}
-                    >
-                      <div className="text-center">
-                        <div className="">{value ? "True" : "False"}</div>
-                        {showCorrect && (
-                          <div className="text-xs mt-1 text-green-600 font-medium">
-                            (Correct Answer)
+                      return (
+                        <button
+                          key={value.toString()}
+                          onClick={() => !isAnswered && handleAnswerSelect(value)}
+                          disabled={isAnswered}
+                          className={containerClass}
+                        >
+                          <div className="flex-shrink-0 w-6 h-6 rounded-full border border-current flex items-center justify-center text-xs font-medium">
+                            {value ? 'T' : 'F'}
                           </div>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
+                          <div className="flex-1 text-left text-[14px] leading-[1.4]">
+                            {value ? "True" : "False"}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Explanation */}
-          {isAnswered && showExplanation[currentIndex] && (
-            <div className="mt-4 p-4 bg-accent/5 dark:bg-accent/10 border border-accent/20 rounded-lg">
-              <div className="font-medium text-accent mb-2 flex items-center gap-2">
-                <span className="text-sm">Tip</span>
-                Explanation:
+              {/* Card Footer Navigation */}
+              <div className="flex items-center justify-between pt-5 mt-5 border-t">
+                <Button
+                  onClick={handlePrevious}
+                  disabled={currentIndex === 0}
+                  variant="ghost"
+                  className="gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+
+                {currentIndex === quiz.length - 1 ? (
+                  <Button
+                    onClick={() => setShowResults(true)}
+                    disabled={!isAnswered}
+                    className="bg-accent hover:bg-accent/90"
+                  >
+                    Finish Quiz
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleNext}
+                    disabled={!isAnswered}
+                    className="gap-2 bg-accent hover:bg-accent/90"
+                  >
+                    Continue
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
-              <div className="text-stone-700 dark:text-stone-300 leading-relaxed">
-                {currentQuestion.explanation}
-              </div>
-            </div>
-          )}
-
-          {/* Show Explanation Button */}
-          {isAnswered && !showExplanation[currentIndex] && (
-            <Button
-              onClick={handleShowExplanation}
-              variant="outline"
-              className="text-sm border-accent/30 text-black dark:text-white hover:bg-accent/10 hover:border-accent px-5 py-2.5 rounded-lg transition-all duration-200"
-            >
-              Show Explanation
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Navigation */}
-      <div className="flex items-center justify-between">
-        <Button
-          onClick={handlePrevious}
-          disabled={currentIndex === 0}
-          variant="outline"
-          className="flex items-center gap-2 border-stone-200 text-stone-600 hover:bg-stone-50 hover:text-black dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Previous
-        </Button>
-
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-stone-600 space-y-1">
-            <div>
-              {Object.keys(selectedAnswers).length} of {quiz.length} answered
-            </div>
-            <div className="text-xs text-accent font-medium">
-              Current: {score.correct} correct • {score.totalPoints} points
-            </div>
-          </div>
-          {allAnswered && (
-            <Button
-              onClick={handleFinishQuiz}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg  transition-all duration-200 hover:"
-            >
-              View Final Score
-            </Button>
-          )}
+            </CardContent>
+          </Card>
         </div>
 
-        <Button
-          onClick={handleNext}
-          disabled={currentIndex === quiz.length - 1}
-          variant="outline"
-          className="flex items-center gap-2 border-stone-200 text-stone-600 hover:bg-stone-50 hover:text-black dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 disabled:opacity-50"
-        >
-          Next
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+        {/* Help / Assistant Section */}
+        <div className="flex justify-center">
+          <div className="w-full max-w-[580px] rounded-xl border p-4 bg-card">
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Ask about this question…"
+                value={helpQuestion}
+                onChange={(e) => setHelpQuestion(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleAskQuestion()}
+                className="flex-1 rounded-lg border-input"
+              />
+              <Button
+                size="icon"
+                onClick={handleAskQuestion}
+                disabled={!helpQuestion.trim()}
+                className="rounded-full bg-accent hover:bg-accent/90"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

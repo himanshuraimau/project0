@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   FileText,
@@ -13,14 +12,11 @@ import {
   File,
   Brain,
   Loader2,
-  Moon,
-  Sun,
   Zap,
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -30,32 +26,12 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus_Jakarta_Sans } from "next/font/google";
-
-const jakarta = Plus_Jakarta_Sans({
-  weight: ["400", "500", "600"],
-  subsets: ["latin"],
-});
 
 interface NotesSidebarProps {
   className?: string;
   noteId?: string;
-  showTranscript: boolean;
-  showQuiz: boolean;
-  showChat: boolean;
-  showFlashcards: boolean;
-  showPodcast: boolean;
-  showMindmap: boolean;
-  onShowNotes: () => void;
-  onShowTranscript: () => void;
-  onGenerateQuiz: () => void;
-  onChatWithNote: () => void;
-  onGenerateFlashcard: () => void;
-  onGeneratePodcast: () => void;
-  onGenerateMindmap: () => void;
   onDeleteNote: () => void;
   quizLoading?: boolean;
   flashcardsLoading?: boolean;
@@ -66,19 +42,6 @@ interface NotesSidebarProps {
 export function NotesSidebar({
   className,
   noteId,
-  showTranscript,
-  showQuiz,
-  showChat,
-  showFlashcards,
-  showPodcast,
-  showMindmap,
-  onShowNotes,
-  onShowTranscript,
-  onGenerateQuiz,
-  onChatWithNote,
-  onGenerateFlashcard,
-  onGeneratePodcast,
-  onGenerateMindmap,
   onDeleteNote,
   quizLoading,
   flashcardsLoading,
@@ -86,73 +49,88 @@ export function NotesSidebar({
   mindmapLoading,
   ...props
 }: NotesSidebarProps & React.HTMLAttributes<HTMLDivElement>) {
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar();
   const router = useRouter();
+  const pathname = usePathname();
   const isCollapsed = state === "collapsed";
-  const { theme, resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Determine active view from pathname
+  const getActiveView = () => {
+    if (!pathname || !noteId) return "notes";
+    if (pathname.includes("/flashcard")) return "flashcards";
+    if (pathname.includes("/quiz")) return "quiz";
+    if (pathname.includes("/transcript")) return "transcript";
+    if (pathname.includes("/chat")) return "chat";
+    if (pathname.includes("/podcast")) return "podcast";
+    if (pathname.includes("/mindmap")) return "mindmap";
+    return "notes";
+  };
 
-  const isDark = mounted ? (resolvedTheme || theme) === "dark" : false;
+  const activeView = getActiveView();
+
+  // Navigation handlers
+  const handleNavigate = (route: string) => {
+    if (!noteId) return;
+    router.push(`/notes/${noteId}${route}`);
+  };
 
   const menuItems = [
     {
       title: "Notes",
       icon: File,
-      onClick: onShowNotes,
-      isActive:
-        !showTranscript &&
-        !showQuiz &&
-        !showChat &&
-        !showFlashcards &&
-        !showPodcast &&
-        !showMindmap,
+      onClick: () => handleNavigate(""),
+      isActive: activeView === "notes",
       disabled: false,
       loading: false,
     },
     {
       title: "Transcript",
       icon: FileText,
-      onClick: onShowTranscript,
-      isActive: showTranscript,
+      onClick: () => handleNavigate("/transcript"),
+      isActive: activeView === "transcript",
       disabled: false,
       loading: false,
     },
     {
       title: "Quiz",
       icon: HelpCircle,
-      onClick: onGenerateQuiz,
-      isActive: showQuiz,
+      onClick: () => handleNavigate("/quiz"),
+      isActive: activeView === "quiz",
       disabled: quizLoading || false,
       loading: quizLoading || false,
     },
     {
       title: "Chat with Note",
       icon: MessageSquare,
-      onClick: onChatWithNote,
-      isActive: showChat,
+      onClick: () => handleNavigate("/chat"),
+      isActive: activeView === "chat",
       disabled: false,
       loading: false,
     },
     {
       title: "Flashcards",
       icon: Layers,
-      onClick: onGenerateFlashcard,
-      isActive: showFlashcards,
+      onClick: () => handleNavigate("/flashcard"),
+      isActive: activeView === "flashcards",
       disabled: flashcardsLoading || false,
       loading: flashcardsLoading || false,
     },
     {
       title: "Mind Map",
       icon: Brain,
-      onClick: onGenerateMindmap,
-      isActive: showMindmap,
+      onClick: () => handleNavigate("/mindmap"),
+      isActive: activeView === "mindmap",
       disabled: mindmapLoading || false,
       loading: mindmapLoading || false,
     },
+    {
+      title: "Podcast",
+      icon: Zap,
+      onClick: () => handleNavigate("/podcast"),
+      isActive: activeView === "podcast",
+      disabled: podcastLoading || false,
+      loading: podcastLoading || false,
+    }
   ];
 
   return (
@@ -242,7 +220,7 @@ export function NotesSidebar({
                       aria-current={item.isActive ? "page" : undefined}
                     >
                       {item.loading ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
                       ) : (
                         <item.icon className="w-3.5 h-3.5" />
                       )}
@@ -273,7 +251,7 @@ export function NotesSidebar({
                       aria-label="Delete note permanently"
                       role="button"
                     >
-                      <Trash2 className="flex-shrink-0" size={12} />
+                      <Trash2 className="shrink-0" size={12} />
                       {!isCollapsed && (
                         <span className="leading-4 text-[15px] font-normal">
                           Delete Notes

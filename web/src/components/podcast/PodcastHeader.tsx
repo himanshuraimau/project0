@@ -47,58 +47,61 @@ export function PodcastHeader({
   };
 
   return (
-    <div className="mb-6">
-      {/* Breadcrumb */}
-      <nav className="mb-3">
-        <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
-          <li>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="hover:text-foreground transition-colors"
+    <div className="mb-6 pb-6 border-b border-transparent" style={{
+      boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
+    }}>
+      {/* Breadcrumb with Actions */}
+      <nav className="mb-4">
+        <div className="flex items-center justify-between">
+          <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
+            <li>
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="hover:text-foreground transition-colors"
+              >
+                Notes
+              </button>
+            </li>
+            <li>
+              <span className="mx-2">&gt;</span>
+            </li>
+            <li className="text-foreground font-medium truncate max-w-[300px] sm:max-w-[500px]">
+              Podcast
+            </li>
+          </ol>
+
+          {/* Share and Star Buttons */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+              className="gap-2 rounded-none"
             >
-              My Podcasts
-            </button>
-          </li>
-          <li>
-            <span className="mx-2">&gt;</span>
-          </li>
-          <li className="text-foreground font-medium truncate max-w-[300px] sm:max-w-[500px]">
-            {title}
-          </li>
-        </ol>
-      </nav>
+              <Share2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Share</span>
+            </Button>
 
-      {/* Title and Actions */}
-      <div className="flex items-start justify-between gap-4">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">
-          {title}
-        </h1>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleShare}
-            className="gap-2"
-          >
-            <Share2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Share</span>
-          </Button>
-
-          {onToggleFavorite && (
             <Button
               variant="ghost"
               size="icon"
               onClick={onToggleFavorite}
-              className={isFavorite ? 'text-yellow-500' : ''}
+              className="text-yellow-500 hover:text-yellow-600 rounded-none"
             >
               <Star
-                className="h-4 w-4"
-                fill={isFavorite ? 'currentColor' : 'none'}
+                className="h-5 w-5"
+                fill="currentColor"
               />
             </Button>
-          )}
+          </div>
         </div>
+      </nav>
+
+      {/* Title */}
+      <div>
+        <h1 className="text-[19px] font-bold text-foreground leading-tight">
+          {title}
+        </h1>
       </div>
     </div>
   );

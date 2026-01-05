@@ -26,7 +26,7 @@ function createTranscriptContext(transcript: Array<{ speaker: string; text: stri
   }
 
   let context = 'PODCAST TRANSCRIPT:\n\n';
-  
+
   for (const item of transcript) {
     const timestamp = item.timestamp ? `[${item.timestamp}] ` : '';
     context += `${timestamp}${item.speaker}: ${item.text}\n\n`;
@@ -46,7 +46,7 @@ function createTranscriptContext(transcript: Array<{ speaker: string; text: stri
  */
 async function generateResponse(transcript: Array<{ speaker: string; text: string; timestamp?: string }>, question: string) {
   const context = createTranscriptContext(transcript);
-  
+
   const systemPrompt = `You are a helpful AI assistant answering questions about a podcast. 
 
 IMPORTANT: You MUST use the information provided in the podcast transcript below to answer questions. The transcript contains the full conversation between the podcast hosts.

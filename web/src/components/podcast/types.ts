@@ -19,7 +19,8 @@ export interface PodcastData {
   transcript?: Array<{
     speaker: string;
     text: string;
-    timestamp?: string;
+    startTime?: number; // In seconds
+    endTime?: number; // In seconds
   }>;
   sections?: PodcastSection[];
   speakers?: PodcastSpeaker[];
