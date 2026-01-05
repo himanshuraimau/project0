@@ -45,10 +45,11 @@ interface ViewNoteProps {
   onEdit?: () => void;
   onSave?: (content: string) => void;
   onUpdate?: (updatedNote: Note) => void;
+  initialViewMode?: "preview" | "edit";
 }
 
-export function ViewNote({ note, onSave, onUpdate }: ViewNoteProps) {
-  const [viewMode, setViewMode] = useState<"preview" | "edit">("preview");
+export function ViewNote({ note, onSave, onUpdate, initialViewMode = "preview" }: ViewNoteProps) {
+  const [viewMode, setViewMode] = useState<"preview" | "edit">(initialViewMode);
   const [isChatbotMinimized, setIsChatbotMinimized] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
