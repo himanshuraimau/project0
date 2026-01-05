@@ -17,10 +17,18 @@ import {
   Mic,
   Upload,
   Video,
+  X,
+  StopCircle,
+  Trash2,
+  Play,
+  Save,
+  Sparkles,
+  Pin,
+  ChevronDown,
 } from "lucide-react";
-import { SimplePDFProcessor } from "@/components/pdf";
+import { SimplePDFProcessor, UploadTextModal } from "@/components/pdf";
 import { ProcessPDFResult } from "@/lib/types";
-import { AudioRecorder, RecordAudio } from "@/components/audio";
+import { AudioRecorder, AudioUploadModal } from "@/components/audio";
 import { YouTubeProcessor } from "@/components/transcript";
 import { WebpageProcessor } from "@/components/webpage";
 import { Inter } from "next/font/google";
@@ -35,6 +43,350 @@ const jakarta = Plus_Jakarta_Sans({
 
 const inter = Inter({ subsets: ["latin"] });
 
+// AudioRecorderModal Component with full recording functionality
+type RecordingState = "idle" | "recording" | "paused";
+
+interface AudioRecorderModalProps {
+  onClose: () => void;
+  onTranscriptionComplete: (result: {
+    transcript: { id: string; content: string };
+    note: {
+      id?: string;
+      title?: string;
+      content?: string;
+      error?: string;
+      message?: string;
+    };
+  }) => void;
+}
+
+function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderModalProps) {
+  const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
+  const [recordingState, setRecordingState] = useState<RecordingState>("idle");
+  const [seconds, setSeconds] = useState(0);
+  const [audioLanguage, setAudioLanguage] = useState("English");
+  const [folder, setFolder] = useState("All notes");
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentTempId, setCurrentTempId] = useState<string | null>(null);
+
+  const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
+  const audioChunksRef = React.useRef<Blob[]>([]);
+  const mimeTypeRef = React.useRef<string>("audio/webm");
+  const recordingTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Timer effect
+  React.useEffect(() => {
+    if (recordingState === "recording" && !recordingTimerRef.current) {
+      recordingTimerRef.current = setInterval(() => {
+        setSeconds((prev) => prev + 1);
+      }, 1000);
+    } else if (recordingState !== "recording" && recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+
+    return () => {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+    };
+  }, [recordingState]);
+
+  const formatTime = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+
+  const handleStartRecording = async () => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Your browser doesn't support audio recording.");
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100,
+        },
+      });
+
+      let mimeType = "audio/webm";
+      if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+        mimeType = "audio/webm;codecs=opus";
+      } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+        mimeType = "audio/webm";
+      } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+        mimeType = "audio/mp4";
+      }
+
+      mimeTypeRef.current = mimeType;
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+      setSeconds(0);
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: mimeTypeRef.current,
+        });
+        setAudioBlob(audioBlob);
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      mediaRecorder.start();
+      setRecordingState("recording");
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      alert("Failed to start recording. Please ensure microphone access is granted.");
+    }
+  };
+
+  const handleStop = () => {
+    if (mediaRecorderRef.current && recordingState === "recording") {
+      mediaRecorderRef.current.stop();
+      setRecordingState("paused");
+    }
+  };
+
+  const handleResume = () => {
+    // For resume, we need to start a new recording session
+    handleStartRecording();
+  };
+
+  const handleDelete = () => {
+    setRecordingState("idle");
+    setSeconds(0);
+    setAudioBlob(null);
+    audioChunksRef.current = [];
+  };
+
+  const handleSave = () => {
+    // This would save without generating notes
+    console.log("Saving recording...");
+  };
+
+  const handleGenerateNotes = async () => {
+    if (!audioBlob) {
+      alert("Please record audio first!");
+      return;
+    }
+
+    const maxFileSize = 25 * 1024 * 1024; // 25MB
+    if (audioBlob.size > maxFileSize) {
+      alert(
+        `Recording too large! Maximum size is 25MB. Your recording is ${(
+          audioBlob.size / 1024 / 1024
+        ).toFixed(2)}MB.`
+      );
+      return;
+    }
+
+    setIsProcessing(true);
+
+    const tempId = `audio-record-${Date.now()}`;
+    setCurrentTempId(tempId);
+    addLoadingNote(tempId, "audio");
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    onClose();
+
+    try {
+      const formData = new FormData();
+      formData.append("audio", audioBlob);
+      formData.append("fileName", `recording-${Date.now()}`);
+
+      const response = await fetch("/api/audio/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        if (currentTempId) {
+          removeLoadingNote(currentTempId);
+          setCurrentTempId(null);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        onTranscriptionComplete({
+          ...result,
+          transcript: {
+            ...result.transcript,
+            id: result.transcript.id || tempId,
+          },
+        });
+
+        setAudioBlob(null);
+        setSeconds(0);
+        setRecordingState("idle");
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to transcribe audio");
+      }
+    } catch (error) {
+      console.error("Transcription error:", error);
+      alert(
+        "Failed to transcribe audio. Please try again. Error: " +
+        (error instanceof Error ? error.message : "Unknown error")
+      );
+    } finally {
+      if (currentTempId) {
+        removeLoadingNote(currentTempId);
+        setCurrentTempId(null);
+      }
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="w-full bg-white rounded-2xl p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-gray-800">Record audio</h2>
+        <button
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          <X size={24} />
+        </button>
+      </div>
+
+      {/* Dynamic Recording Area */}
+      <div className="mb-6">
+        {recordingState === "idle" && (
+          <button
+            onClick={handleStartRecording}
+            disabled={isProcessing}
+            className="w-full h-14 bg-gradient-to-r from-[#ff6b6b] to-[#ff8fa3] text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            <Mic size={20} />
+            Start recording
+          </button>
+        )}
+
+        {recordingState === "recording" && (
+          <div className="space-y-3">
+            <div className="w-full h-14 bg-gradient-to-r from-[#ff6b6b] to-[#ff8fa3] text-white rounded-xl flex items-center justify-center gap-2">
+              <Mic size={24} />
+              <span className="font-mono text-lg font-semibold">{formatTime(seconds)}</span>
+            </div>
+            <button
+              onClick={handleStop}
+              className="w-full h-14 bg-gray-500 text-white font-semibold rounded-xl hover:bg-gray-600 transition-colors"
+            >
+              Stop
+            </button>
+          </div>
+        )}
+
+        {recordingState === "paused" && (
+          <div className="space-y-3">
+            <div className="w-full h-14 bg-gradient-to-r from-[#ff6b6b] to-[#ff8fa3] text-white rounded-xl flex items-center justify-center gap-2">
+              <Mic size={24} />
+              <span className="font-mono text-lg font-semibold">{formatTime(seconds)}</span>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDelete}
+                className="flex-1 h-14 bg-red-100 text-red-600 font-semibold rounded-xl hover:bg-red-200 transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash2 size={18} />
+                Delete
+              </button>
+              <button
+                onClick={handleResume}
+                className="flex-1 h-14 bg-gradient-to-r from-[#ff6b6b] to-[#ff8fa3] text-white font-semibold rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+              >
+                <Play size={18} />
+                Resume
+              </button>
+              <button
+                onClick={handleSave}
+                className="flex-1 h-14 bg-gray-500 text-white font-semibold rounded-xl hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <Save size={18} />
+                Save
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Form Fields */}
+      <div className="space-y-4 mb-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Audio language
+          </label>
+          <div className="relative">
+            <select
+              value={audioLanguage}
+              onChange={(e) => setAudioLanguage(e.target.value)}
+              className="w-full h-12 px-4 pr-10 bg-gray-50 border border-gray-200 rounded-xl appearance-none text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
+            >
+              <option>English</option>
+              <option>Spanish</option>
+              <option>French</option>
+              <option>German</option>
+              <option>Chinese</option>
+            </select>
+            <ChevronDown
+              size={20}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Folder
+          </label>
+          <div className="relative">
+            <select
+              value={folder}
+              onChange={(e) => setFolder(e.target.value)}
+              className="w-full h-12 px-4 pr-10 bg-gray-50 border border-gray-200 rounded-xl appearance-none text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
+            >
+              <option>📌 All notes</option>
+              <option>📁 Work</option>
+              <option>📁 Personal</option>
+              <option>📁 Projects</option>
+            </select>
+            <ChevronDown
+              size={20}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <button
+        onClick={handleGenerateNotes}
+        disabled={isProcessing || !audioBlob}
+        className="w-full h-14 bg-black text-white font-semibold rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Sparkles size={20} />
+        {isProcessing ? "Processing..." : "Generate Notes"}
+      </button>
+    </div>
+  );
+}
+
+
 export function NewNoteSection() {
   const { refreshNotes, addLoadingNote, removeLoadingNote } =
     useDashboardRefresh();
@@ -45,6 +397,7 @@ export function NewNoteSection() {
   const [showWebpageDialog, setShowWebpageDialog] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [linkType, setLinkType] = useState<"youtube" | "webpage">("youtube");
+  const [pdfMode, setPdfMode] = useState<"pdf" | "text">("pdf");
 
   const handleWebpageProcessComplete = (result: {
     transcript: {
@@ -165,6 +518,30 @@ export function NewNoteSection() {
     setShowPDFDialog(false);
   };
 
+  const handleTextProcessComplete = (result: ProcessPDFResult) => {
+    setShowPDFDialog(false);
+
+    // Show success toast
+    if (result.note && "id" in result.note) {
+      toast.success("📝 Text processed successfully! Notes generated.", {
+        description: "Text content converted to AI-powered notes",
+        duration: 4000,
+      });
+      // Refresh notes immediately - shimmer should already be removed by processor
+      refreshNotes();
+    } else {
+      toast.success("📝 Text saved successfully!", {
+        description: "Content saved as transcript",
+        duration: 4000,
+      });
+    }
+  };
+
+  const handleOpenPDFFromText = () => {
+    // When Import PDF is clicked from text modal, switch to PDF mode
+    setPdfMode("pdf");
+  };
+
   const handleYouTubeTranscriptComplete = (result: {
     transcript: { id: string; content: string; originalName: string };
     note?: { id: string; title: string; content: string };
@@ -227,22 +604,11 @@ export function NewNoteSection() {
               </div>
             </div>
           </button>
-          <DialogContent className="max-w-2xl bg-white dark:bg-[#1A1A1A] border-neutral-200 dark:border-[#1F1F1F] max-h-[90vh] overflow-hidden">
-            <DialogHeader className="">
-              <h1 className="text-black dark:text-white text-[20px] font-medium leading-[30px]">
-                Record Audio & Generate Notes
-              </h1>
-              <p className="-mt-2 text-[#787878] text-[15px] tracking-[-3%]">
-                Record audio content and automatically generate AI-powered notes
-                from the transcription.
-              </p>
-            </DialogHeader>
-            <div className=" overflow-y-auto max-h-[calc(90vh-120px)]">
-              <RecordAudio
-                onTranscriptionComplete={handleRecordAudioComplete}
-                onClose={handleCloseRecordAudioDialog}
-              />
-            </div>
+          <DialogContent className="max-w-[500px] bg-white dark:bg-white border-none shadow-2xl rounded-2xl p-0 overflow-hidden">
+            <AudioRecorderModal
+              onClose={handleCloseRecordAudioDialog}
+              onTranscriptionComplete={handleRecordAudioComplete}
+            />
           </DialogContent>
         </Dialog>
 
@@ -260,22 +626,11 @@ export function NewNoteSection() {
               </div>
             </div>
           </button>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-            <DialogHeader>
-              <DialogTitle className={`text-left ${jakarta.className}`}>
-                Upload Audio File & Generate Notes
-              </DialogTitle>
-              <DialogDescription className={`${jakarta.className}`}>
-                Upload audio files from your device and automatically generate
-                AI-powered notes from the transcription.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <AudioRecorder
-                onTranscriptionComplete={handleAudioTranscriptionComplete}
-                onClose={handleCloseAudioDialog}
-              />
-            </div>
+          <DialogContent className="max-w-[650px] bg-white dark:bg-white border-none shadow-2xl rounded-2xl p-0 overflow-hidden">
+            <AudioUploadModal
+              onClose={handleCloseAudioDialog}
+              onTranscriptionComplete={handleAudioTranscriptionComplete}
+            />
           </DialogContent>
         </Dialog>
 
@@ -293,22 +648,59 @@ export function NewNoteSection() {
               </div>
             </div>
           </button>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-            <DialogHeader>
-              <DialogTitle className={`text-left ${jakarta.className}`}>
-                Upload PDF & Generate Notes
-              </DialogTitle>
-              <DialogDescription className={`${jakarta.className}`}>
-                Upload PDF documents and extract content to generate
-                comprehensive AI-powered notes.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <SimplePDFProcessor
-                onProcessComplete={handlePDFProcessComplete}
+          <DialogContent className={pdfMode === "text" ? "max-w-[450px] bg-white dark:bg-white border-none shadow-2xl rounded-2xl p-0 overflow-hidden" : "max-w-4xl max-h-[90vh] overflow-hidden"}>
+            {pdfMode === "text" ? (
+              <UploadTextModal
                 onClose={handleClosePDFDialog}
+                onProcessComplete={handleTextProcessComplete}
+                onOpenPDFDialog={handleOpenPDFFromText}
               />
-            </div>
+            ) : (
+              <>
+                <DialogHeader>
+                  <DialogTitle className={`text-left ${jakarta.className}`}>
+                    Upload PDF & Generate Notes
+                  </DialogTitle>
+                  <DialogDescription className={`${jakarta.className}`}>
+                    Upload PDF documents and extract content to generate
+                    comprehensive AI-powered notes.
+                  </DialogDescription>
+                </DialogHeader>
+                {/* Mode Toggle */}
+                <div className="flex items-center justify-center pt-4">
+                  <div className="flex bg-muted rounded-lg p-1">
+                    <button
+                      onClick={() => setPdfMode("pdf")}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${pdfMode === "pdf"
+                          ? "bg-background text-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      type="button"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Upload PDF
+                    </button>
+                    <button
+                      onClick={() => setPdfMode("text")}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${pdfMode === "text"
+                          ? "bg-background text-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      type="button"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Add Text
+                    </button>
+                  </div>
+                </div>
+                <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                  <SimplePDFProcessor
+                    onProcessComplete={handlePDFProcessComplete}
+                    onClose={handleClosePDFDialog}
+                  />
+                </div>
+              </>
+            )}
           </DialogContent>
         </Dialog>
 
@@ -342,21 +734,19 @@ export function NewNoteSection() {
                 <div className="flex bg-muted rounded-lg p-1">
                   <button
                     onClick={() => setLinkType("youtube")}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                      linkType === "youtube"
-                        ? "bg-background text-foreground "
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${linkType === "youtube"
+                      ? "bg-background text-foreground "
+                      : "text-muted-foreground hover:text-foreground"
+                      }`}
                   >
                     YouTube
                   </button>
                   <button
                     onClick={() => setLinkType("webpage")}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                      linkType === "webpage"
-                        ? "bg-background text-foreground "
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${linkType === "webpage"
+                      ? "bg-background text-foreground "
+                      : "text-muted-foreground hover:text-foreground"
+                      }`}
                   >
                     Website
                   </button>
