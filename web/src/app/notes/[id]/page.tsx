@@ -179,15 +179,12 @@ export default function NoteHubPage() {
         {/* Right Column: Chatbot Sidebar - 40% */}
         {!isChatbotMinimized && (
           <div className="lg:w-[40%]">
-            <Card className="rounded-3xl border-0 bg-card hover: transition-all duration-300 sticky top-4 h-fit">
-              <CardHeader className="p-4 sm:p-6 pb-4">
+            <Card className="rounded-3xl bg-card border border-black/20 hover:transition-all duration-300 sticky top-4 h-fit">
+              <CardHeader className="p-4 sm:p-6 pb-4 rounded-2xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-full">
-                      <Bot className="h-5 w-5 text-primary" />
-                    </div>
                     <h3 className="text-lg sm:text-xl font-semibold">
-                      AI Assistant
+                      Jelli AI Assistant
                     </h3>
                   </div>
                   <Button
@@ -201,7 +198,7 @@ export default function NoteHubPage() {
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Ask questions about your note content
+                  Ask me anything!
                 </p>
               </CardHeader>
               <CardContent>

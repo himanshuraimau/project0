@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Send, Copy, Loader2, Bot, User, StopCircle } from "lucide-react";
+import { Send, Copy, Loader2, User, StopCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "@/components/mdx-renderer";
 
@@ -208,7 +208,7 @@ export default function InlineChatbot({
             <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
               <Avatar className="h-16 w-16">
                 <AvatarFallback className="bg-primary/10 text-primary">
-                  <Bot className="h-8 w-8" />
+                  <img src="/logo.png" alt="logo" className="h-10 w-10 rounded-full object-cover" />
                 </AvatarFallback>
               </Avatar>
               <div className="space-y-2">
@@ -242,7 +242,7 @@ export default function InlineChatbot({
                       {message.role === "user" ? (
                         <User className="h-4 w-4 text-white dark:text-black" />
                       ) : (
-                        <Bot className="h-4 w-4" />
+                        <img src="/logo.png" alt="logo" className="h-6 w-6 rounded-full object-cover" />
                       )}
                     </AvatarFallback>
                   </Avatar>
