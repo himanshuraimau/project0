@@ -110,7 +110,7 @@ export default function NoteHubPage() {
       {/* Top Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground leading-tight mb-2">
+          <h1 className="text-[34px] font-bold text-foreground leading-tight mb-2">
             {note.title}
           </h1>
           <p className="text-muted-foreground text-sm">
@@ -127,7 +127,7 @@ export default function NoteHubPage() {
            </Button>
         </div>
   </div>
-  <hr className="border-t border-black/20 my-3" />
+  <hr className="border-t border-black/10 my-3 mb-7" />
 
   {/* Main Content Area: Left 60% + Right 40% */}
   <div className="flex flex-col lg:flex-row gap-4">
