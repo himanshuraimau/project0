@@ -612,25 +612,29 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
           </Card>
 
           {/* Help / Assistant Section */}
-          <div className="w-full rounded-2xl border-0 p-6 bg-white dark:bg-[#1A1A1A] shadow-[8px_8px_16px_rgba(0,0,0,0.1),-8px_-8px_16px_rgba(255,255,255,0.7)] dark:shadow-[8px_8px_16px_rgba(0,0,0,0.4),-8px_-8px_16px_rgba(255,255,255,0.02)] mt-6">
-            <div className="mb-3">
-              <label className="text-sm font-medium text-foreground">Ask AI for help</label>
+          <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 p-8 bg-white dark:bg-[#1A1A1A] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] mt-8">
+            <div className="mb-4">
+              <label className="text-base font-semibold text-foreground flex items-center gap-2">
+                <span className="text-2xl">💬</span>
+                Ask AI for help
+              </label>
+              <p className="text-sm text-muted-foreground mt-1">Get assistance with this question</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-end gap-3">
               <Input
-                placeholder="Ask about this question…"
+                placeholder="Type your question here…"
                 value={helpQuestion}
                 onChange={(e) => setHelpQuestion(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleAskQuestion()}
-                className="flex-1 rounded-lg border-input"
+                className="flex-1 rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-12 px-4 text-base transition-colors"
               />
               <Button
                 size="icon"
                 onClick={handleAskQuestion}
                 disabled={!helpQuestion.trim()}
-                className="rounded-full bg-purple-950 hover:bg-purple-600"
+                className="h-12 w-12 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
               >
-                <Send className="h-4 w-4" color="white" />
+                <Send className="h-5 w-5" color="white" />
               </Button>
             </div>
           </div>

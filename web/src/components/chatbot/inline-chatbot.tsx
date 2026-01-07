@@ -231,32 +231,32 @@ export default function InlineChatbot({
                   )}
                 >
                   {/* Avatar */}
-                  <Avatar className="h-8 w-8 shrink-0">
+                  <Avatar className="h-9 w-9 shrink-0 border-2 border-gray-200 dark:border-gray-700 shadow-sm">
                     <AvatarFallback 
                       className={cn(
                         message.role === "user" 
-                          ? "bg-primary text-primary-foreground" 
-                          : "bg-muted text-muted-foreground"
+                          ? "bg-gradient-to-br from-blue-500 to-blue-700 text-white" 
+                          : "bg-gradient-to-br from-purple-500 to-purple-700 text-white"
                       )}
                     >
                       {message.role === "user" ? (
-                        <User className="h-4 w-4 text-white dark:text-black" />
+                        <User className="h-5 w-5" />
                       ) : (
-                        <img src="/logo.png" alt="logo" className="h-6 w-6 rounded-full object-cover" />
+                        <img src="/logo.png" alt="logo" className="h-7 w-7 rounded-full object-cover" />
                       )}
                     </AvatarFallback>
                   </Avatar>
 
                   {/* Message Content */}
                   <div className={cn(
-                    "flex flex-col space-y-2 max-w-[80%]",
+                    "flex flex-col space-y-2 max-w-[85%]",
                     message.role === "user" ? "items-end" : "items-start"
                   )}>
                     <div className={cn(
-                      "rounded-2xl px-4 py-3 max-w-full break-words",
+                      "rounded-2xl px-4 py-3 max-w-full break-words shadow-sm",
                       message.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-br-md"
-                        : "bg-muted text-foreground rounded-bl-md"
+                        ? "bg-purple-600 text-white rounded-br-sm"
+                        : "bg-gray-100 dark:bg-gray-800 text-foreground rounded-bl-sm border border-gray-200 dark:border-gray-700"
                     )}>
                       {message.role === "assistant" ? (
                         message.text ? (
@@ -270,7 +270,7 @@ export default function InlineChatbot({
                           </div>
                         )
                       ) : (
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap m-0 text-white dark:text-black">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap m-0">
                           {message.text}
                         </p>
                       )}
@@ -284,10 +284,10 @@ export default function InlineChatbot({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                              className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                               onClick={() => copyMessage(message.text)}
                             >
-                              <Copy className="h-3 w-3" />
+                              <Copy className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -326,9 +326,9 @@ export default function InlineChatbot({
         </div>
 
         {/* Input Section */}
-        <div className="border-t ">
-          <form onSubmit={handleSubmit} className="p-4">
-            <div className="flex items-end gap-2">
+        <div className="border-t border-gray-200 dark:border-gray-800">
+          <form onSubmit={handleSubmit} className="p-5">
+            <div className="flex items-end gap-3">
               <div className="flex-1">
                 <Input
                   value={inputValue}
@@ -342,7 +342,7 @@ export default function InlineChatbot({
                   }}
                   placeholder="Ask a question about this note..."
                   disabled={isStreaming}
-                  className="resize-none"
+                  className="resize-none h-12 rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 focus-visible:ring-0 focus-visible:ring-offset-0 px-4 text-base transition-colors"
                 />
               </div>
               
@@ -350,17 +350,17 @@ export default function InlineChatbot({
                 <TooltipTrigger asChild>
                   <Button
                     type="submit"
-                    size="sm"
+                    size="icon"
                     disabled={!inputValue.trim() || isStreaming}
                     className={cn(
-                      "shrink-0",
+                      "shrink-0 h-12 w-12 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md",
                       !inputValue.trim() && "opacity-50"
                     )}
                   >
                     {isStreaming ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin text-white" />
                     ) : (
-                      <Send className="h-4 w-4 text-white dark:text-black" />
+                      <Send className="h-5 w-5 text-white" />
                     )}
                   </Button>
                 </TooltipTrigger>
