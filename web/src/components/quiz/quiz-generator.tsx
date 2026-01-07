@@ -5,17 +5,7 @@ import { toast } from "sonner";
 import { QuizViewer } from "./quiz-viewer";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { QuestionType } from "@/lib/types/quiz.types";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
 
 interface Quiz {
   id: string;
@@ -171,25 +161,16 @@ export function QuizGenerator({
   }
 
   if (quiz && quiz.content?.quiz) {
-    const containerClass =
-      variant === "neomorphic" ? "space-y-4 p-5 mb-5" : "space-y-4";
-
     return (
-      <div className={containerClass}>
-        <div className="flex items-center justify-between"></div>
-
-        <QuizViewer
-          quiz={quiz.content.quiz as any}
-          onClose={() => {}}
-          noteTitle={noteTitle}
-        />
-      </div>
+      <QuizViewer
+        quiz={quiz.content.quiz as any}
+        onClose={() => {}}
+        noteTitle={noteTitle}
+      />
     );
   }
 
-  // Show generation UI
   if (variant === "neomorphic") {
-    // If loading, show LoadingState instead of the card
     if (loading) {
       return (
         <div className="h-[92vh] flex items-center justify-center bg-transparent dark:bg-[#0A0B0D] px-6">
