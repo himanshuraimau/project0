@@ -169,9 +169,8 @@ export function PodcastPlayer({
 
   return (
     <div 
-      className="rounded-[28px] w-full h-fit"
+      className="rounded-[28px] w-full h-fit bg-gray-100 dark:bg-gray-900"
       style={{
-        background: '#ECEFF3',
         boxShadow: '0px 12px 30px rgba(0,0,0,0.08), 0px 4px 10px rgba(0,0,0,0.04)',
         padding: '24px 24px 28px 24px'
       }}
@@ -208,21 +207,20 @@ export function PodcastPlayer({
         {/* Share Icon Overlay */}
         <button
           onClick={onShare}
-          className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm hover:bg-white/90 rounded-full p-2.5 transition-all"
+          className="absolute top-4 right-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90 rounded-full p-2.5 transition-all"
           style={{
             boxShadow: '0px 2px 8px rgba(0,0,0,0.1), inset 0px 1px 2px rgba(255,255,255,0.5)'
           }}
         >
-          <Share2 className="h-4 w-4 text-gray-700" />
+          <Share2 className="h-4 w-4 text-gray-700 dark:text-gray-200" />
         </button>
       </div>
 
       {/* Title */}
       <h2 
-        className="text-center font-medium leading-tight mb-3 line-clamp-2"
+        className="text-center font-medium leading-tight mb-3 line-clamp-2 text-gray-900 dark:text-gray-100"
         style={{
-          fontSize: '17px',
-          color: '#1C1C1E'
+          fontSize: '17px'
         }}
       >
         {title}
@@ -236,8 +234,7 @@ export function PodcastPlayer({
               <Avatar className="h-10 w-10">
                 <AvatarImage src={speaker.avatar} alt={speaker.name} />
                 <AvatarFallback 
-                  className="flex items-center justify-center"
-                  style={{ background: '#D1D5DB', color: '#6B7280' }}
+                  className="flex items-center justify-center bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
                 >
                   {speaker.name.toLowerCase() === 'leo' ? (
                     <User className="h-5 w-5" />
@@ -246,12 +243,12 @@ export function PodcastPlayer({
                   )}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-xs font-medium" style={{ color: '#6B7280' }}>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 {speaker.name}
               </span>
             </div>
             {index < speakers.length - 1 && (
-              <X className="h-4 w-4" style={{ color: '#9CA3AF' }} />
+              <X className="h-4 w-4 text-gray-400 dark:text-gray-600" />
             )}
           </React.Fragment>
         ))}
@@ -259,8 +256,8 @@ export function PodcastPlayer({
 
       {/* Error Message */}
       {audioError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-700 text-center">
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-sm text-red-700 dark:text-red-300 text-center">
             {audioError}
           </p>
         </div>
@@ -320,10 +317,10 @@ export function PodcastPlayer({
           }
         `}</style>
         <div className="flex items-center justify-between mt-2" style={{ width: '50%' }}>
-          <span className="text-xs tabular-nums" style={{ color: '#9CA3AF' }}>
+          <span className="text-xs tabular-nums text-gray-400 dark:text-gray-500">
             {formatTime(currentTime)}
           </span>
-          <span className="text-xs tabular-nums" style={{ color: '#9CA3AF' }}>
+          <span className="text-xs tabular-nums text-gray-400 dark:text-gray-500">
             {formatTime(duration)}
           </span>
         </div>
@@ -334,11 +331,9 @@ export function PodcastPlayer({
         {/* Volume Button */}
         <button
           onClick={() => setVolume(volume > 0 ? 0 : 1)}
-          className="rounded-full p-2.5 transition-all"
+          className="rounded-full p-2.5 transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
           style={{
-            background: '#ECEFF3',
-            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
-            color: '#6B7280'
+            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)'
           }}
         >
           <Volume2 className="h-4 w-4" />
@@ -347,11 +342,9 @@ export function PodcastPlayer({
         {/* Previous/Skip Back Button */}
         <button
           onClick={() => skipTime(-10)}
-          className="rounded-full p-2.5 transition-all"
+          className="rounded-full p-2.5 transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
           style={{
-            background: '#ECEFF3',
-            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
-            color: '#6B7280'
+            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)'
           }}
         >
           <SkipBack className="h-4 w-4" />
@@ -360,11 +353,9 @@ export function PodcastPlayer({
         {/* Play Button (Primary) */}
         <button
           onClick={togglePlayPause}
-          className="rounded-full p-4 transition-all"
+          className="rounded-full p-4 transition-all bg-gray-900 dark:bg-purple-600 text-white"
           style={{
-            background: '#1C1C1E',
-            boxShadow: '0px 4px 12px rgba(0,0,0,0.2)',
-            color: '#FFFFFF'
+            boxShadow: '0px 4px 12px rgba(0,0,0,0.2)'
           }}
         >
           {isPlaying ? (
@@ -377,11 +368,9 @@ export function PodcastPlayer({
         {/* Next/Skip Forward Button */}
         <button
           onClick={() => skipTime(10)}
-          className="rounded-full p-2.5 transition-all"
+          className="rounded-full p-2.5 transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
           style={{
-            background: '#ECEFF3',
-            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
-            color: '#6B7280'
+            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)'
           }}
         >
           <SkipForward className="h-4 w-4" />
@@ -390,11 +379,9 @@ export function PodcastPlayer({
         {/* Speed Button */}
         <button
           onClick={toggleSpeed}
-          className="rounded-full px-3 py-2 transition-all"
+          className="rounded-full px-3 py-2 transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
           style={{
-            background: '#ECEFF3',
             boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
-            color: '#6B7280',
             fontSize: '13px',
             fontWeight: 500
           }}
@@ -406,11 +393,9 @@ export function PodcastPlayer({
       {/* Download Button */}
       <button
         onClick={handleDownload}
-        className="w-full py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl transition-all flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200"
         style={{
-          background: '#ECEFF3',
           boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
-          color: '#4B5563',
           fontSize: '14px',
           fontWeight: 500
         }}
@@ -421,7 +406,7 @@ export function PodcastPlayer({
 
       {/* AI Input (Separate Component Below) */}
       {onAskQuestion && (
-        <div className="mt-6 pt-6" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <PodcastAskInput onSubmit={onAskQuestion} />
         </div>
       )}

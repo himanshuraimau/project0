@@ -99,6 +99,7 @@ export function PodcastHeader({
 
       {/* Title */}
       <div>
+        <div className="text-2xl text-purple-800 pb-2">Podcast for:</div>
         <h1 className="text-[19px] font-bold text-foreground leading-tight">
           {title}
         </h1>

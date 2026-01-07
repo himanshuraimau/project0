@@ -316,38 +316,38 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
   if (!podcast) return null;
 
   return (
-    <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
-        <PodcastHeader
-          title={podcast.title}
-          noteId={noteId}
-          onShare={handleShare}
-        />
+    <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen px-20 py-6">
+      <PodcastHeader
+        title={podcast.title}
+        noteId={noteId}
+        onShare={handleShare}
+      />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Tabs and Sections/Transcript (50%) */}
-          <div className="lg:col-span-1 space-y-4 lg:pr-6 lg:border-r" style={{
-            borderColor: 'rgba(0, 0, 0, 0.08)'
-          }}>
-            <PodcastTabs activeTab={activeTab} onTabChange={setActiveTab} />
-            
-            {activeTab === 'sections' ? (
-              <PodcastSectionsList
-                transcript={podcast.transcript || []}
-                currentTime={currentTime}
-                onSectionClick={(time) => console.log('Jump to:', time)}
-              />
-            ) : (
-              <PodcastTranscript
-                transcript={podcast.transcript || []}
-                title={podcast.title}
-                currentTime={currentTime}
-              />
-            )}
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Column - Tabs and Sections/Transcript (50%) */}
+        <div className="lg:col-span-1 space-y-4 lg:pr-6 lg:border-r" style={{
+          borderColor: 'rgba(0, 0, 0, 0.08)'
+        }}>
+        <PodcastTabs activeTab={activeTab} onTabChange={setActiveTab} />
+          
+          {activeTab === 'sections' ? (
+            <PodcastSectionsList
+              transcript={podcast.transcript || []}
+              currentTime={currentTime}
+              onSectionClick={(time) => console.log('Jump to:', time)}
+            />
+          ) : (
+            <PodcastTranscript
+              transcript={podcast.transcript || []}
+              title={podcast.title}
+              currentTime={currentTime}
+            />
+          )}
+        </div>
 
-          {/* Right Column - Player (50%) */}
-          <div className="lg:col-span-1 px-6 py-4">
+        {/* Right Column - Player (50%) */}
+        <div className="lg:col-span-1 flex justify-center items-start py-4">
+          <div className="w-full max-w-xl px-4">
             <PodcastPlayer
               audioUrl={podcast.audioUrl}
               title={podcast.title}

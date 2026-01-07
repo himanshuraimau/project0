@@ -39,9 +39,9 @@ export function PodcastSectionsList({
     );
   }
 
-  // Group transcript into sections (3 items per section)
+  // Group transcript into sections (1 item per section)
   const sections: { title: string; items: TranscriptItem[]; startTime: number; index: number }[] = [];
-  const ITEMS_PER_SECTION = 3;
+  const ITEMS_PER_SECTION = 1;
 
   for (let i = 0; i < transcript.length; i += ITEMS_PER_SECTION) {
     const chunk = transcript.slice(i, i + ITEMS_PER_SECTION);
