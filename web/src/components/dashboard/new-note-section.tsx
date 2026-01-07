@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   CloudUpload,
   FileText,
@@ -29,8 +30,7 @@ import {
 import { SimplePDFProcessor, UploadTextModal } from "@/components/pdf";
 import { ProcessPDFResult } from "@/lib/types";
 import { AudioRecorder, AudioUploadModal } from "@/components/audio";
-import { YouTubeProcessor } from "@/components/transcript";
-import { WebpageProcessor } from "@/components/webpage";
+import { AddLinkModal } from "@/components/link";
 import { Inter } from "next/font/google";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
@@ -252,20 +252,20 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
   };
 
   return (
-    <div className="w-full bg-white rounded-2xl p-6">
+    <div className="w-full bg-white dark:bg-zinc-900 rounded-2xl p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-800">Record audio</h2>
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white">Record audio</h2>
         <button
           onClick={onClose}
-          className="text-gray-500 hover:text-gray-700 transition-colors"
+          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
         >
           <X size={24} />
         </button>
       </div>
 
       {/* Dynamic Recording Area */}
-      <div className="mb-6">
+      <div className="mb-8">
         {recordingState === "idle" && (
           <button
             onClick={handleStartRecording}
@@ -285,7 +285,7 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
             </div>
             <button
               onClick={handleStop}
-              className="w-full h-14 bg-gray-500 text-white font-semibold rounded-xl hover:bg-gray-600 transition-colors"
+              className="w-full h-14 bg-gray-500 dark:bg-gray-600 text-white font-semibold rounded-xl hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors"
             >
               Stop
             </button>
@@ -301,7 +301,7 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
             <div className="flex gap-3">
               <button
                 onClick={handleDelete}
-                className="flex-1 h-14 bg-red-100 text-red-600 font-semibold rounded-xl hover:bg-red-200 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 h-14 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-semibold rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors flex items-center justify-center gap-2"
               >
                 <Trash2 size={18} />
                 Delete
@@ -315,7 +315,7 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 h-14 bg-gray-500 text-white font-semibold rounded-xl hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 h-14 bg-gray-500 dark:bg-gray-600 text-white font-semibold rounded-xl hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Save size={18} />
                 Save
@@ -326,16 +326,16 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
       </div>
 
       {/* Form Fields */}
-      <div className="space-y-4 mb-6">
+      <div className="space-y-5 mb-8">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Audio language
           </label>
           <div className="relative">
             <select
               value={audioLanguage}
               onChange={(e) => setAudioLanguage(e.target.value)}
-              className="w-full h-12 px-4 pr-10 bg-gray-50 border border-gray-200 rounded-xl appearance-none text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
+              className="w-full h-12 px-4 pr-10 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl appearance-none text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:focus:ring-pink-500 focus:border-transparent"
             >
               <option>English</option>
               <option>Spanish</option>
@@ -345,20 +345,20 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
             </select>
             <ChevronDown
               size={20}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Folder
           </label>
           <div className="relative">
             <select
               value={folder}
               onChange={(e) => setFolder(e.target.value)}
-              className="w-full h-12 px-4 pr-10 bg-gray-50 border border-gray-200 rounded-xl appearance-none text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
+              className="w-full h-12 px-4 pr-10 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl appearance-none text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:focus:ring-pink-500 focus:border-transparent"
             >
               <option>📌 All notes</option>
               <option>📁 Work</option>
@@ -367,7 +367,7 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
             </select>
             <ChevronDown
               size={20}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
             />
           </div>
         </div>
@@ -377,7 +377,7 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
       <button
         onClick={handleGenerateNotes}
         disabled={isProcessing || !audioBlob}
-        className="w-full h-14 bg-black text-white font-semibold rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full h-14 bg-black dark:bg-white text-white dark:text-black font-semibold rounded-xl hover:bg-gray-900 dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Sparkles size={20} />
         {isProcessing ? "Processing..." : "Generate Notes"}
@@ -393,43 +393,29 @@ export function NewNoteSection() {
   const [showPDFDialog, setShowPDFDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
   const [showRecordAudioDialog, setShowRecordAudioDialog] = useState(false);
-  const [showYouTubeDialog, setShowYouTubeDialog] = useState(false);
-  const [showWebpageDialog, setShowWebpageDialog] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
-  const [linkType, setLinkType] = useState<"youtube" | "webpage">("youtube");
-  const [pdfMode, setPdfMode] = useState<"pdf" | "text">("pdf");
+  const [pdfMode, setPdfMode] = useState<"pdf" | "text">("text");
 
-  const handleWebpageProcessComplete = (result: {
-    transcript: {
-      id: string;
-      title: string;
-      content: string;
-      url: string;
-      originalName: string;
-    };
-    note?: { id: string; title: string; content: string };
-  }) => {
-    setShowWebpageDialog(false);
+  const handleLinkProcessComplete = (result: any) => {
     setShowLinkDialog(false);
 
     // Show success toast
     if (result.note?.id) {
-      toast.success("🌐 Webpage processed successfully! Notes generated.", {
-        description: `Extracted content from "${result.transcript.title}"`,
+      toast.success("🔗 Link processed successfully! Notes generated.", {
+        description: "Content extracted and notes created",
         duration: 4000,
       });
-      // Refresh notes immediately - shimmer should already be removed by processor
+      // Refresh notes immediately
       refreshNotes();
     } else {
-      toast.success("🌐 Webpage content extracted successfully!", {
+      toast.success("🔗 Content extracted successfully!", {
         description: "Content saved as transcript",
         duration: 4000,
       });
     }
   };
 
-  const handleCloseWebpageDialog = () => {
-    setShowWebpageDialog(false);
+  const handleCloseLinkDialog = () => {
     setShowLinkDialog(false);
   };
 
@@ -516,6 +502,8 @@ export function NewNoteSection() {
 
   const handleClosePDFDialog = () => {
     setShowPDFDialog(false);
+    // Reset to text mode when closing
+    setPdfMode("text");
   };
 
   const handleTextProcessComplete = (result: ProcessPDFResult) => {
@@ -542,36 +530,7 @@ export function NewNoteSection() {
     setPdfMode("pdf");
   };
 
-  const handleYouTubeTranscriptComplete = (result: {
-    transcript: { id: string; content: string; originalName: string };
-    note?: { id: string; title: string; content: string };
-  }) => {
-    setShowYouTubeDialog(false);
-    setShowLinkDialog(false);
 
-    // Show success toast
-    if (result.note?.id) {
-      toast.success(
-        "🎥 YouTube video processed successfully! Notes generated.",
-        {
-          description: `Extracted content from "${result.transcript.originalName}"`,
-          duration: 4000,
-        }
-      );
-      // Refresh notes immediately - shimmer should already be removed by processor
-      refreshNotes();
-    } else {
-      toast.success("🎥 YouTube transcript extracted successfully!", {
-        description: "Content saved as transcript",
-        duration: 4000,
-      });
-    }
-  };
-
-  const handleCloseYouTubeDialog = () => {
-    setShowYouTubeDialog(false);
-    setShowLinkDialog(false);
-  };
 
   return (
     <div className={`w-full ${inter.className}`}>
@@ -586,13 +545,13 @@ export function NewNoteSection() {
         </p>
       </div>
 
-      <div className="flex gap-6 mt-8">
+      <div className="grid grid-cols-4 gap-4 mt-8">
         <Dialog
           open={showRecordAudioDialog}
           onOpenChange={setShowRecordAudioDialog}
         >
           <button
-            className="gradient-element px-8 h-[76px] rounded-[16px] cursor-pointer"
+            className="gradient-element px-8 h-[76px] rounded-[16px] cursor-pointer w-full"
             onClick={() => setShowRecordAudioDialog(true)}
           >
             <div className="flex items-center justify-between w-full min-w-0">
@@ -605,6 +564,9 @@ export function NewNoteSection() {
             </div>
           </button>
           <DialogContent className="max-w-[500px] bg-white dark:bg-white border-none shadow-2xl rounded-2xl p-0 overflow-hidden">
+            <VisuallyHidden>
+              <DialogTitle>Record Audio</DialogTitle>
+            </VisuallyHidden>
             <AudioRecorderModal
               onClose={handleCloseRecordAudioDialog}
               onTranscriptionComplete={handleRecordAudioComplete}
@@ -614,7 +576,7 @@ export function NewNoteSection() {
 
         <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>
           <button
-            className="px-8 h-[76px] rounded-[16px] cursor-pointer bg-[#F1F1F1] dark:bg-[#1A1A1A] border border-neutral-100 dark:border-[hsl(0,0%,12%)]"
+            className="px-8 h-[76px] rounded-[16px] cursor-pointer bg-[#F1F1F1] dark:bg-[#1A1A1A] border border-neutral-100 dark:border-[hsl(0,0%,12%)] w-full"
             onClick={() => setShowAudioDialog(true)}
           >
             <div className="flex items-center justify-between w-full min-w-0">
@@ -627,6 +589,9 @@ export function NewNoteSection() {
             </div>
           </button>
           <DialogContent className="max-w-[650px] bg-white dark:bg-white border-none shadow-2xl rounded-2xl p-0 overflow-hidden">
+            <VisuallyHidden>
+              <DialogTitle>Upload Audio</DialogTitle>
+            </VisuallyHidden>
             <AudioUploadModal
               onClose={handleCloseAudioDialog}
               onTranscriptionComplete={handleAudioTranscriptionComplete}
@@ -636,7 +601,7 @@ export function NewNoteSection() {
 
         <Dialog open={showPDFDialog} onOpenChange={setShowPDFDialog}>
           <button
-            className="px-8 h-[76px] rounded-[16px] cursor-pointer bg-[#F1F1F1] dark:bg-[#1A1A1A] border border-neutral-100 dark:border-[hsl(0,0%,12%)]"
+            className="px-8 h-[76px] rounded-[16px] cursor-pointer bg-[#F1F1F1] dark:bg-[#1A1A1A] border border-neutral-100 dark:border-[hsl(0,0%,12%)] w-full"
             onClick={() => setShowPDFDialog(true)}
           >
             <div className="flex items-center justify-between w-full min-w-0">
@@ -648,13 +613,18 @@ export function NewNoteSection() {
               </div>
             </div>
           </button>
-          <DialogContent className={pdfMode === "text" ? "max-w-[450px] bg-white dark:bg-white border-none shadow-2xl rounded-2xl p-0 overflow-hidden" : "max-w-4xl max-h-[90vh] overflow-hidden"}>
+          <DialogContent className={pdfMode === "text" ? "max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden" : "max-w-4xl max-h-[90vh] overflow-hidden"}>
             {pdfMode === "text" ? (
-              <UploadTextModal
-                onClose={handleClosePDFDialog}
-                onProcessComplete={handleTextProcessComplete}
-                onOpenPDFDialog={handleOpenPDFFromText}
-              />
+              <>
+                <VisuallyHidden>
+                  <DialogTitle>Upload Text</DialogTitle>
+                </VisuallyHidden>
+                <UploadTextModal
+                  onClose={handleClosePDFDialog}
+                  onProcessComplete={handleTextProcessComplete}
+                  onOpenPDFDialog={handleOpenPDFFromText}
+                />
+              </>
             ) : (
               <>
                 <DialogHeader>
@@ -666,33 +636,6 @@ export function NewNoteSection() {
                     comprehensive AI-powered notes.
                   </DialogDescription>
                 </DialogHeader>
-                {/* Mode Toggle */}
-                <div className="flex items-center justify-center pt-4">
-                  <div className="flex bg-muted rounded-lg p-1">
-                    <button
-                      onClick={() => setPdfMode("pdf")}
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${pdfMode === "pdf"
-                          ? "bg-background text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      type="button"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Upload PDF
-                    </button>
-                    <button
-                      onClick={() => setPdfMode("text")}
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${pdfMode === "text"
-                          ? "bg-background text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      type="button"
-                    >
-                      <Upload className="h-4 w-4" />
-                      Add Text
-                    </button>
-                  </div>
-                </div>
                 <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
                   <SimplePDFProcessor
                     onProcessComplete={handlePDFProcessComplete}
@@ -706,7 +649,7 @@ export function NewNoteSection() {
 
         <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
           <button
-            className="px-8 h-[76px] rounded-[16px] cursor-pointer bg-[#F1F1F1] dark:bg-[#1A1A1A] border border-neutral-100 dark:border-[hsl(0,0%,12%)]"
+            className="px-8 h-[76px] rounded-[16px] cursor-pointer bg-[#F1F1F1] dark:bg-[#1A1A1A] border border-neutral-100 dark:border-[hsl(0,0%,12%)] w-full"
             onClick={() => setShowLinkDialog(true)}
           >
             <div className="flex items-center justify-between w-full min-w-0">
@@ -718,54 +661,14 @@ export function NewNoteSection() {
               </div>
             </div>
           </button>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-            <DialogHeader>
-              <DialogTitle className={`text-left ${jakarta.className}`}>
-                Process Links & Generate Notes
-              </DialogTitle>
-              <DialogDescription className={`${jakarta.className}`}>
-                Extract content from YouTube videos or websites and generate
-                AI-powered notes.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              {/* Tab Selector */}
-              <div className="flex items-center justify-center mb-6">
-                <div className="flex bg-muted rounded-lg p-1">
-                  <button
-                    onClick={() => setLinkType("youtube")}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${linkType === "youtube"
-                      ? "bg-background text-foreground "
-                      : "text-muted-foreground hover:text-foreground"
-                      }`}
-                  >
-                    YouTube
-                  </button>
-                  <button
-                    onClick={() => setLinkType("webpage")}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${linkType === "webpage"
-                      ? "bg-background text-foreground "
-                      : "text-muted-foreground hover:text-foreground"
-                      }`}
-                  >
-                    Website
-                  </button>
-                </div>
-              </div>
-
-              {/* Content based on selected tab */}
-              {linkType === "youtube" ? (
-                <YouTubeProcessor
-                  onProcessComplete={handleYouTubeTranscriptComplete}
-                  onClose={handleCloseYouTubeDialog}
-                />
-              ) : (
-                <WebpageProcessor
-                  onProcessComplete={handleWebpageProcessComplete}
-                  onClose={handleCloseWebpageDialog}
-                />
-              )}
-            </div>
+          <DialogContent className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden">
+            <VisuallyHidden>
+              <DialogTitle>Add Link</DialogTitle>
+            </VisuallyHidden>
+            <AddLinkModal
+              onClose={handleCloseLinkDialog}
+              onProcessComplete={handleLinkProcessComplete}
+            />
           </DialogContent>
         </Dialog>
       </div>

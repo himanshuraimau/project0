@@ -29,8 +29,8 @@ interface CourseData {
 function DashboardContent({ children }: { children: React.ReactNode }) {
 
   return (
-    <div className="flex-1 min-h-screen  overflow-x-hidden p-5">
-      <div className="w-full">{children}</div>
+    <div className="flex-1 min-h-screen overflow-x-hidden p-5">
+      <div className="w-full max-w mx-auto px-4 sm:px-6 lg:px-8">{children}</div>
     </div>
   );
 }
@@ -52,9 +52,9 @@ function DashboardMain({ children }: { children: React.ReactNode }) {
             isDashboardHome ? "" : "mb-0"
           }`}
         >
-          <div className="flex items-center gap-3 flex-shrink min-w-0">
+          <div className="flex items-center gap-3 shrink">
             {isDashboardHome && (
-              <p className="text-[16px] leading-4 tracking-[-3%] font-medium dark:text-white text-black">
+              <p className="text-[16px] leading-4 tracking-[-3%] font-medium dark:text-white text-black pl-4">
                 Welcome back!
               </p>
             )}
@@ -65,7 +65,7 @@ function DashboardMain({ children }: { children: React.ReactNode }) {
               placeholder="Search notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-[32px] max-w-[290px] border-none bg-neutral-100 dark:bg-[#1e1e1e] rounded-[6px] text-sm text-[#606060] placeholder:text-[#606060]"
+              className="h-[32px] max-w-[290px]  border-none bg-neutral-100 dark:bg-[#1e1e1e] rounded-[6px] text-sm text-[#606060] placeholder:text-[#606060]"
             />
           )}
         </div>

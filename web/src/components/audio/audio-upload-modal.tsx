@@ -170,13 +170,13 @@ export default function AudioUploadModal({
     };
 
     return (
-        <div className="w-full max-w-[650px] bg-white rounded-2xl p-6 shadow-lg">
+        <div className="w-full max-w-[650px] bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-lg">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-slate-800">Upload audio</h2>
+            <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-bold text-slate-800 dark:text-white">Upload audio</h2>
                 <button
                     onClick={onClose}
-                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                     aria-label="Close"
                 >
                     <X size={24} />
@@ -184,7 +184,7 @@ export default function AudioUploadModal({
             </div>
 
             {/* Upload Zone */}
-            <div className="mb-5">
+            <div className="mb-6">
                 <input
                     ref={fileInputRef}
                     type="file"
@@ -196,18 +196,18 @@ export default function AudioUploadModal({
                 <label
                     htmlFor="audio-file-input"
                     onClick={handleUploadZoneClick}
-                    className="flex flex-col items-center justify-center w-full border-2 border-gray-200 rounded-xl p-12 cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="flex flex-col items-center justify-center w-full border-2 border-gray-200 dark:border-zinc-700 rounded-xl p-12 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
                 >
-                    <div className="bg-gray-100 p-3 rounded-lg mb-4">
-                        <Upload size={24} className="text-gray-600" />
+                    <div className="bg-gray-100 dark:bg-zinc-800 p-3 rounded-lg mb-4">
+                        <Upload size={24} className="text-gray-600 dark:text-gray-400" />
                     </div>
-                    <p className="text-sm text-gray-600 text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
                         {audioBlob
                             ? `Selected: ${fileName || "Audio file"}`
                             : "Drag audio file here, or click to select"}
                     </p>
                     {audioBlob && (
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
                             Size: {(audioBlob.size / 1024 / 1024).toFixed(2)}MB
                         </p>
                     )}
@@ -215,17 +215,17 @@ export default function AudioUploadModal({
             </div>
 
             {/* Form Fields */}
-            <div className="space-y-4 mb-5">
+            <div className="space-y-5 mb-8">
                 {/* Audio Language */}
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                         Audio language
                     </label>
                     <div className="relative">
                         <select
                             value={audioLanguage}
                             onChange={(e) => setAudioLanguage(e.target.value)}
-                            className="w-full h-12 px-4 pr-10 border border-gray-200 rounded-xl appearance-none text-gray-800 font-medium bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all cursor-pointer"
+                            className="w-full h-12 px-4 pr-10 border border-gray-200 dark:border-zinc-700 rounded-xl appearance-none text-gray-800 dark:text-gray-200 font-medium bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-750 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 focus:border-transparent transition-all cursor-pointer"
                         >
                             <option>English</option>
                             <option>Spanish</option>
@@ -240,25 +240,25 @@ export default function AudioUploadModal({
                         </select>
                         <ChevronDown
                             size={18}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none"
                         />
                     </div>
                 </div>
 
                 {/* Folder */}
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                         Folder
                     </label>
                     <div className="relative">
                         <Pin
                             size={18}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-500 pointer-events-none z-10"
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-500 dark:text-purple-400 pointer-events-none z-10"
                         />
                         <select
                             value={folder}
                             onChange={(e) => setFolder(e.target.value)}
-                            className="w-full h-12 pl-11 pr-10 border border-gray-200 rounded-xl appearance-none text-gray-800 font-medium bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all cursor-pointer"
+                            className="w-full h-12 pl-11 pr-10 border border-gray-200 dark:border-zinc-700 rounded-xl appearance-none text-gray-800 dark:text-gray-200 font-medium bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-750 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 focus:border-transparent transition-all cursor-pointer"
                         >
                             <option>All notes</option>
                             <option>Work</option>
@@ -267,7 +267,7 @@ export default function AudioUploadModal({
                         </select>
                         <ChevronDown
                             size={18}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none"
                         />
                     </div>
                 </div>
@@ -277,7 +277,7 @@ export default function AudioUploadModal({
             <button
                 onClick={transcribeAudio}
                 disabled={isProcessing || !audioBlob}
-                className="w-full h-14 bg-black text-white font-medium rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 bg-black dark:bg-white text-white dark:text-black font-medium rounded-xl hover:bg-gray-900 dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <Sparkles size={20} />
                 {isProcessing ? "Processing..." : "Generate Notes"}

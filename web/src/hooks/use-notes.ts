@@ -158,7 +158,8 @@ export function useNotes() {
   // Generate AI notes from text input
   const generateNotesFromText = async (
     text: string,
-    title: string = 'Text Note'
+    title: string = 'Text Note',
+    folderId?: string | null
   ): Promise<ProcessPDFResult | null> => {
     setLoading(true);
     setError(null);
@@ -169,7 +170,7 @@ export function useNotes() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text, title }),
+        body: JSON.stringify({ text, title, folderId }),
       });
 
       const result = await response.json();

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { X, Pin, ChevronDown, FileText, Sparkles } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, FileText, Sparkles, ChevronDown } from "lucide-react";
 import { useNotes } from "@/hooks/use-notes";
+import { useFolders } from "@/hooks/use-folders";
 import { ProcessPDFResult } from "@/lib/types";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 
@@ -18,42 +19,41 @@ export function UploadTextModal({
     onOpenPDFDialog,
 }: UploadTextModalProps) {
     const { generateNotesFromText, loading } = useNotes();
+    const { folders, getFolders, loading: foldersLoading } = useFolders();
     const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
     const [textInput, setTextInput] = useState("");
-    const [folder, setFolder] = useState("All notes");
+    const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
     const [currentTempId, setCurrentTempId] = useState<string | null>(null);
+
+    // Load folders on mount
+    useEffect(() => {
+        getFolders();
+    }, [getFolders]);
 
     const handleGenerateNotes = async () => {
         if (!textInput.trim()) return;
 
-        // Generate temp ID and add loading note BEFORE closing modal
         const tempId = `text-${Date.now()}`;
         setCurrentTempId(tempId);
         addLoadingNote(tempId, "pdf");
 
-        // Delay to ensure state update propagates and UI re-renders
         await new Promise((resolve) => setTimeout(resolve, 300));
 
-        // Close modal after adding loading note
         if (onClose) {
             onClose();
         }
 
         try {
-            // Generate notes from text
-            const result = await generateNotesFromText(textInput, "Text Note");
+            const result = await generateNotesFromText(textInput, "Text Note", selectedFolderId);
 
             if (result) {
-                // Remove loading note using temp ID BEFORE calling completion callback
                 if (currentTempId) {
                     removeLoadingNote(currentTempId);
                     setCurrentTempId(null);
                 }
 
-                // Wait for shimmer removal to propagate before triggering refresh
                 await new Promise((resolve) => setTimeout(resolve, 200));
 
-                // Call completion with result that includes temp ID for tracking
                 onProcessComplete?.({
                     ...result,
                     transcript: {
@@ -62,13 +62,12 @@ export function UploadTextModal({
                     },
                 });
 
-                // Reset form
                 setTextInput("");
+                setSelectedFolderId(null);
             }
         } catch (error) {
             console.error("Error generating notes from text:", error);
         } finally {
-            // Always remove loading note in finally block
             if (currentTempId) {
                 removeLoadingNote(currentTempId);
                 setCurrentTempId(null);
@@ -80,7 +79,6 @@ export function UploadTextModal({
         if (onClose) {
             onClose();
         }
-        // Small delay before opening PDF dialog
         setTimeout(() => {
             if (onOpenPDFDialog) {
                 onOpenPDFDialog();
@@ -89,76 +87,72 @@ export function UploadTextModal({
     };
 
     return (
-        <div className="w-full max-w-[450px] bg-white rounded-2xl p-6 shadow-lg">
+        <div className="w-full bg-white dark:bg-zinc-900 rounded-2xl p-8">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-slate-800">Upload Text</h2>
+            <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-white">Upload Text</h2>
                 <button
                     onClick={onClose}
-                    className="text-gray-500 hover:text-gray-700 transition-colors"
-                    aria-label="Close"
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                 >
                     <X size={24} />
                 </button>
             </div>
 
-            {/* Text Input Area */}
-            <div className="mb-5">
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+            {/* Text Input */}
+            <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Text
                 </label>
                 <textarea
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
-                    placeholder="Enter or paste your text here..."
                     disabled={loading}
-                    className="w-full h-40 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all resize-none"
+                    className="w-full h-64 px-4 py-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 focus:border-transparent transition-all resize-none disabled:opacity-50"
                 />
             </div>
 
             {/* Folder Selection */}
-            <div className="mb-5">
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+            <div className="mb-8">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Folder
                 </label>
                 <div className="relative">
-                    <Pin
-                        size={18}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-500 pointer-events-none z-10"
-                    />
                     <select
-                        value={folder}
-                        onChange={(e) => setFolder(e.target.value)}
-                        className="w-full h-12 pl-11 pr-10 border border-gray-200 rounded-xl appearance-none text-gray-800 font-medium bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all cursor-pointer"
+                        value={selectedFolderId || ""}
+                        onChange={(e) => setSelectedFolderId(e.target.value || null)}
+                        disabled={foldersLoading || loading}
+                        className="w-full h-12 px-4 pr-10 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl appearance-none text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 focus:border-transparent disabled:opacity-50"
                     >
-                        <option>All notes</option>
-                        <option>Work</option>
-                        <option>Personal</option>
-                        <option>Projects</option>
+                        <option value="">📌 All notes</option>
+                        {folders.map((folder) => (
+                            <option key={folder.id} value={folder.id}>
+                                📁 {folder.name}
+                            </option>
+                        ))}
                     </select>
                     <ChevronDown
-                        size={18}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                        size={20}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                     />
                 </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-3">
-                {/* Import PDF Button */}
+            <div className="space-y-4 px-20">
                 <button
                     onClick={handleImportPDFs}
-                    className="w-full h-12 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                    disabled={loading}
+                    className="w-full h-14 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 text-gray-800 dark:text-gray-200 font-medium rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                     <FileText size={20} />
                     Import PDF(s)
                 </button>
 
-                {/* Generate Notes Button */}
                 <button
                     onClick={handleGenerateNotes}
                     disabled={loading || !textInput.trim()}
-                    className="w-full h-12 bg-black text-white font-medium rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full h-12 bg-black dark:bg-white text-white dark:text-black font-semibold rounded-xl hover:bg-gray-900 dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <Sparkles size={20} />
                     {loading ? "Processing..." : "Generate Notes"}
