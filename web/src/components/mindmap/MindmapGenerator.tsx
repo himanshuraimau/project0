@@ -3,10 +3,11 @@
 import React, { useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Brain, Share, Star, Trash2 } from "lucide-react";
+import { Brain, Share, Star, Trash2, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { MarkmapViewer } from "./MarkmapViewer";
 import { LoadingState } from "@/components/ui/loading-spinner";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,10 +36,21 @@ interface MindmapGeneratorProps {
 }
 
 export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
+  const router = useRouter();
   const [mindmap, setMindmap] = useState<MindMap | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const handleShare = () => {
+    toast.success("Share link copied to clipboard");
+  };
+
+  const handleToggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    toast.success(isFavorite ? "Removed from favorites" : "Added to favorites");
+  };
 
   const generateMindmap = async () => {
     setLoading(true);
@@ -157,23 +169,64 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
 
   if (mindmap) {
     return (
-      <div className="space-y-6 px-6 pt-2 pb-4 mx-4 my-2">
-        <div className="flex items-center justify-between pb-4 border-b-2 border-gray-200 dark:border-gray-800" style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05), 0 -2px 4px rgba(255, 255, 255, 0.05)' }}>
-          <h2 className="text-3xl font-semibold">{mindmap.title.replace(/- Mindmap/i, '').trim()}</h2>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={generateMindmap}
-              disabled={loading}
-              variant="outline"
-              size="lg"
-              className="border-accent text-black hover:text-black dark:hover:bg-slate-400 cursor-pointer dark:text-white hover:bg-accent/10 hover:border-accent flex items-center px-4 py-2 transition-all duration-200 hover:scale-105"
-            >
-              <Share className="mr-2 h-4 w-4" />
-             Share
-            </Button>
-            
-           <Star fill="yellow"/>
-          
+      <div className="px-20 py-6">
+        {/* Header Section */}
+        <div className="pb-6 mb-6 border-b border-transparent" style={{
+          boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
+        }}>
+          {/* Breadcrumb with Actions */}
+          <nav className="mb-4">
+            <div className="flex items-center justify-between">
+              <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
+                <li>
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Notes
+                  </button>
+                </li>
+                <li>
+                  <span className="mx-2">&gt;</span>
+                </li>
+                <li className="text-foreground font-medium">
+                  Mindmap
+                </li>
+              </ol>
+
+              {/* Share and Star Buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShare}
+                  className="gap-2 rounded-none"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Share</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleToggleFavorite}
+                  className="text-yellow-500 hover:text-yellow-600 rounded-none"
+                >
+                  <Star
+                    className="h-5 w-5"
+                    fill={isFavorite ? "currentColor" : "none"}
+                  />
+                </Button>
+              </div>
+            </div>
+          </nav>
+
+          {/* Title */}
+          <div>
+            <div className="text-2xl text-purple-800 pb-2">Mindmap for:</div>
+            <h1 className="text-[19px] font-bold text-foreground leading-tight">
+              {mindmap.title.replace(/- Mindmap/i, '').trim()}
+            </h1>
           </div>
         </div>
 
