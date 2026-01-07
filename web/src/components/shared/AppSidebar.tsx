@@ -159,7 +159,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
             <nav>
               <ul
                 className={cn(
-                  "space-y-1",
+                  "space-y-2",
                   isCollapsed && "flex  flex-col items-center"
                 )}
               >
@@ -171,19 +171,19 @@ export function AppSidebar({ className }: AppSidebarProps) {
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex items-center justify-baseline px-2 py-2.5 rounded-[8px] transition-colors",
+                          "flex items-center justify-baseline px-4 py-3 rounded-[10px] transition-colors",
                           isCollapsed
                             ? "justify-center w-full"
-                            : "w-full gap-2.5",
+                            : "w-full gap-3",
                           isActive
                             ? "dark:bg-[#202020] bg-neutral-100 dark:text-white text-black"
-                            : "text-neutral-500 dark:text-[#909090]"
+                            : "text-neutral-500 dark:text-[#909090] hover:bg-neutral-100/50 dark:hover:bg-[#202020]/50"
                         )}
                       >
-                        <Icon className="size-[14px] flex-shrink-0" />
+                        <Icon className="size-[18px] flex-shrink-0" />
                         {!isCollapsed && (
                           <span
-                            className="leading-4 text-[15px] font-normal
+                            className="leading-5 text-[16px] font-normal
 													 "
                           >
                             {item.title}
@@ -205,7 +205,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                     const newTheme = isDark ? "light" : "dark";
                     setTheme(newTheme);
                   }}
-                  className="flex items-center gap-3 w-full rounded-sm transition-all py-3 px-3 text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-accent/50 cursor-pointer"
+                  className="flex items-center gap-3 w-full rounded-[10px] transition-all py-3.5 px-4 text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-accent/50 cursor-pointer"
                 >
                   {mounted && (
                     <>
