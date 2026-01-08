@@ -236,7 +236,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           />
         ) : (
           <Card
-            className="w-full max-w-[560px] my-8 py-8 pl-8 rounded-xl bg-white border border-black/20 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
+            className={`w-full max-w-[560px] my-8 py-8 pl-8 rounded-xl border border-black/20 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer ${showAnswer ? 'bg-[#E9D4FF]/20' : 'bg-white'}`}
             onClick={handleFlip}
           >
             <CardContent className="flex flex-col items-center justify-center min-h-[240px] p-0">
