@@ -320,7 +320,7 @@ export function SimplePDFProcessor({
                           <Button
                             onClick={handleProcess}
                             disabled={loading}
-                            className="rounded-xl px-6 bg-accent hover:bg-accent/90 text-accent-foreground "
+                            className="rounded-xl px-6 bg-black dark:bg-white text-white dark:text-black hover:bg-gray-900 dark:hover:bg-gray-100"
                           >
                             {loading ? "Processing..." : "Generate Notes"}
                           </Button>

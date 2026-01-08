@@ -35,15 +35,19 @@ export default function InlineChatbot({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Load messages from session storage on component mount
   useEffect(() => {
     const storedMessages = sessionStorage.getItem(`rag_chat_${noteId}`);
+    const storedInteracted = sessionStorage.getItem(`rag_interacted_${noteId}`);
+    
     if (storedMessages) {
       try {
         setMessages(JSON.parse(storedMessages));
+        setHasInteracted(storedInteracted === 'true');
       } catch (e) {
         console.error("Failed to parse stored messages:", e);
       }
@@ -52,7 +56,7 @@ export default function InlineChatbot({
       const welcomeMessage: ChatMessage = {
         id: uuidv4(),
         role: "assistant",
-        text: "Hello! I can answer questions about this note. What would you like to know?",
+        text: "Hi! I'm Jelli, your AI study assistant. I've analyzed this note and I'm ready to help you understand it better. Ask me anything!",
       };
       setMessages([welcomeMessage]);
     }
@@ -64,6 +68,11 @@ export default function InlineChatbot({
       sessionStorage.setItem(`rag_chat_${noteId}`, JSON.stringify(messages));
     }
   }, [messages, noteId]);
+
+  // Save hasInteracted state to session storage
+  useEffect(() => {
+    sessionStorage.setItem(`rag_interacted_${noteId}`, String(hasInteracted));
+  }, [hasInteracted, noteId]);
 
   // Scroll chat container to bottom when messages change
   useEffect(() => {
@@ -98,6 +107,7 @@ export default function InlineChatbot({
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setError(null);
+    setHasInteracted(true);
 
     // Create empty assistant message for streaming
     const assistantMessageId = uuidv4();
@@ -326,8 +336,45 @@ export default function InlineChatbot({
         </div>
 
         {/* Input Section */}
-        <div className="border-t border-gray-200 dark:border-gray-800">
-          <form onSubmit={handleSubmit} className="p-5">
+        <div className="border-t-[0.8px] border-[#DBEAFE]">
+          {/* Suggested Questions - only show before first interaction */}
+          {!hasInteracted && (
+            <div className="px-[35px] pt-2.5 pb-2 flex flex-col items-center">
+              <div className="w-[240px]">
+                <p className="text-[9px] leading-3 text-[#62748E] mb-1.5">
+                  Suggested questions:
+                </p>
+                <div className="space-y-1.5">
+                <button
+                  onClick={() => setInputValue("📝 Summarize the key points")}
+                  className="w-full h-[32px] bg-[#FAF5FF] border-[0.8px] border-[#E9D4FF] rounded-lg text-left px-2.5 hover:bg-[#F5EDFF] transition-colors"
+                >
+                  <span className="text-[11px] leading-4 text-[#8200DB]">
+                    📝 Summarize the key points
+                  </span>
+                </button>
+                <button
+                  onClick={() => setInputValue("💡 Create practice questions")}
+                  className="w-full h-[32px] bg-[#ECFEFF] border-[0.8px] border-[#A2F4FD] rounded-lg text-left px-2.5 hover:bg-[#E0FCFF] transition-colors"
+                >
+                  <span className="text-[11px] leading-4 text-[#007595]">
+                    💡 Create practice questions
+                  </span>
+                </button>
+                <button
+                  onClick={() => setInputValue("🎯 Explain difficult concepts")}
+                  className="w-full h-[32px] bg-[#FDF2F8] border-[0.8px] border-[#FCCEE8] rounded-lg text-left px-2.5 hover:bg-[#FCE7F3] transition-colors"
+                >
+                  <span className="text-[11px] leading-4 text-[#C6005C]">
+                    🎯 Explain difficult concepts
+                  </span>
+                </button>
+              </div>
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="px-[35px] py-5">
             <div className="flex items-end gap-3">
               <div className="flex-1">
                 <Input

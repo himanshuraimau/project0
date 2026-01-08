@@ -252,15 +252,15 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
   };
 
   return (
-    <div className="w-full bg-white dark:bg-zinc-900 rounded-2xl p-6">
+    <div className="w-full max-w-[664px] bg-white dark:bg-zinc-900 rounded-[29px] px-6 py-11">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white">Record audio</h2>
+      <div className="flex items-center justify-between mb-20">
+        <h2 className="text-[24px] font-bold text-[#101828] dark:text-white leading-[30px]">Record audio</h2>
         <button
           onClick={onClose}
-          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors w-9 h-[33px]"
         >
-          <X size={24} />
+          <X size={36} className="text-[#99A1AF]" strokeWidth={2.5} />
         </button>
       </div>
 
@@ -270,55 +270,52 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
           <button
             onClick={handleStartRecording}
             disabled={isProcessing}
-            className="w-full h-14 bg-gradient-to-r from-[#ff6b6b] to-[#ff8fa3] text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="w-[330px] h-12 mx-auto bg-gradient-to-r from-[#FF6467] to-[#FB64B6] text-white font-bold rounded-2xl flex items-center justify-center gap-3 hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            <Mic size={20} />
-            Start recording
+            <Mic size={26} />
+            <span className="text-[19px] leading-5">Start recording</span>
           </button>
         )}
 
         {recordingState === "recording" && (
-          <div className="space-y-3">
-            <div className="w-full h-14 bg-gradient-to-r from-[#ff6b6b] to-[#ff8fa3] text-white rounded-xl flex items-center justify-center gap-2">
-              <Mic size={24} />
-              <span className="font-mono text-lg font-semibold">{formatTime(seconds)}</span>
+          <div className="space-y-[21px] flex flex-col items-center">
+            <div className="w-[330px] h-12 bg-gradient-to-r from-[#FF6467] to-[#FB64B6] text-white rounded-2xl flex items-center justify-center gap-3">
+              <Mic size={20} />
+              <span className="font-bold text-[19px] leading-5">{formatTime(seconds)}</span>
             </div>
             <button
               onClick={handleStop}
-              className="w-full h-14 bg-gray-500 dark:bg-gray-600 text-white font-semibold rounded-xl hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors"
+              className="w-[330px] h-12 bg-[#8F8F8F] text-white font-bold rounded-2xl hover:bg-[#7a7a7a] transition-colors"
             >
-              Stop
+              <span className="text-[19px] leading-6">Stop</span>
             </button>
           </div>
         )}
 
         {recordingState === "paused" && (
-          <div className="space-y-3">
-            <div className="w-full h-14 bg-gradient-to-r from-[#ff6b6b] to-[#ff8fa3] text-white rounded-xl flex items-center justify-center gap-2">
-              <Mic size={24} />
-              <span className="font-mono text-lg font-semibold">{formatTime(seconds)}</span>
+          <div className="space-y-3 flex flex-col items-center">
+            <div className="w-[330px] h-12 bg-gradient-to-r from-[#FF6467] to-[#FB64B6] text-white rounded-2xl flex items-center justify-center gap-3">
+              <Mic size={20} />
+              <span className="font-bold text-[19px] leading-5">{formatTime(seconds)}</span>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 w-[330px]">
               <button
                 onClick={handleDelete}
-                className="flex-1 h-14 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-semibold rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 h-12 bg-[#FFE2E2] text-[#FB2C36] rounded-2xl hover:bg-[#ffd0d0] transition-colors flex items-center justify-center"
               >
-                <Trash2 size={18} />
-                Delete
+                <span className="text-[16px] leading-6">Delete</span>
               </button>
               <button
                 onClick={handleResume}
-                className="flex-1 h-14 bg-gradient-to-r from-[#ff6b6b] to-[#ff8fa3] text-white font-semibold rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                className="flex-1 h-12 bg-[#FB2C36] text-white rounded-2xl hover:bg-[#e02832] transition-colors flex items-center justify-center"
               >
-                <Play size={18} />
-                Resume
+                <span className="text-[16px] leading-6">Resume</span>
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 h-14 bg-gray-500 dark:bg-gray-600 text-white font-semibold rounded-xl hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 h-12 bg-[#8F8F8F] text-white rounded-2xl hover:bg-[#7a7a7a] transition-colors flex items-center justify-center"
               >
-                <Save size={18} />
-                Save
+                <span className="text-[16px] leading-6">Save</span>
               </button>
             </div>
           </div>
@@ -326,16 +323,16 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
       </div>
 
       {/* Form Fields */}
-      <div className="space-y-5 mb-8">
+      <div className="space-y-6 mb-[63px]">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          <label className="block text-[19px] font-bold text-[#364153] dark:text-gray-300 mb-[14px] leading-5">
             Audio language
           </label>
           <div className="relative">
             <select
               value={audioLanguage}
               onChange={(e) => setAudioLanguage(e.target.value)}
-              className="w-full h-12 px-4 pr-10 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl appearance-none text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:focus:ring-pink-500 focus:border-transparent"
+              className="w-full h-[53px] px-3 pr-10 bg-white dark:bg-zinc-800 border-[1.5px] border-[#D4D4D4] dark:border-zinc-700 rounded-[10px] appearance-none text-[16px] text-[#0A0A0A] dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:focus:ring-pink-500 focus:border-transparent"
             >
               <option>English</option>
               <option>Spanish</option>
@@ -344,30 +341,32 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
               <option>Chinese</option>
             </select>
             <ChevronDown
-              size={20}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
+              size={16}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#717182] opacity-50 pointer-events-none"
+              strokeWidth={1.33}
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          <label className="block text-[19px] font-bold text-[#364153] dark:text-gray-300 mb-2 leading-5">
             Folder
           </label>
           <div className="relative">
             <select
               value={folder}
               onChange={(e) => setFolder(e.target.value)}
-              className="w-full h-12 px-4 pr-10 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl appearance-none text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:focus:ring-pink-500 focus:border-transparent"
+              className="w-full h-[53px] px-3 pr-10 bg-white dark:bg-zinc-800 border-[1.5px] border-[#E2E2E2] dark:border-zinc-700 rounded-[10px] appearance-none text-[16px] font-bold text-[#0A0A0A] dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:focus:ring-pink-500 focus:border-transparent"
             >
-              <option>📌 All notes</option>
+              <option>📁 All notes</option>
               <option>📁 Work</option>
               <option>📁 Personal</option>
               <option>📁 Projects</option>
             </select>
             <ChevronDown
-              size={20}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
+              size={16}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#717182] opacity-50 pointer-events-none"
+              strokeWidth={1.33}
             />
           </div>
         </div>
@@ -377,10 +376,10 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
       <button
         onClick={handleGenerateNotes}
         disabled={isProcessing || !audioBlob}
-        className="w-full h-14 bg-black dark:bg-white text-white dark:text-black font-semibold rounded-xl hover:bg-gray-900 dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full max-w-[406px] h-[51px] mx-auto bg-black dark:bg-white text-white dark:text-black font-bold rounded-[15px] hover:bg-gray-900 dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Sparkles size={20} />
-        {isProcessing ? "Processing..." : "Generate Notes"}
+        <span className="text-[21px] leading-5">{isProcessing ? "Processing..." : "Generate Notes"}</span>
       </button>
     </div>
   );
@@ -563,7 +562,7 @@ export function NewNoteSection() {
               </div>
             </div>
           </button>
-          <DialogContent className="max-w-[500px] bg-white dark:bg-white border-none shadow-2xl rounded-2xl p-0 overflow-hidden">
+          <DialogContent hideCloseButton className="max-w-[664px] bg-white dark:bg-white border-none shadow-2xl rounded-[29px] p-0 overflow-hidden">
             <VisuallyHidden>
               <DialogTitle>Record Audio</DialogTitle>
             </VisuallyHidden>
@@ -588,7 +587,7 @@ export function NewNoteSection() {
               </div>
             </div>
           </button>
-          <DialogContent className="max-w-[650px] bg-white dark:bg-white border-none shadow-2xl rounded-2xl p-0 overflow-hidden">
+          <DialogContent hideCloseButton className="max-w-[650px] bg-white dark:bg-white border-none shadow-2xl rounded-2xl p-0 overflow-hidden">
             <VisuallyHidden>
               <DialogTitle>Upload Audio</DialogTitle>
             </VisuallyHidden>
@@ -613,7 +612,7 @@ export function NewNoteSection() {
               </div>
             </div>
           </button>
-          <DialogContent className={pdfMode === "text" ? "max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden" : "max-w-4xl max-h-[90vh] overflow-hidden"}>
+          <DialogContent hideCloseButton className={pdfMode === "text" ? "max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden" : "max-w-4xl max-h-[90vh] overflow-hidden"}>
             {pdfMode === "text" ? (
               <>
                 <VisuallyHidden>
@@ -661,7 +660,7 @@ export function NewNoteSection() {
               </div>
             </div>
           </button>
-          <DialogContent className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden">
+          <DialogContent hideCloseButton className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden">
             <VisuallyHidden>
               <DialogTitle>Add Link</DialogTitle>
             </VisuallyHidden>

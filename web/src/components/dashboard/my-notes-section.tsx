@@ -4,9 +4,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { NotesList, NotesListRef } from "@/components/notes/notes-list";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
-import { ChevronRight, Folder } from "lucide-react";
+import { ChevronRight, Folder, FolderPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useFolders } from "@/hooks/use-folders";
+import { CreateFolderDialog } from "@/components/folders/create-folder-dialog";
 import {
   Select,
   SelectContent,
@@ -27,6 +28,8 @@ export function MyNotesSection() {
   const router = useRouter();
   const { folders, loading: foldersLoading, getFolders } = useFolders();
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"my-notes" | "shared">("my-notes");
+  const [showCreateFolder, setShowCreateFolder] = useState(false);
 
   // Fetch folders on mount
   useEffect(() => {
@@ -45,56 +48,74 @@ export function MyNotesSection() {
 
   return (
     <div className={`w-full ${inter.className}`}>
-      <div className="mb-5">
-        <div className="flex justify-between items-center gap-4 flex-wrap">
-          <div>
-            <h2
-              className={`dark:text-white text-black text-[20px] font-medium leading-[24px]`}
-            >
-              My Notes
-            </h2>
-            <p className={`text-[15px] tracking-[-3%] text-[#787878] mt-1`}>
-              Manage and organize your notes
-            </p>
-          </div>
-          <div className="flex items-center gap-2.5">
-            {/* Folder Filter Dropdown */}
-            <Select
-              value={selectedFolderId || "all"}
-              onValueChange={(value: string) =>
-                setSelectedFolderId(value === "all" ? null : value)
+      {/* Tabs Section with New Folder Button */}
+      <div className="flex flex-row justify-between items-center mb-6">
+        {/* Tabs Container */}
+        <div className="flex items-center border-b-[0.8px] border-[#E5E7EB]">
+          {/* My Notes Tab */}
+          <button
+            onClick={() => setActiveTab("my-notes")}
+            className={`
+              relative px-3 py-2 text-[16px] leading-5 font-normal
+              ${
+                activeTab === "my-notes"
+                  ? "text-[#0A0A0A] border-[0.8px] border-t-[0.8px] border-l-[0.8px] border-r-[0.8px] border-b-[1.6px] border-[#101828]"
+                  : "text-[#0A0A0A] border-transparent"
               }
-            >
-              <SelectTrigger className="border hover:bg-transparent dark:hover:bg-transparent cursor-pointer bg-[#F9FAFB] border-neutral-100 dark:border-neutral-800/50 h-10 dark:bg-[#1A1A1A]">
-                <Folder className="h-4 w-4 mr-1 text-muted-foreground" />
-                <SelectValue placeholder="All Notes" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-neutral-200 dark:border-neutral-800/50 dark:bg-neutral-900">
-                <SelectItem value="all">All Notes</SelectItem>
-                <SelectItem value="uncategorized">Uncategorized</SelectItem>
-                {!foldersLoading &&
-                  folders.map((folder) => (
-                    <SelectItem key={folder.id} value={folder.id}>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-sm"
-                          style={{ backgroundColor: folder.color || "#6366f1" }}
-                        />
-                        <span>{folder.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+            `}
+            style={{ fontFamily: "Arimo" }}
+          >
+            My Notes
+          </button>
 
-            <button
-              onClick={() => router.push("/notes")}
-              className="flex items-center gap-2 text-sm  text-muted-foreground hover:text-foreground transition-colors duration-200 group whitespace-nowrap cursor-pointer"
-            >
-              View All
-            </button>
-          </div>
+          {/* Shared with Me Tab */}
+          <button
+            onClick={() => {
+              setActiveTab("shared");
+              router.push("/dashboard/cloned");
+            }}
+            className="px-3 py-2 text-[16px] leading-5 font-normal text-[#0A0A0A]"
+            style={{ fontFamily: "Arimo" }}
+          >
+            Shared with Me
+          </button>
         </div>
+
+        {/* New Folder Button */}
+        <button
+          onClick={() => setShowCreateFolder(true)}
+          className="flex items-center gap-2 h-9 px-3 bg-white border-[0.8px] border-[#E5E7EB] rounded-[10px] hover:bg-gray-50 transition-colors"
+        >
+          <FolderPlus className="w-4 h-4 text-[#4A5565]" />
+          <span className="text-[14px] leading-5 font-normal text-[#4A5565]" style={{ fontFamily: "Arimo" }}>
+            New Folder
+          </span>
+        </button>
+      </div>
+
+      {/* Recent Notes Header */}
+      <div className="flex flex-row items-center gap-3 mb-5">
+        {/* Heading */}
+        <h3 className="text-[16px] leading-6 font-normal text-[#101828]" style={{ fontFamily: "Arimo" }}>
+          Recent Notes
+        </h3>
+
+        {/* Gradient Line */}
+        <div 
+          className="flex-1 h-[1px]" 
+          style={{ background: "linear-gradient(90deg, #E5E7EB 0%, rgba(0, 0, 0, 0) 100%)" }}
+        />
+
+        {/* View All Button */}
+        <button
+          onClick={() => router.push("/notes")}
+          className="flex items-center gap-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-2.5 py-1.5"
+        >
+          <span className="text-[14px] leading-5 font-normal text-[#155DFC]" style={{ fontFamily: "Arimo" }}>
+            View All
+          </span>
+          <ChevronRight className="w-4 h-4 text-[#155DFC]" />
+        </button>
       </div>
 
       <div className="w-full rounded-2xl pt-5">
@@ -105,6 +126,16 @@ export function MyNotesSection() {
           limit={3}
         />
       </div>
+
+      {/* Create Folder Dialog */}
+      <CreateFolderDialog
+        open={showCreateFolder}
+        onOpenChange={setShowCreateFolder}
+        onSuccess={() => {
+          getFolders();
+          setShowCreateFolder(false);
+        }}
+      />
     </div>
   );
 }

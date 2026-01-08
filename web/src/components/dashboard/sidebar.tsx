@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   Home,
@@ -74,6 +74,29 @@ export function AppSidebar({ className }: AppSidebarProps) {
   const { theme } = useTheme();
   const isCollapsed = state === "collapsed";
   const isDark = theme === "dark";
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
+
+  // Fetch subscription status
+  useEffect(() => {
+    async function checkSubscription() {
+      try {
+        const response = await fetch('/api/subscription/status');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Subscription data from sidebar:', data);
+          const isActive = data.hasSubscription && data.access?.hasAccess;
+          console.log('Setting hasActiveSubscription to:', isActive);
+          setHasActiveSubscription(isActive);
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+      } finally {
+        setIsLoadingSubscription(false);
+      }
+    }
+    checkSubscription();
+  }, []);
 
   return (
     <Sidebar
@@ -170,28 +193,53 @@ export function AppSidebar({ className }: AppSidebarProps) {
       </SidebarContent>
 
       <SidebarFooterControls>
-        {/* Upgrade to PRO Button */}
-        <Link 
-          href="/pricing"
-          className={cn(
-            "flex items-center gap-3 rounded-lg py-3 transition-all duration-200",
-            "bg-accent/10 hover:bg-accent/20 border border-accent/30",
-            "group cursor-pointer",
-            isCollapsed ? "justify-center" : ""
-          )}
-        >
-          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
-            <span className="text-accent-foreground text-base font-bold">⚡</span>
-          </div>
-          {!isCollapsed && (
-            <>
-              <span className="text-sm font-semibold text-foreground">
-                Upgrade to PRO
+        {/* Debug info */}
+        {console.log('Rendering footer - isLoadingSubscription:', isLoadingSubscription, 'hasActiveSubscription:', hasActiveSubscription)}
+        
+        {/* Upgrade to PRO Button - Only show for free tier users */}
+        {!isLoadingSubscription && !hasActiveSubscription && (
+          <Link 
+            href="/pricing"
+            className={cn(
+              "flex items-center gap-3 rounded-lg py-3 transition-all duration-200",
+              "bg-accent/10 hover:bg-accent/20 border border-accent/30",
+              "group cursor-pointer",
+              isCollapsed ? "justify-center" : ""
+            )}
+          >
+            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+              <span className="text-accent-foreground text-base font-bold">⚡</span>
+            </div>
+            {!isCollapsed && (
+              <>
+                <span className="text-sm font-semibold text-foreground">
+                  Upgrade to PRO
+                </span>
+                <ArrowUpRight className={cn("w-6 h-6", isDark ? "text-black" : "text-white")} />
+              </>
+            )}
+          </Link>
+        )}
+
+        {/* Premium User Badge - Show for subscribed users */}
+        {!isLoadingSubscription && hasActiveSubscription && (
+          <div
+            className={cn(
+              "flex items-center gap-3 rounded-lg py-3",
+              "bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30",
+              isCollapsed ? "justify-center" : ""
+            )}
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-base font-bold">✨</span>
+            </div>
+            {!isCollapsed && (
+              <span className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Premium Active
               </span>
-              <ArrowUpRight className={cn("w-6 h-6", isDark ? "text-black" : "text-white")} />
-            </>
-          )}
-        </Link>
+            )}
+          </div>
+        )}
       </SidebarFooterControls>
     </Sidebar>
   );

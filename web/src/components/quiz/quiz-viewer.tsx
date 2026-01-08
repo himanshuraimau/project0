@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,36 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
   const [reviewMode, setReviewMode] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [helpQuestion, setHelpQuestion] = useState("");
+  const [startTime] = useState(Date.now());
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Start timer when quiz begins
+  useEffect(() => {
+    if (!showResults) {
+      timerIntervalRef.current = setInterval(() => {
+        setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
+    } else {
+      // Clear interval when results are shown
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    }
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, [showResults, startTime]);
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   if (quiz.length === 0) {
     return (
@@ -224,7 +254,7 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
                   Time
                 </div>
                 <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  --:--
+                  {formatTime(elapsedTime)}
                 </div>
               </div>
             </div>
