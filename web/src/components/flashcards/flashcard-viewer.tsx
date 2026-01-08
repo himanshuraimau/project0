@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Share2, Star } from "lucide-react";
 import { FlashcardViewerProps } from "@/lib/types";
 import { useRouter } from "next/navigation";
+import { SessionComplete } from "./SessionComplete";
 
 export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   flashcards,
@@ -17,6 +18,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   const [gotRight, setGotRight] = useState<number[]>([]);
   const [gotWrong, setGotWrong] = useState<number[]>([]);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [sessionComplete, setSessionComplete] = useState(false);
 
   if (flashcards.length === 0) {
     return (
@@ -75,6 +77,9 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
     }
     if (currentIndex < flashcards.length - 1) {
       handleNext();
+    } else {
+      // Last card - mark session as complete
+      setSessionComplete(true);
     }
   };
 
@@ -86,6 +91,9 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
     }
     if (currentIndex < flashcards.length - 1) {
       handleNext();
+    } else {
+      // Last card - mark session as complete
+      setSessionComplete(true);
     }
   };
 
@@ -110,6 +118,18 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   const handleToggleFavorite = () => {
     setIsFavorite(!isFavorite);
     // You can add API call here to save favorite status
+  };
+
+  const handleRestartSession = () => {
+    setCurrentIndex(0);
+    setShowAnswer(false);
+    setGotRight([]);
+    setGotWrong([]);
+    setSessionComplete(false);
+  };
+
+  const handleCloseSession = () => {
+    router.push('/dashboard');
   };
 
   return (
@@ -205,28 +225,39 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
       {/* Flashcard Container */}
       <div className="flex flex-col justify-center items-center mb-6 max-w-7xl pt-10 pb-5 bg-card border border-black/20 rounded-2xl"
         style={{ minHeight: '400px' }}>
-        <Card
-          className="w-full max-w-[560px] my-8 py-8 pl-8 rounded-xl bg-white border border-black/20 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
-          onClick={handleFlip}
-        >
-          <CardContent className="flex flex-col items-center justify-center min-h-[240px] p-0">
-            <div className="text-center space-y-3 w-full">
-              <div className="text-[19px] font-medium leading-[1.5] text-foreground">
-                {showAnswer ? currentFlashcard.answer : currentFlashcard.question}
+        
+        {sessionComplete ? (
+          <SessionComplete
+            totalCards={flashcards.length}
+            correctCards={gotRight.length}
+            incorrectCards={gotWrong.length}
+            onRestart={handleRestartSession}
+            onClose={handleCloseSession}
+          />
+        ) : (
+          <Card
+            className="w-full max-w-[560px] my-8 py-8 pl-8 rounded-xl bg-white border border-black/20 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
+            onClick={handleFlip}
+          >
+            <CardContent className="flex flex-col items-center justify-center min-h-[240px] p-0">
+              <div className="text-center space-y-3 w-full">
+                <div className="text-[19px] font-medium leading-[1.5] text-foreground">
+                  {showAnswer ? currentFlashcard.answer : currentFlashcard.question}
+                </div>
               </div>
-            </div>
-            
-            {!showAnswer && (
-              <div className="text-[13px] text-muted-foreground mt-3 opacity-60">
-                Click or press space to flip
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              
+              {!showAnswer && (
+                <div className="text-[13px] text-muted-foreground mt-3 opacity-60">
+                  Click or press space to flip
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       
 
       {/* Bottom Action Controls */}
-      <div className="flex flex-col items-center mt-6 max-w-7xl pl-6">
+      <div className="flex flex-col items-center mt-6 max-w-7xl pl-6">{!sessionComplete && (
         <div className="flex items-center gap-3">
           {/* Previous Arrow */}
           <Button
@@ -267,11 +298,14 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
+        )}
 
         {/* Footer Utility */}
-        <button className="text-xs text-muted-foreground mt-4 hover:underline">
-          Report a problem
-        </button>
+        {!sessionComplete && (
+          <button className="text-xs text-muted-foreground mt-4 hover:underline">
+            Report a problem
+          </button>
+        )}
       </div>
       </div>
       </div>
