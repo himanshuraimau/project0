@@ -47,7 +47,7 @@ const dashboardItems = [
   },
   { title: "How to use", icon: HelpCircle, href: "/dashboard/how-to-use" },
   { title: "Support", icon: Headphones, href: "/dashboard/support" },
-  { title: "Settings", icon: Settings, href: "/dashboard/settings" },
+  { title: "Settings", icon: Settings, href: "/settings" },
 ];
 
 const SidebarTrigger = ({ className }: { className?: string }) => {
