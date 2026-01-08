@@ -77,11 +77,15 @@ export function AppSidebar({ className }: AppSidebarProps) {
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
 
+  console.log('AppSidebar rendered - hasActiveSubscription:', hasActiveSubscription, 'isLoadingSubscription:', isLoadingSubscription);
+
   // Fetch subscription status
   useEffect(() => {
     async function checkSubscription() {
       try {
+        console.log('Fetching subscription status...');
         const response = await fetch('/api/subscription/status');
+        console.log('Response status:', response.status, 'ok:', response.ok);
         if (response.ok) {
           const data = await response.json();
           console.log('Subscription data from sidebar:', data);
@@ -92,6 +96,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
       } catch (error) {
         console.error('Error checking subscription:', error);
       } finally {
+        console.log('Setting isLoadingSubscription to false');
         setIsLoadingSubscription(false);
       }
     }

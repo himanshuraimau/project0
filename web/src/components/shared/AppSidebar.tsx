@@ -97,10 +97,31 @@ export function AppSidebar({ className }: AppSidebarProps) {
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
   const isDark = (resolvedTheme || theme) === "dark";
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Fetch subscription status
+  useEffect(() => {
+    async function checkSubscription() {
+      try {
+        const response = await fetch('/api/subscription/status');
+        if (response.ok) {
+          const data = await response.json();
+          const isActive = data.hasSubscription && data.access?.hasAccess;
+          setHasActiveSubscription(isActive);
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+      } finally {
+        setIsLoadingSubscription(false);
+      }
+    }
+    checkSubscription();
   }, []);
 
   const toggleSidebar = () => {
@@ -222,7 +243,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
               </div>
             )}
 
-            {!isCollapsed && (
+            {!isCollapsed && !isLoadingSubscription && !hasActiveSubscription && (
               <div className="w-full max-w-sm dark-gradient-element p-4 rounded-[16px]">
                 <div className="mb-4">
                   <Zap className="w-6 h-6 text-white" />
@@ -238,6 +259,28 @@ export function AppSidebar({ className }: AppSidebarProps) {
                   className="flex items-center text-sm justify-center w-full bg-white text-blue-600 rounded-[8px] px-4 py-2 transition-all duration-200 cursor-pointer font-semibold hover:bg-blue-50 hover:shadow-lg"
                 >
                   Upgrade Now
+                </a>
+              </div>
+            )}
+
+            {!isCollapsed && !isLoadingSubscription && hasActiveSubscription && (
+              <div className="w-full max-w-sm bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 p-4 rounded-[16px]">
+                <div className="mb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                    <span className="text-white text-xl">✨</span>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <h3 className="text-foreground font-medium">Premium Active</h3>
+                  <p className="text-muted-foreground text-sm">Enjoying unlimited access</p>
+                </div>
+
+                <a
+                  href="/settings/subscription"
+                  className="flex items-center text-sm justify-center w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-[8px] px-4 py-2 transition-all duration-200 cursor-pointer font-semibold hover:shadow-lg"
+                >
+                  Manage Plan
                 </a>
               </div>
             )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, createContext, useContext } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -10,6 +10,7 @@ import {
   Headphones,
   CreditCard,
   Star,
+  Zap,
 } from "lucide-react";
 
 const SidebarContext = createContext({
@@ -83,10 +84,31 @@ const SidebarTrigger = ({ className }: { className?: string }) => {
 
 export function SettingsSidebar({ className, activeItem = "profile", onItemClick }: SettingsSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
+
+  // Fetch subscription status
+  useEffect(() => {
+    async function checkSubscription() {
+      try {
+        const response = await fetch('/api/subscription/status');
+        if (response.ok) {
+          const data = await response.json();
+          const isActive = data.hasSubscription && data.access?.hasAccess;
+          setHasActiveSubscription(isActive);
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+      } finally {
+        setIsLoadingSubscription(false);
+      }
+    }
+    checkSubscription();
+  }, []);
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, toggleSidebar }}>
@@ -200,6 +222,53 @@ export function SettingsSidebar({ className, activeItem = "profile", onItemClick
               })}
             </ul>
           </nav>
+
+          {/* Upgrade/Premium Card */}
+          {!isCollapsed && !isLoadingSubscription && !hasActiveSubscription && (
+            <div className="mt-auto mb-4">
+              <div className="w-full dark-gradient-element p-4 rounded-[16px]">
+                <div className="mb-3">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+
+                <div className="mb-3">
+                  <h3 className="text-white font-medium text-[15px]">Upgrade to Pro</h3>
+                  <p className="text-blue-100 text-[13px]">Get unlimited access</p>
+                </div>
+
+                <a
+                  href="/pricing"
+                  className="flex items-center text-[13px] justify-center w-full bg-white text-blue-600 rounded-[8px] px-4 py-2 transition-all duration-200 cursor-pointer font-semibold hover:bg-blue-50 hover:shadow-lg"
+                >
+                  Upgrade Now
+                </a>
+              </div>
+            </div>
+          )}
+
+          {!isCollapsed && !isLoadingSubscription && hasActiveSubscription && (
+            <div className="mt-auto mb-4">
+              <div className="w-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 p-4 rounded-[16px]">
+                <div className="mb-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                    <span className="text-white text-xl">✨</span>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <h3 className="text-[#0F172B] dark:text-white font-medium text-[15px]">Premium Active</h3>
+                  <p className="text-[#45556C] dark:text-neutral-400 text-[13px]">Enjoying unlimited access</p>
+                </div>
+
+                <a
+                  href="/settings/subscription"
+                  className="flex items-center text-[13px] justify-center w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-[8px] px-4 py-2 transition-all duration-200 cursor-pointer font-semibold hover:shadow-lg"
+                >
+                  Manage Plan
+                </a>
+              </div>
+            </div>
+          )}
 
           {/* Footer Section - Privacy, Terms, Delete Account */}
           {!isCollapsed && (
