@@ -27,19 +27,13 @@ import {
   Pin,
   ChevronDown,
 } from "lucide-react";
-import { SimplePDFProcessor, UploadTextModal } from "@/components/pdf";
+import { UploadTextModal } from "@/components/pdf";
 import { ProcessPDFResult } from "@/lib/types";
 import { AudioRecorder, AudioUploadModal } from "@/components/audio";
 import { AddLinkModal } from "@/components/link";
 import { Inter } from "next/font/google";
-import { Plus_Jakarta_Sans } from "next/font/google";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { toast } from "sonner";
-
-const jakarta = Plus_Jakarta_Sans({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin-ext", "vietnamese"],
-});
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -389,11 +383,10 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
 export function NewNoteSection() {
   const { refreshNotes, addLoadingNote, removeLoadingNote } =
     useDashboardRefresh();
-  const [showPDFDialog, setShowPDFDialog] = useState(false);
+  const [showTextDialog, setShowTextDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
   const [showRecordAudioDialog, setShowRecordAudioDialog] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
-  const [pdfMode, setPdfMode] = useState<"pdf" | "text">("text");
 
   const handleLinkProcessComplete = (result: any) => {
     setShowLinkDialog(false);
@@ -480,53 +473,27 @@ export function NewNoteSection() {
     setShowRecordAudioDialog(false);
   };
 
-  const handlePDFProcessComplete = (result: ProcessPDFResult) => {
-    setShowPDFDialog(false);
+  const handleTextOrPDFProcessComplete = (result: ProcessPDFResult) => {
+    setShowTextDialog(false);
 
     // Show success toast
     if (result.note && "id" in result.note) {
-      toast.success("📄 PDF processed successfully! Notes generated.", {
-        description: "PDF content extracted and notes created",
+      toast.success("📝 Content processed successfully! Notes generated.", {
+        description: "Content converted to AI-powered notes",
         duration: 4000,
       });
       // Refresh notes immediately - shimmer should already be removed by processor
       refreshNotes();
     } else {
-      toast.success("📄 PDF content extracted successfully!", {
+      toast.success("📝 Content saved successfully!", {
         description: "Content saved as transcript",
         duration: 4000,
       });
     }
   };
 
-  const handleClosePDFDialog = () => {
-    setShowPDFDialog(false);
-    // Reset to text mode when closing
-    setPdfMode("text");
-  };
-
-  const handleTextProcessComplete = (result: ProcessPDFResult) => {
-    setShowPDFDialog(false);
-
-    // Show success toast
-    if (result.note && "id" in result.note) {
-      toast.success("📝 Text processed successfully! Notes generated.", {
-        description: "Text content converted to AI-powered notes",
-        duration: 4000,
-      });
-      // Refresh notes immediately - shimmer should already be removed by processor
-      refreshNotes();
-    } else {
-      toast.success("📝 Text saved successfully!", {
-        description: "Content saved as transcript",
-        duration: 4000,
-      });
-    }
-  };
-
-  const handleOpenPDFFromText = () => {
-    // When Import PDF is clicked from text modal, switch to PDF mode
-    setPdfMode("pdf");
+  const handleCloseTextDialog = () => {
+    setShowTextDialog(false);
   };
 
 
@@ -598,10 +565,10 @@ export function NewNoteSection() {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={showPDFDialog} onOpenChange={setShowPDFDialog}>
+        <Dialog open={showTextDialog} onOpenChange={setShowTextDialog}>
           <button
             className="px-8 h-[76px] rounded-[16px] cursor-pointer bg-[#F1F1F1] dark:bg-[#1A1A1A] border border-neutral-100 dark:border-[hsl(0,0%,12%)] w-full"
-            onClick={() => setShowPDFDialog(true)}
+            onClick={() => setShowTextDialog(true)}
           >
             <div className="flex items-center justify-between w-full min-w-0">
               <div className="flex gap-6 items-center">
@@ -612,37 +579,14 @@ export function NewNoteSection() {
               </div>
             </div>
           </button>
-          <DialogContent hideCloseButton className={pdfMode === "text" ? "max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden" : "max-w-4xl max-h-[90vh] overflow-hidden"}>
-            {pdfMode === "text" ? (
-              <>
-                <VisuallyHidden>
-                  <DialogTitle>Upload Text</DialogTitle>
-                </VisuallyHidden>
-                <UploadTextModal
-                  onClose={handleClosePDFDialog}
-                  onProcessComplete={handleTextProcessComplete}
-                  onOpenPDFDialog={handleOpenPDFFromText}
-                />
-              </>
-            ) : (
-              <>
-                <DialogHeader>
-                  <DialogTitle className={`text-left ${jakarta.className}`}>
-                    Upload PDF & Generate Notes
-                  </DialogTitle>
-                  <DialogDescription className={`${jakarta.className}`}>
-                    Upload PDF documents and extract content to generate
-                    comprehensive AI-powered notes.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="pt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-                  <SimplePDFProcessor
-                    onProcessComplete={handlePDFProcessComplete}
-                    onClose={handleClosePDFDialog}
-                  />
-                </div>
-              </>
-            )}
+          <DialogContent hideCloseButton className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden">
+            <VisuallyHidden>
+              <DialogTitle>Upload Text or PDF</DialogTitle>
+            </VisuallyHidden>
+            <UploadTextModal
+              onClose={handleCloseTextDialog}
+              onProcessComplete={handleTextOrPDFProcessComplete}
+            />
           </DialogContent>
         </Dialog>
 
