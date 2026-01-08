@@ -198,9 +198,6 @@ export function AppSidebar({ className }: AppSidebarProps) {
       </SidebarContent>
 
       <SidebarFooterControls>
-        {/* Debug info */}
-        {console.log('Rendering footer - isLoadingSubscription:', isLoadingSubscription, 'hasActiveSubscription:', hasActiveSubscription)}
-        
         {/* Upgrade to PRO Button - Only show for free tier users */}
         {!isLoadingSubscription && !hasActiveSubscription && (
           <Link 

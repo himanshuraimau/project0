@@ -112,7 +112,7 @@ export function UploadTextModal({
         }
 
         try {
-            const result = await processPDFWithNotes(file, selectedFolderId);
+            const result = await processPDFWithNotes(file);
 
             if (result) {
                 if (currentTempId) {
