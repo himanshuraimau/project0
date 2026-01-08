@@ -200,7 +200,7 @@ export default function NoteHubPage() {
                 </p>
               </CardHeader>
               <CardContent>
-                <div className="h-[520px] lg:h-[640px]">
+                <div className="h-[450px] lg:h-[500px]">
                   <DynamicInlineChatbot noteId={note.id} className="h-full" />
                 </div>
               </CardContent>
