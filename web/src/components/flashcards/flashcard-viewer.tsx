@@ -113,8 +113,8 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   };
 
   return (
-    <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen px-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen">
+      <div className="max-w-[90%] pl-6">
         {/* Header with Breadcrumb and Actions */}
         <div className="mb-6 pb-6 border-b border-transparent" style={{
           boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
@@ -145,7 +145,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={handleShare}
-                  className="gap-2 rounded-none"
+                  className="gap-2 rounded-2xl"
                 >
                   <Share2 className="h-4 w-4" />
                   <span className="hidden sm:inline">Share</span>
@@ -168,6 +168,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
 
           {/* Title */}
           <div>
+            <p className="text-purple-600 text-sm mb-1">Flashcards for:</p>
             <h1 className="text-[19px] font-bold text-foreground leading-tight">
               {noteTitle || "Flashcards"}
             </h1>
@@ -175,11 +176,11 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
         </div>
 
         {/* Progress Indicator */}
-        <div className="mb-6 max-w-[1280px] mx-auto">
+        <div className="mb-2 max-w-7xl">
           <div className="text-[13px] text-muted-foreground mb-2">
             Card {currentIndex + 1} of {flashcards.length}
           </div>
-          <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
+          <div className="w-full rounded-full overflow-hidden">
             <div
               className="h-full bg-accent transition-all duration-300"
               style={{
@@ -189,11 +190,23 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           </div>
         </div>
 
+        {/* Additional Progress Bar */}
+        <div className="mb-6 max-w-7xl">
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-purple-600 transition-all duration-300"
+              style={{
+                width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
+              }}
+            />
+          </div>
+        </div>
+
       {/* Flashcard Container */}
-      <div className="flex justify-center items-start mb-6 max-w-[1280px] mx-auto"
+      <div className="flex flex-col justify-center items-center mb-6 max-w-7xl pt-10 pb-5 bg-card border border-black/20 rounded-2xl"
         style={{ minHeight: '400px' }}>
         <Card
-          className="w-full max-w-[560px] p-8 rounded-xl bg-card border shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
+          className="w-full max-w-[560px] my-8 py-8 pl-8 rounded-xl bg-white border border-black/20 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
           onClick={handleFlip}
         >
           <CardContent className="flex flex-col items-center justify-center min-h-[240px] p-0">
@@ -210,10 +223,10 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
             )}
           </CardContent>
         </Card>
-      </div>
+      
 
       {/* Bottom Action Controls */}
-      <div className="flex flex-col items-center mt-6 max-w-7xl mx-auto">
+      <div className="flex flex-col items-center mt-6 max-w-7xl pl-6">
         <div className="flex items-center gap-3">
           {/* Previous Arrow */}
           <Button
@@ -230,7 +243,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           <Button
             onClick={handleGotWrong}
             variant="outline"
-            className="px-4 py-2 rounded-full border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive transition-all"
+            className="box-border w-[134px] h-[38px] bg-[#FEF2F2] border border-[#FFC9C9] rounded-[8px] flex-none grow-0 text-destructive"
           >
             Got it wrong
           </Button>
@@ -238,7 +251,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
           {/* Got it Right */}
           <Button
             onClick={handleGotRight}
-            className="px-4 py-2 rounded-full bg-accent hover:bg-accent/90 text-accent-foreground transition-all"
+            className="w-[133px] h-[38px] bg-[#00C950] rounded-[8px] flex-none grow-0 text-white font-medium transition-all"
           >
             Got it right
           </Button>
@@ -259,6 +272,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
         <button className="text-xs text-muted-foreground mt-4 hover:underline">
           Report a problem
         </button>
+      </div>
       </div>
       </div>
     </div>
