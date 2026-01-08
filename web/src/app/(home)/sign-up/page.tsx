@@ -22,8 +22,6 @@ export default function SignUp() {
     password: "",
     confirmPassword: "",
   });
-
-  // Theme-aware colors that don't use global CSS
   const isDark = theme === 'dark';
   const colors = {
     bg: isDark ? '#000000' : '#ffffff',
