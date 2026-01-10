@@ -51,16 +51,16 @@ export function MyNotesSection() {
       {/* Tabs Section with New Folder Button */}
       <div className="flex flex-row justify-between items-center mb-6">
         {/* Tabs Container */}
-        <div className="flex items-center border-b-[0.8px] border-[#E5E7EB]">
+        <div className="flex items-center border-[#E5E7EB] dark:border-gray-700">
           {/* My Notes Tab */}
           <button
             onClick={() => setActiveTab("my-notes")}
             className={`
-              relative px-3 py-2 text-[16px] leading-5 font-normal
+              relative px-3 py-2 text-[16px] leading-5 font-normal rounded-lg
               ${
                 activeTab === "my-notes"
-                  ? "text-[#0A0A0A] border-[0.8px] border-t-[0.8px] border-l-[0.8px] border-r-[0.8px] border-b-[1.6px] border-[#101828]"
-                  : "text-[#0A0A0A] border-transparent"
+                  ? "text-[#0A0A0A] dark:text-white border-[0.8px] border-t-[0.8px] border-l-[0.8px] border-r-[0.8px] border-b-[1.6px] border-[#101828] dark:border-gray-300"
+                  : "text-[#0A0A0A] dark:text-gray-400 border-transparent"
               }
             `}
             style={{ fontFamily: "Arimo" }}
@@ -74,7 +74,7 @@ export function MyNotesSection() {
               setActiveTab("shared");
               router.push("/dashboard/cloned");
             }}
-            className="px-3 py-2 text-[16px] leading-5 font-normal text-[#0A0A0A]"
+            className="px-3 py-2 text-[16px] leading-5 font-normal text-[#0A0A0A] dark:text-gray-400"
             style={{ fontFamily: "Arimo" }}
           >
             Shared with Me
@@ -84,10 +84,10 @@ export function MyNotesSection() {
         {/* New Folder Button */}
         <button
           onClick={() => setShowCreateFolder(true)}
-          className="flex items-center gap-2 h-9 px-3 bg-white border-[0.8px] border-[#E5E7EB] rounded-[10px] hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-2 h-9 px-3 bg-white dark:bg-gray-800 border-[0.8px] border-[#E5E7EB] dark:border-gray-700 rounded-[10px] hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
-          <FolderPlus className="w-4 h-4 text-[#4A5565]" />
-          <span className="text-[14px] leading-5 font-normal text-[#4A5565]" style={{ fontFamily: "Arimo" }}>
+          <FolderPlus className="w-4 h-4 text-[#4A5565] dark:text-gray-300" />
+          <span className="text-[14px] leading-5 font-normal text-[#4A5565] dark:text-gray-300" style={{ fontFamily: "Arimo" }}>
             New Folder
           </span>
         </button>
@@ -96,14 +96,13 @@ export function MyNotesSection() {
       {/* Recent Notes Header */}
       <div className="flex flex-row items-center gap-3 mb-5">
         {/* Heading */}
-        <h3 className="text-[16px] leading-6 font-normal text-[#101828]" style={{ fontFamily: "Arimo" }}>
+        <h3 className="text-[16px] leading-6 font-normal text-[#101828] dark:text-white" style={{ fontFamily: "Arimo" }}>
           Recent Notes
         </h3>
 
         {/* Gradient Line */}
         <div 
-          className="flex-1 h-[1px]" 
-          style={{ background: "linear-gradient(90deg, #E5E7EB 0%, rgba(0, 0, 0, 0) 100%)" }}
+          className="flex-1 h-[1px] bg-gradient-to-r from-[#E5E7EB] to-transparent dark:from-gray-700 dark:to-transparent" 
         />
 
         {/* View All Button */}
