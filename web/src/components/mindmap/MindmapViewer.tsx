@@ -2,9 +2,9 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut, RotateCcw, Download, Copy, Code } from 'lucide-react';
+import { Copy, Code, Plus, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MindmapViewerProps {
@@ -248,11 +248,6 @@ export function MindmapViewer({ mermaidCode, title }: MindmapViewerProps) {
     updateSvgScale(newScale);
   };
 
-  const handleResetZoom = () => {
-    setScale(1);
-    updateSvgScale(1);
-  };
-
   const updateSvgScale = (newScale: number) => {
     const svgElement = containerRef.current?.querySelector('svg');
     if (svgElement) {
@@ -260,7 +255,7 @@ export function MindmapViewer({ mermaidCode, title }: MindmapViewerProps) {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownloadImage = async () => {
     const svgElement = containerRef.current?.querySelector('svg');
     if (!svgElement) {
       toast.error('No mindmap to download');
@@ -268,21 +263,63 @@ export function MindmapViewer({ mermaidCode, title }: MindmapViewerProps) {
     }
 
     try {
-      // Get SVG data
-      const svgData = new XMLSerializer().serializeToString(svgElement);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-
-      // Create download link
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svgElement);
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_mindmap.svg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
 
-      toast.success('Mindmap downloaded successfully');
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        // Increase resolution for better quality
+        const scaleFactor = 2;
+        const bbox = svgElement.getBoundingClientRect();
+
+        // Use intrinsic dimensions if possible, otherwise viewport
+        const width = bbox.width;
+        const height = bbox.height;
+
+        canvas.width = width * scaleFactor;
+        canvas.height = height * scaleFactor;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          toast.error('Canvas context not available');
+          return;
+        }
+
+        // Apply background color
+        const isDarkMode = document.documentElement.classList.contains('dark') ||
+          window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        ctx.fillStyle = isDarkMode ? '#0f172a' : '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Scale context
+        ctx.scale(scaleFactor, scaleFactor);
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const pngUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = pngUrl;
+        link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_mindmap.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        toast.success('Mindmap saved as image');
+      };
+
+      img.onerror = (e) => {
+        console.error('Image load error', e);
+        toast.error('Failed to process image for download');
+        URL.revokeObjectURL(url);
+      };
+
+      img.src = url;
+
     } catch (error) {
       console.error('Download error:', error);
       toast.error('Failed to download mindmap');
@@ -300,33 +337,9 @@ export function MindmapViewer({ mermaidCode, title }: MindmapViewerProps) {
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full relative">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleZoomOut}
-            disabled={scale <= 0.5}
-          >
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleResetZoom}
-            disabled={scale === 1}
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleZoomIn}
-            disabled={scale >= 2}
-          >
-            <ZoomIn className="h-4 w-4" />
-          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -342,14 +355,6 @@ export function MindmapViewer({ mermaidCode, title }: MindmapViewerProps) {
           >
             <Code className="h-4 w-4" />
             {showCode ? 'Hide' : 'Show'} Code
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownload}
-          >
-            <Download className="h-4 w-4" />
-            SVG
           </Button>
         </div>
       </CardHeader>
@@ -395,9 +400,34 @@ export function MindmapViewer({ mermaidCode, title }: MindmapViewerProps) {
             style={{ minHeight: '600px', maxHeight: '80vh' }}
           />
 
-          {scale !== 1 && !isLoading && !error && (
-            <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
-              {Math.round(scale * 100)}%
+          {!isLoading && !error && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 z-10">
+              <Button
+                variant="outline"
+                className="h-12 w-12 rounded-full bg-white shadow-lg border border-gray-200 hover:bg-gray-50 flex items-center justify-center"
+                onClick={handleZoomOut}
+                disabled={scale <= 0.5}
+                aria-label="Zoom out"
+              >
+                <Minus className="h-6 w-6 text-black" />
+              </Button>
+
+              <Button
+                className="h-12 px-8 rounded-full bg-black text-white hover:bg-gray-900 shadow-xl font-medium text-lg"
+                onClick={handleDownloadImage}
+              >
+                Save as image
+              </Button>
+
+              <Button
+                variant="outline"
+                className="h-12 w-12 rounded-full bg-white shadow-lg border border-gray-200 hover:bg-gray-50 flex items-center justify-center"
+                onClick={handleZoomIn}
+                disabled={scale >= 2}
+                aria-label="Zoom in"
+              >
+                <Plus className="h-6 w-6 text-black" />
+              </Button>
             </div>
           )}
         </div>
