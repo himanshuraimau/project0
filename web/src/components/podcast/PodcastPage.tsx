@@ -17,7 +17,7 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
-  
+
   const { job, isGenerating, generate, reset } = usePodcastGeneration();
 
   // Fetch existing podcast data
@@ -26,19 +26,19 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
       try {
         setLoading(true);
         const response = await fetch(`/api/podcast/note/${noteId}`);
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch podcast');
         }
 
         const data = await response.json();
-        
+
         if (data.success && data.podcasts && data.podcasts.length > 0) {
           // Get the most recent completed podcast
           const completedPodcast = data.podcasts.find(
             (p: any) => p.status === 'COMPLETED' && p.audioUrl
           );
-          
+
           if (completedPodcast) {
             setPodcast({
               id: completedPodcast.id,
@@ -97,7 +97,7 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
 
     transcript.forEach((item: any, index: number) => {
       const text = item.text || '';
-      
+
       // Start a new section every 3-4 exchanges or on topic change
       if (index % 6 === 0 || index === 0) {
         if (currentSection.title && sectionTexts.length > 0) {
@@ -105,14 +105,14 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
           sections.push(currentSection);
           sectionTexts = [];
         }
-        
+
         currentSection = {
           title: extractSectionTitle(text, sections.length),
           timestamp: formatTimestamp(index * 10), // Approximate timestamp
           description: '',
         };
       }
-      
+
       sectionTexts.push(text);
     });
 
@@ -140,17 +140,17 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleGenerate = async (duration: 'short' | 'long') => {
+  const handleGenerate = async () => {
     if (!noteContent) {
-      setError('Note content is empty. Cannot generate podcast.');
+      setError('Note content is empty. Cannot generate audio.');
       return;
     }
-    
+
     try {
       setError(null);
-      await generate(noteId, noteContent, duration);
+      await generate(noteId, noteContent);
     } catch (err: any) {
-      setError(err.message || 'Failed to generate podcast');
+      setError(err.message || 'Failed to generate audio');
     }
   };
 
@@ -218,11 +218,11 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
       <div className="max-w-2xl mx-auto p-8">
         <div className="text-center space-y-6">
           <div className="text-6xl mb-4">🎙️</div>
-          <h2 className="text-2xl font-semibold">Generate Your Podcast</h2>
+          <h2 className="text-2xl font-semibold">Generate Audio Narration</h2>
           <p className="text-muted-foreground">
-            Transform your note into an AI-generated podcast with two speakers discussing the content
+            Transform your note into an AI-generated audio narration
           </p>
-          
+
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-700 dark:text-red-300">
               <div className="flex items-center gap-2">
@@ -231,26 +231,19 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
               </div>
             </div>
           )}
-          
+
           {!noteContent || noteContent.trim().length === 0 ? (
             <p className="text-red-600 dark:text-red-400">
               Note content is empty. Please add content to your note first.
             </p>
           ) : (
-            <div className="flex gap-4 justify-center">
+            <div className="flex justify-center">
               <Button
-                onClick={() => handleGenerate('short')}
+                onClick={handleGenerate}
                 className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 px-8 py-6 text-lg"
                 size="lg"
               >
-                Generate Short Podcast (3-5 min)
-              </Button>
-              <Button
-                onClick={() => handleGenerate('long')}
-                className="bg-gray-800 hover:bg-gray-700 dark:bg-gray-200 dark:hover:bg-gray-300 text-white dark:text-gray-900 px-8 py-6 text-lg"
-                size="lg"
-              >
-                Generate Long Podcast (8-10 min)
+                Generate Audio
               </Button>
             </div>
           )}
@@ -269,7 +262,7 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
           <p className="text-muted-foreground">
             This may take 30-120 seconds. Feel free to navigate away.
           </p>
-          
+
           <div className="space-y-2">
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
               <div
@@ -301,7 +294,7 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
           <Button
             onClick={() => {
               reset();
-              handleGenerate('short');
+              handleGenerate();
             }}
             className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
           >
@@ -328,8 +321,8 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
         <div className="lg:col-span-1 space-y-4 lg:pr-6 lg:border-r" style={{
           borderColor: 'rgba(0, 0, 0, 0.08)'
         }}>
-        <PodcastTabs activeTab={activeTab} onTabChange={setActiveTab} />
-          
+          <PodcastTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
           {activeTab === 'sections' ? (
             <PodcastSectionsList
               transcript={podcast.transcript || []}
