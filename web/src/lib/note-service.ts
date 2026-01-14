@@ -11,7 +11,7 @@ import {
 
 
 export class NoteService {
-  private model = openai("gpt-4o");
+  private model = openai("gpt-5.1");
 
   /**
    * Get content-specific instructions based on transcript type

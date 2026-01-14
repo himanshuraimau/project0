@@ -16,11 +16,10 @@ export function usePodcastGeneration() {
     const [job, setJob] = useState<PodcastJob | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
 
-    // Start podcast generation
+    // Start audio generation
     const generate = useCallback(async (
         noteId: string,
-        noteContent: string,
-        duration: 'short' | 'long' = 'short'
+        noteContent: string
     ) => {
         try {
             setIsGenerating(true);
@@ -28,8 +27,20 @@ export function usePodcastGeneration() {
             const response = await podcastApi.generatePodcast({
                 noteId,
                 noteContent,
-                duration,
             });
+
+            // If already completed (synchronous), set final state
+            if (response.status === 'completed') {
+                setJob({
+                    jobId: response.jobId,
+                    status: 'completed',
+                    progress: 100,
+                    audioUrl: response.audioUrl,
+                    audioDuration: response.audioDuration,
+                });
+                setIsGenerating(false);
+                return response.jobId;
+            }
 
             setJob({
                 jobId: response.jobId,
@@ -73,7 +84,7 @@ export function usePodcastGeneration() {
             } catch (error) {
                 console.error('Status check error:', error);
             }
-        }, 3000); // Poll every 3 seconds
+        }, 2000); // Poll every 2 seconds
 
         return () => clearInterval(interval);
     }, [job?.jobId, job?.status]);

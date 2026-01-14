@@ -20,8 +20,7 @@ export function usePodcastGeneration() {
     // Start podcast generation
     const generate = useCallback(async (
         noteId: string,
-        noteContent: string,
-        duration: 'short' | 'long' = 'short'
+        noteContent: string
     ) => {
         try {
             setIsGenerating(true);
@@ -29,7 +28,7 @@ export function usePodcastGeneration() {
             const response = await fetch('/api/podcast/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ noteId, noteContent, duration }),
+                body: JSON.stringify({ noteId, noteContent }),
             });
 
             if (!response.ok) {
@@ -38,6 +37,19 @@ export function usePodcastGeneration() {
             }
 
             const data = await response.json();
+
+            // If already completed (synchronous), set final state
+            if (data.status === 'completed') {
+                setJob({
+                    jobId: data.jobId,
+                    status: 'completed',
+                    progress: 100,
+                    audioUrl: data.audioUrl,
+                    audioDuration: data.audioDuration,
+                });
+                setIsGenerating(false);
+                return data.jobId;
+            }
 
             setJob({
                 jobId: data.jobId,
@@ -53,7 +65,7 @@ export function usePodcastGeneration() {
         }
     }, []);
 
-    // Poll for job status
+    // Poll for job status (for cases where generation is still in progress)
     useEffect(() => {
         if (!job?.jobId || job.status === 'completed' || job.status === 'failed') {
             setIsGenerating(false);
@@ -76,7 +88,7 @@ export function usePodcastGeneration() {
             } catch (error) {
                 console.error('Status check error:', error);
             }
-        }, 3000); // Poll every 3 seconds
+        }, 2000); // Poll every 2 seconds
 
         return () => clearInterval(interval);
     }, [job?.jobId, job?.status]);

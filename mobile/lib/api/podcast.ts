@@ -38,7 +38,6 @@ export interface Podcast {
 export interface GeneratePodcastRequest {
   noteId: string;
   noteContent: string;
-  duration?: 'short' | 'long';
 }
 
 export interface GeneratePodcastResponse {
@@ -47,6 +46,8 @@ export interface GeneratePodcastResponse {
   podcastId: string;
   status: string;
   message: string;
+  audioUrl?: string;
+  audioDuration?: number;
 }
 
 /**

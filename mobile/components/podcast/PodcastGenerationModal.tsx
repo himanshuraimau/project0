@@ -55,15 +55,15 @@ export default function PodcastGenerationModal({
         }
     }, [visible]);
 
-    const handleGenerate = async (duration: 'short' | 'long') => {
+    const handleGenerate = async () => {
         try {
             if (!noteContent || noteContent.trim().length === 0) {
-                alert('Note content is empty. Cannot generate podcast.');
+                alert('Note content is empty. Cannot generate audio.');
                 return;
             }
-            await generate(noteId, noteContent, duration);
+            await generate(noteId, noteContent);
         } catch (error: any) {
-            alert(error.message || 'Failed to start podcast generation');
+            alert(error.message || 'Failed to start audio generation');
         }
     };
 
@@ -83,7 +83,7 @@ export default function PodcastGenerationModal({
                 <View style={styles.container}>
                     {/* Header */}
                     <View style={styles.header}>
-                        <Text style={styles.headerTitle}>Generate Podcast</Text>
+                        <Text style={styles.headerTitle}>Generate Audio</Text>
                         <TouchableOpacity
                             onPress={handleClose}
                             style={styles.closeButton}
@@ -103,11 +103,10 @@ export default function PodcastGenerationModal({
                                     color="#6366F1"
                                 />
                                 <Text style={styles.title}>
-                                    Convert to Podcast
+                                    Convert to Audio
                                 </Text>
                                 <Text style={styles.description}>
-                                    Transform your note into an AI-generated podcast
-                                    with two speakers discussing the content
+                                    Transform your note into AI-generated audio narration
                                 </Text>
 
                                 {!noteContent || noteContent.trim().length === 0 ? (
@@ -116,41 +115,22 @@ export default function PodcastGenerationModal({
                                         your note first.
                                     </Text>
                                 ) : (
-                                    <View style={styles.buttonContainer}>
-                                        <TouchableOpacity
-                                            style={[
-                                                styles.generateButton,
-                                                { backgroundColor: '#6366F1' },
-                                            ]}
-                                            onPress={() => handleGenerate('short')}
-                                        >
-                                            <Ionicons
-                                                name="play"
-                                                size={20}
-                                                color="#FFFFFF"
-                                            />
-                                            <Text style={styles.buttonText}>
-                                                Short (3-5 min)
-                                            </Text>
-                                        </TouchableOpacity>
-
-                                        <TouchableOpacity
-                                            style={[
-                                                styles.generateButton,
-                                                { backgroundColor: '#8B5CF6' },
-                                            ]}
-                                            onPress={() => handleGenerate('long')}
-                                        >
-                                            <Ionicons
-                                                name="play"
-                                                size={20}
-                                                color="#FFFFFF"
-                                            />
-                                            <Text style={styles.buttonText}>
-                                                Long (8-10 min)
-                                            </Text>
-                                        </TouchableOpacity>
-                                    </View>
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.generateButton,
+                                            { backgroundColor: '#6366F1', width: '100%' },
+                                        ]}
+                                        onPress={handleGenerate}
+                                    >
+                                        <Ionicons
+                                            name="play"
+                                            size={20}
+                                            color="#FFFFFF"
+                                        />
+                                        <Text style={styles.buttonText}>
+                                            Generate Audio
+                                        </Text>
+                                    </TouchableOpacity>
                                 )}
                             </View>
                         )}
@@ -172,10 +152,10 @@ export default function PodcastGenerationModal({
                                 </LinearGradient>
 
                                 <Text style={styles.title}>
-                                    Generating Your Podcast...
+                                    Generating Your Audio...
                                 </Text>
                                 <Text style={styles.description}>
-                                    This may take 30-120 seconds
+                                    This may take 5-15 seconds
                                 </Text>
 
                                 {/* Progress Bar */}
@@ -216,15 +196,15 @@ export default function PodcastGenerationModal({
                                 </View>
 
                                 <Text style={styles.title}>
-                                    Podcast Ready! 🎉
+                                    Audio Ready! 🎉
                                 </Text>
                                 <Text style={styles.description}>
-                                    Opening your podcast...
+                                    Opening your audio...
                                 </Text>
 
-                                <ActivityIndicator 
-                                    size="small" 
-                                    color="#10B981" 
+                                <ActivityIndicator
+                                    size="small"
+                                    color="#10B981"
                                     style={{ marginTop: 8 }}
                                 />
                             </View>
@@ -253,7 +233,7 @@ export default function PodcastGenerationModal({
                                     ]}
                                     onPress={() => {
                                         reset();
-                                        handleGenerate('short');
+                                        handleGenerate();
                                     }}
                                 >
                                     <Ionicons
@@ -354,10 +334,6 @@ const styles = StyleSheet.create({
         color: '#EF4444',
         textAlign: 'center',
         marginTop: 16,
-    },
-    buttonContainer: {
-        width: '100%',
-        gap: 12,
     },
     generateButton: {
         flexDirection: 'row',

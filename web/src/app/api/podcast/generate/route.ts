@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { prisma } from '@/lib/prisma';
-
-const PODCAST_API_URL = process.env.PODCAST_API_URL;
-const PODCAST_API_KEY = process.env.PODCAST_API_KEY;
+import { generateVoiceTranscript } from '@/lib/services/transcript-generator';
+import { getUnrealSpeechService } from '@/lib/services/unreal-speech';
+import { uploadThingAudioStorageService } from '@/lib/uploadthing';
 
 export async function POST(request: NextRequest) {
-    try {   
+    try {
         const userId = await getUserFromAuth(request);
         if (!userId) {
             return NextResponse.json(
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { noteId, noteContent, duration = 'short' } = await request.json();
+        const { noteId, noteContent } = await request.json();
 
         // Validate input
         if (!noteId || !noteContent) {
@@ -45,57 +45,113 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Check if podcast already exists for this note
+        const existingPodcast = await prisma.podcast.findFirst({
+            where: {
+                noteId,
+                status: 'COMPLETED'
+            },
+        });
+
+        if (existingPodcast) {
+            return NextResponse.json({
+                success: true,
+                jobId: existingPodcast.id,
+                podcastId: existingPodcast.id,
+                status: 'completed',
+                audioUrl: existingPodcast.audioUrl,
+                message: 'Podcast already exists',
+            });
+        }
+
         // Create initial database record
         const podcast = await prisma.podcast.create({
             data: {
                 noteId,
                 userId,
                 status: 'GENERATING',
-                progress: 0,
-                title: `Podcast: ${note.title}`,
-                description: `AI-generated podcast from note`,
+                progress: 10,
+                title: `Audio: ${note.title}`,
+                description: `AI-generated audio narration from note`,
             },
         });
 
-        // Call microservice async endpoint (returns instantly!)
-        const response = await fetch(`${PODCAST_API_URL}/generate/async`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': PODCAST_API_KEY!,
-            },
-            body: JSON.stringify({
-                noteId,
-                noteContent,
-                userId,
-                duration,
-            }),
-        });
+        try {
+            // Step 1: Generate voice-friendly transcript from notes
+            await prisma.podcast.update({
+                where: { id: podcast.id },
+                data: { progress: 20 },
+            });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || 'Failed to start podcast generation');
+            const transcriptResult = await generateVoiceTranscript(noteContent, note.title);
+
+            // Step 2: Generate audio using Unreal Speech
+            await prisma.podcast.update({
+                where: { id: podcast.id },
+                data: { progress: 50 },
+            });
+
+            const unrealService = getUnrealSpeechService();
+            const { audioBuffer } = await unrealService.generateAndDownloadAudio(
+                transcriptResult.transcript,
+                { VoiceId: 'Amy' }
+            );
+
+            // Step 3: Upload to UploadThing
+            await prisma.podcast.update({
+                where: { id: podcast.id },
+                data: { progress: 80 },
+            });
+
+            const uploadResult = await uploadThingAudioStorageService.uploadPodcastAudio(
+                audioBuffer,
+                {
+                    title: note.title,
+                    podcastId: podcast.id,
+                    duration: transcriptResult.estimatedDurationSeconds,
+                }
+            );
+
+            // Step 4: Update database with completed status
+            const completedPodcast = await prisma.podcast.update({
+                where: { id: podcast.id },
+                data: {
+                    status: 'COMPLETED',
+                    progress: 100,
+                    audioUrl: uploadResult.url,
+                    duration: transcriptResult.estimatedDurationSeconds,
+                    transcript: JSON.stringify([{ text: transcriptResult.transcript }]),
+                    completedAt: new Date(),
+                },
+            });
+
+            return NextResponse.json({
+                success: true,
+                jobId: podcast.id,
+                podcastId: podcast.id,
+                status: 'completed',
+                audioUrl: uploadResult.url,
+                audioDuration: transcriptResult.estimatedDurationSeconds,
+                message: 'Audio generated successfully',
+            });
+
+        } catch (generationError: any) {
+            // Mark as failed if generation errors
+            await prisma.podcast.update({
+                where: { id: podcast.id },
+                data: {
+                    status: 'FAILED',
+                    errorMessage: generationError.message || 'Generation failed',
+                },
+            });
+
+            throw generationError;
         }
 
-        const data = await response.json();
-
-        // Update podcast with jobId
-        await prisma.podcast.update({
-            where: { id: podcast.id },
-            data: { jobId: data.jobId },
-        });
-
-        return NextResponse.json({
-            success: true,
-            jobId: data.jobId,
-            podcastId: podcast.id,
-            status: data.status,
-            message: 'Podcast generation started',
-        });
     } catch (error: any) {
-        console.error('Generate podcast error:', error);
+        console.error('Generate audio error:', error);
         return NextResponse.json(
-            { error: error.message || 'Failed to generate podcast' },
+            { error: error.message || 'Failed to generate audio' },
             { status: 500 }
         );
     }
