@@ -51,22 +51,59 @@ export function AddLinkModal({
 
         try {
             const linkType = detectLinkType(linkInput);
-            const apiEndpoint = linkType === "youtube" 
-                ? "/api/youtube/process" 
-                : "/api/webpage/process";
 
-            const response = await fetch(apiEndpoint, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    url: linkInput,
-                    folderId: selectedFolderId,
-                }),
-            });
+            let result;
 
-            const result = await response.json();
+            if (linkType === "youtube") {
+                // Use /api/transcripts for YouTube (like mobile)
+                const transcriptResponse = await fetch("/api/transcripts", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: linkInput }),
+                });
+
+                const transcriptResult = await transcriptResponse.json();
+
+                if (!transcriptResponse.ok || !transcriptResult.success) {
+                    throw new Error(transcriptResult.error || "Failed to process YouTube video");
+                }
+
+                // Generate AI notes from transcript
+                const noteResponse = await fetch("/api/notes/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        transcriptId: transcriptResult.data.id,
+                        folderId: selectedFolderId,
+                    }),
+                });
+
+                const noteResult = await noteResponse.json();
+
+                result = {
+                    success: true,
+                    data: {
+                        transcript: transcriptResult.data,
+                        note: noteResult.success ? noteResult.data : null,
+                    },
+                };
+            } else {
+                // Use /api/webpage/process for webpages
+                const response = await fetch("/api/webpage/process", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        url: linkInput,
+                        folderId: selectedFolderId,
+                    }),
+                });
+
+                result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || result.message || "Failed to process webpage");
+                }
+            }
 
             if (currentTempId) {
                 removeLoadingNote(currentTempId);
@@ -75,22 +112,18 @@ export function AddLinkModal({
 
             await new Promise((resolve) => setTimeout(resolve, 200));
 
-            if (response.ok && result.success) {
-                onProcessComplete?.(result.data);
-                setLinkInput("");
-                setSelectedFolderId(null);
+            onProcessComplete?.(result.data);
+            setLinkInput("");
+            setSelectedFolderId(null);
 
-                const source = linkType === "youtube" ? "YouTube video" : "webpage";
-                toast.success(`🔗 ${source} processed successfully! Notes generated.`, {
-                    description: `Content extracted and notes created`,
-                    duration: 4000,
-                });
-            } else {
-                throw new Error(result.message || "Failed to process link");
-            }
+            const source = linkType === "youtube" ? "YouTube video" : "webpage";
+            toast.success(`🔗 ${source} processed successfully! Notes generated.`, {
+                description: `Content extracted and notes created`,
+                duration: 4000,
+            });
         } catch (error) {
             console.error("Error processing link:", error);
-            toast.error("Failed to process link. Please try again.");
+            toast.error(error instanceof Error ? error.message : "Failed to process link. Please try again.");
         } finally {
             if (currentTempId) {
                 removeLoadingNote(currentTempId);

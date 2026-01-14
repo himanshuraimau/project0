@@ -146,7 +146,8 @@ export class TranscriptService {
 
       return savedTranscript;
     } catch (error) {
-      throw new Error('Failed to process YouTube transcript');
+      console.error('Failed to process YouTube transcript:', error);
+      throw error instanceof Error ? error : new Error('Failed to process YouTube transcript');
     }
   }
 
