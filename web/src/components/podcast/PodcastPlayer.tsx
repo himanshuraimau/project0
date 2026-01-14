@@ -226,34 +226,6 @@ export function PodcastPlayer({
         {title}
       </h2>
 
-      {/* Speakers/Hosts */}
-      <div className="flex items-center justify-center gap-4 mb-5">
-        {speakers.map((speaker, index) => (
-          <React.Fragment key={index}>
-            <div className="flex flex-col items-center gap-2">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={speaker.avatar} alt={speaker.name} />
-                <AvatarFallback 
-                  className="flex items-center justify-center bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-                >
-                  {speaker.name.toLowerCase() === 'leo' ? (
-                    <User className="h-5 w-5" />
-                  ) : (
-                    <UserRound className="h-5 w-5" />
-                  )}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                {speaker.name}
-              </span>
-            </div>
-            {index < speakers.length - 1 && (
-              <X className="h-4 w-4 text-gray-400 dark:text-gray-600" />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
-
       {/* Error Message */}
       {audioError && (
         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
@@ -403,13 +375,6 @@ export function PodcastPlayer({
         <Download className="h-4 w-4" />
         Download Podcast
       </button>
-
-      {/* AI Input (Separate Component Below) */}
-      {onAskQuestion && (
-        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <PodcastAskInput onSubmit={onAskQuestion} />
-        </div>
-      )}
     </div>
   );
 }

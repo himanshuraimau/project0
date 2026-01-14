@@ -1,20 +1,26 @@
 /**
- * Unreal Speech API Service
+ * Unreal Speech API v8 Service
  * Text-to-voice using Unreal Speech v8 API
+ * Documentation: https://docs.unrealspeech.com
  */
 
 interface SpeechOptions {
-    Text: string;          // Up to 3,000 characters
-    VoiceId: string;       // Amy, Scarlett, Dan, Liv, Will
-    Bitrate?: string;      // 320k, 256k, 192k (default: 192k)
-    Speed?: string;        // -1.0 to 1.0 (default: 0)
-    Pitch?: string;        // 0.5 to 1.5 (default: 1)
-    TimestampType?: string; // word or sentence
+    Text: string;
+    VoiceId: string;
+    Bitrate?: string;      // 16k, 32k, 48k, 64k, 128k, 192k, 256k, 320k (default: 192k)
+    Speed?: number;        // -1.0 to 1.0 (default: 0)
+    Pitch?: number;        // 0.5 to 1.5 (default: 1.0)
+    TimestampType?: string; // 'word' or 'sentence' (default: 'sentence')
 }
 
 interface SpeechResponse {
+    CreationTime: string;
     OutputUri: string;
+    RequestCharacters: number;
+    TaskId: string;
+    TaskStatus: string;
     TimestampsUri?: string;
+    VoiceId: string;
 }
 
 const UNREAL_SPEECH_API_URL = 'https://api.v8.unrealspeech.com';
@@ -40,7 +46,7 @@ export class UnrealSpeechService {
     /**
      * Generate speech from text using the /speech endpoint
      * Best for text up to 3,000 characters
-     * Returns URLs to audio file
+     * Returns URLs to audio file and timestamps
      */
     async generateSpeech(text: string, options?: Partial<SpeechOptions>): Promise<SpeechResponse> {
         // Validate text length
@@ -54,12 +60,14 @@ export class UnrealSpeechService {
 
         const requestBody: SpeechOptions = {
             Text: text,
-            VoiceId: options?.VoiceId || 'Amy',
+            VoiceId: options?.VoiceId || 'Noah',
             Bitrate: options?.Bitrate || '192k',
-            Speed: options?.Speed || '0',
-            Pitch: options?.Pitch || '1',
+            Speed: options?.Speed ?? 0,
+            Pitch: options?.Pitch ?? 1.0,
             TimestampType: options?.TimestampType || 'sentence',
         };
+
+        console.log('Unreal Speech Request:', JSON.stringify(requestBody, null, 2));
 
         const response = await fetch(`${UNREAL_SPEECH_API_URL}/speech`, {
             method: 'POST',
@@ -97,13 +105,14 @@ export class UnrealSpeechService {
     async generateAndDownloadAudio(
         text: string,
         options?: Partial<SpeechOptions>
-    ): Promise<{ audioBuffer: Buffer; audioUrl: string }> {
+    ): Promise<{ audioBuffer: Buffer; audioUrl: string; response: SpeechResponse }> {
         const result = await this.generateSpeech(text, options);
         const audioBuffer = await this.downloadAudio(result.OutputUri);
 
         return {
             audioBuffer,
             audioUrl: result.OutputUri,
+            response: result,
         };
     }
 }

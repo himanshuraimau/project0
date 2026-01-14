@@ -3,7 +3,6 @@ import { getUserFromAuth } from '@/lib/auth-helper';
 import { prisma } from '@/lib/prisma';
 import { generateVoiceTranscript } from '@/lib/services/transcript-generator';
 import { getUnrealSpeechService } from '@/lib/services/unreal-speech';
-import { uploadThingAudioStorageService } from '@/lib/uploadthing';
 
 export async function POST(request: NextRequest) {
     try {
@@ -83,6 +82,7 @@ export async function POST(request: NextRequest) {
                 data: { progress: 20 },
             });
 
+
             const transcriptResult = await generateVoiceTranscript(noteContent, note.title);
 
             // Step 2: Generate audio using Unreal Speech
@@ -92,33 +92,24 @@ export async function POST(request: NextRequest) {
             });
 
             const unrealService = getUnrealSpeechService();
-            const { audioBuffer } = await unrealService.generateAndDownloadAudio(
+            const { audioUrl, response } = await unrealService.generateAndDownloadAudio(
                 transcriptResult.transcript,
-                { VoiceId: 'Amy' }
+                { VoiceId: 'Sierra' }
             );
 
-            // Step 3: Upload to UploadThing
+            // Step 3: Update database with completed status
+            // Note: Using Unreal Speech URL directly (expires in 90 days)
             await prisma.podcast.update({
                 where: { id: podcast.id },
-                data: { progress: 80 },
+                data: { progress: 90 },
             });
 
-            const uploadResult = await uploadThingAudioStorageService.uploadPodcastAudio(
-                audioBuffer,
-                {
-                    title: note.title,
-                    podcastId: podcast.id,
-                    duration: transcriptResult.estimatedDurationSeconds,
-                }
-            );
-
-            // Step 4: Update database with completed status
             const completedPodcast = await prisma.podcast.update({
                 where: { id: podcast.id },
                 data: {
                     status: 'COMPLETED',
                     progress: 100,
-                    audioUrl: uploadResult.url,
+                    audioUrl: audioUrl,
                     duration: transcriptResult.estimatedDurationSeconds,
                     transcript: JSON.stringify([{ text: transcriptResult.transcript }]),
                     completedAt: new Date(),
@@ -130,7 +121,7 @@ export async function POST(request: NextRequest) {
                 jobId: podcast.id,
                 podcastId: podcast.id,
                 status: 'completed',
-                audioUrl: uploadResult.url,
+                audioUrl: audioUrl,
                 audioDuration: transcriptResult.estimatedDurationSeconds,
                 message: 'Audio generated successfully',
             });

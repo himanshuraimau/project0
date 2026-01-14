@@ -17,6 +17,7 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
+  const [localGenerating, setLocalGenerating] = useState(false);
 
   const { job, isGenerating, generate, reset } = usePodcastGeneration();
 
@@ -40,6 +41,10 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
           );
 
           if (completedPodcast) {
+            const parsedTranscript = typeof completedPodcast.transcript === 'string'
+              ? JSON.parse(completedPodcast.transcript)
+              : completedPodcast.transcript;
+
             setPodcast({
               id: completedPodcast.id,
               noteId: completedPodcast.noteId,
@@ -47,8 +52,8 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
               description: completedPodcast.description,
               audioUrl: completedPodcast.audioUrl,
               duration: completedPodcast.duration || 0,
-              transcript: completedPodcast.transcript,
-              sections: parseSections(completedPodcast.transcript),
+              transcript: parsedTranscript,
+              sections: parseSections(parsedTranscript),
               status: completedPodcast.status,
               createdAt: new Date(completedPodcast.createdAt),
             });
@@ -148,9 +153,11 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
 
     try {
       setError(null);
+      setLocalGenerating(true);
       await generate(noteId, noteContent);
     } catch (err: any) {
       setError(err.message || 'Failed to generate audio');
+      setLocalGenerating(false);
     }
   };
 
@@ -215,64 +222,68 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
   // No podcast exists yet - show generation UI
   if (!podcast && !isGenerating && !job) {
     return (
-      <div className="max-w-2xl mx-auto p-8">
-        <div className="text-center space-y-6">
-          <div className="text-6xl mb-4">🎙️</div>
-          <h2 className="text-2xl font-semibold">Generate Audio Narration</h2>
-          <p className="text-muted-foreground">
-            Transform your note into an AI-generated audio narration
-          </p>
-
-          {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-700 dark:text-red-300">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5" />
-                <span>{error}</span>
-              </div>
-            </div>
-          )}
-
-          {!noteContent || noteContent.trim().length === 0 ? (
-            <p className="text-red-600 dark:text-red-400">
-              Note content is empty. Please add content to your note first.
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="max-w-2xl mx-auto p-8">
+          <div className="text-center space-y-6">
+            <div className="text-6xl mb-4">🎙️</div>
+            <h2 className="text-2xl font-semibold">Generate Audio Narration</h2>
+            <p className="text-muted-foreground">
+              Transform your note into an AI-generated audio narration
             </p>
-          ) : (
-            <div className="flex justify-center">
-              <Button
-                onClick={handleGenerate}
-                className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 px-8 py-6 text-lg"
-                size="lg"
-              >
-                Generate Audio
-              </Button>
-            </div>
-          )}
+
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-700 dark:text-red-300">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5" />
+                  <span>{error}</span>
+                </div>
+              </div>
+            )}
+
+            {!noteContent || noteContent.trim().length === 0 ? (
+              <p className="text-red-600 dark:text-red-400">
+                Note content is empty. Please add content to your note first.
+              </p>
+            ) : (
+              <div className="flex justify-center">
+                <Button
+                  onClick={handleGenerate}
+                  className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 px-8 py-6 text-lg"
+                  size="lg"
+                >
+                  Generate Audio
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
   }
 
   // Generating state
-  if (isGenerating && job) {
+  if ((isGenerating || localGenerating) && (job || localGenerating)) {
     return (
-      <div className="max-w-2xl mx-auto p-8">
-        <div className="text-center space-y-6">
-          <div className="text-6xl mb-4">🎵</div>
-          <h2 className="text-2xl font-semibold">Generating Your Podcast...</h2>
-          <p className="text-muted-foreground">
-            This may take 30-120 seconds. Feel free to navigate away.
-          </p>
-
-          <div className="space-y-2">
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
-              <div
-                className="h-full bg-gray-900 dark:bg-gray-100 transition-all duration-500"
-                style={{ width: `${job.progress || 0}%` }}
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {job.progress}% - {job.currentStep || 'Processing...'}
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="max-w-2xl mx-auto p-8">
+          <div className="text-center space-y-6">
+            <div className="text-6xl mb-4">🎵</div>
+            <h2 className="text-2xl font-semibold">Generating Your Audio...</h2>
+            <p className="text-muted-foreground">
+              This may take 10-30 seconds. Feel free to navigate away.
             </p>
+
+            <div className="space-y-2">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
+                <div
+                  className="h-full bg-gray-900 dark:bg-gray-100 transition-all duration-500"
+                  style={{ width: `${job?.progress || 10}%` }}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {job?.progress || 10}% - {job?.currentStep || 'Starting generation...'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -282,24 +293,26 @@ export function PodcastPage({ noteId, noteTitle = 'Untitled Note', noteContent }
   // Failed state
   if (job?.status === 'failed') {
     return (
-      <div className="max-w-2xl mx-auto p-8">
-        <div className="text-center space-y-6">
-          <div className="text-6xl mb-4">❌</div>
-          <h2 className="text-2xl font-semibold text-red-600 dark:text-red-400">
-            Generation Failed
-          </h2>
-          <p className="text-red-600 dark:text-red-400">
-            {job.error || 'An unknown error occurred'}
-          </p>
-          <Button
-            onClick={() => {
-              reset();
-              handleGenerate();
-            }}
-            className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
-          >
-            Try Again
-          </Button>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="max-w-2xl mx-auto p-8">
+          <div className="text-center space-y-6">
+            <div className="text-6xl mb-4">❌</div>
+            <h2 className="text-2xl font-semibold text-red-600 dark:text-red-400">
+              Generation Failed
+            </h2>
+            <p className="text-red-600 dark:text-red-400">
+              {job.error || 'An unknown error occurred'}
+            </p>
+            <Button
+              onClick={() => {
+                reset();
+                handleGenerate();
+              }}
+              className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
+            >
+              Try Again
+            </Button>
+          </div>
         </div>
       </div>
     );
