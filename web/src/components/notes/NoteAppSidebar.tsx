@@ -17,6 +17,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { UserControl } from "@/components/user-control";
 import { useSidebar } from "@/components/ui/sidebar";
+import { SubscriptionCard } from "@/components/shared/SubscriptionCard";
 
 interface NoteAppSidebarProps {
   className?: string;
@@ -31,9 +32,30 @@ export function NoteAppSidebar({ className, noteId }: NoteAppSidebarProps) {
   const [mounted, setMounted] = useState(false);
   const isCollapsed = state === "collapsed";
   const isDark = (resolvedTheme || theme) === "dark";
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Fetch subscription status
+  useEffect(() => {
+    async function checkSubscription() {
+      try {
+        const response = await fetch('/api/subscription/status');
+        if (response.ok) {
+          const data = await response.json();
+          const isActive = data.hasSubscription && data.access?.hasAccess;
+          setHasActiveSubscription(isActive);
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+      } finally {
+        setIsLoadingSubscription(false);
+      }
+    }
+    checkSubscription();
   }, []);
 
   const isChildPage = pathname !== `/notes/${noteId}`;
@@ -227,23 +249,11 @@ export function NoteAppSidebar({ className, noteId }: NoteAppSidebarProps) {
           )}
 
           {!isCollapsed && (
-            <div className="w-full max-w-sm dark-gradient-element p-4 rounded-[16px]">
-              <div className="mb-4">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-
-              <div className="mb-4">
-                <h3 className="text-white font-medium">Upgrade to Pro</h3>
-                <p className="text-blue-100 text-sm">Get unlimited access</p>
-              </div>
-
-              <a
-                href="/pricing"
-                className="flex items-center text-sm justify-center w-full bg-white text-blue-600 rounded-[8px] px-4 py-2 transition-all duration-200 cursor-pointer font-semibold hover:bg-blue-50 hover:shadow-lg"
-              >
-                Upgrade Now
-              </a>
-            </div>
+            <SubscriptionCard
+              hasActiveSubscription={hasActiveSubscription}
+              isLoading={isLoadingSubscription}
+              isDark={isDark}
+            />
           )}
 
           {!isCollapsed && (

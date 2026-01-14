@@ -12,10 +12,11 @@ import {
   Star,
   Zap,
 } from "lucide-react";
+import { SubscriptionCard } from "@/components/shared/SubscriptionCard";
 
 const SidebarContext = createContext({
   isCollapsed: false,
-  toggleSidebar: () => {},
+  toggleSidebar: () => { },
 });
 
 const useSidebar = () => useContext(SidebarContext);
@@ -127,7 +128,7 @@ export function SettingsSidebar({ className, activeItem = "profile", onItemClick
             <div className="border-b-[0.8px] border-[#F1F5F9] dark:border-[#212121] pb-6 mb-4">
               {/* Back to Dashboard with Collapsible Button */}
               <div className="flex items-center justify-between mb-6">
-                <Link 
+                <Link
                   href="/dashboard"
                   className="flex items-center gap-2"
                 >
@@ -145,7 +146,7 @@ export function SettingsSidebar({ className, activeItem = "profile", onItemClick
               </h2>
             </div>
           )}
-          
+
           {/* Collapsible Button when sidebar is collapsed */}
           {isCollapsed && (
             <div className="mb-4 flex justify-center">
@@ -164,7 +165,7 @@ export function SettingsSidebar({ className, activeItem = "profile", onItemClick
               {settingsNavItems.map((item) => {
                 const isActive = activeItem === item.id;
                 const Icon = item.icon;
-                
+
                 const content = (
                   <div
                     className={cn(
@@ -180,22 +181,21 @@ export function SettingsSidebar({ className, activeItem = "profile", onItemClick
                     {item.emoji ? (
                       <span className="text-[24px] leading-8">{item.emoji}</span>
                     ) : Icon ? (
-                      <Icon 
-                        className="w-5 h-5 shrink-0" 
+                      <Icon
+                        className="w-5 h-5 shrink-0"
                         strokeWidth={1.67}
-                        style={{ 
+                        style={{
                           color: isActive ? "#8200DB" : (item.iconColor || "#45556C"),
                           stroke: isActive ? "#8200DB" : (item.iconColor || "#45556C")
                         }}
                       />
                     ) : null}
                     {!isCollapsed && (
-                      <span 
-                        className={`text-[16px] leading-6 ${
-                          isActive 
-                            ? "text-[#8200DB] dark:text-purple-400" 
+                      <span
+                        className={`text-[16px] leading-6 ${isActive
+                            ? "text-[#8200DB] dark:text-purple-400"
                             : "text-[#101828] dark:text-neutral-300"
-                        }`}
+                          }`}
                       >
                         {item.title}
                       </span>
@@ -223,50 +223,14 @@ export function SettingsSidebar({ className, activeItem = "profile", onItemClick
             </ul>
           </nav>
 
-          {/* Upgrade/Premium Card */}
-          {!isCollapsed && !isLoadingSubscription && !hasActiveSubscription && (
+          {/* Subscription Card */}
+          {!isCollapsed && (
             <div className="mt-auto mb-4">
-              <div className="w-full dark-gradient-element p-4 rounded-[16px]">
-                <div className="mb-3">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-
-                <div className="mb-3">
-                  <h3 className="text-white font-medium text-[15px]">Upgrade to Pro</h3>
-                  <p className="text-blue-100 text-[13px]">Get unlimited access</p>
-                </div>
-
-                <a
-                  href="/pricing"
-                  className="flex items-center text-[13px] justify-center w-full bg-white text-blue-600 rounded-[8px] px-4 py-2 transition-all duration-200 cursor-pointer font-semibold hover:bg-blue-50 hover:shadow-lg"
-                >
-                  Upgrade Now
-                </a>
-              </div>
-            </div>
-          )}
-
-          {!isCollapsed && !isLoadingSubscription && hasActiveSubscription && (
-            <div className="mt-auto mb-4">
-              <div className="w-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 p-4 rounded-[16px]">
-                <div className="mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                    <span className="text-white text-xl">✨</span>
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <h3 className="text-[#0F172B] dark:text-white font-medium text-[15px]">Premium Active</h3>
-                  <p className="text-[#45556C] dark:text-neutral-400 text-[13px]">Enjoying unlimited access</p>
-                </div>
-
-                <a
-                  href="/settings/subscription"
-                  className="flex items-center text-[13px] justify-center w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-[8px] px-4 py-2 transition-all duration-200 cursor-pointer font-semibold hover:shadow-lg"
-                >
-                  Manage Plan
-                </a>
-              </div>
+              <SubscriptionCard
+                hasActiveSubscription={hasActiveSubscription}
+                isLoading={isLoadingSubscription}
+                isDark={false}
+              />
             </div>
           )}
 

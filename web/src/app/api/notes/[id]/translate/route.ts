@@ -210,36 +210,17 @@ export async function POST(
     // Translate the title
     const titleResult = await generateText({
       model,
-      prompt: `Translate the following educational note title to ${targetLanguage}. 
-Maintain the professional, educational tone and keep it concise. 
-Only return the translated title, no additional text or quotes.
-
-Title to translate: ${note.title}
-
-Translated title in ${targetLanguage}:`
+      prompt: `Translate this title to ${targetLanguage}: ${note.title}`
     });
 
     // Translate the content
     const contentResult = await generateText({
       model,
-      prompt: `You are a professional translator specializing in educational content. 
-Translate the following educational note from English to ${targetLanguage}.
+      prompt: `Translate the following text to ${targetLanguage}. Maintain all markdown formatting.
 
-TRANSLATION REQUIREMENTS:
-1. Maintain all markdown formatting (headers ##, lists, **bold**, *italic*, code blocks, etc.)
-2. Keep the professional, educational tone
-3. Preserve the document structure and hierarchy
-4. Translate technical terms accurately while maintaining their meaning
-5. Keep code examples, variable names, and technical identifiers unchanged
-6. Maintain the same level of detail and explanation quality
-7. Ensure cultural appropriateness for ${targetLanguage} speakers
-8. Keep links and URLs unchanged
-9. Preserve all special formatting like blockquotes (>), tables, etc.
-
-Content to translate:
 ${note.content}
 
-Translated content in ${targetLanguage} (maintain ALL markdown formatting):`
+Provide only the translation, maintaining the exact same markdown structure:`
     });
 
     const translatedTitle = titleResult.text.trim().replace(/^["'`]|["'`]$/g, '');
@@ -254,9 +235,19 @@ Translated content in ${targetLanguage} (maintain ALL markdown formatting):`
       throw new Error('Failed to generate valid content translation');
     }
 
-    // Save the translation
-    const translation = await prisma.noteTranslation.create({
-      data: {
+    // Save or update the translation using upsert
+    const translation = await prisma.noteTranslation.upsert({
+      where: {
+        noteId_language: {
+          noteId,
+          language
+        }
+      },
+      update: {
+        title: translatedTitle,
+        content: translatedContent
+      },
+      create: {
         noteId,
         language,
         title: translatedTitle,

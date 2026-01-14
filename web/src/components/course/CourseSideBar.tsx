@@ -25,6 +25,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { SubscriptionCard } from "@/components/shared/SubscriptionCard";
 
 const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600"],
@@ -123,8 +124,8 @@ function ChapterItem({
               isCompleted
                 ? "bg-green-500 text-white"
                 : isCurrentChapter
-                ? "bg-muted-foreground/10 text-black dark:text-white"
-                : "bg-muted-foreground/40 text-foreground"
+                  ? "bg-muted-foreground/10 text-black dark:text-white"
+                  : "bg-muted-foreground/40 text-foreground"
             )}
           >
             {chapterRoman}
@@ -164,9 +165,30 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
   const [mounted, setMounted] = useState(false);
   const isDark = (resolvedTheme || theme) === "dark";
   const { unitProgress } = useCourseProgress();
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Fetch subscription status
+  useEffect(() => {
+    async function checkSubscription() {
+      try {
+        const response = await fetch('/api/subscription/status');
+        if (response.ok) {
+          const data = await response.json();
+          const isActive = data.hasSubscription && data.access?.hasAccess;
+          setHasActiveSubscription(isActive);
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+      } finally {
+        setIsLoadingSubscription(false);
+      }
+    }
+    checkSubscription();
   }, []);
 
   return (
@@ -306,24 +328,13 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
           </div>
         )}
 
-        {/* PRO Upgrade Button */}
+        {/* Subscription Card */}
         {!isCollapsed && (
-          <Link
-            href="/pricing"
-            className="flex items-center justify-between w-full bg-black dark:bg-[#F3F3F3] text-primary-foreground rounded-sm px-4 py-3 transition-all duration-200 cursor-pointer text-base font-semibold"
-          >
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-white dark:text-black">
-                Upgrade to
-              </span>
-              <span className="bg-background text-foreground px-2 py-1 rounded-[0.4rem] text-sm font-bold">
-                PRO
-              </span>
-            </div>
-            <ArrowUpRight
-              className={cn("w-6 h-6", isDark ? "text-black" : "text-white")}
-            />
-          </Link>
+          <SubscriptionCard
+            hasActiveSubscription={hasActiveSubscription}
+            isLoading={isLoadingSubscription}
+            isDark={isDark}
+          />
         )}
       </SidebarFooter>
     </Sidebar>
