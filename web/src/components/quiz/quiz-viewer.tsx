@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   ChevronLeft,
   ChevronRight,
   Share2,
   Star,
-  Send,
   Check,
   X,
   Trophy,
@@ -25,7 +23,6 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
   const [showResults, setShowResults] = useState(false);
   const [reviewMode, setReviewMode] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [helpQuestion, setHelpQuestion] = useState("");
   const [startTime] = useState(Date.now());
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -116,14 +113,6 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
     setIsFavorite(!isFavorite);
   };
 
-  const handleAskQuestion = () => {
-    if (helpQuestion.trim()) {
-      // Handle AI question here
-      console.log('Question:', helpQuestion);
-      setHelpQuestion("");
-    }
-  };
-
   const calculateScore = () => {
     let correct = 0;
     quiz.forEach((question, index) => {
@@ -212,104 +201,104 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
         <div className="flex items-center justify-center">
           <Card className="max-w-2xl w-full rounded-2xl border-0 bg-white dark:bg-[#1A1A1A] shadow-[8px_8px_16px_rgba(0,0,0,0.1),-8px_-8px_16px_rgba(255,255,255,0.7)] dark:shadow-[8px_8px_16px_rgba(0,0,0,0.4),-8px_-8px_16px_rgba(255,255,255,0.02)]">
             <CardContent className="p-12 text-center space-y-6">
-            {/* Achievement Icon */}
-            <div className="flex justify-center mb-4">
-              <div className="w-20 h-20 rounded-2xl bg-black dark:bg-white/10 flex items-center justify-center">
-                <Trophy className="h-10 w-10 text-yellow-500" />
-              </div>
-            </div>
-
-            {/* Score Percentage */}
-            <div className="text-7xl font-bold text-green-500 mb-2">
-              {score.percentage}%
-            </div>
-
-            {/* Feedback Message */}
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Great job! You're making progress.
-            </p>
-
-            {/* Performance Breakdown Row */}
-            <div className="flex justify-center gap-8 py-6">
-              {/* Correct */}
-              <div className="flex flex-col items-center">
-                <div className="text-sm font-medium text-green-500 mb-1">Correct</div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {score.correct}/{score.total}
+              {/* Achievement Icon */}
+              <div className="flex justify-center mb-4">
+                <div className="w-20 h-20 rounded-2xl bg-black dark:bg-white/10 flex items-center justify-center">
+                  <Trophy className="h-10 w-10 text-yellow-500" />
                 </div>
               </div>
 
-              {/* Wrong */}
-              <div className="flex flex-col items-center">
-                <div className="text-sm font-medium text-red-500 mb-1">Wrong</div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {score.total - score.correct}/{score.total}
+              {/* Score Percentage */}
+              <div className="text-7xl font-bold text-green-500 mb-2">
+                {score.percentage}%
+              </div>
+
+              {/* Feedback Message */}
+              <p className="text-lg text-gray-600 dark:text-gray-400">
+                Great job! You're making progress.
+              </p>
+
+              {/* Performance Breakdown Row */}
+              <div className="flex justify-center gap-8 py-6">
+                {/* Correct */}
+                <div className="flex flex-col items-center">
+                  <div className="text-sm font-medium text-green-500 mb-1">Correct</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {score.correct}/{score.total}
+                  </div>
+                </div>
+
+                {/* Wrong */}
+                <div className="flex flex-col items-center">
+                  <div className="text-sm font-medium text-red-500 mb-1">Wrong</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {score.total - score.correct}/{score.total}
+                  </div>
+                </div>
+
+                {/* Time */}
+                <div className="flex flex-col items-center">
+                  <div className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Time
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {formatTime(elapsedTime)}
+                  </div>
                 </div>
               </div>
 
-              {/* Time */}
-              <div className="flex flex-col items-center">
-                <div className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  Time
-                </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {formatTime(elapsedTime)}
-                </div>
-              </div>
-            </div>
-
-            {/* Primary Action */}
-            <Button 
-              onClick={() => router.push(`/notes/${noteTitle}/quiz`)}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white text-base py-6 rounded-xl"
-            >
-              Create a new quiz
-            </Button>
-
-            {/* Secondary Actions */}
-            <div className="flex gap-3 pt-2">
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setReviewMode(true);
-                  setShowResults(false);
-                  setCurrentIndex(0);
-                }}
-                className="flex-1 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl py-5"
+              {/* Primary Action */}
+              <Button
+                onClick={() => router.push(`/notes/${noteTitle}/quiz`)}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white text-base py-6 rounded-xl"
               >
-                Review Answers
+                Create a new quiz
               </Button>
-              
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setCurrentIndex(0);
-                  setSelectedAnswers({});
-                  setShowResults(false);
-                  setReviewMode(false);
-                }}
-                className="flex-1 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl py-5"
-              >
-                Try Again
-              </Button>
-              
-              <Button 
-                variant="outline"
-                onClick={handleShare}
-                size="icon"
-                className="border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl w-14 h-14"
-              >
-                <Share2 className="h-5 w-5" />
-              </Button>
-            </div>
 
-            {/* Historical Reference */}
-            <p className="text-sm text-gray-500 dark:text-gray-600 pt-4">
-              Your best: 92%
-            </p>
-          </CardContent>
-        </Card>
+              {/* Secondary Actions */}
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setReviewMode(true);
+                    setShowResults(false);
+                    setCurrentIndex(0);
+                  }}
+                  className="flex-1 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl py-5"
+                >
+                  Review Answers
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentIndex(0);
+                    setSelectedAnswers({});
+                    setShowResults(false);
+                    setReviewMode(false);
+                  }}
+                  className="flex-1 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl py-5"
+                >
+                  Try Again
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={handleShare}
+                  size="icon"
+                  className="border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl w-14 h-14"
+                >
+                  <Share2 className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* Historical Reference */}
+              <p className="text-sm text-gray-500 dark:text-gray-600 pt-4">
+                Your best: 92%
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -324,82 +313,82 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
       <div className="pb-6 mb-6 border-b border-transparent" style={{
         boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
       }}>
-          {/* Breadcrumb with Actions */}
-          <nav className="mb-4">
-            <div className="flex items-center justify-between">
-              <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
-                <li>
-                  <button
-                    onClick={() => router.push('/dashboard')}
-                    className="hover:text-foreground transition-colors"
-                  >
-                    Notes
-                  </button>
-                </li>
-                <li>
-                  <span className="mx-2">&gt;</span>
-                </li>
-                <li className="text-foreground font-medium">
-                  Quiz
-                </li>
-              </ol>
-
-              {/* Share and Star Buttons */}
-              <div className="flex items-center gap-2 shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleShare}
-                  className="gap-2 rounded-none"
+        {/* Breadcrumb with Actions */}
+        <nav className="mb-4">
+          <div className="flex items-center justify-between">
+            <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
+              <li>
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className="hover:text-foreground transition-colors"
                 >
-                  <Share2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Share</span>
-                </Button>
+                  Notes
+                </button>
+              </li>
+              <li>
+                <span className="mx-2">&gt;</span>
+              </li>
+              <li className="text-foreground font-medium">
+                Quiz
+              </li>
+            </ol>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleToggleFavorite}
-                  className="text-yellow-500 hover:text-yellow-600 rounded-none"
-                >
-                  <Star
-                    className="h-5 w-5"
-                    fill={isFavorite ? "currentColor" : "none"}
-                  />
-                </Button>
-              </div>
+            {/* Share and Star Buttons */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShare}
+                className="gap-2 rounded-none"
+              >
+                <Share2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Share</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleToggleFavorite}
+                className="text-yellow-500 hover:text-yellow-600 rounded-none"
+              >
+                <Star
+                  className="h-5 w-5"
+                  fill={isFavorite ? "currentColor" : "none"}
+                />
+              </Button>
             </div>
-          </nav>
-
-          {/* Title */}
-          <div>
-            <div className="text-2xl text-purple-800 pb-2">Quiz for:</div>
-            <h1 className="text-[19px] font-bold text-foreground leading-tight">
-              {noteTitle || "Your Notes"}
-            </h1>
           </div>
+        </nav>
+
+        {/* Title */}
+        <div>
+          <div className="text-2xl text-purple-800 pb-2">Quiz for:</div>
+          <h1 className="text-[19px] font-bold text-foreground leading-tight">
+            {noteTitle || "Your Notes"}
+          </h1>
+        </div>
       </div>
 
       {/* Progress Indicator */}
       <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-[13px] text-muted-foreground">
-              {reviewMode ? "Review - " : ""}Question {currentIndex + 1} of {quiz.length}
-            </div>
-            {!reviewMode && (
-              <button className="text-[13px] text-accent hover:underline">
-                Hint
-              </button>
-            )}
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[13px] text-muted-foreground">
+            {reviewMode ? "Review - " : ""}Question {currentIndex + 1} of {quiz.length}
           </div>
-          <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-300 ${reviewMode ? 'bg-purple-500 dark:bg-purple-400' : 'bg-green-500 dark:bg-green-400'}`}
-              style={{
-                width: `${((currentIndex + 1) / quiz.length) * 100}%`,
-              }}
-            />
-          </div>
+          {!reviewMode && (
+            <button className="text-[13px] text-accent hover:underline">
+              Hint
+            </button>
+          )}
+        </div>
+        <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all duration-300 ${reviewMode ? 'bg-purple-500 dark:bg-purple-400' : 'bg-green-500 dark:bg-green-400'}`}
+            style={{
+              width: `${((currentIndex + 1) / quiz.length) * 100}%`,
+            }}
+          />
+        </div>
       </div>
 
       {/* Question and Chatbot Section */}
@@ -640,34 +629,6 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
               </div>
             </CardContent>
           </Card>
-
-          {/* Help / Assistant Section */}
-          <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 p-8 bg-white dark:bg-[#1A1A1A] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] mt-8">
-            <div className="mb-4">
-              <label className="text-base font-semibold text-foreground flex items-center gap-2">
-                <span className="text-2xl">💬</span>
-                Ask AI for help
-              </label>
-              <p className="text-sm text-muted-foreground mt-1">Get assistance with this question</p>
-            </div>
-            <div className="flex items-end gap-3">
-              <Input
-                placeholder="Type your question here…"
-                value={helpQuestion}
-                onChange={(e) => setHelpQuestion(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAskQuestion()}
-                className="flex-1 rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-12 px-4 text-base transition-colors"
-              />
-              <Button
-                size="icon"
-                onClick={handleAskQuestion}
-                disabled={!helpQuestion.trim()}
-                className="h-12 w-12 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
-              >
-                <Send className="h-5 w-5" color="white" />
-              </Button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

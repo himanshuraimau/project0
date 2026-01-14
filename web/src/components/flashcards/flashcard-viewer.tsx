@@ -133,131 +133,180 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   };
 
   return (
-    <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen">
-      <div className="max-w-[90%] pl-6">
-        {/* Header with Breadcrumb and Actions */}
-        <div className="mb-6 pb-6 border-b border-transparent" style={{
-          boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
-        }}>
-          {/* Breadcrumb with Actions */}
-          <nav className="mb-4">
-            <div className="flex items-center justify-between">
-              <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
-                <li>
-                  <button
-                    onClick={() => router.push('/dashboard')}
-                    className="hover:text-foreground transition-colors"
-                  >
-                    Notes
-                  </button>
-                </li>
-                <li>
-                  <span className="mx-2">&gt;</span>
-                </li>
-                <li className="text-foreground font-medium truncate max-w-[300px] sm:max-w-[500px]">
-                 Flashcards
-                </li>
-              </ol>
-
-              {/* Share and Star Buttons */}
-              <div className="flex items-center gap-2 shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleShare}
-                  className="gap-2 rounded-2xl"
+    <div className="px-20 py-6">
+      {/* Header with Breadcrumb and Actions */}
+      <div className="pb-6 mb-6 border-b border-transparent" style={{
+        boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
+      }}>
+        {/* Breadcrumb with Actions */}
+        <nav className="mb-4">
+          <div className="flex items-center justify-between">
+            <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
+              <li>
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className="hover:text-foreground transition-colors"
                 >
-                  <Share2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Share</span>
-                </Button>
+                  Notes
+                </button>
+              </li>
+              <li>
+                <span className="mx-2">&gt;</span>
+              </li>
+              <li className="text-foreground font-medium truncate max-w-[300px] sm:max-w-[500px]">
+                Flashcards
+              </li>
+            </ol>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleToggleFavorite}
-                  className="text-yellow-500 hover:text-yellow-600 rounded-none"
-                >
-                  <Star
-                    className="h-5 w-5"
-                    fill={isFavorite ? "currentColor" : "none"}
-                  />
-                </Button>
-              </div>
+            {/* Share and Star Buttons */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShare}
+                className="gap-2 rounded-2xl"
+              >
+                <Share2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Share</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleToggleFavorite}
+                className="text-yellow-500 hover:text-yellow-600 rounded-none"
+              >
+                <Star
+                  className="h-5 w-5"
+                  fill={isFavorite ? "currentColor" : "none"}
+                />
+              </Button>
             </div>
-          </nav>
-
-          {/* Title */}
-          <div>
-            <p className="text-purple-600 text-sm mb-1">Flashcards for:</p>
-            <h1 className="text-[19px] font-bold text-foreground leading-tight">
-              {noteTitle || "Flashcards"}
-            </h1>
           </div>
-        </div>
+        </nav>
 
-        {/* Progress Indicator */}
-        <div className="mb-2 max-w-7xl">
-          <div className="text-[13px] text-muted-foreground mb-2">
+        {/* Title */}
+        <div>
+          <div className="text-2xl text-purple-800 pb-2">Flashcards for:</div>
+          <h1 className="text-[19px] font-bold text-foreground leading-tight">
+            {noteTitle || "Flashcards"}
+          </h1>
+        </div>
+      </div>
+
+      {/* Progress Indicator */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[13px] text-muted-foreground">
             Card {currentIndex + 1} of {flashcards.length}
           </div>
-          <div className="w-full rounded-full overflow-hidden">
-            <div
-              className="h-full bg-accent transition-all duration-300"
-              style={{
-                width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
-              }}
-            />
-          </div>
         </div>
-
-        {/* Additional Progress Bar */}
-        <div className="mb-6 max-w-7xl">
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-purple-600 transition-all duration-300"
-              style={{
-                width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
-              }}
-            />
-          </div>
-        </div>
-
-      {/* Flashcard Container */}
-      <div className="flex flex-col justify-center items-center mb-6 max-w-7xl pt-10 pb-5 bg-card border border-black/20 rounded-2xl"
-        style={{ minHeight: '400px' }}>
-        
-        {sessionComplete ? (
-          <SessionComplete
-            totalCards={flashcards.length}
-            correctCards={gotRight.length}
-            incorrectCards={gotWrong.length}
-            onRestart={handleRestartSession}
-            onClose={handleCloseSession}
+        <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-purple-500 dark:bg-purple-400 transition-all duration-300"
+            style={{
+              width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
+            }}
           />
-        ) : (
-          <Card
-            className={`w-full max-w-[560px] my-8 py-8 pl-8 rounded-xl border border-black/20 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer ${showAnswer ? 'bg-[#E9D4FF]/20' : 'bg-white'}`}
-            onClick={handleFlip}
-          >
-            <CardContent className="flex flex-col items-center justify-center min-h-[240px] p-0">
-              <div className="text-center space-y-3 w-full">
-                <div className="text-[19px] font-medium leading-[1.5] text-foreground">
-                  {showAnswer ? currentFlashcard.answer : currentFlashcard.question}
+        </div>
+      </div>
+
+      {/* Flashcard Container with Stacked Deck Effect */}
+      <div className="pt-12 pb-8">
+        <div className="max-w-4xl mx-auto flex justify-center">
+
+          {sessionComplete ? (
+            <SessionComplete
+              totalCards={flashcards.length}
+              correctCards={gotRight.length}
+              incorrectCards={gotWrong.length}
+              onRestart={handleRestartSession}
+              onClose={handleCloseSession}
+            />
+          ) : (
+            <div className="relative" style={{ width: '560px', height: '300px', perspective: '1000px' }}>
+              {/* Background Stacked Cards */}
+              {flashcards.length - currentIndex - 1 >= 2 && (
+                <div
+                  className="absolute left-1/2 top-0 bg-white dark:bg-[#1A1A1A] border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-sm"
+                  style={{
+                    width: '560px',
+                    height: '300px',
+                    transform: 'translateX(-50%) scale(0.92) translateY(-16px)',
+                    opacity: 0.7,
+                    zIndex: -2,
+                  }}
+                />
+              )}
+              {flashcards.length - currentIndex - 1 >= 1 && (
+                <div
+                  className="absolute left-1/2 top-0 bg-white dark:bg-[#1A1A1A] border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-sm"
+                  style={{
+                    width: '560px',
+                    height: '300px',
+                    transform: 'translateX(-50%) scale(0.96) translateY(-8px)',
+                    opacity: 0.85,
+                    zIndex: -1,
+                  }}
+                />
+              )}
+
+              {/* Main Flashcard with 3D Flip */}
+              <div
+                className="absolute left-1/2 top-0 cursor-pointer"
+                style={{
+                  width: '560px',
+                  height: '300px',
+                  transformStyle: 'preserve-3d',
+                  transform: `translateX(-50%) ${showAnswer ? 'rotateY(180deg)' : 'rotateY(0deg)'}`,
+                  transition: 'transform 500ms cubic-bezier(0.4, 0.0, 0.2, 1)',
+                }}
+                onClick={handleFlip}
+              >
+                {/* Front of Card */}
+                <div
+                  className="absolute w-full h-full bg-white dark:bg-[#1A1A1A] border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-8 flex flex-col items-center justify-center"
+                  style={{
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                  }}
+                >
+                  <div className="text-center space-y-3 w-full">
+                    <div className="text-[19px] font-medium leading-[1.5] text-foreground">
+                      {currentFlashcard.question}
+                    </div>
+                  </div>
+
+                  {!showAnswer && (
+                    <div className="text-[13px] text-muted-foreground mt-3 opacity-60">
+                      Click or press space to flip
+                    </div>
+                  )}
+                </div>
+
+                {/* Back of Card */}
+                <div
+                  className="absolute w-full h-full bg-purple-50 dark:bg-purple-950/20 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-8 flex flex-col items-center justify-center"
+                  style={{
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                    transform: 'rotateY(180deg)',
+                  }}
+                >
+                  <div className="text-center space-y-3 w-full">
+                    <div className="text-[19px] font-medium leading-[1.5] text-foreground">
+                      {currentFlashcard.answer}
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              {!showAnswer && (
-                <div className="text-[13px] text-muted-foreground mt-3 opacity-60">
-                  Click or press space to flip
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Bottom Action Controls */}
-      <div className="flex flex-col items-center mt-6 max-w-7xl pl-6">{!sessionComplete && (
+      <div className="flex flex-col items-center mt-6 max-w-4xl mx-auto">{!sessionComplete && (
         <div className="flex items-center gap-3">
           {/* Previous Arrow */}
           <Button
@@ -298,16 +347,7 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
-        )}
-
-        {/* Footer Utility */}
-        {!sessionComplete && (
-          <button className="text-xs text-muted-foreground mt-4 hover:underline">
-            Report a problem
-          </button>
-        )}
-      </div>
-      </div>
+      )}
       </div>
     </div>
   );

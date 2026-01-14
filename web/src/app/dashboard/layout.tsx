@@ -29,8 +29,8 @@ interface CourseData {
 function DashboardContent({ children }: { children: React.ReactNode }) {
 
   return (
-    <div className="flex-1 min-h-screen overflow-x-hidden p-5">
-      <div className="w-full max-w mx-auto px-4 sm:px-6 lg:px-8">{children}</div>
+    <div className="flex-1 min-h-screen overflow-x-hidden p-3 sm:p-5">
+      <div className="w-full max-w mx-auto px-2 sm:px-4 lg:px-8">{children}</div>
     </div>
   );
 }
@@ -39,22 +39,21 @@ function DashboardMain({ children }: { children: React.ReactNode }) {
   const { searchQuery, setSearchQuery } = useDashboardRefresh();
   const pathname = usePathname();
   const isDashboardHome = pathname === "/dashboard";
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <SidebarInset className="flex h-screen flex-col flex-1 overflow-x-hidden">
       <header
-        className={`bg-[#F9FAFB] dark:bg-[#171717]  ${
-          isDashboardHome ? "" : ""
-        }`}
+        className={`bg-[#F9FAFB] dark:bg-[#171717]  ${isDashboardHome ? "" : ""
+          }`}
       >
         <div
-          className={`flex p-5 border-b border-neutral-200 dark:border-[#212121] items-center justify-between max-w-full ${
-            isDashboardHome ? "" : "mb-0"
-          }`}
+          className={`flex flex-col sm:flex-row p-3 sm:p-5 border-b border-neutral-200 dark:border-[#212121] items-start sm:items-center justify-between gap-3 sm:gap-0 max-w-full ${isDashboardHome ? "" : "mb-0"
+            }`}
         >
-          <div className="flex items-center gap-3 shrink">
+          <div className="flex items-center gap-3 shrink w-full sm:w-auto">
             {isDashboardHome && (
-              <p className="text-[16px] leading-4 tracking-[-3%] font-medium dark:text-white text-black pl-4">
+              <p className="text-[16px] leading-4 tracking-[-3%] font-medium dark:text-white text-black sm:pl-4">
                 Welcome back!
               </p>
             )}
@@ -65,13 +64,13 @@ function DashboardMain({ children }: { children: React.ReactNode }) {
               placeholder="Search notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-[32px] max-w-[290px]  border-none bg-neutral-100 dark:bg-[#1e1e1e] rounded-[6px] text-sm text-[#606060] placeholder:text-[#606060]"
+              className="h-[32px] w-full sm:max-w-[290px] border-none bg-neutral-100 dark:bg-[#1e1e1e] rounded-[6px] text-sm text-[#606060] placeholder:text-[#606060]"
             />
           )}
         </div>
       </header>
 
-      <main className="flex-1 bg-white dark:bg-[#171717] overflow-x-hidden">
+      <main className="flex-1 bg-white dark:bg-[#171717] overflow-x-hidden overflow-y-auto">
         <DashboardContent>{children}</DashboardContent>
       </main>
     </SidebarInset>
@@ -142,7 +141,7 @@ export default function DashboardLayout({
       if (hasStatus || hasSubscriptionId) {
         router.replace(window.location.pathname);
       }
-    } catch (e) {}
+    } catch (e) { }
   }, [router]);
 
   return (
@@ -156,7 +155,9 @@ export default function DashboardLayout({
           children
         ) : (
           <div className={`flex min-h-screen w-full ${inter.className}`}>
-            <AppSidebar />
+            <div className="hidden lg:block">
+              <AppSidebar />
+            </div>
             <DashboardMain>{children}</DashboardMain>
           </div>
         )}

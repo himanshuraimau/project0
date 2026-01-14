@@ -23,7 +23,7 @@ import { UserControl } from "@/components/user-control";
 
 const SidebarContext = createContext({
   isCollapsed: false,
-  toggleSidebar: () => {},
+  toggleSidebar: () => { },
 });
 
 const useSidebar = () => useContext(SidebarContext);
@@ -45,7 +45,6 @@ const dashboardItems = [
     icon: Youtube,
     href: "/dashboard/generate-course",
   },
-  { title: "How to use", icon: HelpCircle, href: "/dashboard/how-to-use" },
   { title: "Support", icon: Headphones, href: "/dashboard/support" },
   { title: "Settings", icon: Settings, href: "/settings" },
 ];
@@ -264,21 +263,19 @@ export function AppSidebar({ className }: AppSidebarProps) {
             )}
 
             {!isCollapsed && !isLoadingSubscription && hasActiveSubscription && (
-              <div className="w-full max-w-sm bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 p-4 rounded-[16px]">
-                <div className="mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                    <span className="text-white text-xl">✨</span>
+              <div className="w-full max-w-sm bg-white dark:bg-[#202020] border border-neutral-200 dark:border-[#2A2A2A] p-4 rounded-[16px]">
+                <div className="mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <h3 className="text-foreground font-semibold text-sm">Premium Active</h3>
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <h3 className="text-foreground font-medium">Premium Active</h3>
-                  <p className="text-muted-foreground text-sm">Enjoying unlimited access</p>
-                </div>
+                <p className="text-muted-foreground text-sm mb-4">Enjoying unlimited access</p>
 
                 <a
                   href="/settings/subscription"
-                  className="flex items-center text-sm justify-center w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-[8px] px-4 py-2 transition-all duration-200 cursor-pointer font-semibold hover:shadow-lg"
+                  className="flex items-center text-sm justify-center w-full bg-neutral-100 dark:bg-[#2A2A2A] text-foreground rounded-[8px] px-4 py-2.5 transition-all duration-200 cursor-pointer font-medium hover:bg-neutral-200 dark:hover:bg-[#303030]"
                 >
                   Manage Plan
                 </a>
