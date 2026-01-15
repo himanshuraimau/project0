@@ -165,12 +165,12 @@ export default function NoteHubPage() {
           </Button>
         </div>
       </div>
-      <hr className="border-t border-black/10 my-3 mb-7" />
+      <hr className="border-t border-black/10 dark:border-white/10 my-3 mb-7" />
 
       {/* Main Content Area: Left 60% + Right 40% */}
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Left Column: Action Grid + Note Preview - 60% */}
-        <div className={cn("flex-1 space-y-6 border border-black/20 rounded-2xl p-3", !isChatbotMinimized && "lg:w-[60%]")}>
+        <div className={cn("flex-1 space-y-6 border border-black/20 dark:border-white/20 rounded-2xl p-3", !isChatbotMinimized && "lg:w-[60%]")}>
 
           {/* Action Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-4 py-4">
