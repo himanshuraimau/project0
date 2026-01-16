@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useNotes } from "@/hooks/use-notes";
 import { Note } from "@/lib/types";
-import { NoteDetailSkeleton } from "@/components/notes/notes-skeleton";
+import LoadingScreen from "@/components/LoadingScreen";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -43,11 +43,7 @@ export function NoteProvider({ children }: { children: React.ReactNode }) {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen w-full bg-background">
-        <NoteDetailSkeleton />
-      </div>
-    );
+    return <LoadingScreen title="Loading Note" />;
   }
 
   if (error || !note) {
