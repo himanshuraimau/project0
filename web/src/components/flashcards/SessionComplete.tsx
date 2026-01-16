@@ -104,13 +104,13 @@ export const SessionComplete: React.FC<SessionCompleteProps> = ({
           </h3>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
-              <span className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0" />
+              <span className="w-2 h-2 bg-purple-600 rounded-full mt-2 shrink-0" />
               <span className="text-gray-700 text-sm">
                 <span className="font-medium">Study Time:</span> You've reviewed all {totalCards} flashcards in this session
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
+              <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 shrink-0" />
               <span className="text-gray-700 text-sm">
                 <span className="font-medium">Retention Rate:</span> {accuracy}% accuracy shows {accuracy >= 70 ? 'excellent' : accuracy >= 50 ? 'good' : 'developing'} understanding
               </span>

@@ -220,7 +220,7 @@ export function UnitsGenerationStep({
                   key={unit.id}
                   className="flex items-center border-none bg-card space-x-3 p-3 border rounded-md hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">
+                  <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">
                     {index + 1}
                   </div>
 

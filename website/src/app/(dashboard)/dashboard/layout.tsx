@@ -79,7 +79,7 @@ function DashboardMain({ children }: { children: React.ReactNode }) {
           </div>
           {/* Search Control - Only show on /dashboard home */}
           {isDashboardHome && (
-            <div className="relative min-w-md flex-shrink-0 ml-4">
+            <div className="relative min-w-md shrink-0 ml-4">
               <Input
                 placeholder="Search notes..."
                 value={searchQuery}

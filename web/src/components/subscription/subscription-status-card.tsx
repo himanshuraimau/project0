@@ -187,7 +187,7 @@ export function SubscriptionStatusCard() {
       <div className="space-y-8">
         {access.isTrial && access.daysRemaining !== null && (
           <div className="neomorphic-inset rounded-2xl p-6 flex items-start gap-4">
-            <Clock className="h-6 w-6 text-blue-500 mt-0.5 flex-shrink-0" />
+            <Clock className="h-6 w-6 text-blue-500 mt-0.5 shrink-0" />
             <div>
               <p className="font-medium text-lg">Free Trial Active</p>
               <p className="text-base text-muted-foreground">
@@ -247,7 +247,7 @@ export function SubscriptionStatusCard() {
 
         {access.hasAccess && (
           <div className="neomorphic-inset rounded-2xl p-8 flex items-start gap-5">
-            <CheckCircle2 className="h-7 w-7 text-green-500 mt-0.5 flex-shrink-0" />
+            <CheckCircle2 className="h-7 w-7 text-green-500 mt-0.5 shrink-0" />
             <div>
               <p className="font-medium text-lg">Full Access Active</p>
               <p className="text-lg text-muted-foreground">

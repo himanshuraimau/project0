@@ -19,7 +19,7 @@ export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
         )}
       >
         <div className="flex items-center gap-2 w-full">
-          <div className="size-14 rounded-full neomorphic-icon flex items-center justify-center flex-shrink-0 transition-colors duration-200 group-hover:bg-accent/20">
+          <div className="size-14 rounded-full neomorphic-icon flex items-center justify-center shrink-0 transition-colors duration-200 group-hover:bg-accent/20">
             <BookOpen className="size-8 text-accent" />
           </div>
           <div className="flex-1 text-left">

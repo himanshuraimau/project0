@@ -175,7 +175,7 @@ export function NoteAppSidebar({ className, noteId }: NoteAppSidebarProps) {
               isCollapsed ? "justify-center" : "gap-3"
             )}
           >
-            <ArrowLeft className="size-[18px] flex-shrink-0" />
+            <ArrowLeft className="size-[18px] shrink-0" />
             {!isCollapsed && (
               <span className="leading-5 text-[16px] font-normal">
                 {isChildPage ? "Back to Notes" : "Dashboard"}
@@ -208,7 +208,7 @@ export function NoteAppSidebar({ className, noteId }: NoteAppSidebarProps) {
                           : "text-neutral-500 dark:text-[#909090] hover:bg-neutral-100/50 dark:hover:bg-[#202020]/50"
                       )}
                     >
-                      <Icon className="size-[18px] flex-shrink-0" />
+                      <Icon className="size-[18px] shrink-0" />
                       {!isCollapsed && (
                         <span className="leading-5 text-[16px] font-normal">
                           {item.title}
@@ -236,9 +236,9 @@ export function NoteAppSidebar({ className, noteId }: NoteAppSidebarProps) {
                 {mounted && (
                   <>
                     {isDark ? (
-                      <Sun className="w-5 h-5 flex-shrink-0" />
+                      <Sun className="w-5 h-5 shrink-0" />
                     ) : (
-                      <Moon className="w-5 h-5 flex-shrink-0" />
+                      <Moon className="w-5 h-5 shrink-0" />
                     )}
                     <span>Switch mode</span>
                   </>

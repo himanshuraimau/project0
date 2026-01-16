@@ -466,7 +466,7 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
                         disabled={reviewMode}
                       >
                         {/* Circular Label Badge */}
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-400">
+                        <div className="shrink-0 w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-400">
                           {optionLabels[index]}
                         </div>
                         {/* Option Text */}
@@ -475,12 +475,12 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
                         </div>
                         {/* Icon (only for selected options) */}
                         {showIcon && iconType === 'check' && (
-                          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                          <div className="shrink-0 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
                             <Check className="h-4 w-4 text-white" />
                           </div>
                         )}
                         {showIcon && iconType === 'cross' && (
-                          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
+                          <div className="shrink-0 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
                             <X className="h-4 w-4 text-white" />
                           </div>
                         )}
@@ -550,7 +550,7 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
                           className={containerClass}
                           disabled={reviewMode}
                         >
-                          <div className="flex-shrink-0 w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-400">
+                          <div className="shrink-0 w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-400">
                             {value ? 'T' : 'F'}
                           </div>
                           <div className={`flex-1 text-left text-[15px] leading-[1.4] ${textColor}`}>
@@ -558,12 +558,12 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
                           </div>
                           {/* Icon (only for selected options) */}
                           {showIcon && iconType === 'check' && (
-                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                            <div className="shrink-0 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
                               <Check className="h-4 w-4 text-white" />
                             </div>
                           )}
                           {showIcon && iconType === 'cross' && (
-                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
+                            <div className="shrink-0 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
                               <X className="h-4 w-4 text-white" />
                             </div>
                           )}

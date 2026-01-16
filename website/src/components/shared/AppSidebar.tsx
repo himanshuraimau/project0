@@ -134,7 +134,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                           isCollapsed ? "justify-center w-full" : "w-full"
                         )}
                       >
-                        <Icon className="w-5 h-5 flex-shrink-0" />
+                        <Icon className="w-5 h-5 shrink-0" />
                         {!isCollapsed && (
                           <span className="text-base font-semibold truncate">
                             {item.title}
@@ -164,9 +164,9 @@ export function AppSidebar({ className }: AppSidebarProps) {
               {mounted && (
                 <>
                   {isDark ? (
-                    <Sun className="w-5 h-5 flex-shrink-0" />
+                    <Sun className="w-5 h-5 shrink-0" />
                   ) : (
-                    <Moon className="w-5 h-5 flex-shrink-0" />
+                    <Moon className="w-5 h-5 shrink-0" />
                   )}
                   <span>Switch mode</span>
                 </>

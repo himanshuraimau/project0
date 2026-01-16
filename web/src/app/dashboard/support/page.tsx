@@ -157,7 +157,7 @@ export default async function SupportPage() {
         <div className="rounded-3xl p-8 neomorphic">
           <h2 className="text-2xl font-bold text-foreground mb-6">Support Email</h2>
           <div className="flex items-start gap-4 p-6 bg-muted/30 rounded-2xl">
-            <Mail className="h-6 w-6 text-accent flex-shrink-0 mt-1" />
+            <Mail className="h-6 w-6 text-accent shrink-0 mt-1" />
             <div>
               <p className="font-medium text-foreground mb-2">support@project0.com</p>
               <p className="text-muted-foreground text-sm">

@@ -156,7 +156,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   return (
     <div className="rounded-lg border border-red-200 bg-red-50 p-4">
       <div className="flex items-start space-x-3">
-        <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+        <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
         <div className="flex-1">
           <h3 className="text-sm font-medium text-red-800 mb-2">
             Component Error

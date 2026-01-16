@@ -145,7 +145,7 @@ export function NoteCard({ note, onUpdate }: NoteCardProps) {
             <div className="flex items-center gap-4 flex-1 min-w-0">
               {/* Source Icon */}
               <div
-                className={`${getIconBackgroundStyle()} text-white p-4 flex-shrink-0 rounded-[14px]`}
+                className={`${getIconBackgroundStyle()} text-white p-4 shrink-0 rounded-[14px]`}
               >
                 {getSourceIcon()}
               </div>

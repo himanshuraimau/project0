@@ -57,11 +57,11 @@ export function CoursePageContent({
           >
             Dashboard
           </Link>
-          <ChevronRight className="h-4 w-4 mx-2 flex-shrink-0" />
+          <ChevronRight className="h-4 w-4 mx-2 shrink-0" />
           <span className="text-foreground font-medium truncate">{course.name}</span>
-          <ChevronRight className="h-4 w-4 mx-2 flex-shrink-0" />
+          <ChevronRight className="h-4 w-4 mx-2 shrink-0" />
           <span className="truncate">Unit {unitIndex + 1}</span>
-          <ChevronRight className="h-4 w-4 mx-2 flex-shrink-0" />
+          <ChevronRight className="h-4 w-4 mx-2 shrink-0" />
           <span className="text-foreground font-medium">Chapter {chapterIndex + 1}</span>
         </nav>
 

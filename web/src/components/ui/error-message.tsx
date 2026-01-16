@@ -55,7 +55,7 @@ export function ErrorMessage({
 
   return (
     <div className={`${baseClasses} ${severityClasses[severity]} ${className}`}>
-      <AlertCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+      <AlertCircle className={`w-5 h-5 shrink-0 mt-0.5 ${
         severity === 'warning' ? 'text-amber-600' : 'text-red-600'
       }`} />
       
@@ -150,7 +150,7 @@ export function InlineErrorMessage({
 }: Pick<ErrorMessageProps, 'error' | 'onRetry' | 'isRetrying' | 'className'>) {
   return (
     <div className={`flex items-center space-x-2 text-sm text-red-600 ${className}`}>
-      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+      <AlertCircle className="w-4 h-4 shrink-0" />
       <span className="flex-1">{error.userMessage}</span>
       {error.retryable && onRetry && (
         <Button

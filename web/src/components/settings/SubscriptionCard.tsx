@@ -178,7 +178,7 @@ export function SubscriptionCard() {
 
           {/* Logo */}
           <div 
-            className="flex-shrink-0 w-12 h-12 rounded-[10px]"
+            className="shrink-0 w-12 h-12 rounded-[10px]"
             style={{
               background: 'linear-gradient(135deg, #9810FA 0%, #155DFC 100%)'
             }}
