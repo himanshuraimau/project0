@@ -45,8 +45,8 @@ export default function TranscriptPage() {
   }, [note?.transcriptId]);
 
   return (
-    <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen px-8 pt-6 pb-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full bg-white dark:bg-[#0A0A0A] min-h-screen px-20 py-6">
+      <div className="max-w-[1600px] mx-auto">
         {/* Document Identity Bar */}
         <div
           className="mb-6 pb-6 border-b border-transparent"
@@ -184,7 +184,7 @@ export default function TranscriptPage() {
         </div>
 
         {/* Main Content Container */}
-        <div className="max-w-[900px] mx-auto bg-white dark:bg-card border border-border rounded-xl shadow-sm p-8">
+        <div className="max-w-[80%] mx-auto bg-white dark:bg-card border border-border rounded-xl shadow-sm p-8">
           {transcriptLoading && (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
