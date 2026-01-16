@@ -17,7 +17,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ title = "Creating your qu
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-[#F4F5FA] dark:bg-[#1a1a2e] h-screen w-screen flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-[#F4F5FA] dark:bg-black h-screen w-screen flex justify-center items-center z-50">
       <div className="text-center flex flex-col items-center">
         {/* Mascot Image */}
         <div className="mb-6">
