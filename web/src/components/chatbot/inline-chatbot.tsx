@@ -245,8 +245,8 @@ export default function InlineChatbot({
                     <AvatarFallback 
                       className={cn(
                         message.role === "user" 
-                          ? "bg-gradient-to-br from-blue-500 to-blue-700 text-white" 
-                          : "bg-gradient-to-br from-purple-500 to-purple-700 text-white"
+                          ? "bg-linear-to-br from-blue-500 to-blue-700 text-white" 
+                          : "bg-linear-to-br from-purple-500 to-purple-700 text-white"
                       )}
                     >
                       {message.role === "user" ? (
@@ -263,7 +263,7 @@ export default function InlineChatbot({
                     message.role === "user" ? "items-end" : "items-start"
                   )}>
                     <div className={cn(
-                      "rounded-2xl px-4 py-3 max-w-full break-words shadow-sm",
+                      "rounded-2xl px-4 py-3 max-w-full wrap-break-words shadow-sm",
                       message.role === "user"
                         ? "bg-purple-600 text-white rounded-br-sm"
                         : "bg-gray-100 dark:bg-gray-800 text-foreground rounded-bl-sm border border-gray-200 dark:border-gray-700"
