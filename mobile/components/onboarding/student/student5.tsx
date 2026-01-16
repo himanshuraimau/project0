@@ -48,7 +48,7 @@ export default function Student5() {
       </View>
 
       <ScrollView style={styles.scrollContent} contentContainerStyle={styles.content}>
-        <Text style={styles.context}>Personalizing Jellinote for you...</Text>
+        <Text style={styles.context}>Personalizing Flinote for you...</Text>
         <Text style={styles.title}>What's your main goal?</Text>
 
         <View style={styles.options}>

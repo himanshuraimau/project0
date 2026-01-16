@@ -327,7 +327,7 @@ export default function SignIn() {
               className="text-2xl font-medium leading-relaxed"
               style={{ color: colors.text }}
             >
-              &ldquo;JelliNote completely transformed how I study. The AI clarity and {isDark ? 'dark mode' : 'light mode'} focus is unmatched.&rdquo;
+              &ldquo;Flinote completely transformed how I study. The AI clarity and {isDark ? 'dark mode' : 'light mode'} focus is unmatched.&rdquo;
             </div>
             <footer className="text-sm">
               <div 

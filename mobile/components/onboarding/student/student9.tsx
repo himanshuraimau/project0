@@ -14,7 +14,7 @@ export default function Student9() {
   const params = useLocalSearchParams()
   const currentGpa = parseFloat(params.currentGpa as string) || 3.8
   const goalGpa = parseFloat(params.goalGpa as string) || 3.8
-  const [activeChart, setActiveChart] = useState<'jellinote' | 'self-study'>('jellinote')
+  const [activeChart, setActiveChart] = useState<'Flinote' | 'self-study'>('Flinote')
 
   const chartWidth = 281.02
   const chartHeight = 192
@@ -24,8 +24,8 @@ export default function Student9() {
   // Scale: 0 GPA at y=192, 10 GPA at y=0
   const gpaToY = (gpa: number) => chartHeight - (gpa / 10) * chartHeight
 
-  // Create 5 points for Jellinote (goal GPA progression - student8)
-  const jellinotePoints = [
+  // Create 5 points for Flinote (goal GPA progression - student8)
+  const FlinotePoints = [
     { x: 0, y: gpaToY(currentGpa) },
     { x: 60, y: gpaToY(currentGpa + (goalGpa - currentGpa) * 0.25) },
     { x: 120, y: gpaToY(currentGpa + (goalGpa - currentGpa) * 0.5) },
@@ -43,7 +43,7 @@ export default function Student9() {
   ]
 
   // Convert data points to SVG polyline points
-  const jellinotePolyline = jellinotePoints
+  const FlinotePolyline = FlinotePoints
     .map(point => `${(point.x / 240) * chartWidth},${point.y}`)
     .join(' ')
 
@@ -86,11 +86,11 @@ export default function Student9() {
             <Text style={styles.cardTitle}>Your GPA</Text>
             <View style={styles.badges}>
               <TouchableOpacity
-                onPress={() => setActiveChart('jellinote')}
-                style={activeChart === 'jellinote' ? styles.badgePurple : styles.badgeGrey}
+                onPress={() => setActiveChart('Flinote')}
+                style={activeChart === 'Flinote' ? styles.badgePurple : styles.badgeGrey}
               >
-                <Text style={activeChart === 'jellinote' ? styles.badgePurpleText : styles.badgeGreyText}>
-                  with Jellinote
+                <Text style={activeChart === 'Flinote' ? styles.badgePurpleText : styles.badgeGreyText}>
+                  with Flinote
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -119,11 +119,11 @@ export default function Student9() {
                 />
               ))}
 
-              {/* Jellinote line - purple when active, grey when inactive */}
+              {/* Flinote line - purple when active, grey when inactive */}
               <Polyline
-                points={jellinotePolyline}
+                points={FlinotePolyline}
                 fill="none"
-                stroke={activeChart === 'jellinote' ? '#7C3AED' : '#D1D1D6'}
+                stroke={activeChart === 'Flinote' ? '#7C3AED' : '#D1D1D6'}
                 strokeWidth="4.02"
                 strokeLinecap="round"
                 strokeLinejoin="round"

@@ -200,7 +200,7 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
               <div>
                 <img
                   src="/logo.png"
-                  alt="JelliNote AI"
+                  alt="Flinote"
                   className="h-10 w-auto rounded-md transition-opacity duration-200 opacity-100 group-hover:opacity-0 visible group-hover:invisible"
                 />
               </div>
@@ -211,13 +211,13 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
               <div>
                 <img
                   src="/logo.png"
-                  alt="JelliNote AI"
+                  alt="Flinote"
                   className="h-10 w-auto mr-2 rounded-md"
                 />
               </div>
               <div className={`text-foreground flex-1 ${jakarta.className}`}>
                 <div className="text-lg font-semibold leading-5">
-                  JelliNote AI
+                  Flinote
                 </div>
                 <div className="text-sm text-muted-foreground font-medium leading-4">
                   Smart Notes

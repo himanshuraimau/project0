@@ -57,7 +57,7 @@ export default function Student1() {
 
       <View style={styles.content}>
         <View>
-          <Text style={styles.context}>Personalizing Jellinote for you...</Text>
+          <Text style={styles.context}>Personalizing Flinote for you...</Text>
           <Text style={styles.title}>Where are you in school?</Text>
         </View>
 

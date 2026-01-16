@@ -50,8 +50,8 @@ export default function Support() {
           answer: 'Yes! We offer family plans that allow multiple users to share a subscription. Family plans support up to 6 users and include all premium features for each member.',
         },
         {
-          id: 'gift-jellinote',
-          question: 'Gift jellinote?',
+          id: 'gift-Flinote',
+          question: 'Gift Flinote?',
           answer: 'Absolutely! You can purchase gift subscriptions for friends, family, or colleagues. Gift subscriptions can be purchased for 1, 3, 6, or 12 months and can be redeemed at any time.',
         },
         {

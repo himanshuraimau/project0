@@ -122,7 +122,7 @@ export function CTA() {
           className="text-xl leading-relaxed mb-12 max-w-2xl mx-auto"
           style={{ color: colors.textMuted }}
         >
-          Join thousands of students who have revolutionized their learning with JelliNote AI. Start creating, sharing, and mastering your notes today.
+          Join thousands of students who have revolutionized their learning with Flinote. Start creating, sharing, and mastering your notes today.
         </p>
 
         {/* CTA Buttons */}

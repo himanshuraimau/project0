@@ -52,8 +52,8 @@ export default function Administrator2() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Jellinote for you...</Text>
-        <Text style={styles.title}>What would you like Jellinote to help you with?</Text>
+        <Text style={styles.context}>Personalizing Flinote for you...</Text>
+        <Text style={styles.title}>What would you like Flinote to help you with?</Text>
 
         <View style={styles.options}>
           {OPTIONS.map((o) => (

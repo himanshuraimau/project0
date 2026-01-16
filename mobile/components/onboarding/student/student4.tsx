@@ -51,7 +51,7 @@ export default function Student4() {
 
       <ScrollView style={styles.scrollContent} contentContainerStyle={styles.content}>
         <Text style={styles.title}>You're in good company!</Text>
-        <Text style={styles.subtitle}>Thousands of students and math students use Jellinote to:</Text>
+        <Text style={styles.subtitle}>Thousands of students and math students use Flinote to:</Text>
 
         <View style={styles.bullets}>
           {BULLETS.map((b, i) => (

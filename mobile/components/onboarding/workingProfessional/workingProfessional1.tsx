@@ -91,7 +91,7 @@ export default function WorkingProfessional() {
         >
 
           <View style={styles.headerContainer}>
-            <Text style={styles.subHeading}>Personalizing Jellinote for you...</Text>
+            <Text style={styles.subHeading}>Personalizing Flinote for you...</Text>
             <Text style={styles.mainHeading}>What field do you work in?</Text>
           </View>
 

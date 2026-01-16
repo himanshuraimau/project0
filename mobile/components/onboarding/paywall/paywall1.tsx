@@ -20,7 +20,7 @@ export default function Paywall1() {
         <Text style={styles.title}>Back-to-school offer</Text>
 
         <Text style={styles.description}>
-          Try Jellinote <Text style={styles.freeHighlight}>free</Text> for 3 days.
+          Try Flinote <Text style={styles.freeHighlight}>free</Text> for 3 days.
         </Text>
 
         <View style={styles.featureRow}>

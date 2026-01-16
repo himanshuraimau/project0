@@ -134,7 +134,7 @@ export function Features() {
             className="text-xl leading-relaxed"
             style={{ color: colors.textMuted }}
           >
-            JelliNote AI combines cutting-edge AI technology with intuitive design to transform how you learn.
+            Flinote combines cutting-edge AI technology with intuitive design to transform how you learn.
           </p>
         </div>
 
@@ -393,7 +393,7 @@ export function Features() {
         >
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold mb-4" style={{ color: colors.textPrimary }}>
-              Why Students Choose JelliNote AI
+              Why Students Choose Flinote
             </h3>
             <p className="text-base" style={{ color: colors.textMuted }}>
               Built to remove friction so you can focus on learning.

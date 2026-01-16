@@ -60,8 +60,8 @@ export default function WorkinProfessional3() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.contextText}>Personalizing Jellinote for you...</Text>
-        <Text style={styles.question}>What do you want Jellinote to help with?</Text>
+        <Text style={styles.contextText}>Personalizing Flinote for you...</Text>
+        <Text style={styles.question}>What do you want Flinote to help with?</Text>
 
         <View style={styles.options}>
           {options.map((o) => (

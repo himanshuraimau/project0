@@ -109,7 +109,7 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
         id: 'administrator',
         emoji: '🏛️',
         title: 'Administrator',
-        description: 'Trying Jellinote for my school/district',
+        description: 'Trying Flinote for my school/district',
         gradientColors: ['#4FC3F7', '#00BCD4'],
       },
     ]
@@ -158,7 +158,7 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
         {/* Header */}
         <View style={styles.headerContainer}>
           <Text style={styles.subHeading}>
-            Personalizing Jellinote for you...
+            Personalizing Flinote for you...
           </Text>
           <Text style={styles.mainHeading}>Which best describes you?</Text>
         </View>

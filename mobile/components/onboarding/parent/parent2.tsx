@@ -41,8 +41,8 @@ export default function Parent2() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Jellinote for you...</Text>
-        <Text style={styles.title}>What brings you to Jellinote?</Text>
+        <Text style={styles.context}>Personalizing Flinote for you...</Text>
+        <Text style={styles.title}>What brings you to Flinote?</Text>
 
         <View style={styles.options}>
           {OPTIONS.map((o) => (

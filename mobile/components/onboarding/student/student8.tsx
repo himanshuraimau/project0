@@ -67,7 +67,7 @@ export default function Student8() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Jellinote for you...</Text>
+        <Text style={styles.context}>Personalizing Flinote for you...</Text>
         <Text style={styles.title}>What is your goal GPA?</Text>
 
         <View style={styles.gpaWrap}>

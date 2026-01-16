@@ -8,7 +8,7 @@ import en from '@/locales/en.json'
 import hi from '@/locales/hi.json'
 import es from '@/locales/es.json'
 
-const LANGUAGE_STORAGE_KEY = '@jellinote_language'
+const LANGUAGE_STORAGE_KEY = '@Flinote_language'
 
 // Available languages
 export const LANGUAGES = {

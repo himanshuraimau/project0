@@ -170,7 +170,7 @@ export default function Settings() {
                 style={styles.logoContainer}
                 resizeMode="contain"
               />
-              <Text style={styles.title}>{t('common.jellinote')}</Text>
+              <Text style={styles.title}>{t('common.Flinote')}</Text>
             </View>
             <TouchableOpacity
               style={styles.settingsButton}

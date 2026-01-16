@@ -75,7 +75,7 @@ export default function Student7() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Jellinote for you...</Text>
+        <Text style={styles.context}>Personalizing Flinote for you...</Text>
         <Text style={styles.title}>What's your current GPA?</Text>
         <Text style={styles.subtitle}>Not sure? A close estimate is fine. You can skip.</Text>
 
