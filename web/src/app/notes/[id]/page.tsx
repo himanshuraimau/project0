@@ -32,6 +32,7 @@ const DynamicInlineChatbot = dynamic(
 
 import { TranslateModal } from "@/components/notes/TranslateModal";
 import { LanguageCode } from "@/lib/types";
+import LoadingScreen from "@/components/LoadingScreen";
 
 export default function NoteHubPage() {
   const { note } = useNoteContext();
@@ -41,6 +42,7 @@ export default function NoteHubPage() {
   const [isTranslateModalOpen, setIsTranslateModalOpen] = useState(false);
   const [translatedContent, setTranslatedContent] = useState<string | null>(null);
   const [currentLang, setCurrentLang] = useState<LanguageCode | 'en'>('en');
+  const [isEditLoading, setIsEditLoading] = useState(false);
 
   // Fetch translated content when lang param changes
   useEffect(() => {
@@ -73,13 +75,24 @@ export default function NoteHubPage() {
     }
   }, [searchParams, note]);
 
+  const handleEditNote = () => {
+    setIsEditLoading(true);
+    setTimeout(() => {
+      router.push(`/notes/${note.id}/edit`);
+    }, 1500);
+  };
+
   if (!note) return null;
+
+  if (isEditLoading) {
+    return <LoadingScreen title="Loading Editor" />;
+  }
 
   const actions = [
     {
       label: "Edit Note",
       icon: Edit,
-      href: `/notes/${note.id}/edit`,
+      onClick: handleEditNote,
       color: "bg-[#FF8904]",
       bgColor: "bg-[#FF8904] dark:bg-[#FF8904]",
       textColor: "text-white"
