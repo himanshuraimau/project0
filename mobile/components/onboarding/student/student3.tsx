@@ -58,7 +58,7 @@ export default function Student3() {
       </View>
 
       <ScrollView style={styles.scrollContent} contentContainerStyle={styles.content}>
-        <Text style={styles.context}>Personalizing Jellinote for you...</Text>
+        <Text style={styles.context}>Personalizing Flinote for you...</Text>
         <Text style={styles.title}>What is your major or primary area of study?</Text>
 
         <View style={styles.options}>

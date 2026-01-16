@@ -119,9 +119,9 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
       <View style={[styles.scrollView, styles.contentContainer]}>
         {/* Title Section */}
         <View style={styles.titleContainer}>
-          <Text style={styles.subTitle}>Personalizing Jellinote for you...</Text>
+          <Text style={styles.subTitle}>Personalizing Flinote for you...</Text>
           <Text style={styles.mainTitle}>
-            Which part of Jellinote will help you most?
+            Which part of Flinote will help you most?
           </Text>
         </View>
 

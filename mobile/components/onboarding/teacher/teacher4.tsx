@@ -64,7 +64,7 @@ export default function Teacher4() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Jellinote for you...</Text>
+        <Text style={styles.context}>Personalizing Flinote for you...</Text>
         <Text style={styles.title}>Do you want us to focus on a class or an exam?</Text>
 
         <View style={styles.options}>

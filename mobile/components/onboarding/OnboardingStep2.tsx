@@ -140,9 +140,9 @@ export default function OnboardingStep2({ onContinue }: OnboardingStep2Props) {
         {/* Header */}
         <View style={styles.headerContainer}>
           <Text style={styles.subHeading}>
-            Personalizing Jellinote for you...
+            Personalizing Flinote for you...
           </Text>
-          <Text style={styles.mainHeading}>Who will use Jellinote?</Text>
+          <Text style={styles.mainHeading}>Who will use Flinote?</Text>
         </View>
 
         {/* Empty space in the middle */}

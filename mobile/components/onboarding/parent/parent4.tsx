@@ -46,7 +46,7 @@ export default function Parent4() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Jellinote for you...</Text>
+        <Text style={styles.context}>Personalizing Flinote for you...</Text>
         <Text style={styles.title}>You're in the right place.</Text>
 
         <TestimonialCard

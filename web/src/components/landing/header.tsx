@@ -60,7 +60,7 @@ export function Header() {
           />
 
           <span className="text-lg font-bold tracking-tight text-foreground/90 group-hover:text-foreground transition-colors">
-            JelliNote
+            Flinote
             <span className="text-muted-foreground font-normal">AI</span>
           </span>
         </Link>

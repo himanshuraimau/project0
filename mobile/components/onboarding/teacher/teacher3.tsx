@@ -58,7 +58,7 @@ export default function Teacher3() {
 
       <View style={styles.content}>
         {/* Contextual Text */}
-        <Text style={styles.contextText}>Personalizing Jellinote for you...</Text>
+        <Text style={styles.contextText}>Personalizing Flinote for you...</Text>
 
         {/* Main Title */}
         <Text style={styles.mainTitle}>You're in the right place.</Text>

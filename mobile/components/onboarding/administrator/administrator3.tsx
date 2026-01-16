@@ -46,13 +46,13 @@ export default function Administrator3() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Jellinote for you...</Text>
+        <Text style={styles.context}>Personalizing Flinote for you...</Text>
         <Text style={styles.title}>You're in the right place.</Text>
 
         <TestimonialCard
           name="Josh berk"
           title="head of school"
-          quote="Jellinote keeps my all notes organized. I walk away with clean summaries, follow-ups, and no missed details. Even from the busiest days"
+          quote="Flinote keeps my all notes organized. I walk away with clean summaries, follow-ups, and no missed details. Even from the busiest days"
           stars={5}
         />
       </View>

@@ -418,7 +418,7 @@ export default function SignUp() {
               className="text-lg leading-relaxed"
               style={{ color: colors.textMuted }}
             >
-              Join 10,000+ students who are saving 10+ hours a week using JelliNote&apos;s AI summaries and quizzes.
+              Join 10,000+ students who are saving 10+ hours a week using Flinote&apos;s AI summaries and quizzes.
             </p>
             
             <div className="mt-8 flex justify-center gap-2">

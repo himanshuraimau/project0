@@ -197,7 +197,7 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
 
         {/* Title Section */}
         <View style={styles.titleContainer}>
-          <Text style={styles.subTitle}>Personalizing Jellinote for you...</Text>
+          <Text style={styles.subTitle}>Personalizing Flinote for you...</Text>
           <Text style={styles.mainTitle}>
             How much time do you want to study each day?
           </Text>

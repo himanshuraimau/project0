@@ -55,7 +55,7 @@ export function Footer() {
               >
                <Image
                 src="/logo.png"
-                alt="JelliNote logo"
+                alt="Flinote logo"
                 width={32}
                 height={32}
                 style={{ objectFit: "contain" }}
@@ -63,7 +63,7 @@ export function Footer() {
               />
               </div>
               <span className="font-bold text-xl" style={{ color: colors.textPrimary }}>
-                JelliNote
+                Flinote
               </span>
             </div>
             <p className="text-sm mb-4 max-w-xs" style={{ color: colors.textMuted }}>
@@ -108,7 +108,7 @@ export function Footer() {
           style={{ borderColor: colors.border }}
         >
           <p className="text-sm" style={{ color: colors.textMuted }}>
-            © {new Date().getFullYear()} JelliNote AI. All rights reserved.
+            © {new Date().getFullYear()} Flinote. All rights reserved.
           </p>
           <div className="flex gap-4">
             {[{

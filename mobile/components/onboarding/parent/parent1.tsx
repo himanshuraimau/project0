@@ -36,7 +36,7 @@ export default function Parent1() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>You're in the right place.</Text>
         <Text style={styles.subtitle}>
-          Join thousands of Parents using Jellinote to:
+          Join thousands of Parents using Flinote to:
         </Text>
 
         <View style={styles.features}>

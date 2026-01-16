@@ -68,7 +68,7 @@ export default function Teacher2() {
 
       <View style={styles.content}>
         {/* Main Question */}
-        <Text style={styles.mainQuestion}>What would you like Jellinote to help you with?</Text>
+        <Text style={styles.mainQuestion}>What would you like Flinote to help you with?</Text>
 
         {/* Options Container */}
         <View style={styles.optionsContainer}>

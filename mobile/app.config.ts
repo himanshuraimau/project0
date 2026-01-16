@@ -2,11 +2,11 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
     ...config,
-    name: "Jellinote AI",
+    name: "Flinote",
     slug: "mobile",
     version: "1.0.0",
     orientation: "portrait",
-    scheme: "jellinote",
+    scheme: "Flinote",
     icon: "./assets/images/main-logo.png",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,

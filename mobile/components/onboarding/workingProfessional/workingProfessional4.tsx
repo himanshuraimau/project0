@@ -45,7 +45,7 @@ export default function WorkingProfessional4() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.contextText}>Personalizing Jellinote for you...</Text>
+        <Text style={styles.contextText}>Personalizing Flinote for you...</Text>
         <Text style={styles.title}>You're in the right place.</Text>
 
         <View style={styles.cardContainer}>
@@ -66,7 +66,7 @@ export default function WorkingProfessional4() {
               </View>
 
               <Text style={styles.quote}>
-                "Jellinote made me more productive within weeks. I can focus fully on work and still walk away with perfect notes."
+                "Flinote made me more productive within weeks. I can focus fully on work and still walk away with perfect notes."
               </Text>
             </View>
           </View>

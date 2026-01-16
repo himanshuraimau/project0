@@ -154,7 +154,7 @@ export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
         {/* Header */}
         <View style={styles.headerContainer}>
           <Text style={styles.subHeadingOnboarding}>
-            Personalizing Jellinote for you...
+            Personalizing Flinote for you...
           </Text>
           <Text style={styles.mainHeadingOnboarding}>
             Where did you find us?

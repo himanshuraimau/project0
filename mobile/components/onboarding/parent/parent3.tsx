@@ -40,8 +40,8 @@ export default function Parent3() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Jellinote for you...</Text>
-        <Text style={styles.title}>Who is Jellinote for?</Text>
+        <Text style={styles.context}>Personalizing Flinote for you...</Text>
+        <Text style={styles.title}>Who is Flinote for?</Text>
 
         <View style={styles.options}>
           {OPTIONS.map((o) => (
