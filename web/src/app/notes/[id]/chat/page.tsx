@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import LoadingScreen from "@/components/LoadingScreen";
 import dynamic from "next/dynamic";
 
 const DynamicInlineChatbot = dynamic(
@@ -13,6 +14,20 @@ const DynamicInlineChatbot = dynamic(
 export default function ChatPage() {
   const params = useParams();
   const noteId = params.id as string;
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Show loading screen briefly when page loads
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen title="Chat with Note" />;
+  }
 
   return (
     <Card className="bg-card h-[calc(100vh-100px)] mx-4 my-4 flex flex-col border border-black/20 dark:border-white/20 rounded-3xl">
