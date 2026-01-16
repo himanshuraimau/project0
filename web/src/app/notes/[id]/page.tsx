@@ -44,6 +44,7 @@ export default function NoteHubPage() {
   const [currentLang, setCurrentLang] = useState<LanguageCode | 'en'>('en');
   const [isEditLoading, setIsEditLoading] = useState(false);
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
+  const [isPodcastLoading, setIsPodcastLoading] = useState(false);
 
   // Fetch translated content when lang param changes
   useEffect(() => {
@@ -92,6 +93,14 @@ export default function NoteHubPage() {
     }, 1500);
   };
 
+  const handlePodcast = () => {
+    if (!note) return;
+    setIsPodcastLoading(true);
+    setTimeout(() => {
+      router.push(`/notes/${note.id}/podcast`);
+    }, 1500);
+  };
+
   if (!note) return null;
 
   if (isEditLoading) {
@@ -100,6 +109,10 @@ export default function NoteHubPage() {
 
   if (isTranscriptLoading) {
     return <LoadingScreen title="Loading Transcript" />;
+  }
+
+  if (isPodcastLoading) {
+    return <LoadingScreen title="Loading Podcast" />;
   }
 
   const actions = [
@@ -138,7 +151,7 @@ export default function NoteHubPage() {
     {
       label: "Podcast",
       icon: Zap,
-      href: `/notes/${note.id}/podcast`,
+      onClick: handlePodcast,
       color: "bg-[#51A2FF]",
       bgColor: "bg-[#51A2FF] dark:bg-[#51A2FF]",
       textColor: "text-white"
