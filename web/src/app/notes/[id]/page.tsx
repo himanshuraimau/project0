@@ -32,7 +32,6 @@ const DynamicInlineChatbot = dynamic(
 
 import { TranslateModal } from "@/components/notes/TranslateModal";
 import { LanguageCode } from "@/lib/types";
-import LoadingScreen from "@/components/LoadingScreen";
 
 export default function NoteHubPage() {
   const { note } = useNoteContext();
@@ -42,8 +41,6 @@ export default function NoteHubPage() {
   const [isTranslateModalOpen, setIsTranslateModalOpen] = useState(false);
   const [translatedContent, setTranslatedContent] = useState<string | null>(null);
   const [currentLang, setCurrentLang] = useState<LanguageCode | 'en'>('en');
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingTitle, setLoadingTitle] = useState('Processing');
 
   // Fetch translated content when lang param changes
   useEffect(() => {
@@ -77,20 +74,6 @@ export default function NoteHubPage() {
   }, [searchParams, note]);
 
   if (!note) return null;
-
-  const handleActionClick = (action: typeof actions[0]) => {
-    if (action.onClick) {
-      action.onClick();
-    } else if (action.href) {
-      // Set loading title based on action
-      setLoadingTitle(action.label);
-      setIsLoading(true);
-      // Navigate after showing loading screen
-      setTimeout(() => {
-        router.push(action.href!);
-      }, 1500);
-    }
-  };
 
   const actions = [
     {
@@ -198,7 +181,7 @@ export default function NoteHubPage() {
                   "border-0 shadow-sm cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-md group rounded-3xl",
                   action.bgColor
                 )}
-                onClick={() => handleActionClick(action)}
+                onClick={() => action.onClick ? action.onClick() : router.push(action.href!)}
               >
                 <CardContent className="py-1 px-3 flex items-center justify-start h-28 relative overflow-hidden">
                   <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -282,9 +265,6 @@ export default function NoteHubPage() {
         isOpen={isTranslateModalOpen}
         onClose={() => setIsTranslateModalOpen(false)}
       />
-
-      {/* Loading Screen */}
-      {isLoading && <LoadingScreen title={loadingTitle} />}
     </div>
   );
 }
