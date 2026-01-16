@@ -165,14 +165,22 @@ export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
       // Clone SVG to avoid modifying the original
       const clonedSvg = svgElement.cloneNode(true) as SVGSVGElement;
 
-      // Get dimensions
-      const svgRect = svgElement.getBoundingClientRect();
-      const width = svgRect.width;
-      const height = svgRect.height;
+      // Get the actual bounding box of the entire mindmap content
+      const mainGroup = svgElement.querySelector('g[transform]') as SVGGraphicsElement;
+      if (!mainGroup) {
+        toast.error('No mindmap content found');
+        return;
+      }
+
+      const bbox = mainGroup.getBBox();
+      const padding = 40; // Add padding around the mindmap
+      const width = bbox.width + (padding * 2);
+      const height = bbox.height + (padding * 2);
 
       // Set explicit dimensions on the cloned SVG
       clonedSvg.setAttribute('width', String(width));
       clonedSvg.setAttribute('height', String(height));
+      clonedSvg.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${width} ${height}`);
       clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
 
