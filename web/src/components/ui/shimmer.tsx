@@ -44,7 +44,7 @@ export function NoteCardShimmer() {
             </div>
 
             {/* Right section - Action Buttons */}
-            <div className="flex flex-col gap-2 flex-shrink-0">
+            <div className="flex flex-col gap-2 shrink-0">
               <div className="h-8 w-16 shimmer-element rounded-full"></div>
               <div className="h-8 w-18 shimmer-element rounded-full"></div>
             </div>
@@ -65,7 +65,7 @@ export function FolderCardShimmer() {
             {/* Left section - Icon and Content */}
             <div className="flex items-start gap-4 flex-1 min-w-0">
               {/* Folder Icon */}
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="h-[52px] w-[52px] shimmer-element rounded-md"></div>
               </div>
               

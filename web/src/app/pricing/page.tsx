@@ -98,7 +98,7 @@ export default function PricingPage() {
         </div>
 
         {/* Right Side - Pricing or Subscription Card */}
-        <div className="w-[500px] flex-shrink-0">
+        <div className="w-[500px] shrink-0">
           {/* Pricing Section - Only show if no subscription */}
           {!loading && !hasSubscription && (
             <motion.div 

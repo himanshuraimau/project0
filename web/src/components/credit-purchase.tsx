@@ -143,20 +143,20 @@ export function CreditPurchase({ currentCredits = 0 }: CreditPurchaseProps) {
               {/* Features */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
-                  <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <CheckIcon className="h-4 w-4 text-green-500 shrink-0" />
                   <span>Create {plan.credits} notes</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <CheckIcon className="h-4 w-4 text-green-500 shrink-0" />
                   <span>Generate {plan.credits} quizzes</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <CheckIcon className="h-4 w-4 text-green-500 shrink-0" />
                   <span>Create {plan.credits} flashcard sets</span>
                 </div>
                 {plan.id === 'enterprise' && (
                   <div className="flex items-center gap-2 text-sm">
-                    <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="h-4 w-4 text-green-500 shrink-0" />
                     <span>Priority support</span>
                   </div>
                 )}

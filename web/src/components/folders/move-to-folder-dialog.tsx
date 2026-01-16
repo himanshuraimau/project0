@@ -111,7 +111,7 @@ export function MoveToFolderDialog({
                   >
                     <div
                       className={`
-                      flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center
+                      shrink-0 h-10 w-10 rounded-lg flex items-center justify-center
                       ${
                         selectedFolderId === null
                           ? "bg-primary/20"
@@ -134,7 +134,7 @@ export function MoveToFolderDialog({
                       </p>
                     </div>
                     {selectedFolderId === null && (
-                      <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                      <Check className="h-5 w-5 text-primary shrink-0" />
                     )}
                   </button>
 
@@ -154,7 +154,7 @@ export function MoveToFolderDialog({
                       `}
                     >
                       <div
-                        className="flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center"
+                        className="shrink-0 h-10 w-10 rounded-lg flex items-center justify-center"
                         style={{
                           backgroundColor: folder.color
                             ? `${folder.color}20`
@@ -176,7 +176,7 @@ export function MoveToFolderDialog({
                         </p>
                       </div>
                       {selectedFolderId === folder.id && (
-                        <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                        <Check className="h-5 w-5 text-primary shrink-0" />
                       )}
                     </button>
                   ))}

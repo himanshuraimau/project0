@@ -101,7 +101,7 @@ export function FolderDetailView({ folderId }: FolderDetailViewProps) {
         <div className="flex items-start gap-4">
           {/* Folder Icon */}
           <div
-            className="neomorphic flex-shrink-0 p-4 rounded-xl"
+            className="neomorphic shrink-0 p-4 rounded-xl"
             style={{
               backgroundColor: folder.color
                 ? `${folder.color}15`

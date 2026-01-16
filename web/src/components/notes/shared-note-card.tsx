@@ -37,7 +37,7 @@ export function SharedNoteCard({ note }: SharedNoteCardProps) {
           {/* Left section - Icon and Content */}
           <div className="flex items-center gap-6 flex-1 min-w-0">
             {/* Icon */}
-            <div className="neomorphic flex-shrink-0 text-muted-foreground p-3 rounded-md">
+            <div className="neomorphic shrink-0 text-muted-foreground p-3 rounded-md">
               <FileText className="h-7 w-7" />
             </div>
             

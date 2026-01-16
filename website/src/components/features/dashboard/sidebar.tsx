@@ -78,11 +78,11 @@ export function AppSidebar({ className }: AppSidebarProps) {
         className
       )}
     >
-      <SidebarHeader className="border-b pt-4 pb-4 bg-sidebar border-sidebar-border flex-shrink-0">
+      <SidebarHeader className="border-b pt-4 pb-4 bg-sidebar border-sidebar-border shrink-0">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center gap-3 min-w-0">
-              <LayoutDashboard className="w-6 h-6 text-accent flex-shrink-0" />
+              <LayoutDashboard className="w-6 h-6 text-accent shrink-0" />
               <h1 className="text-lg font-semibold text-sidebar-foreground truncate">
                 Dashboard
               </h1>
@@ -147,7 +147,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                             isCollapsed ? "w-full justify-center" : "w-full"
                           )}
                         >
-                          <item.icon className="w-7 h-7 flex-shrink-0 transition-transform group-hover:scale-110" />
+                          <item.icon className="w-7 h-7 shrink-0 transition-transform group-hover:scale-110" />
                           {!isCollapsed && (
                             <span className="text-lg font-medium leading-relaxed">
                               {item.title}
@@ -175,7 +175,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
             isCollapsed ? "justify-center" : ""
           )}
         >
-          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
             <span className="text-accent-foreground text-base font-bold">⚡</span>
           </div>
           {!isCollapsed && (

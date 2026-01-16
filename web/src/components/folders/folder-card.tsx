@@ -51,7 +51,7 @@ export function FolderCard({ folder, onUpdate }: FolderCardProps) {
             <div className="flex items-start gap-4 flex-1 min-w-0">
               {/* Folder Icon */}
               <div
-                className="neomorphic flex-shrink-0 p-3 rounded-md"
+                className="neomorphic shrink-0 p-3 rounded-md"
                 style={{
                   backgroundColor: folder.color
                     ? `${folder.color}15`

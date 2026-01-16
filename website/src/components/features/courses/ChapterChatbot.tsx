@@ -215,7 +215,7 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
               )}
             >
               {message.role === 'assistant' && (
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                   <Bot size={16} className="text-primary" />
                 </div>
               )}
@@ -263,7 +263,7 @@ export function ChapterChatbot({ chapterId, chapterName }: ChapterChatbotProps) 
                 </Card>
               </div>
               {message.role === 'user' && (
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
                   <User size={16} className="text-primary-foreground" />
                 </div>
               )}

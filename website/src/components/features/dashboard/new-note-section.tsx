@@ -231,7 +231,7 @@ export function NewNoteSection() {
                   Record Audio
                 </div>
               </div>
-              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0 ml-[1vw]">
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center shrink-0 ml-[1vw]">
                 <Mic className="size-5 sm:size-7" />
               </div>
             </div>
@@ -268,7 +268,7 @@ export function NewNoteSection() {
                   Upload Audio
                 </div>
               </div>
-              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0 ml-[1vw]">
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center shrink-0 ml-[1vw]">
                 <Upload className="size-5 sm:size-7" />
               </div>
             </div>
@@ -305,7 +305,7 @@ export function NewNoteSection() {
                   Upload PDF or Add Text
                 </div>
               </div>
-              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0 ml-[1vw]">
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center shrink-0 ml-[1vw]">
                 <FileText className="size-5 sm:size-7" />
               </div>
             </div>
@@ -342,7 +342,7 @@ export function NewNoteSection() {
                   Youtube Video or Web Links
                 </div>
               </div>
-              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center flex-shrink-0 ml-[1vw]">
+              <div className="size-10 sm:size-12 rounded-2xl flex items-center justify-center shrink-0 ml-[1vw]">
                 <Video className="size-5 sm:size-7" />
               </div>
             </div>

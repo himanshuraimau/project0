@@ -90,14 +90,14 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
   return (
     <div className="h-[380px] w-full group hover:transition-all hover:duration-300 rounded-2xl overflow-hidden flex flex-col neomorphic">
       {/* Header with Title and Options */}
-      <div className="flex items-start justify-between pt-6 px-6 pb-4 flex-shrink-0">
+      <div className="flex items-start justify-between pt-6 px-6 pb-4 shrink-0">
         <div className="flex-1 min-w-0 pr-3">
           <h3 className="font-bold text-xl text-foreground leading-tight line-clamp-2 mb-2 min-h-[3.5rem]">
             {course.name}
           </h3>
         </div>
         
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <Badge 
             variant="secondary" 
             className="bg-background/80 text-foreground backdrop-blur-sm text-sm font-medium px-3 py-1"
@@ -111,7 +111,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-full flex-shrink-0"
+              className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-full shrink-0"
             >
               <MoreVertical className="h-5 w-5" />
             </Button>
@@ -153,29 +153,29 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
       </div>
 
       {/* Course Details */}
-      <div className="px-6 pb-3 flex-shrink-0">
+      <div className="px-6 pb-3 shrink-0">
         <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2 min-w-0">
-            <Users className="h-4 w-4 text-accent flex-shrink-0" />
+            <Users className="h-4 w-4 text-accent shrink-0" />
             <span className="font-medium truncate">{course.units.length} units</span>
           </div>
           <div className="flex items-center gap-2 min-w-0">
-            <BookOpen className="h-4 w-4 text-accent flex-shrink-0" />
+            <BookOpen className="h-4 w-4 text-accent shrink-0" />
             <span className="font-medium truncate">{getTotalChapters(course)} chapters</span>
           </div>
           <div className="flex items-center gap-2 min-w-0">
-            <Clock className="h-4 w-4 text-accent flex-shrink-0" />
+            <Clock className="h-4 w-4 text-accent shrink-0" />
             <span className="font-medium truncate">{estimatedDuration}</span>
           </div>
           <div className="flex items-center gap-2 min-w-0">
-            <Eye className="h-4 w-4 text-accent flex-shrink-0" />
+            <Eye className="h-4 w-4 text-accent shrink-0" />
             <span className="font-medium truncate">{formatDate(course.createdAt)}</span>
           </div>
         </div>
       </div>
 
       {/* Progress Section */}
-      <div className="px-6 pb-2 flex-shrink-0">
+      <div className="px-6 pb-2 shrink-0">
         {progress.totalChapters > 0 ? (
           <div>
             <div className="flex items-center justify-between text-sm mb-2">
@@ -192,7 +192,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
             </div>
             {progress.isCompleted && progress.completedAt && (
               <div className="flex items-center gap-1.5 text-sm text-accent mt-2 font-medium">
-                <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                <CheckCircle className="h-3.5 w-3.5 shrink-0" />
                 <span className="truncate">Completed {formatDate(new Date(progress.completedAt))}</span>
               </div>
             )}
@@ -208,7 +208,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
       <div className="flex-1"></div>
 
       {/* Continue Button */}
-      <div className="px-6 pb-6 pt-2 flex-shrink-0">
+      <div className="px-6 pb-6 pt-2 shrink-0">
         <Link href={`/dashboard/course/${course.id}/0/0`} className="block">
           <Button 
             className={`w-full font-medium py-3 text-base rounded-sm cursor-pointer transition-colors ${

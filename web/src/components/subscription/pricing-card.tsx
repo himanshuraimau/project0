@@ -132,7 +132,7 @@ export function PricingCard() {
       <div className="space-y-4 mb-8">
         {features.map((feature, index) => (
           <div key={index} className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-6 h-6 rounded-full neomorphic-inset flex items-center justify-center">
+            <div className="shrink-0 w-6 h-6 rounded-full neomorphic-inset flex items-center justify-center">
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             </div>
             <span className="text-base">{feature}</span>

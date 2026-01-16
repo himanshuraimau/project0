@@ -198,7 +198,7 @@ export function ChaptersReviewStep({
             <CardHeader className="bg-muted/20 border-b border-border/30 pt-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 w-10 h-10 bg-accent/90 text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold ">
+                  <div className="shrink-0 w-10 h-10 bg-accent/90 text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold ">
                     {unitIndex + 1}
                   </div>
                   <div className="flex-1">
@@ -269,7 +269,7 @@ export function ChaptersReviewStep({
                     className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
                   >
                     <div className="flex items-center space-x-4 flex-1">
-                      <div className="flex-shrink-0 w-12 h-8 bg-muted/50 text-foreground rounded-md flex items-center justify-center text-sm font-medium border border-border/30">
+                      <div className="shrink-0 w-12 h-8 bg-muted/50 text-foreground rounded-md flex items-center justify-center text-sm font-medium border border-border/30">
                         {getChapterNumber(unitIndex, chapterIndex)}
                       </div>
 

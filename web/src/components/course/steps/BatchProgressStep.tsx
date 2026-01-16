@@ -204,7 +204,7 @@ export function BatchProgressStep({
                   }`}
                 >
                   <div className="flex items-center space-x-4 flex-1">
-                    <div className="flex-shrink-0 w-12 h-8 bg-muted/50 text-foreground rounded-3xl flex items-center justify-center text-sm font-medium border border-border/30">
+                    <div className="shrink-0 w-12 h-8 bg-muted/50 text-foreground rounded-3xl flex items-center justify-center text-sm font-medium border border-border/30">
                       {chapterNumber}
                     </div>
                     
@@ -247,7 +247,7 @@ export function BatchProgressStep({
         <Card className="max-w-4xl mx-auto border-destructive/50 rounded-3xl">
           <CardContent className="pt-6">
             <div className="flex items-start space-x-3">
-              <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
               <div className="flex-1">
                 <h4 className="font-medium text-destructive mb-2">
                   Batch Processing Error
