@@ -43,6 +43,7 @@ export default function NoteHubPage() {
   const [translatedContent, setTranslatedContent] = useState<string | null>(null);
   const [currentLang, setCurrentLang] = useState<LanguageCode | 'en'>('en');
   const [isEditLoading, setIsEditLoading] = useState(false);
+  const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
 
   // Fetch translated content when lang param changes
   useEffect(() => {
@@ -76,9 +77,18 @@ export default function NoteHubPage() {
   }, [searchParams, note]);
 
   const handleEditNote = () => {
+    if (!note) return;
     setIsEditLoading(true);
     setTimeout(() => {
       router.push(`/notes/${note.id}/edit`);
+    }, 1500);
+  };
+
+  const handleTranscript = () => {
+    if (!note) return;
+    setIsTranscriptLoading(true);
+    setTimeout(() => {
+      router.push(`/notes/${note.id}/transcript`);
     }, 1500);
   };
 
@@ -86,6 +96,10 @@ export default function NoteHubPage() {
 
   if (isEditLoading) {
     return <LoadingScreen title="Loading Editor" />;
+  }
+
+  if (isTranscriptLoading) {
+    return <LoadingScreen title="Loading Transcript" />;
   }
 
   const actions = [
@@ -100,7 +114,7 @@ export default function NoteHubPage() {
     {
       label: "Transcript",
       icon: FileText,
-      href: `/notes/${note.id}/transcript`,
+      onClick: handleTranscript,
       color: "bg-[#C27AFF]",
       bgColor: "bg-[#C27AFF] dark:bg-[#C27AFF]",
       textColor: "text-white"
