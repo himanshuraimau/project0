@@ -2,10 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Note, LanguageCode, NoteTranslation } from "@/lib/types";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +22,7 @@ import { useNotes } from "@/hooks/use-notes";
 import { useTranslations } from "@/hooks/use-translations";
 import { LanguageSelector } from "@/components/notes/language-selector";
 import { ShareLinkDialog } from "@/components/notes/share-link-dialog";
+
 
 interface ViewNoteProps {
   note: Note;
@@ -252,136 +250,125 @@ export function ViewNote({ note, onSave, onUpdate, initialViewMode = "preview" }
   };
 
   return (
-    <div className="min-h-screen px-20 py-6">
-      {/* Header Section */}
-      <div className="pb-6 mb-6 border-b border-transparent" style={{
-        boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
-      }}>
-        {/* Breadcrumb with Actions */}
-        <nav className="mb-4">
-          <div className="flex items-center justify-between">
-            <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
-              <li>
-                <button
-                  onClick={() => window.history.back()}
-                  className="hover:text-foreground transition-colors"
-                >
-                  Notes
-                </button>
-              </li>
-              <li>
-                <span className="mx-2">&gt;</span>
-              </li>
-              <li className="text-foreground font-medium">
-                Edit Note
-              </li>
-            </ol>
+    <div className="min-h-screen">
+      {/* Zone 1: Minimal Page Header */}
+      <div className="border-b border-border/30">
+        <div className="max-w-6xl mx-auto px-6 py-6">
+          {/* Breadcrumb and Primary Actions */}
+          <div className="flex items-center justify-between mb-8">
+            <nav>
+              <ol className="flex items-center space-x-2 text-[16px] font-normal text-muted-foreground">
+                <li>
+                  <button
+                    onClick={() => window.history.back()}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Notes
+                  </button>
+                </li>
+                <li>
+                  <span className="mx-2">&gt;</span>
+                </li>
+                <li className="text-foreground font-medium">
+                  Edit Note
+                </li>
+              </ol>
+            </nav>
 
-            {/* Share and Star Buttons */}
-            <div className="flex items-center gap-2 shrink-0">
+            {/* Primary Action: Save */}
+            <div className="flex items-center gap-3">
+              {hasUnsavedChanges && (
+                <span className="text-xs text-muted-foreground">
+                  Unsaved changes
+                </span>
+              )}
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowShareDialog(true)}
-                className="gap-2 rounded-none"
-              >
-                <Share2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Share</span>
-              </Button>
-
-              <Button
+                onClick={handleCancelEdit}
                 variant="ghost"
-                size="icon"
-                onClick={handleToggleFavorite}
-                className="text-yellow-500 hover:text-yellow-600 rounded-none"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
               >
-                <Star
-                  className="h-5 w-5"
-                  fill={isFavorite ? "currentColor" : "none"}
-                />
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveNote}
+                disabled={!hasUnsavedChanges || isSaving}
+                className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                size="sm"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-current mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-3.5 w-3.5 mr-2" />
+                    Save
+                  </>
+                )}
               </Button>
             </div>
           </div>
-        </nav>
 
-        {/* Title */}
-        <div>
-          <div className="text-2xl text-purple-800 pb-2">{isEditMode ? 'Editing:' : 'Note:'}</div>
-          <h1 className="text-[19px] font-bold text-foreground leading-tight">
-            {getCurrentTitle() || "Untitled Note"}
-          </h1>
+          {/* Note Title */}
+          <div>
+            <h1 className="text-3xl font-bold text-foreground leading-tight">
+              {getCurrentTitle() || "Untitled Note"}
+            </h1>
+          </div>
         </div>
       </div>
 
-      <div className="w-full">
-        <div className="w-full">
-          {/* Main Content */}
-          <div className="w-full">
-            {/* Main Content Card */}
-            <Card className="rounded-3xl border-0 bg-card hover: transition-all duration-300">
-              {/* Header Section - Only show save controls in edit mode */}
-              <CardHeader className="">
-                <div className="space-y-4">
-                  {/* Save Controls - Only in Edit Mode */}
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={handleSaveNote}
-                      disabled={!hasUnsavedChanges || isSaving}
-                      className="rounded-xl px-4 py-2 bg-primary hover:bg-primary/90 text-white dark:text-black transition-all duration-200 cursor-pointer"
-                      size="sm"
-                    >
-                      {isSaving ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Changes
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      onClick={handleCancelEdit}
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl px-4 py-2 hover:bg-muted hover:text-foreground border-border hover:border-muted-foreground/20 transition-all duration-200 cursor-pointer"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Cancel
-                    </Button>
-                    {hasUnsavedChanges && (
-                      <Badge
-                        variant="outline"
-                        className="text-destructive border-destructive/30 bg-destructive/5"
-                      >
-                        Unsaved changes
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
+      {/* Zone 2 & 3: Toolbar + Content Canvas */}
+      <div className="max-w-6xl mx-auto px-6">
+        {/* Centered Content Area */}
+        <div className="py-6">
+          <div className="max-w-5xl mx-auto">
+            {/* Editor with Integrated Toolbar */}
+            <div className="min-h-[600px]">
+              <LexicalViewer
+                content={editedContent}
+                title={editedTitle}
+                showToolbar={true}
+                minHeight="600px"
+                onContentChange={handleContentChange}
+                onTitleChange={handleTitleChange}
+                isEditable={true}
+              />
+            </div>
+          </div>
+        </div>
 
-              {/* Content Section */}
-              <CardContent className="p-4 sm:p-6 lg:p-8 pt-4 sm:pt-6 lg:pt-8">
-                <div className="min-h-[400px]">
-                  <div className="bg-background rounded-2xl border border-border/50">
-                    <div className="px-4 pb-4 pt-4">
-                      <LexicalViewer
-                        content={editedContent}
-                        title={editedTitle}
-                        showToolbar={true}
-                        minHeight="500px"
-                        onContentChange={handleContentChange}
-                        onTitleChange={handleTitleChange}
-                        isEditable={true}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Secondary Actions - Demoted to Bottom */}
+        <div className="border-t border-border/30 py-6 mb-8">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowShareDialog(true)}
+                className="text-muted-foreground hover:text-foreground gap-2"
+              >
+                <Share2 className="h-4 w-4" />
+                Share
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleToggleFavorite}
+                className="text-muted-foreground hover:text-foreground gap-2"
+              >
+                <Star
+                  className="h-4 w-4"
+                  fill={isFavorite ? "currentColor" : "none"}
+                />
+                {isFavorite ? "Favorited" : "Favorite"}
+              </Button>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Last edited {formatDate(note.updatedAt || note.createdAt)}
+            </div>
           </div>
         </div>
       </div>
