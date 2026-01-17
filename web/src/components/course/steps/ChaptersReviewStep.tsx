@@ -178,8 +178,8 @@ export function ChaptersReviewStep({
       <div className="max-w-4xl mx-auto border-border/60 bg-card/80 rounded-3xl">
         <CardHeader className="bg-gradient-to-r from-accent/5 to-accent/10 border-b border-border/40 rounded-3xl pt-5">
           <CardTitle className="flex items-center space-x-3">
-            <div className="p-2 bg-accent/10 rounded-lg">
-              <BookOpen className="w-6 h-6 text-accent" />
+            <div className="p-2 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
+              <BookOpen className="w-6 h-6 text-neutral-700 dark:text-neutral-200" />
             </div>
             <div>
               <h3 className="text-xl font-bold text-foreground">{courseTitle}</h3>
@@ -209,9 +209,8 @@ export function ChaptersReviewStep({
                           onChange={(e) => setEditValue(e.target.value)}
                           onKeyDown={handleKeyPress}
                           placeholder="Enter unit name..."
-                          className={`text-lg font-semibold ${
-                            error ? "border-destructive" : ""
-                          }`}
+                          className={`text-lg font-semibold ${error ? "border-destructive" : ""
+                            }`}
                           autoFocus
                         />
                         {error && (
@@ -233,7 +232,7 @@ export function ChaptersReviewStep({
                         onClick={saveEdit}
                         variant="ghost"
                         size="sm"
-                        className="text-accent hover:text-accent/80 hover:bg-accent/10"
+                        className="text-accent hover:text-accent/80 hover:bg-accent/10 cursor-pointer transition-colors"
                       >
                         <Check className="w-4 h-4" />
                       </Button>
@@ -241,7 +240,7 @@ export function ChaptersReviewStep({
                         onClick={cancelEdit}
                         variant="ghost"
                         size="sm"
-                        className="text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer transition-colors"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -252,7 +251,7 @@ export function ChaptersReviewStep({
                       variant="ghost"
                       size="sm"
                       disabled={isLoading}
-                      className="text-black dark:text-white hover:text-accent/80 hover:bg-accent/10"
+                      className="text-black dark:text-white hover:text-accent/80 hover:bg-accent/10 cursor-pointer transition-colors"
                     >
                       <Edit3 className="w-4 h-4" />
                     </Button>
@@ -311,7 +310,7 @@ export function ChaptersReviewStep({
                             onClick={saveEdit}
                             variant="ghost"
                             size="sm"
-                            className="text-accent hover:text-accent/80 hover:bg-accent/10"
+                            className="text-accent hover:text-accent/80 hover:bg-accent/10 cursor-pointer transition-colors"
                           >
                             <Check className="w-4 h-4" />
                           </Button>
@@ -319,7 +318,7 @@ export function ChaptersReviewStep({
                             onClick={cancelEdit}
                             variant="ghost"
                             size="sm"
-                            className="text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer transition-colors"
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -331,7 +330,7 @@ export function ChaptersReviewStep({
                             variant="ghost"
                             size="sm"
                             disabled={isLoading}
-                            className="text-black dark:text-white hover:text-accent/80 hover:bg-accent/10"
+                            className="text-black dark:text-white hover:text-accent/80 hover:bg-accent/10 cursor-pointer transition-colors"
                           >
                             <Edit3 className="w-4 h-4" />
                           </Button>
@@ -340,7 +339,7 @@ export function ChaptersReviewStep({
                             variant="ghost"
                             size="sm"
                             disabled={isLoading || unit.chapters.length <= 1}
-                            className="text-destructive hover:text-destructive/80 hover:bg-destructive/10 disabled:text-muted-foreground disabled:hover:bg-transparent"
+                            className="text-destructive hover:text-destructive/80 hover:bg-destructive/10 cursor-pointer disabled:text-muted-foreground disabled:hover:bg-transparent transition-colors"
                             title={
                               unit.chapters.length <= 1
                                 ? "Cannot delete the last chapter in a unit"
@@ -378,7 +377,7 @@ export function ChaptersReviewStep({
               onClick={onSave}
               disabled={isLoading || editingItem !== null}
               size="lg"
-              className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3  hover: transition-all duration-200"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 hover:shadow-md cursor-pointer transition-all duration-200 shadow-sm"
             >
               {isLoading ? (
                 <InlineLoading

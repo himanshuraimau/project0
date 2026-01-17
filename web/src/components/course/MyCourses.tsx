@@ -88,7 +88,7 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
   const estimatedDuration = getEstimatedDuration(getTotalChapters(course));
 
   return (
-    <div className="h-[380px] w-full group hover:transition-all hover:duration-300 rounded-2xl overflow-hidden flex flex-col neomorphic">
+    <div className="h-[380px] w-full group hover:transition-all hover:duration-300 rounded-2xl overflow-hidden flex flex-col bg-white dark:bg-[#1A1A1A] border border-neutral-100 dark:border-neutral-800">
       {/* Header with Title and Options */}
       <div className="flex items-start justify-between pt-6 px-6 pb-4 shrink-0">
         <div className="flex-1 min-w-0 pr-3">
@@ -96,58 +96,58 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
             {course.name}
           </h3>
         </div>
-        
+
         <div className="flex items-center gap-2 shrink-0">
-          <Badge 
-            variant="secondary" 
+          <Badge
+            variant="secondary"
             className="bg-background/80 text-foreground backdrop-blur-sm text-sm font-medium px-3 py-1"
           >
             {difficultyLevel}
           </Badge>
-          
+
           {/* Options Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-full shrink-0"
-            >
-              <MoreVertical className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive cursor-pointer"
-                  onSelect={(e) => e.preventDefault()}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Course
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Course</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete &ldquo;{course.name}&rdquo;? This action cannot be undone. 
-                    All course content, progress, and related data will be permanently removed.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDeleteCourse}
-                    disabled={isDeleting}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-full shrink-0"
+              >
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                    onSelect={(e) => e.preventDefault()}
                   >
-                    {isDeleting ? "Deleting..." : "Delete Course"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </DropdownMenuContent>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Course
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Course</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete &ldquo;{course.name}&rdquo;? This action cannot be undone.
+                      All course content, progress, and related data will be permanently removed.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteCourse}
+                      disabled={isDeleting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {isDeleting ? "Deleting..." : "Delete Course"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
@@ -156,19 +156,19 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
       <div className="px-6 pb-3 shrink-0">
         <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2 min-w-0">
-            <Users className="h-4 w-4 text-accent shrink-0" />
+            <Users className="h-4 w-4 shrink-0 text-neutral-700 dark:text-neutral-200" />
             <span className="font-medium truncate">{course.units.length} units</span>
           </div>
           <div className="flex items-center gap-2 min-w-0">
-            <BookOpen className="h-4 w-4 text-accent shrink-0" />
+            <BookOpen className="h-4 w-4 shrink-0 text-neutral-700 dark:text-neutral-200" />
             <span className="font-medium truncate">{getTotalChapters(course)} chapters</span>
           </div>
           <div className="flex items-center gap-2 min-w-0">
-            <Clock className="h-4 w-4 text-accent shrink-0" />
+            <Clock className="h-4 w-4 text-neutral-700 dark:text-neutral-200 shrink-0" />
             <span className="font-medium truncate">{estimatedDuration}</span>
           </div>
           <div className="flex items-center gap-2 min-w-0">
-            <Eye className="h-4 w-4 text-accent shrink-0" />
+            <Eye className="h-4 w-4 text-neutral-700 dark:text-neutral-200 shrink-0" />
             <span className="font-medium truncate">{formatDate(course.createdAt)}</span>
           </div>
         </div>
@@ -179,14 +179,14 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
         {progress.totalChapters > 0 ? (
           <div>
             <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-foreground font-medium">Progress</span>
-              <span className="text-foreground font-semibold">
+              <span className="text-neutral-700 dark:text-neutral-200 font-medium">Progress</span>
+              <span className="text-neutral-700 dark:text-neutral-200 font-semibold">
                 {Math.round(progress.completionPercentage)}%
               </span>
             </div>
             <div className="w-full bg-muted/40 rounded-full h-2.5">
-              <div 
-                className="bg-primary h-2.5 rounded-full transition-all duration-500" 
+              <div
+                className="bg-primary h-2.5 rounded-full transition-all duration-500"
                 style={{ width: `${progress.completionPercentage}%` }}
               />
             </div>
@@ -210,12 +210,11 @@ function CourseCard({ course }: { course: CourseWithDetails }) {
       {/* Continue Button */}
       <div className="px-6 pb-6 pt-2 shrink-0">
         <Link href={`/dashboard/course/${course.id}/0/0`} className="block">
-          <Button 
-            className={`w-full font-medium py-3 text-base rounded-sm cursor-pointer transition-colors ${
-              progress.completedChapters > 0 
-                ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
-                : "bg-green-600 hover:bg-green-700 text-white"
-            }`}
+          <Button
+            className={`w-full font-medium py-3 text-base rounded-sm cursor-pointer transition-colors ${progress.completedChapters > 0
+              ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+              : "bg-green-600 hover:bg-green-700 text-white"
+              }`}
             size="lg"
           >
             {progress.isCompleted ? "Review Course" : "Continue Learning"}
@@ -239,9 +238,9 @@ export function MyCourses({ courses }: MyCoursesProps) {
       </div>
 
       {courses.length === 0 ? (
-        <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-white hover:border-gray-300 p-12 text-center">
-          <div className="size-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-6">
-            <BookOpen className="size-8 text-accent" />
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl border border-neutral-100 dark:border-neutral-800 p-12 text-center">
+          <div className="size-16 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mx-auto mb-6">
+            <BookOpen className="size-8 text-neutral-700 dark:text-neutral-200" />
           </div>
           <h3 className="text-xl font-semibold text-foreground mb-3">
             No courses yet
@@ -250,7 +249,7 @@ export function MyCourses({ courses }: MyCoursesProps) {
             Start your learning journey by creating your first AI-powered course
           </p>
           <Link href="/dashboard/create/wizard">
-            <Button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors">
+            <Button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors">
               <Plus className="size-4" />
               Create Your First Course
             </Button>

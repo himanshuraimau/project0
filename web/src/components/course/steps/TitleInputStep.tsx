@@ -25,15 +25,15 @@ export function TitleInputStep({
   const [error, setError] = useState<string>("");
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const newTitle = e.target.value;
+    const newTitle = e.target.value;
 
-  onTitleChange(newTitle);
+    onTitleChange(newTitle);
 
-  // Clear error when user starts typing
-  if (error) {
-    setError("");
-  }
-};
+    // Clear error when user starts typing
+    if (error) {
+      setError("");
+    }
+  };
 
   const handleGenerateUnits = () => {
     // Enhanced validation using validation utilities
@@ -93,9 +93,8 @@ export function TitleInputStep({
             placeholder="e.g., Introduction to Machine Learning"
             value={title}
             onChange={handleTitleChange}
-            className={`w-full ${
-              error ? "border-destructive" : ""
-            }`}
+            className={`w-full ${error ? "border-destructive" : ""
+              }`}
             disabled={isLoading}
           />
           <div className="flex justify-between items-center text-xs text-muted-foreground">
@@ -110,7 +109,7 @@ export function TitleInputStep({
         <Button
           onClick={handleGenerateUnits}
           disabled={!isValidTitle || isLoading}
-          className="w-full cursor-pointer bg-accent hover:bg-accent/60 text-black dark:text-white"
+          className="w-full cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md bg-blue-600 hover:bg-blue-700 text-white"
           size="lg"
         >
           {isLoading ? (

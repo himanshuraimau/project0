@@ -197,7 +197,7 @@ export function UnitsGenerationStep({
               onClick={addUnit}
               size="sm"
               disabled={isLoading}
-              className="flex cursor-pointer items-center space-x-2 bg-accent text-white hover:bg-accent/90"
+              className="flex cursor-pointer items-center space-x-2 bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md"
             >
               <Plus className="w-4 h-4" />
               <span>Add Unit</span>
@@ -242,11 +242,10 @@ export function UnitsGenerationStep({
                     ) : (
                       <div className="flex items-center justify-between">
                         <span
-                          className={`${
-                            !unit.name.trim()
-                              ? "text-muted-foreground italic"
-                              : "text-foreground font-medium"
-                          }`}
+                          className={`${!unit.name.trim()
+                            ? "text-muted-foreground italic"
+                            : "text-foreground font-medium"
+                            }`}
                         >
                           {unit.name.trim() ||
                             "Empty unit - click edit to add name"}
@@ -282,7 +281,7 @@ export function UnitsGenerationStep({
                           variant="ghost"
                           size="sm"
                           disabled={isLoading}
-                          className="text-muted-foreground hover:text-foreground cursor-pointer hover:bg-accent/10"
+                          className="text-muted-foreground hover:text-foreground cursor-pointer hover:bg-accent/10 transition-colors"
                         >
                           <Edit3 className="w-4 h-4" />
                         </Button>
@@ -291,7 +290,7 @@ export function UnitsGenerationStep({
                           variant="ghost"
                           size="sm"
                           disabled={isLoading || units.length <= 1}
-                          className="text-destructive hover:text-destructive/80 cursor-pointer hover:bg-destructive/10 disabled:text-muted-foreground"
+                          className="text-destructive hover:text-destructive/80 cursor-pointer hover:bg-destructive/10 disabled:text-muted-foreground transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -316,7 +315,7 @@ export function UnitsGenerationStep({
           <Button
             onClick={handleFinalize}
             disabled={!canFinalize}
-            className="w-full cursor-pointer bg-accent text-black dark:text-white hover:bg-accent/90"
+            className="w-full cursor-pointer bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md"
             size="lg"
           >
             {isLoading ? (

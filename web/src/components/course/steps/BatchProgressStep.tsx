@@ -5,13 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { BatchProgressStepProps, UnitWithChapters, Chapter } from "@/lib/types/course.types";
-import { 
-  BookOpen, 
-  CheckCircle, 
-  Clock, 
-  RefreshCw, 
+import {
+  BookOpen,
+  CheckCircle,
+  Clock,
+  RefreshCw,
   AlertCircle,
-  PlayCircle 
+  PlayCircle
 } from "lucide-react";
 import { LoadingState } from "@/components/ui/loading-spinner";
 
@@ -28,14 +28,14 @@ export function BatchProgressStep({
   onRetry,
   onComplete,
 }: BatchProgressStepProps) {
-  
+
   // Auto-process batches when not in error state
   useEffect(() => {
     if (!batchState.isProcessing || errorState.hasError) return;
 
     const processNextIfReady = async () => {
-      if (batchState.currentBatchIndex < batchState.totalBatches && 
-          batchState.processingChapters.length === 0) {
+      if (batchState.currentBatchIndex < batchState.totalBatches &&
+        batchState.processingChapters.length === 0) {
         try {
           await onProcessNextBatch();
         } catch (error) {
@@ -52,8 +52,8 @@ export function BatchProgressStep({
     const timeoutId = setTimeout(processNextIfReady, 500);
     return () => clearTimeout(timeoutId);
   }, [
-    batchState.currentBatchIndex, 
-    batchState.isProcessing, 
+    batchState.currentBatchIndex,
+    batchState.isProcessing,
     batchState.processingChapters.length,
     batchState.totalBatches,
     errorState.hasError,
@@ -125,8 +125,8 @@ export function BatchProgressStep({
       <div className="max-w-4xl mx-auto border-border/60 bg-card/80 backdrop-blur-sm rounded-3xl">
         <CardHeader className="bg-gradient-to-r from-accent/5 to-accent/10 p-5">
           <CardTitle className="flex items-center space-x-3">
-            <div className="p-2 bg-accent/10 rounded-3xl">
-              <BookOpen className="w-6 h-6 text-accent" />
+            <div className="p-2 bg-neutral-100 dark:bg-neutral-800 rounded-3xl">
+              <BookOpen className="w-6 h-6 text-neutral-700 dark:text-neutral-200" />
             </div>
             <div>
               <h3 className="text-xl font-bold text-foreground">{courseTitle}</h3>
@@ -194,20 +194,19 @@ export function BatchProgressStep({
             {allChapters.map((item, index) => {
               const status = getChapterStatus(item.chapter.id);
               const chapterNumber = `${item.unitIndex + 1}.${item.chapterIndex + 1}`;
-              
+
               return (
                 <div
                   key={item.chapter.id}
-                  className={`flex items-center justify-between p-4 transition-colors ${
-                    status === 'processing' ? 'bg-accent/10 rounded-lg mb-1' : 
+                  className={`flex items-center justify-between p-4 transition-colors ${status === 'processing' ? 'bg-accent/10 rounded-lg mb-1' :
                     status === 'completed' ? 'bg-primary/10 rounded-lg mb-1' : 'hover:bg-muted/30'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center space-x-4 flex-1">
                     <div className="shrink-0 w-12 h-8 bg-muted/50 text-foreground rounded-3xl flex items-center justify-center text-sm font-medium border border-border/30">
                       {chapterNumber}
                     </div>
-                    
+
                     <div className="flex-1">
                       <h5 className="font-medium text-foreground">
                         {item.chapter.name}
@@ -218,8 +217,8 @@ export function BatchProgressStep({
                       <div className="flex items-center space-x-2">
                         <PlayCircle className="w-3 h-3 text-muted-foreground" />
                         <span className="text-xs text-muted-foreground">
-                          {status === 'completed' 
-                            ? 'Content generated successfully' 
+                          {status === 'completed'
+                            ? 'Content generated successfully'
                             : `Search: ${item.chapter.youtubeSearchQuery}`
                           }
                         </span>
@@ -256,11 +255,11 @@ export function BatchProgressStep({
                   {errorState.error?.message || 'An error occurred while processing the current batch.'}
                 </p>
                 {errorState.error?.retryable && (
-                  <Button 
+                  <Button
                     onClick={onRetry}
-                    variant="outline" 
+                    variant="outline"
                     size="sm"
-                    className="border-destructive text-destructive hover:bg-destructive/10 rounded-3xl"
+                    className="border-destructive text-destructive hover:bg-destructive/10 rounded-3xl cursor-pointer transition-colors"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Retry Current Batch
@@ -285,13 +284,13 @@ export function BatchProgressStep({
                   Chapter Content Generation Complete!
                 </h3>
                 <p className="text-muted-foreground">
-                  All {totalChapters} chapters have been processed successfully. 
+                  All {totalChapters} chapters have been processed successfully.
                   Your course is ready to navigate!
                 </p>
               </div>
-              <Button 
+              <Button
                 onClick={onComplete}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground  hover: transition-all duration-200 rounded-3xl"
+                className="bg-blue-600 hover:bg-blue-700 text-white hover:shadow-md cursor-pointer transition-all duration-200 rounded-3xl"
                 size="lg"
               >
                 Go to Course

@@ -14,13 +14,13 @@ export function GenerateCourseCard({ className }: GenerateCourseCardProps) {
     <Link href="/dashboard/create/wizard" className="block">
       <div
         className={cn(
-          "h-24 neomorphic rounded-2xl cursor-pointer group p-4 flex items-center",
+          "h-24 bg-white dark:bg-[#1A1A1A] border border-neutral-100 dark:border-neutral-800 rounded-2xl cursor-pointer group p-4 flex items-center",
           className
         )}
       >
         <div className="flex items-center gap-2 w-full">
-          <div className="size-14 rounded-full neomorphic-icon flex items-center justify-center shrink-0 transition-colors duration-200 group-hover:bg-accent/20">
-            <BookOpen className="size-8 text-accent" />
+          <div className="size-14 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0 transition-colors duration-200 group-hover:bg-neutral-200 dark:group-hover:bg-neutral-700">
+            <BookOpen className="size-8 text-neutral-700 dark:text-neutral-200" />
           </div>
           <div className="flex-1 text-left">
             <div className="font-semibold text-lg text-foreground transition-colors duration-200">
