@@ -64,16 +64,16 @@ const components = {
     </li>
   ),
   blockquote: ({ children, ...props }: React.HTMLAttributes<HTMLQuoteElement>) => (
-    <blockquote 
-      className="border-l-4 border-accent pl-6 py-4 my-8 bg-accent/5 rounded-r-2xl italic text-muted-foreground font-medium" 
+    <blockquote
+      className="border-l-4 border-accent pl-6 py-4 my-8 bg-accent/5 rounded-r-2xl italic text-muted-foreground font-medium"
       {...props}
     >
       {children}
     </blockquote>
   ),
   code: ({ children, ...props }: React.HTMLAttributes<HTMLElement>) => (
-    <code 
-      className="bg-muted px-3 py-1.5 rounded-lg text-sm font-mono text-foreground font-medium border border-border/50" 
+    <code
+      className="bg-muted px-3 py-1.5 rounded-lg text-sm font-mono text-foreground font-medium border border-border/50"
       {...props}
     >
       {children}
@@ -81,8 +81,8 @@ const components = {
   ),
   pre: ({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) => (
     <div className="relative group my-8">
-      <pre 
-        className="bg-muted p-6 rounded-2xl overflow-x-auto text-sm border border-border/50 group-hover:border-border transition-colors" 
+      <pre
+        className="bg-muted p-6 rounded-2xl overflow-x-auto text-sm border border-border/50 group-hover:border-border transition-colors"
         {...props}
       >
         {children}
@@ -110,10 +110,10 @@ const components = {
     </em>
   ),
   a: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a 
-      href={href} 
-      className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors font-medium" 
-      target="_blank" 
+    <a
+      href={href}
+      className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors font-medium"
+      target="_blank"
       rel="noopener noreferrer"
       {...props}
     >
@@ -172,20 +172,37 @@ export function MDXRenderer({ content, className = '' }: MDXRendererProps) {
       try {
         setLoading(true);
         setError(null);
-        
+
+        // Sanitize content to prevent MDX compilation errors
+        // Remove or escape problematic characters that MDX can't handle
+        let sanitizedContent = content
+          // Escape HTML-like tags that aren't valid JSX
+          .replace(/<([^>]+)>/g, (match, tag) => {
+            // Allow common markdown/HTML tags
+            const allowedTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'hr', 'strong', 'em', 'code', 'pre', 'a', 'ul', 'ol', 'li', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'div', 'span'];
+            const tagName = tag.split(/\s/)[0].replace('/', '');
+            if (!allowedTags.includes(tagName.toLowerCase())) {
+              // Escape the tag
+              return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+            return match;
+          });
+
         // Serialize the markdown content to MDX
-        const serialized = await serialize(content, {
+        const serialized = await serialize(sanitizedContent, {
           mdxOptions: {
             remarkPlugins: [remarkGfm],
             rehypePlugins: [rehypeHighlight],
             development: process.env.NODE_ENV === 'development',
           },
         });
-        
+
         setMdxSource(serialized);
       } catch (err) {
         console.error('Error processing MDX:', err);
-        setError('Failed to process markdown content');
+        // Instead of showing error, we'll fall back to the basic markdown renderer
+        // by setting error state which will be handled in the render
+        setError(err instanceof Error ? err.message : 'Failed to process markdown content');
       } finally {
         setLoading(false);
       }
@@ -210,12 +227,9 @@ export function MDXRenderer({ content, className = '' }: MDXRendererProps) {
   }
 
   if (error) {
-    return (
-      <div className={`text-center py-8 ${className}`}>
-        <p className="text-destructive font-medium">Error processing content</p>
-        <p className="text-sm text-muted-foreground mt-1">{error}</p>
-      </div>
-    );
+    // Fall back to basic markdown renderer when MDX fails
+    console.warn('MDX processing failed, falling back to basic markdown renderer:', error);
+    return <MarkdownRenderer content={content} className={className} />;
   }
 
   if (!mdxSource) {
@@ -253,26 +267,26 @@ export function MarkdownRenderer({ content, className = '' }: MDXRendererProps) 
       .replace(/^###\s+(.+)$/gm, '<h3 class="text-xl font-semibold text-foreground mt-4 mb-2">$1</h3>')
       .replace(/^##\s+(.+)$/gm, '<h2 class="text-2xl font-bold text-foreground mt-6 mb-3 border-b border-border pb-2">$1</h2>')
       .replace(/^#\s+(.+)$/gm, '<h1 class="text-3xl font-bold text-foreground mt-8 mb-4 border-b border-border pb-3">$1</h1>')
-      
+
       // Bold and italic
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-foreground">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="italic text-foreground">$1</em>')
-      
+
       // Code
       .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm font-mono text-foreground">$1</code>')
-      
+
       // Strikethrough
       .replace(/~~(.*?)~~/g, '<del class="line-through text-muted-foreground">$1</del>')
-      
+
       // Links
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary hover:underline transition-colors" target="_blank" rel="noopener noreferrer">$1</a>')
-      
+
       // Blockquotes
       .replace(/^>\s+(.+)$/gm, '<blockquote class="border-l-4 border-primary pl-4 py-2 mb-4 bg-muted/30 rounded-r-lg">$1</blockquote>')
-      
+
       // Horizontal rules
       .replace(/^---$/gm, '<hr class="my-6 border-border" />')
-      
+
       // Line breaks
       .replace(/\n\n/g, '</p>\n<p class="mb-3 leading-relaxed text-foreground">');
 
@@ -284,7 +298,7 @@ export function MarkdownRenderer({ content, className = '' }: MDXRendererProps) 
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      
+
       if (!line) {
         if (inList) {
           processedLines.push(`</${listType}>`);
@@ -294,7 +308,7 @@ export function MarkdownRenderer({ content, className = '' }: MDXRendererProps) 
         processedLines.push('');
         continue;
       }
-      
+
       // Numbered lists
       if (/^\d+\.\s+/.test(line)) {
         const content = line.replace(/^\d+\.\s+/, '');
@@ -324,7 +338,7 @@ export function MarkdownRenderer({ content, className = '' }: MDXRendererProps) 
           inList = false;
           listType = '';
         }
-        
+
         // Don't wrap headers in paragraphs
         if (line.startsWith('<h') || line.startsWith('<blockquote') || line.startsWith('<hr')) {
           processedLines.push(line);
@@ -333,17 +347,17 @@ export function MarkdownRenderer({ content, className = '' }: MDXRendererProps) 
         }
       }
     }
-    
+
     // Close any remaining list
     if (inList) {
       processedLines.push(`</${listType}>`);
     }
-    
+
     return processedLines.join('\n');
   };
 
   return (
-    <div 
+    <div
       className={`prose max-w-none ${className}`}
       dangerouslySetInnerHTML={{ __html: processMarkdown(content) }}
     />
