@@ -260,7 +260,7 @@ export default function NoteHubPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <h3 className="text-lg sm:text-xl font-semibold">
-                      Jelli AI Assistant
+                      Fli AI Assistant
                     </h3>
                   </div>
                   <Button

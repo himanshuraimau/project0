@@ -56,7 +56,7 @@ export default function InlineChatbot({
       const welcomeMessage: ChatMessage = {
         id: uuidv4(),
         role: "assistant",
-        text: "Hi! I'm Jelli, your AI study assistant. I've analyzed this note and I'm ready to help you understand it better. Ask me anything!",
+        text: "Hi! I'm Fli, your AI study assistant. I've analyzed this note and I'm ready to help you understand it better. Ask me anything!",
       };
       setMessages([welcomeMessage]);
     }
