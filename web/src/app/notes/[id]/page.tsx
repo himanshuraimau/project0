@@ -46,7 +46,7 @@ export default function NoteHubPage() {
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
   const [isPodcastLoading, setIsPodcastLoading] = useState(false);
 
-  // Fetch translated content when lang param changes
+
   useEffect(() => {
     const lang = searchParams.get('lang') as LanguageCode | null;
     console.log('Lang param:', lang || 'english');
