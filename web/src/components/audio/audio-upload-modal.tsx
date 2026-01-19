@@ -120,13 +120,16 @@ export default function AudioUploadModal({
                 // Wait for shimmer removal to propagate before triggering refresh
                 await new Promise((resolve) => setTimeout(resolve, 200));
 
+                // Extract data from API response
+                const responseData = result.data || result;
+
                 // Call completion with result that includes temp ID for tracking
                 onTranscriptionComplete({
-                    ...result,
                     transcript: {
-                        ...result.transcript,
-                        id: result.transcript.id || tempId,
+                        ...responseData.transcript,
+                        id: responseData.transcript?.id || tempId,
                     },
+                    note: responseData.note || {},
                 });
 
                 // Reset form

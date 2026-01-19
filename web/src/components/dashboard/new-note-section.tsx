@@ -225,12 +225,15 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
 
         await new Promise((resolve) => setTimeout(resolve, 200));
 
+        // Extract data from API response
+        const responseData = result.data || result;
+
         onTranscriptionComplete({
-          ...result,
           transcript: {
-            ...result.transcript,
-            id: result.transcript.id || tempId,
+            ...responseData.transcript,
+            id: responseData.transcript?.id || tempId,
           },
+          note: responseData.note || {},
         });
 
         setAudioBlob(null);
@@ -407,8 +410,10 @@ export function NewNoteSection() {
         description: "Content extracted and notes created",
         duration: 4000,
       });
-      // Refresh notes immediately
-      refreshNotes();
+      // Wait a bit longer to ensure database transaction is fully committed
+      setTimeout(() => {
+        refreshNotes();
+      }, 1000);
     } else {
       toast.success("🔗 Content extracted successfully!", {
         description: "Content saved as transcript",
@@ -443,8 +448,10 @@ export function NewNoteSection() {
         description: "Audio transcribed and notes created",
         duration: 4000,
       });
-      // Refresh notes immediately - shimmer should already be removed by processor
-      refreshNotes();
+      // Wait a bit longer to ensure database transaction is fully committed
+      setTimeout(() => {
+        refreshNotes();
+      }, 1000);
     }
   };
 
@@ -474,8 +481,10 @@ export function NewNoteSection() {
         description: "Recording transcribed and notes created",
         duration: 4000,
       });
-      // Refresh notes immediately - shimmer should already be removed by processor
-      refreshNotes();
+      // Wait a bit longer to ensure database transaction is fully committed
+      setTimeout(() => {
+        refreshNotes();
+      }, 1000);
     }
   };
 
@@ -492,8 +501,10 @@ export function NewNoteSection() {
         description: "Content converted to AI-powered notes",
         duration: 4000,
       });
-      // Refresh notes immediately - shimmer should already be removed by processor
-      refreshNotes();
+      // Wait a bit longer to ensure database transaction is fully committed
+      setTimeout(() => {
+        refreshNotes();
+      }, 1000);
     } else {
       toast.success("📝 Content saved successfully!", {
         description: "Content saved as transcript",
