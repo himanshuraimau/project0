@@ -160,117 +160,175 @@ export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
 
     try {
       const svgElement = refSvg.current;
-      const serializer = new XMLSerializer();
-
-      // Clone SVG to avoid modifying the original
-      const clonedSvg = svgElement.cloneNode(true) as SVGSVGElement;
-
-      // Get the actual bounding box of the entire mindmap content
       const mainGroup = svgElement.querySelector('g[transform]') as SVGGraphicsElement;
+      
       if (!mainGroup) {
         toast.error('No mindmap content found');
         return;
       }
 
-      // Get the current transform to match the preview zoom level
-      const transform = mainGroup.getAttribute('transform') || '';
-      const scaleMatch = transform.match(/scale\(([\d.]+)\)/);
-      const currentScaleValue = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
-
-      // Get bounding box and apply current scale
+      // Get the bounding box of all content
       const bbox = mainGroup.getBBox();
-      const padding = 40; // Add padding around the mindmap
       
-      // Apply the current scale to the dimensions to match what user sees
-      const scaledWidth = bbox.width * currentScaleValue;
-      const scaledHeight = bbox.height * currentScaleValue;
-      const width = scaledWidth + (padding * 2);
-      const height = scaledHeight + (padding * 2);
-
-      // Calculate the viewBox to match the current zoom level
-      const viewBoxX = bbox.x - (padding / currentScaleValue);
-      const viewBoxY = bbox.y - (padding / currentScaleValue);
-      const viewBoxWidth = bbox.width + (padding * 2 / currentScaleValue);
-      const viewBoxHeight = bbox.height + (padding * 2 / currentScaleValue);
-
-      // Set explicit dimensions on the cloned SVG
-      clonedSvg.setAttribute('width', String(width));
-      clonedSvg.setAttribute('height', String(height));
-      clonedSvg.setAttribute('viewBox', `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`);
-      clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-      clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-
-      // Add background as first element
+      // Add generous padding
+      const padding = 100;
+      const contentWidth = bbox.width + (padding * 2);
+      const contentHeight = bbox.height + (padding * 2);
+      
+      // Create a new SVG with proper dimensions
+      const exportSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      exportSvg.setAttribute('width', String(contentWidth));
+      exportSvg.setAttribute('height', String(contentHeight));
+      exportSvg.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${contentWidth} ${contentHeight}`);
+      exportSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      
+      // Add background
       const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      bgRect.setAttribute('x', String(viewBoxX));
-      bgRect.setAttribute('y', String(viewBoxY));
-      bgRect.setAttribute('width', String(viewBoxWidth));
-      bgRect.setAttribute('height', String(viewBoxHeight));
+      bgRect.setAttribute('x', String(bbox.x - padding));
+      bgRect.setAttribute('y', String(bbox.y - padding));
+      bgRect.setAttribute('width', String(contentWidth));
+      bgRect.setAttribute('height', String(contentHeight));
       bgRect.setAttribute('fill', isDark ? '#1a1a2e' : '#ffffff');
-      clonedSvg.insertBefore(bgRect, clonedSvg.firstChild);
-
-      // Convert foreignObject elements to native SVG text for better compatibility
-      const foreignObjects = clonedSvg.querySelectorAll('foreignObject');
+      exportSvg.appendChild(bgRect);
+      
+      // Clone the main group (without transform)
+      const clonedGroup = mainGroup.cloneNode(true) as SVGGElement;
+      // Remove the transform to show content at original position
+      clonedGroup.removeAttribute('transform');
+      
+      // Convert all foreignObject elements to text elements
+      const foreignObjects = clonedGroup.querySelectorAll('foreignObject');
       foreignObjects.forEach((fo) => {
         const foElement = fo as SVGForeignObjectElement;
-        const x = foElement.getAttribute('x') || '0';
-        const y = foElement.getAttribute('y') || '0';
+        const x = parseFloat(foElement.getAttribute('x') || '0');
+        const y = parseFloat(foElement.getAttribute('y') || '0');
+        const width = parseFloat(foElement.getAttribute('width') || '0');
         const textContent = foElement.textContent?.trim() || '';
 
-        // Create a native SVG text element
+        // Create a text element
         const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        textElement.setAttribute('x', x);
-        textElement.setAttribute('y', String(parseFloat(y) + 14)); // Adjust for baseline
+        textElement.setAttribute('x', String(x + 5)); // Small offset for padding
+        textElement.setAttribute('y', String(y + 16)); // Adjust for baseline
         textElement.setAttribute('fill', isDark ? '#ffffff' : '#000000');
-        textElement.setAttribute('font-family', 'Arial, sans-serif');
-        textElement.setAttribute('font-size', '14');
-        textElement.textContent = textContent;
+        textElement.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+        textElement.setAttribute('font-size', '14px');
+        textElement.setAttribute('font-weight', '400');
+        
+        // Handle text wrapping for long content
+        if (textContent.length > 30 && width > 0) {
+          const words = textContent.split(' ');
+          let line = '';
+          let lineNumber = 0;
+          const lineHeight = 18;
+          
+          words.forEach((word, i) => {
+            const testLine = line + word + ' ';
+            if (testLine.length > 30 && line.length > 0) {
+              const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+              tspan.setAttribute('x', String(x + 5));
+              tspan.setAttribute('dy', lineNumber === 0 ? '0' : String(lineHeight));
+              tspan.textContent = line.trim();
+              textElement.appendChild(tspan);
+              line = word + ' ';
+              lineNumber++;
+            } else {
+              line = testLine;
+            }
+          });
+          
+          // Add remaining text
+          if (line.trim().length > 0) {
+            const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+            tspan.setAttribute('x', String(x + 5));
+            tspan.setAttribute('dy', lineNumber === 0 ? '0' : String(lineHeight));
+            tspan.textContent = line.trim();
+            textElement.appendChild(tspan);
+          }
+        } else {
+          textElement.textContent = textContent;
+        }
 
         // Replace foreignObject with text element
         foElement.parentNode?.replaceChild(textElement, foElement);
       });
-
-      // Serialize and create a base64 data URL (more reliable than blob URL)
-      const svgString = serializer.serializeToString(clonedSvg);
-      const base64Svg = btoa(unescape(encodeURIComponent(svgString)));
-      const dataUrl = `data:image/svg+xml;base64,${base64Svg}`;
-
+      
+      exportSvg.appendChild(clonedGroup);
+      
+      // Apply theme colors to paths and fix stroke width
+      const paths = exportSvg.querySelectorAll('path');
+      paths.forEach((path) => {
+        const pathElement = path as SVGPathElement;
+        pathElement.setAttribute('stroke', isDark ? '#888888' : '#999999');
+        pathElement.setAttribute('stroke-width', '1.5');
+        pathElement.setAttribute('fill', 'none');
+      });
+      
+      // Apply colors to circles (node markers)
+      const circles = exportSvg.querySelectorAll('circle');
+      circles.forEach((circle) => {
+        const circleElement = circle as SVGCircleElement;
+        // Keep existing fill color but ensure stroke is visible
+        if (!circleElement.getAttribute('fill') || circleElement.getAttribute('fill') === 'none') {
+          circleElement.setAttribute('fill', isDark ? '#888888' : '#999999');
+        }
+      });
+      
+      // Serialize the SVG
+      const serializer = new XMLSerializer();
+      let svgString = serializer.serializeToString(exportSvg);
+      
+      // Add XML declaration and ensure proper encoding
+      svgString = '<?xml version="1.0" encoding="UTF-8"?>' + svgString;
+      
+      // Create image from SVG using data URL
+      const svgBase64 = btoa(unescape(encodeURIComponent(svgString)));
+      const dataUrl = `data:image/svg+xml;base64,${svgBase64}`;
+      
       const img = new Image();
       img.onload = () => {
+        // Create canvas with high resolution
         const canvas = document.createElement('canvas');
-        const scaleFactor = 2; // For higher resolution
-
-        canvas.width = width * scaleFactor;
-        canvas.height = height * scaleFactor;
-
+        const scale = 2; // 2x for retina displays
+        
+        canvas.width = contentWidth * scale;
+        canvas.height = contentHeight * scale;
+        
         const ctx = canvas.getContext('2d');
         if (!ctx) {
           toast.error('Canvas context not available');
           return;
         }
-
-        // Fill background
-        ctx.fillStyle = isDark ? '#1a1a2e' : '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Scale and draw
-        ctx.scale(scaleFactor, scaleFactor);
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const pngUrl = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.href = pngUrl;
-        link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_mindmap.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        toast.success('Mindmap saved as image');
+        
+        // Scale context for high resolution
+        ctx.scale(scale, scale);
+        
+        // Draw the image
+        ctx.drawImage(img, 0, 0, contentWidth, contentHeight);
+        
+        // Convert to PNG and download
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            toast.error('Failed to create image');
+            return;
+          }
+          
+          const pngUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = pngUrl;
+          link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_mindmap.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          URL.revokeObjectURL(pngUrl);
+          
+          toast.success('Mindmap saved as image');
+        }, 'image/png');
       };
-
-      img.onerror = (e) => {
-        console.error('Image load error:', e);
-        // Fallback: download as SVG instead
+      
+      img.onerror = (error) => {
+        console.error('Image load error:', error);
+        // Fallback: download as SVG
         const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
         const svgUrl = URL.createObjectURL(svgBlob);
         const link = document.createElement('a');
@@ -280,11 +338,11 @@ export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(svgUrl);
-        toast.success('Mindmap saved as SVG (PNG conversion not supported in this browser)');
+        toast.success('Mindmap saved as SVG');
       };
-
+      
       img.src = dataUrl;
-
+      
     } catch (error) {
       console.error('Download error:', error);
       toast.error('Failed to download mindmap');
