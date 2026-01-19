@@ -97,7 +97,10 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
   const handleStartRecording = async () => {
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert("Your browser doesn't support audio recording.");
+        toast.error("Recording not supported", {
+          description: "Your browser doesn't support audio recording. Please try a different browser.",
+          duration: 5000,
+        });
         return;
       }
 
@@ -141,7 +144,10 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
       setRecordingState("recording");
     } catch (error) {
       console.error("Error starting recording:", error);
-      alert("Failed to start recording. Please ensure microphone access is granted.");
+      toast.error("Failed to start recording", {
+        description: "Please ensure microphone access is granted and try again.",
+        duration: 5000,
+      });
     }
   };
 
@@ -171,17 +177,21 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
 
   const handleGenerateNotes = async () => {
     if (!audioBlob) {
-      alert("Please record audio first!");
+      toast.error("No audio recorded", {
+        description: "Please record audio first before generating notes.",
+        duration: 4000,
+      });
       return;
     }
 
     const maxFileSize = 25 * 1024 * 1024; // 25MB
     if (audioBlob.size > maxFileSize) {
-      alert(
-        `Recording too large! Maximum size is 25MB. Your recording is ${(
+      toast.error("Recording too large!", {
+        description: `Maximum size is 25MB. Your recording is ${(
           audioBlob.size / 1024 / 1024
-        ).toFixed(2)}MB.`
-      );
+        ).toFixed(2)}MB. Please record a shorter audio.`,
+        duration: 5000,
+      });
       return;
     }
 
@@ -232,10 +242,10 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
       }
     } catch (error) {
       console.error("Transcription error:", error);
-      alert(
-        "Failed to transcribe audio. Please try again. Error: " +
-        (error instanceof Error ? error.message : "Unknown error")
-      );
+      toast.error("Failed to transcribe audio", {
+        description: error instanceof Error ? error.message : "Please try again or contact support if the issue persists.",
+        duration: 5000,
+      });
     } finally {
       if (currentTempId) {
         removeLoadingNote(currentTempId);

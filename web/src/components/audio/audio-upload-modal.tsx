@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, X, ChevronDown, Pin, Sparkles } from "lucide-react";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
+import { toast } from "sonner";
 
 interface AudioUploadModalProps {
     onTranscriptionComplete: (result: {
@@ -42,13 +43,14 @@ export default function AudioUploadModal({
             // Check file size (25MB limit for OpenAI Whisper)
             const maxFileSize = 25 * 1024 * 1024; // 25MB
             if (file.size > maxFileSize) {
-                alert(
-                    `File too large! Maximum size is 25MB. Your file is ${(
+                toast.error("File too large!", {
+                    description: `Maximum size is 25MB. Your file is ${(
                         file.size /
                         1024 /
                         1024
-                    ).toFixed(2)}MB. Please compress or choose a smaller file.`
-                );
+                    ).toFixed(2)}MB. Please compress or choose a smaller file.`,
+                    duration: 5000,
+                });
                 event.target.value = ""; // Clear the input
                 return;
             }
@@ -65,9 +67,10 @@ export default function AudioUploadModal({
                 "audio/mp4",
             ];
             if (!allowedTypes.includes(file.type)) {
-                alert(
-                    `Unsupported audio format: ${file.type}. Please use MP3, WAV, FLAC, M4A, OGG, WebM, or MP4.`
-                );
+                toast.error("Unsupported audio format", {
+                    description: `Format: ${file.type}. Please use MP3, WAV, FLAC, M4A, OGG, WebM, or MP4.`,
+                    duration: 5000,
+                });
                 event.target.value = ""; // Clear the input
                 return;
             }
@@ -154,7 +157,10 @@ export default function AudioUploadModal({
             }
         } catch (error) {
             console.error("Transcription error:", error);
-            alert("Failed to transcribe audio. Please try again.");
+            toast.error("Failed to transcribe audio", {
+                description: error instanceof Error ? error.message : "Please try again or contact support if the issue persists.",
+                duration: 5000,
+            });
         } finally {
             // Always remove loading note in finally block
             if (currentTempId) {

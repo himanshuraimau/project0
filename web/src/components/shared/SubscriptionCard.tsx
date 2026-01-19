@@ -15,19 +15,22 @@ export function SubscriptionCard({ hasActiveSubscription, isLoading = false, isD
 
     if (hasActiveSubscription) {
         return (
-            <div className="w-full max-w-sm bg-white dark:bg-[#202020] border border-neutral-200 dark:border-[#2A2A2A] p-4 rounded-[16px]">
-                <div className="mb-3">
+            <div className="w-full max-w-sm dark-gradient-element p-4 rounded-[16px]">
+                <div className="mb-4">
                     <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <h3 className="text-foreground font-semibold text-sm">Premium Active</h3>
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                        <Zap className="w-6 h-6 text-white" />
                     </div>
                 </div>
 
-                <p className="text-muted-foreground text-sm mb-4">Enjoying unlimited access</p>
+                <div className="mb-4">
+                    <h3 className="text-white font-medium">Premium Active</h3>
+                    <p className="text-blue-100 text-sm">Enjoying unlimited access</p>
+                </div>
 
                 <a
                     href="/settings/subscription"
-                    className="flex items-center text-sm justify-center w-full bg-neutral-100 dark:bg-[#2A2A2A] text-foreground rounded-[8px] px-4 py-2.5 transition-all duration-200 cursor-pointer font-medium hover:bg-neutral-200 dark:hover:bg-[#303030]"
+                    className="flex items-center text-sm justify-center w-full bg-white text-blue-600 rounded-[8px] px-4 py-2.5 transition-all duration-200 cursor-pointer font-semibold hover:bg-blue-50 hover:shadow-lg"
                 >
                     Manage Plan
                 </a>

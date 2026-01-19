@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mic, MicOff, Loader2, Play, Square } from "lucide-react";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
+import { toast } from "sonner";
 
 interface RecordAudioProps {
   onTranscriptionComplete: (result: {
@@ -98,9 +99,10 @@ export default function RecordAudio({
     try {
       // First check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert(
-          "Your browser doesn't support audio recording. Please use a modern browser like Chrome, Firefox, or Safari."
-        );
+        toast.error("Recording not supported", {
+          description: "Your browser doesn't support audio recording. Please use a modern browser like Chrome, Firefox, or Safari.",
+          duration: 5000,
+        });
         return;
       }
 
@@ -108,9 +110,10 @@ export default function RecordAudio({
       const permissionState = await checkMicrophonePermission();
 
       if (permissionState === "denied") {
-        alert(
-          "Microphone access is denied. Please enable microphone permissions in your browser settings and reload the page."
-        );
+        toast.error("Microphone access denied", {
+          description: "Please enable microphone permissions in your browser settings and reload the page.",
+          duration: 5000,
+        });
         return;
       }
 
@@ -130,25 +133,32 @@ export default function RecordAudio({
         if (permissionError instanceof Error) {
           if (permissionError.name === "NotAllowedError") {
             setMicrophonePermission("denied");
-            alert(
-              "Microphone access was denied. Please click 'Allow' when prompted, or enable microphone permissions in your browser settings."
-            );
+            toast.error("Microphone access denied", {
+              description: "Please click 'Allow' when prompted, or enable microphone permissions in your browser settings.",
+              duration: 5000,
+            });
           } else if (permissionError.name === "NotFoundError") {
-            alert(
-              "No microphone found. Please ensure a microphone is connected to your device."
-            );
+            toast.error("No microphone found", {
+              description: "Please ensure a microphone is connected to your device.",
+              duration: 5000,
+            });
           } else if (permissionError.name === "NotReadableError") {
-            alert(
-              "Microphone is being used by another application. Please close other apps using the microphone and try again."
-            );
+            toast.error("Microphone is busy", {
+              description: "Please close other apps using the microphone and try again.",
+              duration: 5000,
+            });
           } else {
-            alert(`Microphone access error: ${permissionError.message}`);
+            toast.error("Microphone access error", {
+              description: permissionError.message,
+              duration: 5000,
+            });
           }
         } else {
           setMicrophonePermission("denied");
-          alert(
-            "Failed to access microphone. Please check your browser permissions."
-          );
+          toast.error("Failed to access microphone", {
+            description: "Please check your browser permissions.",
+            duration: 5000,
+          });
         }
         return;
       }
@@ -206,24 +216,31 @@ export default function RecordAudio({
       // More specific error handling
       if (error instanceof Error) {
         if (error.name === "NotAllowedError") {
-          alert(
-            "Microphone access denied. Please allow microphone access and try again."
-          );
+          toast.error("Microphone access denied", {
+            description: "Please allow microphone access and try again.",
+            duration: 5000,
+          });
         } else if (error.name === "NotFoundError") {
-          alert(
-            "No microphone found. Please ensure a microphone is connected."
-          );
+          toast.error("No microphone found", {
+            description: "Please ensure a microphone is connected.",
+            duration: 5000,
+          });
         } else if (error.name === "NotReadableError") {
-          alert(
-            "Microphone is busy. Please close other applications using the microphone."
-          );
+          toast.error("Microphone is busy", {
+            description: "Please close other applications using the microphone.",
+            duration: 5000,
+          });
         } else {
-          alert(`Recording error: ${error.message}`);
+          toast.error("Recording error", {
+            description: error.message,
+            duration: 5000,
+          });
         }
       } else {
-        alert(
-          "Failed to start recording. Please ensure microphone access is granted and try again."
-        );
+        toast.error("Failed to start recording", {
+          description: "Please ensure microphone access is granted and try again.",
+          duration: 5000,
+        });
       }
     }
   };
@@ -271,13 +288,14 @@ export default function RecordAudio({
     // Check file size before transcription (25MB limit for OpenAI Whisper)
     const maxFileSize = 25 * 1024 * 1024; // 25MB
     if (audioBlob.size > maxFileSize) {
-      alert(
-        `Recording too large! Maximum size is 25MB. Your recording is ${(
+      toast.error("Recording too large!", {
+        description: `Maximum size is 25MB. Your recording is ${(
           audioBlob.size /
           1024 /
           1024
-        ).toFixed(2)}MB. Please record a shorter audio clip.`
-      );
+        ).toFixed(2)}MB. Please record a shorter audio clip.`,
+        duration: 5000,
+      });
       return;
     }
 
@@ -351,10 +369,10 @@ export default function RecordAudio({
       }
     } catch (error) {
       console.error("Transcription error:", error);
-      alert(
-        "Failed to transcribe audio. Please try again. Error: " +
-          (error instanceof Error ? error.message : "Unknown error")
-      );
+      toast.error("Failed to transcribe audio", {
+        description: error instanceof Error ? error.message : "Please try again or contact support if the issue persists.",
+        duration: 5000,
+      });
     } finally {
       // Always remove loading note in finally block
       if (currentTempId) {
