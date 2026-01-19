@@ -172,22 +172,40 @@ export function MarkmapViewer({ markdownContent, title }: MarkmapViewerProps) {
         return;
       }
 
+      // Get the current transform to match the preview zoom level
+      const transform = mainGroup.getAttribute('transform') || '';
+      const scaleMatch = transform.match(/scale\(([\d.]+)\)/);
+      const currentScaleValue = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+
+      // Get bounding box and apply current scale
       const bbox = mainGroup.getBBox();
       const padding = 40; // Add padding around the mindmap
-      const width = bbox.width + (padding * 2);
-      const height = bbox.height + (padding * 2);
+      
+      // Apply the current scale to the dimensions to match what user sees
+      const scaledWidth = bbox.width * currentScaleValue;
+      const scaledHeight = bbox.height * currentScaleValue;
+      const width = scaledWidth + (padding * 2);
+      const height = scaledHeight + (padding * 2);
+
+      // Calculate the viewBox to match the current zoom level
+      const viewBoxX = bbox.x - (padding / currentScaleValue);
+      const viewBoxY = bbox.y - (padding / currentScaleValue);
+      const viewBoxWidth = bbox.width + (padding * 2 / currentScaleValue);
+      const viewBoxHeight = bbox.height + (padding * 2 / currentScaleValue);
 
       // Set explicit dimensions on the cloned SVG
       clonedSvg.setAttribute('width', String(width));
       clonedSvg.setAttribute('height', String(height));
-      clonedSvg.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${width} ${height}`);
+      clonedSvg.setAttribute('viewBox', `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`);
       clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
 
       // Add background as first element
       const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      bgRect.setAttribute('width', '100%');
-      bgRect.setAttribute('height', '100%');
+      bgRect.setAttribute('x', String(viewBoxX));
+      bgRect.setAttribute('y', String(viewBoxY));
+      bgRect.setAttribute('width', String(viewBoxWidth));
+      bgRect.setAttribute('height', String(viewBoxHeight));
       bgRect.setAttribute('fill', isDark ? '#1a1a2e' : '#ffffff');
       clonedSvg.insertBefore(bgRect, clonedSvg.firstChild);
 
