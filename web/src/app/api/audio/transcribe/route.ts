@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
       formData = await req.formData();
     } catch (error) {
       console.error('FormData parsing error:', error);
-      return NextResponse.json({ 
-        error: 'Invalid form data. Please ensure you are sending a properly formatted multipart/form-data request.' 
+      return NextResponse.json({
+        error: 'Invalid form data. Please ensure you are sending a properly formatted multipart/form-data request.'
       }, { status: 400 });
     }
 
@@ -59,9 +59,9 @@ export async function POST(req: NextRequest) {
 
     // Validate file type
     const allowedMimeTypes = [
-      'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/flac',
-      'audio/m4a', 'audio/ogg', 'audio/webm', 'audio/mp4',
-      'audio/webm;codecs=opus', 'audio/ogg;codecs=opus'
+      'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave', 'audio/x-wav',
+      'audio/flac', 'audio/m4a', 'audio/x-m4a', 'audio/ogg', 'audio/webm',
+      'audio/mp4', 'audio/aac', 'audio/webm;codecs=opus', 'audio/ogg;codecs=opus'
     ];
 
     console.log('Received audio file with MIME type:', audioFile.type);
@@ -98,6 +98,7 @@ export async function POST(req: NextRequest) {
       'audio/mp3': 'mp3',
       'audio/wav': 'wav',
       'audio/wave': 'wav',
+      'audio/x-wav': 'wav',
       'audio/flac': 'flac',
       'audio/m4a': 'm4a',
       'audio/x-m4a': 'm4a',
@@ -106,6 +107,7 @@ export async function POST(req: NextRequest) {
       'audio/webm': 'webm',
       'audio/webm;codecs=opus': 'webm',
       'audio/mp4': 'mp4',
+      'audio/aac': 'aac',
     };
 
     // Get file extension from MIME type or filename
@@ -219,7 +221,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Audio transcription error:', error);
-    
+
     // Provide more specific error messages based on error type
     if (error instanceof Error) {
       if (error.message.includes('FormData')) {
@@ -241,7 +243,7 @@ export async function POST(req: NextRequest) {
         );
       }
     }
-    
+
     return NextResponse.json(
       { error: 'Failed to transcribe audio. Please try again.' },
       { status: 500 }

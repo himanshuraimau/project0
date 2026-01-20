@@ -204,7 +204,6 @@ export default function AudioUploadModal({
                 />
                 <label
                     htmlFor="audio-file-input"
-                    onClick={handleUploadZoneClick}
                     className="flex flex-col items-center justify-center w-full border-2 border-gray-200 dark:border-zinc-700 rounded-xl p-12 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
                 >
                     <div className="bg-gray-100 dark:bg-zinc-800 p-3 rounded-lg mb-4">
