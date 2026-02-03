@@ -8,15 +8,16 @@
       "android": {
         "buildType": "apk",
         "env": {
-          "EXPO_PUBLIC_API_URL": "https://project0-nu.vercel.app/api",
-          "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_dXAtaGlwcG8tNDQuY2xlcmsuYWNjb3VudHMuZGV2JA"
+          "EXPO_PUBLIC_API_URL": "https://project0-nu.vercel.app/api"
         }
-      }
+      },
+      "node": "20.18.1"
     },
     "production": {
       "android": {
         "buildType": "apk"
-      }
+      },
+      "node": "20.18.1"
     }
   }
 }

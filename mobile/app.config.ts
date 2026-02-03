@@ -52,6 +52,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
                 "backgroundColor": "#ffffff"
             }
         ],
+        "expo-font",
         "expo-secure-store",
         "expo-web-browser",
         "expo-localization",
