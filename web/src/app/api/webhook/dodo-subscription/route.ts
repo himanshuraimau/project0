@@ -1,29 +1,53 @@
 // Webhook endpoint to handle Dodo Payments subscription events
+// Uses Standard Webhooks specification
 
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { DodoWebhookService } from '@/lib/utils/dodo/webhooks';
+import { DodoWebhookService } from '@/lib/payments/dodo';
 import { SubscriptionService } from '@/lib/subscription-service';
 
 export async function POST(request: Request) {
   try {
-    // Verify webhook signature
+    // Get webhook headers (Standard Webhooks format)
     const headersList = await headers();
-    const signature = headersList.get('x-dodo-signature');
-    const webhookKey = process.env.DODO_WEBHOOK_KEY;
+    const webhookId = headersList.get('webhook-id');
+    const webhookSignature = headersList.get('webhook-signature');
+    const webhookTimestamp = headersList.get('webhook-timestamp');
+    const webhookKey = process.env.DODO_PAYMENTS_WEBHOOK_KEY || process.env.DODO_WEBHOOK_KEY;
 
     if (!webhookKey) {
-      console.error('DODO_WEBHOOK_KEY not configured');
+      console.error('DODO_PAYMENTS_WEBHOOK_KEY not configured');
       return NextResponse.json(
         { error: 'Webhook configuration error' },
         { status: 500 }
       );
     }
 
+    if (!webhookId || !webhookSignature || !webhookTimestamp) {
+      console.error('Missing required webhook headers');
+      return NextResponse.json(
+        { error: 'Missing webhook headers' },
+        { status: 400 }
+      );
+    }
+
     const body = await request.text();
 
-    // Verify signature
-    if (!signature || !DodoWebhookService.verifyWebhookSignature(body, signature, webhookKey)) {
+    // Verify timestamp (prevent replay attacks)
+    if (!DodoWebhookService.verifyWebhookTimestamp(webhookTimestamp)) {
+      console.error('Webhook timestamp verification failed');
+      return NextResponse.json(
+        { error: 'Invalid timestamp' },
+        { status: 401 }
+      );
+    }
+
+    // Verify signature (Standard Webhooks format)
+    if (!DodoWebhookService.verifyWebhookSignature(body, {
+      'webhook-id': webhookId,
+      'webhook-signature': webhookSignature,
+      'webhook-timestamp': webhookTimestamp,
+    }, webhookKey)) {
       console.error('Invalid webhook signature');
       return NextResponse.json(
         { error: 'Invalid signature' },
@@ -125,10 +149,17 @@ async function handleSubscriptionCreated(payload: any) {
 
 async function handleSubscriptionActivated(payload: any) {
   const subscriptionId = payload.data.subscription_id;
+  const subscription = await SubscriptionService.getSubscriptionByDodoId(subscriptionId);
+
+  if (!subscription) {
+    console.log('Subscription not found for activated event:', subscriptionId);
+    return;
+  }
+
   const now = new Date();
   const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-  await SubscriptionService.activateSubscription(subscriptionId, {
+  await SubscriptionService.activateSubscription(subscription.dodoSubscriptionId, {
     currentPeriodStart: payload.data.current_period_start
       ? new Date(payload.data.current_period_start)
       : now,
@@ -252,7 +283,7 @@ async function handleSubscriptionFailed(payload: any) {
     console.log('Pending subscription failed, deleting to allow retry:', subscriptionId);
     await SubscriptionService.deleteSubscription(subscription.userId);
   } else {
-    await SubscriptionService.failSubscription(subscriptionId);
+    await SubscriptionService.failSubscription(subscription.dodoSubscriptionId);
   }
 
   console.log('Subscription failed:', subscriptionId);
@@ -260,56 +291,101 @@ async function handleSubscriptionFailed(payload: any) {
 
 async function handlePaymentSucceeded(payload: any) {
   const subscriptionId = payload.data.subscription_id;
+  const subscription = await SubscriptionService.getSubscriptionByDodoId(subscriptionId);
+
+  if (!subscription) {
+    console.log('Subscription not found for payment succeeded event:', subscriptionId);
+    return;
+  }
+
   const nextBillingDate = payload.data.next_billing_date
     ? new Date(payload.data.next_billing_date)
     : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now as fallback
 
   // Renew subscription
-  await SubscriptionService.renewSubscription(subscriptionId, nextBillingDate);
+  await SubscriptionService.renewSubscription(subscription.dodoSubscriptionId, nextBillingDate);
 
   console.log('Payment succeeded for subscription:', subscriptionId);
 }
 
 async function handlePaymentFailed(payload: any) {
   const subscriptionId = payload.data.subscription_id;
+  const subscription = await SubscriptionService.getSubscriptionByDodoId(subscriptionId);
 
-  await SubscriptionService.failSubscription(subscriptionId);
+  if (!subscription) {
+    console.log('Subscription not found for payment failed event:', subscriptionId);
+    return;
+  }
+
+  await SubscriptionService.failSubscription(subscription.dodoSubscriptionId);
 
   console.log('Payment failed for subscription:', subscriptionId);
 }
 
 async function handleSubscriptionCancelled(payload: any) {
   const subscriptionId = payload.data.subscription_id;
+  const subscription = await SubscriptionService.getSubscriptionByDodoId(subscriptionId);
+
+  if (!subscription) {
+    console.log('Subscription not found for cancelled event:', subscriptionId);
+    return;
+  }
+
   const cancelAtPeriodEnd = payload.data.cancel_at_next_billing_date || false;
 
-  await SubscriptionService.cancelSubscription(subscriptionId, cancelAtPeriodEnd);
+  // If subscription was pending and is now cancelled, delete it to allow new subscriptions
+  if (subscription.status === 'PENDING') {
+    console.log('Pending subscription cancelled via webhook, deleting:', subscriptionId);
+    await SubscriptionService.deleteSubscription(subscription.userId);
+  } else {
+    await SubscriptionService.cancelSubscription(subscription.dodoSubscriptionId, cancelAtPeriodEnd);
+  }
 
   console.log('Subscription cancelled:', subscriptionId);
 }
 
 async function handleSubscriptionExpired(payload: any) {
   const subscriptionId = payload.data.subscription_id;
+  const subscription = await SubscriptionService.getSubscriptionByDodoId(subscriptionId);
 
-  await SubscriptionService.updateSubscriptionStatus(subscriptionId, 'EXPIRED');
+  if (!subscription) {
+    console.log('Subscription not found for expired event:', subscriptionId);
+    return;
+  }
+
+  await SubscriptionService.updateSubscriptionStatus(subscription.dodoSubscriptionId, 'EXPIRED');
 
   console.log('Subscription expired:', subscriptionId);
 }
 
 async function handleSubscriptionRenewed(payload: any) {
   const subscriptionId = payload.data.subscription_id;
+  const subscription = await SubscriptionService.getSubscriptionByDodoId(subscriptionId);
+
+  if (!subscription) {
+    console.log('Subscription not found for renewed event:', subscriptionId);
+    return;
+  }
+
   const nextBillingDate = payload.data.next_billing_date
     ? new Date(payload.data.next_billing_date)
     : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now as fallback
 
-  await SubscriptionService.renewSubscription(subscriptionId, nextBillingDate);
+  await SubscriptionService.renewSubscription(subscription.dodoSubscriptionId, nextBillingDate);
 
   console.log('Subscription renewed:', subscriptionId);
 }
 
 async function handleSubscriptionOnHold(payload: any) {
   const subscriptionId = payload.data.subscription_id;
+  const subscription = await SubscriptionService.getSubscriptionByDodoId(subscriptionId);
 
-  await SubscriptionService.holdSubscription(subscriptionId);
+  if (!subscription) {
+    console.log('Subscription not found for on_hold event:', subscriptionId);
+    return;
+  }
+
+  await SubscriptionService.holdSubscription(subscription.dodoSubscriptionId);
 
   console.log('Subscription put on hold:', subscriptionId);
 }

@@ -1,4 +1,4 @@
-// Dodo Payments configuration constants and types
+// Dodo Payments configuration constants
 
 /**
  * Get Dodo configuration (lazy evaluation to ensure env vars are loaded)
@@ -24,6 +24,7 @@ export const DODO_CONFIG = new Proxy({} as ReturnType<typeof getDodoConfig>, {
   }
 });
 
+// Subscription pricing configuration
 export const SUBSCRIPTION_CONFIG = {
   price: 1999, // $19.99 in cents
   currency: 'USD',
@@ -76,12 +77,17 @@ export const SUBSCRIPTION_PLAN_YEARLY = {
   ],
 } as const;
 
+// Webhook event types
 export const WEBHOOK_EVENTS = {
   SUBSCRIPTION_ACTIVE: 'subscription.active',
+  SUBSCRIPTION_UPDATED: 'subscription.updated',
   SUBSCRIPTION_ON_HOLD: 'subscription.on_hold',
-  SUBSCRIPTION_CANCELLED: 'subscription.cancelled',
   SUBSCRIPTION_RENEWED: 'subscription.renewed',
+  SUBSCRIPTION_PLAN_CHANGED: 'subscription.plan_changed',
+  SUBSCRIPTION_CANCELLED: 'subscription.cancelled',
   SUBSCRIPTION_FAILED: 'subscription.failed',
+  SUBSCRIPTION_EXPIRED: 'subscription.expired',
+  SUBSCRIPTION_CREATED: 'subscription.created',
   PAYMENT_SUCCEEDED: 'payment.succeeded',
   PAYMENT_FAILED: 'payment.failed',
 } as const;

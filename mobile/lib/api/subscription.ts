@@ -4,6 +4,8 @@ import {
   CreateSubscriptionRequest,
   CreateSubscriptionResponse,
   SubscriptionPortalResponse,
+  PaymentLinkResponse,
+  CancelPendingResponse,
   ApiResponse,
 } from './types';
 
@@ -80,9 +82,41 @@ export const getSubscriptionPortal = async (): Promise<SubscriptionPortalRespons
   }
 };
 
+/**
+ * Get payment link for a pending subscription
+ * Used when user abandons checkout and needs to complete payment later
+ */
+export const getPaymentLink = async (): Promise<PaymentLinkResponse> => {
+  try {
+    const response = await apiClient.get<ApiResponse<PaymentLinkResponse>>(
+      '/subscription/payment-link'
+    );
+    return handleApiResponse<PaymentLinkResponse>(response);
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
+
+/**
+ * Cancel a pending subscription
+ * Used when user abandons checkout and wants to cancel the pending subscription
+ */
+export const cancelPendingSubscription = async (): Promise<CancelPendingResponse> => {
+  try {
+    const response = await apiClient.post<ApiResponse<CancelPendingResponse>>(
+      '/subscription/cancel-pending'
+    );
+    return handleApiResponse<CancelPendingResponse>(response);
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
+
 export default {
   getSubscriptionStatus,
   createSubscription,
   cancelSubscription,
   getSubscriptionPortal,
+  getPaymentLink,
+  cancelPendingSubscription,
 };

@@ -1,7 +1,7 @@
 // Subscription Service - Database operations for subscription management
 
 import { prisma } from '@/lib/prisma';
-import { DodoSubscriptionService } from '@/lib/utils/dodo/subscription';
+import { DodoSubscriptionService } from '@/lib/payments/dodo';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import type { SubscriptionStatus } from '@prisma/client';
@@ -265,8 +265,8 @@ export class SubscriptionService {
           subscription.dodoSubscriptionId,
           dodoSubscription.status.toUpperCase() as SubscriptionStatus,
           {
-            currentPeriodStart: periodInfo.currentPeriodStart || undefined,
-            currentPeriodEnd: periodInfo.currentPeriodEnd || undefined,
+            currentPeriodStart: periodInfo.currentPeriodStart,
+            currentPeriodEnd: periodInfo.currentPeriodEnd,
             nextBillingDate: periodInfo.nextBillingDate,
             cancelAtPeriodEnd: periodInfo.cancelAtPeriodEnd,
           }

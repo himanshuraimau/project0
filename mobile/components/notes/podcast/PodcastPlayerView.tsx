@@ -17,7 +17,7 @@ import { Audio } from 'expo-av';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import Svg, { Path } from 'react-native-svg';
-import { podcastApi } from '@/lib/api';
+import { podcastApi, Podcast } from '@/lib/api';
 import BackButton from '@/components/ui/BackButton';
 
 const { width } = Dimensions.get('window');
@@ -175,7 +175,7 @@ interface PodcastPlayerViewProps {
 export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerViewProps) {
     const router = useRouter();
 
-    const [podcast, setPodcast] = useState<any>(null);
+    const [podcast, setPodcast] = useState<Podcast | null>(null);
     const [loading, setLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
     const [position, setPosition] = useState(0);

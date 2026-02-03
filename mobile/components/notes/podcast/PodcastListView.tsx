@@ -7,10 +7,11 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
+    Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { podcastApi, notesApi } from '@/lib/api';
+import { podcastApi, notesApi, Podcast } from '@/lib/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import PodcastGenerationModal from '@/components/podcast/PodcastGenerationModal';
 import BackButton from '@/components/ui/BackButton';
@@ -22,8 +23,9 @@ interface PodcastListViewProps {
 export default function PodcastListView({ noteId }: PodcastListViewProps) {
     const router = useRouter();
 
-    const [podcasts, setPodcasts] = useState<any[]>([]);
+    const [podcasts, setPodcasts] = useState<Podcast[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showGenerationModal, setShowGenerationModal] = useState(false);
     const [noteContent, setNoteContent] = useState('');
     const [hasPodcast, setHasPodcast] = useState(false);
@@ -47,7 +49,9 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
             setLoading(true);
             const data = await podcastApi.getPodcastsByNoteId(noteId);
             setPodcasts(data || []);
-            setHasPodcast((data || []).length > 0);
+            // Check if there's at least one completed podcast
+            const hasCompletedPodcast = (data || []).some(p => p.status === 'COMPLETED');
+            setHasPodcast(hasCompletedPodcast);
         } catch (error) {
             console.error('Error loading podcasts:', error);
             // Don't show alert for 404 - just means no podcasts yet
@@ -75,7 +79,7 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
         });
     };
 
-    const handlePodcastPress = (podcast: any) => {
+    const handlePodcastPress = (podcast: Podcast) => {
         // Navigate to player with podcast ID
         router.push(`/notes/${noteId}/podcast?podcastId=${podcast.id}`);
     };
@@ -83,8 +87,9 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
     const handleGenerationComplete = async (podcast: any) => {
         // Refresh the podcasts list
         await loadPodcasts();
-        // Navigate to the player
-        router.push(`/notes/${noteId}/podcast?podcastId=${podcast.jobId}`);
+        // Navigate to the player - use jobId if available, otherwise id
+        const podcastId = podcast.jobId || podcast.id;
+        router.push(`/notes/${noteId}/podcast?podcastId=${podcastId}`);
     };
 
     const handleAddButtonPress = () => {
@@ -95,11 +100,16 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
                 [{ text: 'OK', style: 'default' }]
             );
         } else {
-            setShowGenerationModal(true);
+            setShowConfirmationModal(true);
         }
     };
 
-    const renderPodcastItem = ({ item }: { item: any }) => (
+    const handleConfirmGeneration = () => {
+        setShowConfirmationModal(false);
+        setShowGenerationModal(true);
+    };
+
+    const renderPodcastItem = ({ item }: { item: Podcast }) => (
         <TouchableOpacity
             style={styles.podcastCard}
             onPress={() => handlePodcastPress(item)}
@@ -223,6 +233,40 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
                     showsVerticalScrollIndicator={false}
                 />
             )}
+
+            {/* Confirmation Modal */}
+            <Modal
+                visible={showConfirmationModal}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowConfirmationModal(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.confirmationModal}>
+                        <View style={styles.confirmationHeader}>
+                            <Ionicons name="information-circle" size={48} color="#6366F1" />
+                            <Text style={styles.confirmationTitle}>Generate Podcast?</Text>
+                        </View>
+                        <Text style={styles.confirmationText}>
+                            This will convert your note into AI-generated audio narration. The process may take a few moments.
+                        </Text>
+                        <View style={styles.confirmationButtons}>
+                            <TouchableOpacity
+                                style={[styles.confirmationButton, styles.cancelButton]}
+                                onPress={() => setShowConfirmationModal(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.confirmationButton, styles.confirmButton]}
+                                onPress={handleConfirmGeneration}
+                            >
+                                <Text style={styles.confirmButtonText}>OK</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             {/* Generation Modal */}
             <PodcastGenerationModal
@@ -380,16 +424,74 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         gap: 8,
     },
-    disabledGenerateButton: {
-        backgroundColor: '#9CA3AF',
-        opacity: 0.6,
-    },
     generateButtonText: {
         fontSize: 16,
         fontWeight: '600',
         color: '#FFFFFF',
     },
+    disabledGenerateButton: {
+        backgroundColor: '#9CA3AF',
+        opacity: 0.6,
+    },
     disabledGenerateButtonText: {
         color: '#6B7280',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    confirmationModal: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        padding: 24,
+        width: '85%',
+        maxWidth: 400,
+    },
+    confirmationHeader: {
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    confirmationTitle: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: '#1F2937',
+        marginTop: 12,
+        textAlign: 'center',
+    },
+    confirmationText: {
+        fontSize: 14,
+        color: '#6B7280',
+        textAlign: 'center',
+        marginBottom: 24,
+        lineHeight: 20,
+    },
+    confirmationButtons: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    confirmationButton: {
+        flex: 1,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    cancelButton: {
+        backgroundColor: '#F3F4F6',
+    },
+    cancelButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#6B7280',
+    },
+    confirmButton: {
+        backgroundColor: '#6366F1',
+    },
+    confirmButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#FFFFFF',
     },
 });

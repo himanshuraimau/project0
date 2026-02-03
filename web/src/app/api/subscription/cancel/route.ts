@@ -3,7 +3,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { SubscriptionService } from '@/lib/subscription-service';
-import { DodoSubscriptionService } from '@/lib/utils/dodo/subscription';
+import { DodoSubscriptionService } from '@/lib/payments/dodo';
 
 export async function POST(request: NextRequest) {
   try {

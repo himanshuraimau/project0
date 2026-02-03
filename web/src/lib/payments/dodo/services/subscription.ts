@@ -1,12 +1,11 @@
 // Dodo Payments subscription management service
 
-import { getDodoClient } from './client';
-import { DODO_CONFIG, SUBSCRIPTION_CONFIG, SUBSCRIPTION_CONFIG_YEARLY } from './constants';
+import { getDodoClient } from '../config/client';
+import { DODO_CONFIG, SUBSCRIPTION_CONFIG, SUBSCRIPTION_CONFIG_YEARLY } from '../config/constants';
 import type { 
   CreateSubscriptionParams, 
   SubscriptionManagementResult,
-  DodoSubscriptionCreateRequest 
-} from './types';
+} from '../types';
 
 export class DodoSubscriptionService {
   /**
@@ -54,20 +53,10 @@ export class DodoSubscriptionService {
         throw new Error(`${envVar} is not configured`);
       }
 
-      console.log('Creating Dodo subscription with params:', {
-        email: params.userEmail,
-        productId,
-        billingInterval,
-        environment: DODO_CONFIG.environment,
-        hasApiKey: !!DODO_CONFIG.apiKey,
-        apiKeyLength: DODO_CONFIG.apiKey?.length,
-        apiKeyPrefix: DODO_CONFIG.apiKey?.substring(0, 15) + '...',
-      });
-
       const createRequest = {
         billing: {
           ...params.billingAddress,
-          country: params.billingAddress.country as any, // Cast to satisfy Dodo's specific type requirements
+          country: params.billingAddress.country as any,
         },
         customer: {
           email: params.userEmail,
@@ -77,7 +66,6 @@ export class DodoSubscriptionService {
         quantity: 1,
         payment_link: true,
         return_url: DODO_CONFIG.returnUrl,
-        // Only include trial_period_days if it's greater than 0
         ...(params.trialDays && params.trialDays > 0 ? { trial_period_days: params.trialDays } : {}),
         metadata: {
           userId: params.userId,
@@ -86,15 +74,8 @@ export class DodoSubscriptionService {
         },
       };
 
-      console.log('Dodo subscription request:', JSON.stringify(createRequest, null, 2));
-
       const client = this.getClient();
       const response = await client.subscriptions.create(createRequest);
-
-      console.log('Dodo subscription created successfully:', {
-        subscriptionId: response.subscription_id,
-        hasPaymentLink: !!response.payment_link,
-      });
 
       return {
         success: true,
@@ -105,27 +86,9 @@ export class DodoSubscriptionService {
     } catch (error) {
       console.error('Failed to create Dodo subscription:', error);
       
-      // Enhanced error logging for debugging
       if (error && typeof error === 'object') {
         const err = error as any;
-        console.error('Error details:', {
-          status: err.status,
-          headers: err.headers,
-          message: err.message,
-          stack: err.stack,
-        });
-
-        // Provide helpful error messages based on status code
         if (err.status === 401) {
-          console.error('\n⚠️  AUTHENTICATION ERROR (401):');
-          console.error('   Your Dodo Payments API key is invalid or expired.');
-          console.error('   Please follow these steps:');
-          console.error('   1. Go to https://dashboard.dodopayments.com/');
-          console.error('   2. Navigate to Settings > API Keys');
-          console.error('   3. Generate a new API key for TEST MODE');
-          console.error('   4. Update DODO_PAYMENTS_API_KEY in your .env file');
-          console.error('   5. Restart your development server\n');
-          
           return {
             success: false,
             error: 'Invalid or expired API key. Please generate a new API key from Dodo Payments dashboard.',
@@ -164,8 +127,6 @@ export class DodoSubscriptionService {
     cancelAtPeriodEnd: boolean = true
   ): Promise<SubscriptionManagementResult> {
     try {
-      // For pending subscriptions, use PATCH to set status to cancelled
-      // For active subscriptions, use the cancel endpoint
       const subscription = await this.getSubscription(subscriptionId);
       
       if (subscription?.status === 'pending') {
@@ -215,34 +176,6 @@ export class DodoSubscriptionService {
   }
 
   /**
-   * Get payment link for a pending subscription
-   */
-  static async getPaymentLink(subscriptionId: string): Promise<string | null> {
-    try {
-      const subscription = await this.getSubscription(subscriptionId);
-      
-      if (!subscription) {
-        return null;
-      }
-
-      // If subscription has a payment_link, return it
-      if (subscription.payment_link) {
-        return subscription.payment_link;
-      }
-
-      // If subscription is pending but no payment_link, try to get it from Dodo
-      // Some subscriptions might need to be retrieved with payment link
-      const client = this.getClient();
-      const fullSubscription = await client.subscriptions.retrieve(subscriptionId);
-      
-      return fullSubscription?.payment_link || null;
-    } catch (error) {
-      console.error('Failed to get payment link:', error);
-      return null;
-    }
-  }
-
-  /**
    * List all subscriptions for debugging/admin purposes
    */
   static async listSubscriptions(params?: {
@@ -262,30 +195,6 @@ export class DodoSubscriptionService {
     } catch (error) {
       console.error('Failed to list Dodo subscriptions:', error);
       return [];
-    }
-  }
-
-  /**
-   * Sync subscription status from Dodo to our database
-   */
-  static async syncSubscriptionStatus(
-    subscriptionId: string
-  ): Promise<any | null> {
-    try {
-      const dodoSubscription = await this.getSubscription(subscriptionId);
-      
-      if (!dodoSubscription) {
-        console.error('Subscription not found in Dodo:', subscriptionId);
-        return null;
-      }
-
-      // TODO: Update our database with the latest status
-      // This will be implemented when we create the database service
-
-      return dodoSubscription;
-    } catch (error) {
-      console.error('Failed to sync subscription status:', error);
-      return null;
     }
   }
 
@@ -312,14 +221,16 @@ export class DodoSubscriptionService {
     return {
       currentPeriodStart: subscription.current_period_start 
         ? new Date(subscription.current_period_start) 
-        : null,
+        : undefined,
       currentPeriodEnd: subscription.current_period_end 
         ? new Date(subscription.current_period_end) 
-        : null,
-      nextBillingDate: new Date(subscription.next_billing_date),
+        : undefined,
+      nextBillingDate: subscription.next_billing_date
+        ? new Date(subscription.next_billing_date)
+        : undefined,
       trialEnd: subscription.trial_end 
         ? new Date(subscription.trial_end) 
-        : null,
+        : undefined,
       isInTrial: this.isSubscriptionInTrial(subscription),
       cancelAtPeriodEnd: subscription.cancel_at_next_billing_date || false,
     };

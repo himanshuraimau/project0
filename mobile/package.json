@@ -3,12 +3,12 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web",
-    "lint": "expo lint"
+    "start": "bun run --bun expo start",
+    "reset-project": "bun ./scripts/reset-project.js",
+    "android": "bun run --bun expo run:android",
+    "ios": "bun run --bun expo run:ios",
+    "web": "bun run --bun expo start --web",
+    "lint": "bun run --bun expo lint"
   },
   "dependencies": {
     "@10play/tentap-editor": "^1.0.1",

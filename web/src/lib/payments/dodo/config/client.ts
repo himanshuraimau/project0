@@ -65,9 +65,8 @@ export async function testDodoConnection(): Promise<boolean> {
   }
 }
 
-// Validate configuration on import
+// Validate configuration on import (server-side only)
 if (typeof window === 'undefined') {
-  // Only validate on server-side
   try {
     validateDodoConfig();
   } catch (error) {

@@ -3,11 +3,10 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { SubscriptionService } from '@/lib/subscription-service';
 import { UserService } from '@/lib/user-service';
-import { DodoSubscriptionService } from '@/lib/utils/dodo/subscription';
+import { DodoSubscriptionService, type BillingInterval } from '@/lib/payments/dodo';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import type { BillingInterval } from '@/lib/utils/dodo/types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -117,11 +116,16 @@ export async function POST(request: NextRequest) {
     await UserService.getOrCreateUser(userId, email);
 
     // Create subscription record in database
+    // Store payment link in metadata for later retrieval
     const subscription = await SubscriptionService.createSubscription({
       userId,
       dodoSubscriptionId: dodoSubscription.subscriptionId,
       productId,
       status: 'PENDING', // Will be updated via webhook
+      metadata: {
+        paymentLink: dodoSubscription.paymentLink,
+        createdAt: new Date().toISOString(),
+      },
     });
 
     return NextResponse.json({

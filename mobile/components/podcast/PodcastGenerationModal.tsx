@@ -48,10 +48,21 @@ export default function PodcastGenerationModal({
         }
     }, [job?.status, job, onComplete, reset, onClose]);
 
-    // Reset the auto-navigate flag when modal opens
+    // Reset the auto-navigate flag and auto-start generation when modal opens
     useEffect(() => {
         if (visible) {
             hasAutoNavigated.current = false;
+            // Auto-start generation when modal opens (after confirmation)
+            if (!job && !isGenerating && noteContent && noteContent.trim().length > 0) {
+                // Small delay to ensure modal is fully visible
+                const timer = setTimeout(() => {
+                    handleGenerate();
+                }, 100);
+                return () => clearTimeout(timer);
+            }
+        } else {
+            // Reset when modal closes
+            reset();
         }
     }, [visible]);
 
@@ -94,49 +105,18 @@ export default function PodcastGenerationModal({
 
                     {/* Content */}
                     <View style={styles.content}>
-                        {/* Idle State */}
-                        {!job && !isGenerating && (
-                            <View style={styles.idleState}>
-                                <Ionicons
-                                    name="mic-outline"
-                                    size={64}
-                                    color="#6366F1"
-                                />
-                                <Text style={styles.title}>
-                                    Convert to Audio
-                                </Text>
+                        {/* Loading/Generating State - Show immediately when modal opens */}
+                        {!job && !isGenerating ? (
+                            /* Initial Loading State */
+                            <View style={styles.generatingState}>
+                                <ActivityIndicator size="large" color="#6366F1" />
+                                <Text style={styles.title}>Preparing...</Text>
                                 <Text style={styles.description}>
-                                    Transform your note into AI-generated audio narration
+                                    Starting audio generation
                                 </Text>
-
-                                {!noteContent || noteContent.trim().length === 0 ? (
-                                    <Text style={styles.errorText}>
-                                        Note content is empty. Please add content to
-                                        your note first.
-                                    </Text>
-                                ) : (
-                                    <TouchableOpacity
-                                        style={[
-                                            styles.generateButton,
-                                            { backgroundColor: '#6366F1', width: '100%' },
-                                        ]}
-                                        onPress={handleGenerate}
-                                    >
-                                        <Ionicons
-                                            name="play"
-                                            size={20}
-                                            color="#FFFFFF"
-                                        />
-                                        <Text style={styles.buttonText}>
-                                            Generate Audio
-                                        </Text>
-                                    </TouchableOpacity>
-                                )}
                             </View>
-                        )}
-
-                        {/* Generating State */}
-                        {isGenerating && job && (
+                        ) : isGenerating && job ? (
+                            /* Generating State */
                             <View style={styles.generatingState}>
                                 <LinearGradient
                                     colors={['#6366F1', '#8B5CF6']}
@@ -182,10 +162,8 @@ export default function PodcastGenerationModal({
                                     </Text>
                                 )}
                             </View>
-                        )}
-
-                        {/* Completed State */}
-                        {job?.status === 'completed' && (
+                        ) : job?.status === 'completed' ? (
+                            /* Completed State */
                             <View style={styles.completedState}>
                                 <View style={styles.successIcon}>
                                     <Ionicons
@@ -208,10 +186,8 @@ export default function PodcastGenerationModal({
                                     style={{ marginTop: 8 }}
                                 />
                             </View>
-                        )}
-
-                        {/* Failed State */}
-                        {job?.status === 'failed' && (
+                        ) : job?.status === 'failed' ? (
+                            /* Failed State */
                             <View style={styles.failedState}>
                                 <Ionicons
                                     name="alert-circle"
@@ -244,7 +220,7 @@ export default function PodcastGenerationModal({
                                     <Text style={styles.buttonText}>Try Again</Text>
                                 </TouchableOpacity>
                             </View>
-                        )}
+                        ) : null}
                     </View>
                 </View>
             </View>

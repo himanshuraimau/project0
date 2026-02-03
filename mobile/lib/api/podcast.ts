@@ -1,6 +1,27 @@
 import apiClient, { handleApiResponse, handleApiError } from './client';
 import { ApiResponse } from './types';
 
+// Podcast interface matching the actual API response (from web)
+// This replaces the outdated Podcast interface in types.ts
+export interface Podcast {
+  id: string;
+  noteId: string;
+  userId?: string;
+  jobId?: string; // Microservice job ID
+  podcastId?: string; // Microservice podcast ID
+  status: 'GENERATING' | 'COMPLETED' | 'FAILED';
+  progress?: number;
+  errorMessage?: string;
+  audioUrl?: string;
+  duration?: number; // Duration in seconds
+  transcript?: any; // JSON transcript array (can be string or parsed)
+  title: string;
+  description?: string;
+  createdAt: string;
+  updatedAt?: string;
+  completedAt?: string;
+}
+
 /**
  * Podcast API Module
  * Handles podcast generation and management with microservice
@@ -18,22 +39,8 @@ export interface PodcastJob {
   error?: string;
 }
 
-export interface Podcast {
-  id: string;
-  noteId: string;
-  jobId?: string;
-  podcastId?: string;
-  audioUrl?: string;
-  duration?: number;
-  transcript?: any[];
-  status: 'GENERATING' | 'COMPLETED' | 'FAILED';
-  progress?: number;
-  errorMessage?: string;
-  title: string;
-  description?: string;
-  createdAt: string;
-  completedAt?: string;
-}
+// Import Podcast type from types.ts to ensure consistency
+import { Podcast } from './types';
 
 export interface GeneratePodcastRequest {
   noteId: string;
@@ -74,9 +81,15 @@ export const getPodcasts = async (userId: string): Promise<Podcast[]> => {
 export const getPodcastsByNoteId = async (noteId: string): Promise<Podcast[]> => {
   try {
     const response = await apiClient.get<{ success: boolean; podcasts: Podcast[] }>(`/podcast/note/${noteId}`);
-    // Backend returns { success: true, podcasts: [...] } directly
-    if (response.data.success) {
-      return response.data.podcasts || [];
+    // Backend returns { success: true, podcasts: [...] }
+    if (response.data.success && response.data.podcasts) {
+      // Parse transcript if it's a string (from database JSON field)
+      return response.data.podcasts.map(podcast => ({
+        ...podcast,
+        transcript: typeof podcast.transcript === 'string' 
+          ? JSON.parse(podcast.transcript) 
+          : podcast.transcript,
+      }));
     }
     return [];
   } catch (error) {
@@ -106,12 +119,10 @@ export const generatePodcast = async (data: GeneratePodcastRequest): Promise<Gen
  */
 export const getPodcastStatus = async (jobId: string): Promise<PodcastJob> => {
   try {
-    const response = await apiClient.get<any>(`/podcast/status/${jobId}`);
-    // Backend proxies microservice response - handle both formats
-    const jobData = response.data.job || response.data;
-
-    if (jobData && jobData.jobId) {
-      return jobData as PodcastJob;
+    const response = await apiClient.get<{ success: boolean; job: PodcastJob }>(`/podcast/status/${jobId}`);
+    // Backend returns { success: true, job: {...} }
+    if (response.data.success && response.data.job) {
+      return response.data.job;
     }
     throw new Error('Invalid job status response');
   } catch (error) {

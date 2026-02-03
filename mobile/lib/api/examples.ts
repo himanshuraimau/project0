@@ -16,7 +16,8 @@ import {
   courseApi,
   chapterApi,
 } from '@/lib/api';
-import type { Note, Podcast, PodcastMode, QualityPreset } from '@/lib/api/types';
+import type { Note, PodcastMode, QualityPreset } from '@/lib/api/types';
+import type { Podcast } from '@/lib/api/podcast';
 
 // ==================== Notes Examples ====================
 

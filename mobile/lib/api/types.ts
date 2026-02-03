@@ -142,31 +142,23 @@ export interface MindMap {
   updatedAt: string;
 }
 
+// Updated Podcast interface to match actual API response (from web)
 export interface Podcast {
   id: string;
   noteId: string;
   userId?: string;
-  elevenLabsProjectId?: string;
-  mode: PodcastMode;
-  hostVoiceId: string;
-  guestVoiceId?: string;
-  qualityPreset: QualityPreset;
-  durationScale: DurationScale;
-  language?: string;
-  intro?: string;
-  outro?: string;
-  status: PodcastStatus;
+  jobId?: string; // Microservice job ID
+  podcastId?: string; // Microservice podcast ID
+  status: 'GENERATING' | 'COMPLETED' | 'FAILED'; // PodcastStatus enum values
   progress?: number;
   errorMessage?: string;
   audioUrl?: string;
-  audioFileKey?: string;
-  duration?: number;
-  fileSize?: number;
+  duration?: number; // Duration in seconds
+  transcript?: any; // JSON transcript array
   title: string;
   description?: string;
-  metadata?: any;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   completedAt?: string;
 }
 
@@ -517,6 +509,16 @@ export interface CreateSubscriptionResponse {
 
 export interface SubscriptionPortalResponse {
   portalUrl: string;
+}
+
+export interface PaymentLinkResponse {
+  success: boolean;
+  paymentLink: string;
+}
+
+export interface CancelPendingResponse {
+  success: boolean;
+  message: string;
 }
 
 // ==================== Documents API ====================

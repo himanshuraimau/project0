@@ -23,7 +23,7 @@ export interface DodoSubscriptionResponse {
 export interface DodoSubscriptionCreateRequest {
   billing: {
     city: string;
-    country: 'US' | 'GB' | 'CA' | 'AU' | 'IN' | string; // Allow any string but suggest common ones
+    country: 'US' | 'GB' | 'CA' | 'AU' | 'IN' | string;
     state: string;
     street: string;
     zipcode: string;
@@ -59,6 +59,9 @@ export interface DodoWebhookPayload {
     next_billing_date?: string;
     cancelled_at?: string;
     trial_end?: string;
+    cancel_at_next_billing_date?: boolean;
+    current_period_start?: string;
+    current_period_end?: string;
     [key: string]: any;
   };
 }
@@ -86,7 +89,7 @@ export interface CreateSubscriptionParams {
   userEmail: string;
   userName: string;
   billingAddress: SubscriptionBillingAddress;
-  billingInterval?: BillingInterval; // Defaults to 'monthly' if not specified
+  billingInterval?: BillingInterval;
   trialDays?: number;
   metadata?: Record<string, any>;
 }

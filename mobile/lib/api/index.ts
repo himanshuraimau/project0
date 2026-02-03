@@ -16,6 +16,8 @@ export { default as apiClient, handleApiResponse, handleApiError } from './clien
 
 // Export all types
 export * from './types';
+// Export Podcast type from podcast module (overrides outdated one in types.ts)
+export type { Podcast } from './podcast';
 
 // Export API modules
 export { default as audioApi } from './audio';

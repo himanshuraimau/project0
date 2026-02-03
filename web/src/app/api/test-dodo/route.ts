@@ -1,8 +1,7 @@
 // Test endpoint to verify Dodo Payments connection
 
 import { NextResponse } from 'next/server';
-import { getDodoClient } from '@/lib/utils/dodo/client';
-import { DODO_CONFIG } from '@/lib/utils/dodo/constants';
+import { getDodoClient, DODO_CONFIG } from '@/lib/payments/dodo';
 
 export async function GET() {
   try {

@@ -3,7 +3,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { SubscriptionService } from '@/lib/subscription-service';
-import { DodoSubscriptionService } from '@/lib/utils/dodo/subscription';
+import { DodoSubscriptionService } from '@/lib/payments/dodo';
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,10 +34,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get payment link from Dodo
-    const paymentLink = await DodoSubscriptionService.getPaymentLink(
-      subscription.dodoSubscriptionId
-    );
+    // Get payment link from subscription metadata (stored at creation time)
+    const paymentLink = subscription.metadata && typeof subscription.metadata === 'object' 
+      ? (subscription.metadata as any).paymentLink 
+      : null;
 
     if (!paymentLink) {
       return NextResponse.json(
