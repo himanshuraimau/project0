@@ -30,7 +30,8 @@ export const auth = betterAuth({
   // Trust requests from mobile app
   trustedOrigins: [
     "http://localhost:8081", // Expo dev server
-    "Flinote://", // Mobile app scheme
+    "flinote://", // Mobile app scheme
+    "Flinote://", // Mobile app scheme (capitalized variant)
     "mobile://", // Legacy mobile scheme (for backward compatibility)
     "exp://", // Expo Go scheme
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",

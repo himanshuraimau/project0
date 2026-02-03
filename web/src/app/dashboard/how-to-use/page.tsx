@@ -29,7 +29,7 @@ export default async function HowToUsePage() {
             <div className="max-w-6xl mx-auto">
               <YouTubePlayer
                 videoId="dQw4w9WgXcQ"
-                title="How to use Project0"
+                title="How to use Flinote"
                 className="rounded-2xl overflow-hidden"
               />
             </div>

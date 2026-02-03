@@ -13,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Project0 - AI-Powered Study App",
+  title: "Flinote - AI-Powered Study App",
   description:
     "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
 };

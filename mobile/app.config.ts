@@ -3,10 +3,10 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 export default ({ config }: ConfigContext): ExpoConfig => ({
     ...config,
     name: "Flinote",
-    slug: "mobile",
+    slug: "flinote-mobile",
     version: "1.0.0",
     orientation: "portrait",
-    scheme: "Flinote",
+    scheme: "flinote",
     icon: "./assets/images/main-logo.png",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
@@ -17,7 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             UIStatusBarHidden: false,
             UIStatusBarStyle: "UIStatusBarStyleDefault"
         },
-        bundleIdentifier: "com.kjish.mobile"
+        bundleIdentifier: "com.kjish.flinote"
     },
     android: {
         adaptiveIcon: {
@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             "android.permission.ACCESS_MEDIA_LOCATION",
             "android.permission.READ_MEDIA_IMAGES"
         ],
-        package: "com.kjish.mobile"
+        package: "com.kjish.flinote"
     },
     web: {
         bundler: "metro",

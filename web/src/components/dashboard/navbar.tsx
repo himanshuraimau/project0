@@ -19,7 +19,7 @@ export function Navbar({ className }: NavbarProps) {
       )}
     >
       <div className="flex items-center">
-        <h1 className="text-xl font-bold text-foreground">Project0</h1>
+        <h1 className="text-xl font-bold text-foreground">Flinote</h1>
       </div>
 
       <div className="flex items-center gap-4">
