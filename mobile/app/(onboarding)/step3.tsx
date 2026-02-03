@@ -7,7 +7,7 @@ export default function Step3Screen() {
   const router = useRouter()
   const { saveStep } = useOnboarding()
 
-  const handleContinue = async (selectedOption: string) => {
+  const handleContinue = (selectedOption: string) => {
     // Map selected option id to onboarding route
     const routeMap: Record<string, string> = {
       professional: '/(onboarding)/workingProfessional',
@@ -17,8 +17,8 @@ export default function Step3Screen() {
       administrator: '/(onboarding)/administrator-flow'
     }
 
-    // Save role to backend
-    await saveStep(3, { role: selectedOption })
+    // Save role locally
+    saveStep(3, { role: selectedOption })
 
     const target = routeMap[selectedOption] || '/(onboarding)/workingProfessional'
     // router.replace has a narrow union type for routes; cast to any to allow dynamic routing

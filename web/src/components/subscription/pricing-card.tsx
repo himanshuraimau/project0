@@ -90,7 +90,7 @@ export function PricingCard() {
             className={cn(
               "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
               billingInterval === 'monthly'
-                ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+                ? "bg-linear-to-r from-purple-600 to-blue-600 text-white shadow-lg"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -101,7 +101,7 @@ export function PricingCard() {
             className={cn(
               "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
               billingInterval === 'yearly'
-                ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+                ? "bg-linear-to-r from-purple-600 to-blue-600 text-white shadow-lg"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -113,7 +113,7 @@ export function PricingCard() {
       {/* Price */}
       <div className="text-center mb-8">
         <div className="flex items-baseline justify-center gap-2 mb-2">
-          <span className="text-6xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <span className="text-6xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
             ${currentPricing.price}
           </span>
           <span className="text-xl text-muted-foreground">{currentPricing.period}</span>

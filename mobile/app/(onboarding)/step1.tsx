@@ -7,15 +7,9 @@ export default function Step1Screen() {
   const router = useRouter()
   const { saveStep } = useOnboarding()
 
-  const handleContinue = async (source: string) => {
-    try {
-      await saveStep(1, { source })
-      router.push('/(onboarding)/step2')
-    } catch (error) {
-      console.error('Failed to save step 1:', error)
-      // Still navigate even if save fails
-      router.push('/(onboarding)/step2')
-    }
+  const handleContinue = (source: string) => {
+    saveStep(1, { source })
+    router.push('/(onboarding)/step2')
   }
 
   return <OnboardingStep1 onContinue={handleContinue} />

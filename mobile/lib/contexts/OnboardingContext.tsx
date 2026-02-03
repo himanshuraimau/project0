@@ -22,32 +22,27 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   };
 
   const saveStep = async (step: number, stepData: Partial<OnboardingData>) => {
-    setIsLoading(true);
-    try {
-      updateData(stepData);
-      
-      console.log(`💾 Saving onboarding step ${step} to backend...`);
-      await saveOnboarding({
-        ...stepData,
-        currentStep: step,
-        isCompleted: false,
-      });
-      console.log(`✅ Step ${step} saved successfully`);
-    } catch (error) {
-      console.error(`❌ Error saving onboarding step ${step}:`, error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+    // Just update local state without API call for better performance
+    updateData({ ...stepData, currentStep: step });
+    console.log(`📝 Step ${step} data saved locally`);
   };
 
   const completeOnboardingFlow = async (studyIntensity: string) => {
     setIsLoading(true);
     try {
       console.log('🎉 Completing onboarding flow...');
-      const finalData = { ...data, studyIntensity };
+      console.log('📤 Sending all onboarding data to backend...');
+      
+      const finalData = { 
+        ...data, 
+        studyIntensity,
+        currentStep: 5,
+        isCompleted: true 
+      };
+      
+      // Save all data at once to backend
       await completeOnboarding(finalData);
-      console.log('✅ Onboarding completed successfully');
+      console.log('✅ Onboarding completed and saved to backend');
       
       // Redirect to home after completion
       router.replace('/(home)');

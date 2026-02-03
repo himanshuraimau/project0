@@ -9,6 +9,7 @@ interface OnboardingData {
   role?: string;
   features?: string[];
   studyIntensity?: string;
+  currentStep?: number;
 }
 
 interface OnboardingContextType {

@@ -1,6 +1,8 @@
 import apiClient from './client';
 
 export interface OnboardingData {
+  currentStep?: number;
+  isCompleted?: boolean;
   source?: string;
   userType?: string;
   role?: string;

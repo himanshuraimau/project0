@@ -7,8 +7,8 @@ export default function Page() {
   const router = useRouter()
   const { saveStep } = useOnboarding()
 
-  const handleContinue = async (features: string[]) => {
-    await saveStep(4, { features })
+  const handleContinue = (features: string[]) => {
+    saveStep(4, { features })
     router.push('/(onboarding)/step5' as any)
   }
 
