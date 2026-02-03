@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Dimensions,
+    Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,6 +32,7 @@ export default function PodcastGenerationModal({
 }: Props) {
     const { job, isGenerating, generate, reset } = usePodcastGeneration();
     const hasAutoNavigated = useRef(false);
+    const pulseAnim = useRef(new Animated.Value(1)).current;
 
     // Auto-close and navigate when podcast generation completes
     useEffect(() => {
@@ -47,6 +49,30 @@ export default function PodcastGenerationModal({
             return () => clearTimeout(timer);
         }
     }, [job?.status, job, onComplete, reset, onClose]);
+
+    // Pulse animation for generating state
+    useEffect(() => {
+        if (isGenerating || (job && job.status !== 'completed' && job.status !== 'failed')) {
+            const pulse = Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, {
+                        toValue: 1.1,
+                        duration: 1000,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(pulseAnim, {
+                        toValue: 1,
+                        duration: 1000,
+                        useNativeDriver: true,
+                    }),
+                ])
+            );
+            pulse.start();
+            return () => pulse.stop();
+        } else {
+            pulseAnim.setValue(1);
+        }
+    }, [isGenerating, job?.status]);
 
     // Reset the auto-navigate flag and auto-start generation when modal opens
     useEffect(() => {
@@ -105,64 +131,8 @@ export default function PodcastGenerationModal({
 
                     {/* Content */}
                     <View style={styles.content}>
-                        {/* Loading/Generating State - Show immediately when modal opens */}
-                        {!job && !isGenerating ? (
-                            /* Initial Loading State */
-                            <View style={styles.generatingState}>
-                                <ActivityIndicator size="large" color="#6366F1" />
-                                <Text style={styles.title}>Preparing...</Text>
-                                <Text style={styles.description}>
-                                    Starting audio generation
-                                </Text>
-                            </View>
-                        ) : isGenerating && job ? (
-                            /* Generating State */
-                            <View style={styles.generatingState}>
-                                <LinearGradient
-                                    colors={['#6366F1', '#8B5CF6']}
-                                    style={styles.iconGradient}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                >
-                                    <Ionicons
-                                        name="musical-notes"
-                                        size={48}
-                                        color="#FFFFFF"
-                                    />
-                                </LinearGradient>
-
-                                <Text style={styles.title}>
-                                    Generating Your Audio...
-                                </Text>
-                                <Text style={styles.description}>
-                                    This may take 5-15 seconds
-                                </Text>
-
-                                {/* Progress Bar */}
-                                <View style={styles.progressContainer}>
-                                    <View style={styles.progressBar}>
-                                        <LinearGradient
-                                            colors={['#6366F1', '#8B5CF6']}
-                                            style={[
-                                                styles.progressFill,
-                                                { width: `${job.progress}%` },
-                                            ]}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 0 }}
-                                        />
-                                    </View>
-                                    <Text style={styles.progressText}>
-                                        {job.progress}%
-                                    </Text>
-                                </View>
-
-                                {job.currentStep && (
-                                    <Text style={styles.stepText}>
-                                        {job.currentStep}
-                                    </Text>
-                                )}
-                            </View>
-                        ) : job?.status === 'completed' ? (
+                        {/* Completed State */}
+                        {job?.status === 'completed' ? (
                             /* Completed State */
                             <View style={styles.completedState}>
                                 <View style={styles.successIcon}>
@@ -220,7 +190,74 @@ export default function PodcastGenerationModal({
                                     <Text style={styles.buttonText}>Try Again</Text>
                                 </TouchableOpacity>
                             </View>
-                        ) : null}
+                        ) : (
+                            /* Generating State - Show for all other cases (isGenerating, queued, processing, or initial state) */
+                            <View style={styles.generatingState}>
+                                <Animated.View
+                                    style={[
+                                        styles.iconGradientWrapper,
+                                        { transform: [{ scale: pulseAnim }] },
+                                    ]}
+                                >
+                                    <LinearGradient
+                                        colors={['#6366F1', '#8B5CF6']}
+                                        style={styles.iconGradient}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 1 }}
+                                    >
+                                        <Ionicons
+                                            name="musical-notes"
+                                            size={48}
+                                            color="#FFFFFF"
+                                        />
+                                    </LinearGradient>
+                                </Animated.View>
+
+                                <Text style={styles.title}>
+                                    {isGenerating || job ? 'Generating Your Audio...' : 'Preparing...'}
+                                </Text>
+                                <Text style={styles.description}>
+                                    {isGenerating || job 
+                                        ? 'This may take 5-15 seconds' 
+                                        : 'Starting audio generation'}
+                                </Text>
+
+                                {/* Progress Bar - Always show during generation */}
+                                {(isGenerating || job) && (
+                                    <View style={styles.progressContainer}>
+                                        <View style={styles.progressBar}>
+                                            <LinearGradient
+                                                colors={['#6366F1', '#8B5CF6']}
+                                                style={[
+                                                    styles.progressFill,
+                                                    { width: `${job?.progress || 0}%` },
+                                                ]}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 0 }}
+                                            />
+                                        </View>
+                                        <Text style={styles.progressText}>
+                                            {job?.progress || 0}%
+                                        </Text>
+                                    </View>
+                                )}
+
+                                {job?.currentStep && (
+                                    <Text style={styles.stepText}>
+                                        {job.currentStep}
+                                    </Text>
+                                )}
+
+                                {/* Show loading indicator if no job yet but isGenerating */}
+                                {isGenerating && !job && (
+                                    <ActivityIndicator 
+                                        size="small" 
+                                        color="#6366F1" 
+                                        style={{ marginTop: 16 }}
+                                    />
+                                )}
+                            </View>
+                        )}
                     </View>
                 </View>
             </View>
@@ -279,13 +316,15 @@ const styles = StyleSheet.create({
     failedState: {
         alignItems: 'center',
     },
+    iconGradientWrapper: {
+        marginBottom: 16,
+    },
     iconGradient: {
         width: 96,
         height: 96,
         borderRadius: 48,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 16,
     },
     successIcon: {
         marginBottom: 16,

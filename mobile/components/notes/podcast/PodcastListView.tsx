@@ -201,7 +201,7 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
                     <Ionicons name="mic-off-outline" size={64} color="#9CA3AF" />
                     <Text style={styles.emptyText}>No podcasts yet</Text>
                     <Text style={styles.emptySubtext}>
-                        Generate a podcast from your note to get started
+                        Generate one podcast from your note to get started
                     </Text>
                     <TouchableOpacity
                         style={[
@@ -248,7 +248,7 @@ export default function PodcastListView({ noteId }: PodcastListViewProps) {
                             <Text style={styles.confirmationTitle}>Generate Podcast?</Text>
                         </View>
                         <Text style={styles.confirmationText}>
-                            This will convert your note into AI-generated audio narration. The process may take a few moments.
+                            This will convert your note into AI-generated audio narration. You can only generate one podcast per note. The process may take a few moments.
                         </Text>
                         <View style={styles.confirmationButtons}>
                             <TouchableOpacity
