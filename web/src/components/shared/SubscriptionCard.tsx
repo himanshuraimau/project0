@@ -24,7 +24,7 @@ export function SubscriptionCard({ hasActiveSubscription, isLoading = false, isD
                 </div>
 
                 <div className="mb-4">
-                    <h3 className="text-white font-medium">Premium Active</h3>
+                    <h3 className="text-white font-medium">Pro Active</h3>
                     <p className="text-blue-100 text-sm">Enjoying unlimited access</p>
                 </div>
 

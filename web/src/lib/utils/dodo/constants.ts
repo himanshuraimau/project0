@@ -32,7 +32,7 @@ export const SUBSCRIPTION_CONFIG = {
 } as const;
 
 export const SUBSCRIPTION_CONFIG_YEARLY = {
-  price: 19999, // $199.99 in cents
+  price: 8900, // $89.00 in cents
   currency: 'USD',
   interval: 'Year',
   trialDays: 0,
@@ -72,7 +72,7 @@ export const SUBSCRIPTION_PLAN_YEARLY = {
     'Unlimited notes and flashcards',
     'Priority support',
     'Export features',
-    'Save 17% vs monthly',
+    'Save 63% vs monthly',
   ],
 } as const;
 

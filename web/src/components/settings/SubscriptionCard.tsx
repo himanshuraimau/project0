@@ -143,13 +143,13 @@ export function SubscriptionCard() {
               <span className={`text-[12px] font-semibold leading-4 ${
                 hasActiveSubscription ? 'text-white' : 'text-[#8200DB]'
               }`}>
-                {hasActiveSubscription ? 'Premium Plan' : 'Free Plan'}
+                {hasActiveSubscription ? 'Pro Plan' : 'Free Plan'}
               </span>
             </div>
 
             {/* Plan Title */}
             <h3 className="text-[18px] font-semibold text-[#0F172B] dark:text-white leading-6 mb-2">
-              {hasActiveSubscription ? "Premium Active" : "You're on the Free Plan"}
+              {hasActiveSubscription ? "Pro Active" : "You're on the Free Plan"}
             </h3>
 
             {/* Description/Stats */}
@@ -208,7 +208,7 @@ export function SubscriptionCard() {
               background: 'linear-gradient(90deg, #9810FA 0%, #155DFC 100%)'
             }}
           >
-            Upgrade to Premium - $9.99/month
+            Upgrade to Pro - $19.99/month
           </button>
         ) : (
           <button
@@ -284,7 +284,7 @@ export function SubscriptionCard() {
               </div>
               <div className="text-right">
                 <p className="text-[16px] font-semibold text-[#0F172B] dark:text-white">
-                  $9.99
+                  $19.99
                 </p>
                 <p className="text-[12px] text-[#62748E] dark:text-neutral-400">
                   /month
@@ -309,7 +309,7 @@ export function SubscriptionCard() {
               </div>
               <div className="text-right">
                 <p className="text-[16px] font-semibold text-[#0F172B] dark:text-white">
-                  $9.99
+                  $19.99
                 </p>
                 <p className="text-[12px] text-[#62748E] dark:text-neutral-400">
                   /month

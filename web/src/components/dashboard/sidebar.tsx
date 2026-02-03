@@ -223,7 +223,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           </Link>
         )}
 
-        {/* Premium User Badge - Show for subscribed users */}
+        {/* Pro User Badge - Show for subscribed users */}
         {!isLoadingSubscription && hasActiveSubscription && (
           <div
             className={cn(
@@ -237,7 +237,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
             </div>
             {!isCollapsed && (
               <span className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Premium Active
+                Pro Active
               </span>
             )}
           </div>

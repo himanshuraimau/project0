@@ -31,17 +31,34 @@ export async function POST(request: NextRequest) {
       // No body or invalid JSON - default to monthly
     }
 
-    // Check if user already has an active subscription
+    // Check if user already has a subscription
     const existingSubscription = await SubscriptionService.getUserSubscription(userId);
 
-    if (existingSubscription && existingSubscription.status === 'ACTIVE') {
-      return NextResponse.json(
-        {
-          error: 'You already have an active subscription',
-          subscription: existingSubscription,
-        },
-        { status: 400 }
-      );
+    if (existingSubscription) {
+      if (existingSubscription.status === 'ACTIVE') {
+        return NextResponse.json(
+          {
+            error: 'You already have an active subscription',
+            subscription: existingSubscription,
+          },
+          { status: 400 }
+        );
+      }
+
+      // If user has a PENDING subscription, cancel it first
+      if (existingSubscription.status === 'PENDING') {
+        console.log('User has pending subscription, cancelling it first...');
+        try {
+          await DodoSubscriptionService.cancelSubscription(
+            existingSubscription.dodoSubscriptionId,
+            false
+          );
+          await SubscriptionService.deleteSubscription(userId);
+        } catch (error) {
+          console.error('Error cancelling pending subscription:', error);
+          // Continue anyway - we'll try to create a new one
+        }
+      }
     }
 
     // Get user details from Better Auth session

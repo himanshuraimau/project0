@@ -164,8 +164,25 @@ export class DodoSubscriptionService {
     cancelAtPeriodEnd: boolean = true
   ): Promise<SubscriptionManagementResult> {
     try {
-      // Note: Dodo Payments cancellation - using a generic approach
-      // This may need to be adjusted based on actual Dodo API
+      // For pending subscriptions, use PATCH to set status to cancelled
+      // For active subscriptions, use the cancel endpoint
+      const subscription = await this.getSubscription(subscriptionId);
+      
+      if (subscription?.status === 'pending') {
+        // Use PATCH to cancel pending subscriptions
+        const client = this.getClient();
+        const updated = await client.subscriptions.update(subscriptionId, {
+          status: 'cancelled',
+        });
+        
+        return {
+          success: true,
+          subscriptionId,
+          data: updated,
+        };
+      }
+
+      // For active subscriptions, use the cancel endpoint
       const response = await fetch(`${DODO_CONFIG.baseUrl}/subscriptions/${subscriptionId}/cancel`, {
         method: 'POST',
         headers: {
@@ -194,6 +211,34 @@ export class DodoSubscriptionService {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
+    }
+  }
+
+  /**
+   * Get payment link for a pending subscription
+   */
+  static async getPaymentLink(subscriptionId: string): Promise<string | null> {
+    try {
+      const subscription = await this.getSubscription(subscriptionId);
+      
+      if (!subscription) {
+        return null;
+      }
+
+      // If subscription has a payment_link, return it
+      if (subscription.payment_link) {
+        return subscription.payment_link;
+      }
+
+      // If subscription is pending but no payment_link, try to get it from Dodo
+      // Some subscriptions might need to be retrieved with payment link
+      const client = this.getClient();
+      const fullSubscription = await client.subscriptions.retrieve(subscriptionId);
+      
+      return fullSubscription?.payment_link || null;
+    } catch (error) {
+      console.error('Failed to get payment link:', error);
+      return null;
     }
   }
 

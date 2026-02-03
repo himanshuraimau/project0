@@ -21,9 +21,9 @@ export function PricingCard() {
       savings: null,
     },
     yearly: {
-      price: 199.99,
+      price: 89,
       period: '/year',
-      savings: 'Save $40/year (17% off)',
+      savings: 'Save $151/year (63% off)',
     },
   };
 

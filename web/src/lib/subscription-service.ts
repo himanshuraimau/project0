@@ -25,6 +25,23 @@ export class SubscriptionService {
   }
 
   /**
+   * Get subscription by Dodo subscription ID
+   */
+  static async getSubscriptionByDodoId(dodoSubscriptionId: string) {
+    try {
+      const subscription = await prisma.subscription.findUnique({
+        where: { dodoSubscriptionId },
+        include: { user: true },
+      });
+
+      return subscription;
+    } catch (error) {
+      console.error('Error fetching subscription by Dodo ID:', error);
+      return null;
+    }
+  }
+
+  /**
    * Get current user's subscription (requires auth)
    */
   static async getCurrentUserSubscription() {

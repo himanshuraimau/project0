@@ -66,8 +66,30 @@ export function SubscriptionStatusCard() {
     try {
       const response = await fetch('/api/subscription/create', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ billingInterval: 'monthly' }),
       });
 
+      const data = await response.json();
+
+      if (data.data?.checkoutUrl) {
+        window.location.href = data.data.checkoutUrl;
+      } else if (data.paymentLink) {
+        window.location.href = data.paymentLink;
+      } else if (data.error) {
+        setError(data.error);
+      }
+    } catch (err) {
+      setError('Failed to create subscription');
+    }
+  };
+
+  const handleRetryPayment = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/subscription/payment-link');
       const data = await response.json();
 
       if (data.paymentLink) {
@@ -76,7 +98,35 @@ export function SubscriptionStatusCard() {
         setError(data.error);
       }
     } catch (err) {
-      setError('Failed to create subscription');
+      setError('Failed to get payment link');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelPending = async () => {
+    if (!confirm('Are you sure you want to cancel this pending subscription? You can start a new subscription anytime.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch('/api/subscription/cancel-pending', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Refresh the page to show pricing card
+        window.location.reload();
+      } else {
+        setError(data.error || 'Failed to cancel pending subscription');
+      }
+    } catch (err) {
+      setError('Failed to cancel pending subscription');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -154,6 +204,9 @@ export function SubscriptionStatusCard() {
     if (subscription.status === 'ACTIVE') {
       return <Badge variant="default">Active</Badge>;
     }
+    if (subscription.status === 'PENDING') {
+      return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20">Pending</Badge>;
+    }
     if (subscription.status === 'CANCELLED') {
       return <Badge variant="destructive">Cancelled</Badge>;
     }
@@ -174,7 +227,7 @@ export function SubscriptionStatusCard() {
   // Determine if yearly subscription based on product ID
   const yearlyProductId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY;
   const isYearly = subscription.productId === yearlyProductId;
-  const planDisplay = isYearly ? 'Pro - $199.99/year' : 'Pro - $19.99/month';
+  const planDisplay = isYearly ? 'Pro - $89/year' : 'Pro - $19.99/month';
 
   return (
     <div className="neomorphic rounded-3xl p-10 md:p-12">
@@ -185,6 +238,17 @@ export function SubscriptionStatusCard() {
       </div>
 
       <div className="space-y-8">
+        {subscription.status === 'PENDING' && (
+          <div className="neomorphic-inset rounded-2xl p-6 flex items-start gap-4 border-yellow-500/20">
+            <Clock className="h-6 w-6 text-yellow-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium text-lg text-yellow-600 dark:text-yellow-400">Payment Pending</p>
+              <p className="text-base text-muted-foreground">
+                Your subscription is waiting for payment. Click "Complete Payment" to finish the checkout process.
+              </p>
+            </div>
+          </div>
+        )}
         {access.isTrial && access.daysRemaining !== null && (
           <div className="neomorphic-inset rounded-2xl p-6 flex items-start gap-4">
             <Clock className="h-6 w-6 text-blue-500 mt-0.5 shrink-0" />
@@ -234,6 +298,25 @@ export function SubscriptionStatusCard() {
 
         {/* Action Buttons */}
         <div className="flex gap-3 mb-8">
+          {subscription.status === 'PENDING' && (
+            <>
+              <Button
+                onClick={handleRetryPayment}
+                disabled={loading}
+                className="flex-1 rounded-2xl h-16 text-lg font-semibold"
+              >
+                {loading ? 'Loading...' : 'Complete Payment'}
+              </Button>
+              <Button
+                onClick={handleCancelPending}
+                disabled={loading}
+                variant="outline"
+                className="flex-1 rounded-2xl h-16 text-lg font-semibold"
+              >
+                Cancel
+              </Button>
+            </>
+          )}
           {!subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && (
             <Button
               onClick={handleCancelSubscription}
