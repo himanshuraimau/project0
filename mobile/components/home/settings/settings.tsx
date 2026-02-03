@@ -166,7 +166,7 @@ export default function Settings() {
             <View style={styles.titleWithLogo}>
               {/* Logo/Robot Icon */}
               <Image
-                source={require('@/assets/images/main-logo.png')}
+                source={require('@/assets/images/flinote-logo.png')}
                 style={styles.logoContainer}
                 resizeMode="contain"
               />

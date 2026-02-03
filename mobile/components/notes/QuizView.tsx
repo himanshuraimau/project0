@@ -373,7 +373,7 @@ export default function QuizView({ noteId }: QuizViewProps) {
             <View style={styles.ghostIconContainer}>
 
               <Image
-                source={require("@/assets/images/main-logo.png")}
+                source={require("@/assets/images/flinote-logo.png")}
                 style={styles.ghostIcon}
                 resizeMode="contain"
               />

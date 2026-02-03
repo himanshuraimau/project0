@@ -6,7 +6,7 @@ interface OnboardingContextType {
   data: OnboardingData;
   updateData: (newData: Partial<OnboardingData>) => void;
   saveStep: (step: number, stepData: Partial<OnboardingData>) => Promise<void>;
-  completeOnboardingFlow: () => Promise<void>;
+  completeOnboardingFlow: (studyIntensity: string) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -41,11 +41,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const completeOnboardingFlow = async () => {
+  const completeOnboardingFlow = async (studyIntensity: string) => {
     setIsLoading(true);
     try {
       console.log('🎉 Completing onboarding flow...');
-      await completeOnboarding(data);
+      const finalData = { ...data, studyIntensity };
+      await completeOnboarding(finalData);
       console.log('✅ Onboarding completed successfully');
       
       // Redirect to home after completion

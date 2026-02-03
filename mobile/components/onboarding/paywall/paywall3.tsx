@@ -44,10 +44,11 @@ export default function Paywall3() {
             <View style={styles.cardRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.planTitle}>Yearly Plan</Text>
-                <Text style={styles.planSubtitle}>Billed yearly as $199.99</Text>
+                <Text style={styles.planSubtitle}>Billed yearly as $89</Text>
               </View>
               <View>
-                <Text style={styles.planPrice}>$16.67 / month</Text>
+                <Text style={styles.planPrice}>$7.42 / month</Text>
+                <Text style={styles.savingsText}>Save $151/year</Text>
               </View>
             </View>
           </LinearGradient>
@@ -118,6 +119,7 @@ const styles = StyleSheet.create({
   planTitle: { fontSize: 20, fontWeight: '400', color: '#000000', lineHeight: 30, fontFamily: 'Arimo' },
   planSubtitle: { fontSize: 14, color: '#000000', marginTop: 0, fontWeight: '400', lineHeight: 21, fontFamily: 'Arimo' },
   planPrice: { fontSize: 18, fontWeight: '400', color: '#000000', lineHeight: 27, fontFamily: 'Arimo' },
+  savingsText: { fontSize: 12, fontWeight: '600', color: '#10B981', textAlign: 'right', marginTop: 2, fontFamily: 'Arimo' },
   cardSecondary: { backgroundColor: '#FFFFFF', borderRadius: 24, padding: 20, marginBottom: 12, height: 84, borderWidth: 1.5, borderColor: '#E5E7EB' },
   paymentInfo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 },
   checkIconWrapper: { width: 20, height: 20, borderRadius: 20, borderWidth: 1.5, borderColor: '#000000', alignItems: 'center', justifyContent: 'center' },

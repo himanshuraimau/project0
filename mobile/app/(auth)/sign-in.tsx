@@ -52,7 +52,7 @@ export default function Page() {
       <View style={styles.content}>
         <View style={styles.brandIcon}>
           <Image
-            source={require("../../assets/images/main-logo.png")}
+            source={require("../../assets/images/flinote-logo.png")}
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -80,7 +80,7 @@ export default function Page() {
 
           <View style={styles.footerContainer}>
             <Text style={styles.footerText}>No account?</Text>
-            <Link href="/(onboarding)/step1" asChild>
+            <Link href="/(auth)/sign-up" asChild>
               <TouchableOpacity>
                 <Text style={styles.linkText}>Sign up</Text>
               </TouchableOpacity>

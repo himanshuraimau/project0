@@ -52,7 +52,7 @@ export default function SubscriptionManager() {
 
     // Check if it's a yearly plan
     if (productId.includes('yearly') || productId.includes('annual')) {
-      return { name: 'Pro', price: '$99.99', interval: 'year' }
+      return { name: 'Pro', price: '$89', interval: 'year' }
     }
 
     // Default to monthly

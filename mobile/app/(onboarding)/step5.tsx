@@ -9,9 +9,7 @@ export default function Page() {
 
   const handleContinue = async (studyIntensity: string) => {
     // Complete onboarding with the final step data
-    await completeOnboardingFlow({ studyIntensity })
-    // Navigate to home after successful completion
-    router.replace('/(home)' as any)
+    await completeOnboardingFlow(studyIntensity)
   }
 
   return <OnboardingStep5 onContinue={handleContinue} />

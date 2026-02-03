@@ -56,4 +56,13 @@ export default function Layout() {
   }
 
   // User is authenticated and completed onboarding
-
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="accountInfo" />
+      <Stack.Screen name="changeLanguage" />
+      <Stack.Screen name="settings" />
+      <Stack.Screen name="support" />
+    </Stack>
+  )
+}

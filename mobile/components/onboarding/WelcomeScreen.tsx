@@ -65,7 +65,7 @@ export default function WelcomeScreen() {
         {/* Logo Section */}
         <View style={styles.logoSection}>
           <Image
-            source={require('../../assets/images/main-logo.png')}
+            source={require('../../assets/images/flinote-logo.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />

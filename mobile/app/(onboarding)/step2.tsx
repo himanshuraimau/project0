@@ -15,5 +15,7 @@ export default function Step2Screen() {
       console.error('Failed to save step 2:', error)
       router.push('/(onboarding)/step3')
     }
-}
+  }
 
+  return <OnboardingStep2 onContinue={handleContinue} />
+}

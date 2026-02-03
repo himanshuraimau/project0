@@ -45,7 +45,7 @@ export default function Paywall4() {
       <View style={styles.content}>
         <View style={styles.brandIcon}>
           <Image
-            source={require("../../../assets/images/main-logo.png")}
+            source={require("../../../assets/images/flinote-logo.png")}
             style={styles.ghost}
             resizeMode="contain"
           />

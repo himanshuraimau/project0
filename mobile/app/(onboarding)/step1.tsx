@@ -16,5 +16,7 @@ export default function Step1Screen() {
       // Still navigate even if save fails
       router.push('/(onboarding)/step2')
     }
-}
+  }
 
+  return <OnboardingStep1 onContinue={handleContinue} />
+}
