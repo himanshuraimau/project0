@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { SettingsContent } from "@/components/settings";
 
+export const dynamic = 'force-dynamic';
+
 export default async function SettingsPage() {
   try {
     const session = await auth.api.getSession({
