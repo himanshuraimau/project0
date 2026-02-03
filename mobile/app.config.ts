@@ -10,6 +10,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     icon: "./assets/images/main-logo.png",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
+    runtimeVersion: "1.0.0",
     ios: {
         supportsTablet: true,
         infoPlist: {
@@ -17,7 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             UIStatusBarHidden: false,
             UIStatusBarStyle: "UIStatusBarStyleDefault"
         },
-        bundleIdentifier: "com.kjish.flinote"
+        bundleIdentifier: "com.abhishekhq11.flinote"
     },
     android: {
         adaptiveIcon: {
@@ -33,7 +34,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             "android.permission.ACCESS_MEDIA_LOCATION",
             "android.permission.READ_MEDIA_IMAGES"
         ],
-        package: "com.kjish.flinote"
+        package: "com.abhishekhq11.flinote"
     },
     web: {
         bundler: "metro",
@@ -68,11 +69,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     extra: {
         eas: {
-            projectId: "48443544-2899-42df-a88f-430cc60f236a"
+            projectId: "77ed724e-8d19-4327-a25e-b74810a4150a"
         },
 
         // Add your secrets here, e.g.:
         // apiKey: process.env.MY_API_KEY,
     },
-    owner: "k-jish"
+    owner: "abhishekhq11"
 });
