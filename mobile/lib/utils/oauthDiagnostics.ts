@@ -9,7 +9,7 @@ export const logOAuthDiagnostics = () => {
   
   // Show both development and production redirect URLs
   const devRedirectUrl = AuthSession.makeRedirectUri({ scheme: undefined })
-  const prodRedirectUrl = AuthSession.makeRedirectUri({ scheme: 'Flinote' })
+  const prodRedirectUrl = AuthSession.makeRedirectUri({ scheme: 'flinote' })
   
   console.log('📱 Dev Redirect URL:', devRedirectUrl)
   console.log('📱 Prod Redirect URL:', prodRedirectUrl)
@@ -23,7 +23,7 @@ export const logOAuthDiagnostics = () => {
   
   if (__DEV__ && !currentRedirectUrl.startsWith('exp://')) {
     console.warn('⚠️ Dev redirect URL format unexpected:', currentRedirectUrl)
-  } else if (!__DEV__ && !currentRedirectUrl.startsWith('Flinote://')) {
+  } else if (!__DEV__ && !currentRedirectUrl.startsWith('flinote://')) {
     console.warn('⚠️ Prod redirect URL format may be incorrect:', currentRedirectUrl)
   } else {
     console.log('✅ Redirect URL format is correct for current environment')
