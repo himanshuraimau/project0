@@ -7,10 +7,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     version: "1.0.0",
     orientation: "portrait",
     scheme: "flinote",
-    icon: "./assets/images/main-logo.png",
+    icon: "./assets/images/flinote-logo.png",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     runtimeVersion: "1.0.0",
+    description: "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
     ios: {
         supportsTablet: true,
         infoPlist: {
@@ -22,7 +23,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     android: {
         adaptiveIcon: {
-            foregroundImage: "./assets/images/main-logo.png",
+            foregroundImage: "./assets/images/flinote-logo.png",
             backgroundColor: "#ffffff"
         },
         edgeToEdgeEnabled: true,
@@ -39,14 +40,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     web: {
         bundler: "metro",
         output: "static",
-        favicon: "./assets/images/main-logo.png"
+        favicon: "./assets/images/flinote-logo.png"
     },
     plugins: [
         "expo-router",
         [
             "expo-splash-screen",
             {
-                "image": "./assets/images/main-logo.png",
+                "image": "./assets/images/flinote-logo.png",
                 "imageWidth": 200,
                 "resizeMode": "contain",
                 "backgroundColor": "#ffffff"
