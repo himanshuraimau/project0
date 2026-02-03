@@ -42,7 +42,7 @@ const StudyOption: React.FC<StudyOptionProps> = ({
 }
 
 interface OnboardingStep5Props {
-  onContinue?: () => void
+  onContinue?: (studyIntensity: string) => void
 }
 
 export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
@@ -51,7 +51,7 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
 
   const handleContinue = () => {
     if (onContinue) {
-      onContinue()
+      onContinue(selectedOption)
     } else {
       router.push('/(onboarding)/paywall/paywall1' as any)
     }

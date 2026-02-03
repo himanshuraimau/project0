@@ -35,7 +35,7 @@ const OptionButton: React.FC<OptionButtonProps> = ({
 }
 
 interface OnboardingStep1Props {
-  onContinue?: () => void
+  onContinue?: (source: string) => void
 }
 
 export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
@@ -47,7 +47,7 @@ export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
     if (onContinue) {
       // Small delay for visual feedback (showing the selected state)
       setTimeout(() => {
-        onContinue()
+        onContinue(optionId)
       }, 300)
     }
   }

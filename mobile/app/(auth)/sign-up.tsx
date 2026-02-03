@@ -4,7 +4,6 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Link } from 'expo-router'
 import * as React from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { markOnboardingCompleted } from '@/lib/storage/onboardingStorage'
 
 export default function SignUpScreen() {
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false)
@@ -20,16 +19,7 @@ export default function SignUpScreen() {
       })
       
       console.log('✅ Google OAuth completed')
-      
-      // Mark onboarding as completed for new users
-      try {
-        await markOnboardingCompleted()
-        console.log('✅ Onboarding marked as completed')
-      } catch (error) {
-        console.error('Failed to mark onboarding complete:', error)
-      }
-      
-      // Don't manually navigate - auth system will handle redirect
+      // The home layout will check onboarding status and redirect accordingly
     } catch (err: any) {
       console.error('❌ Google OAuth sign-up error:', err)
       alert(err?.message || 'Sign up failed. Please try again.')

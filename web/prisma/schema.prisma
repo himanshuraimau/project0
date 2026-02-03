@@ -23,6 +23,7 @@ model User {
   subscription  Subscription?
   sessions      Session[]
   accounts      Account[]
+  onboarding    UserOnboarding?
 
   @@map("users")
 }
@@ -416,3 +417,29 @@ enum PodcastStatus {
   FAILED
 }
 
+// User Onboarding Model
+model UserOnboarding {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  
+  // Onboarding responses
+  source        String?   // How they found Flinote (instagram, tiktok, facebook, etc.)
+  userType      String?   // Who will use it (just-me, me-family, someone-else)
+  role          String?   // Role/occupation (professional, student, parent, teacher, administrator)
+  features      Json?     // Array of selected features (record, notes, transcripts, ai-chat, quiz, flashcards)
+  studyIntensity String?  // Study time commitment (light, regular, focused, intense)
+  
+  // Completion tracking
+  isCompleted   Boolean   @default(false)
+  completedAt   DateTime?
+  currentStep   Int       @default(1) // Track which step they're on
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([isCompleted])
+  @@map("user_onboarding")
+}

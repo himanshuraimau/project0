@@ -35,7 +35,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
 }
 
 interface OnboardingStep4Props {
-  onContinue?: () => void
+  onContinue?: (features: string[]) => void
 }
 
 export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
@@ -52,7 +52,7 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
 
   const handleContinue = () => {
     if (onContinue) {
-      onContinue()
+      onContinue(selectedFeatures)
     } else {
       router.push('/(onboarding)/step5' as any)
     }

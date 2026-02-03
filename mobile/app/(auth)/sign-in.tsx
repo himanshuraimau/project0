@@ -4,7 +4,6 @@ import { Link } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect } from 'react'
 import { Text, View, Image, TouchableOpacity, StyleSheet, StatusBar } from 'react-native'
-import { markOnboardingCompleted } from '@/lib/storage/onboardingStorage'
 
 WebBrowser.maybeCompleteAuthSession()
 
@@ -29,20 +28,10 @@ export default function Page() {
 
       console.log('📱 OAuth response:', response)
 
-      // If successful, mark onboarding as complete
-      // Navigation will happen automatically via the auth layout
+      // If successful, navigation will happen automatically via the auth layout
       if (response.data && !response.error) {
         console.log('✅ OAuth completed successfully')
-        
-        try {
-          await markOnboardingCompleted()
-          console.log('✅ Onboarding marked as completed')
-        } catch (error) {
-          console.error('Failed to mark onboarding complete:', error)
-        }
-
-        // Don't manually navigate - let the auth system handle it
-        // The session will update and trigger navigation automatically
+        // The home layout will check onboarding status and redirect accordingly
       } else {
         console.error('❌ OAuth failed:', response.error)
       }

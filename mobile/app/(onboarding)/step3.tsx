@@ -1,11 +1,13 @@
 import OnboardingStep3 from '@/components/onboarding/OnboardingStep3'
+import { useOnboarding } from '@/lib/contexts/OnboardingContext'
 import { useRouter } from 'expo-router'
 import React from 'react'
 
 export default function Step3Screen() {
   const router = useRouter()
+  const { saveStep } = useOnboarding()
 
-  const handleContinue = (selectedOption?: string) => {
+  const handleContinue = async (selectedOption: string) => {
     // Map selected option id to onboarding route
     const routeMap: Record<string, string> = {
       professional: '/(onboarding)/workingProfessional',
@@ -15,7 +17,10 @@ export default function Step3Screen() {
       administrator: '/(onboarding)/administrator-flow'
     }
 
-    const target = (selectedOption && routeMap[selectedOption]) || '/(onboarding)/workingProfessional'
+    // Save role to backend
+    await saveStep(3, { role: selectedOption })
+
+    const target = routeMap[selectedOption] || '/(onboarding)/workingProfessional'
     // router.replace has a narrow union type for routes; cast to any to allow dynamic routing
     router.replace(target as any)
   }
