@@ -10,14 +10,12 @@
         "env": {
           "EXPO_PUBLIC_API_URL": "https://project0-nu.vercel.app/api"
         }
-      },
-      "node": "20.18.1"
+      }
     },
     "production": {
       "android": {
         "buildType": "apk"
-      },
-      "node": "20.18.1"
+      }
     }
   }
 }
