@@ -132,14 +132,14 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <SidebarContext.Provider value={{ isCollapsed, toggleSidebar }}>
       <aside
         className={cn(
-          "h-screen transition-all duration-300 ease-in-out",
+          "h-screen transition-all duration-300 ease-in-out overflow-x-hidden",
           "dark:bg-[#1A1A1A] bg-[#F9FAFB]",
           "border-r border-neutral-200 dark:border-[#212121]",
           isCollapsed ? "w-[72px]" : "w-[280px]",
           className
         )}
       >
-        <div className="w-full h-full py-5 px-[14px] flex flex-col">
+        <div className="w-full h-full py-5 px-[14px] flex flex-col overflow-x-hidden">
           <div className="mb-6">
             <div className="flex items-center gap-2 w-full group">
               {isCollapsed ? (
@@ -176,12 +176,12 @@ export function AppSidebar({ className }: AppSidebarProps) {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden">
             <nav>
               <ul
                 className={cn(
-                  "space-y-2",
-                  isCollapsed && "flex  flex-col items-center"
+                  "space-y-2 overflow-x-hidden",
+                  isCollapsed && "flex flex-col items-center"
                 )}
               >
                 {dashboardItems.map((item) => {
@@ -218,7 +218,25 @@ export function AppSidebar({ className }: AppSidebarProps) {
             </nav>
           </div>
 
-          <div className="mt-auto space-y-4">
+          <div className="mt-auto space-y-4 overflow-x-hidden">
+            {/* Theme Toggle - Show icon when collapsed */}
+            {isCollapsed && mounted && (
+              <button
+                onClick={() => {
+                  const newTheme = isDark ? "light" : "dark";
+                  setTheme(newTheme);
+                }}
+                className="flex items-center justify-center w-full rounded-[10px] transition-all py-3 px-2 text-muted-foreground hover:text-foreground hover:bg-accent/50 cursor-pointer"
+                aria-label="Toggle theme"
+              >
+                {isDark ? (
+                  <Sun className="w-5 h-5 shrink-0" />
+                ) : (
+                  <Moon className="w-5 h-5 shrink-0" />
+                )}
+              </button>
+            )}
+
             {!isCollapsed && (
               <div>
                 <button
@@ -243,12 +261,38 @@ export function AppSidebar({ className }: AppSidebarProps) {
               </div>
             )}
 
+            {/* Subscription Card - Show icon when collapsed */}
+            {isCollapsed && !isLoadingSubscription && (
+              <div className="flex justify-center">
+                {hasActiveSubscription ? (
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 flex items-center justify-center">
+                    <span className="text-lg">✨</span>
+                  </div>
+                ) : (
+                  <Link
+                    href="/pricing"
+                    className="w-10 h-10 rounded-lg bg-accent/10 hover:bg-accent/20 border border-accent/30 flex items-center justify-center transition-all"
+                    aria-label="Upgrade to PRO"
+                  >
+                    <span className="text-lg">⚡</span>
+                  </Link>
+                )}
+              </div>
+            )}
+
             {!isCollapsed && (
               <SubscriptionCard
                 hasActiveSubscription={hasActiveSubscription}
                 isLoading={isLoadingSubscription}
                 isDark={isDark}
               />
+            )}
+
+            {/* User Profile - Show icon when collapsed */}
+            {isCollapsed && (
+              <div className="flex justify-center pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                <UserControl showName={false} />
+              </div>
             )}
 
             {!isCollapsed && (

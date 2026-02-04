@@ -33,7 +33,7 @@ export function SidebarFooterControls({ className, children }: SidebarFooterCont
   return (
     <SidebarFooter 
       className={cn(
-        "mt-auto border-t border-sidebar-border bg-sidebar",
+        "mt-auto border-t border-sidebar-border bg-sidebar overflow-x-hidden",
         className
       )}
     >
@@ -48,13 +48,13 @@ export function SidebarFooterControls({ className, children }: SidebarFooterCont
       {/* Theme Toggle and User Profile */}
       <div
         className={cn(
-          "flex items-center gap-3 py-3",
-          isCollapsed ? "flex-col" : "flex-row justify-between"
+          "flex items-center gap-3 py-3 px-2 overflow-x-hidden",
+          isCollapsed ? "flex-col gap-2" : "flex-row justify-between"
         )}
       >
         {/* Theme Toggle */}
         {!isCollapsed && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setTheme(isDark ? "light" : "dark")}
               className={cn(
@@ -67,9 +67,9 @@ export function SidebarFooterControls({ className, children }: SidebarFooterCont
               {mounted && (
                 <>
                   {isDark ? (
-                    <Sun className="h-4 w-4 text-yellow-500" />
+                    <Sun className="h-4 w-4 text-yellow-500 shrink-0" />
                   ) : (
-                    <Moon className="h-4 w-4 text-blue-500" />
+                    <Moon className="h-4 w-4 text-blue-500 shrink-0" />
                   )}
                   <span>Switch mode</span>
                 </>
@@ -82,7 +82,7 @@ export function SidebarFooterControls({ className, children }: SidebarFooterCont
         {isCollapsed && mounted && (
           <button
             onClick={() => setTheme(isDark ? "light" : "dark")}
-            className="rounded-md p-2 hover:bg-sidebar-accent"
+            className="rounded-md p-2 hover:bg-sidebar-accent shrink-0 w-full flex justify-center"
             aria-label="Toggle theme"
           >
             {isDark ? (
@@ -94,7 +94,10 @@ export function SidebarFooterControls({ className, children }: SidebarFooterCont
         )}
 
         {/* User Profile */}
-        <div className={cn(isCollapsed && "w-full flex justify-center")}>
+        <div className={cn(
+          isCollapsed ? "w-full flex justify-center" : "shrink-0",
+          "overflow-hidden"
+        )}>
           <UserControl showName={!isCollapsed} />
         </div>
       </div>

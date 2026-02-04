@@ -107,7 +107,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
     <Sidebar
       collapsible="icon"
       className={cn(
-        "h-screen bg-white dark:bg-stone-950 border-r border-sidebar-border",
+        "h-screen bg-white dark:bg-stone-950 border-r border-sidebar-border overflow-x-hidden",
         className
       )}
     >
@@ -127,7 +127,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
 
       <SidebarContent
         className={cn(
-          "flex-1 pt-8 bg-white dark:bg-stone-950",
+          "flex-1 pt-8 bg-white dark:bg-stone-950 overflow-x-hidden",
           isCollapsed ? "flex flex-col items-center" : ""
         )}
       >
@@ -203,10 +203,10 @@ export function AppSidebar({ className }: AppSidebarProps) {
           <Link 
             href="/pricing"
             className={cn(
-              "flex items-center gap-3 rounded-lg py-3 transition-all duration-200",
+              "flex items-center gap-3 rounded-lg py-3 transition-all duration-200 overflow-hidden",
               "bg-accent/10 hover:bg-accent/20 border border-accent/30",
               "group cursor-pointer",
-              isCollapsed ? "justify-center" : ""
+              isCollapsed ? "justify-center w-full px-2" : "px-4"
             )}
           >
             <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
@@ -214,10 +214,10 @@ export function AppSidebar({ className }: AppSidebarProps) {
             </div>
             {!isCollapsed && (
               <>
-                <span className="text-sm font-semibold text-foreground">
+                <span className="text-sm font-semibold text-foreground truncate">
                   Upgrade to PRO
                 </span>
-                <ArrowUpRight className={cn("w-6 h-6", isDark ? "text-black" : "text-white")} />
+                <ArrowUpRight className={cn("w-6 h-6 shrink-0", isDark ? "text-black" : "text-white")} />
               </>
             )}
           </Link>
@@ -227,16 +227,16 @@ export function AppSidebar({ className }: AppSidebarProps) {
         {!isLoadingSubscription && hasActiveSubscription && (
           <div
             className={cn(
-              "flex items-center gap-3 rounded-lg py-3",
+              "flex items-center gap-3 rounded-lg py-3 overflow-hidden",
               "bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30",
-              isCollapsed ? "justify-center" : ""
+              isCollapsed ? "justify-center w-full px-2" : "px-4"
             )}
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
               <span className="text-white text-base font-bold">✨</span>
             </div>
             {!isCollapsed && (
-              <span className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent truncate">
                 Pro Active
               </span>
             )}

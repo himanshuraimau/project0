@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, Settings, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 interface Props {
     showName?: boolean;
@@ -38,13 +39,16 @@ export const UserControl = ({ showName }: Props) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 rounded-md gap-2 px-2">
-          <Avatar className="h-8 w-8 rounded-md">
+        <Button variant="ghost" className={cn(
+          "relative h-10 rounded-md gap-2 px-2 overflow-hidden",
+          !showName && "w-full justify-center"
+        )}>
+          <Avatar className="h-8 w-8 rounded-md shrink-0">
             <AvatarImage src={session.user.image || ""} alt={session.user.name || ""} />
             <AvatarFallback className="rounded-md">{initials}</AvatarFallback>
           </Avatar>
           {showName && (
-            <span className="text-sm font-medium">{session.user.name || session.user.email}</span>
+            <span className="text-sm font-medium truncate">{session.user.name || session.user.email}</span>
           )}
         </Button>
       </DropdownMenuTrigger>
