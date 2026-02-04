@@ -41,7 +41,7 @@ export const useNoteCreation = (): UseNoteCreationResult => {
         if (error.statusCode === 403 && (error.message?.includes('limit') || error.notesLimit)) {
             Alert.alert(
                 'Free Limit Reached',
-                `You've reached the free tier limit of ${error.notesLimit || 3} notes. Upgrade to Pro for unlimited notes!`,
+                `You've reached the free tier limit of ${error.notesLimit || 1} note. Upgrade to Pro for unlimited notes!`,
                 [
                     {
                         text: 'Cancel',

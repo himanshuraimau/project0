@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check note creation access (allows free tier: 3 notes)
+    // Check note creation access (allows free tier: 1 note)
     const accessCheck = await FeatureGateService.checkNoteCreationAccess();
     if (!accessCheck.allowed) {
       return NextResponse.json(

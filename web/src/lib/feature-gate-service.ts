@@ -5,7 +5,8 @@ import { prisma } from './prisma';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
-const FREE_TIER_NOTE_LIMIT = 3;
+const FREE_TIER_NOTE_LIMIT = 1; // Changed from 3 to 1 free note
+const MONTHLY_COURSE_LIMIT = 5; // Maximum courses per month
 
 export class FeatureGateService {
   /**
@@ -25,7 +26,84 @@ export class FeatureGateService {
   }
 
   /**
-   * Check if user can create more notes (free tier: 3 notes, subscription: unlimited)
+   * Get user's course count for the current month
+   */
+  static async getUserMonthlyCourseCount(userId: string): Promise<number> {
+    try {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      const courseCount = await prisma.course.count({
+        where: {
+          userId,
+          createdAt: {
+            gte: startOfMonth
+          }
+        }
+      });
+      
+      return courseCount;
+    } catch (error) {
+      console.error('Error getting user monthly course count:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Check if user can create more courses (limit: 5 per month for subscribed users, no course generation for free users)
+   */
+  static async canCreateCourse(userId?: string): Promise<{ allowed: boolean; reason?: string; coursesUsed?: number; coursesLimit?: number }> {
+    try {
+      // If no userId provided, get from auth
+      let targetUserId = userId;
+      if (!targetUserId) {
+        const session = await auth.api.getSession({ headers: await headers() }); 
+        const authUserId = session?.user?.id;
+        if (!authUserId) return { allowed: false, reason: 'NOT_AUTHENTICATED' };
+        targetUserId = authUserId;
+      }
+
+      if (!targetUserId) return { allowed: false, reason: 'INVALID_USER_ID' };
+
+      // Check if user has active subscription
+      const hasSubscription = await SubscriptionService.hasActiveSubscription(targetUserId);
+
+      if (hasSubscription) {
+        // Subscribed users: check monthly limit
+        const courseCount = await this.getUserMonthlyCourseCount(targetUserId);
+        
+        if (courseCount >= MONTHLY_COURSE_LIMIT) {
+          return {
+            allowed: false,
+            reason: 'MONTHLY_LIMIT_REACHED',
+            coursesUsed: courseCount,
+            coursesLimit: MONTHLY_COURSE_LIMIT
+          };
+        }
+
+        return {
+          allowed: true,
+          reason: 'SUBSCRIPTION_ACTIVE',
+          coursesUsed: courseCount,
+          coursesLimit: MONTHLY_COURSE_LIMIT
+        };
+      }
+
+      // Free tier: no course generation allowed (course generation requires subscription)
+      return {
+        allowed: false,
+        reason: 'SUBSCRIPTION_REQUIRED',
+        coursesUsed: 0,
+        coursesLimit: 0
+      };
+    } catch (error) {
+      console.error('Error checking course creation access:', error);
+      return { allowed: false, reason: 'ERROR' };
+    }
+  }
+
+  /**
+   * Check if user can create more notes (free tier: 1 note, subscription: unlimited)
    */
   static async canCreateNote(userId?: string): Promise<{ allowed: boolean; reason?: string; notesUsed?: number; notesLimit?: number }> {
     try {
@@ -219,6 +297,63 @@ export class FeatureGateService {
   }
 
   /**
+   * Check course generation access (requires subscription + monthly limit check)
+   * Free users are completely blocked from course generation
+   */
+  static async checkCourseGenerationAccess() {
+    const session = await auth.api.getSession({ headers: await headers() }); 
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      return {
+        allowed: false,
+        statusCode: 401,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required',
+      };
+    }
+
+    const courseAccess = await this.canCreateCourse(userId);
+
+    if (!courseAccess.allowed) {
+      if (courseAccess.reason === 'SUBSCRIPTION_REQUIRED') {
+        return {
+          allowed: false,
+          statusCode: 403,
+          error: 'SUBSCRIPTION_REQUIRED',
+          message: 'Active subscription required for course generation',
+          upgradeUrl: '/pricing?reason=course-generation',
+        };
+      }
+
+      if (courseAccess.reason === 'MONTHLY_LIMIT_REACHED') {
+        return {
+          allowed: false,
+          statusCode: 403,
+          error: 'MONTHLY_LIMIT_REACHED',
+          message: `You've reached the monthly limit of ${MONTHLY_COURSE_LIMIT} courses. Your limit will reset next month.`,
+          coursesUsed: courseAccess.coursesUsed,
+          coursesLimit: courseAccess.coursesLimit,
+        };
+      }
+
+      return {
+        allowed: false,
+        statusCode: 403,
+        error: 'ACCESS_DENIED',
+        message: 'Unable to create course',
+      };
+    }
+
+    return {
+      allowed: true,
+      reason: courseAccess.reason,
+      coursesUsed: courseAccess.coursesUsed,
+      coursesLimit: courseAccess.coursesLimit,
+    };
+  }
+
+  /**
    * Get redirect URL for users without access
    */
   static getUpgradeUrl(reason?: string): string {
@@ -251,6 +386,42 @@ export class FeatureGateService {
       console.error('Error checking trial period:', error);
       return false;
     }
+  }
+
+  /**
+   * Check post generation access (requires subscription - no free tier)
+   * Note: Post generation feature not yet implemented, but this method is ready for when it is added
+   */
+  static async checkPostGenerationAccess() {
+    const session = await auth.api.getSession({ headers: await headers() }); 
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      return {
+        allowed: false,
+        statusCode: 401,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required',
+      };
+    }
+
+    // Post generation requires active subscription (no free tier)
+    const hasSubscription = await SubscriptionService.hasActiveSubscription(userId);
+
+    if (!hasSubscription) {
+      return {
+        allowed: false,
+        statusCode: 403,
+        error: 'SUBSCRIPTION_REQUIRED',
+        message: 'Active subscription required for post generation',
+        upgradeUrl: '/pricing?reason=post-generation',
+      };
+    }
+
+    return {
+      allowed: true,
+      reason: 'SUBSCRIPTION_ACTIVE',
+    };
   }
 
   /**

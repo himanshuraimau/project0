@@ -61,9 +61,19 @@ export async function POST(request: NextRequest) {
     const unitNames = units.map(unit => unit.name);
     CourseValidation.units(unitNames);
 
-    // Check subscription access
-    const accessCheck = await FeatureGateService.checkAccessForAPI();
+    // Check course generation access - free users cannot generate courses (subscription required + monthly limit of 5)
+    const accessCheck = await FeatureGateService.checkCourseGenerationAccess();
     if (!accessCheck.allowed) {
+      if (accessCheck.error === 'MONTHLY_LIMIT_REACHED') {
+        throw createAppError(
+          AppErrorType.INSUFFICIENT_CREDITS,
+          {
+            coursesUsed: accessCheck.coursesUsed,
+            coursesLimit: accessCheck.coursesLimit,
+          },
+          accessCheck.message || `Monthly limit of ${accessCheck.coursesLimit} courses reached`
+        );
+      }
       throw createAppError(
         AppErrorType.INSUFFICIENT_CREDITS,
         {},

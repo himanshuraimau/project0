@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    // Check note creation access (allows free tier: 3 notes)
+    // Check note creation access (allows free tier: 1 note)
     const { FeatureGateService } = await import('@/lib/feature-gate-service');
     const accessCheck = await FeatureGateService.checkNoteCreationAccess();
 

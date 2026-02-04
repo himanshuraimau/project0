@@ -8,7 +8,7 @@ export class NoteCloneService {
    * Clone a note to user's account
    */
   static async cloneNote(token: string, userId: string) {
-    // Check if user can create more notes (free tier: 3 notes, subscription: unlimited)
+    // Check if user can create more notes (free tier: 1 note, subscription: unlimited)
     const { FeatureGateService } = await import('@/lib/feature-gate-service');
     const accessCheck = await FeatureGateService.canCreateNote(userId);
 

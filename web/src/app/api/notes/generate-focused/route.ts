@@ -4,6 +4,7 @@ import { UserService } from '@/lib/user-service';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiSuccessResponse, ApiErrorResponse, NoteType } from '@/lib/types';
 import { queueBackgroundTranslation } from '@/lib/translation-service';
+import { FeatureGateService } from '@/lib/feature-gate-service';
 
 const noteService = new NoteService();
 
@@ -38,7 +39,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    // Focused notes from existing transcripts are now free - no credit check needed
+    // Check note creation access (allows free tier: 1 note)
+    const accessCheck = await FeatureGateService.checkNoteCreationAccess();
+    if (!accessCheck.allowed) {
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: accessCheck.message || 'Unable to create note',
+        message: accessCheck.message,
+        // @ts-ignore - adding extra fields for client
+        notesUsed: accessCheck.notesUsed,
+        notesLimit: accessCheck.notesLimit,
+        upgradeUrl: accessCheck.upgradeUrl || '/pricing',
+      };
+      return NextResponse.json(errorResponse, { status: accessCheck.statusCode });
+    }
 
     // Generate focused AI note from the transcript
     const note = await noteService.generateFocusedNote(transcriptId, noteType, userId || undefined);

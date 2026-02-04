@@ -4,6 +4,7 @@ import type { GenerateChaptersRequest, GenerateChaptersResponse } from "@/lib/ty
 import { ApiValidationSchemas, validateContentSafety, isValidUserId } from "@/lib/utils/validation";
 import { z } from "zod";
 import { getUserFromAuth } from "@/lib/auth-helper";
+import { FeatureGateService } from "@/lib/feature-gate-service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,6 +57,15 @@ export async function POST(request: NextRequest) {
     }
 
     const { title, units } = validatedData;
+
+    // Check subscription access - free users cannot generate courses (intermediate step - no monthly limit check needed)
+    const accessCheck = await FeatureGateService.checkAccessForAPI();
+    if (!accessCheck.allowed) {
+      return NextResponse.json(
+        { error: accessCheck.message || 'Active subscription required for course generation. Free users cannot generate courses.' },
+        { status: 403 }
+      );
+    }
 
     // Content safety validation for title and units
     const titleSafetyCheck = validateContentSafety(title);

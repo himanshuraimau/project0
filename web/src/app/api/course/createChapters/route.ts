@@ -8,6 +8,7 @@ import { getUnsplashImage } from "@/lib/course/unsplash";
 import { prisma } from "@/lib/prisma";
 import z from "zod";
 import { getUserFromAuth } from "@/lib/auth-helper";
+import { FeatureGateService } from "@/lib/feature-gate-service";
 
 const createChaptersSchema = z.object({
   title: z.string().min(2).max(100),
@@ -25,6 +26,25 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { title, units } = createChaptersSchema.parse(body);
+
+    // Check course generation access - free users cannot generate courses (subscription required + monthly limit of 5)
+    const accessCheck = await FeatureGateService.checkCourseGenerationAccess();
+    if (!accessCheck.allowed) {
+      if (accessCheck.error === 'MONTHLY_LIMIT_REACHED') {
+        return NextResponse.json(
+          {
+            error: accessCheck.message || `Monthly limit of ${accessCheck.coursesLimit} courses reached`,
+            coursesUsed: accessCheck.coursesUsed,
+            coursesLimit: accessCheck.coursesLimit,
+          },
+          { status: 403 }
+        );
+      }
+      return NextResponse.json(
+        { error: accessCheck.message || 'Active subscription required for course generation' },
+        { status: 403 }
+      );
+    }
 
     // Limit to maximum 2 units for testing
     const limitedUnits = units.slice(0, 2);
