@@ -43,7 +43,8 @@ const sidebarItems = [
     section: "Main",
     items: [
       { title: "Dashboard", icon: Home, href: "/dashboard" },
-      { title: "My Courses", icon: BookOpen, href: "/dashboard/generate-course" },
+      // TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature
+      // { title: "My Courses", icon: BookOpen, href: "/dashboard/generate-course" },
     ]
   },
   {

@@ -70,7 +70,8 @@ export function NoteAppSidebar({ className, noteId }: NoteAppSidebarProps) {
 
   const navItems = [
     { title: "Folders", icon: Folder, href: "/dashboard/folders" },
-    { title: "Create Course", icon: BookOpen, href: "/dashboard/generate-course" },
+    // TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature
+    // { title: "Create Course", icon: BookOpen, href: "/dashboard/generate-course" },
     { title: "Shared with Me", icon: Share2, href: "/dashboard/cloned" },
     { title: "Settings", icon: Settings, href: "/dashboard/settings" },
   ];

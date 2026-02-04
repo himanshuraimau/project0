@@ -58,7 +58,8 @@ export function PricingCard() {
 
   const features = [
     'Unlimited PDF, Audio & Video Processing',
-    'AI Course Generation',
+    // TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature
+    // 'AI Course Generation',
     'Smart Notes & Flashcards',
     'Interactive Quizzes',
     'Priority Support',

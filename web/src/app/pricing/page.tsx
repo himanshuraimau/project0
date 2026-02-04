@@ -88,11 +88,12 @@ export default function PricingPage() {
                 title="AI-Powered Notes" 
                 description="Smart notes, flashcards, and quizzes"
               />
-              <FeatureCard 
+              {/* TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature */}
+              {/* <FeatureCard 
                 icon={<GraduationCap className="w-8 h-8" />}
                 title="Create Courses" 
                 description="Generate complete learning paths"
-              />
+              /> */}
             </div>
           </motion.div>
         </div>

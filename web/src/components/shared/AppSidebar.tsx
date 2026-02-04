@@ -41,11 +41,12 @@ const dashboardItems = [
   { title: "Dashboard", icon: Home, href: "/dashboard" },
   { title: "Folders", icon: Folder, href: "/dashboard/folders" },
   { title: "Shared With Me", icon: Grid3X3, href: "/dashboard/cloned" },
-  {
-    title: "Create Course",
-    icon: Youtube,
-    href: "/dashboard/generate-course",
-  },
+  // TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature
+  // {
+  //   title: "Create Course",
+  //   icon: Youtube,
+  //   href: "/dashboard/generate-course",
+  // },
   { title: "Support", icon: Headphones, href: "/dashboard/support" },
   { title: "Settings", icon: Settings, href: "/settings" },
 ];
