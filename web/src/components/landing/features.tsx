@@ -15,7 +15,7 @@ import {
   Share2,
   Brain,
   Folder,
-  GraduationCap,
+  // GraduationCap,
 } from "lucide-react";
 
 export function Features() {
@@ -178,7 +178,8 @@ export function Features() {
           </div>
 
           {/* 2. Tall Feature (Row span 2) */}
-          <div
+          {/* TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature */}
+          {/* <div
             className="md:row-span-2 rounded-3xl p-8 md:p-10 relative overflow-hidden flex flex-col"
             style={{ ...cardBaseStyle }}
             onMouseEnter={handleCardEnter}
@@ -209,7 +210,7 @@ export function Features() {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* 3. Regular Card */}
           <div

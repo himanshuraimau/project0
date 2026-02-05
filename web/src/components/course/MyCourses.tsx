@@ -18,7 +18,8 @@ import {
 import {
   BookOpen,
   Eye,
-  Plus,
+  // TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature
+  // Plus,
   Clock,
   Users,
   CheckCircle,
@@ -233,8 +234,12 @@ export function MyCourses({ courses }: MyCoursesProps) {
           My Courses
         </h2>
         <p className="text-muted-foreground text-base font-medium leading-6">
-          View and continue your AI-generated courses
+          View and continue your courses
         </p>
+        {/* TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature */}
+        {/* <p className="text-muted-foreground text-base font-medium leading-6">
+          View and continue your AI-generated courses
+        </p> */}
       </div>
 
       {courses.length === 0 ? (
@@ -246,6 +251,10 @@ export function MyCourses({ courses }: MyCoursesProps) {
             No courses yet
           </h3>
           <p className="text-muted-foreground mb-8">
+            Courses will appear here when available.
+          </p>
+          {/* TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature */}
+          {/* <p className="text-muted-foreground mb-8">
             Start your learning journey by creating your first AI-powered course
           </p>
           <Link href="/dashboard/create/wizard">
@@ -253,7 +262,7 @@ export function MyCourses({ courses }: MyCoursesProps) {
               <Plus className="size-4" />
               Create Your First Course
             </Button>
-          </Link>
+          </Link> */}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">

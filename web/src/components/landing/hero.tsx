@@ -13,7 +13,7 @@ import {
   Share2,
   Brain,
   Sparkles,
-  GraduationCap,
+  // GraduationCap,
   ArrowRight,
 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
@@ -170,14 +170,15 @@ export function Hero() {
         </div>
 
         {/* Feature Cards (Glass Look) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-5xl mx-auto animate-in fade-in zoom-in-95 duration-1000 delay-500">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 max-w-5xl mx-auto animate-in fade-in zoom-in-95 duration-1000 delay-500">
           {[
             { icon: FileText, label: "Smart Notes", desc: "Auto-summaries" },
-            {
-              icon: GraduationCap,
-              label: "AI Courses",
-              desc: "Generated paths",
-            },
+            // TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature
+            // {
+            //   icon: GraduationCap,
+            //   label: "AI Courses",
+            //   desc: "Generated paths",
+            // },
             { icon: Brain, label: "Mindmaps", desc: "Visual learning" },
             { icon: Headphones, label: "Podcasts", desc: "Audio study" },
             { icon: Share2, label: "Collab", desc: "Study together" },

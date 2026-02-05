@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
-import { GenerateCourseCard } from "@/components/course/GenerateCourseCard";
+// TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature
+// import { GenerateCourseCard } from "@/components/course/GenerateCourseCard";
 import { MyCourses } from "@/components/course/MyCourses";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -26,7 +27,8 @@ export default async function GenerateCoursePage() {
   return (
     <Suspense fallback={null}>
     <div className="w-full space-y-12">
-      <GenerateCourseCard />
+      {/* TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature */}
+      {/* <GenerateCourseCard /> */}
       <MyCourses courses={courses} />
     </div>
     </Suspense>

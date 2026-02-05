@@ -95,10 +95,11 @@ export function SubscriptionGate({
                 <Sparkles className="h-4 w-4 text-primary" />
                 <span>Unlimited YouTube processing</span>
               </div>
-              <div className="flex items-center gap-2">
+              {/* TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature */}
+              {/* <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
                 <span>AI course generation</span>
-              </div>
+              </div> */}
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
                 <span>Start with 1 free note</span>

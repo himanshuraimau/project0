@@ -5,7 +5,8 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertTriangle, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
 
 interface SubscriptionStatus {
   hasSubscription: boolean;
@@ -39,6 +40,9 @@ export function SubscriptionStatusCard() {
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPendingCancelDialog, setShowPendingCancelDialog] = useState(false);
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
+  const [isCancellingPending, setIsCancellingPending] = useState(false);
 
   useEffect(() => {
     fetchSubscriptionStatus();
@@ -88,7 +92,7 @@ export function SubscriptionStatusCard() {
 
   const handleRetryPayment = async () => {
     try {
-      setLoading(true);
+      setIsRetryingPayment(true);
       const response = await fetch('/api/subscription/payment-link');
       const data = await response.json();
 
@@ -100,17 +104,13 @@ export function SubscriptionStatusCard() {
     } catch (err) {
       setError('Failed to get payment link');
     } finally {
-      setLoading(false);
+      setIsRetryingPayment(false);
     }
   };
 
   const handleCancelPending = async () => {
-    if (!confirm('Are you sure you want to cancel this pending subscription? You can start a new subscription anytime.')) {
-      return;
-    }
-
     try {
-      setLoading(true);
+      setIsCancellingPending(true);
       const response = await fetch('/api/subscription/cancel-pending', {
         method: 'POST',
       });
@@ -126,7 +126,7 @@ export function SubscriptionStatusCard() {
     } catch (err) {
       setError('Failed to cancel pending subscription');
     } finally {
-      setLoading(false);
+      setIsCancellingPending(false);
     }
   };
 
@@ -302,14 +302,14 @@ export function SubscriptionStatusCard() {
             <>
               <Button
                 onClick={handleRetryPayment}
-                disabled={loading}
+                disabled={isRetryingPayment || isCancellingPending}
                 className="flex-1 rounded-2xl h-16 text-lg font-semibold"
               >
-                {loading ? 'Loading...' : 'Complete Payment'}
+                {isRetryingPayment ? 'Loading...' : 'Complete Payment'}
               </Button>
               <Button
-                onClick={handleCancelPending}
-                disabled={loading}
+                onClick={() => setShowPendingCancelDialog(true)}
+                disabled={isRetryingPayment || isCancellingPending}
                 variant="outline"
                 className="flex-1 rounded-2xl h-16 text-lg font-semibold"
               >
@@ -322,11 +322,52 @@ export function SubscriptionStatusCard() {
               onClick={handleCancelSubscription}
               variant="destructive"
               className="flex-1 rounded-2xl h-16 text-lg font-semibold"
+              disabled={isRetryingPayment || isCancellingPending}
             >
               Cancel
             </Button>
           )}
         </div>
+
+        {subscription.status === 'PENDING' && (
+          <Dialog open={showPendingCancelDialog} onOpenChange={setShowPendingCancelDialog}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3 text-yellow-600 dark:text-yellow-400">
+                  <span className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                    <AlertTriangle className="h-5 w-5" />
+                  </span>
+                  Cancel Pending Subscription?
+                </DialogTitle>
+                <DialogDescription className="pt-2">
+                  Your subscription is waiting for payment. Cancelling will remove the pending
+                  subscription so you can start a new checkout anytime.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+                This does not charge your card, but the current payment link will expire.
+              </div>
+              <DialogFooter className="gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPendingCancelDialog(false)}
+                  disabled={isCancellingPending}
+                  className="flex-1"
+                >
+                  Keep Pending
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleCancelPending}
+                  disabled={isCancellingPending}
+                  className="flex-1"
+                >
+                  {isCancellingPending ? 'Cancelling...' : 'Cancel Pending'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
 
         {access.hasAccess && (
           <div className="neomorphic-inset rounded-2xl p-8 flex items-start gap-5">
