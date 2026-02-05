@@ -6,9 +6,10 @@ import { NotificationsContent } from "@/components/settings/NotificationsContent
 export const dynamic = 'force-dynamic';
 
 export default async function NotificationsPage() {
+  const headersList = await headers();
   try {
     const session = await auth.api.getSession({
-      headers: await headers()
+      headers: headersList
     });
 
     if (!session?.user) {
