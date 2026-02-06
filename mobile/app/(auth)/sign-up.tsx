@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Link } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect } from 'react'
-import { Text, View, Image, TouchableOpacity, StyleSheet, StatusBar } from 'react-native'
+import { Text, View, Image, TouchableOpacity, StyleSheet, StatusBar, Linking } from 'react-native'
 
 WebBrowser.maybeCompleteAuthSession()
 
@@ -86,6 +86,23 @@ export default function SignUpScreen() {
               </TouchableOpacity>
             </Link>
           </View>
+
+          <Text style={styles.termsText}>
+            By signing up, you agree to our{" "}
+            <Text 
+              style={styles.termsLink}
+              onPress={() => Linking.openURL('https://flinote.ai/terms')}
+            >
+              Terms of Service
+            </Text>{" "}
+            and{" "}
+            <Text 
+              style={styles.termsLink}
+              onPress={() => Linking.openURL('https://flinote.ai/privacy')}
+            >
+              Privacy Policy
+            </Text>
+          </Text>
         </View>
       </View>
 
@@ -174,6 +191,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#4B5563',
     textDecorationLine: 'underline'
+  },
+  termsText: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginTop: 16,
+    paddingHorizontal: 24,
+  },
+  termsLink: {
+    textDecorationLine: 'underline',
+    color: '#4B5563',
+    fontWeight: '500',
   },
   homeIndicator: {
     height: 4,

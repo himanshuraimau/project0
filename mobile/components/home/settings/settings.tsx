@@ -88,7 +88,7 @@ export default function Settings() {
   }
 
   const handleGoToWebsite = () => {
-    Linking.openURL('https://https://project0-nu.vercel.app')
+    Linking.openURL('https://flinote.ai')
   }
 
   const handleRateUs = () => {
@@ -101,11 +101,11 @@ export default function Settings() {
   }
 
   const handlePrivacy = () => {
-    Linking.openURL('https://https://project0-nu.vercel.app/privacy')
+    Linking.openURL('https://flinote.ai/privacy')
   }
 
   const handleTerms = () => {
-    Linking.openURL('https://https://project0-nu.vercel.app/terms')
+    Linking.openURL('https://flinote.ai/terms')
   }
 
   const handleDeleteAccount = () => {
@@ -148,6 +148,8 @@ export default function Settings() {
       label: hasAccess ? t('settings.manageSubscription') || 'Manage Subscription' : t('settings.subscription'),
       onPress: handleSubscription
     },
+    { id: '9', icon: 'lock', label: t('settings.privacy') || 'Privacy Policy', onPress: handlePrivacy },
+    { id: '10', icon: 'file-text', label: t('settings.terms') || 'Terms of Service', onPress: handleTerms },
     { id: '8', icon: 'log-out', label: t('settings.logout'), onPress: handleLogout },
   ]
 

@@ -7,6 +7,7 @@ import {
   Platform,
   StatusBar,
   Image,
+  Linking,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -104,8 +105,19 @@ export default function Paywall4() {
 
           <Text style={styles.termsText}>
             By creating an account you agree to our{" "}
-            <Text style={styles.linkText}>privacy policy</Text> and{" "}
-            <Text style={styles.linkText}>terms of service</Text>.
+            <Text 
+              style={styles.linkText}
+              onPress={() => Linking.openURL('https://flinote.ai/privacy')}
+            >
+              Privacy Policy
+            </Text>{" "}
+            and{" "}
+            <Text 
+              style={styles.linkText}
+              onPress={() => Linking.openURL('https://flinote.ai/terms')}
+            >
+              Terms of Service
+            </Text>.
           </Text>
         </View>
       </View>

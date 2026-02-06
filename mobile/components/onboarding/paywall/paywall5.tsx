@@ -342,8 +342,21 @@ export default function PaywallScreen() {
 
                 {/* Terms */}
                 <Text style={styles.terms}>
-                    By subscribing, you agree to our Terms of Service and Privacy Policy.
-                    Subscription automatically renews unless canceled.
+                    By subscribing, you agree to our{" "}
+                    <Text 
+                        style={styles.termsLink}
+                        onPress={() => Linking.openURL('https://flinote.ai/terms')}
+                    >
+                        Terms of Service
+                    </Text>{" "}
+                    and{" "}
+                    <Text 
+                        style={styles.termsLink}
+                        onPress={() => Linking.openURL('https://flinote.ai/privacy')}
+                    >
+                        Privacy Policy
+                    </Text>.
+                    {"\n"}Subscription automatically renews unless canceled.
                 </Text>
             </ScrollView>
         </SafeAreaView>
@@ -556,5 +569,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 8,
         lineHeight: 18,
+    },
+    termsLink: {
+        textDecorationLine: 'underline',
+        color: '#6366f1',
+        fontWeight: '500',
     },
 });
