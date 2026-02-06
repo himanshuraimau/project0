@@ -79,25 +79,32 @@ export function Footer() {
             links: ["About", "Blog", "Careers", "Contact"],
           }, {
             title: "Legal",
-            links: ["Privacy", "Terms", "Security"],
+            links: [
+              { label: "Privacy", href: "/privacy" },
+              { label: "Terms", href: "/terms" },
+            ],
           }].map((section) => (
             <div key={section.title}>
               <h4 className="font-semibold mb-4" style={{ color: colors.textSection }}>
                 {section.title}
               </h4>
               <ul className="space-y-3 text-sm">
-                {section.links.map((label) => (
-                  <li key={label}>
-                    <Link
-                      href="#"
-                      style={{ color: colors.link, transition: "color 0.2s ease" }}
-                      onMouseEnter={handleLinkEnter}
-                      onMouseLeave={handleLinkLeave}
-                    >
-                      {label}
-                    </Link>
-                  </li>
-                ))}
+                {section.links.map((link) => {
+                  const href = typeof link === 'string' ? '#' : link.href;
+                  const label = typeof link === 'string' ? link : link.label;
+                  return (
+                    <li key={label}>
+                      <Link
+                        href={href}
+                        style={{ color: colors.link, transition: "color 0.2s ease" }}
+                        onMouseEnter={handleLinkEnter}
+                        onMouseLeave={handleLinkLeave}
+                      >
+                        {label}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
