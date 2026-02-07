@@ -9,7 +9,7 @@ interface SpeechOptions {
     VoiceId: string;
     Bitrate?: string;      // 16k, 32k, 48k, 64k, 128k, 192k, 256k, 320k (default: 192k)
     Speed?: number;        // -1.0 to 1.0 (default: 0)
-    Pitch?: number;        // 0.5 to 1.5 (default: 1.0)
+    Pitch?: number;        
     TimestampType?: string; // 'word' or 'sentence' (default: 'sentence')
 }
 

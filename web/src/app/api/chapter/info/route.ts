@@ -1,4 +1,3 @@
-// /api/chapter/info
 
 import { prisma } from "@/lib/prisma"
 import {

@@ -82,6 +82,7 @@ export function Footer() {
             links: [
               { label: "Privacy", href: "/privacy" },
               { label: "Terms", href: "/terms" },
+              { label: "Security", href: "#" }
             ],
           }].map((section) => (
             <div key={section.title}>

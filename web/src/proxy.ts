@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { getSessionCookie } from 'better-auth/cookies'
 
-// Define public routes that don't require authentication
 const publicRoutes = [
   '/',
   '/sign-in',
