@@ -44,7 +44,7 @@ export function WebpageProcessor({
   onClose,
 }: WebpageProcessorProps) {
   const router = useRouter();
-  const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
+  const { addLoadingNote, updateLoadingNote, removeLoadingNote } = useDashboardRefresh();
   const [url, setUrl] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +82,7 @@ export function WebpageProcessor({
     // Add loading note BEFORE closing modal
     const tempId = `webpage-${Date.now()}`;
     setCurrentTempId(tempId);
-    addLoadingNote(tempId, "webpage");
+    addLoadingNote(tempId, "webpage", "uploading");
 
     // Longer delay to ensure state update propagates and UI re-renders
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -93,6 +93,7 @@ export function WebpageProcessor({
     }
 
     try {
+      updateLoadingNote(tempId, { stage: 'processing' });
       setProcessingStage("Crawling webpage...");
 
       const response = await fetch("/api/webpage/process", {
@@ -145,9 +146,25 @@ export function WebpageProcessor({
       setProcessingStage("Generating AI notes...");
 
       if (data.success && data.data) {
+        // Update with transcript ID
+        if (data.data.transcript?.id) {
+          updateLoadingNote(tempId, { 
+            transcriptId: data.data.transcript.id,
+            stage: 'generating'
+          });
+        }
+        
         setSuccess(true);
         setProcessingStage("Complete!");
 
+        // Update with note ID if generated
+        if (data.data.note?.id) {
+          updateLoadingNote(tempId, { 
+            noteId: data.data.note.id,
+            stage: 'completed'
+          });
+        }
+        
         // Remove loading note using temp ID BEFORE calling completion callback
         if (currentTempId) {
           removeLoadingNote(currentTempId);

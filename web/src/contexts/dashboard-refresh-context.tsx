@@ -2,13 +2,25 @@
 
 import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
 
+interface LoadingNote {
+  id: string;
+  type: 'pdf' | 'audio' | 'audio-record' | 'youtube' | 'webpage';
+  timestamp: number;
+  transcriptId?: string;  // Link to actual transcript in DB
+  noteId?: string;        // Link to generated note in DB
+  stage: 'uploading' | 'processing' | 'generating' | 'completed' | 'error';
+  error?: string;         // Error message if stage is 'error'
+  retryCount?: number;    // Number of retry attempts
+}
+
 interface DashboardRefreshContextType {
   refreshNotes: () => void;
   isRefreshing: boolean;
   setRefreshHandler: (handler: () => Promise<void>) => void;
-  addLoadingNote: (tempId: string, type: 'pdf' | 'audio' | 'youtube' | 'webpage') => void;
+  addLoadingNote: (tempId: string, type: 'pdf' | 'audio' | 'audio-record' | 'youtube' | 'webpage', stage?: LoadingNote['stage']) => void;
+  updateLoadingNote: (tempId: string, updates: Partial<LoadingNote>) => void;
   removeLoadingNote: (tempId: string) => void;
-  loadingNotes: Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage'; timestamp: number }>;
+  loadingNotes: LoadingNote[];
   clearAllLoadingNotes: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -23,7 +35,7 @@ const LOADING_NOTES_KEY = 'dashboard_loading_notes';
 export function DashboardRefreshProvider({ children }: { children: React.ReactNode }) {
   const [refreshHandler, setRefreshHandler] = useState<(() => Promise<void>) | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [loadingNotes, setLoadingNotes] = useState<Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage'; timestamp: number }>>([]);
+  const [loadingNotes, setLoadingNotes] = useState<LoadingNote[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -61,21 +73,31 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
     }
   }, [loadingNotes]);
 
-  const addLoadingNote = useCallback((tempId: string, type: 'pdf' | 'audio' | 'youtube' | 'webpage') => {
+  const addLoadingNote = useCallback((tempId: string, type: 'pdf' | 'audio' | 'audio-record' | 'youtube' | 'webpage', stage: LoadingNote['stage'] = 'uploading') => {
     setLoadingNotes(prev => {
       // Check if note already exists to prevent duplicates
       const exists = prev.some(note => note.id === tempId);
       if (exists) {
         return prev;
       }
-      return [...prev, { id: tempId, type, timestamp: Date.now() }];
+      return [...prev, { id: tempId, type, timestamp: Date.now(), stage, retryCount: 0 }];
     });
 
-    // Auto-cleanup loading note after 30 minutes as a safety measure
+    // Auto-cleanup loading note after 10 minutes as a safety measure
     setTimeout(() => {
       console.log(`Auto-removing loading note after timeout: ${tempId}`);
       setLoadingNotes(prev => prev.filter(note => note.id !== tempId));
-    }, 30 * 60 * 1000); // 30 minutes (increased from 5)
+    }, 10 * 60 * 1000); // 10 minutes
+  }, []);
+
+  const updateLoadingNote = useCallback((tempId: string, updates: Partial<LoadingNote>) => {
+    setLoadingNotes(prev => 
+      prev.map(note => 
+        note.id === tempId 
+          ? { ...note, ...updates }
+          : note
+      )
+    );
   }, []);
 
   const removeLoadingNote = useCallback((tempId: string) => {
@@ -123,6 +145,7 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
         isRefreshing, 
         setRefreshHandler: setRefreshHandlerCallback,
         addLoadingNote,
+        updateLoadingNote,
         removeLoadingNote,
         loadingNotes,
         clearAllLoadingNotes,

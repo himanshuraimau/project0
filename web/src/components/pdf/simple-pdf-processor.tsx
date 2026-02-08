@@ -22,7 +22,7 @@ export function SimplePDFProcessor({
   onClose,
 }: SimplePDFProcessorProps) {
   const { processPDFWithNotes, generateNotesFromText, loading, error } = useNotes();
-  const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
+  const { addLoadingNote, updateLoadingNote, removeLoadingNote } = useDashboardRefresh();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [processResult, setProcessResult] = useState<ProcessPDFResult | null>(null);
@@ -103,7 +103,7 @@ export function SimplePDFProcessor({
     // Generate temp ID and add loading note BEFORE closing modal
     const tempId = `${mode}-${Date.now()}`;
     setCurrentTempId(tempId);
-    addLoadingNote(tempId, mode === "pdf" ? "pdf" : "pdf");
+    addLoadingNote(tempId, mode === "pdf" ? "pdf" : "pdf", "uploading");
 
     // Longer delay to ensure state update propagates and UI re-renders
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -117,18 +117,36 @@ export function SimplePDFProcessor({
 
     try {
       if (mode === "pdf") {
+        updateLoadingNote(tempId, { stage: 'processing' });
         const options = {
           extractImages: false,
           generateNotes: true,
         };
         result = await processPDFWithNotes(selectedFile!, options);
+        
+        // Update with transcript ID
+        if (result?.transcript?.id) {
+          updateLoadingNote(tempId, { 
+            transcriptId: result.transcript.id,
+            stage: 'generating'
+          });
+        }
       } else {
+        updateLoadingNote(tempId, { stage: 'generating' });
         // Generate notes from text
         result = await generateNotesFromText(textInput, noteTitle || "Text Note");
       }
 
       if (result) {
         setProcessResult(result);
+        
+        // Update with note ID if generated
+        if (result.note?.id) {
+          updateLoadingNote(tempId, { 
+            noteId: result.note.id,
+            stage: 'completed'
+          });
+        }
         
         // Remove loading note using temp ID BEFORE calling completion callback
         if (currentTempId) {
@@ -150,12 +168,18 @@ export function SimplePDFProcessor({
       }
     } catch (error) {
       console.error("Error processing:", error);
-    } finally {
-      // Always remove loading note in finally block
+      const errorMessage = error instanceof Error ? error.message : "Failed to process";
+      
+      // Update loading note with error state
       if (currentTempId) {
-        removeLoadingNote(currentTempId);
-        setCurrentTempId(null);
+        updateLoadingNote(currentTempId, { 
+          stage: 'error',
+          error: errorMessage
+        });
       }
+    } finally {
+      // Don't remove loading note in finally - let it show error state
+      // It will be auto-cleaned up or user can retry
     }
   };
 

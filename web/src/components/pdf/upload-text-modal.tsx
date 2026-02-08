@@ -19,7 +19,7 @@ export function UploadTextModal({
 }: UploadTextModalProps) {
     const { generateNotesFromText, processPDFWithNotes, loading } = useNotes();
     const { folders, getFolders, loading: foldersLoading } = useFolders();
-    const { addLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
+    const { addLoadingNote, updateLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
     const [textInput, setTextInput] = useState("");
     const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
     const [currentTempId, setCurrentTempId] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export function UploadTextModal({
 
         const tempId = hasPDF ? `pdf-${Date.now()}` : `text-${Date.now()}`;
         setCurrentTempId(tempId);
-        addLoadingNote(tempId, "pdf");
+        addLoadingNote(tempId, "pdf", "uploading");
 
         await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -52,17 +52,35 @@ export function UploadTextModal({
             let result;
 
             if (hasPDF) {
+                updateLoadingNote(tempId, { stage: 'processing' });
                 // Process PDF with notes generation
                 result = await processPDFWithNotes(selectedPDFFile, {
                     generateNotes: true,
                     extractImages: false,
                 });
+                
+                // Update with transcript ID
+                if (result?.transcript?.id) {
+                    updateLoadingNote(tempId, { 
+                        transcriptId: result.transcript.id,
+                        stage: 'generating'
+                    });
+                }
             } else {
+                updateLoadingNote(tempId, { stage: 'generating' });
                 // Generate notes from text
                 result = await generateNotesFromText(textInput, "Text Note", selectedFolderId);
             }
 
             if (result) {
+                // Update with note ID if generated
+                if (result.note?.id) {
+                    updateLoadingNote(tempId, { 
+                        noteId: result.note.id,
+                        stage: 'completed'
+                    });
+                }
+                
                 if (currentTempId) {
                     removeLoadingNote(currentTempId);
                     setCurrentTempId(null);
@@ -87,11 +105,17 @@ export function UploadTextModal({
             }
         } catch (error) {
             console.error("Error generating notes:", error);
-        } finally {
+            const errorMessage = error instanceof Error ? error.message : "Failed to generate notes";
+            
+            // Update loading note with error state
             if (currentTempId) {
-                removeLoadingNote(currentTempId);
-                setCurrentTempId(null);
+                updateLoadingNote(currentTempId, { 
+                    stage: 'error',
+                    error: errorMessage
+                });
             }
+        } finally {
+            // Don't remove in finally - let error state show or auto-cleanup handle it
         }
     };
 

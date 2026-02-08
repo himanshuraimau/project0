@@ -25,7 +25,7 @@ export default function AudioUploadModal({
     onClose,
 }: AudioUploadModalProps) {
     const router = useRouter();
-    const { addLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
+    const { addLoadingNote, updateLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
     const [isProcessing, setIsProcessing] = useState(false);
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [fileName, setFileName] = useState("");
@@ -55,20 +55,32 @@ export default function AudioUploadModal({
                 return;
             }
 
-            // Check file type
+            // Check file type - both by MIME type and file extension
             const allowedTypes = [
                 "audio/mpeg",
                 "audio/mp3",
                 "audio/wav",
+                "audio/wave",
+                "audio/x-wav",
                 "audio/flac",
                 "audio/m4a",
+                "audio/x-m4a",
+                "audio/mp4",  // m4a files often have audio/mp4 MIME type
                 "audio/ogg",
                 "audio/webm",
-                "audio/mp4",
+                "audio/aac",
             ];
-            if (!allowedTypes.includes(file.type)) {
+            
+            // Get file extension as fallback
+            const fileExtension = file.name.split('.').pop()?.toLowerCase();
+            const allowedExtensions = ['mp3', 'wav', 'flac', 'm4a', 'ogg', 'webm', 'mp4', 'aac'];
+            
+            const isValidMimeType = allowedTypes.includes(file.type);
+            const isValidExtension = fileExtension && allowedExtensions.includes(fileExtension);
+            
+            if (!isValidMimeType && !isValidExtension) {
                 toast.error("Unsupported audio format", {
-                    description: `Format: ${file.type}. Please use MP3, WAV, FLAC, M4A, OGG, WebM, or MP4.`,
+                    description: `Format: ${file.type || 'unknown'} (.${fileExtension}). Please use MP3, WAV, FLAC, M4A, OGG, WebM, MP4, or AAC.`,
                     duration: 5000,
                 });
                 event.target.value = ""; // Clear the input
@@ -88,7 +100,7 @@ export default function AudioUploadModal({
         // Add loading note BEFORE closing modal
         const tempId = `audio-upload-${Date.now()}`;
         setCurrentTempId(tempId);
-        addLoadingNote(tempId, "audio");
+        addLoadingNote(tempId, "audio", "uploading");
 
         // Longer delay to ensure state update propagates and UI re-renders
         await new Promise((resolve) => setTimeout(resolve, 300));
@@ -99,6 +111,8 @@ export default function AudioUploadModal({
         }
 
         try {
+            updateLoadingNote(tempId, { stage: "processing" });
+
             const formData = new FormData();
             formData.append("audio", audioBlob);
             formData.append("fileName", fileName || "uploaded-audio");
@@ -111,6 +125,25 @@ export default function AudioUploadModal({
             if (response.ok) {
                 const result = await response.json();
 
+                // Extract data from API response
+                const responseData = result.data || result;
+
+                // Update loading note with transcript ID and stage
+                if (responseData.transcript?.id) {
+                    updateLoadingNote(tempId, { 
+                        transcriptId: responseData.transcript.id,
+                        stage: "generating"
+                    });
+                }
+
+                // If note was generated, update with note ID
+                if (responseData.note?.id) {
+                    updateLoadingNote(tempId, { 
+                        noteId: responseData.note.id,
+                        stage: "completed"
+                    });
+                }
+
                 // Remove loading note using temp ID BEFORE calling completion callback
                 if (currentTempId) {
                     removeLoadingNote(currentTempId);
@@ -119,9 +152,6 @@ export default function AudioUploadModal({
 
                 // Wait for shimmer removal to propagate before triggering refresh
                 await new Promise((resolve) => setTimeout(resolve, 200));
-
-                // Extract data from API response
-                const responseData = result.data || result;
 
                 // Call completion with result that includes temp ID for tracking
                 onTranscriptionComplete({
@@ -140,6 +170,12 @@ export default function AudioUploadModal({
                 setFileName("");
             } else {
                 const errorData = await response.json();
+
+                // Update loading note with error
+                updateLoadingNote(tempId, { 
+                    stage: "error",
+                    error: errorData.error || "Failed to transcribe audio"
+                });
 
                 // Handle specific error types
                 if (
@@ -163,6 +199,12 @@ export default function AudioUploadModal({
             }
         } catch (error) {
             console.error("Transcription error:", error);
+            if (currentTempId) {
+                updateLoadingNote(currentTempId, { 
+                    stage: "error",
+                    error: error instanceof Error ? error.message : "Failed to transcribe audio"
+                });
+            }
             toast.error("Failed to transcribe audio", {
                 description: error instanceof Error ? error.message : "Please try again or contact support if the issue persists.",
                 duration: 5000,
