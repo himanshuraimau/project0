@@ -19,7 +19,7 @@ export function UploadTextModal({
 }: UploadTextModalProps) {
     const { generateNotesFromText, processPDFWithNotes, loading } = useNotes();
     const { folders, getFolders, loading: foldersLoading } = useFolders();
-    const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
+    const { addLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
     const [textInput, setTextInput] = useState("");
     const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
     const [currentTempId, setCurrentTempId] = useState<string | null>(null);
@@ -77,6 +77,9 @@ export function UploadTextModal({
                         id: result.transcript.id || tempId,
                     },
                 });
+
+                // Trigger refresh to update note counter
+                triggerRefresh();
 
                 setTextInput("");
                 setSelectedFolderId(null);
