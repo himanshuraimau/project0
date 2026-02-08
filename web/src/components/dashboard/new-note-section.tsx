@@ -55,7 +55,7 @@ interface AudioRecorderModalProps {
 }
 
 function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderModalProps) {
-  const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
+  const { addLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [seconds, setSeconds] = useState(0);
   const [audioLanguage, setAudioLanguage] = useState("English");
@@ -236,6 +236,9 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
           note: responseData.note || {},
         });
 
+        // Trigger refresh to update note counter immediately
+        triggerRefresh();
+
         setAudioBlob(null);
         setSeconds(0);
         setRecordingState("idle");
@@ -394,7 +397,7 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
 
 
 export function NewNoteSection() {
-  const { refreshNotes, addLoadingNote, removeLoadingNote } =
+  const { refreshNotes, addLoadingNote, removeLoadingNote, triggerRefresh } =
     useDashboardRefresh();
   const [showTextDialog, setShowTextDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
@@ -410,6 +413,8 @@ export function NewNoteSection() {
         description: "Content extracted and notes created",
         duration: 4000,
       });
+      // Immediately trigger counter refresh
+      triggerRefresh();
       // Wait a bit longer to ensure database transaction is fully committed
       setTimeout(() => {
         refreshNotes();
@@ -448,6 +453,8 @@ export function NewNoteSection() {
         description: "Audio transcribed and notes created",
         duration: 4000,
       });
+      // Immediately trigger counter refresh
+      triggerRefresh();
       // Wait a bit longer to ensure database transaction is fully committed
       setTimeout(() => {
         refreshNotes();
@@ -481,6 +488,8 @@ export function NewNoteSection() {
         description: "Recording transcribed and notes created",
         duration: 4000,
       });
+      // Immediately trigger counter refresh
+      triggerRefresh();
       // Wait a bit longer to ensure database transaction is fully committed
       setTimeout(() => {
         refreshNotes();
@@ -501,6 +510,8 @@ export function NewNoteSection() {
         description: "Content converted to AI-powered notes",
         duration: 4000,
       });
+      // Immediately trigger counter refresh
+      triggerRefresh();
       // Wait a bit longer to ensure database transaction is fully committed
       setTimeout(() => {
         refreshNotes();

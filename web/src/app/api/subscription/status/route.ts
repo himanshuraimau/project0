@@ -19,6 +19,9 @@ export async function GET(request: NextRequest) {
     // Get subscription with sync from Dodo
     const subscription = await SubscriptionService.getSubscriptionWithSync(userId);
 
+    // Get feature access summary (needed for free tier too)
+    const featureAccess = await FeatureGateService.getFeatureAccessSummary();
+
     if (!subscription) {
       return NextResponse.json({
         hasSubscription: false,
@@ -27,14 +30,12 @@ export async function GET(request: NextRequest) {
           hasAccess: false,
           reason: 'NO_SUBSCRIPTION',
         },
+        features: featureAccess,
       });
     }
 
     // Get display info
     const displayInfo = SubscriptionService.getSubscriptionDisplayInfo(subscription);
-
-    // Get feature access summary
-    const featureAccess = await FeatureGateService.getFeatureAccessSummary();
 
     return NextResponse.json({
       hasSubscription: true,

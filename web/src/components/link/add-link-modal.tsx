@@ -16,7 +16,7 @@ export function AddLinkModal({
     onProcessComplete,
 }: AddLinkModalProps) {
     const { folders, getFolders, loading: foldersLoading } = useFolders();
-    const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
+    const { addLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
     const [linkInput, setLinkInput] = useState("");
     const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -113,6 +113,10 @@ export function AddLinkModal({
             await new Promise((resolve) => setTimeout(resolve, 200));
 
             onProcessComplete?.(result.data);
+            
+            // Trigger refresh to update note counter immediately
+            triggerRefresh();
+            
             setLinkInput("");
             setSelectedFolderId(null);
 

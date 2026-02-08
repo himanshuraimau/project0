@@ -10,7 +10,7 @@ import {
   useDashboardRefresh,
 } from "@/contexts/dashboard-refresh-context";
 import { PaymentSuccessHandler } from "@/components/subscription/payment-success-handler";
-import { FreeTierBadge } from "@/components/subscription";
+import { FreeNoteCounter } from "@/components/dashboard/free-note-counter";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Course, Unit, Chapter } from "@prisma/client";
@@ -60,7 +60,7 @@ function DashboardMain({ children }: { children: React.ReactNode }) {
                   Welcome back!
                 </p>
               )}
-              <FreeTierBadge />
+              <FreeNoteCounter />
             </div>
             {isDashboardHome && (
               <Input

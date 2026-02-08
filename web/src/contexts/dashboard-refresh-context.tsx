@@ -12,6 +12,8 @@ interface DashboardRefreshContextType {
   clearAllLoadingNotes: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  refreshTrigger: number;
+  triggerRefresh: () => void;
 }
 
 const DashboardRefreshContext = createContext<DashboardRefreshContextType | null>(null);
@@ -21,6 +23,7 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadingNotes, setLoadingNotes] = useState<Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage' }>>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const addLoadingNote = useCallback((tempId: string, type: 'pdf' | 'audio' | 'youtube' | 'webpage') => {
     setLoadingNotes(prev => {
@@ -59,6 +62,8 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
       setIsRefreshing(true);
       try {
         await refreshHandler();
+        // Increment refresh trigger to notify other components
+        setRefreshTrigger(prev => prev + 1);
       } catch (error) {
         console.error('Error refreshing notes:', error);
       } finally {
@@ -66,6 +71,10 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
       }
     }
   }, [refreshHandler, isRefreshing]);
+
+  const triggerRefresh = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
 
   const setRefreshHandlerCallback = useCallback((handler: () => Promise<void>) => {
     setRefreshHandler(() => handler);
@@ -82,7 +91,9 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
         loadingNotes,
         clearAllLoadingNotes,
         searchQuery,
-        setSearchQuery
+        setSearchQuery,
+        refreshTrigger,
+        triggerRefresh,
       }}
     >
       {children}

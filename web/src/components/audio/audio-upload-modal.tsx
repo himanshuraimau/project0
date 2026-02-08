@@ -25,7 +25,7 @@ export default function AudioUploadModal({
     onClose,
 }: AudioUploadModalProps) {
     const router = useRouter();
-    const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
+    const { addLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
     const [isProcessing, setIsProcessing] = useState(false);
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [fileName, setFileName] = useState("");
@@ -131,6 +131,9 @@ export default function AudioUploadModal({
                     },
                     note: responseData.note || {},
                 });
+
+                // Trigger refresh to update note counter immediately
+                triggerRefresh();
 
                 // Reset form
                 setAudioBlob(null);
