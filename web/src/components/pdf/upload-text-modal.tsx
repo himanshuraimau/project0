@@ -23,6 +23,7 @@ export function UploadTextModal({
     const [textInput, setTextInput] = useState("");
     const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
     const [currentTempId, setCurrentTempId] = useState<string | null>(null);
+    const [selectedPDFFile, setSelectedPDFFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Load folders on mount
@@ -31,9 +32,13 @@ export function UploadTextModal({
     }, [getFolders]);
 
     const handleGenerateNotes = async () => {
-        if (!textInput.trim()) return;
+        // Check if we have PDF file selected or text input
+        const hasPDF = selectedPDFFile !== null;
+        const hasText = textInput.trim().length > 0;
 
-        const tempId = `text-${Date.now()}`;
+        if (!hasPDF && !hasText) return;
+
+        const tempId = hasPDF ? `pdf-${Date.now()}` : `text-${Date.now()}`;
         setCurrentTempId(tempId);
         addLoadingNote(tempId, "pdf");
 
@@ -44,7 +49,18 @@ export function UploadTextModal({
         }
 
         try {
-            const result = await generateNotesFromText(textInput, "Text Note", selectedFolderId);
+            let result;
+
+            if (hasPDF) {
+                // Process PDF with notes generation
+                result = await processPDFWithNotes(selectedPDFFile, {
+                    generateNotes: true,
+                    extractImages: false,
+                });
+            } else {
+                // Generate notes from text
+                result = await generateNotesFromText(textInput, "Text Note", selectedFolderId);
+            }
 
             if (result) {
                 if (currentTempId) {
@@ -64,9 +80,10 @@ export function UploadTextModal({
 
                 setTextInput("");
                 setSelectedFolderId(null);
+                setSelectedPDFFile(null);
             }
         } catch (error) {
-            console.error("Error generating notes from text:", error);
+            console.error("Error generating notes:", error);
         } finally {
             if (currentTempId) {
                 removeLoadingNote(currentTempId);
@@ -101,49 +118,12 @@ export function UploadTextModal({
             return;
         }
 
-        const tempId = `pdf-${Date.now()}`;
-        setCurrentTempId(tempId);
-        addLoadingNote(tempId, "pdf");
-
-        await new Promise((resolve) => setTimeout(resolve, 300));
-
-        if (onClose) {
-            onClose();
-        }
-
-        try {
-            const result = await processPDFWithNotes(file);
-
-            if (result) {
-                if (currentTempId) {
-                    removeLoadingNote(currentTempId);
-                    setCurrentTempId(null);
-                }
-
-                await new Promise((resolve) => setTimeout(resolve, 200));
-
-                onProcessComplete?.(result);
-
-                // Reset file input
-                if (fileInputRef.current) {
-                    fileInputRef.current.value = '';
-                }
-            }
-        } catch (error) {
-            console.error("Error processing PDF:", error);
-            toast.error("Failed to process PDF", {
-                description: error instanceof Error ? error.message : "Unknown error occurred",
-            });
-        } finally {
-            if (currentTempId) {
-                removeLoadingNote(currentTempId);
-                setCurrentTempId(null);
-            }
-            // Reset file input
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
-        }
+        // Just store the file, don't process it yet
+        setSelectedPDFFile(file);
+        
+        toast.success("PDF uploaded", {
+            description: `${file.name} is ready. Click "Generate Notes" to process.`,
+        });
     };
 
     return (
@@ -176,10 +156,41 @@ export function UploadTextModal({
                 <textarea
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
-                    disabled={loading}
+                    disabled={loading || selectedPDFFile !== null}
+                    placeholder={selectedPDFFile ? "Text input disabled when PDF is selected" : "Enter your text here..."}
                     className="w-full h-64 px-4 py-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 focus:border-transparent transition-all resize-none disabled:opacity-50"
                 />
             </div>
+
+            {/* Selected PDF Display */}
+            {selectedPDFFile && (
+                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <FileText size={24} className="text-blue-600 dark:text-blue-400" />
+                            <div>
+                                <p className="font-medium text-gray-800 dark:text-gray-200">
+                                    {selectedPDFFile.name}
+                                </p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    {(selectedPDFFile.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setSelectedPDFFile(null);
+                                if (fileInputRef.current) {
+                                    fileInputRef.current.value = '';
+                                }
+                            }}
+                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                            <X size={20} />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Folder Selection */}
             <div className="mb-8">
@@ -211,16 +222,16 @@ export function UploadTextModal({
             <div className="space-y-4 px-20">
                 <button
                     onClick={handleImportPDFs}
-                    disabled={loading}
+                    disabled={loading || textInput.trim().length > 0}
                     className="w-full h-14 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 text-gray-800 dark:text-gray-200 font-medium rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                     <FileText size={20} />
-                    Import PDF(s)
+                    {selectedPDFFile ? "Change PDF" : "Import PDF(s)"}
                 </button>
 
                 <button
                     onClick={handleGenerateNotes}
-                    disabled={loading || !textInput.trim()}
+                    disabled={loading || (!textInput.trim() && !selectedPDFFile)}
                     className="w-full h-12 bg-black dark:bg-white text-white dark:text-black font-semibold rounded-xl hover:bg-gray-900 dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <Sparkles size={20} />
