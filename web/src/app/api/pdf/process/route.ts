@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     const extractImages = formData.get('extractImages') === 'true';
     const maxPagesParam = formData.get('maxPages');
     const maxPages = maxPagesParam ? Math.min(parseInt(maxPagesParam as string) || 50, 50) : undefined;
-    const generateNotes = formData.get('generateNotes') !== 'false'; // Default to true
+    const generateNotes = formData.get('generateNotes') === 'true'; // Require explicit opt-in
     const folderId = formData.get('folderId') as string | null;
 
     // Step 1: Extract text from PDF and save to database

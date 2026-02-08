@@ -55,7 +55,7 @@ interface AudioRecorderModalProps {
 }
 
 function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderModalProps) {
-  const { addLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
+  const { addLoadingNote, updateLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [seconds, setSeconds] = useState(0);
   const [audioLanguage, setAudioLanguage] = useState("English");
@@ -199,13 +199,15 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
 
     const tempId = `audio-record-${Date.now()}`;
     setCurrentTempId(tempId);
-    addLoadingNote(tempId, "audio");
+    addLoadingNote(tempId, "audio-record", "uploading");
 
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     onClose();
 
     try {
+      updateLoadingNote(tempId, { stage: "processing" });
+
       const formData = new FormData();
       formData.append("audio", audioBlob);
       formData.append("fileName", `recording-${Date.now()}`);
@@ -218,15 +220,31 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
       if (response.ok) {
         const result = await response.json();
 
+        // Extract data from API response
+        const responseData = result.data || result;
+
+        // Update loading note with transcript ID and stage
+        if (responseData.transcript?.id) {
+          updateLoadingNote(tempId, { 
+            transcriptId: responseData.transcript.id,
+            stage: "generating"
+          });
+        }
+
+        // If note was generated, update with note ID
+        if (responseData.note?.id) {
+          updateLoadingNote(tempId, { 
+            noteId: responseData.note.id,
+            stage: "completed"
+          });
+        }
+
         if (currentTempId) {
           removeLoadingNote(currentTempId);
           setCurrentTempId(null);
         }
 
         await new Promise((resolve) => setTimeout(resolve, 200));
-
-        // Extract data from API response
-        const responseData = result.data || result;
 
         onTranscriptionComplete({
           transcript: {
@@ -244,10 +262,20 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
         setRecordingState("idle");
       } else {
         const errorData = await response.json();
+        updateLoadingNote(tempId, { 
+          stage: "error",
+          error: errorData.error || "Failed to transcribe audio"
+        });
         throw new Error(errorData.error || "Failed to transcribe audio");
       }
     } catch (error) {
       console.error("Transcription error:", error);
+      if (currentTempId) {
+        updateLoadingNote(currentTempId, { 
+          stage: "error",
+          error: error instanceof Error ? error.message : "Failed to transcribe audio"
+        });
+      }
       toast.error("Failed to transcribe audio", {
         description: error instanceof Error ? error.message : "Please try again or contact support if the issue persists.",
         duration: 5000,

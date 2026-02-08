@@ -29,6 +29,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
+    // IDEMPOTENCY CHECK: Check if note already exists for this transcript
+    const { prisma } = await import('@/lib/prisma');
+    const existingNote = await prisma.note.findFirst({
+      where: {
+        transcriptId: transcriptId,
+        userId: userId
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // If note already exists, return it instead of creating duplicate
+    if (existingNote) {
+      console.log(`Idempotency: Returning existing note ${existingNote.id} for transcript ${transcriptId}`);
+      const response: ApiSuccessResponse = {
+        success: true,
+        data: existingNote,
+      };
+      return NextResponse.json(response);
+    }
+
     // Check note creation access (allows free tier: 1 note)
     const { FeatureGateService } = await import('@/lib/feature-gate-service');
     const accessCheck = await FeatureGateService.checkNoteCreationAccess();
@@ -50,7 +72,6 @@ export async function POST(request: NextRequest) {
     const note = await noteService.generateAINote(transcriptId, userId || undefined, folderId);
 
     // Increment user's notes count
-    const { prisma } = await import('@/lib/prisma');
     await prisma.user.update({
       where: { id: userId },
       data: { notesCount: { increment: 1 } }

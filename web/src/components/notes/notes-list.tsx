@@ -23,7 +23,7 @@ export interface NotesListRef {
 export const NotesList = forwardRef<NotesListRef, NotesListProps>(
   ({ searchQuery, transcriptId, limit, folderId }, ref) => {
     const { getNotes, loading, error } = useNotes();
-    const { loadingNotes } = useDashboardRefresh();
+    const { loadingNotes, removeLoadingNote, updateLoadingNote } = useDashboardRefresh();
     const [notes, setNotes] = useState<NotesNoteWithTranscript[]>([]);    // Debug: Log loading notes changes
     useEffect(() => {
     }, [loadingNotes]);
@@ -32,8 +32,39 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       const result = await getNotes(transcriptId);
       if (result) {
         setNotes(result as NotesNoteWithTranscript[]);
+        
+        // Auto-cleanup loading notes based on multiple criteria:
+        const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+        const noteIds = new Set(result.map(n => n.id));
+        const transcriptIds = new Set(result.map(n => n.transcriptId).filter(Boolean));
+        
+        loadingNotes.forEach(loadingNote => {
+          // Remove if stale (older than 5 minutes)
+          if (loadingNote.timestamp < fiveMinutesAgo) {
+            console.log(`Auto-removing stale loading note: ${loadingNote.id}`);
+            removeLoadingNote(loadingNote.id);
+            return;
+          }
+          
+          // Remove if corresponding note now exists in database
+          if (loadingNote.noteId && noteIds.has(loadingNote.noteId)) {
+            console.log(`Auto-removing loading note - note exists: ${loadingNote.id}`);
+            removeLoadingNote(loadingNote.id);
+            return;
+          }
+          
+          // Remove if transcript exists and has notes (completed state)
+          if (loadingNote.transcriptId && transcriptIds.has(loadingNote.transcriptId)) {
+            const noteForTranscript = result.find(n => n.transcriptId === loadingNote.transcriptId);
+            if (noteForTranscript) {
+              console.log(`Auto-removing loading note - transcript has note: ${loadingNote.id}`);
+              removeLoadingNote(loadingNote.id);
+              return;
+            }
+          }
+        });
       }
-    }, [transcriptId, getNotes]);
+    }, [transcriptId, getNotes, loadingNotes, removeLoadingNote]);
 
     // Expose refresh method to parent component
     useImperativeHandle(ref, () => ({

@@ -57,18 +57,26 @@ export async function POST(req: NextRequest) {
       }, { status: 413 });
     }
 
-    // Validate file type
+    // Validate file type - check both MIME type and file extension
     const allowedMimeTypes = [
       'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave', 'audio/x-wav',
       'audio/flac', 'audio/m4a', 'audio/x-m4a', 'audio/ogg', 'audio/webm',
       'audio/mp4', 'audio/aac', 'audio/webm;codecs=opus', 'audio/ogg;codecs=opus'
     ];
 
-    console.log('Received audio file with MIME type:', audioFile.type);
+    // Get file extension as fallback for validation
+    const fileExtension = audioFile.name.split('.').pop()?.toLowerCase();
+    const allowedExtensions = ['mp3', 'wav', 'flac', 'm4a', 'ogg', 'webm', 'mp4', 'aac'];
 
-    if (!allowedMimeTypes.includes(audioFile.type)) {
+    console.log('Received audio file with MIME type:', audioFile.type);
+    console.log('File extension:', fileExtension);
+
+    const isValidMimeType = allowedMimeTypes.includes(audioFile.type);
+    const isValidExtension = fileExtension && allowedExtensions.includes(fileExtension);
+
+    if (!isValidMimeType && !isValidExtension) {
       return NextResponse.json({
-        error: `Unsupported audio format: ${audioFile.type}. Supported formats: MP3, WAV, FLAC, M4A, OGG, WebM, MP4.`
+        error: `Unsupported audio format: ${audioFile.type} (.${fileExtension}). Supported formats: MP3, WAV, FLAC, M4A, OGG, WebM, MP4, AAC.`
       }, { status: 400 });
     }
 

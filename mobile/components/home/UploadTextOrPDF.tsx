@@ -157,8 +157,8 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
           formData.append('folderId', folder);
         }
 
-        // Add generateNotes flag
-        formData.append('generateNotes', 'true');
+        // Do NOT auto-generate notes - only upload PDF
+        formData.append('generateNotes', 'false');
 
         // Upload and process PDF using the hook
         const result = await processPDF(formData);
