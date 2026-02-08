@@ -46,7 +46,7 @@ export default function NoteHubPage() {
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
   const [isPodcastLoading, setIsPodcastLoading] = useState(false);
 
-
+  // Fetch translated content when lang param changes
   useEffect(() => {
     const lang = searchParams.get('lang') as LanguageCode | null;
     console.log('Lang param:', lang || 'english');
@@ -223,17 +223,17 @@ export default function NoteHubPage() {
                 )}
                 onClick={() => action.onClick ? action.onClick() : router.push(action.href!)}
               >
-                <CardContent className="px-3 flex items-center justify-start h-14 relative overflow-hidden">
-                  <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Sparkles className={cn("h-4 w-4", action.textColor)} />
+                <CardContent className="py-1 px-3 flex items-center justify-start h-28 relative overflow-hidden">
+                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Sparkles className={cn("h-6 w-6", action.textColor)} />
                   </div>
 
-                  <div className="flex items-center gap-3 pl-1 min-w-0 w-full">
-                    <div className={cn("shrink-0 h-8 w-8 rounded-lg flex items-center justify-center text-white shadow-sm ring-1 ring-white/20", action.color)}>
-                      <action.icon className="h-4 w-4" />
+                  <div className="flex items-center gap-3 pl-3 min-w-0">
+                    <div className={cn("h-16 w-16 rounded-2xl flex items-center justify-center text-white shadow-sm", action.color)}>
+                      <action.icon className="h-10 w-10" />
                     </div>
 
-                    <h3 className={cn("font-bold text-lg leading-none truncate", action.textColor)}>
+                    <h3 className={cn("font-bold text-2xl leading-none truncate", action.textColor)}>
                       {action.label}
                     </h3>
                   </div>
@@ -244,7 +244,7 @@ export default function NoteHubPage() {
 
           {/* Note Preview */}
           <div>
-            <div className="pr-4 pl-4 ">
+            <div className="p-6">
               <article className="prose dark:prose-invert max-w-none">
                 <MDXRenderer content={translatedContent || note.content || "No content available."} />
               </article>
@@ -260,7 +260,7 @@ export default function NoteHubPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <h3 className="text-lg sm:text-xl font-semibold">
-                      Fli AI Assistant
+                      Jelli AI Assistant
                     </h3>
                   </div>
                   <Button
