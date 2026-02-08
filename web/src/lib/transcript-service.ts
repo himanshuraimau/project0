@@ -14,6 +14,8 @@ export class TranscriptService {
         throw new Error('SCRAPPER_API_KEY environment variable is not configured');
       }
 
+      console.log('Fetching YouTube transcript for:', videoUrl);
+
       const response = await axios.get<YouTubeTranscriptResponse>(
         'https://api.scrapecreators.com/v1/youtube/video/transcript',
         {
@@ -23,23 +25,44 @@ export class TranscriptService {
           params: {
             url: videoUrl,
           },
+          timeout: 60000, // 60 second timeout
         }
       );
 
+      console.log('Successfully fetched YouTube transcript');
       return response.data;
     } catch (error) {
+      console.error('YouTube transcript fetch error:', error);
+      
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
 
+        if (axiosError.code === 'ECONNABORTED' || axiosError.code === 'ETIMEDOUT') {
+          throw new Error('YouTube API request timed out. The video might be too long or the service is slow. Please try again.');
+        }
+
         if (axiosError.response) {
-          throw new Error(`API Error: ${axiosError.response.status} - ${JSON.stringify(axiosError.response.data)}`);
+          const status = axiosError.response.status;
+          const data = axiosError.response.data;
+          
+          if (status === 404) {
+            throw new Error('Video not found or does not have captions available.');
+          } else if (status === 403) {
+            throw new Error('Access denied. The video might be private or age-restricted.');
+          } else if (status === 429) {
+            throw new Error('Too many requests. Please wait a moment and try again.');
+          } else if (status >= 500) {
+            throw new Error('YouTube transcript service is temporarily unavailable. Please try again in a few minutes.');
+          }
+          
+          throw new Error(`YouTube API error (${status}): ${typeof data === 'string' ? data : JSON.stringify(data)}`);
         } else if (axiosError.request) {
-          throw new Error('Network Error: Unable to reach the API server');
+          throw new Error('Cannot connect to YouTube transcript service. Please check your internet connection and try again.');
         } else {
-          throw new Error(`Request Error: ${axiosError.message}`);
+          throw new Error(`Request setup error: ${axiosError.message}`);
         }
       } else {
-        throw new Error(`Unexpected Error: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(`Unexpected error while fetching transcript: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
   }

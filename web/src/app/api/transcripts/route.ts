@@ -98,31 +98,78 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(response);
 
     } catch (error) {
+        console.error('YouTube transcript processing error:', error);
+        
         // Handle specific error types
         if (error instanceof Error) {
-            if (error.message.includes('API Error')) {
+            const errorMessage = error.message;
+            
+            // Timeout errors
+            if (errorMessage.includes('timed out') || errorMessage.includes('timeout')) {
                 const apiErrorResponse: ApiErrorResponse = {
                     success: false,
-                    error: 'External API error',
-                    message: error.message
+                    error: 'TIMEOUT',
+                    message: 'YouTube processing is taking longer than expected. The video transcript is being processed in the background and should appear in 5-10 minutes. Please check back shortly.'
                 };
-                return NextResponse.json(apiErrorResponse, { status: 502 });
+                return NextResponse.json(apiErrorResponse, { status: 408 });
             }
-
-            if (error.message.includes('Network Error')) {
+            
+            // API-specific errors
+            if (errorMessage.includes('not have captions') || errorMessage.includes('Video not found')) {
+                const apiErrorResponse: ApiErrorResponse = {
+                    success: false,
+                    error: 'NO_CAPTIONS',
+                    message: errorMessage
+                };
+                return NextResponse.json(apiErrorResponse, { status: 400 });
+            }
+            
+            // Service unavailable
+            if (errorMessage.includes('temporarily unavailable') || errorMessage.includes('service is slow')) {
+                const apiErrorResponse: ApiErrorResponse = {
+                    success: false,
+                    error: 'SERVICE_UNAVAILABLE',
+                    message: errorMessage
+                };
+                return NextResponse.json(apiErrorResponse, { status: 503 });
+            }
+            
+            // Rate limiting
+            if (errorMessage.includes('Too many requests')) {
+                const apiErrorResponse: ApiErrorResponse = {
+                    success: false,
+                    error: 'RATE_LIMITED',
+                    message: errorMessage
+                };
+                return NextResponse.json(apiErrorResponse, { status: 429 });
+            }
+            
+            // Connection issues
+            if (errorMessage.includes('Cannot connect') || errorMessage.includes('Network Error')) {
                 const networkErrorResponse: ApiErrorResponse = {
                     success: false,
-                    error: 'Network error',
-                    message: 'Unable to reach the transcript service'
+                    error: 'NETWORK_ERROR',
+                    message: errorMessage
                 };
                 return NextResponse.json(networkErrorResponse, { status: 503 });
             }
+            
+            // Generic API error
+            if (errorMessage.includes('API error') || errorMessage.includes('API Error')) {
+                const apiErrorResponse: ApiErrorResponse = {
+                    success: false,
+                    error: 'EXTERNAL_API_ERROR',
+                    message: errorMessage
+                };
+                return NextResponse.json(apiErrorResponse, { status: 502 });
+            }
         }
 
+        // Fallback error response
         const errorResponse: ApiErrorResponse = {
             success: false,
-            error: 'Failed to create transcript',
-            message: error instanceof Error ? error.message : 'Unknown error'
+            error: 'PROCESSING_FAILED',
+            message: error instanceof Error ? error.message : 'Failed to process YouTube video. Please try again.'
         };
         return NextResponse.json(errorResponse, { status: 500 });
     }
