@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useCallback, useState } from 'react';
+import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
 
 interface DashboardRefreshContextType {
   refreshNotes: () => void;
@@ -8,7 +8,7 @@ interface DashboardRefreshContextType {
   setRefreshHandler: (handler: () => Promise<void>) => void;
   addLoadingNote: (tempId: string, type: 'pdf' | 'audio' | 'youtube' | 'webpage') => void;
   removeLoadingNote: (tempId: string) => void;
-  loadingNotes: Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage' }>;
+  loadingNotes: Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage'; timestamp: number }>;
   clearAllLoadingNotes: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -18,12 +18,48 @@ interface DashboardRefreshContextType {
 
 const DashboardRefreshContext = createContext<DashboardRefreshContextType | null>(null);
 
+const LOADING_NOTES_KEY = 'dashboard_loading_notes';
+
 export function DashboardRefreshProvider({ children }: { children: React.ReactNode }) {
   const [refreshHandler, setRefreshHandler] = useState<(() => Promise<void>) | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [loadingNotes, setLoadingNotes] = useState<Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage' }>>([]);
+  const [loadingNotes, setLoadingNotes] = useState<Array<{ id: string; type: 'pdf' | 'audio' | 'youtube' | 'webpage'; timestamp: number }>>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Load loading notes from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(LOADING_NOTES_KEY);
+        if (stored) {
+          const parsedNotes = JSON.parse(stored);
+          // Filter out notes older than 1 hour
+          const oneHourAgo = Date.now() - (60 * 60 * 1000);
+          const validNotes = parsedNotes.filter((note: any) => note.timestamp > oneHourAgo);
+          if (validNotes.length > 0) {
+            console.log('Restored loading notes from localStorage:', validNotes);
+            setLoadingNotes(validNotes);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to restore loading notes:', error);
+      }
+    }
+  }, []);
+
+  // Save loading notes to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && loadingNotes.length > 0) {
+      try {
+        localStorage.setItem(LOADING_NOTES_KEY, JSON.stringify(loadingNotes));
+      } catch (error) {
+        console.error('Failed to save loading notes:', error);
+      }
+    } else if (typeof window !== 'undefined' && loadingNotes.length === 0) {
+      localStorage.removeItem(LOADING_NOTES_KEY);
+    }
+  }, [loadingNotes]);
 
   const addLoadingNote = useCallback((tempId: string, type: 'pdf' | 'audio' | 'youtube' | 'webpage') => {
     setLoadingNotes(prev => {
@@ -32,14 +68,14 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
       if (exists) {
         return prev;
       }
-      return [...prev, { id: tempId, type }];
+      return [...prev, { id: tempId, type, timestamp: Date.now() }];
     });
 
-    // Auto-cleanup loading note after 5 minutes as a safety measure
+    // Auto-cleanup loading note after 30 minutes as a safety measure
     setTimeout(() => {
       console.log(`Auto-removing loading note after timeout: ${tempId}`);
       setLoadingNotes(prev => prev.filter(note => note.id !== tempId));
-    }, 5 * 60 * 1000); // 5 minutes
+    }, 30 * 60 * 1000); // 30 minutes (increased from 5)
   }, []);
 
   const removeLoadingNote = useCallback((tempId: string) => {

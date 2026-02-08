@@ -21,6 +21,7 @@ export function AddLinkModal({
     const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [currentTempId, setCurrentTempId] = useState<string | null>(null);
+    const [processingUrls, setProcessingUrls] = useState<Set<string>>(new Set());
 
     // Load folders on mount
     useEffect(() => {
@@ -37,11 +38,25 @@ export function AddLinkModal({
     const handleGenerateNotes = async () => {
         if (!linkInput.trim()) return;
 
+        const normalizedUrl = linkInput.trim().toLowerCase();
+        
+        // Check if this URL is already being processed
+        if (processingUrls.has(normalizedUrl)) {
+            toast.warning("⏳ Already processing this link", {
+                description: "This link is currently being processed. Please wait for it to complete.",
+                duration: 4000,
+            });
+            return;
+        }
+
         setIsProcessing(true);
+        setProcessingUrls(prev => new Set(prev).add(normalizedUrl));
 
         const tempId = `link-${Date.now()}`;
         setCurrentTempId(tempId);
-        addLoadingNote(tempId, "pdf");
+        
+        const linkType = detectLinkType(linkInput);
+        addLoadingNote(tempId, linkType === "youtube" ? "youtube" : "webpage");
 
         await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -50,8 +65,6 @@ export function AddLinkModal({
         }
 
         try {
-            const linkType = detectLinkType(linkInput);
-
             let result;
 
             if (linkType === "youtube") {
@@ -65,7 +78,34 @@ export function AddLinkModal({
                 const transcriptResult = await transcriptResponse.json();
 
                 if (!transcriptResponse.ok || !transcriptResult.success) {
-                    throw new Error(transcriptResult.error || "Failed to process YouTube video");
+                    // Handle specific error codes
+                    if (transcriptResponse.status === 408 || transcriptResult.error === 'TIMEOUT') {
+                        // Show a different message for timeouts - processing continues in background
+                        toast.info("⏱️ YouTube video is being processed", {
+                            description: transcriptResult.message || "This is taking longer than expected. The transcript is being processed in the background and should appear in your notes within 5-10 minutes.",
+                            duration: 8000,
+                        });
+                        
+                        // Don't throw error, just close modal and remove loading state
+                        if (currentTempId) {
+                            removeLoadingNote(currentTempId);
+                            setCurrentTempId(null);
+                        }
+                        setIsProcessing(false);
+                        return;
+                    }
+                    
+                    // Handle other specific errors
+                    const errorMessages: Record<string, string> = {
+                        'NO_CAPTIONS': 'This video does not have captions available.',
+                        'SERVICE_UNAVAILABLE': 'YouTube transcript service is temporarily busy. Please try again in a few minutes.',
+                        'RATE_LIMITED': 'Too many requests. Please wait a moment before trying again.',
+                        'NETWORK_ERROR': 'Connection issue. Please check your internet and try again.',
+                        'EXTERNAL_API_ERROR': 'YouTube service error. Please try again or use a different video.',
+                    };
+                    
+                    const errorMsg = errorMessages[transcriptResult.error] || transcriptResult.message || "Failed to process YouTube video";
+                    throw new Error(errorMsg);
                 }
 
                 // Generate AI notes from transcript
@@ -80,13 +120,29 @@ export function AddLinkModal({
 
                 const noteResult = await noteResponse.json();
 
-                result = {
-                    success: true,
-                    data: {
-                        transcript: transcriptResult.data,
-                        note: noteResult.success ? noteResult.data : null,
-                    },
-                };
+                if (!noteResponse.ok || !noteResult.success) {
+                    // Transcript was created but notes failed
+                    toast.warning("⚠️ Transcript created, but notes generation failed", {
+                        description: "You can retry generating notes from your transcripts list.",
+                        duration: 5000,
+                    });
+                    
+                    result = {
+                        success: true,
+                        data: {
+                            transcript: transcriptResult.data,
+                            note: null,
+                        },
+                    };
+                } else {
+                    result = {
+                        success: true,
+                        data: {
+                            transcript: transcriptResult.data,
+                            note: noteResult.data,
+                        },
+                    };
+                }
             } else {
                 // Use /api/webpage/process for webpages
                 const response = await fetch("/api/webpage/process", {
@@ -121,13 +177,36 @@ export function AddLinkModal({
             setSelectedFolderId(null);
 
             const source = linkType === "youtube" ? "YouTube video" : "webpage";
-            toast.success(`🔗 ${source} processed successfully! Notes generated.`, {
-                description: `Content extracted and notes created`,
-                duration: 4000,
-            });
+            
+            if (result.data.note) {
+                toast.success(`🔗 ${source} processed successfully! Notes generated.`, {
+                    description: `Content extracted and notes created`,
+                    duration: 4000,
+                });
+            } else {
+                toast.success(`🔗 ${source} transcript created`, {
+                    description: `Transcript saved. You can generate notes from it later.`,
+                    duration: 4000,
+                });
+            }
         } catch (error) {
             console.error("Error processing link:", error);
-            toast.error(error instanceof Error ? error.message : "Failed to process link. Please try again.");
+            
+            
+            // Remove from processing URLs after a delay to prevent immediate re-submission
+            setTimeout(() => {
+                setProcessingUrls(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(normalizedUrl);
+                    return newSet;
+                });
+            }, 2000);
+            const errorMessage = error instanceof Error ? error.message : "Failed to process link. Please try again.";
+            
+            toast.error("❌ Processing failed", {
+                description: errorMessage,
+                duration: 6000,
+            });
         } finally {
             if (currentTempId) {
                 removeLoadingNote(currentTempId);
