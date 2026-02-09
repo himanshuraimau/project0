@@ -1,447 +1,347 @@
 "use client";
 
-import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
-import { useTheme } from "next-themes";
 import {
-  FileText,
-  Zap,
-  Headphones,
-  Languages,
-  Smartphone,
-  Clock,
-  TrendingUp,
-  Shield,
+  Upload,
   Sparkles,
-  Share2,
-  Brain,
-  Folder,
-  // GraduationCap,
+  BookOpen,
+  FileText,
+  Youtube,
+  BrainCircuit,
+  CheckCircle2,
+  MessageCircle,
+  TrendingUp,
+  MoreHorizontal,
+  Play,
+  Search,
 } from "lucide-react";
 
-export function Features() {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
+// --- Custom Visual Components for the Right Side ---
 
-  const colors = {
-    sectionBg: isDark ? "#000000" : "#ffffff",
-    textPrimary: isDark ? "#ffffff" : "#000000",
-    textSecondary: isDark ? "#d4d4d4" : "#1f2937",
-    textMuted: isDark ? "#a3a3a3" : "#737373",
-    textHighlight: isDark ? "#737373" : "#a3a3a3",
-    accent: isDark ? "#ffffff" : "#000000",
-    badgeBg: isDark ? "rgba(23,23,23,0.75)" : "rgba(244,244,245,0.85)",
-    badgeBorder: isDark ? "rgba(255,255,255,0.16)" : "rgba(0,0,0,0.08)",
-    badgeText: isDark ? "#e5e5e5" : "#3f3f46",
-    cardBg: isDark ? "rgba(23,23,23,0.85)" : "rgba(248,248,248,0.95)",
-    cardBgHover: isDark ? "rgba(38,38,38,0.92)" : "rgba(233,233,233,0.98)",
-    cardBorder: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
-    cardBorderHover: isDark ? "rgba(255,255,255,0.24)" : "rgba(0,0,0,0.18)",
-    iconBg: isDark ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.92)",
-    iconBorder: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)",
-    iconColor: isDark ? "#f5f5f5" : "#1f2937",
-    pillBg: isDark ? "rgba(34,34,34,0.95)" : "rgba(232,232,235,0.9)",
-    pillBorder: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)",
-    pillText: isDark ? "#d4d4d8" : "#3f3f46",
-    listBg: isDark ? "rgba(15,15,15,0.9)" : "rgba(255,255,255,0.9)",
-    listBorder: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)",
-    benefitBg: isDark ? "rgba(23,23,23,0.65)" : "rgba(243,244,246,0.85)",
-    benefitBorder: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)",
-    overlayIcon: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
-  } as const;
+const Step1Visual = () => (
+  <div className="relative flex h-full w-full items-center justify-center bg-muted/20">
+    {/* Technical Background Pattern: Dots instead of Gradient */}
+    <div
+      className="absolute inset-0 opacity-[0.4]"
+      style={{
+        backgroundImage: "radial-gradient(#a1a1aa 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
+      }}
+    />
 
-  const cardBaseStyle: CSSProperties = {
-    backgroundColor: colors.cardBg,
-    borderColor: colors.cardBorder,
-    transition: "background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease",
-  };
+    {/* Main "Drop Zone" UI */}
+    <div className="relative z-10 flex h-40 w-72 flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 bg-card px-6 py-8 text-center shadow-sm transition-all hover:border-primary/50 hover:bg-card/80">
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Upload className="h-5 w-5" strokeWidth={2.5} />
+      </div>
+      <p className="text-sm font-semibold text-foreground">Upload or Drop</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        PDF, MP4, MP3, or URL
+      </p>
+    </div>
 
-  const iconBaseStyle: CSSProperties = {
-    backgroundColor: colors.iconBg,
-    borderColor: colors.iconBorder,
-    color: colors.iconColor,
-    transition: "background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease",
-  };
+    {/* Floating "File" Cards - positioned to look like a messy desk being organized */}
+    <div className="absolute top-8 right-12 z-20 flex items-center gap-3 rounded-lg border border-border bg-card p-2 shadow-lg shadow-black/5 animate-bounce [animation-duration:4s]">
+      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-red-100 text-red-600 dark:bg-red-900/20">
+        <Youtube size={16} strokeWidth={2.5} />
+      </div>
+      <div className="hidden min-w-[60px] flex-col gap-1 pr-2 md:flex">
+        <div className="h-1.5 w-12 rounded-full bg-muted-foreground/20" />
+        <div className="h-1.5 w-8 rounded-full bg-muted-foreground/20" />
+      </div>
+    </div>
 
-  const pillStyle: CSSProperties = {
-    backgroundColor: colors.pillBg,
-    borderColor: colors.pillBorder,
-    color: colors.pillText,
-  };
+    <div className="absolute bottom-8 left-12 z-20 -rotate-3 flex items-center gap-3 rounded-lg border border-border bg-card p-2 shadow-lg shadow-black/5 transition-transform hover:rotate-0">
+      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-orange-100 text-orange-600 dark:bg-orange-900/20">
+        <FileText size={16} strokeWidth={2.5} />
+      </div>
+      <div className="hidden min-w-[60px] flex-col gap-1 pr-2 md:flex">
+        <div className="h-1.5 w-16 rounded-full bg-muted-foreground/20" />
+        <div className="h-1.5 w-10 rounded-full bg-muted-foreground/20" />
+      </div>
+    </div>
+  </div>
+);
 
-  const handleCardEnter = (event: ReactMouseEvent<HTMLDivElement>) => {
-    const element = event.currentTarget;
-    element.style.backgroundColor = colors.cardBgHover;
-    element.style.borderColor = colors.cardBorderHover;
-  };
+const Step2Visual = () => (
+  <div className="relative flex h-full w-full items-center justify-center bg-muted/20 p-8">
+    <div className="relative z-10 w-72 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-3">
+        <div className="flex gap-1.5">
+          <div className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
+          <div className="h-2.5 w-2.5 rounded-full bg-yellow-400/80" />
+          <div className="h-2.5 w-2.5 rounded-full bg-green-400/80" />
+        </div>
+        <div className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+          <span>Analyzing</span>
+        </div>
+      </div>
 
-  const handleCardLeave = (event: ReactMouseEvent<HTMLDivElement>) => {
-    const element = event.currentTarget;
-    element.style.backgroundColor = colors.cardBg;
-    element.style.borderColor = colors.cardBorder;
-  };
+      {/* Content Body */}
+      <div className="space-y-3 p-5">
+        <div className="flex gap-2">
+          <div className="h-2 w-1/3 rounded-full bg-muted-foreground/20" />
+          <div className="h-2 w-1/4 rounded-full bg-muted-foreground/20" />
+        </div>
+        <div className="h-2 w-full rounded-full bg-muted-foreground/10" />
+        <div className="h-2 w-5/6 rounded-full bg-muted-foreground/10" />
+        <div className="h-2 w-4/5 rounded-full bg-muted-foreground/10" />
 
-  const handleIconEnter = (event: ReactMouseEvent<HTMLDivElement>) => {
-    const element = event.currentTarget;
-    element.style.backgroundColor = colors.cardBgHover;
-    element.style.borderColor = colors.cardBorderHover;
-    element.style.color = colors.accent;
-  };
+        {/* Extracted Tags */}
+        <div className="mt-4 flex flex-wrap gap-2 pt-2">
+          <span className="rounded-md border border-green-200 bg-green-50 px-2 py-1 text-[10px] font-medium text-green-700 dark:border-green-900/30 dark:bg-green-900/10 dark:text-green-400">
+            Concept
+          </span>
+          <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] font-medium text-blue-700 dark:border-blue-900/30 dark:bg-blue-900/10 dark:text-blue-400">
+            Definition
+          </span>
+          <span className="rounded-md border border-purple-200 bg-purple-50 px-2 py-1 text-[10px] font-medium text-purple-700 dark:border-purple-900/30 dark:bg-purple-900/10 dark:text-purple-400">
+            Formula
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
-  const handleIconLeave = (event: ReactMouseEvent<HTMLDivElement>) => {
-    const element = event.currentTarget;
-    element.style.backgroundColor = colors.iconBg;
-    element.style.borderColor = colors.iconBorder;
-    element.style.color = colors.iconColor;
-  };
+const Step3Visual = () => (
+  <div className="relative flex h-full w-full items-center justify-center bg-muted/20">
+    <div
+      className="absolute inset-0 opacity-[0.4]"
+      style={{
+        backgroundImage: "radial-gradient(#a1a1aa 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
+      }}
+    />
 
-  return (
-    <section
-      className="py-24 relative"
-      style={{ backgroundColor: colors.sectionBg, color: colors.textPrimary }}
-    >
-      <div className="container mx-auto px-6 relative z-10">
-        {/* Header */}
-        <div className="text-center mb-20 max-w-3xl mx-auto">
-          <div
-            className="inline-flex items-center rounded-full border px-3 py-1 text-sm mb-6"
-            style={{
-              borderColor: colors.badgeBorder,
-              backgroundColor: colors.badgeBg,
-              color: colors.badgeText,
-            }}
-          >
-            <span className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span
-                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                  style={{ backgroundColor: colors.accent }}
-                />
-                <span
-                  className="relative inline-flex rounded-full h-2 w-2"
-                  style={{ backgroundColor: colors.accent }}
-                />
-              </span>
-              Powerful Features
-            </span>
+    {/* Stacked Interactive Cards */}
+    <div className="relative h-48 w-64 perspective-1000">
+      {/* Back Card: Quiz */}
+      <div className="absolute top-0 right-4 h-40 w-56 rotate-6 rounded-xl border border-border bg-card p-4 shadow-md transition-all duration-300 hover:rotate-12 hover:translate-x-4 hover:shadow-xl">
+        <div className="flex items-center gap-2 mb-3 text-muted-foreground">
+          <CheckCircle2 size={14} />
+          <span className="text-[10px] uppercase tracking-wider font-semibold">
+            Quiz Mode
+          </span>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 rounded border border-border bg-muted/20 p-2">
+            <div className="h-3 w-3 rounded-full border border-muted-foreground" />
+            <div className="h-1.5 w-24 rounded-full bg-muted-foreground/30" />
           </div>
+          <div className="flex items-center gap-2 rounded border border-green-500/20 bg-green-500/5 p-2">
+            <div className="flex h-3 w-3 items-center justify-center rounded-full bg-green-500 text-[8px] text-white">
+              ✓
+            </div>
+            <div className="h-1.5 w-16 rounded-full bg-green-500/30" />
+          </div>
+        </div>
+      </div>
 
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
-            <span style={{ color: colors.textPrimary }}>Everything You Need to</span>
-            <br />
-            <span style={{ color: colors.textHighlight }}>Excel in Your Studies</span>
-          </h2>
-          <p
-            className="text-xl leading-relaxed"
-            style={{ color: colors.textMuted }}
+      {/* Middle Card: Mindmap */}
+      <div className="absolute top-2 left-4 h-40 w-56 -rotate-3 rounded-xl border border-border bg-card p-4 shadow-md transition-all duration-300 hover:-rotate-6 hover:-translate-x-4 hover:shadow-xl">
+        <div className="flex items-center gap-2 mb-3 text-muted-foreground">
+          <BrainCircuit size={14} />
+          <span className="text-[10px] uppercase tracking-wider font-semibold">
+            Mind Map
+          </span>
+        </div>
+        <div className="relative flex h-20 items-center justify-center">
+          <div className="absolute h-8 w-8 rounded-full border-2 border-primary/20 bg-primary/5" />
+          <div className="absolute top-2 right-4 h-2 w-2 rounded-full bg-primary/40" />
+          <div className="absolute bottom-2 left-4 h-2 w-2 rounded-full bg-primary/40" />
+          {/* Connecting lines SVG */}
+          <svg
+            className="absolute inset-0 h-full w-full text-primary/20"
+            style={{ pointerEvents: "none" }}
           >
-            Flinote combines cutting-edge AI technology with intuitive design to transform how you learn.
+            <line
+              x1="50%"
+              y1="50%"
+              x2="80%"
+              y2="20%"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <line
+              x1="50%"
+              y1="50%"
+              x2="20%"
+              y2="80%"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* Front Card: Flashcard */}
+      <div className="absolute top-4 left-0 right-0 mx-auto h-40 w-56 rounded-xl border border-border bg-card p-0 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between border-b border-border p-3">
+            <div className="flex items-center gap-2">
+              <BookOpen size={14} className="text-primary" />
+              <span className="text-xs font-semibold">Flashcard</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground">1/12</span>
+          </div>
+          <div className="flex flex-1 flex-col items-center justify-center p-4 text-center">
+            <p className="text-sm font-medium leading-snug">
+              What is the primary function of Mitochondria?
+            </p>
+          </div>
+          <div className="border-t border-border bg-muted/20 p-2 text-center">
+            <p className="text-[10px] font-medium text-muted-foreground">
+              Click to flip
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const Step4Visual = () => (
+  <div className="relative flex h-full w-full items-center justify-center bg-muted/20 p-6">
+    <div
+      className="absolute inset-0 opacity-[0.4]"
+      style={{
+        backgroundImage: "radial-gradient(#a1a1aa 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
+      }}
+    />
+
+    {/* Chat Interface Mockup */}
+    <div className="relative z-10 w-64 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+      {/* Chat Header */}
+      <div className="flex items-center justify-between border-b border-border bg-background p-3">
+        <div className="flex items-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 text-primary">
+            <BrainCircuit size={14} />
+          </div>
+          <span className="text-xs font-semibold">AI Tutor</span>
+        </div>
+        <MoreHorizontal size={14} className="text-muted-foreground" />
+      </div>
+
+      {/* Chat Body */}
+      <div className="flex flex-col gap-3 bg-muted/10 p-4">
+        {/* User Bubble */}
+        <div className="self-end rounded-2xl rounded-tr-sm bg-primary px-3 py-2 text-primary-foreground">
+          <p className="text-[10px] leading-relaxed">
+            Explain this concept like I'm 5.
           </p>
         </div>
 
-        {/* BENTO GRID LAYOUT */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-24">
-          {/* 1. Large Feature (Spans 2 cols) */}
-          <div
-            className="md:col-span-2 rounded-3xl p-8 md:p-10 relative overflow-hidden group"
-            style={{ ...cardBaseStyle }}
-            onMouseEnter={handleCardEnter}
-            onMouseLeave={handleCardLeave}
-          >
-            <div
-              className="absolute top-0 right-0 p-10"
-              style={{ opacity: isDark ? 0.06 : 0.08 }}
-            >
-              <FileText className="w-64 h-64" style={{ color: colors.overlayIcon }} />
-            </div>
-            <div className="relative z-10">
-              <div
-                className="w-12 h-12 rounded-xl border flex items-center justify-center mb-6"
-                style={{ ...iconBaseStyle }}
-                onMouseEnter={handleIconEnter}
-                onMouseLeave={handleIconLeave}
-              >
-                <FileText className="w-6 h-6" />
-              </div>
-              <h3 className="text-2xl font-bold mb-3" style={{ color: colors.textPrimary }}>
-                Smart Note Generation
-              </h3>
-              <p className="text-lg max-w-lg" style={{ color: colors.textMuted }}>
-                Create comprehensive notes from PDFs, audio, video, and web content with AI-powered extraction.
-              </p>
-              <div
-                className="mt-6 inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold"
-                style={{ ...pillStyle }}
-              >
-                Core Feature
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Tall Feature (Row span 2) */}
-          {/* TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature */}
-          {/* <div
-            className="md:row-span-2 rounded-3xl p-8 md:p-10 relative overflow-hidden flex flex-col"
-            style={{ ...cardBaseStyle }}
-            onMouseEnter={handleCardEnter}
-            onMouseLeave={handleCardLeave}
-          >
-            <div
-              className="w-12 h-12 rounded-xl border flex items-center justify-center mb-6"
-              style={{ ...iconBaseStyle }}
-              onMouseEnter={handleIconEnter}
-              onMouseLeave={handleIconLeave}
-            >
-              <GraduationCap className="w-6 h-6" />
-            </div>
-            <h3 className="text-2xl font-bold mb-3" style={{ color: colors.textPrimary }}>
-              AI Course Generator
-            </h3>
-            <p className="text-lg mb-8" style={{ color: colors.textMuted }}>
-              Generate complete courses with structured units, chapters, and video recommendations in seconds.
-            </p>
-            <div className="mt-auto space-y-3">
-              {["Structured Units", "Video Links", "Key Concepts"].map((label) => (
-                <div
-                  key={label}
-                  className="p-3 rounded-xl border text-sm font-medium"
-                  style={{ ...pillStyle }}
-                >
-                  {label}
-                </div>
-              ))}
-            </div>
-          </div> */}
-
-          {/* 3. Regular Card */}
-          <div
-            className="rounded-3xl p-8 group"
-            style={{ ...cardBaseStyle }}
-            onMouseEnter={handleCardEnter}
-            onMouseLeave={handleCardLeave}
-          >
-            <div
-              className="w-10 h-10 rounded-lg border flex items-center justify-center mb-4"
-              style={{ ...iconBaseStyle }}
-              onMouseEnter={handleIconEnter}
-              onMouseLeave={handleIconLeave}
-            >
-              <Share2 className="w-5 h-5" />
-            </div>
-            <h3 className="text-xl font-bold mb-2" style={{ color: colors.textPrimary }}>
-              Share & Collaborate
-            </h3>
-            <p className="text-sm" style={{ color: colors.textMuted }}>
-              Share notes via secure links. Recipients can preview and save copies with full content.
-            </p>
-          </div>
-
-          {/* 4. Regular Card */}
-          <div
-            className="rounded-3xl p-8 group"
-            style={{ ...cardBaseStyle }}
-            onMouseEnter={handleCardEnter}
-            onMouseLeave={handleCardLeave}
-          >
-            <div
-              className="w-10 h-10 rounded-lg border flex items-center justify-center mb-4"
-              style={{ ...iconBaseStyle }}
-              onMouseEnter={handleIconEnter}
-              onMouseLeave={handleIconLeave}
-            >
-              <Folder className="w-5 h-5" />
-            </div>
-            <h3 className="text-xl font-bold mb-2" style={{ color: colors.textPrimary }}>
-              Organize with Folders
-            </h3>
-            <p className="text-sm" style={{ color: colors.textMuted }}>
-              Keep your notes organized in custom folders with color coding and easy navigation.
-            </p>
-          </div>
-
-          {/* 5. Wide Card (Spans 2 cols) */}
-          <div
-            className="md:col-span-2 rounded-3xl p-8 flex flex-col md:flex-row md:items-center gap-8 group"
-            style={{ ...cardBaseStyle }}
-            onMouseEnter={handleCardEnter}
-            onMouseLeave={handleCardLeave}
-          >
-            <div className="flex-1">
-              <div
-                className="w-10 h-10 rounded-lg border flex items-center justify-center mb-4"
-                style={{ ...iconBaseStyle }}
-                onMouseEnter={handleIconEnter}
-                onMouseLeave={handleIconLeave}
-              >
-                <Zap className="w-5 h-5" />
-              </div>
-              <h3 className="text-xl font-bold mb-2" style={{ color: colors.textPrimary }}>
-                Smart Flashcards & Quizzes
-              </h3>
-              <p style={{ color: colors.textMuted }}>
-                Automatically generate interactive flashcards and quizzes from your notes for effective memorization.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              {["Flashcards", "Quizzes"].map((label) => (
-                <div
-                  key={label}
-                  className="px-4 py-2 rounded-lg border text-xs font-medium"
-                  style={{ ...pillStyle }}
-                >
-                  {label}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 6. Regular Card */}
-          <div
-            className="rounded-3xl p-8 group"
-            style={{ ...cardBaseStyle }}
-            onMouseEnter={handleCardEnter}
-            onMouseLeave={handleCardLeave}
-          >
-            <div
-              className="w-10 h-10 rounded-lg border flex items-center justify-center mb-4"
-              style={{ ...iconBaseStyle }}
-              onMouseEnter={handleIconEnter}
-              onMouseLeave={handleIconLeave}
-            >
-              <Brain className="w-5 h-5" />
-            </div>
-            <h3 className="text-xl font-bold mb-2" style={{ color: colors.textPrimary }}>
-              Visual Mindmaps
-            </h3>
-            <p className="text-sm" style={{ color: colors.textMuted }}>
-              Transform complex concepts into clear mindmaps for better understanding.
-            </p>
-          </div>
-
-          {/* 7. Regular Card */}
-          <div
-            className="rounded-3xl p-8 group"
-            style={{ ...cardBaseStyle }}
-            onMouseEnter={handleCardEnter}
-            onMouseLeave={handleCardLeave}
-          >
-            <div
-              className="w-10 h-10 rounded-lg border flex items-center justify-center mb-4"
-              style={{ ...iconBaseStyle }}
-              onMouseEnter={handleIconEnter}
-              onMouseLeave={handleIconLeave}
-            >
-              <Headphones className="w-5 h-5" />
-            </div>
-            <h3 className="text-xl font-bold mb-2" style={{ color: colors.textPrimary }}>
-              AI Podcasts
-            </h3>
-            <p className="text-sm" style={{ color: colors.textMuted }}>
-              Convert your notes into engaging podcast-style audio for learning on the go.
-            </p>
-          </div>
-
-          {/* 8. Regular Card */}
-          <div
-            className="rounded-3xl p-8 group"
-            style={{ ...cardBaseStyle }}
-            onMouseEnter={handleCardEnter}
-            onMouseLeave={handleCardLeave}
-          >
-            <div
-              className="w-10 h-10 rounded-lg border flex items-center justify-center mb-4"
-              style={{ ...iconBaseStyle }}
-              onMouseEnter={handleIconEnter}
-              onMouseLeave={handleIconLeave}
-            >
-              <Languages className="w-5 h-5" />
-            </div>
-            <h3 className="text-xl font-bold mb-2" style={{ color: colors.textPrimary }}>
-              100+ Languages
-            </h3>
-            <p className="text-sm" style={{ color: colors.textMuted }}>
-              Support for over 100 languages with accurate transcription and translation.
-            </p>
-          </div>
-
-          {/* 9. Regular Card */}
-          <div
-            className="rounded-3xl p-8 group"
-            style={{ ...cardBaseStyle }}
-            onMouseEnter={handleCardEnter}
-            onMouseLeave={handleCardLeave}
-          >
-            <div
-              className="w-10 h-10 rounded-lg border flex items-center justify-center mb-4"
-              style={{ ...iconBaseStyle }}
-              onMouseEnter={handleIconEnter}
-              onMouseLeave={handleIconLeave}
-            >
-              <Smartphone className="w-5 h-5" />
-            </div>
-            <h3 className="text-xl font-bold mb-2" style={{ color: colors.textPrimary }}>
-              Cross-Platform Sync
-            </h3>
-            <p className="text-sm" style={{ color: colors.textMuted }}>
-              Access your notes seamlessly across web and mobile with real-time sync.
+        {/* AI Bubble */}
+        <div className="flex gap-2">
+          <div className="mt-1 h-5 w-5 shrink-0 rounded-full bg-primary/10" />
+          <div className="rounded-2xl rounded-tl-sm border border-border bg-card px-3 py-2 shadow-sm">
+            <p className="text-[10px] leading-relaxed text-muted-foreground">
+              Imagine the cell is like a big city...
             </p>
           </div>
         </div>
+      </div>
 
-        {/* Benefits Section */}
-        <div
-          className="rounded-3xl p-12"
-          style={{ backgroundColor: colors.benefitBg, borderColor: colors.benefitBorder, borderWidth: 1, borderStyle: "solid" }}
-        >
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4" style={{ color: colors.textPrimary }}>
-              Why Students Choose Flinote
-            </h3>
-            <p className="text-base" style={{ color: colors.textMuted }}>
-              Built to remove friction so you can focus on learning.
-            </p>
-          </div>
+      {/* Bottom Input Area */}
+      <div className="flex items-center gap-2 border-t border-border bg-background p-2">
+        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-muted/30 text-muted-foreground">
+          <TrendingUp size={12} />
+        </div>
+        <div className="h-6 flex-1 rounded-md bg-muted/30 px-2 text-[10px] leading-6 text-muted-foreground">
+          Ask a follow up...
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                icon: Clock,
-                title: "Save Time",
-                desc: "Reduce study preparation time by 70%.",
-              },
-              {
-                icon: TrendingUp,
-                title: "Better Retention",
-                desc: "15-25% improvement in knowledge retention.",
-              },
-              {
-                icon: Shield,
-                title: "Secure & Private",
-                desc: "Your notes are encrypted and secure.",
-              },
-              {
-                icon: Sparkles,
-                title: "AI-Powered",
-                desc: "Adapts to your unique learning style.",
-              },
-            ].map((benefit) => (
-              <div key={benefit.title} className="text-center">
-                <div
-                  className="w-16 h-16 rounded-2xl border flex items-center justify-center mx-auto mb-6"
-                  style={{ ...iconBaseStyle }}
-                  onMouseEnter={handleIconEnter}
-                  onMouseLeave={handleIconLeave}
-                >
-                  <benefit.icon className="w-8 h-8" />
+const steps = [
+  {
+    step: "01",
+    title: "Add your content",
+    description:
+      "Upload a PDF, paste a YouTube link, or type. Drop in a lecture, article, or your own draft. Your starting point is ready in seconds. We support 50+ languages.",
+    visual: Step1Visual,
+  },
+  {
+    step: "02",
+    title: "AI generates your note",
+    description:
+      "Our AI extracts key points, structure, and summaries. One click and you get a clear note—without the manual work. Edit and refine the output to fit your style.",
+    visual: Step2Visual,
+  },
+  {
+    step: "03",
+    title: "Turn it into study material",
+    description:
+      "Generate flashcards, quizzes, mindmaps, and podcasts from the same note. One source, many ways to study. Pick what works for you—spaced repetition or visual maps.",
+    visual: Step3Visual,
+  },
+  {
+    step: "04",
+    title: "Study, chat, and track",
+    description:
+      "Review your flashcards, take quizzes, and chat with your note to ask follow-up questions. Your progress is saved so you can pick up exactly where you left off.",
+    visual: Step4Visual,
+  },
+];
+
+export const featureStepCards = steps.map(({ step, title, description }) => {
+  const first = description.split(/[.!]/)[0]?.trim() ?? "";
+  return {
+    step,
+    title,
+    shortDescription: first ? (first.endsWith(".") ? first : first + ".") : "",
+  };
+});
+
+export function Features() {
+  return (
+    <section
+      id="features"
+      className="border-b border-border bg-background py-16 md:py-32"
+    >
+      <div className="container mx-auto max-w-7xl px-4">
+        <div className="mb-16 text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-5xl">
+            How it works
+          </h2>
+          <p className="mt-2.5 font-medium text-muted-foreground">
+            Create and use notes in four simple steps
+          </p>
+        </div>
+
+        <div className="space-y-20 md:space-y-32">
+          {steps.map(({ step, title, description, visual: Visual }, index) => (
+            <div
+              key={step}
+              className="grid grid-cols-1 items-center gap-10 md:grid-cols-2 md:gap-20"
+            >
+              <div className={index % 2 === 1 ? "md:order-2" : ""}>
+                <div className="flex items-center gap-4">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/5 text-sm font-bold text-primary shadow-sm">
+                    {step}
+                  </span>
                 </div>
-                <h4 className="text-lg font-bold mb-2" style={{ color: colors.textPrimary }}>
-                  {benefit.title}
-                </h4>
-                <p className="text-sm" style={{ color: colors.textMuted }}>
-                  {benefit.desc}
+
+                <h3 className="mt-6 text-2xl font-bold tracking-tight text-foreground md:text-4xl">
+                  {title}
+                </h3>
+                <p className="mt-4 text-base font-medium leading-relaxed text-muted-foreground md:text-lg">
+                  {description}
                 </p>
               </div>
-            ))}
-          </div>
+
+              <div className={index % 2 === 1 ? "md:order-1" : ""}>
+                {/* Visual Container */}
+                <div className="relative aspect-square overflow-hidden rounded-xl border border-border bg-background md:aspect-4/3">
+                  <Visual />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

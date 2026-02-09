@@ -1,4 +1,5 @@
 import { OnboardingProvider } from "@/contexts/onboarding-context";
+import { OnboardingShell } from "@/components/onboarding/onboarding-shell";
 import { ReactNode } from "react";
 
 export default function OnboardingLayout({
@@ -6,5 +7,9 @@ export default function OnboardingLayout({
 }: {
   children: ReactNode;
 }) {
-  return <OnboardingProvider>{children}</OnboardingProvider>;
+  return (
+    <OnboardingProvider>
+      <OnboardingShell>{children}</OnboardingShell>
+    </OnboardingProvider>
+  );
 }

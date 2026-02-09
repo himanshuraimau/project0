@@ -3,48 +3,33 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useOnboarding } from "@/contexts/onboarding-context";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
 
 const studyOptions = [
-  {
-    id: "light",
-    emoji: "✅",
-    label: "Light",
-    duration: "10 min / day",
-    color: "bg-green-50",
-    emojiColor: "text-green-600",
-  },
-  {
-    id: "regular",
-    emoji: "🔥",
-    label: "Regular",
-    duration: "20 min / day",
-    color: "bg-orange-50",
-    emojiColor: "text-orange-600",
-  },
-  {
-    id: "focused",
-    emoji: "💪",
-    label: "Focused",
-    duration: "60 min / day",
-    color: "bg-blue-50",
-    emojiColor: "text-blue-600",
-  },
-  {
-    id: "intense",
-    emoji: "🚀",
-    label: "Intense",
-    duration: "120 min / day",
-    color: "bg-purple-50",
-    emojiColor: "text-purple-600",
-  },
+  { id: "light", emoji: "✅", label: "Light", duration: "10 min / day" },
+  { id: "regular", emoji: "🔥", label: "Regular", duration: "20 min / day" },
+  { id: "focused", emoji: "💪", label: "Focused", duration: "60 min / day" },
+  { id: "intense", emoji: "🚀", label: "Intense", duration: "120 min / day" },
 ];
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05, delayChildren: 0.08 },
+  },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0 },
+};
 
 export function OnboardingStep5() {
   const [selected, setSelected] = useState<string>("light");
+  const [subscribe, setSubscribe] = useState(true);
   const { saveStep, completeOnboarding, isLoading } = useOnboarding();
   const router = useRouter();
 
@@ -52,86 +37,114 @@ export function OnboardingStep5() {
     try {
       await saveStep(5, { studyIntensity: selected });
       await completeOnboarding();
-    } catch (error) {
-      console.error("Failed to complete onboarding:", error);
+    } catch (err) {
+      console.error("Failed to complete onboarding:", err);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-white dark:bg-[#171717]">
-      <div className="w-full max-w-2xl space-y-8">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.back()}
-          className="mb-4 text-[#0A0A0A] dark:text-white hover:bg-gray-100 dark:hover:bg-[#1e1e1e]"
-          disabled={isLoading}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+    <div className="w-full max-w-lg mx-auto text-center">
+      <motion.h1
+        className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        What’s your study commitment?
+      </motion.h1>
+      <motion.p
+        className="mt-2 text-sm text-muted-foreground"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.15 }}
+      >
+        We’ll nudge you at the right pace.
+      </motion.p>
 
-        {/* Progress */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-[#606060] dark:text-gray-400">
-            <span>Step 5 of 5</span>
-            <span>100%</span>
-          </div>
-          <Progress value={100} className="h-2" />
-        </div>
-
-        {/* Header */}
-        <div className="space-y-2 text-center">
-          <p className="text-sm text-[#606060] dark:text-gray-400">
-            Personalizing Flinote for you...
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-[#0A0A0A] dark:text-white">
-            What&apos;s your study commitment?
-          </h1>
-        </div>
-
-        {/* Options */}
-        <div className="space-y-4">
-          {studyOptions.map((option) => (
-            <Card
+      <motion.div
+        className="mt-8 space-y-3"
+        variants={container}
+        initial="hidden"
+        animate="show"
+      >
+        {studyOptions.map((option) => {
+          const isSelected = selected === option.id;
+          return (
+            <motion.button
               key={option.id}
-              className={`p-6 cursor-pointer transition-all bg-white dark:bg-[#1e1e1e] border border-[#E5E7EB] dark:border-gray-700 rounded-xl hover:shadow-lg hover:border-[#155DFC] dark:hover:border-[#155DFC] ${
-                selected === option.id
-                  ? "ring-2 ring-[#155DFC] border-[#155DFC] bg-[#155DFC]/5 dark:bg-[#155DFC]/10"
-                  : ""
+              type="button"
+              variants={item}
+              className={`cursor-pointer flex w-full items-center gap-4 rounded-xl  px-4 py-4 text-left transition-colors ${
+                isSelected
+                  ? "border-primary bg-primary/15 text-foreground"
+                  : "border-border bg-muted/80 text-foreground hover:border-muted-foreground/50 hover:bg-muted"
               }`}
               onClick={() => setSelected(option.id)}
+              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01 }}
             >
-              <div className="flex items-center space-x-4">
-                <div className={`p-4 rounded-2xl ${option.color} dark:bg-[#155DFC]/20`}>
-                  <span className={`text-3xl ${option.emojiColor} dark:text-[#155DFC]`}>
-                    {option.emoji}
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-[#0A0A0A] dark:text-white">{option.label}</h3>
-                  <p className="text-sm text-[#606060] dark:text-gray-400">
-                    {option.duration}
-                  </p>
-                </div>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-muted text-2xl">
+                {option.emoji}
+              </span>
+              <div className="flex-1 text-left">
+                <p className="font-medium text-foreground">{option.label}</p>
+                <p className="text-sm text-muted-foreground">
+                  {option.duration}
+                </p>
               </div>
-            </Card>
-          ))}
-        </div>
+            </motion.button>
+          );
+        })}
+      </motion.div>
 
-        {/* Complete Button */}
-        <div className="flex justify-center pt-4">
-          <Button
-            size="lg"
-            onClick={handleComplete}
-            disabled={isLoading}
-            className="min-w-[200px] bg-[#155DFC] hover:bg-[#155DFC]/90 text-white"
-          >
-            {isLoading ? "Completing..." : "Get Started"}
-          </Button>
-        </div>
-      </div>
+      <motion.label
+        className="mt-6 flex cursor-pointer items-center justify-center gap-3 text-left"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={subscribe}
+          onClick={() => setSubscribe((s) => !s)}
+          className={`cursor-pointer flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
+            subscribe
+              ? "border-primary bg-primary"
+              : "border-border bg-transparent"
+          }`}
+        >
+          {subscribe && (
+            <HugeiconsIcon
+              icon={CheckmarkCircle01Icon}
+              size={12}
+              color="var(--primary-foreground)"
+              strokeWidth={2.5}
+            />
+          )}
+        </button>
+        <span className="text-sm text-muted-foreground">
+          Get Flinote tips and product updates
+        </span>
+      </motion.label>
+
+      <motion.div
+        className="mt-6"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.35 }}
+      >
+        <motion.button
+          type="button"
+          onClick={handleComplete}
+          disabled={isLoading}
+          className="cursor-pointer h-12 w-full max-w-xs mx-auto rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-opacity hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
+          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.02 }}
+        >
+          {isLoading ? "Setting things up…" : "Get started"}
+        </motion.button>
+      </motion.div>
     </div>
   );
 }

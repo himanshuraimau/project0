@@ -8,85 +8,62 @@ import { Button } from "@/components/ui/button";
 import { Moon, Sun, Menu, X, LayoutDashboard, ArrowRight } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { UserControl } from "../user-control";
-import { cn } from "@/lib/utils"; // Assuming you have a standard cn utility
+
+const navigation = [
+  { name: "Features", href: "#features" },
+  { name: "How It Works", href: "#how-it-works" },
+  { name: "Pricing", href: "#pricing" },
+];
 
 export function Header() {
   const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
   const { data: session } = useSession();
 
   useEffect(() => {
     setMounted(true);
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   if (!mounted) return null;
 
-  const navigation = [
-    { name: "Features", href: "#features" },
-    { name: "How It Works", href: "#how-it-works" },
-    { name: "Pricing", href: "#pricing" },
-  ];
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 p-4 md:p-6 transition-all duration-300 ease-in-out">
-      {/* 
-        Main Glass Container 
-        - Floats off top
-        - Uses backdrop-blur
-        - Adjusts width based on container
-      */}
-      <div
-        className={cn(
-          "mx-auto flex items-center justify-between px-6 py-3 transition-all duration-300 ease-in-out",
-          "bg-white/70 dark:bg-black/60 backdrop-blur-md border border-black/5 dark:border-white/10",
-          "shadow-[0_4px_30px_rgba(0,0,0,0.03)]", // Custom soft shadow
-          isMenuOpen ? "rounded-2xl" : "rounded-full",
-          scrolled ? "max-w-5xl" : "max-w-7xl"
-        )}
-      >
-        {/* Logo Section */}
-        <Link href="/" className="flex items-center gap-3 group">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur">
+      <div className="container flex mx-auto py-4 max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 font-semibold text-foreground transition-opacity hover:opacity-90"
+        >
           <Image
             src="/logo.png"
-            alt="Logo"
-            width={24}
-            height={24}
-            className="object-contain"
+            alt="Flinote"
+            width={28}
+            height={28}
+            className="object-contain rounded-sm"
           />
-
-          <span className="text-lg font-bold tracking-tight text-foreground/90 group-hover:text-foreground transition-colors">
-            Flinote
-            <span className="text-muted-foreground font-normal">AI</span>
-          </span>
+          <span>Flinote</span>
+          <span className="font-normal text-muted-foreground">AI</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden items-center gap-8 md:flex">
           {navigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+              className="text-[14.5px] font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               {item.name}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-500 transition-all group-hover:w-full" />
             </Link>
           ))}
         </nav>
 
-        {/* Right Side Actions */}
-        <div className="flex items-center gap-3">
-          {/* Theme Toggle */}
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="rounded-full w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10"
+            className="h-9 w-9 rounded-md cursor-pointer text-muted-foreground hover:text-foreground hover:bg-accent"
+            aria-label="Toggle theme"
           >
             {theme === "dark" ? (
               <Sun className="h-4 w-4" />
@@ -95,46 +72,46 @@ export function Header() {
             )}
           </Button>
 
-          {/* User Auth State */}
           {!session ? (
             <div className="flex items-center gap-2">
               <Link href="/sign-in" className="hidden sm:block">
                 <Button
                   variant="ghost"
-                  className="rounded-full text-muted-foreground hover:text-foreground font-medium"
+                  className="rounded-md cursor-pointer font-medium text-[15px] text-muted-foreground hover:text-foreground"
                 >
                   Sign In
                 </Button>
               </Link>
               <Link href="/sign-up">
-                <Button className="rounded-full bg-foreground text-background hover:bg-foreground/90 shadow-md transition-transform hover:scale-105">
+                <Button className="rounded-md cursor-pointer py-2.5 font-medium text-[15px] bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm">
                   Get Started
                 </Button>
               </Link>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="hidden sm:flex">
+            <div className="flex items-center gap-2">
+              <Link href="/dashboard" className="hidden sm:block">
                 <Button
                   variant="outline"
-                  className="rounded-full border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5"
+                  size="sm"
+                  className="rounded-lg border-border bg-transparent"
                 >
-                  <LayoutDashboard className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
                   Dashboard
                 </Button>
               </Link>
-              <div className="pl-2 border-l border-black/10 dark:border-white/10">
+              <div className="border-l border-border pl-2">
                 <UserControl showName={false} />
               </div>
             </div>
           )}
 
-          {/* Mobile Menu Toggle */}
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden rounded-full ml-1"
+            className="h-9 w-9 rounded-lg md:hidden"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
           >
             {isMenuOpen ? (
               <X className="h-5 w-5" />
@@ -145,47 +122,43 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
       {isMenuOpen && (
-        <div className="absolute top-[calc(100%-0.5rem)] left-0 right-0 px-4 md:px-6 animate-in slide-in-from-top-4 fade-in duration-200">
-          <div className="mx-auto max-w-5xl rounded-2xl bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-black/5 dark:border-white/10 p-4 shadow-xl">
-            <nav className="flex flex-col space-y-2">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="flex items-center justify-between p-3 rounded-xl text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                  <ArrowRight className="w-4 h-4 opacity-50" />
-                </Link>
-              ))}
-              <div className="h-px bg-border my-2" />
-              {session ? (
-                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full rounded-xl justify-start" size="lg">
-                    <LayoutDashboard className="w-4 h-4 mr-2" />
-                    Go to Dashboard
+        <div className="border-t border-border bg-background md:hidden">
+          <nav className="container flex max-w-6xl flex-col gap-1 px-4 py-4">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.name}
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              </Link>
+            ))}
+            <div className="my-2 h-px bg-border" />
+            {session ? (
+              <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                <Button className="w-full justify-start rounded-lg" size="lg">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Go to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <Link href="/sign-in" onClick={() => setIsMenuOpen(false)}>
+                  <Button variant="outline" className="w-full rounded-lg">
+                    Sign In
                   </Button>
                 </Link>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <Link href="/sign-in" onClick={() => setIsMenuOpen(false)}>
-                    <Button
-                      variant="outline"
-                      className="w-full rounded-xl border-black/10 dark:border-white/10"
-                    >
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link href="/sign-up" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="w-full rounded-xl">Get Started</Button>
-                  </Link>
-                </div>
-              )}
-            </nav>
-          </div>
+                <Link href="/sign-up" onClick={() => setIsMenuOpen(false)}>
+                  <Button className="w-full rounded-lg bg-primary text-primary-foreground hover:bg-primary/90">
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </nav>
         </div>
       )}
     </header>

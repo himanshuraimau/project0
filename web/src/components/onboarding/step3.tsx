@@ -3,48 +3,53 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useOnboarding } from "@/contexts/onboarding-context";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 const roles = [
   {
     id: "professional",
     emoji: "💼",
     title: "Working professional",
-    description: "I'm currently employed full or part time",
-    gradient: "from-yellow-400 to-orange-500",
+    description: "Employed full or part time",
   },
   {
     id: "student",
     emoji: "🍎",
     title: "Student",
-    description: "Lectures, study notes, summaries, etc.",
-    gradient: "from-red-400 to-pink-500",
+    description: "Lectures, notes, summaries",
   },
   {
     id: "parent",
     emoji: "👶",
     title: "Parent",
-    description: "For my child's classes and activities",
-    gradient: "from-purple-400 to-pink-500",
+    description: "For my child’s classes",
   },
   {
     id: "teacher",
     emoji: "✏️",
     title: "Teacher",
-    description: "To record lectures, scribble notes, or other",
-    gradient: "from-orange-400 to-yellow-400",
+    description: "Record lectures, notes",
   },
   {
     id: "administrator",
     emoji: "🏛️",
     title: "Administrator",
-    description: "Trying Flinote for my school/district",
-    gradient: "from-cyan-400 to-blue-500",
+    description: "School or district",
   },
 ];
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05, delayChildren: 0.08 },
+  },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0 },
+};
 
 export function OnboardingStep3() {
   const [selected, setSelected] = useState<string | null>(null);
@@ -53,79 +58,68 @@ export function OnboardingStep3() {
 
   const handleSelect = async (roleId: string) => {
     setSelected(roleId);
-
     try {
       await saveStep(3, { role: roleId });
-      setTimeout(() => {
-        router.push("/onboarding/step4");
-      }, 300);
-    } catch (error) {
-      console.error("Failed to save step 3:", error);
+      setTimeout(() => router.push("/onboarding/step4"), 280);
+    } catch (err) {
+      console.error("Failed to save step 3:", err);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-white dark:bg-[#171717]">
-      <div className="w-full max-w-2xl space-y-8">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.back()}
-          className="mb-4 text-[#0A0A0A] dark:text-white hover:bg-gray-100 dark:hover:bg-[#1e1e1e]"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+    <div className="w-full max-w-lg mx-auto text-center">
+      <motion.h1
+        className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        Which best describes you?
+      </motion.h1>
+      <motion.p
+        className="mt-2 text-sm text-muted-foreground"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.15 }}
+      >
+        We’ll surface the right features.
+      </motion.p>
 
-        {/* Progress */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-[#606060] dark:text-gray-400">
-            <span>Step 3 of 5</span>
-            <span>60%</span>
-          </div>
-          <Progress value={60} className="h-2" />
-        </div>
-
-        {/* Header */}
-        <div className="space-y-2 text-center">
-          <p className="text-sm text-[#606060] dark:text-gray-400">
-            Personalizing Flinote for you...
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-[#0A0A0A] dark:text-white">
-            Which best describes you?
-          </h1>
-        </div>
-
-        {/* Options */}
-        <div className="space-y-4">
-          {roles.map((role) => (
-            <Card
+      <motion.div
+        className="mt-8 space-y-3"
+        variants={container}
+        initial="hidden"
+        animate="show"
+      >
+        {roles.map((role) => {
+          const isSelected = selected === role.id;
+          return (
+            <motion.button
               key={role.id}
-              className={`p-6 cursor-pointer transition-all bg-white dark:bg-[#1e1e1e] border border-[#E5E7EB] dark:border-gray-700 rounded-xl hover:shadow-lg hover:border-[#155DFC] dark:hover:border-[#155DFC] ${
-                selected === role.id
-                  ? "ring-2 ring-[#155DFC] border-[#155DFC] bg-[#155DFC]/5 dark:bg-[#155DFC]/10"
-                  : ""
+              type="button"
+              variants={item}
+              className={`cursor-pointer flex w-full items-center gap-4 rounded-xl  px-4 py-4 text-left transition-colors ${
+                isSelected
+                  ? "border-primary bg-primary/15 text-foreground"
+                  : "border-border bg-muted/80 text-foreground hover:border-muted-foreground/50 hover:bg-muted"
               }`}
               onClick={() => handleSelect(role.id)}
+              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01 }}
             >
-              <div className="flex items-center space-x-4">
-                <div
-                  className={`p-4 rounded-2xl bg-gradient-to-br ${role.gradient} text-4xl`}
-                >
-                  {role.emoji}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-[#0A0A0A] dark:text-white">{role.title}</h3>
-                  <p className="text-sm text-[#606060] dark:text-gray-400">
-                    {role.description}
-                  </p>
-                </div>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-muted text-2xl">
+                {role.emoji}
+              </span>
+              <div className="flex-1 text-left">
+                <p className="font-medium text-foreground">{role.title}</p>
+                <p className="text-sm text-muted-foreground">
+                  {role.description}
+                </p>
               </div>
-            </Card>
-          ))}
-        </div>
-      </div>
+            </motion.button>
+          );
+        })}
+      </motion.div>
     </div>
   );
 }
