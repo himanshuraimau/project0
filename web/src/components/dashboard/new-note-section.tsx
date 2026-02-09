@@ -317,7 +317,7 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
 
         {recordingState === "recording" && (
           <div className="space-y-[21px] flex flex-col items-center">
-            <div className="w-[330px] h-12 bg-gradient-to-r from-[#FF6467] to-[#FB64B6] text-white rounded-2xl flex items-center justify-center gap-3">
+            <div className="w-[330px] h-12 bg-linear-to-r from-[#FF6467] to-[#FB64B6] text-white rounded-2xl flex items-center justify-center gap-3">
               <Mic size={20} />
               <span className="font-bold text-[19px] leading-5">{formatTime(seconds)}</span>
             </div>
@@ -436,7 +436,7 @@ export function NewNoteSection() {
     setShowLinkDialog(false);
 
     // Show success toast
-    if (result.note?.id) {
+    if (result.note && 'id' in result.note) {
       toast.success("🔗 Link processed successfully! Notes generated.", {
         description: "Content extracted and notes created",
         duration: 4000,
@@ -476,7 +476,7 @@ export function NewNoteSection() {
         description: result.note.message || "Unknown error occurred",
         duration: 5000,
       });
-    } else if (result.note?.id) {
+    } else if (result.note && 'id' in result.note) {
       toast.success("🎵 Audio processed successfully! Notes generated.", {
         description: "Audio transcribed and notes created",
         duration: 4000,
@@ -511,7 +511,7 @@ export function NewNoteSection() {
         description: result.note.message || "Unknown error occurred",
         duration: 5000,
       });
-    } else if (result.note?.id) {
+    } else if (result.note && 'id' in result.note) {
       toast.success("🎤 Audio recorded successfully! Notes generated.", {
         description: "Recording transcribed and notes created",
         duration: 4000,

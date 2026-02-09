@@ -141,7 +141,7 @@ export function SimplePDFProcessor({
         setProcessResult(result);
         
         // Update with note ID if generated
-        if (result.note?.id) {
+        if (result.note && 'id' in result.note) {
           updateLoadingNote(tempId, { 
             noteId: result.note.id,
             stage: 'completed'
