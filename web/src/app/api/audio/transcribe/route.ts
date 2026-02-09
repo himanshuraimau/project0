@@ -119,19 +119,19 @@ export async function POST(req: NextRequest) {
     };
 
     // Get file extension from MIME type or filename
-    let fileExtension = mimeToExtension[audioFile.type.toLowerCase()];
-    if (!fileExtension) {
+    let transcriptionExtension = mimeToExtension[audioFile.type.toLowerCase()];
+    if (!transcriptionExtension) {
       // Fallback to extracting from filename
       const fileNameParts = audioFile.name.split('.');
-      fileExtension = fileNameParts[fileNameParts.length - 1].toLowerCase();
+      transcriptionExtension = fileNameParts[fileNameParts.length - 1].toLowerCase();
     }
 
-    console.log('Using file extension for transcription:', fileExtension);
+    console.log('Using file extension for transcription:', transcriptionExtension);
 
     // Create proper filename with extension for OpenAI to detect format
     const properFileName = audioFile.name.includes('.')
       ? audioFile.name
-      : `audio.${fileExtension}`;
+      : `audio.${transcriptionExtension}`;
 
     console.log('Sending to OpenAI with filename:', properFileName);
 
