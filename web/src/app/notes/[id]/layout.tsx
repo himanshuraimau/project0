@@ -20,6 +20,7 @@ import { useFlashcards } from "@/hooks/use-flashcards";
 import { useMindmap } from "@/hooks/use-mindmap";
 import { NoteProvider, useNoteContext } from "@/contexts/note-context";
 import { Card, CardContent } from "@/components/ui/card";
+import { UpgradeModalProvider } from "@/contexts/upgrade-modal-context";
 
 function NotesIdLayoutContent({ children }: { children: React.ReactNode }) {
   const params = useParams();
@@ -144,7 +145,9 @@ export default function NotesIdLayout({
 }) {
   return (
     <NoteProvider>
-      <NotesIdLayoutContent>{children}</NotesIdLayoutContent>
+      <UpgradeModalProvider>
+        <NotesIdLayoutContent>{children}</NotesIdLayoutContent>
+      </UpgradeModalProvider>
     </NoteProvider>
   );
 }

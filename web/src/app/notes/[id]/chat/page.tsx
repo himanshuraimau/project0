@@ -5,6 +5,9 @@ import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import LoadingScreen from "@/components/LoadingScreen";
 import dynamic from "next/dynamic";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { BotIcon } from "@hugeicons/core-free-icons";
+import { useNoteContext } from "@/contexts/note-context";
 
 const DynamicInlineChatbot = dynamic(
   () => import("@/components/chatbot/inline-chatbot"),
@@ -14,13 +17,13 @@ const DynamicInlineChatbot = dynamic(
 export default function ChatPage() {
   const params = useParams();
   const noteId = params.id as string;
+  const { note } = useNoteContext();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Show loading screen briefly when page loads
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1500);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -29,19 +32,37 @@ export default function ChatPage() {
     return <LoadingScreen title="Chat with Note" />;
   }
 
+  const title = note?.title || "Untitled note";
+
   return (
-    <Card className="bg-card h-[calc(100vh-100px)] mx-4 my-4 flex flex-col border border-black/20 dark:border-white/20 rounded-3xl">
-      <CardHeader className="p-5 border-b border-stone-100 dark:border-stone-900 bg-muted/5">
-        <div className="flex items-center gap-4">
-          <CardTitle className="font-normal">
-            Chat about Note
-          </CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0 p-0 flex-1 overflow-y-hidden">
-        <DynamicInlineChatbot noteId={noteId} />
-      </CardContent>
-    </Card>
+    <div className="h-full min-h-0 w-full flex flex-col px-4 py-4 sm:px-6">
+      <div className="max-w-4xl mx-auto flex-1 min-h-0 flex flex-col w-full">
+        <Card className="h-full min-h-0 flex flex-col rounded-2xl border border-border bg-card shadow-sm">
+          <CardHeader className="shrink-0 px-5 py-4 border-b border-border/60 bg-muted/30">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <HugeiconsIcon icon={BotIcon} className="size-5" />
+                </div>
+                <div className="min-w-0">
+                  <CardTitle className="text-base font-semibold text-foreground truncate">
+                    Chat with {title}
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground truncate">
+                    Ask anything – I’ll answer using this note and related context.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 flex-1 min-h-0 flex flex-col overflow-hidden">
+            <DynamicInlineChatbot
+              noteId={noteId}
+              className="flex-1 min-h-0 flex flex-col"
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
-

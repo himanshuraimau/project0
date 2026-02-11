@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { Note, LanguageCode, NoteTranslation } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -10,19 +12,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Save,
-  X,
-  Share2,
-  Star,
-} from "lucide-react";
+  ArrowLeft01Icon,
+  FloppyDiskIcon,
+  Cancel01Icon,
+  Share07Icon,
+  StarIcon,
+  Loading01Icon,
+} from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { LexicalViewer } from "@/components/shared/LexicalViewer";
 import { useNotes } from "@/hooks/use-notes";
 import { useTranslations } from "@/hooks/use-translations";
 import { LanguageSelector } from "@/components/notes/language-selector";
 import { ShareLinkDialog } from "@/components/notes/share-link-dialog";
-
+import { cn } from "@/lib/utils";
 
 interface ViewNoteProps {
   note: Note;
@@ -32,7 +37,12 @@ interface ViewNoteProps {
   initialViewMode?: "preview" | "edit";
 }
 
-export function ViewNote({ note, onSave, onUpdate, initialViewMode = "preview" }: ViewNoteProps) {
+export function ViewNote({
+  note,
+  onSave,
+  onUpdate,
+  initialViewMode = "preview",
+}: ViewNoteProps) {
   const [viewMode, setViewMode] = useState<"preview" | "edit">(initialViewMode);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -250,125 +260,128 @@ export function ViewNote({ note, onSave, onUpdate, initialViewMode = "preview" }
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Zone 1: Minimal Page Header */}
-      <div className="border-b border-border/30">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          {/* Breadcrumb and Primary Actions */}
-          <div className="flex items-center justify-between mb-8">
-            <nav>
-              <ol className="flex items-center space-x-2 text-[16px] font-normal text-muted-foreground">
-                <li>
-                  <button
-                    onClick={() => window.history.back()}
-                    className="hover:text-foreground transition-colors"
-                  >
-                    Notes
-                  </button>
-                </li>
-                <li>
-                  <span className="mx-2">&gt;</span>
-                </li>
-                <li className="text-foreground font-medium">
-                  Edit Note
-                </li>
-              </ol>
-            </nav>
+    <div className="min-h-screen bg-background">
+      {/* Sticky header */}
+      <header className="sticky top-0 z-10 border-b border-border/50 bg-sidebar backdrop-blur">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-[16.5px]">
+          <div className="flex items-center justify-between gap-4">
+            <Link
+              href={`/notes/${note.id}`}
+              className="flex items-center gap-2 cursor-pointer font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} className="size-5" />
+              <span>Back to note</span>
+            </Link>
 
-            {/* Primary Action: Save */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               {hasUnsavedChanges && (
-                <span className="text-xs text-muted-foreground">
-                  Unsaved changes
+                <span className="hidden sm:inline text-amber-600 dark:text-amber-400 font-medium">
+                  Unsaved
                 </span>
               )}
               <Button
                 onClick={handleCancelEdit}
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="text-muted-foreground hover:text-foreground"
+                className="h-[36px] cursor-pointer rounded-lg text-[15px] border-border text-muted-foreground hover:text-foreground shrink-0"
               >
-                Cancel
+                <HugeiconsIcon icon={Cancel01Icon} className="size-5 sm:mr-1" />
+                <span className="hidden sm:inline">Cancel</span>
               </Button>
               <Button
                 onClick={handleSaveNote}
                 disabled={!hasUnsavedChanges || isSaving}
-                className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                 size="sm"
+                className="h-[36px] cursor-pointer text-[15px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shrink-0 gap-1.5"
               >
                 {isSaving ? (
                   <>
-                    <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-current mr-2"></div>
-                    Saving...
+                    <HugeiconsIcon
+                      icon={Loading01Icon}
+                      className="size-5 animate-spin"
+                    />
+                    <span>Saving…</span>
                   </>
                 ) : (
                   <>
-                    <Save className="h-3.5 w-3.5 mr-2" />
-                    Save
+                    <HugeiconsIcon icon={FloppyDiskIcon} className="size-5" />
+                    <span>Save</span>
                   </>
                 )}
               </Button>
             </div>
           </div>
 
-          {/* Note Title */}
-          <div>
-            <h1 className="text-3xl font-bold text-foreground leading-tight">
-              {getCurrentTitle() || "Untitled Note"}
-            </h1>
+          {/* Editable title */}
+          {/* <Input
+            value={editedTitle}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            placeholder="Note title"
+            className="mt-4 text-xl sm:text-2xl font-semibold tracking-tight border-0 px-0 h-auto min-h-0 rounded-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground"
+          /> */}
+        </div>
+      </header>
+
+      {/* Editor */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+        <div className="rounded-md border border-border/50 bg-card overflow-hidden shadow-sm">
+          <div className="min-h-[520px]">
+            <LexicalViewer
+              content={editedContent}
+              title={editedTitle}
+              showToolbar={true}
+              minHeight="520px"
+              onContentChange={handleContentChange}
+              onTitleChange={handleTitleChange}
+              isEditable={true}
+            />
           </div>
         </div>
-      </div>
 
-      {/* Zone 2 & 3: Toolbar + Content Canvas */}
-      <div className="max-w-6xl mx-auto px-6">
-        {/* Centered Content Area */}
-        <div className="py-6">
-          <div className="max-w-5xl mx-auto">
-            {/* Editor with Integrated Toolbar */}
-            <div className="min-h-[600px]">
-              <LexicalViewer
-                content={editedContent}
-                title={editedTitle}
-                showToolbar={true}
-                minHeight="600px"
-                onContentChange={handleContentChange}
-                onTitleChange={handleTitleChange}
-                isEditable={true}
+        {/* Footer / meta & actions */}
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 py-4 border-t border-border/60">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-1.5 py-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowShareDialog(true)}
+              className="h-8 rounded-full border-border bg-background/80 text-xs font-medium text-foreground hover:bg-muted px-3 gap-1.5"
+            >
+              <HugeiconsIcon icon={Share07Icon} className="size-3.5" />
+              <span className="hidden sm:inline">Share</span>
+            </Button>
+            <span className="h-4 w-px bg-border/60" />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleToggleFavorite}
+              className={cn(
+                "h-8 rounded-full border-border text-xs font-medium px-3 gap-1.5",
+                isFavorite
+                  ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-500/50"
+                  : "bg-background/80 text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              <HugeiconsIcon
+                icon={StarIcon}
+                className={cn("size-3.5", isFavorite && "fill-current")}
               />
-            </div>
+              <span className="hidden sm:inline">
+                {isFavorite ? "Saved" : "Favorite"}
+              </span>
+            </Button>
           </div>
-        </div>
-
-        {/* Secondary Actions - Demoted to Bottom */}
-        <div className="border-t border-border/30 py-6 mb-8">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowShareDialog(true)}
-                className="text-muted-foreground hover:text-foreground gap-2"
-              >
-                <Share2 className="h-4 w-4" />
-                Share
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleToggleFavorite}
-                className="text-muted-foreground hover:text-foreground gap-2"
-              >
-                <Star
-                  className="h-4 w-4"
-                  fill={isFavorite ? "currentColor" : "none"}
-                />
-                {isFavorite ? "Favorited" : "Favorite"}
-              </Button>
-            </div>
-            <div className="text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+            <span>
+              {getWordCount(editedContent || "")} words · ~
+              {getReadingTime(editedContent || "")} min read
+            </span>
+            <span className="hidden sm:inline">·</span>
+            <span>
               Last edited {formatDate(note.updatedAt || note.createdAt)}
-            </div>
+            </span>
           </div>
         </div>
       </div>
@@ -470,37 +483,35 @@ export function ViewNote({ note, onSave, onUpdate, initialViewMode = "preview" }
 
       {/* Cancel Confirmation Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md rounded-xl border-border">
           <DialogHeader>
-            <DialogTitle className="text-destructive flex items-center gap-2">
-              <div className="p-2 bg-destructive/10 rounded-full">
-                <X className="h-4 w-4 text-destructive" />
+            <DialogTitle className="flex items-center gap-3 text-foreground">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  className="size-5 text-destructive"
+                />
               </div>
-              Discard Changes?
+              <span>Discard changes?</span>
             </DialogTitle>
-            <div className="space-y-3 mt-4 text-base text-muted-foreground/80 leading-relaxed">
-              <div>You have unsaved changes to your note.</div>
-              <div className="p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
-                <div className="text-sm text-destructive font-medium">
-                  If you cancel now, all your changes will be lost and cannot be
-                  recovered.
-                </div>
-              </div>
-            </div>
+            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+              You have unsaved edits. Leaving now will permanently discard them.
+            </p>
           </DialogHeader>
-          <DialogFooter className="gap-2">
+          <DialogFooter className="gap-2 sm:gap-2 mt-6">
             <Button
               variant="outline"
               onClick={() => setShowCancelDialog(false)}
-              className="font-medium"
+              className="rounded-lg font-medium"
             >
-              Keep Editing
+              Keep editing
             </Button>
             <Button
+              variant="destructive"
               onClick={confirmCancelEdit}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium"
+              className="rounded-lg font-medium"
             >
-              Discard Changes
+              Discard
             </Button>
           </DialogFooter>
         </DialogContent>

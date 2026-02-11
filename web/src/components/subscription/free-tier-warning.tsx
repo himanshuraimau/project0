@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, Sparkles } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AlertCircleIcon, SparklesIcon } from "@hugeicons/core-free-icons";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
+import { cn } from "@/lib/utils";
 
 interface FreeTierStatus {
   used: number;
@@ -15,7 +16,7 @@ interface FreeTierStatus {
 export function FreeTierWarning() {
   const [status, setStatus] = useState<FreeTierStatus | null>(null);
   const [hasSubscription, setHasSubscription] = useState(false);
-  const router = useRouter();
+  const { openUpgradeModal } = useUpgradeModal();
 
   useEffect(() => {
     fetchStatus();
@@ -23,63 +24,88 @@ export function FreeTierWarning() {
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch('/api/subscription/status');
+      const response = await fetch("/api/subscription/status");
       const data = await response.json();
-      
+
       setHasSubscription(data.hasSubscription && data.access?.hasAccess);
-      
+
       if (data.features?.freeNotes) {
         setStatus(data.features.freeNotes);
       }
     } catch (error) {
-      console.error('Error fetching free tier status:', error);
+      console.error("Error fetching free tier status:", error);
     }
   };
 
-  // Don't show if user has subscription
-  if (hasSubscription) {
-    return null;
-  }
-
-  // Don't show if status not loaded
-  if (!status) {
-    return null;
-  }
+  if (hasSubscription) return null;
+  if (!status) return null;
 
   const isLimitReached = status.remaining === 0;
   const isNearLimit = status.remaining <= 1 && status.remaining > 0;
 
-  // Only show warning when near or at limit
-  if (!isLimitReached && !isNearLimit) {
-    return null;
-  }
+  if (!isLimitReached && !isNearLimit) return null;
 
   return (
-    <Alert variant={isLimitReached ? "destructive" : "default"} className="mb-6">
-      <AlertCircle className="h-4 w-4" />
-      <AlertTitle>
-        {isLimitReached ? 'Free Tier Limit Reached' : 'Almost at Free Tier Limit'}
-      </AlertTitle>
-      <AlertDescription className="mt-2">
-        {isLimitReached ? (
-          <p className="mb-3">
-            You've used all {status.limit} free notes. Upgrade to Pro for unlimited notes and features.
-          </p>
-        ) : (
-          <p className="mb-3">
-            You have {status.remaining} free note{status.remaining !== 1 ? 's' : ''} remaining out of {status.limit}. 
-            Upgrade to Pro for unlimited access.
-          </p>
-        )}
-        <Button 
-          onClick={() => router.push('/pricing')}
-          size="sm"
-          className="mt-2"
+    <div
+      role="alert"
+      className={cn(
+        "relative mb-6 overflow-hidden rounded-2xl  bg-card shadow-s",
+        isLimitReached
+          ? "border-destructive/30 before:bg-destructive/80"
+          : "border-primary/20 before:bg-primary/60"
+      )}
+    >
+      <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+        <div className="flex gap-4">
+          <div
+            className={cn(
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+              isLimitReached
+                ? "bg-destructive/10 text-destructive"
+                : "bg-primary/10 text-primary"
+            )}
+          >
+            <HugeiconsIcon
+              icon={isLimitReached ? AlertCircleIcon : SparklesIcon}
+              className="h-5 w-5"
+            />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
+              {isLimitReached
+                ? "Free tier limit reached"
+                : "Almost at your free limit"}
+            </h3>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              {isLimitReached ? (
+                <>
+                  You&apos;ve used all {status.limit} free notes. Upgrade to Pro
+                  for unlimited notes and more features.
+                </>
+              ) : (
+                <>
+                  {status.remaining} free note
+                  {status.remaining !== 1 ? "s" : ""} left out of {status.limit}
+                  . Upgrade to Pro for unlimited access.
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+        <Button
+          onClick={openUpgradeModal}
+          size="default"
+          className={cn(
+            "shrink-0 font-semibold shadow-sm transition-all",
+            isLimitReached
+              ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              : "bg-primary text-primary-foreground hover:bg-primary/90"
+          )}
         >
-          <Sparkles className="h-4 w-4 mr-2" />
+          <HugeiconsIcon icon={SparklesIcon} className="mr-2 h-4 w-4" />
           Upgrade to Pro
         </Button>
-      </AlertDescription>
-    </Alert>
+      </div>
+    </div>
   );
 }

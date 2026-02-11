@@ -143,28 +143,16 @@ export class DodoSubscriptionService {
         };
       }
 
-      // For active subscriptions, use the cancel endpoint
-      const response = await fetch(`${DODO_CONFIG.baseUrl}/subscriptions/${subscriptionId}/cancel`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${DODO_CONFIG.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          cancel_at_next_billing_date: cancelAtPeriodEnd,
-        }),
+      // For active subscriptions, use PATCH update - Dodo has no /cancel endpoint
+      const client = this.getClient();
+      const updated = await client.subscriptions.update(subscriptionId, {
+        cancel_at_next_billing_date: cancelAtPeriodEnd,
       });
-
-      if (!response.ok) {
-        throw new Error(`Cancel request failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
 
       return {
         success: true,
         subscriptionId,
-        data,
+        data: updated,
       };
     } catch (error) {
       console.error('Failed to cancel Dodo subscription:', error);
@@ -216,23 +204,68 @@ export class DodoSubscriptionService {
 
   /**
    * Get subscription billing period info
+   * Dodo uses previous_billing_date + next_billing_date; fallback when current_period_* is missing
    */
   static getSubscriptionPeriodInfo(subscription: any) {
+    const nextBilling = subscription.next_billing_date
+      ? new Date(subscription.next_billing_date)
+      : undefined;
+    const prevBilling = subscription.previous_billing_date
+      ? new Date(subscription.previous_billing_date)
+      : undefined;
     return {
-      currentPeriodStart: subscription.current_period_start 
-        ? new Date(subscription.current_period_start) 
-        : undefined,
-      currentPeriodEnd: subscription.current_period_end 
-        ? new Date(subscription.current_period_end) 
-        : undefined,
-      nextBillingDate: subscription.next_billing_date
-        ? new Date(subscription.next_billing_date)
-        : undefined,
-      trialEnd: subscription.trial_end 
-        ? new Date(subscription.trial_end) 
-        : undefined,
+      currentPeriodStart: subscription.current_period_start
+        ? new Date(subscription.current_period_start)
+        : prevBilling,
+      currentPeriodEnd: subscription.current_period_end
+        ? new Date(subscription.current_period_end)
+        : nextBilling,
+      nextBillingDate: nextBilling,
+      trialEnd: subscription.trial_end ? new Date(subscription.trial_end) : undefined,
       isInTrial: this.isSubscriptionInTrial(subscription),
       cancelAtPeriodEnd: subscription.cancel_at_next_billing_date || false,
     };
+  }
+
+  /**
+   * Upgrade subscription to a new product (e.g., monthly to yearly)
+   */
+  static async upgradeSubscription(
+    subscriptionId: string,
+    newProductId: string
+  ): Promise<SubscriptionManagementResult> {
+    try {
+      // Use direct API call to update subscription product
+      const response = await fetch(`${DODO_CONFIG.baseUrl}/subscriptions/${subscriptionId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${DODO_CONFIG.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_id: newProductId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upgrade request failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      return {
+        success: true,
+        subscriptionId,
+        data,
+      };
+    } catch (error) {
+      console.error('Failed to upgrade Dodo subscription:', error);
+      
+      // If update fails, we might need to cancel and recreate
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update subscription',
+      };
+    }
   }
 }

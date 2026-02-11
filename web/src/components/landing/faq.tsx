@@ -1,97 +1,100 @@
 "use client";
 
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
-import { Plus, X } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const faqs = [
   {
-    id: "get-started",
-    question: "How do I get started?",
+    id: "upload",
+    question: "What can I upload to Flinote?",
     answer:
-      "Sign up for free, then create a note or upload a PDF, audio, or video. Flinote will generate summaries, flashcards, quizzes, and mindmaps. You can also paste a YouTube link to turn lectures into study material in seconds.",
+      "PDFs, lecture slides, docs, links, and audio/recordings (where supported). Flinote turns them into structured notes, summaries, and study-ready formats.",
   },
   {
-    id: "file-formats",
-    question: "What file formats are supported?",
+    id: "accuracy",
+    question: "How accurate are the notes?",
     answer:
-      "We support PDF, TXT, and DOCX for documents, and MP3, WAV, M4A, and FLAC for audio. You can also paste URLs (e.g. YouTube) or type notes directly. Our AI works with any of these to create study tools.",
+      "Flinote is fast, but not perfect. It highlights key points and organizes content, and you can quickly edit, regenerate sections, or ask it to explain anything that looks off.",
   },
   {
-    id: "cancel",
-    question: "Can I cancel anytime?",
+    id: "messy-audio",
+    question: "Does Flinote work with messy lectures and real-world audio?",
     answer:
-      "Yes. You can cancel your subscription anytime from your account settings. Your subscription stays active until the end of the current billing period, and you won't be charged again.",
+      "Yes—noise and accents happen. For best results, use clear audio and keep the phone close to the speaker. You'll get better transcripts and cleaner notes.",
   },
   {
-    id: "refund",
-    question: "What's your refund policy?",
+    id: "flashcards-quizzes",
+    question: "Can I create flashcards and quizzes automatically?",
     answer:
-      "We offer a 30-day money-back guarantee for new subscriptions. If you're not satisfied within the first 30 days, contact us and we'll process a full refund.",
+      "Yes. Flinote can generate flashcards + quizzes from your content—great for spaced repetition and quick revision before tests.",
   },
   {
-    id: "languages",
-    question: "Do you support my language?",
+    id: "privacy",
+    question: "How does Flinote handle privacy and security?",
     answer:
-      "We support 50+ languages for transcription and note generation, including English, Spanish, French, German, Italian, Portuguese, Hindi, and many more. Notes and study tools can be created in your preferred language.",
+      "Flinote is built for students and learners, so privacy is treated as a core feature, not an afterthought.",
   },
   {
-    id: "organize",
-    question: "How can I organize my notes?",
+    id: "replace-learning",
+    question: "Will Flinote replace my learning?",
     answer:
-      "Use folders to group notes by subject or course. Search across all your notes to find content quickly. Our AI also helps surface relevant notes when you're studying.",
+      "No. It reduces busywork. You still learn by reviewing, quizzing, and understanding. Flinote helps you spend time on studying, not formatting notes.",
   },
 ];
 
 export function FAQ() {
   return (
-    <section className="border-b border-border bg-background py-16 md:py-28">
-      <div className="container mx-auto max-w-4xl px-4">
-        <div className="mb-12 flex flex-col items-center text-center">
-          <Link
-            href="/dashboard/support"
-            className="mb-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-          >
-            Need help?
-          </Link>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-5xl">
-            Frequently asked questions
-          </h2>
-        </div>
+    <section id="faq" className=" py-16 md:py-20">
+      <div className="mx-auto max-w-2xl px-4">
+        <h2 className="text-center text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+          Questions
+        </h2>
 
         <AccordionPrimitive.Root
           type="single"
           collapsible
-          className="flex flex-col gap-3"
+          defaultValue="upload"
+          className="mt-12"
         >
-          {faqs.map(({ id, question, answer }) => (
+          {faqs.map(({ id, question, answer }, index) => (
             <AccordionPrimitive.Item
               key={id}
               value={id}
               className={cn(
-                "rounded-xl transition-colors data-[state=open]:bg-muted/50"
+                "border-b border-border last:border-b-0",
+                index === 0 && "border-t border-border"
               )}
             >
               <AccordionPrimitive.Header>
-                <AccordionPrimitive.Trigger className="group cursor-pointer flex w-full items-start gap-4 rounded-xl px-4 py-4 text-left transition-colors hover:data-[state=closed]:bg-muted/30 data-[state=open]:bg-muted/50 data-[state=open]:pb-2">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors group-data-[state=open]:border-primary/30 group-data-[state=open]:bg-primary/10 group-data-[state=open]:text-primary">
-                    <Plus className="h-3.5 w-3.5 transition-all group-data-[state=open]:hidden" />
-                    <X className="hidden h-3.5 w-3.5 group-data-[state=open]:block" />
-                  </span>
-                  <span className="flex-1 font-medium text-[18px] text-foreground group-data-[state=open]:font-bold">
+                <AccordionPrimitive.Trigger className="group flex w-full cursor-pointer items-center justify-between gap-4 py-5 text-left transition-colors hover:opacity-90">
+                  <span className="font-medium text-foreground group-data-[state=open]:font-semibold">
                     {question}
+                  </span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted/40 text-muted-foreground transition-colors group-data-[state=open]:border-primary/20 group-data-[state=open]:bg-primary/10 group-data-[state=open]:text-primary">
+                    <Plus className="h-4 w-4 group-data-[state=open]:hidden" />
+                    <Minus className="hidden h-4 w-4 group-data-[state=open]:block" />
                   </span>
                 </AccordionPrimitive.Trigger>
               </AccordionPrimitive.Header>
               <AccordionPrimitive.Content className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-                <p className="px-4 pb-4 pl-14 leading-relaxed text-muted-foreground md:pl-[4.5rem]">
+                <p className="pb-5 pr-12 text-[15px] leading-relaxed text-muted-foreground">
                   {answer}
                 </p>
               </AccordionPrimitive.Content>
             </AccordionPrimitive.Item>
           ))}
         </AccordionPrimitive.Root>
+
+        <p className="mt-10 text-center">
+          <Link
+            href="/dashboard/support"
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            Need help?
+          </Link>
+        </p>
       </div>
     </section>
   );

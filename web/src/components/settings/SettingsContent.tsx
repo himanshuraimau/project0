@@ -17,34 +17,40 @@ interface SettingsContentProps {
 
 export function SettingsContent({ user }: SettingsContentProps) {
   const router = useRouter();
-  
+
   const handleLogout = async () => {
     await signOut();
     router.push("/");
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] dark:bg-[#171717] flex">
-      {/* Left Sidebar */}
-      <SettingsSidebar activeItem="profile" onItemClick={(id) => {
-        if (id === "logout") {
-          handleLogout();
-        }
-      }} />
+    <div className="min-h-screen flex bg-background">
+      <SettingsSidebar
+        activeItem="profile"
+        onItemClick={(id) => {
+          if (id === "logout") handleLogout();
+        }}
+      />
 
-      {/* Main Content Area */}
-      <div className="flex-1 p-8 overflow-y-auto">
-        <div className="max-w-6xl mx-auto">
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column - Profile Card */}
+      {/* Main content */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-6 py-8 sm:px-8 sm:py-10">
+          {/* Page header */}
+          <header className="mb-8">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              Profile & preferences
+            </h1>
+            <p className="mt-1.5 text-muted-foreground">
+              Manage your account details and app preferences.
+            </p>
+          </header>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             <ProfileCard user={user} />
-
-            {/* Right Column - Preferences Card */}
             <PreferencesCard />
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

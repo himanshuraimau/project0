@@ -2,9 +2,9 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { NotesList, NotesListRef } from "@/components/notes/notes-list";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
-import { ChevronRight, Folder, FolderPlus } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { FolderAddIcon, Note01Icon } from "@hugeicons/core-free-icons";
 import { useRouter } from "next/navigation";
 import { useFolders } from "@/hooks/use-folders";
 import { CreateFolderDialog } from "@/components/folders/create-folder-dialog";
@@ -15,12 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const inter = Inter({ subsets: ["latin"] });
-const jakarta = Plus_Jakarta_Sans({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin-ext", "vietnamese"],
-});
 
 export function MyNotesSection() {
   const { setRefreshHandler, searchQuery } = useDashboardRefresh();
@@ -47,77 +41,80 @@ export function MyNotesSection() {
   }, [setRefreshHandler]);
 
   return (
-    <div className={`w-full ${inter.className}`}>
+    <div className="w-full">
       {/* Tabs Section with New Folder Button */}
-      <div className="flex flex-row justify-between items-center mb-6">
-        {/* Tabs Container */}
-        <div className="flex items-center border-[#E5E7EB] dark:border-gray-700">
-          {/* My Notes Tab */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex items-center rounded-md border-sidebar-border bg-card p-1 w-fit">
           <button
+            type="button"
             onClick={() => setActiveTab("my-notes")}
-            className={`
-              relative px-3 py-2 text-[16px] leading-5 font-normal rounded-lg
-              ${
-                activeTab === "my-notes"
-                  ? "text-[#0A0A0A] dark:text-white border-[0.8px] border-t-[0.8px] border-l-[0.8px] border-r-[0.8px] border-b-[1.6px] border-[#101828] dark:border-gray-300"
-                  : "text-[#0A0A0A] dark:text-gray-400 border-transparent"
-              }
-            `}
-            style={{ fontFamily: "Arimo" }}
+            className={`relative px-4 py-2 text-sm font-medium rounded-[6px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+              activeTab === "my-notes"
+                ? "bg-white dark:bg-[#27282b] text-foreground shadow-sm"
+                : "text-muted-foreground  hover:text-foreground"
+            }`}
           >
             My Notes
           </button>
-
-          {/* Shared with Me Tab */}
           <button
+            type="button"
             onClick={() => {
               setActiveTab("shared");
               router.push("/dashboard/cloned");
             }}
-            className="px-3 py-2 text-[16px] leading-5 font-normal text-[#0A0A0A] dark:text-gray-400"
-            style={{ fontFamily: "Arimo" }}
+            className={`px-4 py-2 cursor-pointer text-sm font-medium rounded-[6px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+              activeTab === "shared"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
             Shared with Me
           </button>
         </div>
 
-        {/* New Folder Button */}
-        <button
-          onClick={() => setShowCreateFolder(true)}
-          className="flex items-center gap-2 h-9 px-3 bg-white dark:bg-gray-800 border-[0.8px] border-[#E5E7EB] dark:border-gray-700 rounded-[10px] hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-        >
-          <FolderPlus className="w-4 h-4 text-[#4A5565] dark:text-gray-300" />
-          <span className="text-[14px] leading-5 font-normal text-[#4A5565] dark:text-gray-300" style={{ fontFamily: "Arimo" }}>
-            New Folder
-          </span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => router.push("/notes")}
+            className="flex items-center gap-2 h-10 px-3 justify-center bg-card border border-border cursor-pointer rounded-md hover:bg-muted/50 transition-colors text-sm font-medium text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background w-fit"
+          >
+            <HugeiconsIcon
+              icon={Note01Icon}
+              className="size-4 shrink-0 text-muted-foreground"
+            />
+            <span>All Notes</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowCreateFolder(true)}
+            className="flex items-center gap-2 h-10 px-3 justify-center bg-card border-none cursor-pointer rounded-md hover:bg-muted/50 transition-colors text-sm font-medium text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background w-fit"
+          >
+            <HugeiconsIcon
+              icon={FolderAddIcon}
+              className="size-4 shrink-0 text-muted-foreground"
+            />
+            <span>New Folder</span>
+          </button>
+        </div>
       </div>
 
       {/* Recent Notes Header */}
-      <div className="flex flex-row items-center gap-3 mb-5">
-        {/* Heading */}
-        <h3 className="text-[16px] leading-6 font-normal text-[#101828] dark:text-white" style={{ fontFamily: "Arimo" }}>
+      {/* <div className="flex flex-row items-center gap-2 mb-5">
+        <h3 className="text-lg font-medium text-foreground tracking-tight shrink-0">
           Recent Notes
         </h3>
-
-        {/* Gradient Line */}
-        <div 
-          className="flex-1 h-[1px] bg-gradient-to-r from-[#E5E7EB] to-transparent dark:from-gray-700 dark:to-transparent" 
-        />
-
-        {/* View All Button */}
+        <div className="flex-1 h-px bg-border/50 min-w-0" aria-hidden />
         <button
+          type="button"
           onClick={() => router.push("/notes")}
-          className="flex items-center gap-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-2.5 py-1.5"
+          className="flex items-center gap-1.5 rounded-md py-2 px-2.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background shrink-0"
         >
-          <span className="text-[14px] leading-5 font-normal text-[#155DFC]" style={{ fontFamily: "Arimo" }}>
-            View All
-          </span>
-          <ChevronRight className="w-4 h-4 text-[#155DFC]" />
+          <span>View All</span>
+          <HugeiconsIcon icon={ArrowRight01Icon} className="size-4 shrink-0" />
         </button>
-      </div>
+      </div> */}
 
-      <div className="w-full rounded-2xl pt-5">
+      <div className="w-full rounded-lg pt-0">
         <NotesList
           ref={notesListRef}
           searchQuery={searchQuery}

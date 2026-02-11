@@ -20,7 +20,7 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "Flinote - AI-Powered Study App",
+  title: "Flinote",
   description:
     "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
   keywords: ["AI study app", "note taking", "flashcards", "quiz generator", "learning tools", "study assistant"],
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   publisher: "Flinote",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://flinote.ai"),
   openGraph: {
-    title: "Flinote - AI-Powered Study App",
+    title: "Flinote",
     description: "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
     url: process.env.NEXT_PUBLIC_APP_URL || "https://flinote.ai",
     siteName: "Flinote",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Flinote - AI-Powered Study App",
+    title: "Flinote",
     description: "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
     images: ["/logo.png"],
   },

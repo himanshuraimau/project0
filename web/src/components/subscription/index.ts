@@ -6,3 +6,4 @@ export { SubscriptionBadge } from './subscription-badge';
 export { PricingCard } from './pricing-card';
 export { FreeTierBadge } from './free-tier-badge';
 export { FreeTierWarning } from './free-tier-warning';
+export { UpgradeToYearlyDialog } from './upgrade-to-yearly-dialog';

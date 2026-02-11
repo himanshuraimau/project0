@@ -6,11 +6,20 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard";
 import { toast } from "sonner";
-import { User, Globe, Shield, ChevronRight, LogOut, X } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  GlobeIcon,
+  Shield01Icon,
+  Logout01Icon,
+  ArrowRight01Icon,
+  UserShield01Icon,
+} from "@hugeicons/core-free-icons";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { openUpgradeModal } = useUpgradeModal();
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -26,24 +35,10 @@ export default function SettingsPage() {
       await navigator.clipboard.writeText("www.soniclearn.ai");
       toast.success("Link copied to clipboard!", {
         duration: 3000,
-        style: {
-          minWidth: "400px",
-          padding: "20px 24px",
-          fontSize: "18px",
-          fontWeight: "600",
-          borderRadius: "12px",
-        },
       });
     } catch (error) {
       toast.error("Failed to copy link", {
         duration: 3000,
-        style: {
-          minWidth: "400px",
-          padding: "20px 24px",
-          fontSize: "18px",
-          fontWeight: "600",
-          borderRadius: "12px",
-        },
       });
     }
   };
@@ -53,7 +48,6 @@ export default function SettingsPage() {
   };
 
   const handleManageAccountClick = () => {
-    // Navigate to a profile settings page (or show a modal)
     router.push("/dashboard/profile");
   };
 
@@ -81,17 +75,9 @@ export default function SettingsPage() {
           "Account and all data deleted successfully. You will be redirected to the sign-in page.",
           {
             duration: 5000,
-            style: {
-              minWidth: "400px",
-              padding: "20px 24px",
-              fontSize: "18px",
-              fontWeight: "600",
-              borderRadius: "12px",
-            },
           }
         );
 
-        // Give a moment for the toast to show, then sign out and redirect
         setTimeout(async () => {
           await authClient.signOut();
           window.location.href = "/sign-in";
@@ -104,13 +90,6 @@ export default function SettingsPage() {
       console.error("Account deletion error:", error);
       toast.error("Failed to delete account. Please try again.", {
         duration: 3000,
-        style: {
-          minWidth: "400px",
-          padding: "20px 24px",
-          fontSize: "18px",
-          fontWeight: "600",
-          borderRadius: "12px",
-        },
       });
       setIsDeleting(false);
       setShowDeleteConfirmation(false);
@@ -129,32 +108,47 @@ export default function SettingsPage() {
     onClick?: () => void;
   }[] = [
     {
-      icon: <span className="text-foreground font-bold text-xl">🚀</span>,
+      icon: (
+        <span className="text-foreground font-bold text-xl" aria-hidden="true">
+          🚀
+        </span>
+      ),
       label: "Go Unlimited — Get Pro",
       subtext: "Unlimited notes, transcripts & features",
       color: "text-foreground",
-      onClick: () => router.push("/pricing"),
+      onClick: openUpgradeModal,
     },
     {
-      icon: <Globe className="h-7 w-7 text-foreground" />,
+      icon: (
+        <HugeiconsIcon icon={GlobeIcon} className="size-6 text-foreground" />
+      ),
       label: "Share with a friend",
       color: "text-foreground",
       onClick: handleShareClick,
     },
     {
-      icon: <Shield className="h-7 w-7 text-foreground" />,
+      icon: (
+        <HugeiconsIcon icon={Shield01Icon} className="size-6 text-foreground" />
+      ),
       label: "Privacy Policy",
       color: "text-foreground",
       onClick: handlePrivacyPolicyClick,
     },
     {
-      icon: <User className="h-7 w-7 text-foreground" />,
+      icon: (
+        <HugeiconsIcon
+          icon={UserShield01Icon}
+          className="size-6 text-foreground"
+        />
+      ),
       label: "Manage Account",
       color: "text-foreground",
       onClick: handleManageAccountClick,
     },
     {
-      icon: <LogOut className="h-7 w-7 text-foreground" />,
+      icon: (
+        <HugeiconsIcon icon={Logout01Icon} className="size-6 text-foreground" />
+      ),
       label: "Sign out",
       color: "text-foreground",
       onClick: handleSignOutClick,
@@ -164,75 +158,99 @@ export default function SettingsPage() {
   return (
     <Suspense fallback={null}>
       <DashboardLayout>
-        <div className="min-h-screen bg-background p-8">
-          <h1 className="text-3xl font-bold mb-8 text-foreground">Settings</h1>
+        <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="space-y-1">
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+                Settings
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Manage your account, privacy, and sharing preferences for
+                Flinote.
+              </p>
+            </div>
 
-          <div className="space-y-4">
-            {settings.map((item, i) => (
-              <div
-                key={i}
-                className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl transition-all duration-300 cursor-pointer neomorphic"
-                onClick={item.onClick}
-              >
-                <div className="flex items-center gap-5">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                    {item.icon}
-                  </div>
-                  <div className="flex flex-col justify-center">
-                    <p
-                      className={`text-lg font-semibold ${
-                        item.color || "text-foreground"
-                      }`}
-                    >
-                      {item.label}
-                    </p>
-                    {item.subtext && (
-                      <p className="text-sm text-muted-foreground">
-                        {item.subtext}
+            <div className="space-y-3">
+              {settings.map((item, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-xl border border-border/30 bg-card px-4 py-4 sm:px-5 sm:py-4 cursor-pointer transition-colors hover:bg-muted/40"
+                  onClick={item.onClick}
+                >
+                  <div className="flex items-center gap-4 sm:gap-5">
+                    <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-lg bg-muted">
+                      {item.icon}
+                    </div>
+                    <div className="flex flex-col justify-center">
+                      <p
+                        className={`text-sm sm:text-base font-medium ${
+                          item.color || "text-foreground"
+                        }`}
+                      >
+                        {item.label}
                       </p>
-                    )}
+                      {item.subtext && (
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          {item.subtext}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <HugeiconsIcon
+                      icon={ArrowRight01Icon}
+                      className="size-4 text-muted-foreground"
+                    />
                   </div>
                 </div>
+              ))}
 
-                <div>
-                  <ChevronRight className="h-6 w-6 text-muted-foreground" />
+              <div
+                className="flex items-center justify-between rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-4 sm:px-5 sm:py-4 cursor-pointer transition-colors hover:bg-destructive/10"
+                onClick={handleDeleteAccountClick}
+              >
+                <div className="flex items-center gap-4 sm:gap-5">
+                  <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-lg bg-destructive/10">
+                    <HugeiconsIcon
+                      icon={Shield01Icon}
+                      className="size-5 text-destructive"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-sm sm:text-base font-semibold text-destructive">
+                      Delete account
+                    </p>
+                    <p className="text-xs text-destructive/80">
+                      Permanently remove your data and history.
+                    </p>
+                  </div>
                 </div>
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  className="size-4 text-muted-foreground"
+                />
               </div>
-            ))}
-
-            <div
-              className="flex flex-row items-center justify-between px-6 py-5 rounded-2xl transition-all duration-300 cursor-pointer neomorphic hover:bg-destructive/10"
-              onClick={handleDeleteAccountClick}
-            >
-              <div className="flex items-center gap-5">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-                  <Shield className="h-7 w-7 text-destructive" />
-                </div>
-                <p className="text-lg font-semibold text-destructive">
-                  Delete account
-                </p>
-              </div>
-              <ChevronRight className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
         </div>
 
-        {/* Privacy Policy Modal */}
         {showPrivacyPolicy && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
-              <div className="flex items-center justify-between p-6 border-b">
-                <h2 className="text-2xl font-bold text-foreground">
+          <div className="fixed inset-0 bg-black/55 flex items-center justify-center z-50 p-4">
+            <div className="bg-background rounded-2xl border border-border max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-xl">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border/70">
+                <h2 className="text-lg sm:text-xl font-semibold text-foreground">
                   Privacy Policy
                 </h2>
                 <button
                   onClick={() => setShowPrivacyPolicy(false)}
                   className="p-2 hover:bg-muted rounded-full transition"
                 >
-                  <X className="h-6 w-6 text-muted-foreground" />
+                  <span className="sr-only">Close</span>
+                  <span className="text-lg text-muted-foreground">&times;</span>
                 </button>
               </div>
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="p-5 sm:p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
                 <div className="prose prose-neutral dark:prose-invert max-w-none">
                   <p className="text-sm text-muted-foreground mb-2">
                     Effective April 1, 2024
@@ -382,38 +400,38 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Delete Account Confirmation Modal */}
         {showDeleteConfirmation && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-background rounded-lg max-w-md w-full overflow-hidden">
-              <div className="flex items-center justify-between p-6 border-b">
-                <h2 className="text-2xl font-bold text-destructive">
-                  Delete Account
+          <div className="fixed inset-0 bg-black/55 flex items-center justify-center z-50 p-4">
+            <div className="bg-background rounded-2xl border border-border max-w-md w-full overflow-hidden shadow-xl">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border/70">
+                <h2 className="text-lg font-semibold text-destructive">
+                  Delete account
                 </h2>
                 <button
                   onClick={() => setShowDeleteConfirmation(false)}
                   className="p-2 hover:bg-muted rounded-full transition"
                   disabled={isDeleting}
                 >
-                  <X className="h-6 w-6 text-muted-foreground" />
+                  <span className="sr-only">Close</span>
+                  <span className="text-lg text-muted-foreground">&times;</span>
                 </button>
               </div>
-              <div className="p-6">
-                <p className="text-foreground mb-4">
+              <div className="p-5 space-y-4">
+                <p className="text-foreground">
                   Are you sure you want to delete your account? This action
                   cannot be undone and will permanently remove:
                 </p>
-                <ul className="text-foreground mb-4 ml-4 space-y-1 text-sm">
+                <ul className="text-foreground ml-4 space-y-1 text-sm">
                   <li>• All your notes and transcripts</li>
                   <li>• All courses, quizzes, and flashcards</li>
                   <li>• All mindmaps</li>
                   <li>• Your credit balance and purchase history</li>
                   <li>• Your entire account from our system</li>
                 </ul>
-                <p className="text-destructive text-sm font-medium mb-4">
+                <p className="text-destructive text-sm font-medium">
                   This deletion is permanent and cannot be recovered.
                 </p>
-                <div className="flex gap-3 justify-end">
+                <div className="flex gap-3 justify-end pt-2">
                   <button
                     onClick={() => setShowDeleteConfirmation(false)}
                     className="px-4 py-2 text-foreground bg-muted hover:bg-muted/80 rounded-lg transition"
@@ -423,7 +441,7 @@ export default function SettingsPage() {
                   </button>
                   <button
                     onClick={handleConfirmDelete}
-                    className="px-4 py-2 text-white bg-destructive hover:bg-destructive/90 rounded-lg transition flex items-center gap-2"
+                    className="px-4 py-2 text-white bg-destructive hover:bg-destructive/90 rounded-lg transition flex items-center gap-2 disabled:opacity-70"
                     disabled={isDeleting}
                   >
                     {isDeleting ? (
@@ -432,7 +450,7 @@ export default function SettingsPage() {
                         Deleting...
                       </>
                     ) : (
-                      "Delete Account"
+                      "Delete account"
                     )}
                   </button>
                 </div>

@@ -8,6 +8,7 @@
   --font-sans: DM Sans, sans-serif;
   --font-mono: Space Mono, monospace;
   --font-serif: DM Sans, sans-serif;
+  /* text-* and leading-* come from design-tokens.css (loaded above) for readable type scale */
   --radius: 1rem;
   --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
   --tracking-tight: calc(var(--tracking-normal) - 0.025em);
@@ -175,11 +176,16 @@
   }
 }
 
-/* Using a reduced root font-size (87.5% = 14px when base is 16px) */
+/* Full root font-size for readable typography (1rem = 16px) */
 html {
-  font-size: 87.5%;
+  font-size: 100%;
   height: 100%;
   min-height: 100vh;
+}
+
+body {
+  font-size: var(--text-base);
+  line-height: 1.625;
 }
 
 @layer utilities {
@@ -291,6 +297,7 @@ html {
   }
 
   .prose-enhanced p {
+    font-size: var(--text-base);
     line-height: 1.7;
     margin-bottom: 1rem;
   }
@@ -344,6 +351,29 @@ html {
 
   .animate-accordion-up {
     animation: accordion-up 0.2s ease-out;
+  }
+
+  /* Section reveal — subtle fade + slide up when in view */
+  .section-reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity var(--duration-slow) var(--ease-smooth),
+      transform var(--duration-slow) var(--ease-smooth);
+  }
+
+  .section-reveal.section-reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .section-reveal,
+    .section-reveal.section-reveal-visible {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
   }
 
   /* Neomorphic Design Utilities */
@@ -480,7 +510,7 @@ html {
   align-items: center;
   justify-content: center;
   border-radius: 0.375rem;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-weight: 500;
   transition: colors 0.2s;
   height: 2.5rem;
@@ -505,7 +535,7 @@ html {
   align-items: center;
   justify-content: center;
   border-radius: 0.375rem;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-weight: 500;
   transition: colors 0.2s;
   height: 2.5rem;
@@ -532,13 +562,13 @@ html {
 }
 
 .ut-allowed-content {
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: hsl(var(--muted-foreground));
   margin-top: 0.5rem;
 }
 
 .ut-label {
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-weight: 500;
   color: hsl(var(--foreground));
 }
@@ -549,18 +579,53 @@ html {
 
 .ut-error {
   color: hsl(var(--destructive));
-  font-size: 0.875rem;
+  font-size: var(--text-base);
 }
 
-/* Custom shimmer colors for My Notes section */
-.shimmer-element {
-  /* Light mode - use black with low opacity */
-  background-color: rgba(0, 0, 0, 0.1);
+/* Premium skeleton shimmer — base + sweeping highlight */
+.skeleton-base {
+  background: hsl(var(--muted));
+  border-radius: inherit;
+  position: relative;
+  overflow: hidden;
 }
 
-.dark .shimmer-element {
-  /* Dark mode - use white with low opacity */
-  background-color: rgba(255, 255, 255, 0.1);
+.skeleton-base::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 40%,
+    hsl(var(--background) / 0.6) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 2s ease-in-out infinite;
+  border-radius: inherit;
+}
+
+.dark .skeleton-base::after {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 40%,
+    hsl(var(--foreground) / 0.06) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* Audio Player Slider Styles */
@@ -651,6 +716,31 @@ html {
 }
 
 .chat-messages-container::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.3);
+}
+
+/* Note section scrollbar – no border */
+.note-section-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) transparent;
+}
+
+.note-section-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.note-section-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border: none;
+}
+
+.note-section-scroll::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted));
+  border-radius: 3px;
+  border: none;
+}
+
+.note-section-scroll::-webkit-scrollbar-thumb:hover {
   background-color: hsl(var(--muted-foreground) / 0.3);
 }
 

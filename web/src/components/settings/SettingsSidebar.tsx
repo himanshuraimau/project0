@@ -2,37 +2,55 @@
 
 import { useState, useEffect, createContext, useContext } from "react";
 import Link from "next/link";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowLeft,
-  User,
-  Globe,
-  Bell,
-  Headphones,
-  CreditCard,
-  Star,
-  Zap,
-} from "lucide-react";
+  ArrowLeft01Icon,
+  UserIcon,
+  GlobeIcon,
+  Notification01Icon,
+  HeadphonesIcon,
+  CreditCardIcon,
+  StarIcon,
+  SidebarLeft01Icon,
+} from "@hugeicons/core-free-icons";
 import { SubscriptionCard } from "@/components/shared/SubscriptionCard";
+import { cn } from "@/lib/utils";
 
 const SidebarContext = createContext({
   isCollapsed: false,
-  toggleSidebar: () => { },
+  toggleSidebar: () => {},
 });
 
 const useSidebar = () => useContext(SidebarContext);
 
-const cn = (...classes: (string | boolean | undefined)[]) => {
-  return classes.filter(Boolean).join(" ");
-};
+const settingsNavItems: {
+  title: string;
+  icon: typeof UserIcon;
+  href: string;
+  id: string;
+  emoji?: string;
+  iconClassName?: string;
+}[] = [
+  { title: "Profile", icon: UserIcon, href: "/settings", id: "profile" },
 
-const settingsNavItems = [
-  { title: "Profile", icon: User, href: "/settings", id: "profile" },
-  { title: "Change Language", icon: Globe, href: "/settings/language", id: "language" },
-  { title: "Notifications", icon: Bell, href: "/settings/notifications", id: "notifications" },
-  { title: "Contact support", icon: Headphones, href: "/settings/support", id: "support", isButton: true },
-  { title: "Subscription", icon: CreditCard, href: "/settings/subscription", id: "subscription" },
-  { title: "Rate us", icon: Star, href: "/settings/rate", id: "rate", iconColor: "#F0B100" },
-  { title: "Log out", icon: null, href: "/settings/logout", id: "logout", emoji: "👋" },
+  {
+    title: "Notifications",
+    icon: Notification01Icon,
+    href: "/settings/notifications",
+    id: "notifications",
+  },
+  {
+    title: "Contact support",
+    icon: HeadphonesIcon,
+    href: "/dashboard/support",
+    id: "support",
+  },
+  {
+    title: "Subscription",
+    icon: CreditCardIcon,
+    href: "/settings/subscription",
+    id: "subscription",
+  },
 ];
 
 interface SettingsSidebarProps {
@@ -41,69 +59,51 @@ interface SettingsSidebarProps {
   onItemClick?: (itemId: string) => void;
 }
 
-const SidebarTrigger = ({ className }: { className?: string }) => {
-  const { toggleSidebar } = useSidebar();
-
+function SidebarTrigger({ className }: { className?: string }) {
+  const { toggleSidebar, isCollapsed } = useSidebar();
   return (
     <button
+      type="button"
       onClick={toggleSidebar}
       className={cn(
-        "flex items-center justify-center rounded-md transition-colors cursor-pointer",
+        "flex size-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background cursor-pointer",
         className
       )}
-      aria-label="Toggle sidebar"
+      aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
     >
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 18 18"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M1.5 9C1.5 6.23315 1.5 4.84973 2.11036 3.86908C2.33617 3.50627 2.61668 3.1907 2.93918 2.93665C3.81087 2.25 5.04058 2.25 7.5 2.25H10.5C12.9594 2.25 14.1891 2.25 15.0608 2.93665C15.3833 3.1907 15.6638 3.50627 15.8896 3.86908C16.5 4.84973 16.5 6.23315 16.5 9C16.5 11.7668 16.5 13.1503 15.8896 14.1309C15.6638 14.4937 15.3833 14.8093 15.0608 15.0634C14.1891 15.75 12.9594 15.75 10.5 15.75H7.5C5.04058 15.75 3.81087 15.75 2.93918 15.0634C2.61668 14.8093 2.33617 14.4937 2.11036 14.1309C1.5 13.1503 1.5 11.7668 1.5 9Z"
-          stroke="#4E4E4E"
-          strokeWidth="1.4"
-        />
-        <path
-          d="M7.125 2.25V15.75"
-          stroke="#4E4E4E"
-          strokeWidth="1.4"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M3.75 5.25H4.5M3.75 7.5H4.5"
-          stroke="#4E4E4E"
-          strokeWidth="1.125"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <HugeiconsIcon
+        icon={SidebarLeft01Icon}
+        className={cn(
+          "size-5 transition-transform duration-200",
+          isCollapsed && "rotate-180"
+        )}
+      />
     </button>
   );
-};
+}
 
-export function SettingsSidebar({ className, activeItem = "profile", onItemClick }: SettingsSidebarProps) {
+export function SettingsSidebar({
+  className,
+  activeItem = "profile",
+  onItemClick,
+}: SettingsSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  const toggleSidebar = () => setIsCollapsed((prev) => !prev);
 
-  // Fetch subscription status
   useEffect(() => {
     async function checkSubscription() {
       try {
-        const response = await fetch('/api/subscription/status');
+        const response = await fetch("/api/subscription/status");
         if (response.ok) {
           const data = await response.json();
           const isActive = data.hasSubscription && data.access?.hasAccess;
           setHasActiveSubscription(isActive);
         }
       } catch (error) {
-        console.error('Error checking subscription:', error);
+        console.error("Error checking subscription:", error);
       } finally {
         setIsLoadingSubscription(false);
       }
@@ -115,107 +115,99 @@ export function SettingsSidebar({ className, activeItem = "profile", onItemClick
     <SidebarContext.Provider value={{ isCollapsed, toggleSidebar }}>
       <aside
         className={cn(
-          "h-screen transition-all duration-300 ease-in-out sticky top-0 flex flex-col",
-          "dark:bg-[#1A1A1A] bg-[#F9FAFB]",
-          "border-r border-neutral-200 dark:border-[#212121]",
-          isCollapsed ? "w-[72px]" : "w-[285px]",
+          "h-screen sticky top-0 flex flex-col border-r border-border bg-card transition-all duration-300 ease-in-out",
+          isCollapsed ? "w-[72px]" : "w-[280px]",
           className
         )}
       >
-        <div className="w-full h-full py-5 px-[14px] flex flex-col overflow-hidden">
-          {/* Back to Dashboard & Settings Title - Only show when not collapsed */}
-          {!isCollapsed && (
-            <div className="border-b-[0.8px] border-[#F1F5F9] dark:border-[#212121] pb-6 mb-4">
-              {/* Back to Dashboard with Collapsible Button */}
-              <div className="flex items-center justify-between mb-6">
+        <div className="flex h-full flex-col overflow-hidden py-5 px-4">
+          {/* Header: Back + Settings title (or collapse only when collapsed) */}
+          {!isCollapsed ? (
+            <div className=" pb-5">
+              <div className="flex items-center justify-between gap-2 mb-5">
                 <Link
                   href="/dashboard"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2.5 rounded-lg py-2 pr-2 -ml-2 text-muted-foreground transition-colors hover:text-foreground hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background cursor-pointer"
                 >
-                  <ArrowLeft className="w-[20px] h-[20px] text-[#45556C] dark:text-neutral-400" strokeWidth={1.67} />
-                  <span className="text-[19px] font-bold text-[#45556C] dark:text-neutral-300 leading-6">
+                  <HugeiconsIcon
+                    icon={ArrowLeft01Icon}
+                    className="size-5 shrink-0"
+                  />
+                  <span className="text-sm font-semibold text-foreground">
                     Back to Dashboard
                   </span>
                 </Link>
-                <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-all text-lg w-10 h-10" />
+                <SidebarTrigger />
               </div>
-
-              {/* Settings Title */}
-              <h2 className="text-[19px] font-bold text-[#0F172B] dark:text-white leading-6">
+              <h2 className="text-lg font-semibold tracking-tight text-foreground">
                 Settings
               </h2>
             </div>
-          )}
-
-          {/* Collapsible Button when sidebar is collapsed */}
-          {isCollapsed && (
+          ) : (
             <div className="mb-4 flex justify-center">
-              <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-all text-lg w-10 h-10" />
+              <SidebarTrigger />
             </div>
           )}
 
-          {/* Navigation Items */}
+          {/* Nav */}
           <nav className="flex-1 overflow-y-auto">
             <ul
               className={cn(
-                "space-y-2",
+                "space-y-1",
                 isCollapsed && "flex flex-col items-center"
               )}
             >
               {settingsNavItems.map((item) => {
                 const isActive = activeItem === item.id;
-                const Icon = item.icon;
-
-                const content = (
-                  <div
+                const linkContent = (
+                  <span
                     className={cn(
-                      "flex items-center rounded-[10px] transition-all cursor-pointer",
+                      "flex items-center rounded-xl transition-colors cursor-pointer",
                       isCollapsed
-                        ? "justify-center w-full px-4 py-3"
-                        : "gap-3 px-4 h-12",
+                        ? "justify-center size-11 px-0"
+                        : "gap-3 px-3 py-2.5 h-11",
                       isActive
-                        ? "bg-linear-to-r from-[#FAF5FF] to-[#EFF6FF] dark:from-purple-900/20 dark:to-blue-900/20"
-                        : "hover:bg-neutral-100 dark:hover:bg-neutral-800/50"
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                   >
                     {item.emoji ? (
-                      <span className="text-[24px] leading-8">{item.emoji}</span>
-                    ) : Icon ? (
-                      <Icon
-                        className="w-5 h-5 shrink-0"
-                        strokeWidth={1.67}
-                        style={{
-                          color: isActive ? "#8200DB" : (item.iconColor || "#45556C"),
-                          stroke: isActive ? "#8200DB" : (item.iconColor || "#45556C")
-                        }}
+                      <span className="text-xl leading-none">{item.emoji}</span>
+                    ) : (
+                      <HugeiconsIcon
+                        icon={item.icon}
+                        className={cn(
+                          "size-5 shrink-0",
+                          isActive && "text-primary",
+                          item.iconClassName && !isActive && item.iconClassName
+                        )}
                       />
-                    ) : null}
+                    )}
                     {!isCollapsed && (
                       <span
-                        className={`text-[16px] leading-6 ${isActive
-                            ? "text-[#8200DB] dark:text-purple-400"
-                            : "text-[#101828] dark:text-neutral-300"
-                          }`}
+                        className={cn(
+                          "text-[15px] font-medium truncate",
+                          isActive ? "text-primary" : "text-foreground"
+                        )}
                       >
                         {item.title}
                       </span>
                     )}
-                  </div>
+                  </span>
                 );
 
                 return (
                   <li key={item.id}>
-                    {item.id === "logout" || item.isButton ? (
+                    {item.id === "logout" ? (
                       <button
+                        type="button"
                         onClick={() => onItemClick?.(item.id)}
                         className="w-full text-left"
                       >
-                        {content}
+                        {linkContent}
                       </button>
                     ) : (
-                      <Link href={item.href}>
-                        {content}
-                      </Link>
+                      <Link href={item.href}>{linkContent}</Link>
                     )}
                   </li>
                 );
@@ -223,9 +215,9 @@ export function SettingsSidebar({ className, activeItem = "profile", onItemClick
             </ul>
           </nav>
 
-          {/* Subscription Card */}
+          {/* Subscription card */}
           {!isCollapsed && (
-            <div className="mt-auto mb-4">
+            <div className="mt-auto pt-4 pb-2">
               <SubscriptionCard
                 hasActiveSubscription={hasActiveSubscription}
                 isLoading={isLoadingSubscription}
@@ -234,18 +226,21 @@ export function SettingsSidebar({ className, activeItem = "profile", onItemClick
             </div>
           )}
 
-          {/* Footer Section - Privacy, Terms, Delete Account */}
+          {/* Footer: Privacy, Terms */}
           {!isCollapsed && (
-            <div className="mt-auto flex flex-row justify-center items-center gap-6 h-[49px]">
-              <Link href="/privacy" className="text-[14px] leading-5 text-[#99A1AF] dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors">
+            <div className="mt-auto flex flex-wrap items-center justify-center gap-5 py-4 border-t border-border/80">
+              <Link
+                href="/privacy"
+                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
                 Privacy
               </Link>
-              <Link href="/terms" className="text-[14px] leading-5 text-[#99A1AF] dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors">
+              <Link
+                href="/terms"
+                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
                 Terms
               </Link>
-              <button className="text-[14px] leading-5 text-[#99A1AF] dark:text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition-colors">
-                Delete Account
-              </button>
             </div>
           )}
         </div>

@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
       // No body or invalid JSON - default to monthly
     }
 
-    // Check if user already has a subscription
-    const existingSubscription = await SubscriptionService.getUserSubscription(userId);
+    // Check if user already has a subscription (sync with Dodo to reconcile)
+    const existingSubscription = await SubscriptionService.getSubscriptionWithSync(userId);
 
     if (existingSubscription) {
       if (existingSubscription.status === 'ACTIVE') {

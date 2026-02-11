@@ -48,8 +48,8 @@ Use the **semantic tokens** in UI (`primary`, `accent`, `background`, etc.). Use
 | `--font-mono` | Space Mono, monospace fallbacks | Code |
 | `--font-display` | DM Sans | Headings, marketing |
 
-Sizes (design tokens): `--text-xs` (12px) through `--text-6xl` (48px).  
-Line height: `--leading-tight` (1.25) to `--leading-loose` (2).  
+Sizes (design tokens): `--text-xs` (12px), `--text-sm` (14px), `--text-base` (16px), `--text-lg` (18px) through `--text-6xl` (60px). Base is 16px (html 100%).  
+Line height: `--leading-tight` (1.25) to `--leading-loose` (2), plus `--leading-7` (1.75).  
 Weight: `--weight-normal` (400) to `--weight-bold` (700).
 
 In Tailwind, use `font-sans`, `font-mono`, `text-sm`, `leading-tight`, `font-semibold`, etc., which are wired to these tokens.

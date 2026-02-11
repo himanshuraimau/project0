@@ -153,16 +153,51 @@ export class SubscriptionService {
   }
 
   /**
-   * Cancel subscription
+   * Cancel subscription (immediately - use updateSubscriptionCancelState for cancel at period end)
    */
   static async cancelSubscription(
     dodoSubscriptionId: string,
     cancelAtPeriodEnd: boolean = true
   ) {
+    if (cancelAtPeriodEnd) {
+      // Keep status ACTIVE so user retains access until period end
+      return await this.updateSubscriptionCancelState(dodoSubscriptionId, true, {});
+    }
     return await this.updateSubscriptionStatus(dodoSubscriptionId, 'CANCELLED', {
       cancelledAt: new Date(),
-      cancelAtPeriodEnd,
+      cancelAtPeriodEnd: false,
     });
+  }
+
+  /**
+   * Update cancel-at-period-end state. Keeps status ACTIVE so user retains access.
+   */
+  static async updateSubscriptionCancelState(
+    dodoSubscriptionId: string,
+    cancelAtPeriodEnd: boolean,
+    periodUpdates?: { currentPeriodEnd?: Date; nextBillingDate?: Date }
+  ) {
+    try {
+      const subscription = await prisma.subscription.update({
+        where: { dodoSubscriptionId },
+        data: {
+          cancelAtPeriodEnd,
+          cancelledAt: new Date(),
+          ...periodUpdates,
+          updatedAt: new Date(),
+        },
+      });
+
+      console.log('Subscription cancel state updated:', {
+        id: subscription.id,
+        cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+      });
+
+      return subscription;
+    } catch (error) {
+      console.error('Error updating subscription cancel state:', error);
+      throw new Error('Failed to update subscription cancel state');
+    }
   }
 
   /**
@@ -209,6 +244,12 @@ export class SubscriptionService {
 
       // If subscription is PENDING, try to sync with Dodo to see if it's activated
       if (subscription.status === 'PENDING') {
+        // Pending upgrade from monthly: grant access until old monthly period ends
+        const meta = subscription.metadata as { upgradeFromMonthly?: boolean; monthlyPeriodEnd?: string } | null;
+        if (meta?.upgradeFromMonthly && meta.monthlyPeriodEnd) {
+          const periodEnd = new Date(meta.monthlyPeriodEnd);
+          if (new Date() < periodEnd) return true;
+        }
         console.log('Subscription is PENDING, syncing with Dodo...');
         subscription = await this.getSubscriptionWithSync(userId);
         if (!subscription) return false;
@@ -244,36 +285,57 @@ export class SubscriptionService {
   }
 
   /**
-   * Get subscription with Dodo sync
+   * Get subscription with Dodo sync and reconcile
+   * Dodo is the source of truth: status, product_id, period dates.
+   * Reconciles our DB when there's a mismatch (e.g. failed upgrade, pending payment).
    */
   static async getSubscriptionWithSync(userId: string) {
     const subscription = await this.getUserSubscription(userId);
 
     if (!subscription) return null;
 
-    // Sync with Dodo to get latest status
     try {
       const dodoSubscription = await DodoSubscriptionService.getSubscription(
         subscription.dodoSubscriptionId
       );
 
-      if (dodoSubscription) {
-        // Update our database with latest info from Dodo
-        const periodInfo = DodoSubscriptionService.getSubscriptionPeriodInfo(dodoSubscription);
+      if (!dodoSubscription) {
+        // Dodo returns null (e.g. subscription deleted/not found) - mark as failed
+        console.warn('Dodo subscription not found, marking as failed:', subscription.dodoSubscriptionId);
+        await this.updateSubscriptionStatus(subscription.dodoSubscriptionId, 'FAILED');
+        return await this.getUserSubscription(userId);
+      }
 
-        await this.updateSubscriptionStatus(
-          subscription.dodoSubscriptionId,
-          dodoSubscription.status.toUpperCase() as SubscriptionStatus,
-          {
+      const periodInfo = DodoSubscriptionService.getSubscriptionPeriodInfo(dodoSubscription);
+      const dodoStatus = dodoSubscription.status.toUpperCase() as SubscriptionStatus;
+      const dodoProductId = dodoSubscription.product_id;
+      const meta = subscription.metadata as { upgradeFromMonthly?: boolean } | null;
+
+      // Pending upgrade: preserve monthlyPeriodEnd (user keeps access until then)
+      const preserveUpgradePeriod =
+        meta?.upgradeFromMonthly && subscription.status === 'PENDING' && dodoStatus === 'PENDING';
+
+      const periodUpdates = preserveUpgradePeriod
+        ? {} // Don't overwrite period - we stored monthly end in replaceWithPendingYearlyUpgrade
+        : {
             currentPeriodStart: periodInfo.currentPeriodStart,
             currentPeriodEnd: periodInfo.currentPeriodEnd,
             nextBillingDate: periodInfo.nextBillingDate,
             cancelAtPeriodEnd: periodInfo.cancelAtPeriodEnd,
-          }
-        );
+          };
+
+      // Reconcile: sync status, period dates, cancel state from Dodo
+      await this.updateSubscriptionStatus(subscription.dodoSubscriptionId, dodoStatus, periodUpdates);
+
+      // Reconcile product_id: Dodo is source of truth (handles failed upgrades, plan changes)
+      if (subscription.productId !== dodoProductId) {
+        console.log('Reconciling product ID from Dodo:', {
+          dbProductId: subscription.productId,
+          dodoProductId,
+        });
+        await this.updateSubscriptionProductId(subscription.dodoSubscriptionId, dodoProductId);
       }
 
-      // Fetch updated subscription
       return await this.getUserSubscription(userId);
     } catch (error) {
       console.error('Error syncing with Dodo:', error);
@@ -294,6 +356,68 @@ export class SubscriptionService {
     } catch (error) {
       console.error('Error deleting subscription:', error);
       throw new Error('Failed to delete subscription');
+    }
+  }
+
+  /**
+   * Replace subscription for upgrade: switch to new Dodo subscription (yearly, payment pending)
+   * User keeps access until monthlyPeriodEnd (from old monthly) while yearly payment is pending.
+   */
+  static async replaceWithPendingYearlyUpgrade(
+    userId: string,
+    newDodoSubscriptionId: string,
+    yearlyProductId: string,
+    monthlyPeriodEnd: Date
+  ) {
+    try {
+      const subscription = await prisma.subscription.update({
+        where: { userId },
+        data: {
+          dodoSubscriptionId: newDodoSubscriptionId,
+          productId: yearlyProductId,
+          status: 'PENDING',
+          cancelAtPeriodEnd: false,
+          cancelledAt: null,
+          currentPeriodEnd: monthlyPeriodEnd, // Keep access until old monthly period ends
+          nextBillingDate: null,
+          metadata: { upgradeFromMonthly: true, monthlyPeriodEnd: monthlyPeriodEnd.toISOString() },
+          updatedAt: new Date(),
+        },
+      });
+
+      console.log('Subscription replaced for yearly upgrade:', { userId, newDodoSubscriptionId });
+      return subscription;
+    } catch (error) {
+      console.error('Error replacing subscription for upgrade:', error);
+      throw new Error('Failed to replace subscription for upgrade');
+    }
+  }
+
+  /**
+   * Update subscription product ID (for upgrades/downgrades)
+   */
+  static async updateSubscriptionProductId(
+    dodoSubscriptionId: string,
+    newProductId: string
+  ) {
+    try {
+      const subscription = await prisma.subscription.update({
+        where: { dodoSubscriptionId },
+        data: {
+          productId: newProductId,
+          updatedAt: new Date(),
+        },
+      });
+
+      console.log('Subscription product ID updated:', {
+        id: subscription.id,
+        productId: subscription.productId,
+      });
+
+      return subscription;
+    } catch (error) {
+      console.error('Error updating subscription product ID:', error);
+      throw new Error('Failed to update subscription product ID');
     }
   }
 
@@ -362,17 +486,25 @@ export class SubscriptionService {
 
     const isActive = subscription.status === 'ACTIVE';
     const isTrial = this.isInTrialPeriod(subscription);
-    const daysRemaining = this.getDaysUntilEnd(subscription);
-    const hasAccess = isActive && (!subscription.cancelAtPeriodEnd || (daysRemaining && daysRemaining > 0));
+    const meta = subscription.metadata as { upgradeFromMonthly?: boolean; monthlyPeriodEnd?: string } | null;
+    const isPendingUpgrade = subscription.status === 'PENDING' && meta?.upgradeFromMonthly && meta.monthlyPeriodEnd;
+    const monthlyEnd = isPendingUpgrade ? new Date(meta!.monthlyPeriodEnd!) : null;
+    const daysRemaining = monthlyEnd
+      ? Math.ceil((monthlyEnd.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+      : this.getDaysUntilEnd(subscription);
+    const hasAccess =
+      isActive && (!subscription.cancelAtPeriodEnd || (daysRemaining && daysRemaining > 0)) ||
+      (isPendingUpgrade && monthlyEnd && new Date() < monthlyEnd);
 
     return {
       status: subscription.status,
-      displayStatus: this.getDisplayStatus(subscription),
+      displayStatus: this.getDisplayStatus(subscription, isPendingUpgrade),
       hasAccess,
-      isActive,
+      isActive: isActive || (isPendingUpgrade && hasAccess),
       isTrial,
       daysRemaining,
       nextBillingDate: subscription.nextBillingDate,
+      currentPeriodEnd: subscription.currentPeriodEnd || monthlyEnd,
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
       cancelledAt: subscription.cancelledAt,
     };
@@ -381,7 +513,7 @@ export class SubscriptionService {
   /**
    * Get human-readable display status
    */
-  private static getDisplayStatus(subscription: any): string {
+  private static getDisplayStatus(subscription: any, isPendingUpgrade?: boolean): string {
     const status = subscription.status;
     const isTrial = this.isInTrialPeriod(subscription);
 
@@ -390,6 +522,8 @@ export class SubscriptionService {
       if (subscription.cancelAtPeriodEnd) return 'Active (Cancelling)';
       return 'Active';
     }
+
+    if (isPendingUpgrade) return 'Payment pending - complete to upgrade';
 
     const statusMap: Record<string, string> = {
       PENDING: 'Pending',

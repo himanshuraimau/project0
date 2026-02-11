@@ -1,41 +1,42 @@
 "use client";
+
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
-  CloudUpload,
-  FileText,
-  Globe,
-  Link,
-  Mic,
-  Upload,
-  Video,
-  X,
-  StopCircle,
-  Trash2,
-  Play,
-  Save,
-  Sparkles,
-  Pin,
-  ChevronDown,
-} from "lucide-react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Mic01Icon,
+  Upload01Icon,
+  File01Icon,
+  Link01Icon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  StopIcon,
+  Delete01Icon,
+  PlayIcon,
+  MagicWand01Icon,
+  ArrowDown01Icon,
+  Loading01Icon,
+  Folder01Icon,
+} from "@hugeicons/core-free-icons";
 import { UploadTextModal } from "@/components/pdf";
 import { ProcessPDFResult } from "@/lib/types";
 import { AudioRecorder, AudioUploadModal } from "@/components/audio";
 import { AddLinkModal } from "@/components/link";
-import { Inter } from "next/font/google";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { toast } from "sonner";
-
-const inter = Inter({ subsets: ["latin"] });
 
 // AudioRecorderModal Component with full recording functionality
 type RecordingState = "idle" | "recording" | "paused";
@@ -54,8 +55,16 @@ interface AudioRecorderModalProps {
   }) => void;
 }
 
-function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderModalProps) {
-  const { addLoadingNote, updateLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
+function AudioRecorderModal({
+  onClose,
+  onTranscriptionComplete,
+}: AudioRecorderModalProps) {
+  const {
+    addLoadingNote,
+    updateLoadingNote,
+    removeLoadingNote,
+    triggerRefresh,
+  } = useDashboardRefresh();
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [seconds, setSeconds] = useState(0);
   const [audioLanguage, setAudioLanguage] = useState("English");
@@ -63,11 +72,17 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentTempId, setCurrentTempId] = useState<string | null>(null);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
 
   const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
+  const streamRef = React.useRef<MediaStream | null>(null);
   const audioChunksRef = React.useRef<Blob[]>([]);
   const mimeTypeRef = React.useRef<string>("audio/webm");
   const recordingTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const pendingBlobResolveRef = React.useRef<((blob: Blob) => void) | null>(null);
+  const cancellingRef = React.useRef(false);
+  const audioPreviewRef = React.useRef<HTMLAudioElement | null>(null);
+  const previewUrlRef = React.useRef<string | null>(null);
 
   // Timer effect
   React.useEffect(() => {
@@ -98,7 +113,8 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         toast.error("Recording not supported", {
-          description: "Your browser doesn't support audio recording. Please try a different browser.",
+          description:
+            "Your browser doesn't support audio recording. Please try a different browser.",
           duration: 5000,
         });
         return;
@@ -111,6 +127,8 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
           sampleRate: 44100,
         },
       });
+
+      streamRef.current = stream;
 
       let mimeType = "audio/webm";
       if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
@@ -129,46 +147,149 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
       setSeconds(0);
 
       mediaRecorder.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
+
+      // Use timeslice so we get chunks during recording (needed for play preview when paused)
+      const timesliceMs = 500;
+      mediaRecorder.start(timesliceMs);
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
+        if (cancellingRef.current) {
+          streamRef.current?.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+          return;
+        }
+        const blob = new Blob(audioChunksRef.current, {
           type: mimeTypeRef.current,
         });
-        setAudioBlob(audioBlob);
-        stream.getTracks().forEach((track) => track.stop());
+        setAudioBlob(blob);
+        if (pendingBlobResolveRef.current) {
+          pendingBlobResolveRef.current(blob);
+          pendingBlobResolveRef.current = null;
+        }
+        streamRef.current?.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
       };
 
-      mediaRecorder.start();
       setRecordingState("recording");
     } catch (error) {
       console.error("Error starting recording:", error);
       toast.error("Failed to start recording", {
-        description: "Please ensure microphone access is granted and try again.",
+        description:
+          "Please ensure microphone access is granted and try again.",
         duration: 5000,
       });
     }
   };
 
   const handleStop = () => {
-    if (mediaRecorderRef.current && recordingState === "recording") {
-      mediaRecorderRef.current.stop();
-      setRecordingState("paused");
+    const mr = mediaRecorderRef.current;
+    if (mr && recordingState === "recording") {
+      if (typeof mr.pause === "function") {
+        if (typeof mr.requestData === "function") mr.requestData();
+        mr.pause();
+        setRecordingState("paused");
+      } else {
+        mr.stop();
+        setRecordingState("paused");
+      }
     }
   };
 
   const handleResume = () => {
-    // For resume, we need to start a new recording session
-    handleStartRecording();
+    const mr = mediaRecorderRef.current;
+    if (mr && recordingState === "paused") {
+      if (typeof mr.resume === "function") {
+        mr.resume();
+        setRecordingState("recording");
+      } else {
+        toast.error("Pause/resume not supported in this browser", {
+          description:
+            "Please record in a single session or switch to a modern browser that supports pause/resume.",
+          duration: 5000,
+        });
+      }
+    }
   };
 
   const handleDelete = () => {
+    stopPreviewPlayback();
+    const mr = mediaRecorderRef.current;
+    if (mr && (recordingState === "recording" || recordingState === "paused")) {
+      cancellingRef.current = true;
+      mr.stop();
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      cancellingRef.current = false;
+    }
     setRecordingState("idle");
     setSeconds(0);
     setAudioBlob(null);
     audioChunksRef.current = [];
   };
+
+  const stopPreviewPlayback = () => {
+    const audio = audioPreviewRef.current;
+    if (audio) {
+      audio.pause();
+      audio.removeAttribute("src");
+    }
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    setIsPlayingPreview(false);
+  };
+
+  const handlePlayPreview = () => {
+    if (isPlayingPreview) {
+      stopPreviewPlayback();
+      return;
+    }
+    const chunks = audioChunksRef.current;
+    if (chunks.length === 0) {
+      toast.error("No audio to play yet", {
+        description: "Record for a moment, then stop to listen back.",
+        duration: 4000,
+      });
+      return;
+    }
+    const blob = new Blob(chunks, { type: mimeTypeRef.current });
+    if (blob.size === 0) {
+      toast.error("No audio to play yet", {
+        description: "Record for a moment, then stop to listen back.",
+        duration: 4000,
+      });
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    previewUrlRef.current = url;
+    const audio = audioPreviewRef.current;
+    if (!audio) {
+      URL.revokeObjectURL(url);
+      previewUrlRef.current = null;
+      return;
+    }
+    audio.src = url;
+    audio.play()
+      .then(() => setIsPlayingPreview(true))
+      .catch((err) => {
+        console.error("Preview playback failed:", err);
+        URL.revokeObjectURL(url);
+        previewUrlRef.current = null;
+        toast.error("Playback failed", {
+          description: "Your browser may not support playing this format. Try generating notes instead.",
+          duration: 5000,
+        });
+      });
+  };
+
+  React.useEffect(() => {
+    if (recordingState !== "paused") stopPreviewPlayback();
+  }, [recordingState]);
 
   const handleSave = () => {
     // This would save without generating notes
@@ -176,7 +297,19 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
   };
 
   const handleGenerateNotes = async () => {
-    if (!audioBlob) {
+    let blobToUse: Blob | null = audioBlob;
+
+    if (recordingState === "recording" || recordingState === "paused") {
+      const mr = mediaRecorderRef.current;
+      if (mr) {
+        blobToUse = await new Promise<Blob>((resolve) => {
+          pendingBlobResolveRef.current = resolve;
+          mr.stop();
+        });
+      }
+    }
+
+    if (!blobToUse) {
       toast.error("No audio recorded", {
         description: "Please record audio first before generating notes.",
         duration: 4000,
@@ -185,10 +318,12 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
     }
 
     const maxFileSize = 25 * 1024 * 1024; // 25MB
-    if (audioBlob.size > maxFileSize) {
+    if (blobToUse.size > maxFileSize) {
       toast.error("Recording too large!", {
         description: `Maximum size is 25MB. Your recording is ${(
-          audioBlob.size / 1024 / 1024
+          blobToUse.size /
+          1024 /
+          1024
         ).toFixed(2)}MB. Please record a shorter audio.`,
         duration: 5000,
       });
@@ -209,7 +344,7 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
       updateLoadingNote(tempId, { stage: "processing" });
 
       const formData = new FormData();
-      formData.append("audio", audioBlob);
+      formData.append("audio", blobToUse);
       formData.append("fileName", `recording-${Date.now()}`);
 
       const response = await fetch("/api/audio/transcribe", {
@@ -225,17 +360,17 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
 
         // Update loading note with transcript ID and stage
         if (responseData.transcript?.id) {
-          updateLoadingNote(tempId, { 
+          updateLoadingNote(tempId, {
             transcriptId: responseData.transcript.id,
-            stage: "generating"
+            stage: "generating",
           });
         }
 
         // If note was generated, update with note ID
         if (responseData.note?.id) {
-          updateLoadingNote(tempId, { 
+          updateLoadingNote(tempId, {
             noteId: responseData.note.id,
-            stage: "completed"
+            stage: "completed",
           });
         }
 
@@ -262,22 +397,28 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
         setRecordingState("idle");
       } else {
         const errorData = await response.json();
-        updateLoadingNote(tempId, { 
+        updateLoadingNote(tempId, {
           stage: "error",
-          error: errorData.error || "Failed to transcribe audio"
+          error: errorData.error || "Failed to transcribe audio",
         });
         throw new Error(errorData.error || "Failed to transcribe audio");
       }
     } catch (error) {
       console.error("Transcription error:", error);
       if (currentTempId) {
-        updateLoadingNote(currentTempId, { 
+        updateLoadingNote(currentTempId, {
           stage: "error",
-          error: error instanceof Error ? error.message : "Failed to transcribe audio"
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to transcribe audio",
         });
       }
       toast.error("Failed to transcribe audio", {
-        description: error instanceof Error ? error.message : "Please try again or contact support if the issue persists.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Please try again or contact support if the issue persists.",
         duration: 5000,
       });
     } finally {
@@ -289,140 +430,251 @@ function AudioRecorderModal({ onClose, onTranscriptionComplete }: AudioRecorderM
     }
   };
 
+  const selectWrapperClass =
+    "flex items-center gap-3 h-12 rounded-xl border border-primary/25 bg-primary/[0.06] dark:bg-primary/[0.12] transition-[border-color,box-shadow] focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:ring-offset-2 focus-within:ring-offset-card overflow-hidden pl-3 pr-1";
+  const selectTriggerClass =
+    "!h-12 flex-1 min-w-0 w-full rounded-none border-0 bg-transparent shadow-none pl-3 pr-9 py-0 text-sm font-medium text-foreground text-left cursor-pointer hover:bg-transparent focus:ring-0 focus-visible:ring-0 data-[placeholder]:text-muted-foreground [&_svg]:text-primary/90 [&_svg]:size-4";
+
   return (
-    <div className="w-full max-w-[664px] bg-white dark:bg-zinc-900 rounded-[29px] px-6 py-11">
+    <div className="w-full max-w-[580px] rounded-2xl border border-border bg-card px-6 py-6 shadow-lg dark:shadow-none dark:bg-neutral-900/95 dark:border-neutral-800">
       {/* Header */}
-      <div className="flex items-center justify-between mb-20">
-        <h2 className="text-[24px] font-bold text-[#101828] dark:text-white leading-[30px]">Record audio</h2>
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <HugeiconsIcon icon={Mic01Icon} className="size-5" />
+          </div>
+          <h2 className="text-lg font-semibold tracking-tight text-foreground truncate">
+            Record audio
+          </h2>
+        </div>
         <button
+          type="button"
           onClick={onClose}
-          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors w-9 h-[33px]"
+          className="flex size-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          aria-label="Close"
         >
-          <X size={36} className="text-[#99A1AF]" strokeWidth={2.5} />
+          <HugeiconsIcon icon={Cancel01Icon} className="size-5" />
         </button>
       </div>
 
-      {/* Dynamic Recording Area */}
+      {/* Recording area */}
       <div className="mb-8">
         {recordingState === "idle" && (
           <button
+            type="button"
             onClick={handleStartRecording}
             disabled={isProcessing}
-            className="w-[330px] h-12 mx-auto bg-gradient-to-r from-[#FF6467] to-[#FB64B6] text-white font-bold rounded-2xl flex items-center justify-center gap-3 hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="w-full h-11 rounded-lg bg-red-600 text-white font-medium flex items-center justify-center gap-2.5 cursor-pointer hover:bg-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Mic size={26} />
-            <span className="text-[19px] leading-5">Start recording</span>
+            <HugeiconsIcon icon={Mic01Icon} className="size-5 shrink-0" />
+            <span>Start recording</span>
           </button>
         )}
 
         {recordingState === "recording" && (
-          <div className="space-y-[21px] flex flex-col items-center">
-            <div className="w-[330px] h-12 bg-linear-to-r from-[#FF6467] to-[#FB64B6] text-white rounded-2xl flex items-center justify-center gap-3">
-              <Mic size={20} />
-              <span className="font-bold text-[19px] leading-5">{formatTime(seconds)}</span>
+          <div className="space-y-4 flex flex-col items-stretch">
+            <div className="h-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center gap-2.5">
+              <HugeiconsIcon icon={Mic01Icon} className="size-5 shrink-0" />
+              <span className="font-semibold text-sm tabular-nums">
+                {formatTime(seconds)}
+              </span>
             </div>
             <button
+              type="button"
               onClick={handleStop}
-              className="w-[330px] h-12 bg-[#8F8F8F] text-white font-bold rounded-2xl hover:bg-[#7a7a7a] transition-colors"
+              className="w-full h-11 rounded-lg bg-muted text-foreground font-medium text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-muted/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <span className="text-[19px] leading-6">Stop</span>
+              <HugeiconsIcon icon={StopIcon} className="size-4 shrink-0" />
+              <span>Stop</span>
             </button>
           </div>
         )}
 
         {recordingState === "paused" && (
-          <div className="space-y-3 flex flex-col items-center">
-            <div className="w-[330px] h-12 bg-gradient-to-r from-[#FF6467] to-[#FB64B6] text-white rounded-2xl flex items-center justify-center gap-3">
-              <Mic size={20} />
-              <span className="font-bold text-[19px] leading-5">{formatTime(seconds)}</span>
+          <div className="space-y-4 flex flex-col items-stretch">
+            <div className="h-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center gap-2.5">
+              <HugeiconsIcon icon={Mic01Icon} className="size-5 shrink-0" />
+              <span className="font-semibold text-sm tabular-nums">
+                {formatTime(seconds)}
+              </span>
             </div>
-            <div className="flex gap-3 w-[330px]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
+                type="button"
                 onClick={handleDelete}
-                className="flex-1 h-12 bg-[#FFE2E2] text-[#FB2C36] rounded-2xl hover:bg-[#ffd0d0] transition-colors flex items-center justify-center"
+                className="h-10 rounded-lg bg-destructive/10 text-destructive font-medium text-sm flex items-center justify-center gap-1.5 cursor-pointer hover:bg-destructive/15 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <span className="text-[16px] leading-6">Delete</span>
+                <HugeiconsIcon
+                  icon={Delete01Icon}
+                  className="size-4 shrink-0"
+                />
+                <span>Delete</span>
               </button>
               <button
+                type="button"
+                onClick={handlePlayPreview}
+                className="h-10 rounded-lg bg-muted text-foreground font-medium text-sm flex items-center justify-center gap-1.5 cursor-pointer hover:bg-muted/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <HugeiconsIcon
+                  icon={isPlayingPreview ? StopIcon : PlayIcon}
+                  className="size-4 shrink-0"
+                />
+                <span>{isPlayingPreview ? "Stop" : "Play"}</span>
+              </button>
+              <button
+                type="button"
                 onClick={handleResume}
-                className="flex-1 h-12 bg-[#FB2C36] text-white rounded-2xl hover:bg-[#e02832] transition-colors flex items-center justify-center"
+                className="h-10 rounded-lg bg-primary text-primary-foreground font-medium text-sm flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <span className="text-[16px] leading-6">Resume</span>
+                <HugeiconsIcon icon={PlayIcon} className="size-4 shrink-0" />
+                <span>Resume</span>
               </button>
               <button
+                type="button"
                 onClick={handleSave}
-                className="flex-1 h-12 bg-[#8F8F8F] text-white rounded-2xl hover:bg-[#7a7a7a] transition-colors flex items-center justify-center"
+                className="h-10 rounded-lg bg-muted text-foreground font-medium text-sm flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <span className="text-[16px] leading-6">Save</span>
+                <span>Save</span>
               </button>
             </div>
+            <p className="text-xs text-muted-foreground text-center">
+              Play to listen to what you&apos;ve recorded so far
+            </p>
           </div>
         )}
       </div>
 
-      {/* Form Fields */}
-      <div className="space-y-6 mb-[63px]">
-        <div>
-          <label className="block text-[19px] font-bold text-[#364153] dark:text-gray-300 mb-[14px] leading-5">
+      {/* Hidden audio for preview playback when paused */}
+      <audio
+        ref={audioPreviewRef}
+        className="sr-only"
+        aria-hidden
+        onEnded={stopPreviewPlayback}
+      />
+
+      {/* Form fields — premium select inputs with themed dropdown */}
+      <div className="space-y-5 mb-8">
+        <div className="space-y-2">
+          <label
+            className="block text-sm font-medium text-foreground"
+            id="audio-language-label"
+          >
             Audio language
           </label>
-          <div className="relative">
-            <select
+          <div className={selectWrapperClass}>
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <HugeiconsIcon icon={Mic01Icon} className="size-4" />
+            </div>
+            <Select
               value={audioLanguage}
-              onChange={(e) => setAudioLanguage(e.target.value)}
-              className="w-full h-[53px] px-3 pr-10 bg-white dark:bg-zinc-800 border-[1.5px] border-[#D4D4D4] dark:border-zinc-700 rounded-[10px] appearance-none text-[16px] text-[#0A0A0A] dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:focus:ring-pink-500 focus:border-transparent"
+              onValueChange={setAudioLanguage}
+              disabled={isProcessing}
             >
-              <option>English</option>
-              <option>Spanish</option>
-              <option>French</option>
-              <option>German</option>
-              <option>Chinese</option>
-            </select>
-            <ChevronDown
-              size={16}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#717182] opacity-50 pointer-events-none"
-              strokeWidth={1.33}
-            />
+              <SelectTrigger
+                className={selectTriggerClass}
+                aria-labelledby="audio-language-label"
+              >
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent
+                className="bg-popover text-popover-foreground border-border dark:bg-neutral-900 dark:border-neutral-800 min-w-(--radix-select-trigger-width)"
+                position="popper"
+                align="start"
+              >
+                <SelectItem value="English" className="cursor-pointer">
+                  English
+                </SelectItem>
+                <SelectItem value="Spanish" className="cursor-pointer">
+                  Spanish
+                </SelectItem>
+                <SelectItem value="French" className="cursor-pointer">
+                  French
+                </SelectItem>
+                <SelectItem value="German" className="cursor-pointer">
+                  German
+                </SelectItem>
+                <SelectItem value="Chinese" className="cursor-pointer">
+                  Chinese
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-
-        <div>
-          <label className="block text-[19px] font-bold text-[#364153] dark:text-gray-300 mb-2 leading-5">
+        <div className="space-y-2">
+          <label
+            className="block text-sm font-medium text-foreground"
+            id="folder-label"
+          >
             Folder
           </label>
-          <div className="relative">
-            <select
+          <div className={selectWrapperClass}>
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <HugeiconsIcon icon={Folder01Icon} className="size-4" />
+            </div>
+            <Select
               value={folder}
-              onChange={(e) => setFolder(e.target.value)}
-              className="w-full h-[53px] px-3 pr-10 bg-white dark:bg-zinc-800 border-[1.5px] border-[#E2E2E2] dark:border-zinc-700 rounded-[10px] appearance-none text-[16px] font-bold text-[#0A0A0A] dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:focus:ring-pink-500 focus:border-transparent"
+              onValueChange={setFolder}
+              disabled={isProcessing}
             >
-              <option>📁 All notes</option>
-              <option>📁 Work</option>
-              <option>📁 Personal</option>
-              <option>📁 Projects</option>
-            </select>
-            <ChevronDown
-              size={16}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#717182] opacity-50 pointer-events-none"
-              strokeWidth={1.33}
-            />
+              <SelectTrigger
+                className={selectTriggerClass}
+                aria-labelledby="folder-label"
+              >
+                <SelectValue placeholder="Select folder" />
+              </SelectTrigger>
+              <SelectContent
+                className="bg-popover text-popover-foreground border-border dark:bg-neutral-900 dark:border-neutral-800 min-w-(--radix-select-trigger-width)"
+                position="popper"
+                align="start"
+              >
+                <SelectItem value="All notes" className="cursor-pointer">
+                  All notes
+                </SelectItem>
+                <SelectItem value="Work" className="cursor-pointer">
+                  Work
+                </SelectItem>
+                <SelectItem value="Personal" className="cursor-pointer">
+                  Personal
+                </SelectItem>
+                <SelectItem value="Projects" className="cursor-pointer">
+                  Projects
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Generate Notes — premium gradient CTA */}
       <button
+        type="button"
         onClick={handleGenerateNotes}
-        disabled={isProcessing || !audioBlob}
-        className="w-full max-w-[406px] h-[51px] mx-auto bg-black dark:bg-white text-white dark:text-black font-bold rounded-[15px] hover:bg-gray-900 dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={
+          isProcessing ||
+          (!audioBlob &&
+            recordingState !== "recording" &&
+            recordingState !== "paused")
+        }
+        className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20"
       >
-        <Sparkles size={20} />
-        <span className="text-[21px] leading-5">{isProcessing ? "Processing..." : "Generate Notes"}</span>
+        {isProcessing ? (
+          <>
+            <HugeiconsIcon
+              icon={Loading01Icon}
+              className="size-4 shrink-0 animate-spin"
+            />
+            <span>Processing...</span>
+          </>
+        ) : (
+          <>
+            <HugeiconsIcon icon={MagicWand01Icon} className="size-4 shrink-0" />
+            <span>Generate notes</span>
+          </>
+        )}
       </button>
     </div>
   );
 }
-
 
 export function NewNoteSection() {
   const { refreshNotes, addLoadingNote, removeLoadingNote, triggerRefresh } =
@@ -436,7 +688,7 @@ export function NewNoteSection() {
     setShowLinkDialog(false);
 
     // Show success toast
-    if (result.note && 'id' in result.note) {
+    if (result.note && "id" in result.note) {
       toast.success("🔗 Link processed successfully! Notes generated.", {
         description: "Content extracted and notes created",
         duration: 4000,
@@ -476,7 +728,7 @@ export function NewNoteSection() {
         description: result.note.message || "Unknown error occurred",
         duration: 5000,
       });
-    } else if (result.note && 'id' in result.note) {
+    } else if (result.note && "id" in result.note) {
       toast.success("🎵 Audio processed successfully! Notes generated.", {
         description: "Audio transcribed and notes created",
         duration: 4000,
@@ -511,7 +763,7 @@ export function NewNoteSection() {
         description: result.note.message || "Unknown error occurred",
         duration: 5000,
       });
-    } else if (result.note && 'id' in result.note) {
+    } else if (result.note && "id" in result.note) {
       toast.success("🎤 Audio recorded successfully! Notes generated.", {
         description: "Recording transcribed and notes created",
         duration: 4000,
@@ -556,40 +808,53 @@ export function NewNoteSection() {
     setShowTextDialog(false);
   };
 
+  const cardBase =
+    "group flex w-full items-center gap-4 rounded-xl border border-border bg-card px-5 py-4 text-left transition-colors hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer";
 
+  const iconWrapperDefault =
+    "flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted";
+  const iconWrapperPrimary =
+    "flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground";
 
   return (
-    <div className={`w-full ${inter.className}`}>
-      <div className="flex gap-1.5 flex-col">
-        <h2
-          className={`dark:text-white text-black text-[20px] font-medium leading-[24px]`}
-        >
+    <div className="w-full">
+      <div className="mb-6">
+        <h2 className="text-xl font-medium tracking-tight text-foreground">
           New Note
         </h2>
-        <p className={`text-[15px] tracking-[-3%] text-[#787878]`}>
+        <p className="mt-0.5 text-muted-foreground">
           Record audio, upload files, or process YouTube videos and websites
         </p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mt-8">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
         <Dialog
           open={showRecordAudioDialog}
           onOpenChange={setShowRecordAudioDialog}
         >
-          <button
-            className="gradient-element px-8 h-[76px] rounded-[16px] cursor-pointer w-full"
-            onClick={() => setShowRecordAudioDialog(true)}
-          >
-            <div className="flex items-center justify-between w-full min-w-0">
-              <div className="flex gap-6 items-center">
-                <div className="text-[18px] leading-5 text-white font-medium">
-                  Record Audio
-                </div>
-                <Mic className="text-white" size={20} />
+          <DialogTrigger asChild className="border-none">
+            <button type="button" className={cardBase}>
+              <div className={iconWrapperPrimary}>
+                <HugeiconsIcon icon={Mic01Icon} className="size-5" />
               </div>
-            </div>
-          </button>
-          <DialogContent hideCloseButton className="max-w-[664px] bg-white dark:bg-white border-none shadow-2xl rounded-[29px] p-0 overflow-hidden">
+              <div className="min-w-0 flex-1">
+                <div className="text-lg font-semibold leading-snug text-foreground">
+                  Record audio
+                </div>
+                <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                  Record live
+                </div>
+              </div>
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+              />
+            </button>
+          </DialogTrigger>
+          <DialogContent
+            hideCloseButton
+            className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-visible"
+          >
             <VisuallyHidden>
               <DialogTitle>Record Audio</DialogTitle>
             </VisuallyHidden>
@@ -601,20 +866,32 @@ export function NewNoteSection() {
         </Dialog>
 
         <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>
-          <button
-            className="px-8 h-[76px] rounded-[16px] cursor-pointer bg-[#F1F1F1] dark:bg-[#1A1A1A] border border-neutral-100 dark:border-[hsl(0,0%,12%)] w-full"
-            onClick={() => setShowAudioDialog(true)}
-          >
-            <div className="flex items-center justify-between w-full min-w-0">
-              <div className="flex gap-6 items-center">
-                <div className="text-[18px] leading-5 text-black dark:text-white font-medium">
-                  Upload Audio
-                </div>
-                <Upload size={20} />
+          <DialogTrigger asChild className="border-none">
+            <button type="button" className={cardBase}>
+              <div className={iconWrapperDefault}>
+                <HugeiconsIcon
+                  icon={Upload01Icon}
+                  className="size-5 text-muted-foreground"
+                />
               </div>
-            </div>
-          </button>
-          <DialogContent hideCloseButton className="max-w-[650px] bg-white dark:bg-white border-none shadow-2xl rounded-2xl p-0 overflow-hidden">
+              <div className="min-w-0 flex-1">
+                <div className="text-lg font-semibold leading-snug text-foreground">
+                  Upload audio
+                </div>
+                <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                  Upload an audio file
+                </div>
+              </div>
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+              />
+            </button>
+          </DialogTrigger>
+          <DialogContent
+            hideCloseButton
+            className="max-w-[600px] border border-border bg-card rounded-xl shadow-lg p-0 overflow-hidden"
+          >
             <VisuallyHidden>
               <DialogTitle>Upload Audio</DialogTitle>
             </VisuallyHidden>
@@ -626,20 +903,32 @@ export function NewNoteSection() {
         </Dialog>
 
         <Dialog open={showTextDialog} onOpenChange={setShowTextDialog}>
-          <button
-            className="px-8 h-[76px] rounded-[16px] cursor-pointer bg-[#F1F1F1] dark:bg-[#1A1A1A] border border-neutral-100 dark:border-[hsl(0,0%,12%)] w-full"
-            onClick={() => setShowTextDialog(true)}
-          >
-            <div className="flex items-center justify-between w-full min-w-0">
-              <div className="flex gap-6 items-center">
-                <div className="text-[18px] leading-5 text-black dark:text-white font-medium">
-                  Upload PDF or Add Text
-                </div>
-                <FileText size={20} />
+          <DialogTrigger asChild className="border-none">
+            <button type="button" className={cardBase}>
+              <div className={iconWrapperDefault}>
+                <HugeiconsIcon
+                  icon={File01Icon}
+                  className="size-5 text-muted-foreground"
+                />
               </div>
-            </div>
-          </button>
-          <DialogContent hideCloseButton className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden">
+              <div className="min-w-0 flex-1">
+                <div className="text-lg font-semibold leading-snug text-foreground">
+                  Document upload
+                </div>
+                <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                  PDF or paste text
+                </div>
+              </div>
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+              />
+            </button>
+          </DialogTrigger>
+          <DialogContent
+            hideCloseButton
+            className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden"
+          >
             <VisuallyHidden>
               <DialogTitle>Upload Text or PDF</DialogTitle>
             </VisuallyHidden>
@@ -651,20 +940,32 @@ export function NewNoteSection() {
         </Dialog>
 
         <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
-          <button
-            className="px-8 h-[76px] rounded-[16px] cursor-pointer bg-[#F1F1F1] dark:bg-[#1A1A1A] border border-neutral-100 dark:border-[hsl(0,0%,12%)] w-full"
-            onClick={() => setShowLinkDialog(true)}
-          >
-            <div className="flex items-center justify-between w-full min-w-0">
-              <div className="flex gap-6 items-center">
-                <div className="text-[18px] leading-5 text-black dark:text-white font-medium">
-                  Youtube Video or Web Links
-                </div>
-                <Video size={20} />
+          <DialogTrigger asChild className="border-none">
+            <button type="button" className={cardBase}>
+              <div className={iconWrapperDefault}>
+                <HugeiconsIcon
+                  icon={Link01Icon}
+                  className="size-5 text-muted-foreground"
+                />
               </div>
-            </div>
-          </button>
-          <DialogContent hideCloseButton className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden">
+              <div className="min-w-0 flex-1">
+                <div className="text-lg font-semibold leading-snug text-foreground">
+                  Website link
+                </div>
+                <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                  YouTube or website link
+                </div>
+              </div>
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+              />
+            </button>
+          </DialogTrigger>
+          <DialogContent
+            hideCloseButton
+            className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden"
+          >
             <VisuallyHidden>
               <DialogTitle>Add Link</DialogTitle>
             </VisuallyHidden>

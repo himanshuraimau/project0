@@ -5,7 +5,12 @@ import { useFolders } from "@/hooks/use-folders";
 import { FolderCard } from "./folder-card";
 import { CreateFolderDialog } from "./create-folder-dialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Folder as FolderIcon, Loader2, AlertTriangle } from "lucide-react";
+import {
+  Plus,
+  Folder as FolderIcon,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react";
 import { Inter } from "next/font/google";
 import { FolderCardShimmer } from "@/components/ui/shimmer";
 
@@ -31,7 +36,7 @@ export function FoldersSection() {
             <h2 className="dark:text-white text-black text-[20px] font-medium leading-[24px]">
               Folders
             </h2>
-            <p className="text-[15px] tracking-[-3%] text-[#787878]">
+            <p className="text-[16px] tracking-[-3%] text-[#787878]">
               Organize your notes into folders
             </p>
           </div>
@@ -57,7 +62,7 @@ export function FoldersSection() {
             <h2 className="dark:text-white text-black text-[20px] font-medium leading-[24px]">
               Folders
             </h2>
-            <p className="text-[15px] tracking-[-3%] text-[#787878]">
+            <p className=" tracking-[-3%] text-[#787878]">
               Organize your notes into folders
             </p>
           </div>
@@ -88,7 +93,7 @@ export function FoldersSection() {
           <h2 className="dark:text-white text-black text-[20px] font-medium leading-[24px]">
             Folders
           </h2>
-          <p className="text-[15px] tracking-[-3%] text-[#787878]">
+          <p className="tracking-[-3%] text-[#787878]">
             Organize your notes into folders
           </p>
         </div>
@@ -128,7 +133,11 @@ export function FoldersSection() {
       {folders.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {folders.map((folder) => (
-            <FolderCard key={folder.id} folder={folder} onUpdate={handleRefresh} />
+            <FolderCard
+              key={folder.id}
+              folder={folder}
+              onUpdate={handleRefresh}
+            />
           ))}
         </div>
       )}

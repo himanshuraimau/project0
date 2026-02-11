@@ -9,90 +9,68 @@ interface ShimmerProps {
 }
 
 export function Shimmer({ className, children }: ShimmerProps) {
+  return <div className={cn("animate-pulse", className)}>{children}</div>;
+}
+
+/** Single line/block for premium skeleton (use skeleton-base on wrapper for shimmer sweep) */
+function SkeletonLine({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("animate-pulse", className)}>
-      {children}
-    </div>
+    <div className={cn("skeleton-base h-4 rounded-md", className)} {...props} />
   );
 }
 
-// Note card shimmer component
+/** Note card skeleton with premium shimmer effect */
 export function NoteCardShimmer() {
   return (
-    <div className="w-full bg-slate-50/80 dark:bg-black border border-black/10 dark:border-border/50  rounded-lg">
-      <Shimmer>
-        <div className="p-6">
-          <div className="flex items-start justify-between gap-4">
-            {/* Left section - Title and Content */}
-            <div className="flex-1 min-w-0">
-              {/* Title */}
-              <div className="mb-2">
-                <div className="h-6 shimmer-element rounded w-3/4 mb-1"></div>
-                <div className="h-5 shimmer-element rounded w-1/2"></div>
-              </div>
-              
-              {/* Date */}
-              <div className="mb-3">
-                <div className="h-4 shimmer-element rounded w-24"></div>
-              </div>
-
-              {/* Content Preview */}
-              <div className="space-y-2">
-                <div className="h-4 shimmer-element rounded w-full"></div>
-                <div className="h-4 shimmer-element rounded w-5/6"></div>
-              </div>
-            </div>
-
-            {/* Right section - Action Buttons */}
-            <div className="flex flex-col gap-2 shrink-0">
-              <div className="h-8 w-16 shimmer-element rounded-full"></div>
-              <div className="h-8 w-18 shimmer-element rounded-full"></div>
+    <div className="w-full rounded-2xl border-none bg-card overflow-hidden">
+      <div className="p-5">
+        <div className="flex items-center justify-between gap-3">
+          {/* Left: icon + content */}
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            {/* Icon placeholder */}
+            <div className="skeleton-base h-14 w-14 shrink-0 rounded-xl" />
+            <div className="flex-1 min-w-0 space-y-2">
+              <SkeletonLine className="h-5 w-3/4 max-w-[200px]" />
+              <SkeletonLine className="h-4 w-20" />
             </div>
           </div>
+          {/* Right: buttons */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="skeleton-base h-8 w-16 rounded-md" />
+            <div className="skeleton-base h-8 w-14 rounded-md" />
+          </div>
         </div>
-      </Shimmer>
+      </div>
     </div>
   );
 }
 
-// Folder card shimmer component
+/** Folder card skeleton with premium shimmer */
 export function FolderCardShimmer() {
   return (
-    <div className="w-full neomorphic border-0 rounded-2xl">
-      <Shimmer>
-        <div className="p-6">
-          <div className="flex items-start justify-between gap-4">
-            {/* Left section - Icon and Content */}
-            <div className="flex items-start gap-4 flex-1 min-w-0">
-              {/* Folder Icon */}
-              <div className="shrink-0">
-                <div className="h-[52px] w-[52px] shimmer-element rounded-md"></div>
+    <div className="w-full rounded-2xl border border-border bg-card overflow-hidden">
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4 flex-1 min-w-0">
+            <div className="skeleton-base h-[52px] w-[52px] shrink-0 rounded-lg" />
+            <div className="flex-1 min-w-0 space-y-2">
+              <SkeletonLine className="h-6 w-2/3 max-w-[140px]" />
+              <SkeletonLine className="h-4 w-16" />
+              <div className="space-y-1.5 pt-1">
+                <SkeletonLine className="w-full" />
+                <SkeletonLine className="w-4/5" />
               </div>
-              
-              {/* Folder Info */}
-              <div className="flex-1 min-w-0">
-                {/* Name */}
-                <div className="h-6 shimmer-element rounded w-2/3 mb-1"></div>
-                
-                {/* Note count */}
-                <div className="h-4 shimmer-element rounded w-20 mb-2"></div>
-
-                {/* Description */}
-                <div className="space-y-1.5">
-                  <div className="h-3.5 shimmer-element rounded w-full"></div>
-                  <div className="h-3.5 shimmer-element rounded w-4/5"></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right section - Menu and Chevron */}
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 shimmer-element rounded-full"></div>
-              <div className="h-10 w-10 shimmer-element rounded-full"></div>
             </div>
           </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="skeleton-base h-8 w-8 rounded-md" />
+            <div className="skeleton-base h-10 w-10 rounded-lg" />
+          </div>
         </div>
-      </Shimmer>
+      </div>
     </div>
   );
 }

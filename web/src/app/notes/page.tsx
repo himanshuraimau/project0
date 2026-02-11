@@ -20,12 +20,12 @@ function NotesPageContent() {
   const notesListRef = useRef<NotesListRef>(null);
 
   return (
-    <SidebarInset className="flex flex-col flex-1">
-      {/* Content */}
-      <main className="flex-1 bg-background px-4 pt-10">
-        <div className="max-w-none w-full px-6 py-8">
-          {/* Notes Display */}
-          <div className="w-full">
+    <SidebarInset className="flex flex-col flex-1 min-h-0">
+      {/* Content - h-screen so section is viewport height, inner area scrolls */}
+      <main className="h-screen flex flex-col bg-background px-4 pt-10 overflow-hidden">
+        <div className="flex-1 min-h-0 max-w-none w-full px-6 py-8 flex flex-col overflow-hidden">
+          {/* Notes Display - scrollable */}
+          <div className="w-full flex-1 min-h-0 overflow-y-auto">
             <NotesList ref={notesListRef} searchQuery={searchQuery} />
           </div>
         </div>

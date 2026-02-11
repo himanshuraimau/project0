@@ -1,10 +1,19 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Share2, Star } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Share07Icon,
+  StarIcon,
+  Tick01Icon,
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 import { FlashcardViewerProps } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { SessionComplete } from "./SessionComplete";
+import { toast } from "sonner";
 
 export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   flashcards,
@@ -22,26 +31,24 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
 
   if (flashcards.length === 0) {
     return (
-      <div className="h-[92vh] flex items-center justify-center bg-transparent">
-        <Card className="bg-transparent border-none">
-          <CardContent className="flex flex-col items-center justify-center py-8">
-            <h3 className="text-3xl font-medium text-stone-900 dark:text-stone-100 mb-3">
-              Generate Flashcards
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <Card className="rounded-xl border border-border bg-card shadow-sm">
+          <CardContent className="py-10 px-6 text-center space-y-3">
+            <h3 className="text-xl font-semibold text-foreground">
+              Generate flashcards
             </h3>
-            <p className="text-stone-600 dark:text-stone-400 text-base text-center mb-6 max-w-md">
-              Create interactive flashcards from your notes to enhance memory
-              retention and support active recall learning.
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Turn this note into a focused flashcard session to practice active
+              recall and spaced repetition.
             </p>
-
             <Button
               onClick={onGenerate}
-              className="flex items-center gap-2 bg-accent hover:bg-accent/90 cursor-pointer text-accent-foreground text-base px-6 py-3 rounded-lg transition-all duration-200"
+              className="h-10 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 px-5 text-sm font-medium"
             >
-              Generate Flashcards
+              Start flashcard session
             </Button>
-
-            <p className="text-sm text-stone-500 mt-2">
-              This may take a few moments...
+            <p className="text-xs text-muted-foreground">
+              This may take a few moments…
             </p>
           </CardContent>
         </Card>
@@ -103,15 +110,17 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
       if (navigator.share) {
         await navigator.share({
           title: `Flashcards: ${noteTitle}`,
-          text: 'Check out these AI-generated flashcards!',
+          text: "Check out these AI-generated flashcards!",
           url: shareUrl,
         });
       } else {
         await navigator.clipboard.writeText(shareUrl);
-        alert('Link copied to clipboard!');
+        toast.success("Link copied to clipboard", {
+          position: "top-center",
+        });
       }
     } catch (error) {
-      console.error('Share error:', error);
+      console.error("Share error:", error);
     }
   };
 
@@ -129,81 +138,57 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   };
 
   const handleCloseSession = () => {
-    router.push('/dashboard');
+    router.back();
   };
 
   return (
-    <div className="px-20 py-6">
-      {/* Header with Breadcrumb and Actions */}
-      <div className="pb-6 mb-6 border-b border-transparent" style={{
-        boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
-      }}>
-        {/* Breadcrumb with Actions */}
-        <nav className="mb-4">
-          <div className="flex items-center justify-between">
-            <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
-              <li>
-                <button
-                  onClick={() => router.push('/dashboard')}
-                  className="hover:text-foreground transition-colors"
-                >
-                  Notes
-                </button>
-              </li>
-              <li>
-                <span className="mx-2">&gt;</span>
-              </li>
-              <li className="text-foreground font-medium truncate max-w-[300px] sm:max-w-[500px]">
-                Flashcards
-              </li>
-            </ol>
-
-            {/* Share and Star Buttons */}
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleShare}
-                className="gap-2 rounded-2xl"
-              >
-                <Share2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Share</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleToggleFavorite}
-                className="text-yellow-500 hover:text-yellow-600 rounded-none"
-              >
-                <Star
-                  className="h-5 w-5"
-                  fill={isFavorite ? "currentColor" : "none"}
-                />
-              </Button>
-            </div>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      {/* Header and progress */}
+      <div className="mb-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+              Flashcards session
+            </p>
+            <h1 className="mt-1 text-xl font-semibold text-foreground">
+              {noteTitle || "Flashcards"}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Card {currentIndex + 1} of {flashcards.length} ·{" "}
+              {gotRight.length} got it right · {gotWrong.length} to review
+            </p>
           </div>
-        </nav>
-
-        {/* Title */}
-        <div>
-          <div className="text-2xl text-purple-800 pb-2">Flashcards for:</div>
-          <h1 className="text-[19px] font-bold text-foreground leading-tight">
-            {noteTitle || "Flashcards"}
-          </h1>
-        </div>
-      </div>
-
-      {/* Progress Indicator */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-[13px] text-muted-foreground">
-            Card {currentIndex + 1} of {flashcards.length}
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+              className="h-9 rounded-lg border-border text-muted-foreground hover:text-foreground gap-1.5"
+            >
+              <HugeiconsIcon icon={Share07Icon} className="size-4" />
+              <span className="hidden sm:inline">Share</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleToggleFavorite}
+              className={`h-9 w-9 rounded-lg ${
+                isFavorite
+                  ? "text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <HugeiconsIcon
+                icon={StarIcon}
+                className={`size-5 ${isFavorite ? "fill-current" : ""}`}
+              />
+            </Button>
           </div>
         </div>
-        <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+
+        <div className="mt-4 h-1.5 w-full rounded-full bg-muted overflow-hidden">
           <div
-            className="h-full bg-purple-500 dark:bg-purple-400 transition-all duration-300"
+            className="h-full rounded-full bg-primary transition-all duration-300"
             style={{
               width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
             }}
@@ -211,144 +196,119 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
         </div>
       </div>
 
-      {/* Flashcard Container with Stacked Deck Effect */}
-      <div className="pt-12 pb-8">
-        <div className="max-w-4xl mx-auto flex justify-center">
+      {/* Flashcard and completion views */}
+      <div className="mt-8 flex justify-center">
+        {sessionComplete ? (
+          <SessionComplete
+            totalCards={flashcards.length}
+            correctCards={gotRight.length}
+            incorrectCards={gotWrong.length}
+            onRestart={handleRestartSession}
+            onClose={handleCloseSession}
+          />
+        ) : (
+          <div className="relative w-full max-w-xl aspect-4/3">
+            {/* Subtle stacked background cards */}
+            {flashcards.length - currentIndex - 1 >= 2 && (
+              <div className="absolute inset-0 rounded-xl border border-border bg-card opacity-60 scale-[0.94] translate-y-3" />
+            )}
+            {flashcards.length - currentIndex - 1 >= 1 && (
+              <div className="absolute inset-0 rounded-xl border border-border bg-card opacity-80 scale-[0.97] translate-y-1.5" />
+            )}
 
-          {sessionComplete ? (
-            <SessionComplete
-              totalCards={flashcards.length}
-              correctCards={gotRight.length}
-              incorrectCards={gotWrong.length}
-              onRestart={handleRestartSession}
-              onClose={handleCloseSession}
-            />
-          ) : (
-            <div className="relative" style={{ width: '560px', height: '300px', perspective: '1000px' }}>
-              {/* Background Stacked Cards */}
-              {flashcards.length - currentIndex - 1 >= 2 && (
-                <div
-                  className="absolute left-1/2 top-0 bg-white dark:bg-[#1A1A1A] border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-sm"
-                  style={{
-                    width: '560px',
-                    height: '300px',
-                    transform: 'translateX(-50%) scale(0.92) translateY(-16px)',
-                    opacity: 0.7,
-                    zIndex: -2,
-                  }}
-                />
-              )}
-              {flashcards.length - currentIndex - 1 >= 1 && (
-                <div
-                  className="absolute left-1/2 top-0 bg-white dark:bg-[#1A1A1A] border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-sm"
-                  style={{
-                    width: '560px',
-                    height: '300px',
-                    transform: 'translateX(-50%) scale(0.96) translateY(-8px)',
-                    opacity: 0.85,
-                    zIndex: -1,
-                  }}
-                />
-              )}
-
-              {/* Main Flashcard with 3D Flip */}
+            {/* Main flashcard with flip */}
+            <div
+              className="absolute inset-0 cursor-pointer"
+              style={{
+                transformStyle: "preserve-3d",
+                transform: showAnswer ? "rotateY(180deg)" : "rotateY(0deg)",
+                transition:
+                  "transform 500ms cubic-bezier(0.4, 0.0, 0.2, 1)",
+              }}
+              onClick={handleFlip}
+            >
+              {/* Front */}
               <div
-                className="absolute left-1/2 top-0 cursor-pointer"
+                className="absolute inset-0 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow duration-200 p-6 sm:p-8 flex flex-col items-center justify-center"
                 style={{
-                  width: '560px',
-                  height: '300px',
-                  transformStyle: 'preserve-3d',
-                  transform: `translateX(-50%) ${showAnswer ? 'rotateY(180deg)' : 'rotateY(0deg)'}`,
-                  transition: 'transform 500ms cubic-bezier(0.4, 0.0, 0.2, 1)',
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
                 }}
-                onClick={handleFlip}
               >
-                {/* Front of Card */}
-                <div
-                  className="absolute w-full h-full bg-white dark:bg-[#1A1A1A] border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-8 flex flex-col items-center justify-center"
-                  style={{
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden',
-                  }}
-                >
-                  <div className="text-center space-y-3 w-full">
-                    <div className="text-[19px] font-medium leading-[1.5] text-foreground">
-                      {currentFlashcard.question}
-                    </div>
+                <div className="w-full text-center space-y-3">
+                  <div className="text-[17px] font-medium leading-normal text-foreground">
+                    {currentFlashcard.question}
                   </div>
-
-                  {!showAnswer && (
-                    <div className="text-[13px] text-muted-foreground mt-3 opacity-60">
-                      Click or press space to flip
-                    </div>
-                  )}
                 </div>
 
-                {/* Back of Card */}
-                <div
-                  className="absolute w-full h-full bg-purple-50 dark:bg-purple-950/20 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-8 flex flex-col items-center justify-center"
-                  style={{
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden',
-                    transform: 'rotateY(180deg)',
-                  }}
-                >
-                  <div className="text-center space-y-3 w-full">
-                    <div className="text-[19px] font-medium leading-[1.5] text-foreground">
-                      {currentFlashcard.answer}
-                    </div>
+                {!showAnswer && (
+                  <div className="mt-3 text-[13px] text-muted-foreground opacity-70">
+                    Click or press space to flip
+                  </div>
+                )}
+              </div>
+
+              {/* Back */}
+              <div
+                className="absolute inset-0 rounded-xl border border-border bg-muted shadow-sm hover:shadow-md transition-shadow duration-200 p-6 sm:p-8 flex flex-col items-center justify-center"
+                style={{
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
+                  transform: "rotateY(180deg)",
+                }}
+              >
+                <div className="w-full text-center space-y-3">
+                  <div className="text-[17px] font-medium leading-normal text-foreground">
+                    {currentFlashcard.answer}
                   </div>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* Bottom Action Controls */}
-      <div className="flex flex-col items-center mt-6 max-w-4xl mx-auto">{!sessionComplete && (
-        <div className="flex items-center gap-3">
-          {/* Previous Arrow */}
-          <Button
-            onClick={handlePrevious}
-            disabled={currentIndex === 0}
-            variant="ghost"
-            size="icon"
-            className="w-9 h-9 rounded-full disabled:opacity-30"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
+      {/* Bottom controls */}
+      {!sessionComplete && (
+        <div className="mt-8 flex flex-col items-center">
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handlePrevious}
+              disabled={currentIndex === 0}
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-full border-border text-muted-foreground hover:text-foreground disabled:opacity-40"
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
+            </Button>
 
-          {/* Got it Wrong */}
-          <Button
-            onClick={handleGotWrong}
-            variant="outline"
-            className="box-border w-[134px] h-[38px] bg-[#FEF2F2] border border-[#FFC9C9] rounded-[8px] flex-none grow-0 text-destructive"
-          >
-            Got it wrong
-          </Button>
+            <Button
+              onClick={handleGotWrong}
+              variant="outline"
+              className="h-10 rounded-lg border-destructive/40 bg-destructive/5 text-sm font-medium text-destructive px-4"
+            >
+              Got it wrong
+            </Button>
 
-          {/* Got it Right */}
-          <Button
-            onClick={handleGotRight}
-            className="w-[133px] h-[38px] bg-[#00C950] rounded-[8px] flex-none grow-0 text-white font-medium transition-all"
-          >
-            Got it right
-          </Button>
+            <Button
+              onClick={handleGotRight}
+              className="h-10 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium px-4"
+            >
+              Got it right
+            </Button>
 
-          {/* Next Arrow */}
-          <Button
-            onClick={handleNext}
-            disabled={currentIndex === flashcards.length - 1}
-            variant="ghost"
-            size="icon"
-            className="w-9 h-9 rounded-full disabled:opacity-30"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
+            <Button
+              onClick={handleNext}
+              disabled={currentIndex === flashcards.length - 1}
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-full border-border text-muted-foreground hover:text-foreground disabled:opacity-40"
+            >
+              <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+            </Button>
+          </div>
         </div>
       )}
-      </div>
     </div>
   );
 };

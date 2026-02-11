@@ -24,6 +24,10 @@ interface DashboardRefreshContextType {
   clearAllLoadingNotes: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  folderSearchQuery: string;
+  setFolderSearchQuery: (query: string) => void;
+  clonedSearchQuery: string;
+  setClonedSearchQuery: (query: string) => void;
   refreshTrigger: number;
   triggerRefresh: () => void;
 }
@@ -37,6 +41,8 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadingNotes, setLoadingNotes] = useState<LoadingNote[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [folderSearchQuery, setFolderSearchQuery] = useState("");
+  const [clonedSearchQuery, setClonedSearchQuery] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Load loading notes from localStorage on mount
@@ -151,6 +157,10 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
         clearAllLoadingNotes,
         searchQuery,
         setSearchQuery,
+        folderSearchQuery,
+        setFolderSearchQuery,
+        clonedSearchQuery,
+        setClonedSearchQuery,
         refreshTrigger,
         triggerRefresh,
       }}

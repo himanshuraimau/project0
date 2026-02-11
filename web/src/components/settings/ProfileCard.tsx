@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, User } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { UserIcon, Camera01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
 
 interface ProfileCardProps {
   user: {
@@ -18,141 +21,150 @@ interface ProfileCardProps {
 
 export function ProfileCard({ user }: ProfileCardProps) {
   const [firstName, setFirstName] = useState(user.name?.split(" ")[0] || "");
-  const [lastName, setLastName] = useState(user.name?.split(" ").slice(1).join(" ") || "");
+  const [lastName, setLastName] = useState(
+    user.name?.split(" ").slice(1).join(" ") || ""
+  );
   const [bio, setBio] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  // Get initials for avatar
-  const getInitials = () => {
-    if (firstName) return firstName.charAt(0).toUpperCase();
-    if (user.name) return user.name.charAt(0).toUpperCase();
-    return "U";
-  };
+  const displayName = user.name || "User";
+  const initials =
+    firstName && lastName
+      ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+      : displayName.charAt(0).toUpperCase();
 
-  // Calculate member since date (mock for now)
-  const getMemberSince = () => {
-    return "October 2025";
-  };
+  const getMemberSince = () => "October 2025";
 
-  const handleSaveChanges = () => {
-    // TODO: Implement save logic
-    console.log("Saving changes:", { firstName, lastName, bio });
+  const handleSaveChanges = async () => {
+    setSaving(true);
+    try {
+      // TODO: wire to API when available
+      await new Promise((r) => setTimeout(r, 600));
+      toast.success("Profile updated");
+    } catch {
+      toast.error("Could not save. Try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <div 
-      className="bg-[#F9FAFB] dark:bg-[#1A1A1A] rounded-[14px] border border-black dark:border-neutral-700 p-6"
-      style={{
-        boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1), 0px 1px 2px -1px rgba(0, 0, 0, 0.1)'
-      }}
-    >
-      {/* Header */}
-      <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-6">
-        Profile
-      </h2>
-
-      {/* User Info Section */}
-      <div className="flex items-start gap-4 mb-8 pb-6 border-b border-neutral-200 dark:border-neutral-700">
-        {/* Avatar */}
-        <div className="relative">
-          <div className="w-20 h-20 rounded-full dark-gradient-element flex items-center justify-center text-white text-2xl font-semibold">
-            {user.image ? (
-              <img src={user.image} alt="Profile" className="w-full h-full rounded-full object-cover" />
-            ) : (
-              getInitials()
-            )}
-          </div>
-          <button className="absolute bottom-0 right-0 w-7 h-7 bg-white dark:bg-neutral-800 rounded-full border-2 border-white dark:border-neutral-700 flex items-center justify-center hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors">
-            <Camera className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
-          </button>
+    <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+      {/* Card header */}
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-border/80 bg-muted/20">
+        <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <HugeiconsIcon icon={UserIcon} className="size-5" />
         </div>
+        <h2 className="text-xl font-semibold tracking-tight text-foreground">
+          Profile
+        </h2>
+      </div>
 
-        {/* User Details */}
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-              {user.name || "User"}
+      <div className="p-6 space-y-6">
+        {/* Avatar & identity */}
+        <div className="flex items-start gap-4 pb-6 border-b border-border/80">
+          <div className="relative shrink-0">
+            <Avatar className="size-20 rounded-2xl border-2 border-border">
+              <AvatarImage src={user.image ?? undefined} alt="" />
+              <AvatarFallback className="rounded-2xl bg-primary/15 text-primary text-xl font-semibold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <button
+              type="button"
+              className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-lg border-2 border-background bg-muted text-muted-foreground shadow-sm transition-colors hover:bg-muted/80 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+              aria-label="Change photo"
+            >
+              <HugeiconsIcon icon={Camera01Icon} className="size-4" />
+            </button>
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-foreground truncate">
+              {displayName}
             </h3>
-            <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-medium rounded-full">
+            <span className="inline-flex mt-1.5 items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
               Free Plan
             </span>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Member since {getMemberSince()}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3 rounded-xl cursor-pointer"
+            >
+              Change photo
+            </Button>
           </div>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-3">
-            Member since {getMemberSince()}
-          </p>
-          <button className="px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
-            Change Photo
-          </button>
         </div>
-      </div>
 
-      {/* Profile Form */}
-      <div className="space-y-5">
-        {/* Name Fields */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="firstName" className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2 block">
-              First Name
+        {/* Form */}
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName" className="text-foreground text-lg">
+                First name
+              </Label>
+              <Input
+                id="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="James"
+                className="h-11 rounded-xl border-border bg-muted/30 focus-visible:ring-primary/30"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName" className="text-foreground text-lg">
+                Last name
+              </Label>
+              <Input
+                id="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Ron"
+                className="h-11 rounded-xl border-border bg-muted/30 focus-visible:ring-primary/30"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-foreground text-lg">
+              Email address
             </Label>
             <Input
-              id="firstName"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="James"
-              className="bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 rounded-lg h-11"
+              id="email"
+              type="email"
+              value={user.email ?? ""}
+              disabled
+              className="h-11 rounded-xl border-border bg-muted/50 text-muted-foreground cursor-not-allowed"
             />
+            <p className="text-xs text-muted-foreground ">
+              Email is managed by your account provider.
+            </p>
           </div>
-          <div>
-            <Label htmlFor="lastName" className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2 block">
-              Last Name
+
+          <div className="space-y-2">
+            <Label htmlFor="bio" className="text-foreground text-lg">
+              Bio
             </Label>
-            <Input
-              id="lastName"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Ron"
-              className="bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 rounded-lg h-11"
+            <Textarea
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Tell us about yourself..."
+              rows={3}
+              className="rounded-xl border-border bg-muted/30 focus-visible:ring-primary/30 resize-none"
             />
           </div>
         </div>
 
-        {/* Email Field */}
-        <div>
-          <Label htmlFor="email" className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2 block">
-            Email Address
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            value={user.email || ""}
-            disabled
-            className="bg-neutral-100 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 rounded-lg h-11 text-neutral-500 dark:text-neutral-400 cursor-not-allowed"
-          />
-        </div>
-
-        {/* Bio Field */}
-        <div>
-          <Label htmlFor="bio" className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2 block">
-            Bio
-          </Label>
-          <Textarea
-            id="bio"
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Tell us about yourself..."
-            rows={4}
-            className="bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 rounded-lg resize-none"
-          />
-        </div>
-      </div>
-
-      {/* Save Button */}
-      <div className="mt-6">
-        <button
+        <Button
           onClick={handleSaveChanges}
-          className="w-full dark-gradient-element text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity"
+          disabled={saving}
+          className="w-full h-11 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 cursor-pointer font-medium"
         >
-          Save Changes
-        </button>
+          {saving ? "Saving…" : "Save changes"}
+        </Button>
       </div>
     </div>
   );

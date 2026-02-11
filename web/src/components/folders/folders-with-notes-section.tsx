@@ -1,19 +1,23 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useFolders } from "@/hooks/use-folders";
+import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { FolderCard } from "./folder-card";
 import { CreateFolderDialog } from "./create-folder-dialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Folder as FolderIcon, Loader2, AlertTriangle } from "lucide-react";
-import { Inter } from "next/font/google";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  FolderAddIcon,
+  Folder01Icon,
+  AlertDiamondIcon,
+} from "@hugeicons/core-free-icons";
 import { FolderCardShimmer } from "@/components/ui/shimmer";
 import { NotesList, NotesListRef } from "@/components/notes/notes-list";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export function FoldersWithNotesSection() {
   const { folders, loading, error, getFolders } = useFolders();
+  const { folderSearchQuery } = useDashboardRefresh();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const notesListRef = useRef<NotesListRef>(null);
 
@@ -23,29 +27,37 @@ export function FoldersWithNotesSection() {
 
   const handleRefresh = () => {
     getFolders();
-    if (notesListRef.current?.refreshNotes) {
-      notesListRef.current.refreshNotes();
-    }
+    notesListRef.current?.refreshNotes?.();
   };
+
+  const filteredFolders = useMemo(() => {
+    if (!folderSearchQuery.trim()) return folders;
+    const q = folderSearchQuery.toLowerCase().trim();
+    return folders.filter(
+      (f) =>
+        f.name.toLowerCase().includes(q) ||
+        (f.description?.toLowerCase().includes(q) ?? false)
+    );
+  }, [folders, folderSearchQuery]);
 
   if (loading && folders.length === 0) {
     return (
-      <div className={`w-full ${inter.className}`}>
-        <div className="flex justify-between items-center mb-8">
+      <div className="w-full space-y-10">
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
           <div>
-            <h2 className="dark:text-white text-black text-[20px] font-medium leading-[24px]">
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">
               My Folders
-            </h2>
-            <p className="text-[15px] tracking-[-3%] text-[#787878]">
+            </h1>
+            <p className=" text-muted-foreground mt-0.5">
               Organize your notes into folders
             </p>
           </div>
-          <Button disabled className="h-[40px] px-6 rounded-[8px]">
-            <Plus className="mr-2 h-4 w-4" />
+          <Button disabled size="sm" className="h-10 px-5 rounded-xl shrink-0">
+            <HugeiconsIcon icon={FolderAddIcon} className="size-4 mr-2" />
             New Folder
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <FolderCardShimmer />
           <FolderCardShimmer />
           <FolderCardShimmer />
@@ -56,62 +68,64 @@ export function FoldersWithNotesSection() {
 
   if (error) {
     return (
-      <div className={`w-full ${inter.className}`}>
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="dark:text-white text-black text-[20px] font-medium leading-[24px]">
-              My Folders
-            </h2>
-            <p className="text-[15px] tracking-[-3%] text-[#787878]">
-              Organize your notes into folders
-            </p>
-          </div>
+      <div className="w-full space-y-8">
+        <div>
+          <h1 className="text-xl font-semibold text-foreground tracking-tight">
+            My Folders
+          </h1>
+          <p className=" text-muted-foreground mt-0.5">
+            Organize your notes into folders
+          </p>
         </div>
-        <div className="p-8 text-center">
-          <div className="max-w-md mx-auto">
-            <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="h-6 w-6 text-destructive" />
-            </div>
-            <h3 className="font-semibold text-foreground mb-2">
-              Error loading folders
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">{error}</p>
-            <Button onClick={handleRefresh} variant="outline" size="sm">
-              Try Again
-            </Button>
+        <div className="flex flex-col items-center justify-center py-16 px-4 rounded-2xl border border-border bg-card/50">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive mb-5">
+            <HugeiconsIcon icon={AlertDiamondIcon} className="size-7" />
           </div>
+          <h3 className="font-semibold text-lg text-foreground mb-2">
+            Error loading folders
+          </h3>
+          <p className="text-sm text-muted-foreground text-center max-w-sm mb-6">
+            {error}
+          </p>
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            className="cursor-pointer"
+          >
+            Try again
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`w-full ${inter.className}`}>
-      {/* Folders Section */}
-      <div className="mb-12">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+    <div className="w-full space-y-12">
+      {/* My Folders block */}
+      <section>
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between mb-6">
           <div>
-            <h2 className="dark:text-white text-black text-[20px] font-medium leading-[24px]">
+            <h2 className="text-lg font-semibold text-foreground tracking-tight">
               My Folders
             </h2>
-            <p className="text-[15px] tracking-[-3%] text-[#787878]">
+            <p className="text-muted-foreground mt-0.5">
               Organize your notes into folders
             </p>
           </div>
           <Button
             onClick={() => setShowCreateDialog(true)}
-            className="h-[40px] px-6 rounded-[8px] bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] hover:from-[#5558e3] hover:to-[#7c4ddc] text-white"
+            size="lg"
+            className="h-10 px-5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 cursor-pointer shrink-0"
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <HugeiconsIcon icon={FolderAddIcon} className="size-4 mr-2" />
             New Folder
           </Button>
         </div>
 
-        {/* Folders Grid */}
-        {folders.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {folders.map((folder) => (
+        {filteredFolders.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredFolders.map((folder) => (
               <FolderCard
                 key={folder.id}
                 folder={folder}
@@ -119,43 +133,55 @@ export function FoldersWithNotesSection() {
               />
             ))}
           </div>
-        ) : (
-          <div className="text-center py-12 neomorphic rounded-2xl">
-            <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mx-auto mb-4">
-              <FolderIcon className="h-8 w-8 text-muted-foreground" />
+        ) : folders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-4 rounded-2xl border border-border bg-card/50">
+            <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-5">
+              <HugeiconsIcon icon={Folder01Icon} className="size-8" />
             </div>
-            <h3 className="font-semibold text-lg text-foreground mb-2">
+            <h3 className="font-semibold text-xl text-foreground mb-2">
               No folders yet
             </h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            <p className=" text-muted-foreground text-center max-w-sm mb-6">
               Create your first folder to start organizing your notes.
             </p>
             <Button
               onClick={() => setShowCreateDialog(true)}
               variant="outline"
-              className="h-[36px] px-6 rounded-[8px]"
+              size="sm"
+              className="rounded-xl cursor-pointer"
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Folder
+              <HugeiconsIcon icon={FolderAddIcon} className="size-4 mr-2" />
+              Create folder
             </Button>
           </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 px-4 rounded-2xl border border-border bg-card/30">
+            <div className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground mb-4">
+              <HugeiconsIcon icon={Folder01Icon} className="size-6" />
+            </div>
+            <h3 className="font-medium text-foreground mb-1">
+              No folders match your search
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Try a different name or create a new folder.
+            </p>
+          </div>
         )}
-      </div>
+      </section>
 
-      {/* Uncategorized Notes Section */}
-      <div className="mb-8">
-        <div className="mb-6">
-          <h2 className="dark:text-white text-black text-[20px] font-medium leading-[24px]">
-            Uncategorized Notes
+      {/* Uncategorized Notes */}
+      <section>
+        <div className="mb-5">
+          <h2 className="text-xl font-semibold text-foreground tracking-tight">
+            Uncategorized notes
           </h2>
-          <p className="text-[15px] tracking-[-3%] text-[#787878]">
-            Notes that haven't been organized into folders yet
+          <p className=" text-muted-foreground mt-0.5">
+            Notes not in any folder yet
           </p>
         </div>
         <NotesList ref={notesListRef} folderId="uncategorized" />
-      </div>
+      </section>
 
-      {/* Create Folder Dialog */}
       <CreateFolderDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}

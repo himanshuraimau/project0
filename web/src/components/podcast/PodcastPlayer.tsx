@@ -1,11 +1,22 @@
-'use client';
+"use client";
 
-import React, { useRef, useEffect, useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Share2, Download, Play, Pause, SkipBack, SkipForward, Volume2, User, UserRound, X } from 'lucide-react';
-import { PodcastAskInput } from './PodcastAskInput';
-import { PodcastSpeaker } from './types';
+import React, { useRef, useEffect, useState } from "react";
+import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  PlayIcon,
+  PauseIcon,
+  GoBackward10SecIcon,
+  GoForward10SecIcon,
+  VolumeHighIcon,
+  VolumeOffIcon,
+  Download01Icon,
+  Share07Icon,
+} from "@hugeicons/core-free-icons";
+import { PodcastAskInput } from "./PodcastAskInput";
+import { PodcastSpeaker } from "./types";
 
 interface PodcastPlayerProps {
   audioUrl: string;
@@ -57,7 +68,7 @@ export function PodcastPlayer({
     };
 
     const handleError = (e: Event) => {
-      console.error('Audio playback error:', e);
+      console.error("Audio playback error:", e);
       setIsPlaying(false);
       setAudioError('Unable to load or play this audio file. Please check the audio URL.');
     };
@@ -107,7 +118,7 @@ export function PodcastPlayer({
         setIsPlaying(true);
       }
     } catch (error) {
-      console.error('Playback error:', error);
+      console.error("Playback error:", error);
       setIsPlaying(false);
       setAudioError('Unable to play audio. Please check your internet connection or try again.');
     }
@@ -163,18 +174,12 @@ export function PodcastPlayer({
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Download failed:', error);
+      console.error("Download failed:", error);
     }
   };
 
   return (
-    <div 
-      className="rounded-[28px] w-full h-fit bg-gray-100 dark:bg-gray-900"
-      style={{
-        boxShadow: '0px 12px 30px rgba(0,0,0,0.08), 0px 4px 10px rgba(0,0,0,0.04)',
-        padding: '24px 24px 28px 24px'
-      }}
-    >
+    <div className="w-full rounded-2xl border border-border bg-card shadow-sm p-5 sm:p-6">
       <audio ref={audioRef} preload="metadata" crossOrigin="anonymous">
         {audioUrl && (
           <>
@@ -188,18 +193,26 @@ export function PodcastPlayer({
       </audio>
 
       {/* Cover Image */}
-      <div className="relative mb-4 rounded-[18px] overflow-hidden bg-gradient-to-br from-gray-800 via-gray-700 to-gray-600">
+      <div className="relative mb-4 rounded-xl overflow-hidden bg-linear-to-br from-primary/90 via-primary to-primary/80">
         {coverImage ? (
-          <img
-            src={coverImage}
-            alt={title}
-            className="w-full h-80 object-cover"
-          />
+            <img
+              src={coverImage}
+              alt={title}
+              className="w-full h-64 object-cover"
+            />
         ) : (
-          <div className="w-full h-80 flex items-center justify-center">
-            <div className="text-center text-white">
-              <div className="text-6xl mb-2">🎙️</div>
-              <p className="text-sm opacity-75">Podcast Cover</p>
+          <div className="w-full h-64 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2 text-white">
+              <div className="h-16 w-16 rounded-2xl bg-black/25 flex items-center justify-center backdrop-blur-sm">
+                <Image
+                  src="/bento-icons/Flinote MIc.png"
+                  alt="Podcast microphone"
+                  width={40}
+                  height={40}
+                  className="object-contain"
+                />
+              </div>
+              <p className="text-xs opacity-80">Flinote podcast</p>
             </div>
           </div>
         )}
@@ -207,29 +220,24 @@ export function PodcastPlayer({
         {/* Share Icon Overlay */}
         <button
           onClick={onShare}
-          className="absolute top-4 right-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90 rounded-full p-2.5 transition-all"
-          style={{
-            boxShadow: '0px 2px 8px rgba(0,0,0,0.1), inset 0px 1px 2px rgba(255,255,255,0.5)'
-          }}
+          className="absolute top-3 right-3 rounded-full bg-white/85 dark:bg-background/80 backdrop-blur-sm p-2 shadow-sm hover:bg-white dark:hover:bg-background transition-colors"
         >
-          <Share2 className="h-4 w-4 text-gray-700 dark:text-gray-200" />
+          <HugeiconsIcon
+            icon={Share07Icon}
+            className="size-4 text-foreground"
+          />
         </button>
       </div>
 
       {/* Title */}
-      <h2 
-        className="text-center font-medium leading-tight mb-3 line-clamp-2 text-gray-900 dark:text-gray-100"
-        style={{
-          fontSize: '17px'
-        }}
-      >
+      <h2 className="text-center text-[17px] font-medium leading-tight mb-3 line-clamp-2 text-foreground">
         {title}
       </h2>
 
       {/* Error Message */}
       {audioError && (
-        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-700 dark:text-red-300 text-center">
+        <div className="mb-4 p-3 rounded-lg border border-destructive/40 bg-destructive/5">
+          <p className="text-xs text-destructive text-center">
             {audioError}
           </p>
         </div>
@@ -245,8 +253,8 @@ export function PodcastPlayer({
           onChange={handleSeek}
           className="appearance-none bg-transparent cursor-pointer"
           style={{
-            height: '4px',
-            width: '50%'
+            height: "4px",
+            width: "60%",
           }}
         />
         <style jsx>{`
@@ -288,11 +296,14 @@ export function PodcastPlayer({
             border: none;
           }
         `}</style>
-        <div className="flex items-center justify-between mt-2" style={{ width: '50%' }}>
-          <span className="text-xs tabular-nums text-gray-400 dark:text-gray-500">
+        <div
+          className="flex items-center justify-between mt-2"
+          style={{ width: "60%" }}
+        >
+          <span className="text-xs tabular-nums text-muted-foreground">
             {formatTime(currentTime)}
           </span>
-          <span className="text-xs tabular-nums text-gray-400 dark:text-gray-500">
+          <span className="text-xs tabular-nums text-muted-foreground">
             {formatTime(duration)}
           </span>
         </div>
@@ -301,80 +312,76 @@ export function PodcastPlayer({
       {/* Control Cluster */}
       <div className="flex items-center justify-center gap-4 mb-5">
         {/* Volume Button */}
-        <button
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
           onClick={() => setVolume(volume > 0 ? 0 : 1)}
-          className="rounded-full p-2.5 transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
-          style={{
-            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)'
-          }}
+          className="h-9 w-9 rounded-full border-border text-muted-foreground hover:text-foreground"
         >
-          <Volume2 className="h-4 w-4" />
-        </button>
+          <HugeiconsIcon
+            icon={volume > 0 ? VolumeHighIcon : VolumeOffIcon}
+            className="size-4"
+          />
+        </Button>
 
         {/* Previous/Skip Back Button */}
-        <button
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
           onClick={() => skipTime(-10)}
-          className="rounded-full p-2.5 transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
-          style={{
-            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)'
-          }}
+          className="h-9 w-9 rounded-full border-border text-muted-foreground hover:text-foreground"
         >
-          <SkipBack className="h-4 w-4" />
-        </button>
+          <HugeiconsIcon icon={GoBackward10SecIcon} className="size-4" />
+        </Button>
 
         {/* Play Button (Primary) */}
-        <button
+        <Button
+          type="button"
+          size="icon"
           onClick={togglePlayPause}
-          className="rounded-full p-4 transition-all bg-gray-900 dark:bg-purple-600 text-white"
-          style={{
-            boxShadow: '0px 4px 12px rgba(0,0,0,0.2)'
-          }}
+          className="h-12 w-12 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
         >
           {isPlaying ? (
-            <Pause className="h-6 w-6" fill="currentColor" />
+            <HugeiconsIcon icon={PauseIcon} className="size-6" />
           ) : (
-            <Play className="h-6 w-6" fill="currentColor" />
+            <HugeiconsIcon icon={PlayIcon} className="size-6" />
           )}
-        </button>
+        </Button>
 
         {/* Next/Skip Forward Button */}
-        <button
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
           onClick={() => skipTime(10)}
-          className="rounded-full p-2.5 transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
-          style={{
-            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)'
-          }}
+          className="h-9 w-9 rounded-full border-border text-muted-foreground hover:text-foreground"
         >
-          <SkipForward className="h-4 w-4" />
-        </button>
+          <HugeiconsIcon icon={GoForward10SecIcon} className="size-4" />
+        </Button>
 
         {/* Speed Button */}
-        <button
+        <Button
+          type="button"
+          variant="outline"
           onClick={toggleSpeed}
-          className="rounded-full px-3 py-2 transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
-          style={{
-            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
-            fontSize: '13px',
-            fontWeight: 500
-          }}
+          className="rounded-full px-3 py-2 text-xs font-medium border-border text-muted-foreground hover:text-foreground"
         >
           {playbackSpeed}×
-        </button>
+        </Button>
       </div>
 
       {/* Download Button */}
-      <button
+      <Button
+        type="button"
+        variant="outline"
         onClick={handleDownload}
-        className="w-full py-3 rounded-xl transition-all flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200"
-        style={{
-          boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
-          fontSize: '14px',
-          fontWeight: 500
-        }}
+        className="mt-1 w-full h-10 rounded-lg border-border text-sm font-medium text-muted-foreground hover:text-foreground flex items-center justify-center gap-2"
       >
-        <Download className="h-4 w-4" />
-        Download Podcast
-      </button>
+        <HugeiconsIcon icon={Download01Icon} className="size-4" />
+        <span>Download podcast</span>
+      </Button>
     </div>
   );
 }

@@ -3,17 +3,18 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { SubscriptionService } from "@/lib/subscription-service";
 import { prisma } from "@/lib/prisma";
-import { NoteCard } from "@/components/notes/note-card";
-import { Share2 } from "lucide-react";
+import { ClonedPageView } from "@/components/dashboard/cloned-page-view";
+import type { ClonedNoteSerialized } from "@/components/dashboard/cloned-page-view";
 
 export default async function ClonedNotesPage() {
   const session = await auth.api.getSession({
-    headers: await headers()
+    headers: await headers(),
   });
-  
+
   if (!session?.user) redirect("/sign-in");
 
-  const hasSubscription = await SubscriptionService.hasActiveSubscription(session.user.id);
+  const hasSubscription =
+    await SubscriptionService.hasActiveSubscription(session.user.id);
   if (!hasSubscription) redirect("/pricing");
 
   const clonedNotes = await prisma.note.findMany({
@@ -38,50 +39,30 @@ export default async function ClonedNotesPage() {
     },
   });
 
-  const handleUpdate = async () => {
-    "use server";
-    // Revalidate the page
-  };
+  const serializedNotes: ClonedNoteSerialized[] = clonedNotes.map((note) => ({
+    id: note.id,
+    title: note.title,
+    content: note.content,
+    transcriptId: note.transcriptId,
+    userId: note.userId,
+    folderId: note.folderId,
+    isCloned: note.isCloned,
+    sourceNoteId: note.sourceNoteId ?? undefined,
+    originalAuthor: note.originalAuthor ?? undefined,
+    createdAt: note.createdAt.toISOString(),
+    updatedAt: note.updatedAt.toISOString(),
+    transcript: {
+      id: note.transcript.id,
+      fileName: note.transcript.fileName,
+      originalName: note.transcript.originalName,
+      type: note.transcript.type,
+      createdAt: note.transcript.createdAt.toISOString(),
+    },
+  }));
 
   return (
-    <div className="min-h-screen p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Share2 className="h-8 w-8 text-accent" />
-          <h1 className="text-4xl font-bold">Shared With Me</h1>
-        </div>
-        <p className="text-muted-foreground">
-          Notes shared with you and saved to your workspace
-        </p>
-      </div>
-
-      {/* Notes List */}
-      {clonedNotes.length === 0 ? (
-        <div className="neomorphic p-12 rounded-2xl text-center">
-          <Share2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-          <h3 className="text-xl font-semibold mb-2">No shared notes yet</h3>
-          <p className="text-muted-foreground">
-            When someone shares a note with you and you save it, it will appear here
-          </p>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-6 w-full">
-          {clonedNotes.map((note) => (
-            <NoteCard
-              key={note.id}
-              note={{
-                ...note,
-                transcript: {
-                  ...note.transcript,
-                  createdAt: note.transcript.createdAt.toISOString(),
-                },
-              }}
-              onUpdate={handleUpdate}
-            />
-          ))}
-        </div>
-      )}
+    <div className="w-full space-y-8">
+      <ClonedPageView notes={serializedNotes} />
     </div>
   );
 }

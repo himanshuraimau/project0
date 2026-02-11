@@ -16,8 +16,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get body params
-    const body = await request.json();
+    // Get body params (body may be empty)
+    let body: { cancelAtPeriodEnd?: boolean } = {};
+    try {
+      body = await request.json();
+    } catch {
+      // Empty body is fine, use defaults
+    }
     const { cancelAtPeriodEnd = true } = body;
 
     // Get user's subscription
@@ -47,10 +52,23 @@ export async function POST(request: NextRequest) {
       throw new Error(cancelResult.error || 'Failed to cancel subscription with Dodo');
     }
 
-    // Update subscription in database
-    const updatedSubscription = await SubscriptionService.cancelSubscription(
-      subscription.id,
-      cancelAtPeriodEnd
+    // Extract period dates from Dodo response to fix display (e.g. avoid Jan 1, 1970)
+    const dodoData = cancelResult.data as any;
+    const periodUpdates: { currentPeriodEnd?: Date; nextBillingDate?: Date } = {};
+    if (dodoData?.next_billing_date) {
+      periodUpdates.nextBillingDate = new Date(dodoData.next_billing_date);
+      periodUpdates.currentPeriodEnd = new Date(dodoData.next_billing_date);
+    }
+    if (dodoData?.previous_billing_date && !periodUpdates.currentPeriodEnd) {
+      // Fallback if Dodo uses different field names
+      periodUpdates.currentPeriodEnd = new Date(dodoData.previous_billing_date);
+    }
+
+    // Update subscription in database (keep ACTIVE when cancelAtPeriodEnd so user retains access)
+    const updatedSubscription = await SubscriptionService.updateSubscriptionCancelState(
+      subscription.dodoSubscriptionId,
+      cancelAtPeriodEnd,
+      periodUpdates
     );
 
     return NextResponse.json({

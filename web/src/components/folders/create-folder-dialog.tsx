@@ -14,13 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useFolders } from "@/hooks/use-folders";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
-import { Plus_Jakarta_Sans } from "next/font/google";
-
-const jakarta = Plus_Jakarta_Sans({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin-ext", "vietnamese"],
-});
+import { HugeiconsIcon } from "@hugeicons/react";
+import { FolderAddIcon, Loading01Icon } from "@hugeicons/core-free-icons";
 
 const FOLDER_COLORS = [
   { name: "Indigo", value: "#6366f1" },
@@ -66,13 +61,12 @@ export function CreateFolderDialog({
         color: selectedColor,
       });
 
-      toast.success("📁 Folder created successfully!");
-      
-      // Reset form
+      toast.success("Folder created successfully");
+
       setName("");
       setDescription("");
       setSelectedColor(FOLDER_COLORS[0].value);
-      
+
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
@@ -93,21 +87,31 @@ export function CreateFolderDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className={`text-left ${jakarta.className}`}>
-            Create New Folder
-          </DialogTitle>
-          <DialogDescription className={`${jakarta.className}`}>
-            Organize your notes by creating a new folder
-          </DialogDescription>
+      <DialogContent className="max-w-md rounded-xl border-border p-0 gap-0 overflow-hidden bg-card">
+        <DialogHeader className="space-y-1.5 px-6 pt-6 pb-2">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <HugeiconsIcon icon={FolderAddIcon} className="size-5" />
+            </div>
+            <div className="">
+              <DialogTitle className="text-lg font-semibold tracking-tight text-foreground">
+                Create New Folder
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground -mt-0.5">
+                Organize your notes by creating a new folder
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+        <form onSubmit={handleSubmit} className="space-y-6 px-6 pb-6 pt-4">
           {/* Folder Name */}
           <div className="space-y-2">
-            <Label htmlFor="folder-name">
-              Folder Name <span className="text-destructive">*</span>
+            <Label
+              htmlFor="folder-name"
+              className="text-sm font-medium text-foreground"
+            >
+              Folder name <span className="text-destructive">*</span>
             </Label>
             <Input
               id="folder-name"
@@ -116,16 +120,26 @@ export function CreateFolderDialog({
               onChange={(e) => setName(e.target.value)}
               maxLength={50}
               disabled={loading}
-              className="h-[40px]"
+              className="h-10 rounded-md border-none bg-background px-3 text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              aria-describedby="folder-name-count"
             />
-            <p className="text-xs text-muted-foreground">
-              {name.length}/50 characters
+            <p
+              id="folder-name-count"
+              className="text-xs text-muted-foreground tabular-nums"
+            >
+              {name.length}/50
             </p>
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="folder-description">Description (Optional)</Label>
+            <Label
+              htmlFor="folder-description"
+              className="text-lg font-medium text-foreground"
+            >
+              Description{" "}
+              <span className="text-muted-foreground">(optional)</span>
+            </Label>
             <Textarea
               id="folder-description"
               placeholder="Brief description of what this folder contains..."
@@ -134,59 +148,69 @@ export function CreateFolderDialog({
               maxLength={200}
               disabled={loading}
               rows={3}
+              className="rounded-md border-none bg-background px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background resize-none"
+              aria-describedby="folder-desc-count"
             />
-            <p className="text-xs text-muted-foreground">
-              {description.length}/200 characters
+            <p
+              id="folder-desc-count"
+              className="text-xs text-muted-foreground tabular-nums"
+            >
+              {description.length}/200
             </p>
           </div>
 
           {/* Color Picker */}
           <div className="space-y-2">
-            <Label>Folder Color</Label>
-            <div className="grid grid-cols-5 gap-3">
+            <Label className="text-sm font-medium text-foreground">
+              Folder color
+            </Label>
+            <div
+              className="grid grid-cols-5 gap-2.5"
+              role="group"
+              aria-label="Choose folder color"
+            >
               {FOLDER_COLORS.map((color) => (
                 <button
                   key={color.value}
                   type="button"
                   onClick={() => setSelectedColor(color.value)}
                   disabled={loading}
-                  className={`
-                    h-10 w-full rounded-lg transition-all duration-200
-                    ${
-                      selectedColor === color.value
-                        ? "ring-2 ring-offset-2 ring-offset-background scale-110"
-                        : "hover:scale-105"
-                    }
-                  `}
-                  style={{
-                    backgroundColor: color.value,
-                  }}
+                  className={`h-9 w-full rounded-lg transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 hover:scale-105 ${
+                    selectedColor === color.value
+                      ? "scale-110 ring-2 ring-primary ring-offset-2 ring-offset-background"
+                      : ""
+                  }`}
+                  style={{ backgroundColor: color.value }}
                   title={color.name}
                   aria-label={`Select ${color.name} color`}
+                  aria-pressed={selectedColor === color.value}
                 />
               ))}
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={loading}
-              className="flex-1 h-[40px]"
+              className="flex-1 h-10 cursor-pointer rounded-md font-medium"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading || !name.trim()}
-              className="flex-1 h-[40px] bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] hover:from-[#5558e3] hover:to-[#7c4ddc] text-white"
+              className="flex-1 h-10 cursor-pointer text-white rounded-md bg-primary font-medium hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50"
             >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <HugeiconsIcon
+                    icon={Loading01Icon}
+                    className="size-4 animate-spin shrink-0"
+                  />
                   Creating...
                 </>
               ) : (

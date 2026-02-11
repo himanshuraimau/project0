@@ -2,339 +2,429 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, X, ChevronDown, Pin, Sparkles } from "lucide-react";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { toast } from "sonner";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Upload01Icon,
+  Cancel01Icon,
+  Folder01Icon,
+  MagicWand01Icon,
+  Loading01Icon,
+  Mic01Icon,
+} from "@hugeicons/core-free-icons";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface AudioUploadModalProps {
-    onTranscriptionComplete: (result: {
-        transcript: { id: string; content: string };
-        note: {
-            id?: string;
-            title?: string;
-            content?: string;
-            error?: string;
-            message?: string;
-        };
-    }) => void;
-    onClose?: () => void;
+  onTranscriptionComplete: (result: {
+    transcript: { id: string; content: string };
+    note: {
+      id?: string;
+      title?: string;
+      content?: string;
+      error?: string;
+      message?: string;
+    };
+  }) => void;
+  onClose?: () => void;
 }
 
 export default function AudioUploadModal({
-    onTranscriptionComplete,
-    onClose,
+  onTranscriptionComplete,
+  onClose,
 }: AudioUploadModalProps) {
-    const router = useRouter();
-    const { addLoadingNote, updateLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-    const [fileName, setFileName] = useState("");
-    const [audioLanguage, setAudioLanguage] = useState("English");
-    const [folder, setFolder] = useState("All notes");
-    const [currentTempId, setCurrentTempId] = useState<string | null>(null);
+  const router = useRouter();
+  const {
+    addLoadingNote,
+    updateLoadingNote,
+    removeLoadingNote,
+    triggerRefresh,
+  } = useDashboardRefresh();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [fileName, setFileName] = useState("");
+  const [audioLanguage, setAudioLanguage] = useState("English");
+  const [folder, setFolder] = useState("All notes");
+  const [currentTempId, setCurrentTempId] = useState<string | null>(null);
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileUpload = async (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            // Check file size (25MB limit for OpenAI Whisper)
-            const maxFileSize = 25 * 1024 * 1024; // 25MB
-            if (file.size > maxFileSize) {
-                toast.error("File too large!", {
-                    description: `Maximum size is 25MB. Your file is ${(
-                        file.size /
-                        1024 /
-                        1024
-                    ).toFixed(2)}MB. Please compress or choose a smaller file.`,
-                    duration: 5000,
-                });
-                event.target.value = ""; // Clear the input
-                return;
-            }
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const maxFileSize = 25 * 1024 * 1024; // 25MB
+      if (file.size > maxFileSize) {
+        toast.error("File too large!", {
+          description: `Maximum size is 25MB. Your file is ${(
+            file.size /
+            1024 /
+            1024
+          ).toFixed(2)}MB. Please compress or choose a smaller file.`,
+          duration: 5000,
+        });
+        event.target.value = "";
+        return;
+      }
 
-            // Check file type - both by MIME type and file extension
-            const allowedTypes = [
-                "audio/mpeg",
-                "audio/mp3",
-                "audio/wav",
-                "audio/wave",
-                "audio/x-wav",
-                "audio/flac",
-                "audio/m4a",
-                "audio/x-m4a",
-                "audio/mp4",  // m4a files often have audio/mp4 MIME type
-                "audio/ogg",
-                "audio/webm",
-                "audio/aac",
-            ];
-            
-            // Get file extension as fallback
-            const fileExtension = file.name.split('.').pop()?.toLowerCase();
-            const allowedExtensions = ['mp3', 'wav', 'flac', 'm4a', 'ogg', 'webm', 'mp4', 'aac'];
-            
-            const isValidMimeType = allowedTypes.includes(file.type);
-            const isValidExtension = fileExtension && allowedExtensions.includes(fileExtension);
-            
-            if (!isValidMimeType && !isValidExtension) {
-                toast.error("Unsupported audio format", {
-                    description: `Format: ${file.type || 'unknown'} (.${fileExtension}). Please use MP3, WAV, FLAC, M4A, OGG, WebM, MP4, or AAC.`,
-                    duration: 5000,
-                });
-                event.target.value = ""; // Clear the input
-                return;
-            }
+      const allowedTypes = [
+        "audio/mpeg",
+        "audio/mp3",
+        "audio/wav",
+        "audio/wave",
+        "audio/x-wav",
+        "audio/flac",
+        "audio/m4a",
+        "audio/x-m4a",
+        "audio/mp4",
+        "audio/ogg",
+        "audio/webm",
+        "audio/aac",
+      ];
 
-            setAudioBlob(file);
-            setFileName(file.name.replace(/\.[^/.]+$/, "")); // Remove extension
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+      const allowedExtensions = [
+        "mp3",
+        "wav",
+        "flac",
+        "m4a",
+        "ogg",
+        "webm",
+        "mp4",
+        "aac",
+      ];
+
+      const isValidMimeType = allowedTypes.includes(file.type);
+      const isValidExtension =
+        fileExtension && allowedExtensions.includes(fileExtension);
+
+      if (!isValidMimeType && !isValidExtension) {
+        toast.error("Unsupported audio format", {
+          description: `Please use MP3, WAV, FLAC, M4A, OGG, WebM, MP4, or AAC.`,
+          duration: 5000,
+        });
+        event.target.value = "";
+        return;
+      }
+
+      setAudioBlob(file);
+      setFileName(file.name.replace(/\.[^/.]+$/, ""));
+    }
+  };
+
+  const transcribeAudio = async () => {
+    if (!audioBlob) return;
+
+    setIsProcessing(true);
+
+    const tempId = `audio-upload-${Date.now()}`;
+    setCurrentTempId(tempId);
+    addLoadingNote(tempId, "audio", "uploading");
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    if (onClose) {
+      onClose();
+    }
+
+    try {
+      updateLoadingNote(tempId, { stage: "processing" });
+
+      const formData = new FormData();
+      formData.append("audio", audioBlob);
+      formData.append("fileName", fileName || "uploaded-audio");
+
+      const response = await fetch("/api/audio/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const responseData = result.data || result;
+
+        if (responseData.transcript?.id) {
+          updateLoadingNote(tempId, {
+            transcriptId: responseData.transcript.id,
+            stage: "generating",
+          });
         }
-    };
 
-    const transcribeAudio = async () => {
-        if (!audioBlob) return;
-
-        setIsProcessing(true);
-
-        // Add loading note BEFORE closing modal
-        const tempId = `audio-upload-${Date.now()}`;
-        setCurrentTempId(tempId);
-        addLoadingNote(tempId, "audio", "uploading");
-
-        // Longer delay to ensure state update propagates and UI re-renders
-        await new Promise((resolve) => setTimeout(resolve, 300));
-
-        // Close modal after adding loading note
-        if (onClose) {
-            onClose();
+        if (responseData.note?.id) {
+          updateLoadingNote(tempId, {
+            noteId: responseData.note.id,
+            stage: "completed",
+          });
         }
 
-        try {
-            updateLoadingNote(tempId, { stage: "processing" });
-
-            const formData = new FormData();
-            formData.append("audio", audioBlob);
-            formData.append("fileName", fileName || "uploaded-audio");
-
-            const response = await fetch("/api/audio/transcribe", {
-                method: "POST",
-                body: formData,
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-
-                // Extract data from API response
-                const responseData = result.data || result;
-
-                // Update loading note with transcript ID and stage
-                if (responseData.transcript?.id) {
-                    updateLoadingNote(tempId, { 
-                        transcriptId: responseData.transcript.id,
-                        stage: "generating"
-                    });
-                }
-
-                // If note was generated, update with note ID
-                if (responseData.note?.id) {
-                    updateLoadingNote(tempId, { 
-                        noteId: responseData.note.id,
-                        stage: "completed"
-                    });
-                }
-
-                // Remove loading note using temp ID BEFORE calling completion callback
-                if (currentTempId) {
-                    removeLoadingNote(currentTempId);
-                    setCurrentTempId(null);
-                }
-
-                // Wait for shimmer removal to propagate before triggering refresh
-                await new Promise((resolve) => setTimeout(resolve, 200));
-
-                // Call completion with result that includes temp ID for tracking
-                onTranscriptionComplete({
-                    transcript: {
-                        ...responseData.transcript,
-                        id: responseData.transcript?.id || tempId,
-                    },
-                    note: responseData.note || {},
-                });
-
-                // Trigger refresh to update note counter immediately
-                triggerRefresh();
-
-                // Reset form
-                setAudioBlob(null);
-                setFileName("");
-            } else {
-                const errorData = await response.json();
-
-                // Update loading note with error
-                updateLoadingNote(tempId, { 
-                    stage: "error",
-                    error: errorData.error || "Failed to transcribe audio"
-                });
-
-                // Handle specific error types
-                if (
-                    response.status === 403 &&
-                    errorData.error === "FREE_TIER_LIMIT_REACHED"
-                ) {
-                    // Redirect to pricing page for free tier limit
-                    router.push(errorData.upgradeUrl || "/pricing?reason=note-limit");
-                    return;
-                } else if (response.status === 413) {
-                    throw new Error(
-                        `File too large: ${errorData.error || "Audio file exceeds 25MB limit"}`
-                    );
-                } else if (response.status === 402) {
-                    throw new Error("Insufficient credits to process audio");
-                } else if (response.status === 400) {
-                    throw new Error(errorData.error || "Invalid audio file format");
-                } else {
-                    throw new Error(errorData.error || "Failed to transcribe audio");
-                }
-            }
-        } catch (error) {
-            console.error("Transcription error:", error);
-            if (currentTempId) {
-                updateLoadingNote(currentTempId, { 
-                    stage: "error",
-                    error: error instanceof Error ? error.message : "Failed to transcribe audio"
-                });
-            }
-            toast.error("Failed to transcribe audio", {
-                description: error instanceof Error ? error.message : "Please try again or contact support if the issue persists.",
-                duration: 5000,
-            });
-        } finally {
-            // Always remove loading note in finally block
-            if (currentTempId) {
-                removeLoadingNote(currentTempId);
-                setCurrentTempId(null);
-            }
-            setIsProcessing(false);
+        if (currentTempId) {
+          removeLoadingNote(currentTempId);
+          setCurrentTempId(null);
         }
-    };
 
-    const handleUploadZoneClick = () => {
-        fileInputRef.current?.click();
-    };
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
-    return (
-        <div className="w-full max-w-[650px] bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-lg">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-bold text-slate-800 dark:text-white">Upload audio</h2>
-                <button
-                    onClick={onClose}
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors w-9 h-[33px]"
-                    aria-label="Close"
-                >
-                    <X size={36} className="text-[#99A1AF]" strokeWidth={2.5} />
-                </button>
-            </div>
+        onTranscriptionComplete({
+          transcript: {
+            ...responseData.transcript,
+            id: responseData.transcript?.id || tempId,
+          },
+          note: responseData.note || {},
+        });
 
-            {/* Upload Zone */}
-            <div className="mb-6">
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".wav,.mp3,.aiff,.aac,.ogg,.flac,.m4a,.webm,.mp4"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="audio-file-input"
-                />
-                <label
-                    htmlFor="audio-file-input"
-                    className="flex flex-col items-center justify-center w-full border-2 border-gray-200 dark:border-zinc-700 rounded-xl p-12 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
-                >
-                    <div className="bg-gray-100 dark:bg-zinc-800 p-3 rounded-lg mb-4">
-                        <Upload size={24} className="text-gray-600 dark:text-gray-400" />
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                        {audioBlob
-                            ? `Selected: ${fileName || "Audio file"}`
-                            : "Drag audio file here, or click to select"}
-                    </p>
-                    {audioBlob && (
-                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                            Size: {(audioBlob.size / 1024 / 1024).toFixed(2)}MB
-                        </p>
-                    )}
-                </label>
-            </div>
+        triggerRefresh();
 
-            {/* Form Fields */}
-            <div className="space-y-5 mb-8">
-                {/* Audio Language */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
-                        Audio language
-                    </label>
-                    <div className="relative">
-                        <select
-                            value={audioLanguage}
-                            onChange={(e) => setAudioLanguage(e.target.value)}
-                            className="w-full h-12 px-4 pr-10 border border-gray-200 dark:border-zinc-700 rounded-xl appearance-none text-gray-800 dark:text-gray-200 font-medium bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-750 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 focus:border-transparent transition-all cursor-pointer"
-                        >
-                            <option>English</option>
-                            <option>Spanish</option>
-                            <option>French</option>
-                            <option>German</option>
-                            <option>Chinese</option>
-                            <option>Japanese</option>
-                            <option>Korean</option>
-                            <option>Arabic</option>
-                            <option>Hindi</option>
-                            <option>Portuguese</option>
-                        </select>
-                        <ChevronDown
-                            size={18}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none"
-                        />
-                    </div>
-                </div>
+        setAudioBlob(null);
+        setFileName("");
+      } else {
+        const errorData = await response.json();
 
-                {/* Folder */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
-                        Folder
-                    </label>
-                    <div className="relative">
-                        <Pin
-                            size={18}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-500 dark:text-purple-400 pointer-events-none z-10"
-                        />
-                        <select
-                            value={folder}
-                            onChange={(e) => setFolder(e.target.value)}
-                            className="w-full h-12 pl-11 pr-10 border border-gray-200 dark:border-zinc-700 rounded-xl appearance-none text-gray-800 dark:text-gray-200 font-medium bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-750 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 focus:border-transparent transition-all cursor-pointer"
-                        >
-                            <option>All notes</option>
-                            <option>Work</option>
-                            <option>Personal</option>
-                            <option>Projects</option>
-                        </select>
-                        <ChevronDown
-                            size={18}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none"
-                        />
-                    </div>
-                </div>
-            </div>
+        updateLoadingNote(tempId, {
+          stage: "error",
+          error: errorData.error || "Failed to transcribe audio",
+        });
 
-            {/* Footer Button */}
-            <button
-                onClick={transcribeAudio}
-                disabled={isProcessing || !audioBlob}
-                className="w-full h-14 bg-black dark:bg-white text-white dark:text-black font-medium rounded-xl hover:bg-gray-900 dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                <Sparkles size={20} />
-                {isProcessing ? "Processing..." : "Generate Notes"}
-            </button>
+        if (
+          response.status === 403 &&
+          errorData.error === "FREE_TIER_LIMIT_REACHED"
+        ) {
+          router.push(errorData.upgradeUrl || "/pricing?reason=note-limit");
+          return;
+        } else if (response.status === 413) {
+          throw new Error(
+            `File too large: ${errorData.error || "Audio file exceeds 25MB limit"}`
+          );
+        } else if (response.status === 402) {
+          throw new Error("Insufficient credits to process audio");
+        } else if (response.status === 400) {
+          throw new Error(errorData.error || "Invalid audio file format");
+        } else {
+          throw new Error(
+            errorData.error || "Failed to transcribe audio"
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Transcription error:", error);
+      if (currentTempId) {
+        updateLoadingNote(currentTempId, {
+          stage: "error",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to transcribe audio",
+        });
+      }
+      toast.error("Failed to transcribe audio", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Please try again or contact support if the issue persists.",
+        duration: 5000,
+      });
+    } finally {
+      if (currentTempId) {
+        removeLoadingNote(currentTempId);
+        setCurrentTempId(null);
+      }
+      setIsProcessing(false);
+    }
+  };
+
+  const selectWrapperClass =
+    "flex items-center gap-3 h-12 rounded-xl border border-primary/25 bg-primary/[0.06] dark:bg-primary/[0.12] transition-[border-color,box-shadow] focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:ring-offset-2 focus-within:ring-offset-card overflow-hidden pl-3 pr-1";
+  const selectTriggerClass =
+    "!h-12 flex-1 min-w-0 w-full rounded-none border-0 bg-transparent shadow-none pl-3 pr-9 py-0 text-sm font-medium text-foreground text-left cursor-pointer hover:bg-transparent focus:ring-0 focus-visible:ring-0 data-[placeholder]:text-muted-foreground [&_svg]:text-primary/90 [&_svg]:size-4";
+
+  return (
+    <div className="w-full max-w-[580px] rounded-2xl border border-border bg-card px-6 py-6 shadow-lg dark:shadow-none dark:bg-neutral-900/95 dark:border-neutral-800">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <HugeiconsIcon icon={Upload01Icon} className="size-5" />
+          </div>
+          <h2 className="text-lg font-semibold tracking-tight text-foreground truncate">
+            Upload audio
+          </h2>
         </div>
-    );
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex size-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          aria-label="Close"
+        >
+          <HugeiconsIcon icon={Cancel01Icon} className="size-5" />
+        </button>
+      </div>
+
+      {/* Upload zone */}
+      <div className="mb-8">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".wav,.mp3,.aiff,.aac,.ogg,.flac,.m4a,.webm,.mp4"
+          onChange={handleFileUpload}
+          className="hidden"
+          id="audio-file-input"
+        />
+        <label
+          htmlFor="audio-file-input"
+          className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-xl border-2 border-dashed border-primary/30 bg-primary/4 dark:bg-primary/8 p-8 cursor-pointer hover:border-primary/50 hover:bg-primary/8 dark:hover:bg-primary/12 transition-colors focus-within:ring-2 focus-within:ring-primary/20 focus-within:ring-offset-2 focus-within:ring-offset-card"
+        >
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary mb-4">
+            <HugeiconsIcon icon={Upload01Icon} className="size-6" />
+          </div>
+          <p className="text-sm font-medium text-foreground text-center">
+            {audioBlob
+              ? `${fileName || "Audio file"}`
+              : "Drag audio here, or click to upload"}
+          </p>
+          {audioBlob && (
+            <p className="text-xs text-muted-foreground mt-1.5 tabular-nums">
+              {(audioBlob.size / 1024 / 1024).toFixed(2)} MB
+            </p>
+          )}
+          <span className="text-xs text-muted-foreground mt-1">
+            MP3, WAV, FLAC, M4A, OGG, WebM, AAC · max 25MB
+          </span>
+        </label>
+      </div>
+
+      {/* Form fields — premium selects */}
+      <div className="space-y-5 mb-8">
+        <div className="space-y-2">
+          <label
+            className="block text-sm font-medium text-foreground"
+            id="upload-audio-language-label"
+          >
+            Audio language
+          </label>
+          <div className={selectWrapperClass}>
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <HugeiconsIcon icon={Mic01Icon} className="size-4" />
+            </div>
+            <Select
+              value={audioLanguage}
+              onValueChange={setAudioLanguage}
+              disabled={isProcessing}
+            >
+              <SelectTrigger
+                className={selectTriggerClass}
+                aria-labelledby="upload-audio-language-label"
+              >
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent
+                className="bg-popover text-popover-foreground border-border dark:bg-neutral-900 dark:border-neutral-800 min-w-(--radix-select-trigger-width)"
+                position="popper"
+                align="start"
+              >
+                <SelectItem value="English" className="cursor-pointer">
+                  English
+                </SelectItem>
+                <SelectItem value="Spanish" className="cursor-pointer">
+                  Spanish
+                </SelectItem>
+                <SelectItem value="French" className="cursor-pointer">
+                  French
+                </SelectItem>
+                <SelectItem value="German" className="cursor-pointer">
+                  German
+                </SelectItem>
+                <SelectItem value="Chinese" className="cursor-pointer">
+                  Chinese
+                </SelectItem>
+                <SelectItem value="Japanese" className="cursor-pointer">
+                  Japanese
+                </SelectItem>
+                <SelectItem value="Korean" className="cursor-pointer">
+                  Korean
+                </SelectItem>
+                <SelectItem value="Arabic" className="cursor-pointer">
+                  Arabic
+                </SelectItem>
+                <SelectItem value="Hindi" className="cursor-pointer">
+                  Hindi
+                </SelectItem>
+                <SelectItem value="Portuguese" className="cursor-pointer">
+                  Portuguese
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label
+            className="block text-sm font-medium text-foreground"
+            id="upload-folder-label"
+          >
+            Folder
+          </label>
+          <div className={selectWrapperClass}>
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <HugeiconsIcon icon={Folder01Icon} className="size-4" />
+            </div>
+            <Select value={folder} onValueChange={setFolder} disabled={isProcessing}>
+              <SelectTrigger
+                className={selectTriggerClass}
+                aria-labelledby="upload-folder-label"
+              >
+                <SelectValue placeholder="Select folder" />
+              </SelectTrigger>
+              <SelectContent
+                className="bg-popover text-popover-foreground border-border dark:bg-neutral-900 dark:border-neutral-800 min-w-(--radix-select-trigger-width)"
+                position="popper"
+                align="start"
+              >
+                <SelectItem value="All notes" className="cursor-pointer">
+                  All notes
+                </SelectItem>
+                <SelectItem value="Work" className="cursor-pointer">
+                  Work
+                </SelectItem>
+                <SelectItem value="Personal" className="cursor-pointer">
+                  Personal
+                </SelectItem>
+                <SelectItem value="Projects" className="cursor-pointer">
+                  Projects
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Generate Notes */}
+      <button
+        type="button"
+        onClick={transcribeAudio}
+        disabled={isProcessing || !audioBlob}
+        className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20"
+      >
+        {isProcessing ? (
+          <>
+            <HugeiconsIcon
+              icon={Loading01Icon}
+              className="size-4 shrink-0 animate-spin"
+            />
+            <span>Processing...</span>
+          </>
+        ) : (
+          <>
+            <HugeiconsIcon icon={MagicWand01Icon} className="size-4 shrink-0" />
+            <span>Generate notes</span>
+          </>
+        )}
+      </button>
+    </div>
+  );
 }

@@ -48,30 +48,31 @@
 }
 
 /* ==========================================================================
-   TYPOGRAPHY SCALE — 1.25 major second (industry standard)
-   Base 16px → 14px (87.5%) applied at html in globals.css
+   TYPOGRAPHY SCALE — readable, premium scale (html 100% = 16px base)
+   Consistent type scale for dashboard, study tools, and CTAs.
    ========================================================================== */
 :root {
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   --font-mono: "Space Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
   --font-display: "DM Sans", var(--font-sans);
 
-  --text-xs: 0.75rem;      /* 12px */
-  --text-sm: 0.8125rem;    /* 13px */
-  --text-base: 0.875rem;   /* 14px */
-  --text-lg: 1rem;         /* 16px */
-  --text-xl: 1.125rem;     /* 18px */
-  --text-2xl: 1.25rem;     /* 20px */
-  --text-3xl: 1.5rem;     /* 24px */
-  --text-4xl: 1.875rem;    /* 30px */
-  --text-5xl: 2.25rem;     /* 36px */
-  --text-6xl: 3rem;        /* 48px */
+  --text-xs: 0.75rem;      /* 12px — labels, captions */
+  --text-sm: 0.875rem;     /* 14px — secondary UI text */
+  --text-base: 1rem;      /* 16px — body, default */
+  --text-lg: 1.125rem;    /* 18px — lead, emphasis */
+  --text-xl: 1.25rem;     /* 20px — section headers */
+  --text-2xl: 1.5rem;     /* 24px — feature headers */
+  --text-3xl: 1.875rem;   /* 30px — page titles */
+  --text-4xl: 2.25rem;    /* 36px */
+  --text-5xl: 3rem;       /* 48px */
+  --text-6xl: 3.75rem;    /* 60px */
 
   --leading-tight: 1.25;
   --leading-snug: 1.375;
   --leading-normal: 1.5;
   --leading-relaxed: 1.625;
   --leading-loose: 2;
+  --leading-7: 1.75;
 
   --tracking-tighter: -0.05em;
   --tracking-tight: -0.025em;

@@ -1,29 +1,33 @@
-// Pricing Page Component - Displays subscription pricing
+"use client";
 
-'use client';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  SparklesIcon,
+  Tick01Icon,
+  LockIcon,
+} from "@hugeicons/core-free-icons";
+import { cn } from "@/lib/utils";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, Sparkles } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-type BillingInterval = 'monthly' | 'yearly';
+type BillingInterval = "monthly" | "yearly";
 
 export function PricingCard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
+  const [billingInterval, setBillingInterval] =
+    useState<BillingInterval>("yearly");
 
   const pricing = {
     monthly: {
       price: 19.99,
-      period: '/month',
+      period: "/month",
       savings: null,
     },
     yearly: {
       price: 89,
-      period: '/year',
-      savings: 'Save $151/year (63% off)',
+      period: "/year",
+      savings: "Save $151/year (63% off)",
     },
   };
 
@@ -32,10 +36,10 @@ export function PricingCard() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/subscription/create', {
-        method: 'POST',
+      const response = await fetch("/api/subscription/create", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ billingInterval }),
       });
@@ -50,59 +54,61 @@ export function PricingCard() {
         setError(data.error);
       }
     } catch (err) {
-      setError('Failed to create subscription. Please try again.');
+      setError("Failed to create subscription. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const features = [
-    'Unlimited PDF, Audio & Video Processing',
-    // TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature
-    // 'AI Course Generation',
-    'Smart Notes & Flashcards',
-    'Interactive Quizzes',
-    'Priority Support',
+    "Unlimited PDF, audio & video processing",
+    "Smart notes, flashcards & quizzes",
+    "Mind maps & podcast summaries",
+    "Priority support",
   ];
 
   const currentPricing = pricing[billingInterval];
 
   return (
-    <div className="neomorphic rounded-3xl p-8 md:p-10">
+    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl neomorphic-inset mb-6">
-          <Sparkles className="h-8 w-8 text-primary" />
+        <div className="inline-flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-5">
+          <HugeiconsIcon icon={SparklesIcon} className="size-6" />
         </div>
-        <h2 className="text-3xl font-bold mb-3">Pro Plan</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
+          Pro plan
+        </h2>
+        <p className="text-sm text-muted-foreground">
           Everything you need to supercharge your learning
         </p>
-        <p className="text-sm text-muted-foreground mt-2">
+        <p className="text-xs text-muted-foreground mt-1">
           Start with 1 free note, then upgrade for unlimited access
         </p>
       </div>
 
-      {/* Billing Toggle */}
-      <div className="flex items-center justify-center gap-2 mb-8">
-        <div className="inline-flex items-center rounded-full p-1 neomorphic-inset">
+      {/* Billing toggle */}
+      <div className="flex justify-center mb-6">
+        <div className="inline-flex rounded-full border border-border bg-muted/50 p-1">
           <button
-            onClick={() => setBillingInterval('monthly')}
+            type="button"
+            onClick={() => setBillingInterval("monthly")}
             className={cn(
-              "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
-              billingInterval === 'monthly'
-                ? "bg-linear-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+              "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              billingInterval === "monthly"
+                ? "bg-background text-foreground shadow-sm border border-border"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
             Monthly
           </button>
           <button
-            onClick={() => setBillingInterval('yearly')}
+            type="button"
+            onClick={() => setBillingInterval("yearly")}
             className={cn(
-              "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
-              billingInterval === 'yearly'
-                ? "bg-linear-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+              "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              billingInterval === "yearly"
+                ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -112,62 +118,62 @@ export function PricingCard() {
       </div>
 
       {/* Price */}
-      <div className="text-center mb-8">
-        <div className="flex items-baseline justify-center gap-2 mb-2">
-          <span className="text-6xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+      <div className="text-center mb-6">
+        <div className="flex items-baseline justify-center gap-1.5 mb-1">
+          <span className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             ${currentPricing.price}
           </span>
-          <span className="text-xl text-muted-foreground">{currentPricing.period}</span>
+          <span className="text-lg text-muted-foreground">
+            {currentPricing.period}
+          </span>
         </div>
         {currentPricing.savings && (
-          <p className="text-sm font-medium text-green-500 mb-2">
+          <p className="text-sm font-medium text-primary mt-1">
             {currentPricing.savings}
           </p>
         )}
-        <p className="text-sm text-muted-foreground">
-          Cancel anytime • No commitment
+        <p className="text-xs text-muted-foreground mt-2">
+          Cancel anytime · No commitment
         </p>
       </div>
 
       {/* Features */}
-      <div className="space-y-4 mb-8">
+      <ul className="space-y-3 mb-6">
         {features.map((feature, index) => (
-          <div key={index} className="flex items-center gap-3">
-            <div className="shrink-0 w-6 h-6 rounded-full neomorphic-inset flex items-center justify-center">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-            </div>
-            <span className="text-base">{feature}</span>
-          </div>
+          <li key={index} className="flex items-center gap-3">
+            <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <HugeiconsIcon icon={Tick01Icon} className="size-3" />
+            </span>
+            <span className="text-sm text-foreground">{feature}</span>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      {/* Error Message */}
       {error && (
-        <div className="rounded-2xl neomorphic-inset p-4 mb-6 text-sm text-destructive text-center">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 mb-6 text-sm text-destructive text-center">
           {error}
         </div>
       )}
 
-      {/* CTA Button */}
       <Button
         onClick={handleSubscribe}
         disabled={loading}
-        className="w-full h-14 text-lg font-semibold rounded-2xl neomorphic hover: transition-all duration-300 dark:text-white"
+        className="w-full h-12 text-base font-semibold rounded-xl"
         size="lg"
       >
         {loading ? (
-          <div className="flex items-center gap-2">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent dark:text-white" />
-            <span>Creating subscription...</span>
-          </div>
+          <span className="flex items-center justify-center gap-2">
+            <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            Creating subscription…
+          </span>
         ) : (
-          'Get Started Now'
+          "Get started now"
         )}
       </Button>
 
-      {/* Bottom Note */}
-      <p className="text-center text-sm text-muted-foreground mt-6">
-        Secure payment powered by Dodo Payments 🔒
+      <p className="flex items-center justify-center gap-2 mt-5 text-xs text-muted-foreground">
+        <HugeiconsIcon icon={LockIcon} className="size-3.5" />
+        Secure payment
       </p>
     </div>
   );

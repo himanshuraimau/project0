@@ -1,24 +1,18 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Brain, Share, Star, Trash2, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { MarkmapViewer } from "./MarkmapViewer";
 import LoadingScreen from "@/components/LoadingScreen";
 import { useRouter } from "next/navigation";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  ArrowLeft01Icon,
+  Share07Icon,
+  StarIcon,
+  Brain01Icon,
+} from "@hugeicons/core-free-icons";
 
 interface MindMap {
   id: string;
@@ -42,10 +36,6 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
   const [error, setError] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
-
-  const handleShare = () => {
-    toast.success("Share link copied to clipboard");
-  };
 
   const handleToggleFavorite = () => {
     setIsFavorite(!isFavorite);
@@ -150,65 +140,74 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
   }
 
   if (mindmap) {
+    const baseTitle = mindmap.title.replace(/- Mindmap/i, "").trim();
+
     return (
-      <div className="px-20 py-6">
-        {/* Header Section */}
-        <div className="pb-6 mb-6 border-b border-transparent" style={{
-          boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
-        }}>
-          {/* Breadcrumb with Actions */}
-          <nav className="mb-4">
-            <div className="flex items-center justify-between">
-              <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
-                <li>
-                  <button
-                    onClick={() => router.push('/dashboard')}
-                    className="hover:text-foreground transition-colors"
-                  >
-                    Notes
-                  </button>
-                </li>
-                <li>
-                  <span className="mx-2">&gt;</span>
-                </li>
-                <li className="text-foreground font-medium">
-                  Mindmap
-                </li>
-              </ol>
-
-              {/* Share and Star Buttons */}
-              <div className="flex items-center gap-2 shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleShare}
-                  className="gap-2 rounded-none"
-                >
-                  <Share2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Share</span>
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleToggleFavorite}
-                  className="text-yellow-500 hover:text-yellow-600 rounded-none"
-                >
-                  <Star
-                    className="h-5 w-5"
-                    fill={isFavorite ? "currentColor" : "none"}
-                  />
-                </Button>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Header */}
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <button
+              onClick={() => router.push(`/notes/${noteId}`)}
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
+              <span>Back to note</span>
+            </button>
+            <div className="mt-3 flex items-center gap-2">
+              <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <HugeiconsIcon icon={Brain01Icon} className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                  Mind map
+                </p>
+                <h1 className="text-lg font-semibold text-foreground truncate">
+                  {baseTitle || "Generated from note"}
+                </h1>
               </div>
             </div>
-          </nav>
+          </div>
 
-          {/* Title */}
-          <div>
-            <div className="text-2xl text-purple-800 pb-2">Mindmap for:</div>
-            <h1 className="text-[19px] font-bold text-foreground leading-tight">
-              {mindmap.title.replace(/- Mindmap/i, '').trim()}
-            </h1>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigator.clipboard
+                  .writeText(window.location.href)
+                  .then(() =>
+                    toast.success("Link copied to clipboard", {
+                      position: "top-center",
+                    }),
+                  )
+                  .catch(() =>
+                    toast.error("Failed to copy link", {
+                      position: "top-center",
+                    }),
+                  );
+              }}
+              className="h-9 rounded-lg border-border text-muted-foreground hover:text-foreground gap-1.5"
+            >
+              <HugeiconsIcon icon={Share07Icon} className="size-4" />
+              <span className="hidden sm:inline">Share</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleToggleFavorite}
+              className={`h-9 w-9 rounded-lg ${
+                isFavorite
+                  ? "text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <HugeiconsIcon
+                icon={StarIcon}
+                className={`size-5 ${isFavorite ? "fill-current" : ""}`}
+              />
+            </Button>
           </div>
         </div>
 

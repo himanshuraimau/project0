@@ -5,7 +5,8 @@ import { ThemeToggleButton } from "@/components/dashboard/theme-toggle-button";
 import { UserControl } from "@/components/user-control";
 import { SidebarFooter, SidebarSeparator, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { Sun, Moon } from 'lucide-react';
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Sun01Icon, Moon01Icon } from "@hugeicons/core-free-icons";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
@@ -67,9 +68,9 @@ export function SidebarFooterControls({ className, children }: SidebarFooterCont
               {mounted && (
                 <>
                   {isDark ? (
-                    <Sun className="h-4 w-4 text-yellow-500 shrink-0" />
+                    <HugeiconsIcon icon={Sun01Icon} className="h-4 w-4 text-yellow-500 shrink-0" />
                   ) : (
-                    <Moon className="h-4 w-4 text-blue-500 shrink-0" />
+                    <HugeiconsIcon icon={Moon01Icon} className="h-4 w-4 text-blue-500 shrink-0" />
                   )}
                   <span>Switch mode</span>
                 </>
@@ -86,9 +87,9 @@ export function SidebarFooterControls({ className, children }: SidebarFooterCont
             aria-label="Toggle theme"
           >
             {isDark ? (
-              <Sun className="h-5 w-5 text-yellow-500" />
+              <HugeiconsIcon icon={Sun01Icon} className="h-5 w-5 text-yellow-500" />
             ) : (
-              <Moon className="h-5 w-5 text-blue-500" />
+              <HugeiconsIcon icon={Moon01Icon} className="h-5 w-5 text-blue-500" />
             )}
           </button>
         )}

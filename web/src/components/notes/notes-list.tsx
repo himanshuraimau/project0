@@ -1,13 +1,22 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { useNotes } from "@/hooks/use-notes";
 import { NotesNoteWithTranscript } from "@/lib/types";
 import { NoteCard } from "./note-card";
-import { Loader2, FileText, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { GeneratingNoteCard } from "./generating-note-card";
 import { NoteCardShimmer } from "@/components/ui/shimmer";
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Note01Icon } from "@hugeicons/core-free-icons";
 
 interface NotesListProps {
   searchQuery?: string;
@@ -23,41 +32,52 @@ export interface NotesListRef {
 export const NotesList = forwardRef<NotesListRef, NotesListProps>(
   ({ searchQuery, transcriptId, limit, folderId }, ref) => {
     const { getNotes, loading, error } = useNotes();
-    const { loadingNotes, removeLoadingNote, updateLoadingNote } = useDashboardRefresh();
-    const [notes, setNotes] = useState<NotesNoteWithTranscript[]>([]);    // Debug: Log loading notes changes
-    useEffect(() => {
-    }, [loadingNotes]);
+    const { loadingNotes, removeLoadingNote } = useDashboardRefresh();
+    const [notes, setNotes] = useState<NotesNoteWithTranscript[]>([]); // Debug: Log loading notes changes
+    useEffect(() => {}, [loadingNotes]);
 
     const loadNotes = useCallback(async () => {
       const result = await getNotes(transcriptId);
       if (result) {
         setNotes(result as NotesNoteWithTranscript[]);
-        
+
         // Auto-cleanup loading notes based on multiple criteria:
-        const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-        const noteIds = new Set(result.map(n => n.id));
-        const transcriptIds = new Set(result.map(n => n.transcriptId).filter(Boolean));
-        
-        loadingNotes.forEach(loadingNote => {
-          // Remove if stale (older than 5 minutes)
-          if (loadingNote.timestamp < fiveMinutesAgo) {
+        // Use a longer window so long-running audio generations don't disappear too quickly
+        const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
+        const noteIds = new Set(result.map((n) => n.id));
+        const transcriptIds = new Set(
+          result.map((n) => n.transcriptId).filter(Boolean)
+        );
+
+        loadingNotes.forEach((loadingNote) => {
+          // Remove if stale (older than 30 minutes)
+          if (loadingNote.timestamp < thirtyMinutesAgo) {
             console.log(`Auto-removing stale loading note: ${loadingNote.id}`);
             removeLoadingNote(loadingNote.id);
             return;
           }
-          
+
           // Remove if corresponding note now exists in database
           if (loadingNote.noteId && noteIds.has(loadingNote.noteId)) {
-            console.log(`Auto-removing loading note - note exists: ${loadingNote.id}`);
+            console.log(
+              `Auto-removing loading note - note exists: ${loadingNote.id}`
+            );
             removeLoadingNote(loadingNote.id);
             return;
           }
-          
+
           // Remove if transcript exists and has notes (completed state)
-          if (loadingNote.transcriptId && transcriptIds.has(loadingNote.transcriptId)) {
-            const noteForTranscript = result.find(n => n.transcriptId === loadingNote.transcriptId);
+          if (
+            loadingNote.transcriptId &&
+            transcriptIds.has(loadingNote.transcriptId)
+          ) {
+            const noteForTranscript = result.find(
+              (n) => n.transcriptId === loadingNote.transcriptId
+            );
             if (noteForTranscript) {
-              console.log(`Auto-removing loading note - transcript has note: ${loadingNote.id}`);
+              console.log(
+                `Auto-removing loading note - transcript has note: ${loadingNote.id}`
+              );
               removeLoadingNote(loadingNote.id);
               return;
             }
@@ -67,19 +87,24 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
     }, [transcriptId, getNotes, loadingNotes, removeLoadingNote]);
 
     // Expose refresh method to parent component
-    useImperativeHandle(ref, () => ({
-      refreshNotes: loadNotes
-    }), [loadNotes]);
+    useImperativeHandle(
+      ref,
+      () => ({
+        refreshNotes: loadNotes,
+      }),
+      [loadNotes]
+    );
 
     // Load notes on component mount
     useEffect(() => {
       loadNotes();
     }, [loadNotes, searchQuery]);
 
-
-
     // Filter notes based on search query
-    const filterNotes = (notes: NotesNoteWithTranscript[], query: string): NotesNoteWithTranscript[] => {
+    const filterNotes = (
+      notes: NotesNoteWithTranscript[],
+      query: string
+    ): NotesNoteWithTranscript[] => {
       if (!query || query.trim() === "") {
         return notes;
       }
@@ -104,7 +129,9 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
     };
 
     // Filter notes by folder
-    const filterByFolder = (notes: NotesNoteWithTranscript[]): NotesNoteWithTranscript[] => {
+    const filterByFolder = (
+      notes: NotesNoteWithTranscript[]
+    ): NotesNoteWithTranscript[] => {
       if (folderId === undefined || folderId === null) {
         return notes; // Show all notes when no folder filter is applied
       }
@@ -118,13 +145,10 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
     if (loading && notes.length === 0) {
       return (
-        <div className="flex items-center justify-center p-12">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground font-medium">
-              Loading notes...
-            </p>
-          </div>
+        <div className="flex flex-col gap-6 w-full">
+          {[1, 2, 3].map((i) => (
+            <NoteCardShimmer key={i} />
+          ))}
         </div>
       );
     }
@@ -139,9 +163,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
             <h3 className="font-semibold text-foreground mb-2">
               Error loading notes
             </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              {error}
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">{error}</p>
             <Button onClick={loadNotes} variant="outline" size="sm">
               Try Again
             </Button>
@@ -152,18 +174,26 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
     const filteredNotes = filterByFolder(filterNotes(notes, searchQuery || ""));
 
-    // Show shimmer if we're loading the first note (empty state with loading notes)
+    // Premium empty state — no notes yet
     if (notes.length === 0 && loadingNotes.length === 0) {
       return (
-        <div className="text-center py-16">
-          <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <FileText className="h-10 w-10 text-muted-foreground" />
+        <div className="flex flex-col items-center text-center py-16 px-4">
+          <div
+            className="relative flex size-24 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-6 animate-in fade-in duration-500"
+            aria-hidden
+          >
+            <div className="absolute inset-0 rounded-2xl bg-primary/5 animate-pulse" />
+            <HugeiconsIcon
+              icon={Note01Icon}
+              className="size-12 shrink-0 relative z-10"
+            />
           </div>
-          <h3 className="font-semibold text-xl text-foreground mb-3">
-            No notes found
+          <h3 className="font-semibold text-xl text-foreground mb-2 tracking-tight">
+            No notes yet
           </h3>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Create your first note by uploading a PDF, recording audio, or processing a YouTube video or webpage.
+          <p className="text-muted-foreground text-sm max-w-sm mx-auto leading-relaxed">
+            Create your first note by uploading a PDF, recording audio, or
+            adding a YouTube or webpage link above.
           </p>
         </div>
       );
@@ -171,32 +201,36 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
     if (filteredNotes.length === 0 && searchQuery) {
       return (
-        <div className="text-center py-16">
-          <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <FileText className="h-10 w-10 text-muted-foreground" />
+        <div className="flex flex-col items-center text-center py-16 px-4">
+          <div className="flex size-16 items-center justify-center rounded-xl bg-muted text-muted-foreground mb-4">
+            <HugeiconsIcon icon={Note01Icon} className="size-8" />
           </div>
-          <h3 className="font-semibold text-xl text-foreground mb-3">
+          <h3 className="font-semibold text-lg text-foreground mb-2">
             No notes match your search
           </h3>
-          <p className="text-muted-foreground">
-            Try adjusting your search terms or create a new note.
+          <p className="text-sm text-muted-foreground max-w-xs">
+            Try different keywords or create a new note.
           </p>
         </div>
       );
     }
 
     // Show empty state when folder has no notes
-    if (filteredNotes.length === 0 && folderId && folderId !== "uncategorized") {
+    if (
+      filteredNotes.length === 0 &&
+      folderId &&
+      folderId !== "uncategorized"
+    ) {
       return (
-        <div className="text-center py-16 neomorphic rounded-2xl">
-          <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <FileText className="h-10 w-10 text-muted-foreground" />
+        <div className="flex flex-col items-center text-center py-16 px-4 rounded-2xl border border-border bg-card/50">
+          <div className="flex size-16 items-center justify-center rounded-xl bg-muted text-muted-foreground mb-4">
+            <HugeiconsIcon icon={Note01Icon} className="size-8" />
           </div>
-          <h3 className="font-semibold text-xl text-foreground mb-3">
-            No notes in this folder yet
+          <h3 className="font-semibold text-lg text-foreground mb-2">
+            This folder is empty
           </h3>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Move notes to this folder or create new ones to organize your content.
+          <p className="text-sm text-muted-foreground max-w-sm">
+            Move notes here or create new ones to organize your content.
           </p>
         </div>
       );
@@ -205,15 +239,15 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
     // Show empty state for uncategorized
     if (filteredNotes.length === 0 && folderId === "uncategorized") {
       return (
-        <div className="text-center py-16 neomorphic rounded-2xl">
-          <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <FileText className="h-10 w-10 text-muted-foreground" />
+        <div className="flex flex-col items-center text-center py-16 px-4 rounded-2xl border border-border bg-card/50">
+          <div className="flex size-16 items-center justify-center rounded-xl bg-muted text-muted-foreground mb-4">
+            <HugeiconsIcon icon={Note01Icon} className="size-8" />
           </div>
-          <h3 className="font-semibold text-xl text-foreground mb-3">
+          <h3 className="font-semibold text-lg text-foreground mb-2">
             All notes are organized
           </h3>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Great! All your notes are in folders. Uncategorized notes will appear here.
+          <p className="text-sm text-muted-foreground max-w-sm">
+            Uncategorized notes will show up here when you add them.
           </p>
         </div>
       );
@@ -221,19 +255,23 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
     return (
       <>
-        <div className="flex flex-col gap-6 w-full">
-          {/* Show shimmer cards for loading notes */}
+        <div className="flex flex-col gap-4 w-full">
+          {/* Progress cards for notes being generated */}
           {loadingNotes.map((loadingNote) => (
-            <NoteCardShimmer key={loadingNote.id} />
+            <GeneratingNoteCard
+              key={loadingNote.id}
+              loadingNote={loadingNote}
+              onDismiss={(note) => removeLoadingNote(note.id)}
+            />
           ))}
 
           {/* Show actual notes */}
-          {(limit ? filteredNotes.slice(0, limit) : filteredNotes).map((note) => (
-            <NoteCard key={note.id} note={note} onUpdate={loadNotes} />
-          ))}
+          {(limit ? filteredNotes.slice(0, limit) : filteredNotes).map(
+            (note) => (
+              <NoteCard key={note.id} note={note} onUpdate={loadNotes} />
+            )
+          )}
         </div>
-
-
       </>
     );
   }

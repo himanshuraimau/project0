@@ -374,12 +374,15 @@ function ToolbarPlugin({
     }
   };
 
+  const toolbarButtonClass =
+    "size-8 shrink-0 rounded-md bg-muted/60 text-foreground hover:bg-muted border-0 cursor-pointer";
+
   return (
-    <div className=" bg-card dark:bg-stone-900 rounded-lg p-3">
-      <div className="flex flex-wrap justify-center items-center gap-2">
+    <div className="rounded-t-xl border-b border-border bg-muted/30 px-3 py-2.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="w-40 justify-between text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800">
+            <Button variant="outline" size="sm" className="h-8 w-40 justify-between rounded-md border-border bg-background text-foreground hover:bg-muted">
               {FONT_OPTIONS.find((f) => f.value === selectedFont)?.label ||
                 "Select Font"}
             </Button>
@@ -398,8 +401,9 @@ function ToolbarPlugin({
 
         <div className="flex items-center gap-1">
           <Button
-            className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-            size="sm"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 rounded-md border-border bg-background hover:bg-muted"
             onClick={decreaseFontSize}
             onMouseDown={(e) => e.preventDefault()}
           >
@@ -407,7 +411,7 @@ function ToolbarPlugin({
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="w-16 justify-center text-black bg-white hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer dark:bg-stone-800">
+              <Button variant="outline" size="sm" className="h-8 w-14 justify-center rounded-md border-border bg-background text-foreground hover:bg-muted">
                 {fontSize}
               </Button>
             </DropdownMenuTrigger>
@@ -423,8 +427,9 @@ function ToolbarPlugin({
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
-            className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-            size="sm"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 rounded-md border-border bg-background hover:bg-muted"
             onClick={increaseFontSize}
             onMouseDown={(e) => e.preventDefault()}
           >
@@ -432,101 +437,49 @@ function ToolbarPlugin({
           </Button>
         </div>
 
-        <div className="w-px h-6 bg-stone-200 dark:bg-stone-700 mx-2.5" />
+        <div className="w-px h-5 bg-border mx-1.5" />
 
-        <Button
-          size="sm"
-          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-          onClick={formatBold}
-          onMouseDown={(e) => e.preventDefault()}
-        >
+        <Button variant="ghost" size="icon" className={toolbarButtonClass} onClick={formatBold} onMouseDown={(e) => e.preventDefault()}>
           <Bold className="h-4 w-4" />
         </Button>
-        <Button
-          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-          size="sm"
-          onClick={formatItalic}
-          onMouseDown={(e) => e.preventDefault()}
-        >
+        <Button variant="ghost" size="icon" className={toolbarButtonClass} onClick={formatItalic} onMouseDown={(e) => e.preventDefault()}>
           <Italic className="h-4 w-4" />
         </Button>
-        <Button
-          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-          size="sm"
-          onClick={formatUnderline}
-          onMouseDown={(e) => e.preventDefault()}
-        >
+        <Button variant="ghost" size="icon" className={toolbarButtonClass} onClick={formatUnderline} onMouseDown={(e) => e.preventDefault()}>
           <Underline className="h-4 w-4" />
         </Button>
-        <Button
-          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-          size="sm"
-          onMouseDown={(e) => e.preventDefault()}
-        >
+        <Button variant="ghost" size="icon" className={toolbarButtonClass} onMouseDown={(e) => e.preventDefault()}>
           <Type className="h-4 w-4" />
         </Button>
 
-        <div className="w-px h-6 bg-stone-200 dark:bg-stone-700 mx-2.5" />
+        <div className="w-px h-5 bg-border mx-1.5" />
 
-        <Button
-          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-          size="sm"
-          onClick={formatAlignLeft}
-          onMouseDown={(e) => e.preventDefault()}
-        >
+        <Button variant="ghost" size="icon" className={toolbarButtonClass} onClick={formatAlignLeft} onMouseDown={(e) => e.preventDefault()}>
           <AlignLeft className="h-4 w-4" />
         </Button>
-        <Button
-          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-          size="sm"
-          onClick={formatAlignCenter}
-          onMouseDown={(e) => e.preventDefault()}
-        >
+        <Button variant="ghost" size="icon" className={toolbarButtonClass} onClick={formatAlignCenter} onMouseDown={(e) => e.preventDefault()}>
           <AlignCenter className="h-4 w-4" />
         </Button>
-        <Button
-          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-          size="sm"
-          onClick={formatAlignRight}
-          onMouseDown={(e) => e.preventDefault()}
-        >
+        <Button variant="ghost" size="icon" className={toolbarButtonClass} onClick={formatAlignRight} onMouseDown={(e) => e.preventDefault()}>
           <AlignRight className="h-4 w-4" />
         </Button>
 
-        <div className="w-px h-6 bg-stone-200 dark:bg-stone-700 mx-2.5" />
+        <div className="w-px h-5 bg-border mx-1.5" />
 
-        <Button
-          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-          size="sm"
-          onClick={insertBulletList}
-          onMouseDown={(e) => e.preventDefault()}
-        >
+        <Button variant="ghost" size="icon" className={toolbarButtonClass} onClick={insertBulletList} onMouseDown={(e) => e.preventDefault()}>
           <List className="h-4 w-4" />
         </Button>
-        <Button
-          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-          size="sm"
-          onClick={insertNumberedList}
-          onMouseDown={(e) => e.preventDefault()}
-        >
+        <Button variant="ghost" size="icon" className={toolbarButtonClass} onClick={insertNumberedList} onMouseDown={(e) => e.preventDefault()}>
           <ListOrdered className="h-4 w-4" />
         </Button>
 
-        <div className="w-px h-6 bg-stone-200 dark:bg-stone-700 mx-2.5" />
+        <div className="w-px h-5 bg-border mx-1.5" />
 
-        <Button
-          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-          size="sm"
-          onClick={onCopy}
-          title="Copy Content"
-        >
+        <Button variant="ghost" size="icon" className={toolbarButtonClass} onClick={onCopy} title="Copy Content">
           <Copy className="h-4 w-4" />
         </Button>
 
-        <Button
-          className="text-black hover:bg-stone-100 dark:hover:bg-stone-700 dark:text-white cursor-pointer bg-stone-50 dark:bg-stone-800"
-          size="sm"
-          onClick={() => {
+        <Button variant="ghost" size="icon" className={toolbarButtonClass} onClick={() => {
             try {
               downloadAsPDF();
             } catch (error) {

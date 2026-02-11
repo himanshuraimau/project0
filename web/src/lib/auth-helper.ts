@@ -1,6 +1,9 @@
 import { NextRequest } from 'next/server';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { prisma } from '@/lib/prisma';
+
+export type UserRole = 'USER' | 'ADMIN';
 
 /**
  * Universal authentication helper that works for both same-origin (web) and cross-origin (mobile) requests.
@@ -58,6 +61,40 @@ export async function requireAuth(request: NextRequest): Promise<string> {
   const userId = await getUserFromAuth(request);
   if (!userId) {
     throw new Error('Authentication required');
+  }
+  return userId;
+}
+
+/**
+ * Check if the authenticated user has the given role.
+ * Fetches the user from the database (role is only stored in DB, not in session).
+ */
+export async function getUserRole(request: NextRequest): Promise<UserRole | null> {
+  const userId = await getUserFromAuth(request);
+  if (!userId) return null;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+  return user?.role ?? null;
+}
+
+/**
+ * Returns true if the authenticated user is an admin. Use for admin-only routes or UI.
+ */
+export async function isAdmin(request: NextRequest): Promise<boolean> {
+  const role = await getUserRole(request);
+  return role === 'ADMIN';
+}
+
+/**
+ * Throws if the current user is not an admin. Use at the start of admin-only API routes.
+ */
+export async function requireAdmin(request: NextRequest): Promise<string> {
+  const userId = await requireAuth(request);
+  const role = await getUserRole(request);
+  if (role !== 'ADMIN') {
+    throw new Error('Admin access required');
   }
   return userId;
 }

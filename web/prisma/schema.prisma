@@ -9,12 +9,18 @@ datasource db {
   extensions = [vector]
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id            String        @id @default(cuid())
   name          String?
   email         String        @unique
   emailVerified Boolean       @default(false)
   image         String?
+  role          UserRole      @default(USER) // USER by default; set to ADMIN in DB when needed
   notesCount    Int           @default(0)
   coursesCount  Int           @default(0) // Total courses created (for reference)
   lastCourseResetDate DateTime? // Track when monthly course count was last reset

@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { FileText } from 'lucide-react';
-import Link from 'next/link';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { File01Icon } from '@hugeicons/core-free-icons';
 import { useDashboardRefresh } from '@/contexts/dashboard-refresh-context';
+import { useUpgradeModal } from '@/contexts/upgrade-modal-context';
 
 interface FreeTierStatus {
   used: number;
@@ -16,6 +17,7 @@ export function FreeNoteCounter() {
   const [hasSubscription, setHasSubscription] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { refreshTrigger } = useDashboardRefresh();
+  const { openUpgradeModal } = useUpgradeModal();
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -65,12 +67,12 @@ export function FreeNoteCounter() {
     return null;
   }
 
-  // Show loading state briefly
+  // Show loading state — skeleton shimmer
   if (isLoading && !status) {
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-zinc-800 rounded-md animate-pulse">
-        <FileText className="h-3.5 w-3.5 text-gray-400" />
-        <span className="text-sm text-gray-400">Loading...</span>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-card overflow-hidden">
+        <div className="skeleton-base size-4 shrink-0 rounded" />
+        <div className="skeleton-base h-4 w-20 rounded-md" />
       </div>
     );
   }
@@ -87,26 +89,32 @@ export function FreeNoteCounter() {
   const isNearLimit = status.remaining <= 1 && status.remaining > 0;
 
   return (
-    <Link 
-      href="/pricing"
-      className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-md hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
+    <button
+      type="button"
+      onClick={openUpgradeModal}
+      className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-md hover:bg-muted/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
-      <FileText className={`h-3.5 w-3.5 ${
-        isLimitReached 
-          ? 'text-red-500' 
-          : isNearLimit 
-          ? 'text-amber-500' 
-          : 'text-gray-500 dark:text-gray-400'
-      }`} />
-      <span className={`text-sm font-medium ${
-        isLimitReached 
-          ? 'text-red-700 dark:text-red-400' 
-          : isNearLimit 
-          ? 'text-amber-700 dark:text-amber-400' 
-          : 'text-gray-700 dark:text-gray-300'
-      }`}>
+      <HugeiconsIcon
+        icon={File01Icon}
+        className={`size-4 shrink-0 ${
+          isLimitReached
+            ? 'text-destructive'
+            : isNearLimit
+              ? 'text-amber-600 dark:text-amber-400'
+              : 'text-muted-foreground'
+        }`}
+      />
+      <span
+        className={`text-sm font-medium ${
+          isLimitReached
+            ? 'text-destructive'
+            : isNearLimit
+              ? 'text-amber-700 dark:text-amber-300'
+              : 'text-foreground'
+        }`}
+      >
         {status.used}/{status.limit} Free Notes
       </span>
-    </Link>
+    </button>
   );
 }

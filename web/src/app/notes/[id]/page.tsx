@@ -5,22 +5,21 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useNoteContext } from "@/contexts/note-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Edit,
-  FileText,
-  HelpCircle,
-  Layers,
-  Zap,
-  Brain,
-  MessageSquare,
-  Languages,
-  Share2,
-  Star,
-  Sparkles,
-  Bot,
-  Minimize2,
-  Maximize2
-} from "lucide-react";
+  Edit01Icon,
+  File01Icon,
+  HelpCircleIcon,
+  Layers01Icon,
+  FlashIcon,
+  Brain01Icon,
+  Message01Icon,
+  LanguageSquareIcon,
+  Share07Icon,
+  BotIcon,
+  Minimize01Icon,
+} from "@hugeicons/core-free-icons";
+import type { IconSvgElement } from "@hugeicons/react";
 import { cn } from "@/lib/utils";
 import { MDXRenderer } from "@/components/mdx-renderer";
 import dynamic from "next/dynamic";
@@ -40,39 +39,30 @@ export default function NoteHubPage() {
   const searchParams = useSearchParams();
   const [isChatbotMinimized, setIsChatbotMinimized] = useState(false);
   const [isTranslateModalOpen, setIsTranslateModalOpen] = useState(false);
-  const [translatedContent, setTranslatedContent] = useState<string | null>(null);
-  const [currentLang, setCurrentLang] = useState<LanguageCode | 'en'>('en');
+  const [translatedContent, setTranslatedContent] = useState<string | null>(
+    null
+  );
+  const [currentLang, setCurrentLang] = useState<LanguageCode | "en">("en");
   const [isEditLoading, setIsEditLoading] = useState(false);
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
   const [isPodcastLoading, setIsPodcastLoading] = useState(false);
 
-  // Fetch translated content when lang param changes
   useEffect(() => {
-    const lang = searchParams.get('lang') as LanguageCode | null;
-    console.log('Lang param:', lang || 'english');
-
+    const lang = searchParams.get("lang") as LanguageCode | null;
     if (lang && note) {
       setCurrentLang(lang);
-      // Fetch translation using correct endpoint
       fetch(`/api/notes/${note.id}/translate?language=${lang}`)
-        .then(res => res.json())
-        .then(data => {
-          console.log('Translation response:', data);
-          // API returns { success: true, data: { content, title, ... } }
+        .then((res) => res.json())
+        .then((data) => {
           if (data.success && data.data?.content) {
-            console.log('Setting translated content:', data.data.content.substring(0, 100));
             setTranslatedContent(data.data.content);
           } else {
-            console.log('No translation content found in response');
             setTranslatedContent(null);
           }
         })
-        .catch(err => {
-          console.error('Error fetching translation:', err);
-          setTranslatedContent(null);
-        });
+        .catch(() => setTranslatedContent(null));
     } else {
-      setCurrentLang('en');
+      setCurrentLang("en");
       setTranslatedContent(null);
     }
   }, [searchParams, note]);
@@ -80,6 +70,14 @@ export default function NoteHubPage() {
   const handleEditNote = () => {
     if (!note) return;
     setIsEditLoading(true);
+    // Ensure the editor opens from the top, not the previous scroll position
+    if (typeof window !== "undefined") {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "instant" as ScrollBehavior,
+      });
+    }
     setTimeout(() => {
       router.push(`/notes/${note.id}/edit`);
     }, 1500);
@@ -88,218 +86,220 @@ export default function NoteHubPage() {
   const handleTranscript = () => {
     if (!note) return;
     setIsTranscriptLoading(true);
-    setTimeout(() => {
-      router.push(`/notes/${note.id}/transcript`);
-    }, 1500);
+    setTimeout(() => router.push(`/notes/${note.id}/transcript`), 1500);
   };
 
   const handlePodcast = () => {
     if (!note) return;
     setIsPodcastLoading(true);
-    setTimeout(() => {
-      router.push(`/notes/${note.id}/podcast`);
-    }, 1500);
+    setTimeout(() => router.push(`/notes/${note.id}/podcast`), 1500);
   };
 
   if (!note) return null;
+  if (isEditLoading) return <LoadingScreen title="Loading Editor" />;
+  if (isTranscriptLoading) return <LoadingScreen title="Loading Transcript" />;
+  if (isPodcastLoading) return <LoadingScreen title="Loading Podcast" />;
 
-  if (isEditLoading) {
-    return <LoadingScreen title="Loading Editor" />;
-  }
-
-  if (isTranscriptLoading) {
-    return <LoadingScreen title="Loading Transcript" />;
-  }
-
-  if (isPodcastLoading) {
-    return <LoadingScreen title="Loading Podcast" />;
-  }
-
-  const actions = [
+  const actions: Array<{
+    label: string;
+    description: string;
+    icon: IconSvgElement;
+    onClick?: () => void;
+    href?: string;
+    iconBg: string;
+  }> = [
     {
       label: "Edit Note",
-      icon: Edit,
+      description: "Update content and structure",
+      icon: Edit01Icon,
       onClick: handleEditNote,
-      color: "bg-[#FF8904]",
-      bgColor: "bg-[#FF8904] dark:bg-[#FF8904]",
-      textColor: "text-white"
+      iconBg: "bg-[#FF8904]",
     },
     {
       label: "Transcript",
-      icon: FileText,
+      description: "View or edit raw transcript",
+      icon: File01Icon,
       onClick: handleTranscript,
-      color: "bg-[#C27AFF]",
-      bgColor: "bg-[#C27AFF] dark:bg-[#C27AFF]",
-      textColor: "text-white"
+      iconBg: "bg-[#C27AFF]",
     },
     {
       label: "Quiz",
-      icon: HelpCircle,
+      description: "Test yourself with AI questions",
+      icon: HelpCircleIcon,
       href: `/notes/${note.id}/quiz`,
-      color: "bg-[#FB64B6]",
-      bgColor: "bg-[#FB64B6] dark:bg-[#FB64B6]",
-      textColor: "text-white"
+      iconBg: "bg-[#FB64B6]",
     },
     {
       label: "Flashcards",
-      icon: Layers,
+      description: "Study with generated cards",
+      icon: Layers01Icon,
       href: `/notes/${note.id}/flashcard`,
-      color: "bg-[#00D3F3]",
-      bgColor: "bg-[#00D3F3] dark:bg-[#00D3F3]",
-      textColor: "text-white"
+      iconBg: "bg-[#00D3F3]",
     },
     {
       label: "Podcast",
-      icon: Zap,
+      description: "Listen as an audio summary",
+      icon: FlashIcon,
       onClick: handlePodcast,
-      color: "bg-[#51A2FF]",
-      bgColor: "bg-[#51A2FF] dark:bg-[#51A2FF]",
-      textColor: "text-white"
+      iconBg: "bg-[#51A2FF]",
     },
     {
       label: "Mind Map",
-      icon: Brain,
+      description: "Visualize concepts and links",
+      icon: Brain01Icon,
       href: `/notes/${note.id}/mindmap`,
-      color: "bg-[#7C86FF]",
-      bgColor: "bg-[#7C86FF] dark:bg-[#7C86FF]",
-      textColor: "text-white"
+      iconBg: "bg-[#7C86FF]",
     },
     {
       label: "Chat with Note",
-      icon: MessageSquare,
+      description: "Ask questions about this note",
+      icon: Message01Icon,
       href: `/notes/${note.id}/chat`,
-      color: "bg-[#FDC700]",
-      bgColor: "bg-[#FDC700] dark:bg-[#FDC700]",
-      textColor: "text-white"
+      iconBg: "bg-[#FDC700]",
     },
     {
       label: "Translate",
-      icon: Languages,
+      description: "Convert to another language",
+      icon: LanguageSquareIcon,
       onClick: () => setIsTranslateModalOpen(true),
-      color: "bg-[#90A1B9]",
-      bgColor: "bg-[#90A1B9] dark:bg-[#90A1B9]",
-      textColor: "text-white"
+      iconBg: "bg-[#90A1B9]",
     },
   ];
 
   return (
-    <div className="min-h-full px-20 py-6 max-w-full space-y-6">
-
-      {/* Top Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-[34px] font-bold text-foreground leading-tight mb-2">
-            {note.title}
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Created on {new Date(note.createdAt).toLocaleDateString()}
-          </p>
+    <div className="h-full min-h-0 max-w-full bg-background flex flex-col overflow-hidden">
+      {/* Header – aligned with dashboard/sidebar */}
+      <header className="shrink-0 border-b border-border/70 bg-background">
+        <div className="flex flex-col bg-sidebar gap-3 sm:flex-row sm:items-center sm:justify-between py-[10px] px-4 sm:px-6 lg:px-8">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground truncate sm:text-2xl">
+              {note.title}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Created {new Date(note.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-[40px] rounded-md gap-2 border-border bg-muted/50 hover:bg-muted font-medium"
+            >
+              <HugeiconsIcon icon={Share07Icon} className="size-4" />
+              Share
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="rounded-full gap-2 text-purple-600 border-purple-200 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:border-purple-800 dark:text-purple-300 py-1 px-3">
-            <Share2 className="h-4 w-4" />
-            <span>Share</span>
-          </Button>
-          <Button variant="outline" size="icon" className="rounded-full text-muted-foreground hover:text-yellow-500 p-1">
-            <Star className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      <hr className="border-t border-black/10 dark:border-white/10 my-3 mb-7" />
+      </header>
 
-      {/* Main Content Area: Left 60% + Right 40% */}
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* Left Column: Action Grid + Note Preview - 60% */}
-        <div className={cn("flex-1 space-y-6 border border-black/20 dark:border-white/20 rounded-2xl p-3", !isChatbotMinimized && "lg:w-[60%]")}>
-
-          {/* Action Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-4 py-4">
+      {/* Content: fixed height, two columns with independent scroll */}
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-6 py-6 px-4 sm:px-6 lg:px-6 overflow-hidden">
+        {/* Left: notes – scrolls independently */}
+        <div className="note-section-scroll flex-1 min-w-0 min-h-0 overflow-y-auto space-y-6">
+          {/* Action grid – premium card style, same colors */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-2.5">
             {actions.map((action) => (
-              <Card
+              <button
                 key={action.label}
+                type="button"
+                onClick={() =>
+                  action.onClick
+                    ? action.onClick()
+                    : action.href && router.push(action.href)
+                }
                 className={cn(
-                  "border-0 shadow-sm cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-md group rounded-3xl",
-                  action.bgColor
+                  "flex items-center cursor-pointer gap-4 rounded-lg bg-card p-4 text-left",
+                  "transition-colors hover:border-primary/20 hover:bg-muted/30",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 )}
-                onClick={() => action.onClick ? action.onClick() : router.push(action.href!)}
               >
-                <CardContent className="py-1 px-3 flex items-center justify-start h-28 relative overflow-hidden">
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Sparkles className={cn("h-6 w-6", action.textColor)} />
-                  </div>
-
-                  <div className="flex items-center gap-3 pl-3 min-w-0">
-                    <div className={cn("h-16 w-16 rounded-2xl flex items-center justify-center text-white shadow-sm", action.color)}>
-                      <action.icon className="h-10 w-10" />
-                    </div>
-
-                    <h3 className={cn("font-bold text-2xl leading-none truncate", action.textColor)}>
-                      {action.label}
-                    </h3>
-                  </div>
-                </CardContent>
-              </Card>
+                <div
+                  className={cn(
+                    "flex size-11 shrink-0 items-center justify-center rounded-[10px] text-white",
+                    action.iconBg
+                  )}
+                >
+                  <HugeiconsIcon icon={action.icon} className="size-6" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="font-medium text-foreground text-lg block truncate">
+                    {action.label}
+                  </span>
+                  <span className="text-sm text-muted-foreground block mt-0.5 line-clamp-2">
+                    {action.description}
+                  </span>
+                </div>
+              </button>
             ))}
           </div>
 
-          {/* Note Preview */}
-          <div>
-            <div className="p-6">
-              <article className="prose dark:prose-invert max-w-none">
-                <MDXRenderer content={translatedContent || note.content || "No content available."} />
+          {/* Note content */}
+          <Card className="rounded-lg bg-card overflow-hidden">
+            <CardContent className="p-5">
+              <article className="prose dark:prose-invert prose-neutral max-w-none prose-headings:font-semibold prose-p:leading-relaxed">
+                <MDXRenderer
+                  content={
+                    translatedContent || note.content || "No content available."
+                  }
+                />
               </article>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Right Column: Chatbot Sidebar - 40% */}
         {!isChatbotMinimized && (
-          <div className="lg:w-[40%]">
-            <Card className="rounded-3xl bg-card border border-black/20 hover:transition-all duration-300 sticky top-4 h-fit">
-              <CardHeader className="p-3 sm:p-4 pb-3 rounded-2xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg sm:text-xl font-semibold">
-                      Jelli AI Assistant
-                    </h3>
+          <aside className="lg:w-[35%] shrink-0 min-h-[420px] lg:min-h-0 flex flex-col">
+            <div className="flex flex-col rounded-lg border border-border/50 bg-card overflow-hidden h-full flex-1 min-h-[380px] lg:min-h-0">
+              <div className="shrink-0 border-b border-border/50 bg-muted/30 px-4 py-3.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <HugeiconsIcon icon={BotIcon} className="size-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-[15px] font-semibold text-foreground truncate">
+                        Note assistant
+                      </h2>
+                      <p className="text-xs text-muted-foreground truncate">
+                        Ask about this note
+                      </p>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsChatbotMinimized(true)}
-                    className="hover:bg-primary/10 rounded-full shrink-0"
-                    title="Minimize chatbot"
+                    className="size-8 shrink-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                    title="Minimize"
                   >
-                    <Minimize2 className="h-4 w-4" />
+                    <HugeiconsIcon icon={Minimize01Icon} className="size-4" />
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Ask me anything!
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[450px] lg:h-[500px]">
-                  <DynamicInlineChatbot noteId={note.id} className="h-full" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+              <div className="flex-1 min-h-0 flex flex-col">
+                <DynamicInlineChatbot
+                  noteId={note.id}
+                  className="h-full min-h-0 flex flex-col"
+                />
+              </div>
+            </div>
+          </aside>
         )}
 
-        {/* Minimized Chatbot Button */}
         {isChatbotMinimized && (
-          <div className="fixed bottom-8 right-8 z-50">
+          <div className="fixed bottom-6 right-6 z-50">
             <Button
               onClick={() => setIsChatbotMinimized(false)}
-              className="h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center"
+              size="icon"
+              className="size-14 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90"
+              aria-label="Open assistant"
             >
-              <Bot className="h-8 w-8" />
+              <HugeiconsIcon icon={BotIcon} className="size-7" />
             </Button>
           </div>
         )}
       </div>
 
-      {/* Translate Modal */}
       <TranslateModal
         noteId={note.id}
         isOpen={isTranslateModalOpen}

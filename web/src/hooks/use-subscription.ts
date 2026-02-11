@@ -134,6 +134,34 @@ export function useSubscription() {
     }
   }, []);
 
+  const upgradeToYearly = useCallback(async () => {
+    try {
+      setError(null);
+      
+      const response = await fetch('/api/subscription/upgrade', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.requiresPayment && data.paymentLink) {
+        // Redirect to payment page
+        window.location.href = data.paymentLink;
+        return { success: true, requiresPayment: true, paymentLink: data.paymentLink };
+      } else if (data.success) {
+        await fetchStatus(); // Refresh status
+        return { success: true, message: data.message };
+      } else {
+        setError(data.error);
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to upgrade subscription';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  }, [fetchStatus]);
+
   return {
     status,
     loading,
@@ -148,5 +176,6 @@ export function useSubscription() {
     createSubscription,
     cancelSubscription,
     openCustomerPortal,
+    upgradeToYearly,
   };
 }

@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
       user: {
         id: user.id,
         email: user.email,
+        role: user.role,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         hasSubscription: !!user.subscription,

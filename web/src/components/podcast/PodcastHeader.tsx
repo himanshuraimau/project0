@@ -1,9 +1,16 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Share2, Star } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowLeft01Icon,
+  Share07Icon,
+  Download01Icon,
+  StarIcon,
+} from "@hugeicons/core-free-icons";
 
 interface PodcastHeaderProps {
   title: string;
@@ -11,6 +18,7 @@ interface PodcastHeaderProps {
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
   onShare?: () => void;
+  onDownload?: () => void;
 }
 
 export function PodcastHeader({
@@ -19,66 +27,40 @@ export function PodcastHeader({
   isFavorite = false,
   onToggleFavorite,
   onShare,
+  onDownload,
 }: PodcastHeaderProps) {
-  const router = useRouter();
-
-  const handleShare = async () => {
-    if (onShare) {
-      onShare();
-      return;
-    }
-
-    // Default share functionality
-    try {
-      const shareUrl = `${window.location.origin}/notes/${noteId}`;
-      if (navigator.share) {
-        await navigator.share({
-          title: `Podcast: ${title}`,
-          text: `Check out this AI-generated podcast!`,
-          url: shareUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        // You can add a toast notification here
-      }
-    } catch (error) {
-      console.error('Share error:', error);
-    }
-  };
-
   return (
-    <div className="mb-6 pb-6 border-b border-transparent" style={{
-      boxShadow: '0 1px 0 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
-    }}>
-      {/* Breadcrumb with Actions */}
-      <nav className="mb-4">
-        <div className="flex items-center justify-between">
-          <ol className="flex items-center space-x-2 text-[19px] font-normal text-muted-foreground">
-            <li>
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="hover:text-foreground transition-colors"
-              >
-                Notes
-              </button>
-            </li>
-            <li>
-              <span className="mx-2">&gt;</span>
-            </li>
-            <li className="text-foreground font-medium truncate max-w-[300px] sm:max-w-[500px]">
-              Podcast
-            </li>
-          </ol>
+    <header className="sticky top-0 z-10 border-b border-border/50 bg-sidebar/95 backdrop-blur supports-backdrop-filter:bg-sidebar/80">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-center justify-between gap-4">
+          <Link
+            href={`/notes/${noteId}`}
+            className="flex items-center gap-2 shrink-0 font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} className="size-5" />
+            <span>Back to note</span>
+          </Link>
 
-          {/* Share and Star Buttons */}
           <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="outline"
               size="sm"
-              onClick={handleShare}
-              className="gap-2 rounded-none"
+              onClick={onDownload}
+              disabled={!onDownload}
+              className="h-9 rounded-lg border-border text-muted-foreground hover:text-foreground gap-1.5"
             >
-              <Share2 className="h-4 w-4" />
+              <HugeiconsIcon icon={Download01Icon} className="size-4" />
+              <span className="hidden sm:inline">Download</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onShare}
+              disabled={!onShare}
+              className="h-9 rounded-lg border-border text-muted-foreground hover:text-foreground gap-1.5"
+            >
+              <HugeiconsIcon icon={Share07Icon} className="size-4" />
               <span className="hidden sm:inline">Share</span>
             </Button>
 
@@ -86,24 +68,33 @@ export function PodcastHeader({
               variant="ghost"
               size="icon"
               onClick={onToggleFavorite}
-              className="text-yellow-500 hover:text-yellow-600 rounded-none"
+              className={`h-9 w-9 rounded-lg ${
+                isFavorite
+                  ? "text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
-              <Star
-                className="h-5 w-5"
-                fill="currentColor"
+              <HugeiconsIcon
+                icon={StarIcon}
+                className={`size-5 ${isFavorite ? "fill-current" : ""}`}
               />
             </Button>
           </div>
         </div>
-      </nav>
 
-      {/* Title */}
-      <div>
-        <div className="text-2xl text-purple-800 pb-2">Podcast for:</div>
-        <h1 className="text-[19px] font-bold text-foreground leading-tight">
-          {title}
-        </h1>
+        <div className="mt-2 flex items-center gap-2 min-w-0 text-foreground">
+          <div className="h-7 w-7 rounded-lg border border-border bg-background/60 flex items-center justify-center shrink-0">
+            <Image
+              src="/bento-icons/Flinote MIc.png"
+              alt="Podcast microphone"
+              width={18}
+              height={18}
+              className="opacity-90"
+            />
+          </div>
+          <h1 className="text-lg font-semibold truncate">{title}</h1>
+        </div>
       </div>
-    </div>
+    </header>
   );
 }

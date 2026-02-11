@@ -47,22 +47,16 @@ export default function MindmapPage() {
           </div>
         </div>
       )}
-      <MindmapGenerator
-        key={`mindmap-${noteId}`}
-        noteId={noteId}
-      />
+      <MindmapGenerator key={`mindmap-${noteId}`} noteId={noteId} />
       {mindmapError && (
         <div className="text-center text-red-600 py-8">
           <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-3">
             <span className="text-xl">⚠️</span>
           </div>
-          <p className="font-medium mb-1">
-            Error generating mindmap
-          </p>
+          <p className="font-medium mb-1">Error generating mindmap</p>
           <p className="text-sm">{mindmapError}</p>
         </div>
       )}
     </div>
   );
 }
-
