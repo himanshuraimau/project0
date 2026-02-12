@@ -487,7 +487,7 @@ export class SubscriptionService {
     const isActive = subscription.status === 'ACTIVE';
     const isTrial = this.isInTrialPeriod(subscription);
     const meta = subscription.metadata as { upgradeFromMonthly?: boolean; monthlyPeriodEnd?: string } | null;
-    const isPendingUpgrade = subscription.status === 'PENDING' && meta?.upgradeFromMonthly && meta.monthlyPeriodEnd;
+    const isPendingUpgrade = !!(subscription.status === 'PENDING' && meta?.upgradeFromMonthly && meta.monthlyPeriodEnd);
     const monthlyEnd = isPendingUpgrade ? new Date(meta!.monthlyPeriodEnd!) : null;
     const daysRemaining = monthlyEnd
       ? Math.ceil((monthlyEnd.getTime() - Date.now()) / (24 * 60 * 60 * 1000))

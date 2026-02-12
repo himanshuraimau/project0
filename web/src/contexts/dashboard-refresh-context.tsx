@@ -6,7 +6,7 @@ interface LoadingNote {
   id: string;
   type: 'pdf' | 'audio' | 'audio-record' | 'youtube' | 'webpage';
   timestamp: number;
-  transcriptId?: string;  // Link to actual transcript in DB
+  transcriptId?: string;  // Link to actual transcript 
   noteId?: string;        // Link to generated note in DB
   stage: 'uploading' | 'processing' | 'generating' | 'completed' | 'error';
   error?: string;         // Error message if stage is 'error'

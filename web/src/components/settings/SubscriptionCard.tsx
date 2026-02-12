@@ -54,6 +54,7 @@ export function SubscriptionCard() {
       displayStatus: string;
       status: string;
       productId: string;
+      cancelAtPeriodEnd?: boolean;
     };
     access?: { hasAccess: boolean };
   } | null>(null);
@@ -221,21 +222,27 @@ export function SubscriptionCard() {
                 </h3>
                 {hasActiveSubscription && sub ? (
                   <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <HugeiconsIcon
-                        icon={Calendar01Icon}
-                        className="size-4 shrink-0"
-                      />
-                      Next billing: {formatDate(sub.nextBillingDate)}
-                    </div>
+                    {!sub.cancelAtPeriodEnd && (
+                      <div className="flex items-center gap-2">
+                        <HugeiconsIcon
+                          icon={Calendar01Icon}
+                          className="size-4 shrink-0"
+                        />
+                        Next billing: {formatDate(sub.nextBillingDate)}
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
                       <HugeiconsIcon
                         icon={Mail01Icon}
                         className="size-4 shrink-0"
                       />
                       Status:{" "}
-                      <span className="font-medium text-green-600 dark:text-green-400">
-                        {sub.displayStatus}
+                      <span className={`font-medium ${
+                        sub.cancelAtPeriodEnd
+                          ? "text-orange-600 dark:text-orange-400"
+                          : "text-green-600 dark:text-green-400"
+                      }`}>
+                        {sub.cancelAtPeriodEnd ? "Cancelling at period end" : sub.displayStatus}
                       </span>
                     </div>
                   </div>
@@ -335,35 +342,46 @@ export function SubscriptionCard() {
                     </span>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-border">
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-foreground">
-                        Next payment
-                      </span>
-                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-                        Upcoming
-                      </span>
+                {!sub.cancelAtPeriodEnd && (
+                  <>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-border">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-foreground">
+                            Next payment
+                          </span>
+                          <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                            Upcoming
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                          Due {formatDate(sub.nextBillingDate)}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="font-semibold text-foreground">
+                          {isYearly ? "$89" : "$19.99"}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {isYearly ? "/year" : "/month"}
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      Due {formatDate(sub.nextBillingDate)}
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+                      <p className="text-sm text-foreground/90">
+                        Your payment method will be charged automatically on the
+                        next billing date.
+                      </p>
+                    </div>
+                  </>
+                )}
+                {sub.cancelAtPeriodEnd && (
+                  <div className="rounded-xl border border-orange-200/50 bg-orange-50/50 dark:border-orange-900/30 dark:bg-orange-950/20 p-4">
+                    <p className="text-sm text-orange-900 dark:text-orange-100">
+                      Your subscription will end on {formatDate(sub.nextBillingDate)}. You'll have access to all Pro features until then.
                     </p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="font-semibold text-foreground">
-                      {isYearly ? "$89" : "$19.99"}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      {isYearly ? "/year" : "/month"}
-                    </span>
-                  </div>
-                </div>
-                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-                  <p className="text-sm text-foreground/90">
-                    Your payment method will be charged automatically on the
-                    next billing date.
-                  </p>
-                </div>
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4 rounded-2xl border border-border bg-muted/20">

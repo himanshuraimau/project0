@@ -22,14 +22,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
+    // Check Content-Length header to detect oversized uploads early
+    const contentLength = req.headers.get('content-length');
+    if (contentLength) {
+      const fileSizeBytes = parseInt(contentLength, 10);
+      const maxFileSize = 25 * 1024 * 1024; // 25MB in bytes
+      
+      if (fileSizeBytes > maxFileSize) {
+        return NextResponse.json({
+          error: 'Your audio file is too large. The maximum file size allowed is 25MB.',
+          details: `Your file size: ${(fileSizeBytes / 1024 / 1024).toFixed(2)}MB. Please select a smaller audio file or compress it before uploading.`,
+          maxSizeMB: 25,
+          currentSizeMB: Number((fileSizeBytes / 1024 / 1024).toFixed(2))
+        }, { status: 413 });
+      }
+    }
+
     // Parse FormData with proper error handling
     let formData: FormData;
     try {
       formData = await req.formData();
     } catch (error) {
       console.error('FormData parsing error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('boundary')) {
+        return NextResponse.json({
+          error: 'The audio file appears to be corrupted or incomplete. Please try uploading again.',
+          details: 'If the problem persists, try clearing your browser cache or using a different browser.',
+          code: 'FORM_DATA_CORRUPTED'
+        }, { status: 400 });
+      }
+      
       return NextResponse.json({
-        error: 'Invalid form data. Please ensure you are sending a properly formatted multipart/form-data request.'
+        error: 'Failed to process your audio file. Please ensure the file is valid and try again.',
+        details: 'Make sure your file is a valid audio file (MP3, WAV, FLAC, M4A, OGG, WebM, MP4, or AAC).',
+        code: 'FORM_DATA_ERROR'
       }, { status: 400 });
     }
 
