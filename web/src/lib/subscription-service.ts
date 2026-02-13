@@ -103,6 +103,7 @@ export class SubscriptionService {
       nextBillingDate?: Date;
       cancelledAt?: Date;
       cancelAtPeriodEnd?: boolean;
+      productId?: string;
     }
   ) {
     try {
@@ -118,6 +119,7 @@ export class SubscriptionService {
       console.log('Subscription status updated:', {
         id: subscription.id,
         status: subscription.status,
+        productId: subscription.productId,
       });
 
       return subscription;
@@ -401,10 +403,21 @@ export class SubscriptionService {
     newProductId: string
   ) {
     try {
+      // Clear any scheduled change metadata when updating product ID
+      const currentSub = await prisma.subscription.findUnique({
+        where: { dodoSubscriptionId },
+      });
+      
+      const metadata = currentSub?.metadata as any || {};
+      delete metadata.scheduledProductId;
+      delete metadata.scheduledPlanType;
+      delete metadata.scheduledAt;
+
       const subscription = await prisma.subscription.update({
         where: { dodoSubscriptionId },
         data: {
           productId: newProductId,
+          metadata,
           updatedAt: new Date(),
         },
       });
@@ -418,6 +431,33 @@ export class SubscriptionService {
     } catch (error) {
       console.error('Error updating subscription product ID:', error);
       throw new Error('Failed to update subscription product ID');
+    }
+  }
+
+  /**
+   * Update subscription metadata
+   */
+  static async updateSubscriptionMetadata(
+    dodoSubscriptionId: string,
+    metadata: Record<string, any>
+  ) {
+    try {
+      const subscription = await prisma.subscription.update({
+        where: { dodoSubscriptionId },
+        data: {
+          metadata,
+          updatedAt: new Date(),
+        },
+      });
+
+      console.log('Subscription metadata updated:', {
+        id: subscription.id,
+      });
+
+      return subscription;
+    } catch (error) {
+      console.error('Error updating subscription metadata:', error);
+      throw new Error('Failed to update subscription metadata');
     }
   }
 

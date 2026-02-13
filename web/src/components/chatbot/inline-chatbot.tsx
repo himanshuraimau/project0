@@ -17,6 +17,8 @@ import {
   Loading01Icon,
   MailSend01Icon,
 } from "@hugeicons/core-free-icons";
+import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "@/components/mdx-renderer";
 
@@ -46,6 +48,7 @@ export default function InlineChatbot({
   const [hasInteracted, setHasInteracted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const { data: session } = useSession();
 
   // Load messages from session storage on component mount
   useEffect(() => {
@@ -210,6 +213,7 @@ export default function InlineChatbot({
   // Handle message copying
   const copyMessage = (text: string) => {
     navigator.clipboard.writeText(text);
+    toast.success("Chat copied");
   };
 
   // Handle aborting the stream
@@ -242,14 +246,22 @@ export default function InlineChatbot({
                   >
                     <div
                       className={cn(
-                        "flex size-8 shrink-0 items-center justify-center rounded-full border border-border",
+                        "flex size-8 shrink-0 items-center justify-center rounded-full border border-border overflow-hidden",
                         message.role === "user"
                           ? "bg-muted text-muted-foreground"
                           : "bg-primary/10 text-primary",
                       )}
                     >
                       {message.role === "user" ? (
-                        <HugeiconsIcon icon={UserIcon} className="size-4" />
+                        session?.user?.image ? (
+                          <img
+                            src={session.user.image}
+                            alt=""
+                            className="size-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <HugeiconsIcon icon={UserIcon} className="size-4" />
+                        )
                       ) : (
                         <img
                           src="/logo.png"
@@ -267,10 +279,10 @@ export default function InlineChatbot({
                     >
                       <div
                         className={cn(
-                          "rounded-xl px-3.5 py-2.5 max-w-full text-sm",
+                          "max-w-full text-sm",
                           message.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted/60 dark:bg-muted/40 text-foreground border border-border",
+                            ? "rounded-xl px-3.5 py-2.5 bg-primary text-primary-foreground"
+                            : "border-0 bg-transparent p-0 text-foreground",
                         )}
                       >
                         {message.role === "assistant" ? (
@@ -279,13 +291,7 @@ export default function InlineChatbot({
                               <MarkdownRenderer content={message.text} />
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <HugeiconsIcon
-                                icon={Loading01Icon}
-                                className="size-4 animate-spin"
-                              />
-                              <span className="text-xs">Thinking…</span>
-                            </div>
+                            <span className="text-xs text-muted-foreground">Thinking…</span>
                           )
                         ) : (
                           <p className="leading-relaxed whitespace-pre-wrap m-0 text-[13px]">

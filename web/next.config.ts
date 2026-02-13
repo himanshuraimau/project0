@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
   experimental: {
     serverActions: {
       bodySizeLimit: "25mb", 
@@ -73,6 +74,8 @@ const nextConfig: NextConfig = {
                   "https://challenges.cloudflare.com https://cloudflareinsights.com " +
                   "https://www.youtube.com https://s.ytimg.com " +
                   "https://utfs.io https://api.uploadthing.com " + // UploadThing API
+                  "https://*.amazonaws.com " + // AWS S3 buckets for audio uploads
+                  "https://*.s3.*.amazonaws.com " + // S3 bucket URLs (all regions)
                   "ws://localhost:* http://localhost:*; " + // Allow dev server websockets
                   "media-src 'self' " +
                   "https://utfs.io " + // UploadThing media files

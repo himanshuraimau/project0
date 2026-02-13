@@ -53,8 +53,8 @@ export function SimplePDFProcessor({
       return;
     }
     
-    // Check file size (10MB limit)
-    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    // Check file size (20MB limit)
+    const maxFileSize = 20 * 1024 * 1024; // 20MB
     if (file.size > maxFileSize) {
       setValidationError(`File size must be less than ${maxFileSize / 1024 / 1024}MB. Please choose a smaller file.`);
       return;
@@ -117,7 +117,7 @@ export function SimplePDFProcessor({
 
     try {
       if (mode === "pdf") {
-        updateLoadingNote(tempId, { stage: 'processing' });
+        updateLoadingNote(tempId, { stage: 'uploading' });
         const options = {
           extractImages: false,
           generateNotes: true,
@@ -148,11 +148,9 @@ export function SimplePDFProcessor({
           });
         }
         
-        // Remove loading note using temp ID BEFORE calling completion callback
-        if (currentTempId) {
-          removeLoadingNote(currentTempId);
-          setCurrentTempId(null);
-        }
+        // Remove loading note using local tempId (not currentTempId which is stale due to async setState)
+        removeLoadingNote(tempId);
+        setCurrentTempId(null);
         
         // Wait for shimmer removal to propagate before triggering refresh
         await new Promise(resolve => setTimeout(resolve, 200));
@@ -170,13 +168,11 @@ export function SimplePDFProcessor({
       console.error("Error processing:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to process";
       
-      // Update loading note with error state
-      if (currentTempId) {
-        updateLoadingNote(currentTempId, { 
-          stage: 'error',
-          error: errorMessage
-        });
-      }
+      // Update loading note with error state using local tempId
+      updateLoadingNote(tempId, { 
+        stage: 'error',
+        error: errorMessage
+      });
     } finally {
       // Don't remove loading note in finally - let it show error state
       // It will be auto-cleaned up or user can retry
@@ -211,7 +207,7 @@ export function SimplePDFProcessor({
       return "PDF processing timed out";
     }
     if (errorLower.includes("file too large") || errorLower.includes("size limit")) {
-      return "File size exceeds the 10MB limit";
+      return "File size exceeds the 20MB limit";
     }
     if (errorLower.includes("invalid file type") || errorLower.includes("invalid file extension")) {
       return "Only PDF files are supported";
@@ -246,7 +242,7 @@ export function SimplePDFProcessor({
       return "The file may be too large or complex. Please try a smaller PDF file.";
     }
     if (errorLower.includes("file too large")) {
-      return "Please choose a smaller PDF file (maximum 10MB).";
+      return "Please choose a smaller PDF file (maximum 20MB).";
     }
     if (errorLower.includes("database") || errorLower.includes("network")) {
       return "Please try again in a few minutes. If the problem persists, contact support.";
@@ -301,7 +297,7 @@ export function SimplePDFProcessor({
                     Upload a PDF file to extract content and generate AI-powered notes from the document.
                   </p>
                   <p className="text-sm text-muted-foreground/70">
-                    Maximum file size: 10MB • Maximum pages: 50
+                    Maximum file size: 20MB • Maximum pages: 50
                   </p>
                 </div>
                 <div className="space-y-4 max-w-[35vw] mx-auto">

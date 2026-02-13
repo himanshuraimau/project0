@@ -32,7 +32,7 @@ interface GeneratingNoteCardProps {
 
 const STAGE_CONFIG = {
   uploading: {
-    percent: 25,
+    percent: 50,
     message: (type: LoadingNoteForCard["type"]) =>
       type === "audio-record"
         ? "Recording your audio..."
@@ -45,7 +45,7 @@ const STAGE_CONFIG = {
     message: () => "Reading & analyzing content...",
   },
   generating: {
-    percent: 85,
+    percent: 90,
     message: () => "Writing your smart notes...",
   },
   completed: {
@@ -138,23 +138,31 @@ export function GeneratingNoteCard({
 
           {!isError && (
             <>
-              <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                <HugeiconsIcon
-                  icon={Loading01Icon}
-                  className="size-4 animate-spin shrink-0"
-                />
+              <p className="text-sm text-muted-foreground mt-1">
                 {message}
               </p>
               <div className="mt-3 space-y-1.5">
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden relative">
                   <div
-                    className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
+                    className="h-full rounded-full bg-gradient-to-r from-primary via-primary/90 to-primary transition-all duration-700 ease-out relative overflow-hidden"
                     style={{ width: `${percent}%` }}
-                  />
+                  >
+                    {/* Animated shimmer effect */}
+                    <div className="absolute inset-0 -translate-x-full animate-progress-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                  </div>
                 </div>
-                <p className="text-xs font-medium text-primary tabular-nums">
-                  {percent}%
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-primary tabular-nums">
+                    {percent}%
+                  </p>
+                  {percent < 100 && (
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" style={{ animationDelay: '0ms' }} />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" style={{ animationDelay: '150ms' }} />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" style={{ animationDelay: '300ms' }} />
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           )}
@@ -193,6 +201,19 @@ export function GeneratingNoteCard({
           )}
         </div>
       </div>
+      <style>{`
+        @keyframes progress-shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(200%);
+          }
+        }
+        .animate-progress-shimmer {
+          animation: progress-shimmer 2s infinite ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }

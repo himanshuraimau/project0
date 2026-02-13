@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +19,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 
 interface WebpageProcessorProps {
   onProcessComplete?: (result: {
@@ -43,8 +43,8 @@ export function WebpageProcessor({
   onProcessComplete,
   onClose,
 }: WebpageProcessorProps) {
-  const router = useRouter();
   const { addLoadingNote, updateLoadingNote, removeLoadingNote } = useDashboardRefresh();
+  const { openUpgradeModal } = useUpgradeModal();
   const [url, setUrl] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +112,7 @@ export function WebpageProcessor({
       if (!response.ok) {
         // Check for free tier limit
         if (response.status === 403 && data.code === 'FREE_TIER_LIMIT_REACHED') {
-          router.push(data.upgradeUrl || '/pricing?reason=note-limit');
+          openUpgradeModal();
           return;
         }
 
@@ -165,11 +165,9 @@ export function WebpageProcessor({
           });
         }
         
-        // Remove loading note using temp ID BEFORE calling completion callback
-        if (currentTempId) {
-          removeLoadingNote(currentTempId);
-          setCurrentTempId(null);
-        }
+        // Use local tempId (not currentTempId which is stale due to async setState)
+        removeLoadingNote(tempId);
+        setCurrentTempId(null);
 
         // Wait for shimmer removal to propagate before triggering refresh
         await new Promise(resolve => setTimeout(resolve, 200));
@@ -198,11 +196,8 @@ export function WebpageProcessor({
       );
       setProcessingStage("");
     } finally {
-      // Always remove loading note in finally block
-      if (currentTempId) {
-        removeLoadingNote(currentTempId);
-        setCurrentTempId(null);
-      }
+      // Don't remove loading note in finally — let error state show if there was an error
+      // Successful path already called removeLoadingNote above
       setIsProcessing(false);
     }
   };

@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -37,6 +36,8 @@ import { AudioRecorder, AudioUploadModal } from "@/components/audio";
 import { AddLinkModal } from "@/components/link";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/use-subscription";
+import { UpgradeModal } from "@/components/subscription/upgrade-modal";
 
 // AudioRecorderModal Component with full recording functionality
 type RecordingState = "idle" | "recording" | "paused";
@@ -341,24 +342,61 @@ function AudioRecorderModal({
     onClose();
 
     try {
-      updateLoadingNote(tempId, { stage: "processing" });
+      const ext = blobToUse.type?.includes("ogg") ? "ogg" : "webm";
+      const fileName = `recording-${Date.now()}.${ext}`;
+      const file = new File([blobToUse], fileName, {
+        type: blobToUse.type || "audio/webm",
+      });
 
-      const formData = new FormData();
-      formData.append("audio", blobToUse);
-      formData.append("fileName", `recording-${Date.now()}`);
-
-      const response = await fetch("/api/audio/transcribe", {
+      // 1) Get presigned S3 URLs
+      const urlRes = await fetch("/api/audio/upload-url", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type || "audio/webm",
+          fileSize: file.size,
+        }),
+      });
+
+      if (!urlRes.ok) {
+        const urlError = await urlRes.json().catch(() => ({}));
+        if (urlRes.status === 503) {
+          throw new Error(urlError.error ?? "Audio upload is not configured. Please set up S3.");
+        }
+        throw new Error(urlError.error ?? "Failed to get upload URL");
+      }
+
+      const { uploadUrl, transcribeUrl } = await urlRes.json();
+
+      // 2) Upload recording directly to S3
+      updateLoadingNote(tempId, { stage: "uploading" });
+      const putRes = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type || "audio/webm" },
+      });
+
+      if (!putRes.ok) {
+        throw new Error("Failed to upload recording to storage");
+      }
+
+      // 3) Transcribe from S3 URL
+      updateLoadingNote(tempId, { stage: "processing" });
+      const response = await fetch("/api/audio/transcribe-from-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          audioUrl: transcribeUrl,
+          fileName: `recording-${Date.now()}`,
+          folderId: null,
+        }),
       });
 
       if (response.ok) {
         const result = await response.json();
-
-        // Extract data from API response
         const responseData = result.data || result;
 
-        // Update loading note with transcript ID and stage
         if (responseData.transcript?.id) {
           updateLoadingNote(tempId, {
             transcriptId: responseData.transcript.id,
@@ -366,7 +404,6 @@ function AudioRecorderModal({
           });
         }
 
-        // If note was generated, update with note ID
         if (responseData.note?.id) {
           updateLoadingNote(tempId, {
             noteId: responseData.note.id,
@@ -374,10 +411,9 @@ function AudioRecorderModal({
           });
         }
 
-        if (currentTempId) {
-          removeLoadingNote(currentTempId);
-          setCurrentTempId(null);
-        }
+        // Use local tempId (not currentTempId which is stale due to async setState)
+        removeLoadingNote(tempId);
+        setCurrentTempId(null);
 
         await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -389,7 +425,6 @@ function AudioRecorderModal({
           note: responseData.note || {},
         });
 
-        // Trigger refresh to update note counter immediately
         triggerRefresh();
 
         setAudioBlob(null);
@@ -405,15 +440,14 @@ function AudioRecorderModal({
       }
     } catch (error) {
       console.error("Transcription error:", error);
-      if (currentTempId) {
-        updateLoadingNote(currentTempId, {
-          stage: "error",
-          error:
-            error instanceof Error
-              ? error.message
-              : "Failed to transcribe audio",
-        });
-      }
+      // Use local tempId (not currentTempId which is stale)
+      updateLoadingNote(tempId, {
+        stage: "error",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to transcribe audio",
+      });
       toast.error("Failed to transcribe audio", {
         description:
           error instanceof Error
@@ -422,10 +456,8 @@ function AudioRecorderModal({
         duration: 5000,
       });
     } finally {
-      if (currentTempId) {
-        removeLoadingNote(currentTempId);
-        setCurrentTempId(null);
-      }
+      // Don't remove loading note in finally — let error state show if there was an error
+      // Successful path already called removeLoadingNote above
       setIsProcessing(false);
     }
   };
@@ -677,12 +709,62 @@ function AudioRecorderModal({
 }
 
 export function NewNoteSection() {
-  const { refreshNotes, addLoadingNote, removeLoadingNote, triggerRefresh } =
+  const { refreshNotes, addLoadingNote, removeLoadingNote, triggerRefresh, refreshTrigger } =
     useDashboardRefresh();
   const [showTextDialog, setShowTextDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
   const [showRecordAudioDialog, setShowRecordAudioDialog] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { hasAccess: hasSubscription, loading: subscriptionLoading } =
+    useSubscription();
+  const [freeNotesRemaining, setFreeNotesRemaining] = useState<number | null>(null);
+
+  // Fetch free tier note status
+  const fetchFreeNoteStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/subscription/status?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      const data = await response.json();
+      if (data.features?.freeNotes) {
+        setFreeNotesRemaining(data.features.freeNotes.remaining);
+      }
+    } catch (error) {
+      console.error("Error fetching free note status:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchFreeNoteStatus();
+  }, [fetchFreeNoteStatus]);
+
+  // Re-fetch when dashboard refreshes (e.g. after note creation)
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      fetchFreeNoteStatus();
+    }
+  }, [refreshTrigger, fetchFreeNoteStatus]);
+
+  // Gate premium features behind subscription (audio, link, etc.)
+  const handlePremiumFeatureClick = (
+    openDialog: (open: boolean) => void,
+  ) => {
+    if (hasSubscription) {
+      openDialog(true);
+    } else {
+      setShowUpgradeModal(true);
+    }
+  };
+
+  // Gate Document upload: allow if subscribed OR has free notes remaining
+  const handleDocumentUploadClick = () => {
+    if (hasSubscription || (freeNotesRemaining !== null && freeNotesRemaining > 0)) {
+      setShowTextDialog(true);
+    } else {
+      setShowUpgradeModal(true);
+    }
+  };
 
   const handleLinkProcessComplete = (result: any) => {
     setShowLinkDialog(false);
@@ -699,6 +781,11 @@ export function NewNoteSection() {
       setTimeout(() => {
         refreshNotes();
       }, 1000);
+    } else if (result.note && ("error" in result.note || "modelOverloaded" in result.note)) {
+      toast.error("🔗 Note generation failed", {
+        description: result.note?.message || "Content was saved but AI notes couldn't be generated. You can retry from the transcript.",
+        duration: 6000,
+      });
     } else {
       toast.success("🔗 Content extracted successfully!", {
         description: "Content saved as transcript",
@@ -724,9 +811,9 @@ export function NewNoteSection() {
     setShowAudioDialog(false);
 
     if (result.note?.error) {
-      toast.error("🎵 Audio transcribed but note creation failed", {
-        description: result.note.message || "Unknown error occurred",
-        duration: 5000,
+      toast.error("🎵 Audio transcribed but note generation failed", {
+        description: result.note.message || "Audio was saved. You can retry generating notes from the transcript.",
+        duration: 6000,
       });
     } else if (result.note && "id" in result.note) {
       toast.success("🎵 Audio processed successfully! Notes generated.", {
@@ -739,6 +826,11 @@ export function NewNoteSection() {
       setTimeout(() => {
         refreshNotes();
       }, 1000);
+    } else {
+      toast.warning("🎵 Audio transcribed successfully", {
+        description: "Audio was saved but notes couldn't be generated. You can retry from the transcript.",
+        duration: 5000,
+      });
     }
   };
 
@@ -759,9 +851,9 @@ export function NewNoteSection() {
     setShowRecordAudioDialog(false);
 
     if (result.note?.error) {
-      toast.error("🎤 Audio recorded but note creation failed", {
-        description: result.note.message || "Unknown error occurred",
-        duration: 5000,
+      toast.error("🎤 Audio recorded but note generation failed", {
+        description: result.note.message || "Recording was saved. You can retry generating notes from the transcript.",
+        duration: 6000,
       });
     } else if (result.note && "id" in result.note) {
       toast.success("🎤 Audio recorded successfully! Notes generated.", {
@@ -774,6 +866,11 @@ export function NewNoteSection() {
       setTimeout(() => {
         refreshNotes();
       }, 1000);
+    } else {
+      toast.warning("🎤 Recording transcribed successfully", {
+        description: "Recording was saved but notes couldn't be generated. You can retry from the transcript.",
+        duration: 5000,
+      });
     }
   };
 
@@ -796,6 +893,20 @@ export function NewNoteSection() {
       setTimeout(() => {
         refreshNotes();
       }, 1000);
+
+      // Show upgrade modal for free users after they use their free note
+      if (!hasSubscription) {
+        setTimeout(() => {
+          setShowUpgradeModal(true);
+        }, 1500);
+      }
+    } else if (result.note && ("error" in result.note || "modelOverloaded" in result.note)) {
+      // Note generation failed but transcript was saved
+      const noteObj = result.note as { message?: string; modelOverloaded?: boolean };
+      toast.error("📝 Note generation failed", {
+        description: noteObj.message || "Content was saved but AI notes couldn't be generated. You can retry from the transcript.",
+        duration: 6000,
+      });
     } else {
       toast.success("📝 Content saved successfully!", {
         description: "Content saved as transcript",
@@ -832,25 +943,29 @@ export function NewNoteSection() {
           open={showRecordAudioDialog}
           onOpenChange={setShowRecordAudioDialog}
         >
-          <DialogTrigger asChild className="border-none">
-            <button type="button" className={cardBase}>
-              <div className={iconWrapperPrimary}>
-                <HugeiconsIcon icon={Mic01Icon} className="size-5" />
+          <button
+            type="button"
+            className={cardBase}
+            onClick={() =>
+              handlePremiumFeatureClick(setShowRecordAudioDialog)
+            }
+          >
+            <div className={iconWrapperPrimary}>
+              <HugeiconsIcon icon={Mic01Icon} className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-lg font-semibold leading-snug text-foreground">
+                Record audio
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-lg font-semibold leading-snug text-foreground">
-                  Record audio
-                </div>
-                <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
-                  Record live
-                </div>
+              <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                Record live
               </div>
-              <HugeiconsIcon
-                icon={ArrowRight01Icon}
-                className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
-              />
-            </button>
-          </DialogTrigger>
+            </div>
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+            />
+          </button>
           <DialogContent
             hideCloseButton
             className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-visible"
@@ -866,28 +981,32 @@ export function NewNoteSection() {
         </Dialog>
 
         <Dialog open={showAudioDialog} onOpenChange={setShowAudioDialog}>
-          <DialogTrigger asChild className="border-none">
-            <button type="button" className={cardBase}>
-              <div className={iconWrapperDefault}>
-                <HugeiconsIcon
-                  icon={Upload01Icon}
-                  className="size-5 text-muted-foreground"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-lg font-semibold leading-snug text-foreground">
-                  Upload audio
-                </div>
-                <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
-                  Upload an audio file
-                </div>
-              </div>
+          <button
+            type="button"
+            className={cardBase}
+            onClick={() =>
+              handlePremiumFeatureClick(setShowAudioDialog)
+            }
+          >
+            <div className={iconWrapperDefault}>
               <HugeiconsIcon
-                icon={ArrowRight01Icon}
-                className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                icon={Upload01Icon}
+                className="size-5 text-muted-foreground"
               />
-            </button>
-          </DialogTrigger>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-lg font-semibold leading-snug text-foreground">
+                Upload audio
+              </div>
+              <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                Upload an audio file
+              </div>
+            </div>
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+            />
+          </button>
           <DialogContent
             hideCloseButton
             className="max-w-[600px] border border-border bg-card rounded-xl shadow-lg p-0 overflow-hidden"
@@ -903,28 +1022,30 @@ export function NewNoteSection() {
         </Dialog>
 
         <Dialog open={showTextDialog} onOpenChange={setShowTextDialog}>
-          <DialogTrigger asChild className="border-none">
-            <button type="button" className={cardBase}>
-              <div className={iconWrapperDefault}>
-                <HugeiconsIcon
-                  icon={File01Icon}
-                  className="size-5 text-muted-foreground"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-lg font-semibold leading-snug text-foreground">
-                  Document upload
-                </div>
-                <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
-                  PDF or paste text
-                </div>
-              </div>
+          <button
+            type="button"
+            className={cardBase}
+            onClick={handleDocumentUploadClick}
+          >
+            <div className={iconWrapperDefault}>
               <HugeiconsIcon
-                icon={ArrowRight01Icon}
-                className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                icon={File01Icon}
+                className="size-5 text-muted-foreground"
               />
-            </button>
-          </DialogTrigger>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-lg font-semibold leading-snug text-foreground">
+                Document upload
+              </div>
+              <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                PDF or paste text
+              </div>
+            </div>
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+            />
+          </button>
           <DialogContent
             hideCloseButton
             className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden"
@@ -940,28 +1061,32 @@ export function NewNoteSection() {
         </Dialog>
 
         <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
-          <DialogTrigger asChild className="border-none">
-            <button type="button" className={cardBase}>
-              <div className={iconWrapperDefault}>
-                <HugeiconsIcon
-                  icon={Link01Icon}
-                  className="size-5 text-muted-foreground"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-lg font-semibold leading-snug text-foreground">
-                  Website link
-                </div>
-                <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
-                  YouTube or website link
-                </div>
-              </div>
+          <button
+            type="button"
+            className={cardBase}
+            onClick={() =>
+              handlePremiumFeatureClick(setShowLinkDialog)
+            }
+          >
+            <div className={iconWrapperDefault}>
               <HugeiconsIcon
-                icon={ArrowRight01Icon}
-                className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                icon={Link01Icon}
+                className="size-5 text-muted-foreground"
               />
-            </button>
-          </DialogTrigger>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-lg font-semibold leading-snug text-foreground">
+                Website link
+              </div>
+              <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                YouTube or website link
+              </div>
+            </div>
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+            />
+          </button>
           <DialogContent
             hideCloseButton
             className="max-w-[600px] bg-transparent border-none shadow-none p-0 overflow-hidden"
@@ -976,6 +1101,12 @@ export function NewNoteSection() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Upgrade paywall modal for free users */}
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+      />
     </div>
   );
 }

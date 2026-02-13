@@ -3,7 +3,7 @@
 
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { DodoWebhookService } from '@/lib/payments/dodo';
+import { DodoWebhookService, DodoSubscriptionService } from '@/lib/payments/dodo';
 import { SubscriptionService } from '@/lib/subscription-service';
 
 export async function POST(request: Request) {
@@ -370,6 +370,38 @@ async function handleSubscriptionRenewed(payload: any) {
   const nextBillingDate = payload.data.next_billing_date
     ? new Date(payload.data.next_billing_date)
     : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now as fallback
+
+  // Check if there's a scheduled plan change
+  const metadata = (subscription.metadata as any) || {};
+  const scheduledProductId = metadata.scheduledProductId;
+  
+  if (scheduledProductId && scheduledProductId !== subscription.productId) {
+    console.log(`Executing scheduled plan change for ${subscriptionId}: ${subscription.productId} -> ${scheduledProductId}`);
+    
+    try {
+      // Execute the plan change NOW (at renewal time)
+      const changeResult = await DodoSubscriptionService.changePlan(
+        subscriptionId,
+        scheduledProductId
+      );
+
+      if (changeResult.success) {
+        console.log('Successfully changed plan during renewal');
+        
+        // Update productId in database
+        await SubscriptionService.updateSubscriptionProductId(
+          subscriptionId,
+          scheduledProductId
+        );
+      } else {
+        console.error('Failed to execute scheduled plan change:', changeResult.error);
+        // Don't fail the renewal, just log the error
+      }
+    } catch (error) {
+      console.error('Error executing scheduled plan change:', error);
+      // Don't fail the renewal, just log the error
+    }
+  }
 
   await SubscriptionService.renewSubscription(subscription.dodoSubscriptionId, nextBillingDate);
 

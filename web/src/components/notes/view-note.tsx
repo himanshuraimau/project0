@@ -54,7 +54,7 @@ export function ViewNote({
 
   // Translation state
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode | "en">(
-    "en"
+    "en",
   );
   const [currentTranslation, setCurrentTranslation] =
     useState<NoteTranslation | null>(null);
@@ -75,7 +75,7 @@ export function ViewNote({
 
     // Use Promise.allSettled to fetch all translations in parallel instead of sequentially
     const results = await Promise.allSettled(
-      languages.map((lang) => getTranslation(note.id, lang))
+      languages.map((lang) => getTranslation(note.id, lang)),
     );
 
     results.forEach((result, index) => {
@@ -361,7 +361,7 @@ export function ViewNote({
                 "h-8 rounded-full border-border text-xs font-medium px-3 gap-1.5",
                 isFavorite
                   ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-500/50"
-                  : "bg-background/80 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  : "bg-background/80 text-muted-foreground hover:text-foreground hover:bg-muted",
               )}
             >
               <HugeiconsIcon

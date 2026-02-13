@@ -1,24 +1,30 @@
 import { prisma } from "./prisma";
-import { openai } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
 import { indexNoteContent } from "./course/embedding-service";
 import {
   NoteData,
   NoteType,
   GeneratedNoteResult,
-  NotesFromContentResult
+  NotesFromContentResult,
 } from "@/lib/types/notes.types";
 
-
 export class NoteService {
-  private model = openai("gpt-5.1");
+  private model = google("gemini-2.5-flash");
+
+  /** Disable thinking for faster, cheaper non-thinking responses */
+  private providerOptions = {
+    google: {
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+  };
 
   /**
    * Get content-specific instructions based on transcript type
    */
   private getContentSpecificInstructions(contentType: string): string {
     const instructions = {
-      'pdf': `## CONTENT TYPE: PDF Document
+      pdf: `## CONTENT TYPE: PDF Document
 
 **Special Focus Areas for PDF Content:**
 - This content comes from a document, likely containing structured information, diagrams, or formal content
@@ -29,7 +35,7 @@ export class NoteService {
 - For technical manuals or guides, focus on step-by-step procedures and practical implementation
 - Business documents should emphasize strategic insights, data analysis, and actionable recommendations`,
 
-      'audio': `## CONTENT TYPE: Audio Recording / Transcription
+      audio: `## CONTENT TYPE: Audio Recording / Transcription
 
 **Special Focus Areas for Audio Content:**
 - This content comes from spoken audio (lecture, meeting, or voice recording)
@@ -41,7 +47,7 @@ export class NoteService {
 - Transcription may contain errors - use context to ensure accuracy of technical terms
 - Focus on extracting the key insights and organizing them into coherent study material`,
 
-      'youtube': `## CONTENT TYPE: YouTube Video Transcript
+      youtube: `## CONTENT TYPE: YouTube Video Transcript
 
 **Special Focus Areas for YouTube Content:**
 - This content comes from a video, likely including visual demonstrations or screen content
@@ -53,7 +59,7 @@ export class NoteService {
 - Time-sensitive information (current events, trends) should be noted with appropriate context
 - If demonstrations were shown, describe the process and outcomes in detailed written form`,
 
-      'webpage': `## CONTENT TYPE: Web Article / Blog Post
+      webpage: `## CONTENT TYPE: Web Article / Blog Post
 
 **Special Focus Areas for Web Content:**
 - This content comes from online publication, optimized for web reading
@@ -65,7 +71,7 @@ export class NoteService {
 - Practical tips, how-to guides, or tutorials should maintain their actionable nature
 - Blog content: Extract substantive knowledge while filtering opinion from fact`,
 
-      'text': `## CONTENT TYPE: Plain Text / General Content
+      text: `## CONTENT TYPE: Plain Text / General Content
 
 **Special Focus Areas for Text Content:**
 - This is general text content without specific source formatting
@@ -73,10 +79,13 @@ export class NoteService {
 - Identify the main themes, concepts, and relationships between ideas
 - Structure the information in a way that facilitates learning and retention
 - Ensure clarity and comprehension regardless of the original format
-- Adapt the depth of explanation based on the complexity of the content`
+- Adapt the depth of explanation based on the complexity of the content`,
     };
 
-    return instructions[contentType as keyof typeof instructions] || instructions['text'];
+    return (
+      instructions[contentType as keyof typeof instructions] ||
+      instructions["text"]
+    );
   }
 
   /**
@@ -85,10 +94,9 @@ export class NoteService {
   async generateAINote(
     transcriptId: string,
     userId?: string,
-    folderId?: string
+    folderId?: string,
   ): Promise<GeneratedNoteResult> {
     try {
-
       // Get the transcript data
       const transcript = await prisma.transcript.findUnique({
         where: { id: transcriptId },
@@ -116,7 +124,7 @@ export class NoteService {
       // Check if notes already exist for this transcript
       if (transcript.notes && transcript.notes.length > 0) {
         console.log(
-          `Warning: ${transcript.notes.length} existing notes found for transcript ${transcriptId}`
+          `Warning: ${transcript.notes.length} existing notes found for transcript ${transcriptId}`,
         );
       }
 
@@ -126,7 +134,7 @@ export class NoteService {
       // Validate that we have content to analyze
       if (!contentToAnalyze || contentToAnalyze.trim().length === 0) {
         throw new Error(
-          "No content available in transcript to generate notes from"
+          "No content available in transcript to generate notes from",
         );
       }
 
@@ -135,13 +143,15 @@ export class NoteService {
       const analysisId = Math.random().toString(36).substring(2, 15);
 
       // Determine content-specific prompt based on transcript type
-      const contentType = transcript.type || 'text';
-      const contentSpecificInstructions = this.getContentSpecificInstructions(contentType);
+      const contentType = transcript.type || "text";
+      const contentSpecificInstructions =
+        this.getContentSpecificInstructions(contentType);
 
       // Generate AI summary using content-specific prompts
       const result = await generateText({
         model: this.model,
-        prompt: `You are an expert educational content specialist. Transform the following content into comprehensive, well-structured study notes.
+        providerOptions: this.providerOptions,
+        prompt: `You are an expert note-taking AI that transforms content into highly engaging, visually scannable study notes.
 
 Analysis ID: ${analysisId}
 Timestamp: ${timestamp}
@@ -150,136 +160,90 @@ Content Type: ${contentType}
 
 ${contentSpecificInstructions}
 
-## CORE STRUCTURE REQUIREMENTS
+## YOUR GOAL
 
-### 1. Introduction and Overview (400-600 words)
-**What You'll Learn:**
-- Comprehensive breakdown of knowledge and skills covered
-- Specific competencies and practical abilities you'll gain
-- Level of expertise expected after studying this material
+Transform the source content into clean, engaging, and information-dense notes. The notes should feel like a well-crafted cheat sheet — easy to scan, visually appealing, and packed with value. NOT a textbook chapter.
 
-**Why This Matters:**
-- Real-world significance and practical applications
-- Industry relevance and professional impact
-- Problems this knowledge solves and opportunities it creates
+## OUTPUT STRUCTURE
 
-**Prerequisites:**
-- Required background knowledge with clear explanations
-- Recommended preparation or foundational concepts needed
-- Skill level assumptions and how to bridge any gaps
+### 1. Title & Brief Overview
+- Start with a relevant emoji + topic title as H1 (e.g., "📚 Framer Monetization", "🧠 Machine Learning Basics")
+- Add a "Brief Overview" section: 2-4 sentences explaining what this content covers and where it came from. Keep it tight.
 
-**Study Strategy:**
-- Optimal approach for learning this material effectively
-- Recommended study sequence and time investment
-- Learning techniques that work best for this subject
+### 2. Key Points
+- 4-7 bullet points summarizing the most important takeaways
+- Each bullet should be a standalone insight someone can learn from
+- Prefix each bullet with a relevant emoji
 
-### 2. Foundational Knowledge (500-800 words)
+### 3. Main Content Sections (4-8 sections, dynamic)
+- Each section gets a relevant emoji + descriptive H2 title (e.g., "📊 Revenue Model", "🚀 Getting Started", "✅ Quality Checklist")
+- Section titles must be DYNAMIC — based on what the content actually covers, not a fixed template
+- Within sections, use the BEST format for the data:
+  - **Tables** for comparisons, metrics, specifications, feature lists, step-by-step plans, timelines, or any structured data with 3+ items that share attributes
+  - **Bullet points** for explanations, insights, and key ideas
+  - **Numbered lists** for sequential steps or ranked items
+  - **Bold key terms** within bullets for scannability
+  - **Blockquotes** (>) for critical definitions, formulas, or important callouts
+- Keep bullets concise — one idea per bullet, no run-on explanations
+- PRIORITIZE TABLES whenever data can be structured into rows and columns — tables dramatically improve readability
 
-**Essential Context:**
+### 4. FAQ Section (if applicable)
+- If the content naturally raises common questions, add a "❓ Common Questions" section
+- Use bold question + answer format
+- Keep answers to 2-4 sentences each
 
-*Historical Evolution:*
-- Complete development story of these concepts
-- Problems that led to innovations and breakthrough solutions
-- Key milestones and important moments in the field
+### 5. Key Takeaways
+- End with a "🔑 Key Takeaways" section
+- 3-7 bullets of the most critical points from the entire content
 
-*Theoretical Foundation:*
-- Underlying principles and core theories explained clearly
-- Mathematical or scientific basis where applicable
-- Fundamental laws or rules that govern this subject
+## HARD RULES
 
-*Current Landscape:*
-- State of the field today with recent developments
-- Major players, tools, and methodologies currently used
-- Emerging trends and future directions
+1. **SOURCE ONLY**: Use only information from the provided content. No outside knowledge or hallucination.
+2. **NO REPETITION**: Each piece of information should appear ONCE. Do not restate the same concept across multiple sections.
+3. **NO META TALK**: Do not say "this video discusses" or "the author mentions". Just present the information directly.
+4. **NO FILLER**: Every sentence must carry information. No generic statements like "this is important" or "understanding this is valuable".
+5. **NO TEXTBOOK VOICE**: Do NOT add sections like "Prerequisites", "Study Strategy", "Learning Path", "Mastery Verification", "Educational Impact", "Growth and Next Steps", or "Comprehensive Glossary" unless the source content explicitly warrants it.
+6. **CONCISE > VERBOSE**: Aim for information density. If you can say it in 10 words, don't use 50.
+7. **TABLES ARE YOUR FRIEND**: Use markdown tables for ANY structured data — metrics, comparisons, lists of items with attributes, timelines, feature breakdowns, checklists with descriptions, etc.
+8. **EMOJIS FOR HEADERS ONLY**: Use relevant emojis as prefixes for H1, H2 headers, and key point bullets to make notes visually scannable. Do NOT sprinkle emojis randomly throughout body text. Choose from: 📚 📊 🚀 💡 ✅ 💸 🗓️ ❓ 🔑 💎 🎯 📈 🛠️ ⚡ 🧠 🔍 📋 💰 🏆 🔄 📌 🎨 📝 🌟 ⚙️
+9. **DATA ACCURACY**: Include numbers, percentages, and metrics only if explicitly stated in the source.
+10. **SMART SECTIONING**: Create sections based on the content's natural themes. Prefer the source's own structure/headings when available. A section must have enough substance — don't create a section for a minor mention.
 
-### 3. Detailed Concept Explanations
+## FORMATTING GUIDE
 
-For each major topic (400-600 words per concept):
+Use this markdown formatting:
+- \`#\` for the main title (with emoji)
+- \`##\` for section headers (with emoji)
+- \`###\` for subsection headers (no emoji needed)
+- **bold** for key terms and emphasis
+- *italics* for definitions or secondary emphasis
+- \`>\` blockquotes for critical callouts, definitions, or formulas
+- Tables with \`|\` syntax for structured data
+- \`-\` bullet points for lists
+- \`1.\` numbered lists for sequences
 
-**Complete Understanding:**
-- Clear definition progressing from simple to detailed
-- Core mechanism: exactly HOW it works in sequential steps
-- Underlying reasoning and governing principles
-- Visual description as if explaining a diagram or process
+### Example of good table usage:
 
-**Technical Deep Dive:**
-- Process breakdown in numbered, sequential steps
-- Mathematical, quantitative, or technical aspects explained
-- Component analysis for complex systems
-- Input-processing-output flow description
+| Metric | Value | Source |
+|--------|-------|--------|
+| Total views | 800,000+ | Public analytics |
+| Conversion rate | 5% | Program data |
+| Revenue estimate | $400,000 | Calculation |
 
-**Practical Examples:**
-- Primary example with every step thoroughly explained
-- Alternative scenarios showing versatility and adaptability
-- Common real-world use cases with context
-- Problem-solving applications with detailed walkthroughs
+### Example of good callout usage:
 
-**Learning Reinforcement:**
-- Essential takeaways for permanent retention
-- Common misconceptions and their corrections
-- Connections to other concepts in the material
-- Memory aids, analogies, or conceptual frameworks
+> **Key formula**: Revenue = Customers × Monthly payout × Average months subscribed
 
-### 4. Comprehensive Glossary
+### Example of good bullet usage:
 
-For each important term provide:
-- Clear, jargon-free definition accessible to students
-- Detailed contextual description with relevant background
-- Practical examples showing proper usage
-- Significance for understanding the broader subject
-
-### 5. Practical Application Guide (400-600 words)
-
-**Complete Learning Pathway:**
-
-*Foundation Phase:*
-- Recommended concept learning sequence and progression
-- Specific study techniques optimized for each concept
-- Comprehension checkpoints and verification methods
-
-*Application Phase:*
-- Methods for integrating different concepts together
-- Practical scenarios for knowledge application
-- Problem-solving frameworks and systematic approaches
-
-*Mastery Phase:*
-- Distinguishing deep mastery from surface knowledge
-- Teaching others to solidify and test understanding
-- Staying current with ongoing field developments
-
-### 6. Growth and Next Steps (500-800 words)
-
-**Mastery Verification:**
-- Self-assessment criteria for measuring true understanding
-- Practical application tests and real-world scenarios
-- Common knowledge gaps and methods to identify them
-
-**Educational Impact:**
-- How this knowledge transforms your understanding
-- Specific skills gained and pathways for development
-- Professional readiness and career preparation insights
-
-**Continued Learning:**
-- Next-level topics with specific learning pathways outlined
-- Specialization options and strategic direction choices
-- Advanced resources for continued growth and expertise
-
-## FORMATTING REQUIREMENTS
-
-- Use clear markdown formatting with proper headers (##, ###)
-- Utilize **bold** for key terms and *italics* for emphasis
-- Include numbered lists for sequential steps
-- Include bulleted lists for related points
-- Create clear visual hierarchy with consistent formatting
-- Add blockquotes (>) for important callouts or warnings
-- Use code blocks (\`\`\`) for technical examples when relevant
-- NO EMOJIS - Keep formatting professional and clean
+- **Affiliate commission**: 50% of subscriber's plan price for up to 12 months
+- **Average payout**: ~$15/month per converted customer
 
 ## INPUT TO PROCESS
 
 ${contentToAnalyze}
 
-Generate comprehensive, professional study notes following this structure exactly. Adapt the depth and technical level based on the content complexity. Focus on clarity, accuracy, and practical learning value.`,
+Generate the notes now. Make them engaging, scannable, and information-dense. Quality over quantity — every line must earn its place.`,
       });
 
       // Validate AI response
@@ -290,40 +254,45 @@ Generate comprehensive, professional study notes following this structure exactl
       // Generate an AI-powered descriptive title
       const titleResult = await generateText({
         model: this.model,
-        prompt: `EDUCATIONAL TITLE GENERATOR
+        providerOptions: this.providerOptions,
+        prompt: `TITLE GENERATOR
 
-You are an expert at creating clear, descriptive titles for educational content. Create ONE perfect title that accurately represents the content and makes students interested to learn.
+Create ONE concise, engaging title that accurately represents this content.
 
-Content Analysis: Based on the following educational content, create a title that:
-- Clearly describes what students will learn
-- Is specific and descriptive (not vague)
-- Sounds educational and professional
-- Makes the topic sound interesting and valuable
-- Is 3-8 words long (concise but descriptive)
+Requirements:
+- 3-8 words long
+- Specific and descriptive (not vague)
+- Start with a relevant emoji (📚 🧠 💡 🚀 📊 💰 🎯 🛠️ ⚡ 🔍 📈 🎨 ✅)
+- Makes the topic sound interesting
 
 Examples of GOOD titles:
-- "Advanced React Hooks and State Management"
-- "Machine Learning Fundamentals and Applications"
-- "Financial Analysis and Investment Strategies"
-- "Digital Marketing and SEO Optimization"
+- "📚 Framer Monetization"
+- "🧠 Machine Learning Fundamentals"
+- "💰 Financial Analysis & Investment Strategies"
+- "🚀 Digital Marketing & SEO"
 
 Examples of BAD titles (avoid these):
 - "Notes" (too vague)
 - "Analysis of document" (generic)
 - "Important information" (not specific)
 
-Educational Content to Analyze:
+Content to Analyze:
 ${result.text.substring(0, 1000)}...
 
 Source Document: ${transcript.originalName}
 
-Generate ONE perfect educational title (no quotes, no extra text, just the title):`,
+Generate ONE perfect title (no quotes, no extra text, just the title):`,
       });
 
-      const aiGeneratedTitle = titleResult.text.trim().replace(/^["'`]|["'`]$/g, '') || `Educational Notes on ${transcript.originalName}`;
+      const aiGeneratedTitle =
+        titleResult.text.trim().replace(/^["'`]|["'`]$/g, "") ||
+        `Educational Notes on ${transcript.originalName}`;
 
       // Ensure title is reasonable length and add timestamp for uniqueness
-      const baseTitle = aiGeneratedTitle.length > 80 ? aiGeneratedTitle.substring(0, 77) + "..." : aiGeneratedTitle;
+      const baseTitle =
+        aiGeneratedTitle.length > 80
+          ? aiGeneratedTitle.substring(0, 77) + "..."
+          : aiGeneratedTitle;
       const title = `${baseTitle}`;
 
       // Save the generated note to database
@@ -349,10 +318,9 @@ Generate ONE perfect educational title (no quotes, no extra text, just the title
     transcriptId: string,
     noteType: NoteType = "summary",
     userId?: string,
-    folderId?: string
+    folderId?: string,
   ): Promise<GeneratedNoteResult> {
     try {
-
       const transcript = await prisma.transcript.findUnique({
         where: { id: transcriptId },
         select: {
@@ -371,7 +339,7 @@ Generate ONE perfect educational title (no quotes, no extra text, just the title
 
       if (!contentToAnalyze || contentToAnalyze.trim().length === 0) {
         throw new Error(
-          "No content available in transcript to generate notes from"
+          "No content available in transcript to generate notes from",
         );
       }
 
@@ -514,13 +482,14 @@ CREATIVE LEARNING FRAMEWORK:
 - **Inspirational Applications:** Show the exciting possibilities and transformative potential (300-400 words)
     
 Make learning enjoyable and memorable while maintaining educational value. Use creativity to enhance understanding, not replace substance.
-  `
+  `,
       };
 
       const specificPrompt = prompts[noteType];
 
       const result = await generateText({
         model: this.model,
+        providerOptions: this.providerOptions,
         prompt: `
 SPECIALIZED EDUCATIONAL CONTENT ARCHITECT
 
@@ -534,7 +503,14 @@ ${specificPrompt}
 Content to Transform into Professional Educational Notes:
 ${contentToAnalyze}
 
-Provide a structured, professional analysis that is unique to this specific document and context. Make it comprehensive and valuable for learning. Use clear markdown formatting with NO EMOJIS.
+Provide a structured, engaging analysis that is unique to this specific document and context. Make it comprehensive and valuable for learning.
+
+FORMATTING RULES:
+- Use relevant emojis as prefixes for H1 and H2 section headers ONLY (📚 📊 🚀 💡 ✅ 💸 🗓️ ❓ 🔑 💎 🎯 📈 🛠️ ⚡ 🧠 🔍 📋 💰 🏆 🔄 📌). Do NOT scatter emojis through body text.
+- Use markdown **tables** for ANY structured or comparative data (metrics, comparisons, feature lists, timelines, checklists with descriptions). Tables dramatically improve readability.
+- Use **bold** for key terms, *italics* for definitions, blockquotes (>) for critical callouts.
+- Keep bullets concise — one idea per bullet. Prioritize information density over verbosity.
+- Do NOT repeat the same information across sections.
         `,
       });
 
@@ -545,6 +521,7 @@ Provide a structured, professional analysis that is unique to this specific docu
       // Generate an AI-powered descriptive title based on note type and content
       const titleResult = await generateText({
         model: this.model,
+        providerOptions: this.providerOptions,
         prompt: `FOCUSED NOTE TITLE GENERATOR
 
 Create a perfect title for a ${noteType.toUpperCase()} note based on the content below.
@@ -553,11 +530,10 @@ Note Type: ${noteType}
 Source: ${transcript.originalName}
 
 Title Requirements:
-- Should reflect the ${noteType} focus (${noteType === 'summary' ? 'concise overview' : noteType === 'detailed' ? 'comprehensive analysis' : noteType === 'action-items' ? 'actionable strategies' : noteType === 'technical' ? 'technical implementation' : 'executive briefing'})
+- Should reflect the ${noteType} focus (${noteType === "summary" ? "concise overview" : noteType === "detailed" ? "comprehensive analysis" : noteType === "action-items" ? "actionable strategies" : noteType === "technical" ? "technical implementation" : "executive briefing"})
 - Be specific and descriptive (3-8 words)
-- Sound professional and educational
+- Start with a relevant emoji (📚 🧠 💡 🚀 📊 💰 🎯 🛠️ ⚡ 🔍 📈 🎨 ✅ 📋)
 - Make the content type clear
-- NO EMOJIS - Keep it professional
 
 Content Preview:
 ${result.text.substring(0, 500)}...
@@ -565,8 +541,13 @@ ${result.text.substring(0, 500)}...
 Generate ONE perfect title (no quotes, just the title):`,
       });
 
-      const aiGeneratedTitle = titleResult.text.trim().replace(/^["'`]|["'`]$/g, '') || `${noteType.charAt(0).toUpperCase() + noteType.slice(1)} Notes`;
-      const title = aiGeneratedTitle.length > 80 ? aiGeneratedTitle.substring(0, 77) + "..." : aiGeneratedTitle;
+      const aiGeneratedTitle =
+        titleResult.text.trim().replace(/^["'`]|["'`]$/g, "") ||
+        `${noteType.charAt(0).toUpperCase() + noteType.slice(1)} Notes`;
+      const title =
+        aiGeneratedTitle.length > 80
+          ? aiGeneratedTitle.substring(0, 77) + "..."
+          : aiGeneratedTitle;
 
       const note = await this.saveNote({
         title,
@@ -611,10 +592,16 @@ Generate ONE perfect title (no quotes, just the title):`,
       // Pre-indexing validation
       if (!note.content || note.content.trim().length === 0) {
         console.error(`❌ Cannot index note ${note.id}: content is empty`);
-        console.warn(`⚠️ Note ${note.id} created but chatbot will not work (empty content)`);
+        console.warn(
+          `⚠️ Note ${note.id} created but chatbot will not work (empty content)`,
+        );
       } else if (!process.env.OPENAI_API_KEY) {
-        console.error(`❌ Cannot index note ${note.id}: OPENAI_API_KEY not configured`);
-        console.warn(`⚠️ Note ${note.id} created but chatbot will not work (missing API key)`);
+        console.error(
+          `❌ Cannot index note ${note.id}: OPENAI_API_KEY not configured`,
+        );
+        console.warn(
+          `⚠️ Note ${note.id} created but chatbot will not work (missing API key)`,
+        );
       } else {
         try {
           await indexNoteContent(note.id, note.content);
@@ -633,8 +620,12 @@ Generate ONE perfect title (no quotes, just the title):`,
 
           // Don't fail note creation if indexing fails
           // The note is still usable, just chatbot won't work until manual reindex
-          console.warn(`⚠️ Note ${note.id} created but chatbot may not work until reindexed`);
-          console.warn(`⚠️ Please check the error logs above for details on why indexing failed`);
+          console.warn(
+            `⚠️ Note ${note.id} created but chatbot may not work until reindexed`,
+          );
+          console.warn(
+            `⚠️ Please check the error logs above for details on why indexing failed`,
+          );
         }
       }
 
@@ -761,20 +752,28 @@ Generate ONE perfect title (no quotes, just the title):`,
       console.error("Error retrieving user notes:", error);
 
       // Check if it's a Prisma error
-      if (error && typeof error === 'object' && 'code' in error) {
+      if (error && typeof error === "object" && "code" in error) {
         const prismaError = error as { code: string; message: string };
 
         switch (prismaError.code) {
-          case 'P2021':
-            throw new Error("Database table 'notes' does not exist. Please check your database migration status.");
-          case 'P2002':
-            throw new Error("A unique constraint violation occurred while retrieving notes.");
-          case 'P1001':
-            throw new Error("Database connection failed. Please check your database configuration.");
-          case 'P2025':
+          case "P2021":
+            throw new Error(
+              "Database table 'notes' does not exist. Please check your database migration status.",
+            );
+          case "P2002":
+            throw new Error(
+              "A unique constraint violation occurred while retrieving notes.",
+            );
+          case "P1001":
+            throw new Error(
+              "Database connection failed. Please check your database configuration.",
+            );
+          case "P2025":
             throw new Error("The requested notes data was not found.");
           default:
-            throw new Error(`Database error (${prismaError.code}): ${prismaError.message}`);
+            throw new Error(
+              `Database error (${prismaError.code}): ${prismaError.message}`,
+            );
         }
       }
 
@@ -783,7 +782,9 @@ Generate ONE perfect title (no quotes, just the title):`,
         throw new Error(`Failed to retrieve user notes: ${error.message}`);
       }
 
-      throw new Error("An unexpected error occurred while retrieving user notes");
+      throw new Error(
+        "An unexpected error occurred while retrieving user notes",
+      );
     }
   }
 
@@ -811,7 +812,7 @@ Generate ONE perfect title (no quotes, just the title):`,
    */
   async updateNote(
     id: string,
-    data: Partial<Pick<NoteData, "title" | "content">>
+    data: Partial<Pick<NoteData, "title" | "content">>,
   ) {
     try {
       return await prisma.note.update({
@@ -832,11 +833,11 @@ Generate ONE perfect title (no quotes, just the title):`,
    */
   async generateNotesFromContent(
     content: string,
-    title: string = 'Text Note'
+    title: string = "Text Note",
   ): Promise<NotesFromContentResult> {
     try {
       if (!content || content.trim().length === 0) {
-        throw new Error('Content is required to generate notes');
+        throw new Error("Content is required to generate notes");
       }
 
       const analysisId = Math.random().toString(36).substring(2, 15);
@@ -844,112 +845,109 @@ Generate ONE perfect title (no quotes, just the title):`,
 
       const result = await generateText({
         model: this.model,
-        prompt: `You are a SOURCE-GROUNDED NOTE GENERATOR.
+        providerOptions: this.providerOptions,
+        prompt: `You are a SOURCE-GROUNDED NOTE GENERATOR that creates engaging, visually scannable notes.
 
-Goal: Convert the provided SOURCE (PDF text / transcript / pasted text) into clean, simple notes that focus only on what the SOURCE says.
+Goal: Convert the provided SOURCE into clean, engaging notes that are easy to scan and packed with value. Focus ONLY on what the SOURCE says.
 
 HARD RULES:
 1) SOURCE ONLY: Use only information in SOURCE. No outside knowledge.
 2) NO HALLUCINATION: If it's not in SOURCE, do not include it.
-3) NO META TALK: Do not mention "PDF/paper/transcript/source" or talk about the document itself.
+3) NO META TALK: Do not mention "PDF/paper/transcript/source" or talk about the document itself. Just present the information.
 4) NO EXTRAS: Do not add quizzes, flashcards, self-tests, or follow-up questions.
 5) NO GENERIC FILLER: Avoid vague filler like "this is important/valuable" unless SOURCE explicitly says so.
-6) DATA CAUTION:
-   - Include numbers/percentages only if they are explicitly written in SOURCE text you received.
-   - If values are only in charts/images and not written, do not guess—omit them.
+6) DATA CAUTION: Include numbers/percentages only if explicitly written in SOURCE text.
 7) RELEVANCE FILTER (critical):
-   - First infer the MAIN TOPIC of the SOURCE (do this silently).
-   - Include only content that helps understand the MAIN TOPIC: definitions, key ideas, key claims, steps, examples, use-cases, and conclusions.
-   - Avoid standalone sections for minor side-mentions; fold into another section or omit.
-   - If a "process/how-it-was-done" point is mentioned but not central: either omit it OR compress it to ONE bullet inside the most relevant section.
-   - Do NOT create a standalone section for a minor mention that appears briefly.
-   - A section should be supported by multiple points in SOURCE; otherwise fold it into another section or omit.
-8) NO "STUDY MATERIAL" VOICE:
-   - Do not use "study", "learner", "student", "learning", "mastery", "prerequisites", "study strategy", "learning path", "next steps".
-   - Do not add sections like "What you'll learn", "Why this matters", "Prerequisites", "Study Strategy", "Growth/Next Steps".
-   - Notes must sound neutral and content-focused.
-9) CONTENT-ONLY OUTPUT:
-   - Every bullet must summarize a specific point from SOURCE.
-   - If a bullet cannot be traced to SOURCE, delete it.
+   - Silently infer the MAIN TOPIC of the SOURCE.
+   - Include only content that helps understand the MAIN TOPIC.
+   - Don't create standalone sections for minor side-mentions; fold into another section or omit.
+   - A section should be supported by multiple points; otherwise fold or omit.
+8) NO "STUDY MATERIAL" VOICE: No "study", "learner", "student", "mastery", "prerequisites", "learning path", "next steps". Notes must be neutral and content-focused.
+9) CONTENT-ONLY OUTPUT: Every bullet must summarize a specific point from SOURCE. If a bullet cannot be traced to SOURCE, delete it.
+10) NO REPETITION: Each piece of information appears ONCE only. Do not restate across sections.
 
-SECTIONING (dynamic, content-driven):
-- Decide section titles based on the SOURCE.
-- Prefer using the SOURCE's own headings if available.
-- If headings are missing, infer 4–8 section titles from the main themes.
-- Section titles must be short (2–6 words) and reflect content (e.g., "Key Concepts", "How It Works", "Examples", "Steps", "Timeline", "Applications", "Takeaways").
+OUTPUT FORMAT:
 
-OUTPUT FORMAT (exact structure):
+# [emoji] [Title]
+Use the title from SOURCE if present; otherwise create a neutral descriptive title.
 
-# Title
-Use the title from SOURCE if present; otherwise create a neutral descriptive title using SOURCE words only.
+## Brief Overview
+2-4 sentences summarizing what this content covers. Keep it tight.
 
-## Overview
-3–5 bullets summarizing what the content covers (content-only).
+## Key Points
+4-7 bullet points (each prefixed with a relevant emoji) of the most important takeaways.
 
-## Notes
-Create 4–8 sections (dynamic titles).
-Each section must have 3–8 bullets.
-Bullets must be short, clear, and skimmable.
-
-### [Dynamic Section Title]
-- bullet
-- bullet
-- bullet
+## [emoji] [Dynamic Section Title]
+Create 4-8 content sections with dynamic titles based on SOURCE themes.
+- Use **tables** for any structured/comparative data (metrics, comparisons, lists with attributes, timelines, checklists with descriptions)
+- Use bullet points for explanations and insights
+- Use numbered lists for sequential steps
+- **Bold key terms** within bullets for scannability
+- Use blockquotes (>) for critical definitions, formulas, or callouts
+- Keep bullets concise — one idea per bullet
 
 (Repeat for each section)
 
-## Key Takeaways
-3–7 bullets of the most important points from SOURCE.
+## ❓ Common Questions
+Only include if the content naturally raises FAQs. Use bold question + 2-4 sentence answer format. Omit this section if no natural questions arise.
 
-STYLE CONSTRAINTS:
-- Markdown headings + bullet points only.
-- No tables.
-- No long paragraphs.
-- No emojis.
-- Minimal explanation; prioritize capturing the source's points clearly.
-- Do not add any closing questions or suggestions.
+## 🔑 Key Takeaways
+3-7 bullets of the most critical points from SOURCE.
 
-Return ONLY the notes in this format.
+FORMATTING RULES:
+- Use emojis on H1, H2 headers, and key point bullets ONLY (📚 📊 🚀 💡 ✅ 💸 🗓️ ❓ 🔑 💎 🎯 📈 🛠️ ⚡ 🧠 🔍 📋 💰 🏆 🔄 📌 🎨 📝 🌟 ⚙️). Do NOT scatter emojis through body text.
+- Use markdown tables for ANY structured data — this is critical for readability
+- Keep bullets concise
+- Bold key terms within bullets
+- Use blockquotes for important callouts
+
+Return ONLY the notes.
 
 SOURCE TO PROCESS:
 ${content}`,
       });
 
       if (!result.text || result.text.trim().length === 0) {
-        throw new Error('AI failed to generate meaningful content');
+        throw new Error("AI failed to generate meaningful content");
       }
 
       // Generate an AI-powered descriptive title
       const titleResult = await generateText({
         model: this.model,
-        prompt: `TEXT NOTE TITLE GENERATOR
+        providerOptions: this.providerOptions,
+        prompt: `TITLE GENERATOR
 
-Create a perfect educational title for notes generated from the text content below.
+Create a perfect engaging title for these notes.
 
 Requirements:
 - Clearly describe what the content is about
 - Be specific and engaging (3-8 words)
-- Sound educational and valuable
-- Make students want to read these notes
-- NO EMOJIS - Keep it professional
+- Start with a relevant emoji (📚 🧠 💡 🚀 📊 💰 🎯 🛠️ ⚡ 🔍 📈 🎨 ✅ 📋)
+- Make people want to read these notes
 
 Original Title Provided: ${title}
 Generated Content Preview:
 ${result.text.substring(0, 600)}...
 
-Generate ONE perfect educational title (no quotes, just the title):`,
+Generate ONE perfect title (no quotes, just the title):`,
       });
 
-      const aiGeneratedTitle = titleResult.text.trim().replace(/^["'`]|["'`]$/g, '') || title || 'Educational Text Notes';
-      const finalTitle = aiGeneratedTitle.length > 80 ? aiGeneratedTitle.substring(0, 77) + "..." : aiGeneratedTitle;
+      const aiGeneratedTitle =
+        titleResult.text.trim().replace(/^["'`]|["'`]$/g, "") ||
+        title ||
+        "Educational Text Notes";
+      const finalTitle =
+        aiGeneratedTitle.length > 80
+          ? aiGeneratedTitle.substring(0, 77) + "..."
+          : aiGeneratedTitle;
 
       return {
         title: finalTitle,
         content: result.text,
       };
     } catch (error) {
-      console.error('Error generating notes from content:', error);
-      throw new Error('Failed to generate notes from content');
+      console.error("Error generating notes from content:", error);
+      throw new Error("Failed to generate notes from content");
     }
   }
 }
@@ -957,7 +955,7 @@ Generate ONE perfect educational title (no quotes, just the title):`,
 // Export a function for use in API routes
 export async function generateNotesFromContent(
   content: string,
-  title: string = 'Text Note'
+  title: string = "Text Note",
 ): Promise<NotesFromContentResult> {
   const noteService = new NoteService();
   return noteService.generateNotesFromContent(content, title);

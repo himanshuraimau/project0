@@ -138,17 +138,15 @@ export function useSubscription() {
     try {
       setError(null);
       
-      const response = await fetch('/api/subscription/upgrade', {
+      const response = await fetch('/api/subscription/change-plan', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetPlan: 'yearly' }),
       });
 
       const data = await response.json();
 
-      if (data.success && data.requiresPayment && data.paymentLink) {
-        // Redirect to payment page
-        window.location.href = data.paymentLink;
-        return { success: true, requiresPayment: true, paymentLink: data.paymentLink };
-      } else if (data.success) {
+      if (data.success) {
         await fetchStatus(); // Refresh status
         return { success: true, message: data.message };
       } else {
@@ -156,7 +154,7 @@ export function useSubscription() {
         return { success: false, error: data.error };
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to upgrade subscription';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to change subscription plan';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     }

@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
         cancelledAt: subscription.cancelledAt,
         trialEnd: subscription.trialEnd,
         createdAt: subscription.createdAt,
+        metadata: subscription.metadata || {},
       },
       access: {
         hasAccess: displayInfo.hasAccess,

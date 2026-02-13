@@ -52,12 +52,16 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
         const stored = localStorage.getItem(LOADING_NOTES_KEY);
         if (stored) {
           const parsedNotes = JSON.parse(stored);
-          // Filter out notes older than 1 hour
+          // Filter out notes older than 1 hour AND notes in "completed" stage (stale)
           const oneHourAgo = Date.now() - (60 * 60 * 1000);
-          const validNotes = parsedNotes.filter((note: any) => note.timestamp > oneHourAgo);
+          const validNotes = parsedNotes.filter(
+            (note: LoadingNote) => note.timestamp > oneHourAgo && note.stage !== 'completed'
+          );
           if (validNotes.length > 0) {
-            console.log('Restored loading notes from localStorage:', validNotes);
             setLoadingNotes(validNotes);
+          } else {
+            // Clean up stale localStorage entry
+            localStorage.removeItem(LOADING_NOTES_KEY);
           }
         }
       } catch (error) {
@@ -104,6 +108,14 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
           : note
       )
     );
+
+    // Safety net: auto-remove completed loading notes after 3 seconds
+    // This catches any case where removeLoadingNote wasn't called explicitly
+    if (updates.stage === 'completed') {
+      setTimeout(() => {
+        setLoadingNotes(prev => prev.filter(note => note.id !== tempId));
+      }, 3000);
+    }
   }, []);
 
   const removeLoadingNote = useCallback((tempId: string) => {

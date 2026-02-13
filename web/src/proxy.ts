@@ -122,7 +122,9 @@ export async function proxy(req: NextRequest) {
     "connect-src 'self' " +
     "https://challenges.cloudflare.com https://cloudflareinsights.com " +
     "https://www.youtube.com https://s.ytimg.com " +
-    "https://utfs.io https://api.uploadthing.com; " +
+    "https://utfs.io https://api.uploadthing.com " +
+    "https://*.amazonaws.com " + // AWS S3 buckets for audio uploads
+    "https://*.s3.*.amazonaws.com; " + // S3 bucket URLs (all regions)
     "media-src 'self' " +
     "https://utfs.io " +
     "https://*.amazonaws.com " +

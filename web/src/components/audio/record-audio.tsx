@@ -25,7 +25,7 @@ export default function RecordAudio({
   onTranscriptionComplete,
   onClose,
 }: RecordAudioProps) {
-  const { addLoadingNote, removeLoadingNote } = useDashboardRefresh();
+  const { addLoadingNote, updateLoadingNote, removeLoadingNote, triggerRefresh } = useDashboardRefresh();
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -301,45 +301,87 @@ export default function RecordAudio({
 
     setIsProcessing(true);
 
-    // Add loading note BEFORE closing modal
     const tempId = `audio-record-${Date.now()}`;
     setCurrentTempId(tempId);
-    addLoadingNote(tempId, "audio");
+    addLoadingNote(tempId, "audio-record", "uploading");
 
-    // Longer delay to ensure state update propagates and UI re-renders
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    // Close modal after adding loading note
     if (onClose) {
       onClose();
     }
 
-    try {
-      const formData = new FormData();
-      formData.append("audio", audioBlob);
-      formData.append("fileName", fileName || "recorded-audio");
+    const ext = audioBlob.type?.includes("ogg") ? "ogg" : "webm";
+    const file = new File([audioBlob], `recording-${Date.now()}.${ext}`, {
+      type: audioBlob.type || "audio/webm",
+    });
 
-      const response = await fetch("/api/audio/transcribe", {
+    try {
+      const urlRes = await fetch("/api/audio/upload-url", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type || "audio/webm",
+          fileSize: file.size,
+        }),
+      });
+
+      if (!urlRes.ok) {
+        const urlError = await urlRes.json().catch(() => ({}));
+        if (urlRes.status === 503) {
+          throw new Error(urlError.error ?? "Audio upload is not configured. Please set up S3.");
+        }
+        throw new Error(urlError.error ?? "Failed to get upload URL");
+      }
+
+      const { uploadUrl, transcribeUrl } = await urlRes.json();
+
+      updateLoadingNote(tempId, { stage: "uploading" });
+      const putRes = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type || "audio/webm" },
+      });
+
+      if (!putRes.ok) {
+        throw new Error("Failed to upload recording to storage");
+      }
+
+      updateLoadingNote(tempId, { stage: "processing" });
+      const response = await fetch("/api/audio/transcribe-from-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          audioUrl: transcribeUrl,
+          fileName: fileName || `recording-${Date.now()}`,
+          folderId: null,
+        }),
       });
 
       if (response.ok) {
         const result = await response.json();
-
-        // Remove loading note using temp ID BEFORE calling completion callback
-        if (currentTempId) {
-          removeLoadingNote(currentTempId);
-          setCurrentTempId(null);
-        }
-
-        // Wait for shimmer removal to propagate before triggering refresh
-        await new Promise((resolve) => setTimeout(resolve, 200));
-
-        // Extract data from API response
         const responseData = result.data || result;
 
-        // Call completion with result that includes temp ID for tracking
+        if (responseData.transcript?.id) {
+          updateLoadingNote(tempId, {
+            transcriptId: responseData.transcript.id,
+            stage: "generating",
+          });
+        }
+        if (responseData.note?.id) {
+          updateLoadingNote(tempId, {
+            noteId: responseData.note.id,
+            stage: "completed",
+          });
+        }
+
+        // Use local tempId (not currentTempId which is stale due to async setState)
+        removeLoadingNote(tempId);
+        setCurrentTempId(null);
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
         onTranscriptionComplete({
           transcript: {
             ...responseData.transcript,
@@ -348,40 +390,44 @@ export default function RecordAudio({
           note: responseData.note || {},
         });
 
-        // Reset form
+        triggerRefresh();
+
         setAudioBlob(null);
         setFileName("");
         setIsPlaying(false);
       } else {
         const errorData = await response.json();
-
-        // Handle specific error types
+        updateLoadingNote(tempId, {
+          stage: "error",
+          error: errorData.error || "Failed to transcribe audio",
+        });
         if (response.status === 413) {
           throw new Error(
-            `Recording too large: ${
-              errorData.error || "Audio recording exceeds 25MB limit"
-            }`
+            errorData.error || "Audio recording exceeds 25MB limit"
           );
-        } else if (response.status === 402) {
-          throw new Error("Insufficient credits to process audio");
-        } else if (response.status === 400) {
-          throw new Error(errorData.error || "Invalid audio format");
-        } else {
-          throw new Error(errorData.error || "Failed to transcribe audio");
         }
+        if (response.status === 402) {
+          throw new Error("Insufficient credits to process audio");
+        }
+        if (response.status === 400) {
+          throw new Error(errorData.error || "Invalid audio format");
+        }
+        throw new Error(errorData.error || "Failed to transcribe audio");
       }
     } catch (error) {
       console.error("Transcription error:", error);
+      // Use local tempId (not currentTempId which is stale)
+      updateLoadingNote(tempId, {
+        stage: "error",
+        error: error instanceof Error ? error.message : "Failed to transcribe audio",
+      });
       toast.error("Failed to transcribe audio", {
         description: error instanceof Error ? error.message : "Please try again or contact support if the issue persists.",
         duration: 5000,
       });
     } finally {
-      // Always remove loading note in finally block
-      if (currentTempId) {
-        removeLoadingNote(currentTempId);
-        setCurrentTempId(null);
-      }
+      // Don't remove loading note in finally — let error state show if there was an error
+      // Successful path already called removeLoadingNote above
       setIsProcessing(false);
     }
   };

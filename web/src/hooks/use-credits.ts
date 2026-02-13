@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useUpgradeModal } from '@/contexts/upgrade-modal-context'
 
 interface UseCreditResult {
   success: boolean
@@ -15,7 +15,7 @@ interface UseCreditResult {
  */
 export function useCredits() {
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const { openUpgradeModal } = useUpgradeModal()
 
   /**
    * Check if user has active subscription
@@ -59,8 +59,8 @@ export function useCredits() {
 
       // Check if user has access
       if (!data.access?.hasAccess) {
-        // No subscription - redirect to pricing
-        router.push('/pricing?reason=no-subscription')
+        // No subscription - show upgrade modal
+        openUpgradeModal()
         return {
           success: false,
           hasAccess: false,
@@ -83,7 +83,7 @@ export function useCredits() {
     } finally {
       setIsLoading(false)
     }
-  }, [router])
+  }, [openUpgradeModal])
 
   /**
    * Check subscription and proceed if active
@@ -97,8 +97,8 @@ export function useCredits() {
       const hasAccess = await checkCredits()
       
       if (hasAccess === 0) {
-        // No subscription - redirect to pricing
-        router.push('/pricing?reason=no-subscription')
+        // No subscription - show upgrade modal
+        openUpgradeModal()
         return
       }
 
@@ -106,9 +106,9 @@ export function useCredits() {
       await onProceed()
     } catch (error) {
       console.error('Error in subscription check and proceed:', error)
-      router.push('/pricing?reason=error')
+      openUpgradeModal()
     }
-  }, [checkCredits, router])
+  }, [checkCredits, openUpgradeModal])
 
   return {
     isLoading,

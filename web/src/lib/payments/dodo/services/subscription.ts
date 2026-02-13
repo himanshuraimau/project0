@@ -228,44 +228,55 @@ export class DodoSubscriptionService {
   }
 
   /**
+   * Change subscription plan to a new product (e.g., monthly to yearly)
+   * Uses Dodo's dedicated changePlan API endpoint
+   * Dodo handles proration automatically based on the specified mode
+   */
+  static async changePlan(
+    subscriptionId: string,
+    newProductId: string,
+    options?: {
+      prorationBehavior?: 'prorated_immediately' | 'full_immediately' | 'difference_immediately';
+      quantity?: number;
+    }
+  ): Promise<SubscriptionManagementResult> {
+    try {
+      const client = this.getClient();
+      
+      // Use Dodo SDK's dedicated changePlan method
+      // This properly handles product changes with proration
+      await client.subscriptions.changePlan(subscriptionId, {
+        product_id: newProductId,
+        proration_billing_mode: options?.prorationBehavior || 'prorated_immediately',
+        quantity: options?.quantity || 1,
+      });
+
+      // Get the updated subscription to return
+      const updated = await this.getSubscription(subscriptionId);
+
+      return {
+        success: true,
+        subscriptionId,
+        data: updated,
+      };
+    } catch (error) {
+      console.error('Failed to change Dodo subscription plan:', error);
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to change subscription plan',
+      };
+    }
+  }
+
+  /**
+   * @deprecated Use changePlan instead for better proration handling
    * Upgrade subscription to a new product (e.g., monthly to yearly)
    */
   static async upgradeSubscription(
     subscriptionId: string,
     newProductId: string
   ): Promise<SubscriptionManagementResult> {
-    try {
-      // Use direct API call to update subscription product
-      const response = await fetch(`${DODO_CONFIG.baseUrl}/subscriptions/${subscriptionId}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${DODO_CONFIG.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: newProductId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upgrade request failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      return {
-        success: true,
-        subscriptionId,
-        data,
-      };
-    } catch (error) {
-      console.error('Failed to upgrade Dodo subscription:', error);
-      
-      // If update fails, we might need to cancel and recreate
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to update subscription',
-      };
-    }
+    return this.changePlan(subscriptionId, newProductId);
   }
 }

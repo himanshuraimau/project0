@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { UserIcon, Camera01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,17 @@ export function ProfileCard({ user }: ProfileCardProps) {
   );
   const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
+  const [subscriptionData, setSubscriptionData] = useState<{
+    hasSubscription: boolean;
+    subscription?: {
+      productId: string;
+      metadata?: {
+        scheduledProductId?: string;
+        scheduledPlanType?: string;
+      };
+    };
+  } | null>(null);
+  const [loadingSubscription, setLoadingSubscription] = useState(true);
 
   const displayName = user.name || "User";
   const initials =
@@ -34,6 +45,55 @@ export function ProfileCard({ user }: ProfileCardProps) {
       : displayName.charAt(0).toUpperCase();
 
   const getMemberSince = () => "October 2025";
+
+  useEffect(() => {
+    async function fetchSubscription() {
+      try {
+        const response = await fetch("/api/subscription/status");
+        if (response.ok) {
+          const data = await response.json();
+          setSubscriptionData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching subscription:", error);
+      } finally {
+        setLoadingSubscription(false);
+      }
+    }
+    fetchSubscription();
+
+    // Listen for subscription updates from other components
+    const handleSubscriptionUpdate = () => {
+      fetchSubscription();
+    };
+    window.addEventListener('subscription-updated', handleSubscriptionUpdate);
+
+    return () => {
+      window.removeEventListener('subscription-updated', handleSubscriptionUpdate);
+    };
+  }, []);
+
+  const getPlanDisplay = () => {
+    if (loadingSubscription) return "Loading...";
+    if (!subscriptionData?.hasSubscription) return "Free Plan";
+    
+    const yearlyProductId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY;
+    const isYearly = subscriptionData.subscription?.productId === yearlyProductId;
+    const scheduledToYearly = subscriptionData.subscription?.metadata?.scheduledProductId === yearlyProductId;
+    
+    if (scheduledToYearly && !isYearly) {
+      return "Pro Plan (Monthly → Yearly)";
+    }
+    
+    return isYearly ? "Pro Plan (Yearly)" : "Pro Plan (Monthly)";
+  };
+
+  const getPlanBadgeColor = () => {
+    if (!subscriptionData?.hasSubscription) {
+      return "bg-muted/50 text-muted-foreground";
+    }
+    return "bg-primary/10 text-primary";
+  };
 
   const handleSaveChanges = async () => {
     setSaving(true);
@@ -82,8 +142,8 @@ export function ProfileCard({ user }: ProfileCardProps) {
             <h3 className="font-semibold text-foreground truncate">
               {displayName}
             </h3>
-            <span className="inline-flex mt-1.5 items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-              Free Plan
+            <span className={`inline-flex mt-1.5 items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getPlanBadgeColor()}`}>
+              {getPlanDisplay()}
             </span>
             <p className="mt-2 text-sm text-muted-foreground">
               Member since {getMemberSince()}

@@ -42,6 +42,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if there's a scheduled plan change - if so, clear it before canceling
+    const metadata = (subscription.metadata as any) || {};
+    const hasScheduledChange = metadata.scheduledProductId && metadata.scheduledProductId !== subscription.productId;
+    
+    if (hasScheduledChange) {
+      console.log('User has scheduled plan change - clearing it before cancellation');
+      // Clear scheduled change metadata
+      delete metadata.scheduledProductId;
+      delete metadata.scheduledPlanType;
+      delete metadata.scheduledAt;
+      await SubscriptionService.updateSubscriptionMetadata(
+        subscription.dodoSubscriptionId,
+        metadata
+      );
+    }
+
     // Cancel subscription with Dodo
     const cancelResult = await DodoSubscriptionService.cancelSubscription(
       subscription.dodoSubscriptionId,
@@ -80,7 +96,9 @@ export async function POST(request: NextRequest) {
         cancelledAt: updatedSubscription.cancelledAt,
       },
       message: cancelAtPeriodEnd
-        ? 'Your subscription will be cancelled at the end of the current billing period.'
+        ? hasScheduledChange
+          ? `Your subscription and scheduled plan change have been cancelled. You'll have access until ${formatDate(updatedSubscription.currentPeriodEnd || updatedSubscription.nextBillingDate)}.`
+          : `Your subscription will be cancelled at the end of the current billing period (${formatDate(updatedSubscription.currentPeriodEnd || updatedSubscription.nextBillingDate)}).`
         : 'Your subscription has been cancelled immediately.',
     });
   } catch (error: any) {
@@ -90,4 +108,14 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function formatDate(date: Date | string | null | undefined): string {
+  if (!date) return 'the end of your billing period';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }

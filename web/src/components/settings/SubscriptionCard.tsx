@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { UpgradeToYearlyDialog } from "@/components/subscription/upgrade-to-yearly-dialog";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { toast } from "sonner";
 
 const PREMIUM_FEATURES = [
@@ -55,6 +56,11 @@ export function SubscriptionCard() {
       status: string;
       productId: string;
       cancelAtPeriodEnd?: boolean;
+      metadata?: {
+        scheduledProductId?: string;
+        scheduledPlanType?: string;
+        scheduledAt?: string;
+      };
     };
     access?: { hasAccess: boolean };
   } | null>(null);
@@ -63,6 +69,7 @@ export function SubscriptionCard() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const { openUpgradeModal } = useUpgradeModal();
 
   useEffect(() => {
     async function fetchSubscription() {
@@ -86,7 +93,7 @@ export function SubscriptionCard() {
   const sub = subscriptionData?.subscription;
 
   const handleUpgrade = () => {
-    window.location.href = "/pricing";
+    openUpgradeModal();
   };
 
   const handleCancelSubscription = async () => {
@@ -101,7 +108,11 @@ export function SubscriptionCard() {
         );
         setShowCancelConfirm(false);
         const refetch = await fetch("/api/subscription/status");
-        if (refetch.ok) setSubscriptionData(await refetch.json());
+        if (refetch.ok) {
+          setSubscriptionData(await refetch.json());
+          // Notify other components to refresh
+          window.dispatchEvent(new CustomEvent('subscription-updated'));
+        }
       } else {
         const err = await response.json().catch(() => ({}));
         toast.error(err.error || "Failed to cancel subscription.");
@@ -116,29 +127,40 @@ export function SubscriptionCard() {
   const handleUpgradeToYearly = async () => {
     setIsUpgrading(true);
     try {
-      const response = await fetch("/api/subscription/upgrade", {
+      const response = await fetch("/api/subscription/change-plan", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          targetPlan: "yearly",
+        }),
       });
 
       const data = await response.json();
 
-      if (data.success && data.requiresPayment && data.paymentLink) {
-        // Redirect to payment page to complete the upgrade
-        toast.success("Redirecting to payment...");
+      if (data.success) {
         setShowUpgradeDialog(false);
-        window.location.href = data.paymentLink;
-      } else if (data.success) {
-        // Upgrade completed without payment (shouldn't happen, but handle it)
-        setShowUpgradeDialog(false);
-        toast.success("Successfully upgraded to yearly plan! 🎉");
+        if (data.scheduledChange) {
+          toast.success(
+            `Plan change scheduled! You'll be upgraded to yearly on your next billing date. Your current monthly plan remains active until then.`,
+            { duration: 6000 }
+          );
+        } else {
+          toast.success("Successfully changed to yearly plan! 🎉");
+        }
         // Refresh subscription data
         const refetch = await fetch("/api/subscription/status");
-        if (refetch.ok) setSubscriptionData(await refetch.json());
+        if (refetch.ok) {
+          setSubscriptionData(await refetch.json());
+          // Notify other components to refresh
+          window.dispatchEvent(new CustomEvent('subscription-updated'));
+        }
       } else {
-        toast.error(data.error || "Failed to upgrade subscription.");
+        toast.error(data.error || "Failed to change subscription plan.");
       }
     } catch (error) {
-      toast.error("Failed to upgrade subscription.");
+      toast.error("Failed to change subscription plan.");
     } finally {
       setIsUpgrading(false);
     }
@@ -147,6 +169,10 @@ export function SubscriptionCard() {
   // Determine if user is on yearly plan
   const yearlyProductId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY;
   const isYearly = subscriptionData?.subscription?.productId === yearlyProductId;
+  const scheduledPlan = subscriptionData?.subscription?.metadata?.scheduledProductId;
+  const hasScheduledChange = scheduledPlan && scheduledPlan !== subscriptionData?.subscription?.productId;
+  const scheduledToYearly = scheduledPlan === yearlyProductId;
+  
   const planDisplay = hasActiveSubscription
     ? isYearly
       ? "Pro - $89/year"
@@ -195,7 +221,13 @@ export function SubscriptionCard() {
                 : "border-border bg-muted/20"
             }`}
           >
-            {!isYearly && hasActiveSubscription && (
+            {hasScheduledChange && scheduledToYearly && (
+              <div className="absolute -top-3 right-4 inline-flex items-center gap-1.5 rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
+                <HugeiconsIcon icon={CheckmarkCircle01Icon} className="size-3.5" />
+                Upgrading to Yearly
+              </div>
+            )}
+            {!isYearly && hasActiveSubscription && !hasScheduledChange && (
               <div className="absolute -top-3 right-4 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-md">
                 <HugeiconsIcon icon={SparklesIcon} className="size-3.5" />
                 Save $151 with yearly!
@@ -267,7 +299,7 @@ export function SubscriptionCard() {
                 </Button>
               ) : (
                 <>
-                  {!isYearly && (
+                  {!isYearly && !hasScheduledChange && (
                     <Button
                       onClick={() => setShowUpgradeDialog(true)}
                       className="flex-1 rounded-xl h-11 px-5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 cursor-pointer font-medium gap-2"
@@ -276,6 +308,14 @@ export function SubscriptionCard() {
                       <HugeiconsIcon icon={SparklesIcon} className="size-4" />
                       Upgrade to Yearly
                     </Button>
+                  )}
+                  {hasScheduledChange && scheduledToYearly && (
+                    <div className="flex-1 rounded-xl h-11 px-5 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 flex items-center justify-center gap-2">
+                      <HugeiconsIcon icon={CheckmarkCircle01Icon} className="size-4 text-green-600 dark:text-green-400" />
+                      <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                        Upgrading on {sub?.nextBillingDate && formatDate(sub.nextBillingDate)}
+                      </span>
+                    </div>
                   )}
                   <Button
                     onClick={() => setShowCancelConfirm(true)}
@@ -343,8 +383,22 @@ export function SubscriptionCard() {
                   </div>
                 </div>
                 {!sub.cancelAtPeriodEnd && (
-                  <>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-border">
+                  <>                    {hasScheduledChange && scheduledToYearly && (
+                      <div className="rounded-xl border-2 border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-950/20 p-4">
+                        <div className="flex items-start gap-3">
+                          <HugeiconsIcon icon={CheckmarkCircle01Icon} className="size-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+                          <div className="space-y-1">
+                            <p className="text-sm font-semibold text-green-900 dark:text-green-100">
+                              Upgrade Scheduled
+                            </p>
+                            <p className="text-sm text-green-800 dark:text-green-200">
+                              Your plan will upgrade to <strong>Yearly ($89/year)</strong> on {formatDate(sub.nextBillingDate)}. 
+                              You'll keep your current monthly plan until then.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-border">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium text-foreground">
@@ -360,17 +414,19 @@ export function SubscriptionCard() {
                       </div>
                       <div className="text-right shrink-0">
                         <span className="font-semibold text-foreground">
-                          {isYearly ? "$89" : "$19.99"}
+                          {hasScheduledChange && scheduledToYearly ? "$89" : isYearly ? "$89" : "$19.99"}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          {isYearly ? "/year" : "/month"}
+                          {hasScheduledChange && scheduledToYearly ? "/year" : isYearly ? "/year" : "/month"}
                         </span>
                       </div>
                     </div>
                     <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
                       <p className="text-sm text-foreground/90">
-                        Your payment method will be charged automatically on the
-                        next billing date.
+                        {hasScheduledChange && scheduledToYearly 
+                          ? "Your payment method will be charged $89 for the yearly plan on the next billing date."
+                          : "Your payment method will be charged automatically on the next billing date."
+                        }
                       </p>
                     </div>
                   </>

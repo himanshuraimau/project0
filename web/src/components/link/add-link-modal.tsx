@@ -32,6 +32,7 @@ export function AddLinkModal({
   const { folders, getFolders, loading: foldersLoading } = useFolders();
   const {
     addLoadingNote,
+    updateLoadingNote,
     removeLoadingNote,
     triggerRefresh,
   } = useDashboardRefresh();
@@ -108,10 +109,9 @@ export function AddLinkModal({
               duration: 8000,
             });
 
-            if (currentTempId) {
-              removeLoadingNote(currentTempId);
-              setCurrentTempId(null);
-            }
+            // Use local tempId (not currentTempId which is stale due to async setState)
+            removeLoadingNote(tempId);
+            setCurrentTempId(null);
             setIsProcessing(false);
             return;
           }
@@ -189,10 +189,9 @@ export function AddLinkModal({
         }
       }
 
-      if (currentTempId) {
-        removeLoadingNote(currentTempId);
-        setCurrentTempId(null);
-      }
+      // Use local tempId (not currentTempId which is stale due to async setState)
+      removeLoadingNote(tempId);
+      setCurrentTempId(null);
 
       await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -233,15 +232,19 @@ export function AddLinkModal({
           ? error.message
           : "Failed to process link. Please try again.";
 
+      // Update loading note to error state so the shimmer stops
+      updateLoadingNote(tempId, {
+        stage: "error",
+        error: errorMessage,
+      });
+
       toast.error("Processing failed", {
         description: errorMessage,
         duration: 6000,
       });
     } finally {
-      if (currentTempId) {
-        removeLoadingNote(currentTempId);
-        setCurrentTempId(null);
-      }
+      // Don't remove loading note in finally — let error state show if there was an error
+      // Successful path already called removeLoadingNote above
       setIsProcessing(false);
     }
   };

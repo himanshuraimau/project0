@@ -28,7 +28,7 @@ const STEPS = [
   },
   {
     id: 4,
-    title: "Study and improve",
+    title: "Study Effortlessly",
     description:
       "Review anywhere, share with classmates, and prep faster for exams.",
     image: "/works/improve.png",

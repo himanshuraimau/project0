@@ -100,10 +100,9 @@ export function UploadTextModal({
           });
         }
 
-        if (currentTempId) {
-          removeLoadingNote(currentTempId);
-          setCurrentTempId(null);
-        }
+        // Use local tempId (not currentTempId which is stale due to async setState)
+        removeLoadingNote(tempId);
+        setCurrentTempId(null);
 
         await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -120,18 +119,33 @@ export function UploadTextModal({
         setTextInput("");
         setSelectedFolderId(null);
         setSelectedPDFFile(null);
+      } else {
+        // processPDFWithNotes / generateNotesFromText returned null (internal failure)
+        const errorMessage = "Failed to generate notes. Please try again.";
+        updateLoadingNote(tempId, {
+          stage: "error",
+          error: errorMessage,
+        });
+        toast.error("Failed to generate notes", {
+          description: errorMessage,
+          duration: 5000,
+        });
       }
     } catch (error) {
       console.error("Error generating notes:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Failed to generate notes";
 
-      if (currentTempId) {
-        updateLoadingNote(currentTempId, {
-          stage: "error",
-          error: errorMessage,
-        });
-      }
+      // Use local tempId (not currentTempId which is stale)
+      updateLoadingNote(tempId, {
+        stage: "error",
+        error: errorMessage,
+      });
+
+      toast.error("Failed to generate notes", {
+        description: errorMessage,
+        duration: 5000,
+      });
     }
   };
 
@@ -152,10 +166,10 @@ export function UploadTextModal({
       return;
     }
 
-    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    const maxFileSize = 20 * 1024 * 1024; // 20MB
     if (file.size > maxFileSize) {
       toast.error("File too large", {
-        description: "PDF must be less than 10MB",
+        description: "PDF must be less than 20MB",
       });
       return;
     }

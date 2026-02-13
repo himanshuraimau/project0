@@ -6,6 +6,7 @@ import { CreditCard } from "lucide-react";
 import { useEffect, useState } from "react";
 import { checkUserCredits } from "@/lib/client/credits-api";
 import { Button } from "@/components/ui/button";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { Plus_Jakarta_Sans } from "next/font/google";
 const jakarta = Plus_Jakarta_Sans({
   weight: ["500", "600"],
@@ -18,6 +19,7 @@ const jakarta = Plus_Jakarta_Sans({
  */
 export default function CourseWizardPage() {
   const router = useRouter();
+  const { openUpgradeModal } = useUpgradeModal();
   const [hasEnoughCredits, setHasEnoughCredits] = useState<boolean | null>(
     null
   );
@@ -45,7 +47,7 @@ export default function CourseWizardPage() {
   };
 
   const handleGetCredits = () => {
-    router.push("/pricing?reason=no-subscription");
+    openUpgradeModal();
   };
 
   // Show loading state while checking credits

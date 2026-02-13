@@ -16,6 +16,7 @@ import {
   Loading01Icon,
   SparklesIcon,
 } from '@hugeicons/core-free-icons';
+import { toast } from 'sonner';
 
 interface SubscriptionStatus {
   hasSubscription: boolean;
@@ -169,39 +170,38 @@ export function SubscriptionStatusCard() {
       const data = await response.json();
 
       if (data.success) {
-        alert(data.message);
+        toast.success(data.message);
         fetchSubscriptionStatus(); // Refresh status
+        window.dispatchEvent(new CustomEvent('subscription-updated'));
       } else {
-        setError(data.error);
+        toast.error(data.error || 'Failed to cancel subscription');
       }
     } catch (err) {
-      setError('Failed to cancel subscription');
+      toast.error('Failed to cancel subscription');
     }
   };
 
   const handleUpgradeToYearly = async () => {
     try {
       setIsUpgrading(true);
-      const response = await fetch('/api/subscription/upgrade', {
+      const response = await fetch('/api/subscription/change-plan', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetPlan: 'yearly' }),
       });
 
       const data = await response.json();
 
-      if (data.success && data.requiresPayment && data.paymentLink) {
-        // Redirect to payment page to complete the upgrade
+      if (data.success) {
         setShowUpgradeDialog(false);
-        window.location.href = data.paymentLink;
-      } else if (data.success) {
-        // Upgrade completed without payment (shouldn't happen, but handle it)
-        setShowUpgradeDialog(false);
-        alert('Successfully upgraded to yearly plan! 🎉');
+        toast.success('Successfully changed to yearly plan! Changes will be reflected in your next billing cycle. 🎉', { duration: 5000 });
         fetchSubscriptionStatus(); // Refresh status
+        window.dispatchEvent(new CustomEvent('subscription-updated'));
       } else {
-        setError(data.error || 'Failed to upgrade subscription');
+        toast.error(data.error || 'Failed to change subscription plan');
       }
     } catch (err) {
-      setError('Failed to upgrade subscription');
+      setError('Failed to change subscription plan');
     } finally {
       setIsUpgrading(false);
     }

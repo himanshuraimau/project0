@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useUpgradeModal } from '@/contexts/upgrade-modal-context';
 import type { 
   Note, 
   ProcessPDFResult, 
@@ -12,9 +12,12 @@ import type {
 export function useNotes() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const { openUpgradeModal } = useUpgradeModal();
 
   // Process PDF and generate notes
+  // Uses S3 upload to bypass Vercel's ~4.5MB body size limit for serverless functions.
+  // Flow: get presigned URL → upload to S3 → send S3 URL to process endpoint.
+  // Falls back to direct FormData upload if S3 is not configured.
   const processPDFWithNotes = async (
     file: File,
     options: ProcessPDFOptions = {}
@@ -23,6 +26,62 @@ export function useNotes() {
     setError(null);
 
     try {
+      // Step 1: Try to get presigned S3 URLs (avoids Vercel body size limit)
+      const urlRes = await fetch('/api/pdf/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type || 'application/pdf',
+          fileSize: file.size,
+        }),
+      });
+
+      // If S3 is configured, use the S3 upload flow
+      if (urlRes.ok) {
+        const { uploadUrl, downloadUrl } = await urlRes.json();
+
+        // Step 2: Upload file directly to S3
+        const putRes = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': file.type || 'application/pdf' },
+        });
+
+        if (!putRes.ok) {
+          throw new Error('Failed to upload file to storage');
+        }
+
+        // Step 3: Ask API to process the PDF from the S3 URL (small JSON body)
+        const response = await fetch('/api/pdf/process-from-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pdfUrl: downloadUrl,
+            fileName: file.name,
+            generateNotes: options.generateNotes ?? true,
+            folderId: options.folderId ?? null,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+          if (response.status === 403 && result.error === 'FREE_TIER_LIMIT_REACHED') {
+            openUpgradeModal();
+            throw new Error(result.message || 'Free tier limit reached');
+          }
+          if (response.status === 402) {
+            throw new Error('INSUFFICIENT_CREDITS');
+          }
+          throw new Error(result.message || 'Failed to process PDF');
+        }
+
+        return result.data;
+      }
+
+      // Fallback: S3 not configured (503) or other non-critical error — use direct upload
+      // This will still work for small files under Vercel's limit
       const formData = new FormData();
       formData.append('file', file);
       
@@ -48,8 +107,7 @@ export function useNotes() {
       if (!result.success) {
         // Check for free tier limit
         if (response.status === 403 && result.error === 'FREE_TIER_LIMIT_REACHED') {
-          // Redirect to pricing page
-          router.push(result.upgradeUrl || '/pricing?reason=note-limit');
+          openUpgradeModal();
           throw new Error(result.message || 'Free tier limit reached');
         }
         if (response.status === 402) {
@@ -87,7 +145,7 @@ export function useNotes() {
       if (!response.ok) {
         // Check for free tier limit
         if (response.status === 403 && result.error === 'FREE_TIER_LIMIT_REACHED') {
-          router.push(result.upgradeUrl || '/pricing?reason=note-limit');
+          openUpgradeModal();
           throw new Error(result.message || 'Free tier limit reached');
         }
         if (response.status === 402) {
@@ -132,7 +190,7 @@ export function useNotes() {
       if (!response.ok) {
         // Check for free tier limit
         if (response.status === 403 && result.error === 'FREE_TIER_LIMIT_REACHED') {
-          router.push(result.upgradeUrl || '/pricing?reason=note-limit');
+          openUpgradeModal();
           throw new Error(result.message || 'Free tier limit reached');
         }
         if (response.status === 402) {
@@ -178,7 +236,7 @@ export function useNotes() {
       if (!response.ok) {
         // Check for free tier limit
         if (response.status === 403 && result.error === 'FREE_TIER_LIMIT_REACHED') {
-          router.push(result.upgradeUrl || '/pricing?reason=note-limit');
+          openUpgradeModal();
           throw new Error(result.message || 'Free tier limit reached');
         }
         if (response.status === 402) {
@@ -292,7 +350,7 @@ export function useNotes() {
       if (!result.success) {
         // Check for free tier limit
         if (response.status === 403 && result.error === 'FREE_TIER_LIMIT_REACHED') {
-          router.push(result.upgradeUrl || '/pricing?reason=note-limit');
+          openUpgradeModal();
           throw new Error(result.message || 'Free tier limit reached');
         }
         throw new Error(result.message || 'Failed to create note');

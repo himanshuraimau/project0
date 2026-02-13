@@ -1,4 +1,7 @@
 // API endpoint to upgrade subscription from monthly to yearly
+// @deprecated Use /api/subscription/change-plan instead
+// This endpoint cancels and creates a new subscription (requires immediate payment)
+// The new change-plan endpoint uses PATCH to update the existing subscription (proration handled automatically)
 // Uses payment link flow: cancel monthly at period end + create new yearly subscription with payment
 // User must complete payment to confirm upgrade. DB only reflects yearly after payment clears.
 

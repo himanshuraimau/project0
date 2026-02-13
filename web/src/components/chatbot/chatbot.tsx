@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { MessageCircle, Send, Copy, X, Loader2, Bot, User } from 'lucide-react';
+import { toast } from 'sonner';
+import { useSession } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { MarkdownRenderer } from '@/components/mdx-renderer';
 
@@ -33,6 +35,7 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
 
   // Load messages from session storage on component mount
   useEffect(() => {
@@ -174,6 +177,7 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
   // Handle message copying
   const copyMessage = (text: string) => {
     navigator.clipboard.writeText(text);
+    toast.success("Chat copied");
   };
   
   // Handle aborting the stream
@@ -235,10 +239,10 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
               )}
               <div className="space-y-3">
                 <Card className={cn(
-                  "rounded-2xl px-4 py-3 max-w-[80%] w-fit",
+                  "max-w-[80%] w-fit",
                   message.role === 'user' 
-                    ? "bg-primary text-primary-foreground" 
-                    : "bg-muted border-0"
+                    ? "rounded-2xl px-4 py-3 bg-primary text-primary-foreground" 
+                    : "border-0 bg-transparent p-0 shadow-none"
                 )}>
                   <div className="space-y-2">
                     {message.role === 'assistant' ? (
@@ -247,10 +251,7 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
                           <MarkdownRenderer content={message.text} />
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 text-sm text-white dark:text-black">
-                          <Loader2 className="animate-spin" size={14} />
-                          <span>Generating response...</span>
-                        </div>
+                        <span className="text-sm text-muted-foreground">Thinking…</span>
                       )
                     ) : (
                       <div className="whitespace-pre-wrap text-sm text-white dark:text-black">{message.text}</div>
@@ -277,8 +278,16 @@ export default function Chatbot({ noteId, onClose, className }: ChatbotProps) {
                 </Card>
               </div>
               {message.role === 'user' && (
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-                  <User size={16} className="text-white dark:text-black" />
+                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 bg-primary">
+                  {session?.user?.image ? (
+                    <img
+                      src={session.user.image}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User size={16} className="text-white dark:text-black" />
+                  )}
                 </div>
               )}
             </div>

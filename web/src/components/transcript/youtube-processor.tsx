@@ -157,11 +157,9 @@ export function YouTubeProcessor({
       if (data.success && data.data) {
         setResult(data.data);
 
-        // Remove loading note using the temp ID BEFORE processing further
-        if (currentTempId) {
-          removeLoadingNote(currentTempId);
-          setCurrentTempId(null);
-        }
+        // Use local tempId (not currentTempId which is stale due to async setState)
+        removeLoadingNote(tempId);
+        setCurrentTempId(null);
 
         // Automatically generate notes from the transcript
         const note = await handleGenerateNotes(data.data.id);
@@ -197,11 +195,8 @@ export function YouTubeProcessor({
         error instanceof Error ? error.message : "An unexpected error occurred"
       );
     } finally {
-      // Always remove loading note in finally block
-      if (currentTempId) {
-        removeLoadingNote(currentTempId);
-        setCurrentTempId(null);
-      }
+      // Don't remove loading note in finally — let error state show if there was an error
+      // Successful path already called removeLoadingNote above
       setIsProcessing(false);
     }
   };

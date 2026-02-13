@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -39,13 +39,13 @@ export default function AudioUploadModal({
   onTranscriptionComplete,
   onClose,
 }: AudioUploadModalProps) {
-  const router = useRouter();
   const {
     addLoadingNote,
     updateLoadingNote,
     removeLoadingNote,
     triggerRefresh,
   } = useDashboardRefresh();
+  const { openUpgradeModal } = useUpgradeModal();
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [fileName, setFileName] = useState("");
@@ -134,16 +134,53 @@ export default function AudioUploadModal({
       onClose();
     }
 
+    const file = audioBlob instanceof File ? audioBlob : new File([audioBlob], fileName || "uploaded-audio", { type: audioBlob.type });
+    const fileDisplayName = fileName || (file.name?.replace(/\.[^/.]+$/, "") ?? "uploaded-audio");
+
     try {
-      updateLoadingNote(tempId, { stage: "processing" });
-
-      const formData = new FormData();
-      formData.append("audio", audioBlob);
-      formData.append("fileName", fileName || "uploaded-audio");
-
-      const response = await fetch("/api/audio/transcribe", {
+      // 1) Get presigned S3 URLs (avoids Vercel 5MB body limit by uploading directly to S3)
+      const urlRes = await fetch("/api/audio/upload-url", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name || `${fileDisplayName}.mp3`,
+          contentType: file.type || "audio/mpeg",
+          fileSize: file.size,
+        }),
+      });
+
+      if (!urlRes.ok) {
+        const urlError = await urlRes.json().catch(() => ({}));
+        if (urlRes.status === 503) {
+          throw new Error(urlError.error ?? "Audio upload is not configured. Please set up S3.");
+        }
+        throw new Error(urlError.error ?? "Failed to get upload URL");
+      }
+
+      const { uploadUrl, transcribeUrl } = await urlRes.json();
+
+      // 2) Upload file directly to S3
+      updateLoadingNote(tempId, { stage: "uploading" });
+      const putRes = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type || "audio/mpeg" },
+      });
+
+      if (!putRes.ok) {
+        throw new Error("Failed to upload file to storage");
+      }
+
+      // 3) Ask API to transcribe from the S3 URL (small JSON body, no size limit)
+      updateLoadingNote(tempId, { stage: "processing" });
+      const response = await fetch("/api/audio/transcribe-from-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          audioUrl: transcribeUrl,
+          fileName: fileDisplayName,
+          folderId: null,
+        }),
       });
 
       if (response.ok) {
@@ -164,10 +201,9 @@ export default function AudioUploadModal({
           });
         }
 
-        if (currentTempId) {
-          removeLoadingNote(currentTempId);
-          setCurrentTempId(null);
-        }
+        // Use local tempId (not currentTempId which is stale due to async setState)
+        removeLoadingNote(tempId);
+        setCurrentTempId(null);
 
         await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -176,7 +212,12 @@ export default function AudioUploadModal({
             ...responseData.transcript,
             id: responseData.transcript?.id || tempId,
           },
-          note: responseData.note || {},
+          note: responseData.note
+            ? responseData.note
+            : {
+                error: responseData.noteError || "Failed to generate notes",
+                message: responseData.noteError || "Note generation failed. You can retry from the transcript.",
+              },
         });
 
         triggerRefresh();
@@ -195,7 +236,7 @@ export default function AudioUploadModal({
           response.status === 403 &&
           errorData.error === "FREE_TIER_LIMIT_REACHED"
         ) {
-          router.push(errorData.upgradeUrl || "/pricing?reason=note-limit");
+          openUpgradeModal();
           return;
         } else if (response.status === 413) {
           throw new Error(
@@ -213,15 +254,14 @@ export default function AudioUploadModal({
       }
     } catch (error) {
       console.error("Transcription error:", error);
-      if (currentTempId) {
-        updateLoadingNote(currentTempId, {
-          stage: "error",
-          error:
-            error instanceof Error
-              ? error.message
-              : "Failed to transcribe audio",
-        });
-      }
+      // Use local tempId (not currentTempId which is stale due to async setState)
+      updateLoadingNote(tempId, {
+        stage: "error",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to transcribe audio",
+      });
       toast.error("Failed to transcribe audio", {
         description:
           error instanceof Error
@@ -230,10 +270,8 @@ export default function AudioUploadModal({
         duration: 5000,
       });
     } finally {
-      if (currentTempId) {
-        removeLoadingNote(currentTempId);
-        setCurrentTempId(null);
-      }
+      // Don't remove loading note in finally — let error state show if there was an error
+      // Successful path already called removeLoadingNote above
       setIsProcessing(false);
     }
   };

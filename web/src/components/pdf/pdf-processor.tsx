@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MarkdownRenderer } from '@/components/mdx-renderer';
-import { useRouter } from 'next/navigation';
+import { useUpgradeModal } from '@/contexts/upgrade-modal-context';
 
 interface PDFProcessorProps {
   onProcessComplete?: (result: ProcessPDFResult) => void;
@@ -13,7 +13,7 @@ interface PDFProcessorProps {
 
 export function PDFProcessor({ onProcessComplete }: PDFProcessorProps) {
   const { processPDFWithNotes, loading, error } = useNotes();
-  const router = useRouter();
+  const { openUpgradeModal } = useUpgradeModal();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [result, setResult] = useState<ProcessPDFResult | null>(null);
   const [options, setOptions] = useState({
@@ -46,8 +46,8 @@ export function PDFProcessor({ onProcessComplete }: PDFProcessorProps) {
       }
     } catch (error) {
       if (error instanceof Error && error.message === 'INSUFFICIENT_CREDITS') {
-        // Redirect to pricing page
-        router.push('/pricing?reason=no-subscription');
+        // Show upgrade modal
+        openUpgradeModal();
         return;
       }
       // Other errors will be shown in the error state of the component

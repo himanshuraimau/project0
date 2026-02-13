@@ -3,8 +3,8 @@
  * Converts note content into a voice-friendly script for TTS
  */
 
-import { generateText } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
 
 const MAX_OUTPUT_CHARS = 2800; // Leave buffer for 3000 char limit
 
@@ -26,58 +26,59 @@ OUTPUT FORMAT:
 Just the narration script text, ready to be read aloud. No titles, no section headers, no formatting.`;
 
 export interface TranscriptResult {
-    transcript: string;
-    wordCount: number;
-    estimatedDurationSeconds: number;
+  transcript: string;
+  wordCount: number;
+  estimatedDurationSeconds: number;
 }
 
 /**
- * Generate a voice-friendly transcript from note content
+ * Generate a voice-friendly  from note content
  * @param noteContent - The raw note content to convert
  * @param noteTitle - Optional note title for context
  * @returns TranscriptResult with the generated script
  */
 export async function generateVoiceTranscript(
-    noteContent: string,
-    noteTitle?: string
+  noteContent: string,
+  noteTitle?: string,
 ): Promise<TranscriptResult> {
-    if (!noteContent || noteContent.trim().length === 0) {
-        throw new Error('Note content cannot be empty');
-    }
+  if (!noteContent || noteContent.trim().length === 0) {
+    throw new Error("Note content cannot be empty");
+  }
 
-    const userPrompt = noteTitle
-        ? `Convert the following notes titled "${noteTitle}" into a narration script:\n\n${noteContent}`
-        : `Convert the following notes into a narration script:\n\n${noteContent}`;
+  const userPrompt = noteTitle
+    ? `Convert the following notes titled "${noteTitle}" into a narration script:\n\n${noteContent}`
+    : `Convert the following notes into a narration script:\n\n${noteContent}`;
 
-    const { text } = await generateText({
-        model: openai('gpt-5.1'),
-        system: SYSTEM_PROMPT,
-        prompt: userPrompt,
-        maxOutputTokens: 1500,
-    });
+  const { text } = await generateText({
+    model: openai("gpt-5-mini"),
+    system: SYSTEM_PROMPT,
+    prompt: userPrompt,
+    maxOutputTokens: 1500,
+  });
 
-    // Ensure we don't exceed character limit
-    let transcript = text.trim();
-    if (transcript.length > MAX_OUTPUT_CHARS) {
-        // Truncate at last complete sentence
-        const truncated = transcript.substring(0, MAX_OUTPUT_CHARS);
-        const lastSentenceEnd = Math.max(
-            truncated.lastIndexOf('.'),
-            truncated.lastIndexOf('!'),
-            truncated.lastIndexOf('?')
-        );
-        transcript = lastSentenceEnd > 0
-            ? truncated.substring(0, lastSentenceEnd + 1)
-            : truncated;
-    }
+  // Ensure we don't exceed character limit
+  let transcript = text.trim();
+  if (transcript.length > MAX_OUTPUT_CHARS) {
+    // Truncate at last complete sentence
+    const truncated = transcript.substring(0, MAX_OUTPUT_CHARS);
+    const lastSentenceEnd = Math.max(
+      truncated.lastIndexOf("."),
+      truncated.lastIndexOf("!"),
+      truncated.lastIndexOf("?"),
+    );
+    transcript =
+      lastSentenceEnd > 0
+        ? truncated.substring(0, lastSentenceEnd + 1)
+        : truncated;
+  }
 
-    const wordCount = transcript.split(/\s+/).length;
-    // Average speaking rate: 150 words per minute
-    const estimatedDurationSeconds = Math.round((wordCount / 150) * 60);
+  const wordCount = transcript.split(/\s+/).length;
+  // Average speaking rate: 150 words per minute
+  const estimatedDurationSeconds = Math.round((wordCount / 150) * 60);
 
-    return {
-        transcript,
-        wordCount,
-        estimatedDurationSeconds,
-    };
+  return {
+    transcript,
+    wordCount,
+    estimatedDurationSeconds,
+  };
 }

@@ -98,6 +98,7 @@ export interface ProcessPDFOptions {
   extractImages?: boolean;
   maxPages?: number;
   generateNotes?: boolean;
+  folderId?: string | null;
 }
 
 export interface ProcessPDFResult {
