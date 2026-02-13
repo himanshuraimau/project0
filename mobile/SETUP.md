@@ -45,12 +45,9 @@ http://localhost:3000
 ```
 https://project0-nu.vercel.app/api/auth/callback/google
 http://localhost:3000/api/auth/callback/google
-flinote://
-exp://localhost:8081
-http://localhost:8081
 ```
 
-**Note:** The mobile app uses the Web OAuth client credentials. Adding `flinote://` allows Better Auth to redirect back to your mobile app after Google authentication.
+**Note:** Google OAuth redirects to your backend, not directly to the mobile app. The mobile app authenticates through an in-app browser that connects to your backend, which handles the OAuth callback.
 
 ### 3. Backend Configuration
 Add to `web/.env`:
