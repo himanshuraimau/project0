@@ -101,6 +101,95 @@ export class FeatureGateService {
     await this.incrementUsage(userId, 'notes');
   }
 
+  /**
+   * Atomically reserve one note usage slot.
+   * Prevents race conditions when multiple note-creation requests happen concurrently.
+   */
+  static async reserveNoteUsage(userId: string): Promise<{
+    allowed: boolean;
+    error?: string;
+    message?: string;
+    notesUsed?: number;
+    notesLimit?: number | null;
+    statusCode: number;
+    upgradeUrl?: string;
+  }> {
+    try {
+      const hasSubscription = await SubscriptionService.hasActiveSubscription(userId);
+      const subscription = await SubscriptionService.getUserSubscription(userId);
+
+      const notesLimit = hasSubscription && subscription
+        ? subscription.notesPerMonth
+        : FREE_TIER_LIMITS.notesPerMonth;
+
+      if (notesLimit === null) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { usedNotesThisMonth: { increment: 1 } },
+        });
+
+        const usage = await this.getUserUsageStats(userId);
+        return {
+          allowed: true,
+          notesUsed: usage.usedNotesThisMonth,
+          notesLimit: null,
+          statusCode: 200,
+        };
+      }
+
+      const reserved = await prisma.user.updateMany({
+        where: {
+          id: userId,
+          usedNotesThisMonth: { lt: notesLimit },
+        },
+        data: {
+          usedNotesThisMonth: { increment: 1 },
+        },
+      });
+
+      if (reserved.count === 0) {
+        const usage = await this.getUserUsageStats(userId);
+
+        if (hasSubscription) {
+          return {
+            allowed: false,
+            error: 'MONTHLY_NOTE_LIMIT_REACHED',
+            message: `You've reached your monthly note limit of ${notesLimit}.`,
+            notesUsed: usage.usedNotesThisMonth,
+            notesLimit,
+            statusCode: 403,
+          };
+        }
+
+        return {
+          allowed: false,
+          error: 'FREE_TIER_LIMIT_REACHED',
+          message: `You've reached the free tier limit of ${FREE_TIER_LIMITS.notesPerMonth} notes. Upgrade to Pro for unlimited notes.`,
+          notesUsed: usage.usedNotesThisMonth,
+          notesLimit,
+          statusCode: 403,
+          upgradeUrl: '/pricing',
+        };
+      }
+
+      const usage = await this.getUserUsageStats(userId);
+      return {
+        allowed: true,
+        notesUsed: usage.usedNotesThisMonth,
+        notesLimit,
+        statusCode: 200,
+      };
+    } catch (error) {
+      console.error('Error reserving note usage:', error);
+      return {
+        allowed: false,
+        error: 'NOTE_USAGE_RESERVATION_FAILED',
+        message: 'Failed to reserve note usage. Please try again.',
+        statusCode: 500,
+      };
+    }
+  }
+
   static async incrementCourseUsage(userId: string): Promise<void> {
     await this.incrementUsage(userId, 'courses');
   }

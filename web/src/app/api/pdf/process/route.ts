@@ -189,10 +189,18 @@ export async function POST(request: NextRequest) {
     // Step 2: Generate AI notes if requested
     if (generateNotes && parseResult.documentId) {
       try {
-        // Increment note usage counter BEFORE generating note (prevents race condition)
-        await FeatureGateService.incrementNoteUsage(userId);
-
-        noteResult = await noteService.generateAINote(parseResult.documentId, userId, folderId || undefined);
+        const reservation = await FeatureGateService.reserveNoteUsage(userId);
+        if (!reservation.allowed) {
+          noteResult = {
+            error: reservation.error || 'FREE_TIER_LIMIT_REACHED',
+            message: reservation.message || 'Unable to create note',
+            notesUsed: reservation.notesUsed,
+            notesLimit: reservation.notesLimit,
+            upgradeUrl: reservation.upgradeUrl || '/pricing',
+          };
+        } else {
+          noteResult = await noteService.generateAINote(parseResult.documentId, userId, folderId || undefined);
+        }
       } catch (noteError) {
         console.error('Failed to generate AI notes:', noteError);
         

@@ -16,7 +16,7 @@ export function FreeNoteCounter() {
   const [status, setStatus] = useState<FreeTierStatus | null>(null);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { refreshTrigger } = useDashboardRefresh();
+  const { refreshTrigger, loadingNotes } = useDashboardRefresh();
   const { openUpgradeModal } = useUpgradeModal();
 
   const fetchStatus = useCallback(async () => {
@@ -60,6 +60,16 @@ export function FreeNoteCounter() {
       fetchStatus();
     }
   }, [refreshTrigger, fetchStatus]);
+
+  useEffect(() => {
+    if (loadingNotes.length === 0) return;
+
+    const interval = setInterval(() => {
+      fetchStatus();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [loadingNotes.length, fetchStatus]);
 
   // Don't show if user has subscription
   if (hasSubscription) {

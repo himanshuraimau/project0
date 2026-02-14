@@ -718,6 +718,7 @@ export function NewNoteSection() {
     removeLoadingNote,
     triggerRefresh,
     refreshTrigger,
+    loadingNotes,
   } = useDashboardRefresh();
   const [showTextDialog, setShowTextDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
@@ -755,6 +756,16 @@ export function NewNoteSection() {
       fetchFreeNoteStatus();
     }
   }, [refreshTrigger, fetchFreeNoteStatus]);
+
+  useEffect(() => {
+    if (loadingNotes.length === 0) return;
+
+    const interval = setInterval(() => {
+      fetchFreeNoteStatus();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [loadingNotes.length, fetchFreeNoteStatus]);
 
   // Allow opening any generate-note card if subscribed OR has free notes remaining (free users get 1 note from any card)
   const handleGenerateNoteCardClick = (openDialog: (open: boolean) => void) => {

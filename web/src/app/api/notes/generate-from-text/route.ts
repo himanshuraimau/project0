@@ -72,8 +72,20 @@ export async function POST(request: NextRequest) {
         text.trim(),
         title || "Text Note"
       );
-      // Increment usage counter BEFORE creating (prevents race condition)
-      await FeatureGateService.incrementNoteUsage(userId);
+      const reservation = await FeatureGateService.reserveNoteUsage(userId);
+      if (!reservation.allowed) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: reservation.error || 'Unable to create note',
+            message: reservation.message,
+            notesUsed: reservation.notesUsed,
+            notesLimit: reservation.notesLimit,
+            upgradeUrl: reservation.upgradeUrl || '/pricing',
+          },
+          { status: reservation.statusCode }
+        );
+      }
 
       // Create the note using NoteService to automatically generate embeddings
       const noteService = new NoteService();

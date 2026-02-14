@@ -150,15 +150,33 @@ export async function transcribeAudioAndCreateNote(
   let noteResult: unknown = null;
 
   try {
+    const reservation = await FeatureGateService.reserveNoteUsage(userId);
+    if (!reservation.allowed) {
+      return {
+        transcription: transcriptText,
+        transcript: {
+          id: transcriptRecord.id,
+          fileName: transcriptRecord.fileName,
+          originalName: transcriptRecord.originalName,
+          content: transcriptText,
+          cleanContent: transcriptText,
+          type: transcriptRecord.type,
+          createdAt: transcriptRecord.createdAt,
+          updatedAt: transcriptRecord.updatedAt,
+        },
+        note: null,
+        noteError: reservation.message || 'Unable to create note',
+      };
+    }
+
     noteResult = await noteService.generateAINote(
       transcriptRecord.id,
       userId,
       folderId ?? undefined
     );
-    // Increment note usage counter after successful note creation
-    await FeatureGateService.incrementNoteUsage(userId);
   } catch (error) {
     console.error("Failed to generate AI notes:", error);
+    await FeatureGateService.decrementNoteUsage(userId);
     return {
       transcription: transcriptText,
       transcript: {

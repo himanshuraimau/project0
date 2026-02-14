@@ -68,8 +68,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: accessCheck.statusCode });
     }
 
-    // Increment usage counter BEFORE generating note (prevents race condition for free users)
-    await FeatureGateService.incrementNoteUsage(userId);
+    const reservation = await FeatureGateService.reserveNoteUsage(userId);
+    if (!reservation.allowed) {
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: reservation.error || 'Unable to create note',
+        message: reservation.message,
+        // @ts-ignore - adding extra fields for client
+        notesUsed: reservation.notesUsed,
+        notesLimit: reservation.notesLimit,
+        upgradeUrl: reservation.upgradeUrl || '/pricing',
+      };
+      return NextResponse.json(errorResponse, { status: reservation.statusCode });
+    }
 
     // Generate AI note from the transcript
     let note;
