@@ -368,7 +368,7 @@ export function classifyError(error: unknown, context?: Record<string, unknown>)
     }
     
     // AI service errors
-    if (message.includes('ai service') || message.includes('openai') || message.includes('gemini')) {
+    if (message.includes('ai service') || message.includes('openai')) {
       return createAppError(AppErrorType.AI_SERVICE_UNAVAILABLE, context);
     }
     

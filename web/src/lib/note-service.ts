@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { google } from "@ai-sdk/google";
+import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { indexNoteContent } from "./course/embedding-service";
 import {
@@ -10,14 +10,10 @@ import {
 } from "@/lib/types/notes.types";
 
 export class NoteService {
-  private model = google("gemini-2.5-flash");
+  private model = openai("gpt-4o-mini");
 
-  /** Disable thinking for faster, cheaper non-thinking responses */
-  private providerOptions = {
-    google: {
-      thinkingConfig: { thinkingBudget: 0 },
-    },
-  };
+  /** Provider options for OpenAI */
+  private providerOptions = {};
 
   /**
    * Get content-specific instructions based on transcript type

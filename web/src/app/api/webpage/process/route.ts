@@ -168,7 +168,7 @@ export async function GET(request: NextRequest) {
       '2. Crawl webpage using Scrape.do service',
       '3. Extract and clean content from HTML',
       '4. Save content as Transcript in database',
-      '5. Generate comprehensive AI notes using Gemini AI',
+      '5. Generate comprehensive AI notes using OpenAI',
       '6. Save generated notes to database',
       '7. Return both transcript and note data'
     ],

@@ -20,9 +20,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: z.string().default('/'),
   
   // AI Services
-  GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
-  GEMINI_API_KEY: z.string().optional(),
   
   // ElevenLabs
   ELEVENLABS_API_KEY: z.string().optional(),
@@ -132,17 +130,11 @@ export const config = {
   
   // AI Services
   ai: {
-    google: {
-      apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY || '',
+    openai: {
+      apiKey: env.OPENAI_API_KEY || '',
       embeddingModel: env.EMBEDDING_MODEL,
       chatModel: env.CHAT_MODEL,
       embeddingDimension: env.EMBEDDING_DIM,
-    },
-    openai: {
-      apiKey: env.OPENAI_API_KEY || '',
-    },
-    gemini: {
-      apiKey: env.GEMINI_API_KEY || '',
     },
     elevenlabs: {
       apiKey: env.ELEVENLABS_API_KEY || '',

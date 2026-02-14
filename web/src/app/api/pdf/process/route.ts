@@ -305,7 +305,7 @@ export async function GET(request: NextRequest) {
     workflow: [
       '1. Upload PDF file',
       '2. Extract text content and save to database as Transcript',
-      '3. Generate structured AI summary notes using Gemini AI',
+      '3. Generate structured AI summary notes using OpenAI',
       '4. Save generated notes to database as Note',
       '5. Return both transcript and note data'
     ]
