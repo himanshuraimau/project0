@@ -70,12 +70,8 @@ export async function POST(request: NextRequest) {
         noteResult = await noteService.generateAINote(crawlResult.documentId, userId, folderId || undefined);
         console.log(`Successfully generated AI notes: ${noteResult.id}`);
 
-        // Increment user's notes count after successful note creation
-        const { prisma } = await import('@/lib/prisma');
-        await prisma.user.update({
-          where: { id: userId },
-          data: { notesCount: { increment: 1 } }
-        });
+        // Increment note usage counter after successful note creation
+        await FeatureGateService.incrementNoteUsage(userId);
       } catch (noteError) {
         console.error('Failed to generate AI notes:', noteError);
         // Don't fail the entire request if note generation fails

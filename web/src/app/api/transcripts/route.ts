@@ -73,13 +73,18 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(errorResponse, { status: 400 });
         }
 
-        // Check subscription access
-        const accessCheck = await FeatureGateService.checkAccessForAPI();
-        
+        // Check note creation access (allows free tier: 1 note from any source including YouTube/website)
+        const accessCheck = await FeatureGateService.checkNoteCreationAccess();
         if (!accessCheck.allowed) {
-            const errorResponse: ApiErrorResponse = {
+            const errorResponse = {
                 success: false,
-                error: accessCheck.message || 'Subscription required',
+                error: accessCheck.error || 'Unable to create note',
+                message: accessCheck.message || 'Unable to create note',
+                ...(accessCheck.error === 'FREE_TIER_LIMIT_REACHED' && {
+                    notesUsed: accessCheck.notesUsed,
+                    notesLimit: accessCheck.notesLimit,
+                    upgradeUrl: accessCheck.upgradeUrl || '/pricing',
+                }),
             };
             return NextResponse.json(errorResponse, { status: accessCheck.statusCode });
         }
@@ -89,6 +94,9 @@ export async function POST(request: NextRequest) {
             videoUrl,
             userId
         );
+
+        // Increment video processing usage counter after successful processing
+        await FeatureGateService.incrementVideoUsage(userId);
 
         const response: ApiSuccessResponse = {
             success: true,

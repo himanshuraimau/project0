@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -80,7 +76,9 @@ function AudioRecorderModal({
   const audioChunksRef = React.useRef<Blob[]>([]);
   const mimeTypeRef = React.useRef<string>("audio/webm");
   const recordingTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-  const pendingBlobResolveRef = React.useRef<((blob: Blob) => void) | null>(null);
+  const pendingBlobResolveRef = React.useRef<((blob: Blob) => void) | null>(
+    null,
+  );
   const cancellingRef = React.useRef(false);
   const audioPreviewRef = React.useRef<HTMLAudioElement | null>(null);
   const previewUrlRef = React.useRef<string | null>(null);
@@ -275,14 +273,16 @@ function AudioRecorderModal({
       return;
     }
     audio.src = url;
-    audio.play()
+    audio
+      .play()
       .then(() => setIsPlayingPreview(true))
       .catch((err) => {
         console.error("Preview playback failed:", err);
         URL.revokeObjectURL(url);
         previewUrlRef.current = null;
         toast.error("Playback failed", {
-          description: "Your browser may not support playing this format. Try generating notes instead.",
+          description:
+            "Your browser may not support playing this format. Try generating notes instead.",
           duration: 5000,
         });
       });
@@ -362,7 +362,10 @@ function AudioRecorderModal({
       if (!urlRes.ok) {
         const urlError = await urlRes.json().catch(() => ({}));
         if (urlRes.status === 503) {
-          throw new Error(urlError.error ?? "Audio upload is not configured. Please set up S3.");
+          throw new Error(
+            urlError.error ??
+              "Audio upload is not configured. Please set up S3.",
+          );
         }
         throw new Error(urlError.error ?? "Failed to get upload URL");
       }
@@ -444,9 +447,7 @@ function AudioRecorderModal({
       updateLoadingNote(tempId, {
         stage: "error",
         error:
-          error instanceof Error
-            ? error.message
-            : "Failed to transcribe audio",
+          error instanceof Error ? error.message : "Failed to transcribe audio",
       });
       toast.error("Failed to transcribe audio", {
         description:
@@ -709,8 +710,13 @@ function AudioRecorderModal({
 }
 
 export function NewNoteSection() {
-  const { refreshNotes, addLoadingNote, removeLoadingNote, triggerRefresh, refreshTrigger } =
-    useDashboardRefresh();
+  const {
+    refreshNotes,
+    addLoadingNote,
+    removeLoadingNote,
+    triggerRefresh,
+    refreshTrigger,
+  } = useDashboardRefresh();
   const [showTextDialog, setShowTextDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
   const [showRecordAudioDialog, setShowRecordAudioDialog] = useState(false);
@@ -718,7 +724,9 @@ export function NewNoteSection() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { hasAccess: hasSubscription, loading: subscriptionLoading } =
     useSubscription();
-  const [freeNotesRemaining, setFreeNotesRemaining] = useState<number | null>(null);
+  const [freeNotesRemaining, setFreeNotesRemaining] = useState<number | null>(
+    null,
+  );
 
   // Fetch free tier note status
   const fetchFreeNoteStatus = useCallback(async () => {
@@ -746,21 +754,13 @@ export function NewNoteSection() {
     }
   }, [refreshTrigger, fetchFreeNoteStatus]);
 
-  // Gate premium features behind subscription (audio, link, etc.)
-  const handlePremiumFeatureClick = (
-    openDialog: (open: boolean) => void,
-  ) => {
-    if (hasSubscription) {
+  // Allow opening any generate-note card if subscribed OR has free notes remaining (free users get 1 note from any card)
+  const handleGenerateNoteCardClick = (openDialog: (open: boolean) => void) => {
+    if (
+      hasSubscription ||
+      (freeNotesRemaining !== null && freeNotesRemaining > 0)
+    ) {
       openDialog(true);
-    } else {
-      setShowUpgradeModal(true);
-    }
-  };
-
-  // Gate Document upload: allow if subscribed OR has free notes remaining
-  const handleDocumentUploadClick = () => {
-    if (hasSubscription || (freeNotesRemaining !== null && freeNotesRemaining > 0)) {
-      setShowTextDialog(true);
     } else {
       setShowUpgradeModal(true);
     }
@@ -781,9 +781,18 @@ export function NewNoteSection() {
       setTimeout(() => {
         refreshNotes();
       }, 1000);
-    } else if (result.note && ("error" in result.note || "modelOverloaded" in result.note)) {
+      // Show upgrade modal for free users after they use their free note
+      if (!hasSubscription) {
+        setTimeout(() => setShowUpgradeModal(true), 1500);
+      }
+    } else if (
+      result.note &&
+      ("error" in result.note || "modelOverloaded" in result.note)
+    ) {
       toast.error("🔗 Note generation failed", {
-        description: result.note?.message || "Content was saved but AI notes couldn't be generated. You can retry from the transcript.",
+        description:
+          result.note?.message ||
+          "Content was saved but AI notes couldn't be generated. You can retry from the transcript.",
         duration: 6000,
       });
     } else {
@@ -812,7 +821,9 @@ export function NewNoteSection() {
 
     if (result.note?.error) {
       toast.error("🎵 Audio transcribed but note generation failed", {
-        description: result.note.message || "Audio was saved. You can retry generating notes from the transcript.",
+        description:
+          result.note.message ||
+          "Audio was saved. You can retry generating notes from the transcript.",
         duration: 6000,
       });
     } else if (result.note && "id" in result.note) {
@@ -826,9 +837,14 @@ export function NewNoteSection() {
       setTimeout(() => {
         refreshNotes();
       }, 1000);
+      // Show upgrade modal for free users after they use their free note
+      if (!hasSubscription) {
+        setTimeout(() => setShowUpgradeModal(true), 1500);
+      }
     } else {
       toast.warning("🎵 Audio transcribed successfully", {
-        description: "Audio was saved but notes couldn't be generated. You can retry from the transcript.",
+        description:
+          "Audio was saved but notes couldn't be generated. You can retry from the transcript.",
         duration: 5000,
       });
     }
@@ -852,7 +868,9 @@ export function NewNoteSection() {
 
     if (result.note?.error) {
       toast.error("🎤 Audio recorded but note generation failed", {
-        description: result.note.message || "Recording was saved. You can retry generating notes from the transcript.",
+        description:
+          result.note.message ||
+          "Recording was saved. You can retry generating notes from the transcript.",
         duration: 6000,
       });
     } else if (result.note && "id" in result.note) {
@@ -866,9 +884,14 @@ export function NewNoteSection() {
       setTimeout(() => {
         refreshNotes();
       }, 1000);
+      // Show upgrade modal for free users after they use their free note
+      if (!hasSubscription) {
+        setTimeout(() => setShowUpgradeModal(true), 1500);
+      }
     } else {
       toast.warning("🎤 Recording transcribed successfully", {
-        description: "Recording was saved but notes couldn't be generated. You can retry from the transcript.",
+        description:
+          "Recording was saved but notes couldn't be generated. You can retry from the transcript.",
         duration: 5000,
       });
     }
@@ -900,11 +923,19 @@ export function NewNoteSection() {
           setShowUpgradeModal(true);
         }, 1500);
       }
-    } else if (result.note && ("error" in result.note || "modelOverloaded" in result.note)) {
+    } else if (
+      result.note &&
+      ("error" in result.note || "modelOverloaded" in result.note)
+    ) {
       // Note generation failed but transcript was saved
-      const noteObj = result.note as { message?: string; modelOverloaded?: boolean };
+      const noteObj = result.note as {
+        message?: string;
+        modelOverloaded?: boolean;
+      };
       toast.error("📝 Note generation failed", {
-        description: noteObj.message || "Content was saved but AI notes couldn't be generated. You can retry from the transcript.",
+        description:
+          noteObj.message ||
+          "Content was saved but AI notes couldn't be generated. You can retry from the transcript.",
         duration: 6000,
       });
     } else {
@@ -947,14 +978,14 @@ export function NewNoteSection() {
             type="button"
             className={cardBase}
             onClick={() =>
-              handlePremiumFeatureClick(setShowRecordAudioDialog)
+              handleGenerateNoteCardClick(setShowRecordAudioDialog)
             }
           >
             <div className={iconWrapperPrimary}>
               <HugeiconsIcon icon={Mic01Icon} className="size-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-lg font-semibold leading-snug text-foreground">
+              <div className=" font-semibold leading-snug text-foreground">
                 Record audio
               </div>
               <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
@@ -984,9 +1015,7 @@ export function NewNoteSection() {
           <button
             type="button"
             className={cardBase}
-            onClick={() =>
-              handlePremiumFeatureClick(setShowAudioDialog)
-            }
+            onClick={() => handleGenerateNoteCardClick(setShowAudioDialog)}
           >
             <div className={iconWrapperDefault}>
               <HugeiconsIcon
@@ -995,7 +1024,7 @@ export function NewNoteSection() {
               />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-lg font-semibold leading-snug text-foreground">
+              <div className=" font-semibold leading-snug text-foreground">
                 Upload audio
               </div>
               <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
@@ -1025,7 +1054,7 @@ export function NewNoteSection() {
           <button
             type="button"
             className={cardBase}
-            onClick={handleDocumentUploadClick}
+            onClick={() => handleGenerateNoteCardClick(setShowTextDialog)}
           >
             <div className={iconWrapperDefault}>
               <HugeiconsIcon
@@ -1034,7 +1063,7 @@ export function NewNoteSection() {
               />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-lg font-semibold leading-snug text-foreground">
+              <div className=" font-semibold leading-snug text-foreground">
                 Document upload
               </div>
               <div className="mt-0.5 text-sm leading-snug text-muted-foreground">
@@ -1064,9 +1093,7 @@ export function NewNoteSection() {
           <button
             type="button"
             className={cardBase}
-            onClick={() =>
-              handlePremiumFeatureClick(setShowLinkDialog)
-            }
+            onClick={() => handleGenerateNoteCardClick(setShowLinkDialog)}
           >
             <div className={iconWrapperDefault}>
               <HugeiconsIcon
@@ -1075,7 +1102,7 @@ export function NewNoteSection() {
               />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-lg font-semibold leading-snug text-foreground">
+              <div className=" font-semibold leading-snug text-foreground">
                 Website link
               </div>
               <div className="mt-0.5 text-sm leading-snug text-muted-foreground">

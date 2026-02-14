@@ -91,6 +91,7 @@ export interface CreateSubscriptionParams {
   billingAddress: SubscriptionBillingAddress;
   billingInterval?: BillingInterval;
   trialDays?: number;
+  discountCode?: string; // Optional discount code to apply
   metadata?: Record<string, any>;
 }
 

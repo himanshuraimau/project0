@@ -4,13 +4,53 @@ import { SubscriptionService } from './subscription-service';
 import { prisma } from './prisma';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-
-const FREE_TIER_NOTE_LIMIT = 1; // Changed from 3 to 1 free note
-const MONTHLY_COURSE_LIMIT = 5; // Maximum courses per month
+import { PRO_PLAN_LIMITS, FREE_TIER_LIMITS, type UsageStats } from './config/subscription-limits';
 
 export class FeatureGateService {
   /**
-   * Get user's note count from the database
+   * Get user's usage statistics (cached counters)
+   */
+  static async getUserUsageStats(userId: string): Promise<UsageStats> {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          usedNotesThisMonth: true,
+          usedCoursesThisMonth: true,
+          usedPdfProcessingThisMonth: true,
+          usedVideoProcessingThisMonth: true,
+          usedAudioProcessingThisMonth: true,
+          lastUsageResetDate: true,
+        }
+      });
+      
+      if (!user) {
+        return {
+          usedNotesThisMonth: 0,
+          usedCoursesThisMonth: 0,
+          usedPdfProcessingThisMonth: 0,
+          usedVideoProcessingThisMonth: 0,
+          usedAudioProcessingThisMonth: 0,
+          lastUsageResetDate: null,
+        };
+      }
+      
+      return user;
+    } catch (error) {
+      console.error('Error getting user usage stats:', error);
+      return {
+        usedNotesThisMonth: 0,
+        usedCoursesThisMonth: 0,
+        usedPdfProcessingThisMonth: 0,
+        usedVideoProcessingThisMonth: 0,
+        usedAudioProcessingThisMonth: 0,
+        lastUsageResetDate: null,
+      };
+    }
+  }
+
+  /**
+   * Get user's note count from the database (legacy method)
    */
   static async getUserNoteCount(userId: string): Promise<number> {
     try {
@@ -26,31 +66,59 @@ export class FeatureGateService {
   }
 
   /**
-   * Get user's course count for the current month
+   * Increment usage counter for a feature
    */
-  static async getUserMonthlyCourseCount(userId: string): Promise<number> {
+  static async incrementUsage(
+    userId: string,
+    feature: 'notes' | 'courses' | 'pdf' | 'video' | 'audio'
+  ): Promise<void> {
     try {
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      
-      const courseCount = await prisma.course.count({
-        where: {
-          userId,
-          createdAt: {
-            gte: startOfMonth
-          }
+      const fieldMap = {
+        notes: 'usedNotesThisMonth',
+        courses: 'usedCoursesThisMonth',
+        pdf: 'usedPdfProcessingThisMonth',
+        video: 'usedVideoProcessingThisMonth',
+        audio: 'usedAudioProcessingThisMonth',
+      };
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          [fieldMap[feature]]: { increment: 1 }
         }
       });
-      
-      return courseCount;
+
+      console.log(`✅ Incremented ${feature} usage for user ${userId}`);
     } catch (error) {
-      console.error('Error getting user monthly course count:', error);
-      return 0;
+      console.error(`Error incrementing ${feature} usage:`, error);
     }
   }
 
   /**
-   * Check if user can create more courses (limit: 5 per month for subscribed users, no course generation for free users)
+   * Convenience methods for incrementing specific features
+   */
+  static async incrementNoteUsage(userId: string): Promise<void> {
+    await this.incrementUsage(userId, 'notes');
+  }
+
+  static async incrementCourseUsage(userId: string): Promise<void> {
+    await this.incrementUsage(userId, 'courses');
+  }
+
+  static async incrementPdfUsage(userId: string): Promise<void> {
+    await this.incrementUsage(userId, 'pdf');
+  }
+
+  static async incrementVideoUsage(userId: string): Promise<void> {
+    await this.incrementUsage(userId, 'video');
+  }
+
+  static async incrementAudioUsage(userId: string): Promise<void> {
+    await this.incrementUsage(userId, 'audio');
+  }
+
+  /**
+   * Check if user can create more courses (uses subscription limits from database)
    */
   static async canCreateCourse(userId?: string): Promise<{ allowed: boolean; reason?: string; coursesUsed?: number; coursesLimit?: number }> {
     try {
@@ -67,34 +135,39 @@ export class FeatureGateService {
 
       // Check if user has active subscription
       const hasSubscription = await SubscriptionService.hasActiveSubscription(targetUserId);
+      const subscription = await SubscriptionService.getUserSubscription(targetUserId);
 
-      if (hasSubscription) {
-        // Subscribed users: check monthly limit
-        const courseCount = await this.getUserMonthlyCourseCount(targetUserId);
+      // Get cached usage stats
+      const usage = await this.getUserUsageStats(targetUserId);
+
+      if (hasSubscription && subscription) {
+        // Subscribed users: check monthly limit from subscription
+        const coursesLimit = subscription.coursesPerMonth;
+        const coursesUsed = usage.usedCoursesThisMonth;
         
-        if (courseCount >= MONTHLY_COURSE_LIMIT) {
+        if (coursesUsed >= coursesLimit) {
           return {
             allowed: false,
             reason: 'MONTHLY_LIMIT_REACHED',
-            coursesUsed: courseCount,
-            coursesLimit: MONTHLY_COURSE_LIMIT
+            coursesUsed,
+            coursesLimit
           };
         }
 
         return {
           allowed: true,
           reason: 'SUBSCRIPTION_ACTIVE',
-          coursesUsed: courseCount,
-          coursesLimit: MONTHLY_COURSE_LIMIT
+          coursesUsed,
+          coursesLimit
         };
       }
 
-      // Free tier: no course generation allowed (course generation requires subscription)
+      // Free tier: no course generation allowed
       return {
         allowed: false,
         reason: 'SUBSCRIPTION_REQUIRED',
-        coursesUsed: 0,
-        coursesLimit: 0
+        coursesUsed: usage.usedCoursesThisMonth,
+        coursesLimit: FREE_TIER_LIMITS.coursesPerMonth
       };
     } catch (error) {
       console.error('Error checking course creation access:', error);
@@ -103,9 +176,9 @@ export class FeatureGateService {
   }
 
   /**
-   * Check if user can create more notes (free tier: 1 note, subscription: unlimited)
+   * Check if user can create more notes (uses subscription limits from database)
    */
-  static async canCreateNote(userId?: string): Promise<{ allowed: boolean; reason?: string; notesUsed?: number; notesLimit?: number }> {
+  static async canCreateNote(userId?: string): Promise<{ allowed: boolean; reason?: string; notesUsed?: number; notesLimit?: number | null }> {
     try {
       // If no userId provided, get from auth
       let targetUserId = userId;
@@ -116,23 +189,57 @@ export class FeatureGateService {
         targetUserId = authUserId;
       }
 
-      // Check if user has active subscription
       if (!targetUserId) return { allowed: false, reason: 'INVALID_USER_ID' };
-      const hasSubscription = await SubscriptionService.hasActiveSubscription(targetUserId);
 
-      if (hasSubscription) {
-        return { allowed: true, reason: 'SUBSCRIPTION_ACTIVE' };
+      // Check if user has active subscription
+      const hasSubscription = await SubscriptionService.hasActiveSubscription(targetUserId);
+      const subscription = await SubscriptionService.getUserSubscription(targetUserId);
+
+      // Get cached usage stats
+      const usage = await this.getUserUsageStats(targetUserId);
+
+      if (hasSubscription && subscription) {
+        // Subscribed users: check limit from subscription (null = unlimited)
+        const notesLimit = subscription.notesPerMonth;
+        const notesUsed = usage.usedNotesThisMonth;
+
+        if (notesLimit === null) {
+          // Unlimited notes
+          return {
+            allowed: true,
+            reason: 'SUBSCRIPTION_ACTIVE',
+            notesUsed,
+            notesLimit: null
+          };
+        }
+
+        if (notesUsed >= notesLimit) {
+          return {
+            allowed: false,
+            reason: 'MONTHLY_LIMIT_REACHED',
+            notesUsed,
+            notesLimit
+          };
+        }
+
+        return {
+          allowed: true,
+          reason: 'SUBSCRIPTION_ACTIVE',
+          notesUsed,
+          notesLimit
+        };
       }
 
       // Free tier: check note count limit
       const noteCount = await this.getUserNoteCount(targetUserId);
+      const freeLimit = FREE_TIER_LIMITS.notesPerMonth;
 
-      if (noteCount >= FREE_TIER_NOTE_LIMIT) {
+      if (noteCount >= freeLimit) {
         return {
           allowed: false,
           reason: 'FREE_TIER_LIMIT_REACHED',
           notesUsed: noteCount,
-          notesLimit: FREE_TIER_NOTE_LIMIT
+          notesLimit: freeLimit
         };
       }
 
@@ -140,7 +247,7 @@ export class FeatureGateService {
         allowed: true,
         reason: 'FREE_TIER',
         notesUsed: noteCount,
-        notesLimit: FREE_TIER_NOTE_LIMIT
+        notesLimit: freeLimit
       };
     } catch (error) {
       console.error('Error checking note creation access:', error);
@@ -251,7 +358,7 @@ export class FeatureGateService {
           allowed: false,
           statusCode: 403,
           error: 'FREE_TIER_LIMIT_REACHED',
-          message: `You've reached the free tier limit of ${FREE_TIER_NOTE_LIMIT} notes. Upgrade to Pro for unlimited notes.`,
+          message: `You've reached the free tier limit of ${FREE_TIER_LIMITS.notesPerMonth} notes. Upgrade to Pro for unlimited notes.`,
           notesUsed: noteAccess.notesUsed,
           notesLimit: noteAccess.notesLimit,
           upgradeUrl: '/pricing?reason=note-limit',
@@ -331,7 +438,7 @@ export class FeatureGateService {
           allowed: false,
           statusCode: 403,
           error: 'MONTHLY_LIMIT_REACHED',
-          message: `You've reached the monthly limit of ${MONTHLY_COURSE_LIMIT} courses. Your limit will reset next month.`,
+          message: `You've reached the monthly limit of ${courseAccess.coursesLimit} courses. Your limit will reset next month.`,
           coursesUsed: courseAccess.coursesUsed,
           coursesLimit: courseAccess.coursesLimit,
         };
@@ -431,14 +538,17 @@ export class FeatureGateService {
     const accessInfo = await this.getAccessInfo();
     const session = await auth.api.getSession({ headers: await headers() }); const userId = session?.user?.id;
 
-    let noteAccess: { allowed: boolean; reason?: string; notesUsed?: number; notesLimit?: number } = {
+    let noteAccess: { allowed: boolean; reason?: string; notesUsed?: number; notesLimit?: number | null } = {
       allowed: false,
       notesUsed: 0,
-      notesLimit: FREE_TIER_NOTE_LIMIT
+      notesLimit: FREE_TIER_LIMITS.notesPerMonth
     };
     if (userId) {
       noteAccess = await this.canCreateNote(userId);
     }
+
+    const freeLimit = FREE_TIER_LIMITS.notesPerMonth;
+    const notesLimit = noteAccess.notesLimit ?? freeLimit;
 
     return {
       canUploadPDF: noteAccess.allowed,
@@ -453,8 +563,8 @@ export class FeatureGateService {
       subscription: accessInfo.subscription,
       freeNotes: {
         used: noteAccess.notesUsed || 0,
-        limit: noteAccess.notesLimit || FREE_TIER_NOTE_LIMIT,
-        remaining: Math.max(0, (noteAccess.notesLimit || FREE_TIER_NOTE_LIMIT) - (noteAccess.notesUsed || 0)),
+        limit: notesLimit,
+        remaining: Math.max(0, notesLimit - (noteAccess.notesUsed || 0)),
       },
     };
   }

@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 
 interface AddLinkModalProps {
   onClose?: () => void;
@@ -29,6 +30,7 @@ export function AddLinkModal({
   onClose,
   onProcessComplete,
 }: AddLinkModalProps) {
+  const { openUpgradeModal } = useUpgradeModal();
   const { folders, getFolders, loading: foldersLoading } = useFolders();
   const {
     addLoadingNote,
@@ -116,6 +118,17 @@ export function AddLinkModal({
             return;
           }
 
+          if (
+            transcriptResponse.status === 403 &&
+            transcriptResult.error === "FREE_TIER_LIMIT_REACHED"
+          ) {
+            removeLoadingNote(tempId);
+            setCurrentTempId(null);
+            openUpgradeModal();
+            setIsProcessing(false);
+            return;
+          }
+
           const errorMessages: Record<string, string> = {
             NO_CAPTIONS:
               "This video does not have captions available.",
@@ -148,6 +161,16 @@ export function AddLinkModal({
         const noteResult = await noteResponse.json();
 
         if (!noteResponse.ok || !noteResult.success) {
+          if (
+            noteResponse.status === 403 &&
+            noteResult.error === "FREE_TIER_LIMIT_REACHED"
+          ) {
+            removeLoadingNote(tempId);
+            setCurrentTempId(null);
+            openUpgradeModal();
+            setIsProcessing(false);
+            return;
+          }
           toast.warning("Transcript created, but notes generation failed", {
             description:
               "You can retry generating notes from your transcripts list.",
@@ -183,6 +206,17 @@ export function AddLinkModal({
         result = await response.json();
 
         if (!response.ok || !result.success) {
+          if (
+            response.status === 403 &&
+            (result.error === "FREE_TIER_LIMIT_REACHED" ||
+              result.code === "FREE_TIER_LIMIT_REACHED")
+          ) {
+            removeLoadingNote(tempId);
+            setCurrentTempId(null);
+            openUpgradeModal();
+            setIsProcessing(false);
+            return;
+          }
           throw new Error(
             result.error || result.message || "Failed to process webpage"
           );

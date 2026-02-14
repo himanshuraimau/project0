@@ -2,8 +2,7 @@
 
 import { NextResponse, NextRequest } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
-import { SubscriptionService } from '@/lib/subscription-service';
-import { DodoSubscriptionService } from '@/lib/payments/dodo';
+import { PaymentService } from '@/lib/payments';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,84 +24,41 @@ export async function POST(request: NextRequest) {
     }
     const { cancelAtPeriodEnd = true } = body;
 
-    // Get user's subscription
-    const subscription = await SubscriptionService.getUserSubscription(userId);
+    // Cancel subscription using centralized PaymentService
+    const subscription = await PaymentService.cancelSubscription({
+      userId,
+      cancelAtPeriodEnd,
+    });
 
-    if (!subscription) {
+    return NextResponse.json({
+      success: true,
+      subscription: {
+        id: subscription.id,
+        status: subscription.status,
+        cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+        cancelledAt: subscription.cancelledAt,
+      },
+      message: cancelAtPeriodEnd
+        ? `Your subscription will be cancelled at the end of the current billing period (${formatDate(subscription.currentPeriodEnd || subscription.nextBillingDate)}). Any scheduled plan changes have also been cancelled.`
+        : 'Your subscription has been cancelled immediately.',
+    });
+  } catch (error: any) {
+    console.error('Error cancelling subscription:', error);
+    
+    if (error.message?.includes('not found')) {
       return NextResponse.json(
         { error: 'No subscription found' },
         { status: 404 }
       );
     }
 
-    if (subscription.status === 'CANCELLED') {
+    if (error.message?.includes('already cancelled')) {
       return NextResponse.json(
         { error: 'Subscription is already cancelled' },
         { status: 400 }
       );
     }
 
-    // Check if there's a scheduled plan change - if so, clear it before canceling
-    const metadata = (subscription.metadata as any) || {};
-    const hasScheduledChange = metadata.scheduledProductId && metadata.scheduledProductId !== subscription.productId;
-    
-    if (hasScheduledChange) {
-      console.log('User has scheduled plan change - clearing it before cancellation');
-      // Clear scheduled change metadata
-      delete metadata.scheduledProductId;
-      delete metadata.scheduledPlanType;
-      delete metadata.scheduledAt;
-      await SubscriptionService.updateSubscriptionMetadata(
-        subscription.dodoSubscriptionId,
-        metadata
-      );
-    }
-
-    // Cancel subscription with Dodo
-    const cancelResult = await DodoSubscriptionService.cancelSubscription(
-      subscription.dodoSubscriptionId,
-      cancelAtPeriodEnd
-    );
-
-    if (!cancelResult.success) {
-      throw new Error(cancelResult.error || 'Failed to cancel subscription with Dodo');
-    }
-
-    // Extract period dates from Dodo response to fix display (e.g. avoid Jan 1, 1970)
-    const dodoData = cancelResult.data as any;
-    const periodUpdates: { currentPeriodEnd?: Date; nextBillingDate?: Date } = {};
-    if (dodoData?.next_billing_date) {
-      periodUpdates.nextBillingDate = new Date(dodoData.next_billing_date);
-      periodUpdates.currentPeriodEnd = new Date(dodoData.next_billing_date);
-    }
-    if (dodoData?.previous_billing_date && !periodUpdates.currentPeriodEnd) {
-      // Fallback if Dodo uses different field names
-      periodUpdates.currentPeriodEnd = new Date(dodoData.previous_billing_date);
-    }
-
-    // Update subscription in database (keep ACTIVE when cancelAtPeriodEnd so user retains access)
-    const updatedSubscription = await SubscriptionService.updateSubscriptionCancelState(
-      subscription.dodoSubscriptionId,
-      cancelAtPeriodEnd,
-      periodUpdates
-    );
-
-    return NextResponse.json({
-      success: true,
-      subscription: {
-        id: updatedSubscription.id,
-        status: updatedSubscription.status,
-        cancelAtPeriodEnd: updatedSubscription.cancelAtPeriodEnd,
-        cancelledAt: updatedSubscription.cancelledAt,
-      },
-      message: cancelAtPeriodEnd
-        ? hasScheduledChange
-          ? `Your subscription and scheduled plan change have been cancelled. You'll have access until ${formatDate(updatedSubscription.currentPeriodEnd || updatedSubscription.nextBillingDate)}.`
-          : `Your subscription will be cancelled at the end of the current billing period (${formatDate(updatedSubscription.currentPeriodEnd || updatedSubscription.nextBillingDate)}).`
-        : 'Your subscription has been cancelled immediately.',
-    });
-  } catch (error: any) {
-    console.error('Error cancelling subscription:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to cancel subscription' },
       { status: 500 }
@@ -119,3 +75,4 @@ function formatDate(date: Date | string | null | undefined): string {
     year: 'numeric',
   });
 }
+

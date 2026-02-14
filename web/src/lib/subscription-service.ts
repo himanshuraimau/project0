@@ -66,6 +66,15 @@ export class SubscriptionService {
     nextBillingDate?: Date;
     trialEnd?: Date;
     metadata?: any;
+    // Feature limits (optional, will use defaults if not provided)
+    notesPerMonth?: number | null;
+    coursesPerMonth?: number;
+    pdfProcessingPerMonth?: number | null;
+    videoProcessingPerMonth?: number | null;
+    audioProcessingPerMonth?: number | null;
+    // Discount tracking
+    dodoDiscountId?: string;
+    amount?: number;
   }) {
     try {
       const subscription = await prisma.subscription.create({
@@ -79,6 +88,15 @@ export class SubscriptionService {
           nextBillingDate: params.nextBillingDate,
           trialEnd: params.trialEnd,
           metadata: params.metadata,
+          // Feature limits
+          notesPerMonth: params.notesPerMonth,
+          coursesPerMonth: params.coursesPerMonth ?? 5,
+          pdfProcessingPerMonth: params.pdfProcessingPerMonth,
+          videoProcessingPerMonth: params.videoProcessingPerMonth,
+          audioProcessingPerMonth: params.audioProcessingPerMonth,
+          // Discount tracking
+          dodoDiscountId: params.dodoDiscountId,
+          amount: params.amount,
         },
         include: { user: true },
       });
@@ -574,5 +592,136 @@ export class SubscriptionService {
     };
 
     return statusMap[status] || status;
+  }
+
+  /**
+   * Update subscription feature limits
+   */
+  static async updateSubscriptionLimits(
+    dodoSubscriptionId: string,
+    limits: {
+      notesPerMonth?: number | null;
+      coursesPerMonth?: number;
+      pdfProcessingPerMonth?: number | null;
+      videoProcessingPerMonth?: number | null;
+      audioProcessingPerMonth?: number | null;
+    }
+  ) {
+    try {
+      const subscription = await prisma.subscription.update({
+        where: { dodoSubscriptionId },
+        data: {
+          ...limits,
+          updatedAt: new Date(),
+        },
+      });
+
+      console.log('Subscription limits updated:', {
+        id: subscription.id,
+        limits,
+      });
+
+      return subscription;
+    } catch (error) {
+      console.error('Error updating subscription limits:', error);
+      throw new Error('Failed to update subscription limits');
+    }
+  }
+
+  /**
+   * Update subscription with discount tracking
+   */
+  static async updateSubscriptionDiscount(
+    dodoSubscriptionId: string,
+    dodoDiscountId: string,
+    amount: number
+  ) {
+    try {
+      const subscription = await prisma.subscription.update({
+        where: { dodoSubscriptionId },
+        data: {
+          dodoDiscountId,
+          amount,
+          updatedAt: new Date(),
+        },
+      });
+
+      console.log('Subscription discount tracked:', {
+        id: subscription.id,
+        discountId: dodoDiscountId,
+        amount,
+      });
+
+      return subscription;
+    } catch (error) {
+      console.error('Error updating subscription discount:', error);
+      throw new Error('Failed to update subscription discount');
+    }
+  }
+
+  /**
+   * Reset usage counters for a user (called from webhook)
+   */
+  static async resetUsageCounters(userId: string) {
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          usedNotesThisMonth: 0,
+          usedCoursesThisMonth: 0,
+          usedPdfProcessingThisMonth: 0,
+          usedVideoProcessingThisMonth: 0,
+          usedAudioProcessingThisMonth: 0,
+          lastUsageResetDate: new Date()
+        }
+      });
+      
+      console.log(`🔄 Reset usage counters for user ${userId}`);
+    } catch (error) {
+      console.error('Error resetting usage counters:', error);
+      throw new Error('Failed to reset usage counters');
+    }
+  }
+
+  /**
+   * Get usage statistics for a user
+   */
+  static async getUsageStats(userId: string) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          usedNotesThisMonth: true,
+          usedCoursesThisMonth: true,
+          usedPdfProcessingThisMonth: true,
+          usedVideoProcessingThisMonth: true,
+          usedAudioProcessingThisMonth: true,
+          lastUsageResetDate: true,
+        }
+      });
+
+      if (!user) {
+        return {
+          usedNotesThisMonth: 0,
+          usedCoursesThisMonth: 0,
+          usedPdfProcessingThisMonth: 0,
+          usedVideoProcessingThisMonth: 0,
+          usedAudioProcessingThisMonth: 0,
+          lastUsageResetDate: null,
+        };
+      }
+
+      return user;
+    } catch (error) {
+      console.error('Error getting usage stats:', error);
+      return {
+        usedNotesThisMonth: 0,
+        usedCoursesThisMonth: 0,
+        usedPdfProcessingThisMonth: 0,
+        usedVideoProcessingThisMonth: 0,
+        usedAudioProcessingThisMonth: 0,
+        lastUsageResetDate: null,
+      };
+    }
   }
 }

@@ -181,6 +181,9 @@ export async function POST(request: NextRequest) {
     // Note: With subscription system, no credit deduction needed
     // Access is controlled by active subscription status
 
+    // Increment PDF processing usage counter after successful parsing
+    await FeatureGateService.incrementPdfUsage(userId);
+
     let noteResult = null;
 
     // Step 2: Generate AI notes if requested
@@ -188,12 +191,8 @@ export async function POST(request: NextRequest) {
       try {
         noteResult = await noteService.generateAINote(parseResult.documentId, userId, folderId || undefined);
 
-        // Increment user's notes count after successful note creation
-        const { prisma } = await import('@/lib/prisma');
-        await prisma.user.update({
-          where: { id: userId },
-          data: { notesCount: { increment: 1 } }
-        });
+        // Increment note usage counter after successful note creation
+        await FeatureGateService.incrementNoteUsage(userId);
       } catch (noteError) {
         console.error('Failed to generate AI notes:', noteError);
         // Don't fail the entire request if note generation fails

@@ -126,6 +126,10 @@ export async function transcribeAudioAndCreateNote(
 
   const transcriptText = transcriptionResult.text;
 
+  // Increment audio processing usage counter after successful transcription
+  const { FeatureGateService } = await import('./feature-gate-service');
+  await FeatureGateService.incrementAudioUsage(userId);
+
   const transcriptRecord = await prisma.transcript.create({
     data: {
       fileName: `${fileNameForRecord}.${audioFile.name.split(".").pop()}`,
@@ -151,10 +155,8 @@ export async function transcribeAudioAndCreateNote(
       userId,
       folderId ?? undefined
     );
-    await prisma.user.update({
-      where: { id: userId },
-      data: { notesCount: { increment: 1 } },
-    });
+    // Increment note usage counter after successful note creation
+    await FeatureGateService.incrementNoteUsage(userId);
   } catch (error) {
     console.error("Failed to generate AI notes:", error);
     return {

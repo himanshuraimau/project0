@@ -1,0 +1,53 @@
+/**
+ * Main Payments Module
+ * Centralizes all payment-related functionality
+ * 
+ * Usage:
+ * import { PaymentService } from '@/lib/payments';
+ * 
+ * // Create subscription
+ * await PaymentService.createSubscription({ ... });
+ * 
+ * // Change plan
+ * await PaymentService.changePlan({ userId, targetBillingInterval: 'yearly', immediate: true });
+ * 
+ * // Cancel subscription
+ * await PaymentService.cancelSubscription({ userId, cancelAtPeriodEnd: true });
+ */
+
+// Main Payment Service
+export { PaymentService } from './payment-service';
+export type { 
+  PlanComparison,
+  CreateSubscriptionParams as PaymentCreateParams,
+  PlanChangeParams,
+  CancelSubscriptionParams
+} from './payment-service';
+
+// Dodo Payments Integration
+export {
+  DodoSubscriptionService,
+  DodoWebhookService,
+  getDodoConfig,
+  DODO_CONFIG,
+  SUBSCRIPTION_CONFIG,
+  SUBSCRIPTION_CONFIG_YEARLY,
+  SUBSCRIPTION_PLAN,
+  SUBSCRIPTION_PLAN_YEARLY,
+  WEBHOOK_EVENTS,
+  getDodoClient,
+  validateDodoConfig,
+  testDodoConnection
+} from './dodo';
+
+export type {
+  DodoSubscriptionResponse,
+  DodoSubscriptionCreateRequest,
+  DodoWebhookPayload,
+  DodoSubscriptionStatus,
+  SubscriptionBillingAddress,
+  CreateSubscriptionParams as DodoCreateParams,
+  SubscriptionManagementResult,
+  BillingInterval,
+  WebhookEvent
+} from './dodo';

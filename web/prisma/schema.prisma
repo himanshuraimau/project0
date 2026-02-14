@@ -24,6 +24,15 @@ model User {
   notesCount    Int           @default(0)
   coursesCount  Int           @default(0) // Total courses created (for reference)
   lastCourseResetDate DateTime? // Track when monthly course count was last reset
+  
+  // Usage tracking (reset monthly on subscription renewal)
+  usedNotesThisMonth       Int       @default(0)
+  usedCoursesThisMonth     Int       @default(0)
+  usedPdfProcessingThisMonth Int     @default(0)
+  usedVideoProcessingThisMonth Int   @default(0)
+  usedAudioProcessingThisMonth Int   @default(0)
+  lastUsageResetDate       DateTime?
+  
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   
@@ -91,6 +100,17 @@ model Subscription {
   dodoSubscriptionId String             @unique // Dodo Payments subscription ID
   productId          String // Dodo product ID
   status             SubscriptionStatus @default(PENDING)
+
+  // Feature allowances (null = unlimited)
+  notesPerMonth           Int?    // null for unlimited
+  coursesPerMonth         Int     @default(5)
+  pdfProcessingPerMonth   Int?    // null for unlimited
+  videoProcessingPerMonth Int?    // null for unlimited
+  audioProcessingPerMonth Int?    // null for unlimited
+  
+  // Discount tracking
+  dodoDiscountId          String?
+  amount                  Int?    // Actual charged amount in cents
 
   // Billing period information
   currentPeriodStart DateTime?

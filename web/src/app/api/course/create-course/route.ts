@@ -159,6 +159,9 @@ export async function POST(request: NextRequest) {
 
     const courseId = courseResult.courseId;
 
+    // Increment usage counter for tracking
+    await FeatureGateService.incrementCourseUsage(userId);
+
     // No credit deduction needed - subscription system handles access
     // Course created successfully
 

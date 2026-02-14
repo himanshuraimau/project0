@@ -83,11 +83,8 @@ export async function POST(request: NextRequest) {
         folderId,
       });
 
-      // Increment user's notes count
-      await prisma.user.update({
-        where: { id: userId },
-        data: { notesCount: { increment: 1 } }
-      });
+      // Increment usage counter for tracking
+      await FeatureGateService.incrementNoteUsage(userId);
 
       // Queue background translation to all supported languages
       console.log('🌍 Queueing background translation for note:', note.id);

@@ -141,16 +141,15 @@ export async function POST(req: NextRequest) {
     // Generate AI notes if requested
     let noteResult = null;
 
+    // Increment PDF processing usage counter after successful parsing
+    await FeatureGateService.incrementPdfUsage(userId);
+
     if (generateNotes && parseResult.documentId) {
       try {
         noteResult = await noteService.generateAINote(parseResult.documentId, userId, folderId || undefined);
 
-        // Increment user's notes count
-        const { prisma } = await import("@/lib/prisma");
-        await prisma.user.update({
-          where: { id: userId },
-          data: { notesCount: { increment: 1 } },
-        });
+        // Increment note usage counter after successful note creation
+        await FeatureGateService.incrementNoteUsage(userId);
       } catch (noteError) {
         console.error("Failed to generate AI notes:", noteError);
 

@@ -67,6 +67,7 @@ export class DodoSubscriptionService {
         payment_link: true,
         return_url: DODO_CONFIG.returnUrl,
         ...(params.trialDays && params.trialDays > 0 ? { trial_period_days: params.trialDays } : {}),
+        ...(params.discountCode ? { discount_id: params.discountCode } : {}),
         metadata: {
           userId: params.userId,
           billingInterval,

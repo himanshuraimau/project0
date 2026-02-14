@@ -5,6 +5,32 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { DodoWebhookService, DodoSubscriptionService } from '@/lib/payments/dodo';
 import { SubscriptionService } from '@/lib/subscription-service';
+import { prisma } from '@/lib/prisma';
+import { PRO_PLAN_LIMITS } from '@/lib/config/subscription-limits';
+
+/**
+ * Reset usage counters for a user (called on subscription renewal)
+ */
+async function resetUsageCounters(userId: string): Promise<void> {
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        usedNotesThisMonth: 0,
+        usedCoursesThisMonth: 0,
+        usedPdfProcessingThisMonth: 0,
+        usedVideoProcessingThisMonth: 0,
+        usedAudioProcessingThisMonth: 0,
+        lastUsageResetDate: new Date()
+      }
+    });
+    
+    console.log(`🔄 Reset usage counters for user ${userId}`);
+  } catch (error) {
+    console.error('Error resetting usage counters:', error);
+    // Don't throw - this shouldn't fail the webhook
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -404,6 +430,9 @@ async function handleSubscriptionRenewed(payload: any) {
   }
 
   await SubscriptionService.renewSubscription(subscription.dodoSubscriptionId, nextBillingDate);
+
+  // Reset usage counters on renewal
+  await resetUsageCounters(subscription.userId);
 
   console.log('Subscription renewed:', subscriptionId);
 }
