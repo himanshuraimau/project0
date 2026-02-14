@@ -220,6 +220,8 @@ export default function AudioUploadModal({
               },
         });
 
+        // Wait for database transaction to commit before refreshing UI
+        await new Promise((resolve) => setTimeout(resolve, 400));
         triggerRefresh();
 
         setAudioBlob(null);

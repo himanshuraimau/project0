@@ -390,6 +390,8 @@ export default function RecordAudio({
           note: responseData.note || {},
         });
 
+        // Wait for database transaction to commit before refreshing UI
+        await new Promise((resolve) => setTimeout(resolve, 400));
         triggerRefresh();
 
         setAudioBlob(null);

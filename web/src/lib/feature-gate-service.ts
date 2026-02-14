@@ -118,6 +118,23 @@ export class FeatureGateService {
   }
 
   /**
+   * Decrement note usage (used when note creation fails after incrementing)
+   */
+  static async decrementNoteUsage(userId: string): Promise<void> {
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          usedNotesThisMonth: { decrement: 1 }
+        }
+      });
+      console.log(`✅ Decremented note usage for user ${userId}`);
+    } catch (error) {
+      console.error('Error decrementing note usage:', error);
+    }
+  }
+
+  /**
    * Check if user can create more courses (uses subscription limits from database)
    */
   static async canCreateCourse(userId?: string): Promise<{ allowed: boolean; reason?: string; coursesUsed?: number; coursesLimit?: number }> {
@@ -230,15 +247,16 @@ export class FeatureGateService {
         };
       }
 
-      // Free tier: check note count limit
-      const noteCount = await this.getUserNoteCount(targetUserId);
+      // Free tier: check monthly usage counter (not total note count)
+      // This matches the counter we increment in incrementNoteUsage()
       const freeLimit = FREE_TIER_LIMITS.notesPerMonth;
+      const notesUsed = usage.usedNotesThisMonth;
 
-      if (noteCount >= freeLimit) {
+      if (notesUsed >= freeLimit) {
         return {
           allowed: false,
           reason: 'FREE_TIER_LIMIT_REACHED',
-          notesUsed: noteCount,
+          notesUsed,
           notesLimit: freeLimit
         };
       }
@@ -246,7 +264,7 @@ export class FeatureGateService {
       return {
         allowed: true,
         reason: 'FREE_TIER',
-        notesUsed: noteCount,
+        notesUsed,
         notesLimit: freeLimit
       };
     } catch (error) {

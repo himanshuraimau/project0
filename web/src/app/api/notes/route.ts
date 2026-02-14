@@ -110,15 +110,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: accessCheck.statusCode });
     }
 
-    const note = await noteService.saveNote({
-      title,
-      content,
-      transcriptId,
-      userId,
-    });
-
-    // Increment note usage counter
+    // Increment note usage counter BEFORE creating (prevents race condition)
     await FeatureGateService.incrementNoteUsage(userId);
+
+    let note;
+    try {
+      note = await noteService.saveNote({
+        title,
+        content,
+        transcriptId,
+        userId,
+      });
+    } catch (saveError) {
+      // Decrement counter since note creation failed
+      await FeatureGateService.decrementNoteUsage(userId);
+      throw saveError;
+    }
 
     // Queue background translation to all supported languages
     console.log('🌍 Queueing background translation for note:', note.id);

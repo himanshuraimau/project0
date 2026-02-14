@@ -68,11 +68,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: accessCheck.statusCode });
     }
 
-    // Generate AI note from the transcript
-    const note = await noteService.generateAINote(transcriptId, userId || undefined, folderId);
-
-    // Increment usage counter for trackingsystem
+    // Increment usage counter BEFORE generating note (prevents race condition for free users)
     await FeatureGateService.incrementNoteUsage(userId);
+
+    // Generate AI note from the transcript
+    let note;
+    try {
+      note = await noteService.generateAINote(transcriptId, userId || undefined, folderId);
+    } catch (noteError) {
+      // Decrement counter since note creation failed
+      await FeatureGateService.decrementNoteUsage(userId);
+      throw noteError; // Re-throw to be caught by outer catch block
+    }
 
     // Queue background translation to all supported languages
     console.log('🌍 Queueing background translation for note:', note.id);

@@ -428,6 +428,8 @@ function AudioRecorderModal({
           note: responseData.note || {},
         });
 
+        // Wait for database transaction to commit before refreshing UI
+        await new Promise((resolve) => setTimeout(resolve, 400));
         triggerRefresh();
 
         setAudioBlob(null);
@@ -775,8 +777,10 @@ export function NewNoteSection() {
         description: "Content extracted and notes created",
         duration: 4000,
       });
-      // Immediately trigger counter refresh
-      triggerRefresh();
+      // Wait for database transaction to commit, then trigger counter refresh
+      setTimeout(() => {
+        triggerRefresh();
+      }, 400);
       // Wait a bit longer to ensure database transaction is fully committed
       setTimeout(() => {
         refreshNotes();
@@ -831,8 +835,10 @@ export function NewNoteSection() {
         description: "Audio transcribed and notes created",
         duration: 4000,
       });
-      // Immediately trigger counter refresh
-      triggerRefresh();
+      // Wait for database transaction to commit, then trigger counter refresh
+      setTimeout(() => {
+        triggerRefresh();
+      }, 400);
       // Wait a bit longer to ensure database transaction is fully committed
       setTimeout(() => {
         refreshNotes();
@@ -878,8 +884,10 @@ export function NewNoteSection() {
         description: "Recording transcribed and notes created",
         duration: 4000,
       });
-      // Immediately trigger counter refresh
-      triggerRefresh();
+      // Wait for database transaction to commit, then trigger counter refresh
+      setTimeout(() => {
+        triggerRefresh();
+      }, 400);
       // Wait a bit longer to ensure database transaction is fully committed
       setTimeout(() => {
         refreshNotes();
@@ -910,8 +918,10 @@ export function NewNoteSection() {
         description: "Content converted to AI-powered notes",
         duration: 4000,
       });
-      // Immediately trigger counter refresh
-      triggerRefresh();
+      // Wait for database transaction to commit, then trigger counter refresh
+      setTimeout(() => {
+        triggerRefresh();
+      }, 400);
       // Wait a bit longer to ensure database transaction is fully committed
       setTimeout(() => {
         refreshNotes();

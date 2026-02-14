@@ -146,12 +146,15 @@ export async function POST(req: NextRequest) {
 
     if (generateNotes && parseResult.documentId) {
       try {
-        noteResult = await noteService.generateAINote(parseResult.documentId, userId, folderId || undefined);
-
-        // Increment note usage counter after successful note creation
+        // Increment note usage counter BEFORE generating note (prevents race condition)
         await FeatureGateService.incrementNoteUsage(userId);
+        
+        noteResult = await noteService.generateAINote(parseResult.documentId, userId, folderId || undefined);
       } catch (noteError) {
         console.error("Failed to generate AI notes:", noteError);
+        
+        // Decrement counter since note creation failed
+        await FeatureGateService.decrementNoteUsage(userId);
 
         if (noteError instanceof Error) {
           const errorMessage = noteError.message.toLowerCase();

@@ -114,6 +114,8 @@ export function UploadTextModal({
           },
         });
 
+        // Wait for database transaction to commit before refreshing UI
+        await new Promise((resolve) => setTimeout(resolve, 400));
         triggerRefresh();
 
         setTextInput("");

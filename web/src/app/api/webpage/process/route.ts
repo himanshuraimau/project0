@@ -66,14 +66,18 @@ export async function POST(request: NextRequest) {
     // Step 2: Generate AI notes if requested
     if (generateNotes && crawlResult.documentId) {
       try {
+        // Increment note usage counter BEFORE generating note (prevents race condition)
+        await FeatureGateService.incrementNoteUsage(userId);
+
         console.log(`Generating AI notes for transcript: ${crawlResult.documentId}`);
         noteResult = await noteService.generateAINote(crawlResult.documentId, userId, folderId || undefined);
         console.log(`Successfully generated AI notes: ${noteResult.id}`);
-
-        // Increment note usage counter after successful note creation
-        await FeatureGateService.incrementNoteUsage(userId);
       } catch (noteError) {
         console.error('Failed to generate AI notes:', noteError);
+        
+        // Decrement counter since note creation failed
+        await FeatureGateService.decrementNoteUsage(userId);
+        
         // Don't fail the entire request if note generation fails
         noteResult = {
           error: 'Failed to generate AI notes',

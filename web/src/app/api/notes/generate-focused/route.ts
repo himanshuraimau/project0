@@ -54,11 +54,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: accessCheck.statusCode });
     }
 
-    // Generate focused AI note from the transcript
-    const note = await noteService.generateFocusedNote(transcriptId, noteType, userId || undefined);
-
-    // Increment note usage counter
+    // Increment note usage counter BEFORE generating (prevents race condition)
     await FeatureGateService.incrementNoteUsage(userId);
+
+    // Generate focused AI note from the transcript
+    let note;
+    try {
+      note = await noteService.generateFocusedNote(transcriptId, noteType, userId || undefined);
+    } catch(genError) {
+      // Decrement counter since note creation failed
+      await FeatureGateService.decrementNoteUsage(userId);
+      throw genError;
+    }
 
     // Queue background translation to all supported languages
     console.log('🌍 Queueing background translation for note:', note.id);

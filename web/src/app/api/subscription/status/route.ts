@@ -5,6 +5,10 @@ import { getUserFromAuth } from '@/lib/auth-helper';
 import { SubscriptionService } from '@/lib/subscription-service';
 import { FeatureGateService } from '@/lib/feature-gate-service';
 
+// Prevent caching of this endpoint
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request);
@@ -23,7 +27,7 @@ export async function GET(request: NextRequest) {
     const featureAccess = await FeatureGateService.getFeatureAccessSummary();
 
     if (!subscription) {
-      return NextResponse.json({
+      const response = NextResponse.json({
         hasSubscription: false,
         subscription: null,
         access: {
@@ -32,12 +36,19 @@ export async function GET(request: NextRequest) {
         },
         features: featureAccess,
       });
+      
+      // Prevent caching
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+      response.headers.set('Pragma', 'no-cache');
+      response.headers.set('Expires', '0');
+      
+      return response;
     }
 
     // Get display info
     const displayInfo = SubscriptionService.getSubscriptionDisplayInfo(subscription);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       hasSubscription: true,
       subscription: {
         id: subscription.id,
@@ -61,6 +72,13 @@ export async function GET(request: NextRequest) {
       },
       features: featureAccess,
     });
+
+    // Prevent caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
+    return response;
   } catch (error) {
     console.error('Error fetching subscription status:', error);
     return NextResponse.json(

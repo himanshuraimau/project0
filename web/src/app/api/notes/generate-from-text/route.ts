@@ -72,19 +72,24 @@ export async function POST(request: NextRequest) {
         text.trim(),
         title || "Text Note"
       );
+      // Increment usage counter BEFORE creating (prevents race condition)
+      await FeatureGateService.incrementNoteUsage(userId);
 
       // Create the note using NoteService to automatically generate embeddings
       const noteService = new NoteService();
-      note = await noteService.saveNote({
-        title: aiNote.title,
-        content: aiNote.content,
-        transcriptId: transcript.id,
-        userId,
-        folderId,
-      });
-
-      // Increment usage counter for tracking
-      await FeatureGateService.incrementNoteUsage(userId);
+      try {
+        note = await noteService.saveNote({
+          title: aiNote.title,
+          content: aiNote.content,
+          transcriptId: transcript.id,
+          userId,
+          folderId,
+        });
+      } catch (saveError) {
+        // Decrement counter since note creation failed
+        await FeatureGateService.decrementNoteUsage(userId);
+        throw saveError;
+      }
 
       // Queue background translation to all supported languages
       console.log('🌍 Queueing background translation for note:', note.id);
