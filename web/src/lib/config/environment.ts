@@ -212,11 +212,8 @@ export const environmentUtils = {
    */
   getApiKey: (service: string): string => {
     switch (service) {
-
       case 'openai':
         return config.ai.openai.apiKey;
-      case 'google':
-        return config.ai.google.apiKey;
       case 'elevenlabs':
         return config.ai.elevenlabs.apiKey;
       case 'unsplash':
