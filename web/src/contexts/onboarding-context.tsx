@@ -34,36 +34,16 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   };
 
   const saveStep = async (step: number, stepData: Partial<OnboardingData>) => {
-    setIsLoading(true);
-    try {
-      updateData(stepData);
-      
-      const response = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...stepData,
-          currentStep: step,
-          isCompleted: false,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save onboarding step");
-      }
-    } catch (error) {
-      console.error("Error saving onboarding step:", error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+    // Only save data locally, don't make API call
+    // This prevents the 1.2-1.5s delay after each step
+    updateData({ ...stepData, currentStep: step });
+    console.log(`Step ${step} data saved locally:`, stepData);
   };
 
   const completeOnboarding = async () => {
     setIsLoading(true);
     try {
+      // Send all collected data to the backend at once
       const response = await fetch("/api/onboarding", {
         method: "POST",
         headers: {
