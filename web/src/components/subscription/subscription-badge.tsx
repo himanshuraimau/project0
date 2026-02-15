@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Crown, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { subscriptionCache } from '@/lib/subscription-cache';
 
 export function SubscriptionBadge() {
   const [status, setStatus] = useState<{
@@ -25,8 +26,8 @@ export function SubscriptionBadge() {
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch('/api/subscription/status');
-      const data = await response.json();
+      // Use cached subscription data with request deduplication
+      const data = await subscriptionCache.getStatus();
       
       setStatus({
         hasAccess: data.access?.hasAccess || false,

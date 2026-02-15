@@ -1,5 +1,7 @@
 'use client'
 
+import { subscriptionCache } from './subscription-cache';
+
 /**
  * Helper functions for subscription-based access control
  * (Formerly credit-based system)
@@ -18,13 +20,8 @@
  */
 export async function useCredits(action: string, credits: number = 1, resourceId?: string) {
   try {
-    const response = await fetch('/api/subscription/status')
-
-    if (!response.ok) {
-      throw new Error('Failed to check subscription status')
-    }
-
-    const data = await response.json()
+    // Use cached subscription data with request deduplication
+    const data = await subscriptionCache.getStatus();
 
     if (!data.access?.hasAccess) {
       // No active subscription
@@ -50,13 +47,8 @@ export async function useCredits(action: string, credits: number = 1, resourceId
  */
 export async function getCurrentCredits() {
   try {
-    const response = await fetch('/api/subscription/status')
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch subscription status')
-    }
-
-    const data = await response.json()
+    // Use cached subscription data with request deduplication
+    const data = await subscriptionCache.getStatus();
     
     // Return a high number if user has subscription, 0 if not
     // This maintains backward compatibility
