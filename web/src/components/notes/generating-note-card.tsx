@@ -20,6 +20,8 @@ export interface LoadingNoteForCard {
   id: string;
   type: "pdf" | "audio" | "audio-record" | "youtube" | "webpage";
   timestamp: number;
+  progress?: number;
+  message?: string;
   stage: "uploading" | "processing" | "generating" | "completed" | "error";
   error?: string;
   retryCount?: number;
@@ -81,22 +83,33 @@ export function GeneratingNoteCard({
   onDismiss,
 }: GeneratingNoteCardProps) {
   const { updateLoadingNote, removeLoadingNote } = useDashboardRefresh();
-  // Always start from 0 for smooth animation
-  const [animatedProgress, setAnimatedProgress] = useState<number>(0);
+  const [animatedProgress, setAnimatedProgress] = useState<number>(() => {
+    const savedProgress = loadingNote.progress;
+    if (typeof savedProgress === "number" && Number.isFinite(savedProgress)) {
+      return Math.max(0, Math.min(100, Math.round(savedProgress)));
+    }
+    return 0;
+  });
 
   // Use Pusher for real-time progress updates
   const { progress: pusherProgress, stage: pusherStage, message: pusherMessage } = usePusherProgress({
     jobId: loadingNote.id,
     enabled: loadingNote.stage !== "completed" && loadingNote.stage !== "error",
     onProgress: (event) => {
-      // Sync updates to context so they persist across navigation
-      if (event.stage) {
-        updateLoadingNote(loadingNote.id, { stage: event.stage });
-      }
+      // Sync updates to context so they persist across navigation/refresh
+      updateLoadingNote(loadingNote.id, {
+        stage: event.stage,
+        progress: event.progress,
+        message: event.message,
+      });
     },
     onCompleted: (event) => {
       console.log('[GeneratingNoteCard] Note completed, scheduling removal:', loadingNote.id);
-      updateLoadingNote(loadingNote.id, { stage: 'completed' });
+      updateLoadingNote(loadingNote.id, {
+        stage: 'completed',
+        progress: event.progress,
+        message: event.message,
+      });
       // Small delay to show 100% completion before removal
       setTimeout(() => {
         removeLoadingNote(loadingNote.id);
@@ -106,6 +119,8 @@ export function GeneratingNoteCard({
       console.log('[GeneratingNoteCard] Note error:', loadingNote.id);
       updateLoadingNote(loadingNote.id, { 
         stage: 'error', 
+        progress: event.progress,
+        message: event.message,
         error: event.message || 'Failed to generate note' 
       });
     }
@@ -113,7 +128,14 @@ export function GeneratingNoteCard({
 
   const effectiveStage = pusherStage ?? loadingNote.stage;
   const isError = effectiveStage === "error";
-  const socketProgress = pusherProgress > 0 ? pusherProgress : null;
+  const hasSocketEvent = pusherStage !== undefined || pusherMessage !== undefined;
+  const socketProgress = hasSocketEvent
+    ? Math.max(0, Math.min(100, Math.round(pusherProgress)))
+    : null;
+  const persistedProgress =
+    typeof loadingNote.progress === "number" && Number.isFinite(loadingNote.progress)
+      ? Math.max(0, Math.min(100, Math.round(loadingNote.progress)))
+      : null;
   const socketMessage = pusherMessage;
   
   const targetPercent = useMemo(() => {
@@ -121,16 +143,17 @@ export function GeneratingNoteCard({
       return 0;
     }
 
-    // IMPORTANT: Only use socketProgress when available
-    // Don't use STAGE_CONFIG as fallback to prevent jumping from 40 to 15
     if (typeof socketProgress === "number" && Number.isFinite(socketProgress)) {
       return Math.max(0, Math.min(100, Math.round(socketProgress)));
     }
 
-    // If no socket progress yet, stay at 0 to wait for real data
-    // This prevents jumping backward when Pusher sends initial progress
+    // Refresh fallback: use persisted progress from context/localStorage
+    if (typeof persistedProgress === "number" && Number.isFinite(persistedProgress)) {
+      return persistedProgress;
+    }
+
     return 0;
-  }, [isError, socketProgress]);
+  }, [isError, socketProgress, persistedProgress]);
 
   // Smooth progress animation
   useEffect(() => {
@@ -164,25 +187,28 @@ export function GeneratingNoteCard({
 
   const percent = Math.round(animatedProgress);
   const phaseMessage = useMemo(() => {
-    // If we haven't received any socket progress yet, show appropriate waiting message
-    if (socketProgress === null) {
+    // If we haven't received any progress yet, show waiting message
+    if (socketProgress === null && persistedProgress === null) {
       return "Starting...";
     }
     
     const matchedPhase = PROGRESS_PHASES.find(
       (phase) => percent >= phase.min && percent <= phase.max
     );
-    // If no phase matches (percent < 15), use the first phase message
     return matchedPhase?.label ?? PROGRESS_PHASES[0].label;
-  }, [percent, socketProgress]);
-  const message = socketMessage || phaseMessage;
+  }, [percent, socketProgress, persistedProgress]);
+  const message = socketMessage || loadingNote.message || phaseMessage;
   const typeLabel = getTypeLabel(loadingNote.type);
   const IconComponent = getTypeIcon(loadingNote.type);
 
   // Reset animation when note ID changes
   useEffect(() => {
+    if (typeof loadingNote.progress === "number" && Number.isFinite(loadingNote.progress)) {
+      setAnimatedProgress(Math.max(0, Math.min(100, Math.round(loadingNote.progress))));
+      return;
+    }
     setAnimatedProgress(0);
-  }, [loadingNote.id]);
+  }, [loadingNote.id, loadingNote.progress]);
 
   return (
     <div

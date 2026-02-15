@@ -6,6 +6,9 @@ interface LoadingNote {
   id: string;
   type: 'pdf' | 'audio' | 'audio-record' | 'youtube' | 'webpage';
   timestamp: number;
+  progress?: number;      // Latest known progress percentage (0-100)
+  message?: string;       // Latest progress/status message
+  lastProgressAt?: number; // Last time we received a progress update
   transcriptId?: string;  // Link to actual transcript 
   noteId?: string;        // Link to generated note in DB
   stage: 'uploading' | 'processing' | 'generating' | 'completed' | 'error';
@@ -63,6 +66,8 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
           // - Notes that have been "generating" for more than 10 minutes (likely completed/failed)
           // - Error notes older than 5 minutes (user had time to see them)
           const validNotes = parsedNotes.filter((note: LoadingNote) => {
+            const activityTimestamp = note.lastProgressAt ?? note.timestamp;
+
             if (note.timestamp < oneHourAgo) {
               console.log('[DashboardRefresh] Filtering out old note (>1hr):', note.id);
               return false;
@@ -72,11 +77,11 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
               return false;
             }
             // Remove notes stuck in generating/processing for >10 minutes
-            if ((note.stage === 'generating' || note.stage === 'processing') && note.timestamp < tenMinutesAgo) {
+            if ((note.stage === 'generating' || note.stage === 'processing' || note.stage === 'uploading') && activityTimestamp < tenMinutesAgo) {
               console.log('[DashboardRefresh] Filtering out stale generating note (>10min):', note.id);
               return false;
             }
-            if (note.stage === 'error' && note.timestamp < fiveMinutesAgo) {
+            if (note.stage === 'error' && activityTimestamp < fiveMinutesAgo) {
               console.log('[DashboardRefresh] Filtering out old error note:', note.id);
               return false;
             }
@@ -112,29 +117,81 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
   }, [loadingNotes]);
 
   const addLoadingNote = useCallback((tempId: string, type: 'pdf' | 'audio' | 'audio-record' | 'youtube' | 'webpage', stage: LoadingNote['stage'] = 'uploading') => {
+    const now = Date.now();
     setLoadingNotes(prev => {
       // Check if note already exists to prevent duplicates
       const exists = prev.some(note => note.id === tempId);
       if (exists) {
         return prev;
       }
-      return [...prev, { id: tempId, type, timestamp: Date.now(), stage, retryCount: 0 }];
+      return [
+        ...prev,
+        {
+          id: tempId,
+          type,
+          timestamp: now,
+          lastProgressAt: now,
+          progress: stage === 'completed' ? 100 : 0,
+          stage,
+          retryCount: 0,
+        },
+      ];
     });
 
     // Auto-cleanup loading note after 10 minutes as a safety measure
     setTimeout(() => {
-      console.log(`Auto-removing loading note after timeout: ${tempId}`);
-      setLoadingNotes(prev => prev.filter(note => note.id !== tempId));
+      const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+      setLoadingNotes(prev => {
+        const note = prev.find((item) => item.id === tempId);
+        if (!note) {
+          return prev;
+        }
+
+        const activityTimestamp = note.lastProgressAt ?? note.timestamp;
+        const isStaleActiveNote =
+          (note.stage === 'uploading' || note.stage === 'processing' || note.stage === 'generating') &&
+          activityTimestamp < tenMinutesAgo;
+
+        const shouldRemove =
+          note.stage === 'completed' ||
+          note.stage === 'error' ||
+          isStaleActiveNote;
+
+        if (!shouldRemove) {
+          return prev;
+        }
+
+        console.log(`Auto-removing loading note after timeout: ${tempId}`);
+        return prev.filter(item => item.id !== tempId);
+      });
     }, 10 * 60 * 1000); // 10 minutes
   }, []);
 
   const updateLoadingNote = useCallback((tempId: string, updates: Partial<LoadingNote>) => {
-    setLoadingNotes(prev => 
-      prev.map(note => 
-        note.id === tempId 
-          ? { ...note, ...updates }
-          : note
-      )
+    setLoadingNotes(prev =>
+      prev.map(note => {
+        if (note.id !== tempId) {
+          return note;
+        }
+
+        const nextNote: LoadingNote = { ...note, ...updates };
+        const hasProgressUpdate = typeof updates.progress === 'number' && Number.isFinite(updates.progress);
+
+        if (hasProgressUpdate) {
+          nextNote.progress = Math.max(0, Math.min(100, Math.round(updates.progress as number)));
+          nextNote.lastProgressAt = Date.now();
+        }
+
+        if (updates.message !== undefined || updates.stage !== undefined) {
+          nextNote.lastProgressAt = Date.now();
+        }
+
+        if (updates.stage === 'completed' && updates.progress === undefined) {
+          nextNote.progress = 100;
+        }
+
+        return nextNote;
+      })
     );
 
     // Safety net: auto-remove completed loading notes after 500ms
