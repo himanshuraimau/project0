@@ -15,7 +15,7 @@ export function PaymentSuccessHandler() {
 
   useEffect(() => {
     // Only run if payment=success is in the URL
-    if (searchParams.get('payment') !== 'success') {
+    if (searchParams?.get('payment') !== 'success') {
       return;
     }
 
@@ -67,7 +67,7 @@ export function PaymentSuccessHandler() {
   }, [searchParams, retryCount, router]);
 
   // Only show this component if payment=success is in the URL
-  if (searchParams.get('payment') !== 'success') {
+  if (searchParams?.get('payment') !== 'success') {
     return null;
   }
 

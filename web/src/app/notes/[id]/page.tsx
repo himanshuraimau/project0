@@ -48,7 +48,7 @@ export default function NoteHubPage() {
   const [isPodcastLoading, setIsPodcastLoading] = useState(false);
 
   useEffect(() => {
-    const lang = searchParams.get("lang") as LanguageCode | null;
+    const lang = searchParams?.get("lang") as LanguageCode | null;
     if (lang && note) {
       setCurrentLang(lang);
       fetch(`/api/notes/${note.id}/translate?language=${lang}`)

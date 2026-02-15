@@ -13,6 +13,7 @@ import {
   RefreshIcon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 
 export interface LoadingNoteForCard {
   id: string;
@@ -88,6 +89,7 @@ export function GeneratingNoteCard({
   onRetry,
   onDismiss,
 }: GeneratingNoteCardProps) {
+  const { updateLoadingNote, removeLoadingNote } = useDashboardRefresh();
   const [socketProgress, setSocketProgress] = useState<number | null>(null);
   const [socketStage, setSocketStage] =
     useState<LoadingNoteForCard["stage"] | null>(null);
@@ -247,18 +249,39 @@ export function GeneratingNoteCard({
             return;
           }
 
+          // Build updates object for context
+          const contextUpdates: Partial<typeof loadingNote> = {};
+          let hasUpdates = false;
+
           const nextProgress = payload.progress ?? payload.percent;
           if (typeof nextProgress === "number") {
             setSocketProgress(nextProgress);
+            hasUpdates = true;
           }
 
           if (payload.stage) {
             setSocketStage(payload.stage);
+            contextUpdates.stage = payload.stage;
+            hasUpdates = true;
+            
+            // Auto-remove when completed
+            if (payload.stage === 'completed') {
+              console.log('[GeneratingNoteCard] Note completed, scheduling removal:', loadingNote.id);
+              // Small delay to show 100% completion before removal
+              setTimeout(() => {
+                removeLoadingNote(loadingNote.id);
+              }, 500);
+            }
           }
 
           const nextMessage = payload.message ?? payload.currentStep;
           if (nextMessage) {
             setSocketMessage(nextMessage);
+          }
+
+          // Sync updates to context so they persist across navigation
+          if (hasUpdates && Object.keys(contextUpdates).length > 0) {
+            updateLoadingNote(loadingNote.id, contextUpdates);
           }
         } catch (error) {
           console.error('[WebSocket] Failed to parse message:', error);
@@ -273,7 +296,7 @@ export function GeneratingNoteCard({
       cancelled = true;
       socket?.close();
     };
-  }, [loadingNote.id, loadingNote.stage]);
+  }, [loadingNote.id, loadingNote.stage, updateLoadingNote, removeLoadingNote]);
 
   return (
     <div

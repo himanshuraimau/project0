@@ -50,7 +50,7 @@ function DashboardMain({ children }: { children: React.ReactNode }) {
   const isAdminPage = pathname === "/dashboard/admin";
 
   const isGenerationPage =
-    pathname.includes("/create") || pathname.includes("/generate-course");
+    pathname?.includes("/create") || pathname?.includes("/generate-course");
   const showHeader =
     !isGenerationPage &&
     (isDashboardHome ||
@@ -149,7 +149,7 @@ function CourseSidebarWrapper() {
   const [courseData, setCourseData] = useState<CourseData | null>(null);
   const pathname = usePathname();
   const isCoursePage =
-    pathname.includes("/course/") && !pathname.includes("/create/");
+    pathname?.includes("/course/") && !pathname?.includes("/create/");
 
   useEffect(() => {
     if (!isCoursePage) return;
@@ -196,8 +196,8 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const isCoursePage =
-    pathname.includes("/course/") && !pathname.includes("/create/");
-  const isNotesPage = pathname.includes("/notes/");
+    pathname?.includes("/course/") && !pathname?.includes("/create/");
+  const isNotesPage = pathname?.includes("/notes/");
   React.useEffect(() => {
     try {
       if (typeof window === "undefined") return;

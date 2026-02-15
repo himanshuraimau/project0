@@ -13,7 +13,7 @@ export function CourseCreationRouter() {
   const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
-    const mode = searchParams.get('mode');
+    const mode = searchParams?.get('mode');
     
     // If no mode is specified, redirect to wizard (new default behavior)
     if (!mode) {

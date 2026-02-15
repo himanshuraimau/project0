@@ -52,12 +52,23 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
         const stored = localStorage.getItem(LOADING_NOTES_KEY);
         if (stored) {
           const parsedNotes = JSON.parse(stored);
-          // Filter out notes older than 1 hour AND notes in "completed" stage (stale)
-          const oneHourAgo = Date.now() - (60 * 60 * 1000);
-          const validNotes = parsedNotes.filter(
-            (note: LoadingNote) => note.timestamp > oneHourAgo && note.stage !== 'completed'
-          );
+          const now = Date.now();
+          const oneHourAgo = now - (60 * 60 * 1000);
+          const fiveMinutesAgo = now - (5 * 60 * 1000);
+          
+          // Filter out:
+          // - Notes older than 1 hour
+          // - Notes in "completed" stage (stale)
+          // - Error notes older than 5 minutes (user had time to see them)
+          const validNotes = parsedNotes.filter((note: LoadingNote) => {
+            if (note.timestamp < oneHourAgo) return false;
+            if (note.stage === 'completed') return false;
+            if (note.stage === 'error' && note.timestamp < fiveMinutesAgo) return false;
+            return true;
+          });
+          
           if (validNotes.length > 0) {
+            console.log('[DashboardRefresh] Restored loading notes from localStorage:', validNotes.length);
             setLoadingNotes(validNotes);
           } else {
             // Clean up stale localStorage entry
@@ -109,12 +120,15 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
       )
     );
 
-    // Safety net: auto-remove completed loading notes after 3 seconds
+    // Safety net: auto-remove completed loading notes after 500ms
     // This catches any case where removeLoadingNote wasn't called explicitly
+    // Short timeout ensures quick cleanup when returning to dashboard
     if (updates.stage === 'completed') {
+      console.log('[DashboardRefresh] Note completed, scheduling auto-removal:', tempId);
       setTimeout(() => {
+        console.log('[DashboardRefresh] Auto-removing completed note:', tempId);
         setLoadingNotes(prev => prev.filter(note => note.id !== tempId));
-      }, 3000);
+      }, 500);
     }
   }, []);
 

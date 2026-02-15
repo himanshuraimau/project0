@@ -34,7 +34,7 @@ export default function CourseLayout({
 
   // Only show course sidebar for actual course content pages, not creation pages
   const isActualCoursePage =
-    pathname.includes("/course/") && !pathname.includes("/create/");
+    pathname?.includes("/course/") && !pathname?.includes("/create/");
 
   useEffect(() => {
     if (!isActualCoursePage) return;

@@ -59,18 +59,21 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           currentLoadingNotes.forEach((loadingNote) => {
             // Remove if stale (older than 30 minutes)
             if (loadingNote.timestamp < thirtyMinutesAgo) {
+              console.log('[NotesList] Removing stale loading note:', loadingNote.id);
               removeLoadingNote(loadingNote.id);
               return;
             }
 
-            // Remove if the note is in "completed" stage (should already be gone)
+            // Remove if the note is in "completed" stage (should already be gone but safety check)
             if (loadingNote.stage === 'completed') {
+              console.log('[NotesList] Removing completed loading note:', loadingNote.id);
               removeLoadingNote(loadingNote.id);
               return;
             }
 
             // Remove if corresponding note now exists in database
             if (loadingNote.noteId && noteIds.has(loadingNote.noteId)) {
+              console.log('[NotesList] Removing loading note - note found in DB:', loadingNote.id);
               removeLoadingNote(loadingNote.id);
               return;
             }
@@ -84,6 +87,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
                 (n) => n.transcriptId === loadingNote.transcriptId
               );
               if (noteForTranscript) {
+                console.log('[NotesList] Removing loading note - transcript has note:', loadingNote.id);
                 removeLoadingNote(loadingNote.id);
                 return;
               }
@@ -106,6 +110,34 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
     useEffect(() => {
       loadNotes();
     }, [loadNotes, searchQuery]);
+    
+    // Additional cleanup check when component mounts or loadingNotes changes
+    // This helps clean up any stale loading notes immediately when returning to the page
+    useEffect(() => {
+      if (notes.length > 0 && loadingNotes.length > 0) {
+        const noteIds = new Set(notes.map((n) => n.id));
+        const transcriptIds = new Set(
+          notes.map((n) => n.transcriptId).filter(Boolean)
+        );
+        
+        loadingNotes.forEach((loadingNote) => {
+          // If note exists in DB, remove the loading state immediately
+          if (loadingNote.noteId && noteIds.has(loadingNote.noteId)) {
+            console.log('[NotesList] Immediate cleanup: note exists in DB:', loadingNote.id);
+            removeLoadingNote(loadingNote.id);
+          } else if (
+            loadingNote.transcriptId &&
+            transcriptIds.has(loadingNote.transcriptId)
+          ) {
+            console.log('[NotesList] Immediate cleanup: transcript has note:', loadingNote.id);
+            removeLoadingNote(loadingNote.id);
+          } else if (loadingNote.stage === 'completed') {
+            console.log('[NotesList] Immediate cleanup: note already completed:', loadingNote.id);
+            removeLoadingNote(loadingNote.id);
+          }
+        });
+      }
+    }, [notes, loadingNotes, removeLoadingNote]);
 
     // Filter notes based on search query
     const filterNotes = (

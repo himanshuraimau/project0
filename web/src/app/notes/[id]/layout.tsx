@@ -25,7 +25,7 @@ import { UpgradeModalProvider } from "@/contexts/upgrade-modal-context";
 function NotesIdLayoutContent({ children }: { children: React.ReactNode }) {
   const params = useParams();
   const router = useRouter();
-  const noteId = params.id as string;
+  const noteId = params?.id as string;
   const { note } = useNoteContext();
 
   // We can keep these hooks if we need them for global state or pre-fetching

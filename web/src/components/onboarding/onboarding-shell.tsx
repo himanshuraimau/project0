@@ -16,7 +16,7 @@ function getStepFromPathname(pathname: string): number {
 
 export function OnboardingShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const step = getStepFromPathname(pathname);
+  const step = getStepFromPathname(pathname || "/onboarding/step1");
 
   return (
     <div className="relative flex min-h-screen flex-col bg-background text-foreground">

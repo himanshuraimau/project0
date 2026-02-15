@@ -22,13 +22,13 @@ interface NavbarProps {
 export function Navbar({ title, className = "", showBackToDashboard = false }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const isCoursePage = pathname.includes("/course/");
-  const isCourseCreation = pathname.includes("/create/wizard");
-  const isNotesPage = pathname.includes("/notes/");
+  const isCoursePage = pathname?.includes("/course/");
+  const isCourseCreation = pathname?.includes("/create/wizard");
+  const isNotesPage = pathname?.includes("/notes/");
 
   const getPageTitle = () => {
     if (isCourseCreation) return "Create Course";
-    if (pathname.includes("/course") && !pathname.includes("/course/")) return "Course";
+    if (pathname?.includes("/course") && !pathname?.includes("/course/")) return "Course";
     if (isCoursePage) return "Course";
     return title;
   };

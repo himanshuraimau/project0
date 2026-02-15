@@ -16,7 +16,7 @@ const DynamicInlineChatbot = dynamic(
 
 export default function ChatPage() {
   const params = useParams();
-  const noteId = params.id as string;
+  const noteId = params?.id as string;
   const { note } = useNoteContext();
   const [isLoading, setIsLoading] = useState(true);
 

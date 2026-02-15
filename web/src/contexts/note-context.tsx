@@ -21,7 +21,7 @@ const NoteContext = createContext<NoteContextType | undefined>(undefined);
 export function NoteProvider({ children }: { children: React.ReactNode }) {
   const params = useParams();
   const router = useRouter();
-  const noteId = params.id as string;
+  const noteId = params?.id as string;
   const { getNote, loading, error } = useNotes();
   const [note, setNote] = useState<Note | null>(null);
 

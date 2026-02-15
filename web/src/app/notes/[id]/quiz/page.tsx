@@ -7,7 +7,7 @@ import { useNoteContext } from "@/contexts/note-context";
 
 export default function QuizPage() {
   const params = useParams();
-  const noteId = params.id as string;
+  const noteId = params?.id as string;
   const { note } = useNoteContext();
 
   return (

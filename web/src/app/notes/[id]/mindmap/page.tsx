@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 export default function MindmapPage() {
   const params = useParams();
-  const noteId = params.id as string;
+  const noteId = params?.id as string;
   const { note } = useNoteContext();
   const {
     loading: mindmapLoading,
