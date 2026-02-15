@@ -5,7 +5,7 @@ import { UserService } from "@/lib/user-service";
 /**
  * DELETE /api/admin/users/[userId]
  * Permanently delete a user and all their data. Admin only.
- * Admin cannot delete themselves.
+ * 
  */
 export async function DELETE(
   request: NextRequest,
