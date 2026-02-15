@@ -29,30 +29,9 @@ interface GeneratingNoteCardProps {
   onDismiss?: (loadingNote: LoadingNoteForCard) => void;
 }
 
-const STAGE_CONFIG = {
-  uploading: {
-    percent: 15,
-    message: () => "Extracting PDF...",
-  },
-  processing: {
-    percent: 40,
-    message: () => "Parsing PDF...",
-  },
-  generating: {
-    percent: 75,
-    message: () => "Chunking...",
-  },
-  completed: {
-    percent: 100,
-    message: () => "Finishing...",
-  },
-  error: {
-    percent: 0,
-    message: () => "Something went wrong",
-  },
-} as const;
-
+// Progress phases determine the message shown based on actual progress percentage
 const PROGRESS_PHASES = [
+  { min: 0, max: 14, label: "Starting..." },
   { min: 15, max: 29, label: "Extracting PDF..." },
   { min: 30, max: 49, label: "Parsing PDF..." },
   { min: 50, max: 69, label: "Indexing..." },
@@ -118,18 +97,22 @@ export function GeneratingNoteCard({
 
   const effectiveStage = socketStage ?? loadingNote.stage;
   const isError = effectiveStage === "error";
-  const config = STAGE_CONFIG[effectiveStage];
+  
   const targetPercent = useMemo(() => {
     if (isError) {
       return 0;
     }
 
+    // IMPORTANT: Only use socketProgress when available
+    // Don't use STAGE_CONFIG as fallback to prevent jumping from 40 to 15
     if (typeof socketProgress === "number" && Number.isFinite(socketProgress)) {
       return Math.max(0, Math.min(100, Math.round(socketProgress)));
     }
 
-    return config.percent;
-  }, [config.percent, isError, socketProgress]);
+    // If no socket progress yet, stay at 0 to wait for real data
+    // This prevents jumping backward when WebSocket sends initial progress
+    return 0;
+  }, [isError, socketProgress]);
 
   // Smooth progress animation
   useEffect(() => {
@@ -163,13 +146,17 @@ export function GeneratingNoteCard({
 
   const percent = Math.round(animatedProgress);
   const phaseMessage = useMemo(() => {
+    // If we haven't received any socket progress yet, show appropriate waiting message
+    if (socketProgress === null) {
+      return "Starting...";
+    }
+    
     const matchedPhase = PROGRESS_PHASES.find(
       (phase) => percent >= phase.min && percent <= phase.max
     );
     // If no phase matches (percent < 15), use the first phase message
-    // instead of falling back to stage-based message
     return matchedPhase?.label ?? PROGRESS_PHASES[0].label;
-  }, [percent]);
+  }, [percent, socketProgress]);
   const message = socketMessage || phaseMessage;
   const typeLabel = getTypeLabel(loadingNote.type);
   const IconComponent = getTypeIcon(loadingNote.type);
