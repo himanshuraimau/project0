@@ -31,7 +31,7 @@ class NoteProgressManager {
     // Publish to Pusher if running on server
     if (typeof window === 'undefined') {
       try {
-        const { pusherServer, NOTE_PROGRESS_CHANNEL } = await import('./pusher-server');
+        const { pusherServer, NOTE_PROGRESS_CHANNEL } = await import('./realtime/pusher-server');
         await pusherServer.trigger(
           NOTE_PROGRESS_CHANNEL,
           `note-${normalized.jobId}`,

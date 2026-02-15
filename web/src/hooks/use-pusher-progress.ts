@@ -1,38 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Pusher from "pusher-js";
 import type { NoteProgressEvent } from "@/lib/note-progress-manager";
-
-const globalForPusher = globalThis as typeof globalThis & {
-  __pusherClient?: Pusher;
-};
-
-function getPusherClient() {
-  if (!globalForPusher.__pusherClient) {
-    const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
-    const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "us2";
-
-    if (!key) {
-      console.error("[Pusher] ❌ Missing NEXT_PUBLIC_PUSHER_KEY - Real-time updates disabled");
-      console.error("[Pusher] 💡 Make sure NEXT_PUBLIC_PUSHER_KEY is set in .env and restart the dev server");
-      return null;
-    }
-
-    console.log("[Pusher] ✓ Initializing Pusher client with cluster:", cluster);
-    globalForPusher.__pusherClient = new Pusher(key, {
-      cluster,
-      forceTLS: true,
-    });
-    
-    // Log connection state changes
-    globalForPusher.__pusherClient.connection.bind('state_change', (states: any) => {
-      console.log(`[Pusher] Connection state: ${states.previous} → ${states.current}`);
-    });
-  }
-
-  return globalForPusher.__pusherClient;
-}
+import { subscribeToPusherProgress, cleanupPusherJob } from "@/lib/realtime/pusher-client";
 
 interface UsePusherProgressOptions {
   jobId: string;
@@ -60,51 +30,39 @@ export function usePusherProgress({
 
   useEffect(() => {
     if (!enabled || !jobId) {
-      return;
-    }
-
-    const pusher = getPusherClient();
-    if (!pusher) {
-      console.warn("[Pusher] Client not available, progress updates disabled");
-      return;
-    }
-
-    const channelName = "note-progress";
-    const eventName = `note-${jobId}`;
-
-    console.log("[Pusher] Subscribing to:", channelName, eventName);
-
-    const channel = pusher.subscribe(channelName);
-
-    channel.bind("pusher:subscription_succeeded", () => {
-      console.log("[Pusher] Subscription succeeded:", channelName);
-      setIsConnected(true);
-    });
-
-    channel.bind("pusher:subscription_error", (error: unknown) => {
-      console.error("[Pusher] Subscription error:", error);
       setIsConnected(false);
-    });
+      return;
+    }
 
-    channel.bind(eventName, (event: NoteProgressEvent) => {
-      console.log("[Pusher] Progress update:", event);
+    console.log("[Pusher] Setting up subscription for:", jobId);
+    setIsConnected(true);
+
+    // Use global subscription that persists across navigation
+    const unsubscribe = subscribeToPusherProgress(jobId, (event: NoteProgressEvent) => {
       setLatestEvent(event);
 
       const { onProgress, onCompleted, onError } = callbacksRef.current;
 
       if (event.stage === "completed" && onCompleted) {
+        console.log(`[Pusher] Note ${jobId} completed, calling onCompleted`);
         onCompleted(event);
+        // Cleanup the global subscription since note is done
+        cleanupPusherJob(jobId);
       } else if (event.stage === "error" && onError) {
+        console.log(`[Pusher] Note ${jobId} errored`);
         onError(event);
+        // Cleanup on error too
+        cleanupPusherJob(jobId);
       } else if (onProgress) {
         onProgress(event);
       }
     });
 
     return () => {
-      console.log("[Pusher] Unsubscribing from:", channelName, eventName);
-      channel.unbind_all();
-      pusher.unsubscribe(channelName);
+      // Only remove this component's callback, don't kill the subscription
+      // This allows other components or future mounts to still receive events
+      console.log("[Pusher] Component unmounting, but keeping subscription alive for:", jobId);
+      unsubscribe();
       setIsConnected(false);
     };
   }, [jobId, enabled]);
