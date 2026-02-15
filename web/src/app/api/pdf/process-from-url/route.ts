@@ -4,6 +4,7 @@ import { NoteService } from "@/lib/note-service";
 import { FeatureGateService } from "@/lib/feature-gate-service";
 import { getUserFromAuth } from "@/lib/auth-helper";
 import { noteProgressManager } from "@/lib/note-progress-manager";
+import { prisma } from "@/lib/prisma";
 
 const parser = new PDFParser();
 const noteService = new NoteService();
@@ -159,6 +160,31 @@ export async function POST(req: NextRequest) {
         },
         { status: 500 }
       );
+    }
+
+    // Persist progressJobId on transcript metadata so we can recover/cleanup after refresh
+    if (progressJobId && parseResult.documentId) {
+      try {
+        const baseMetadata =
+          parseResult.metadata &&
+          typeof parseResult.metadata === "object" &&
+          !Array.isArray(parseResult.metadata)
+            ? (parseResult.metadata as Record<string, unknown>)
+            : {};
+
+        const nextMetadata = { ...baseMetadata, progressJobId };
+
+        await prisma.transcript.update({
+          where: { id: parseResult.documentId },
+          data: {
+            metadata: nextMetadata,
+          },
+        });
+
+        parseResult.metadata = nextMetadata;
+      } catch (metadataError) {
+        console.error("Failed to persist progressJobId on transcript metadata:", metadataError);
+      }
     }
 
     // Generate AI notes if requested

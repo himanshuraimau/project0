@@ -43,6 +43,7 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
   const [refreshHandler, setRefreshHandler] = useState<(() => Promise<void>) | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadingNotes, setLoadingNotes] = useState<LoadingNote[]>([]);
+  const [hasHydratedLoadingNotes, setHasHydratedLoadingNotes] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [folderSearchQuery, setFolderSearchQuery] = useState("");
   const [clonedSearchQuery, setClonedSearchQuery] = useState("");
@@ -99,12 +100,20 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
         }
       } catch (error) {
         console.error('Failed to restore loading notes:', error);
+      } finally {
+        setHasHydratedLoadingNotes(true);
       }
+    } else {
+      setHasHydratedLoadingNotes(true);
     }
   }, []);
 
   // Save loading notes to localStorage whenever they change
   useEffect(() => {
+    if (!hasHydratedLoadingNotes) {
+      return;
+    }
+
     if (typeof window !== 'undefined' && loadingNotes.length > 0) {
       try {
         localStorage.setItem(LOADING_NOTES_KEY, JSON.stringify(loadingNotes));
@@ -114,7 +123,7 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
     } else if (typeof window !== 'undefined' && loadingNotes.length === 0) {
       localStorage.removeItem(LOADING_NOTES_KEY);
     }
-  }, [loadingNotes]);
+  }, [loadingNotes, hasHydratedLoadingNotes]);
 
   const addLoadingNote = useCallback((tempId: string, type: 'pdf' | 'audio' | 'audio-record' | 'youtube' | 'webpage', stage: LoadingNote['stage'] = 'uploading') => {
     const now = Date.now();

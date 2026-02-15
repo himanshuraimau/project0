@@ -36,6 +36,26 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
     const { loadingNotes, removeLoadingNote } = useDashboardRefresh();
     const [notes, setNotes] = useState<NotesNoteWithTranscript[]>([]);
 
+    const getProgressJobIdFromNote = (
+      note: NotesNoteWithTranscript
+    ): string | null => {
+      const transcript = note.transcript as
+        | ({ metadata?: unknown } & NotesNoteWithTranscript["transcript"])
+        | undefined;
+      const metadata = transcript?.metadata;
+
+      if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+        return null;
+      }
+
+      const progressJobId = (metadata as Record<string, unknown>).progressJobId;
+      if (typeof progressJobId !== "string" || progressJobId.trim().length === 0) {
+        return null;
+      }
+
+      return progressJobId.trim();
+    };
+
     // Use a ref for loadingNotes so cleanup logic doesn't cause loadNotes to recreate
     const loadingNotesRef = useRef(loadingNotes);
     useEffect(() => {
@@ -54,6 +74,11 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           const noteIds = new Set(result.map((n) => n.id));
           const transcriptIds = new Set(
             result.map((n) => n.transcriptId).filter(Boolean)
+          );
+          const progressJobIds = new Set(
+            result
+              .map((n) => getProgressJobIdFromNote(n as NotesNoteWithTranscript))
+              .filter((jobId): jobId is string => Boolean(jobId))
           );
 
           currentLoadingNotes.forEach((loadingNote) => {
@@ -74,6 +99,13 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
             // Remove if corresponding note now exists in database
             if (loadingNote.noteId && noteIds.has(loadingNote.noteId)) {
               console.log('[NotesList] Removing loading note - note found in DB:', loadingNote.id);
+              removeLoadingNote(loadingNote.id);
+              return;
+            }
+
+            // Remove if transcript metadata links this note to the progress job
+            if (progressJobIds.has(loadingNote.id)) {
+              console.log('[NotesList] Removing loading note - progressJobId found in transcript metadata:', loadingNote.id);
               removeLoadingNote(loadingNote.id);
               return;
             }
@@ -110,6 +142,19 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
     useEffect(() => {
       loadNotes();
     }, [loadNotes, searchQuery]);
+
+    // Recovery polling: if a completion socket event is missed, detect DB note creation and clear loading card
+    useEffect(() => {
+      if (loadingNotes.length === 0) {
+        return;
+      }
+
+      const interval = setInterval(() => {
+        loadNotes();
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }, [loadingNotes.length, loadNotes]);
     
     // Additional cleanup check when component mounts or loadingNotes changes
     // This helps clean up any stale loading notes immediately when returning to the page
@@ -119,11 +164,19 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
         const transcriptIds = new Set(
           notes.map((n) => n.transcriptId).filter(Boolean)
         );
+        const progressJobIds = new Set(
+          notes
+            .map((n) => getProgressJobIdFromNote(n))
+            .filter((jobId): jobId is string => Boolean(jobId))
+        );
         
         loadingNotes.forEach((loadingNote) => {
           // If note exists in DB, remove the loading state immediately
           if (loadingNote.noteId && noteIds.has(loadingNote.noteId)) {
             console.log('[NotesList] Immediate cleanup: note exists in DB:', loadingNote.id);
+            removeLoadingNote(loadingNote.id);
+          } else if (progressJobIds.has(loadingNote.id)) {
+            console.log('[NotesList] Immediate cleanup: progressJobId found in transcript metadata:', loadingNote.id);
             removeLoadingNote(loadingNote.id);
           } else if (
             loadingNote.transcriptId &&
