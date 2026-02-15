@@ -8,7 +8,7 @@
   --font-sans: DM Sans, sans-serif;
   --font-mono: Space Mono, monospace;
   --font-serif: DM Sans, sans-serif;
-  /* text-* and leading-* come from design-tokens.css (loaded above) for readable type scale */
+  /* text-* and leading-* come from s (loaded above) for readable type scale */
   --radius: 1rem;
   --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
   --tracking-tight: calc(var(--tracking-normal) - 0.025em);

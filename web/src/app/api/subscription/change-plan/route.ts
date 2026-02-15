@@ -1,6 +1,6 @@
 // API endpoint to change subscription plan (e.g., monthly to yearly)
 // Supports both immediate (with proration) and scheduled (at renewal) changes
-// Default behavior: Schedules change at next billing cycle (no immediate charge)
+// Default: immediate upgrade for monthly→yearly (plan updates right away); scheduled for downgrades
 
 import { NextResponse, NextRequest } from 'next/server';
 import { PaymentService } from '@/lib/payments';
@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body: ChangePlanRequest = await request.json();
-    const { targetPlan, immediate = false } = body; // Default to scheduled change
+    // Default immediate=true for upgrades so plan/billing updates right away (fixes stale next_billing display)
+    const { targetPlan, immediate = true } = body;
 
     if (!targetPlan || !['yearly', 'monthly'].includes(targetPlan)) {
       return NextResponse.json(

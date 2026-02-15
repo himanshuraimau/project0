@@ -137,22 +137,22 @@ export function useSubscription() {
   const upgradeToYearly = useCallback(async () => {
     try {
       setError(null);
-      
-      const response = await fetch('/api/subscription/change-plan', {
+      const response = await fetch('/api/subscription/upgrade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetPlan: 'yearly' }),
+        body: JSON.stringify({}),
       });
-
       const data = await response.json();
-
-      if (data.success) {
-        await fetchStatus(); // Refresh status
-        return { success: true, message: data.message };
-      } else {
-        setError(data.error);
-        return { success: false, error: data.error };
+      if (data.success && data.paymentLink) {
+        window.location.href = data.paymentLink;
+        return { success: true, message: 'Redirecting to payment...' };
       }
+      if (data.success) {
+        await fetchStatus();
+        return { success: true, message: data.message };
+      }
+      setError(data.error);
+      return { success: false, error: data.error };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to change subscription plan';
       setError(errorMessage);

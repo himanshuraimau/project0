@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useSettingsSubscription } from "@/contexts/settings-subscription-context";
 import {
   CreditCardIcon,
   CheckmarkCircle01Icon,
@@ -38,8 +39,11 @@ const PREMIUM_FEATURES = [
   "No watermarks",
 ];
 
-function formatDate(date: string | Date) {
-  return new Date(date).toLocaleDateString("en-US", {
+function formatDate(date: string | Date | null | undefined): string | null {
+  if (date == null) return null;
+  const d = new Date(date);
+  if (isNaN(d.getTime()) || d.getTime() < 86400000) return null; // Invalid or epoch
+  return d.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -47,50 +51,21 @@ function formatDate(date: string | Date) {
 }
 
 export function SubscriptionCard() {
-  const [subscriptionData, setSubscriptionData] = useState<{
-    hasSubscription: boolean;
-    subscription?: {
-      nextBillingDate: string;
-      createdAt: string;
-      displayStatus: string;
-      status: string;
-      productId: string;
-      cancelAtPeriodEnd?: boolean;
-      metadata?: {
-        scheduledProductId?: string;
-        scheduledPlanType?: string;
-        scheduledAt?: string;
-      };
-    };
-    access?: { hasAccess: boolean };
-  } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: subscriptionData, loading: isLoading, refetch, setData: setSubscriptionData } = useSettingsSubscription();
   const [cancelling, setCancelling] = useState(false);
+  const [reactivating, setReactivating] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const { openUpgradeModal } = useUpgradeModal();
 
-  useEffect(() => {
-    async function fetchSubscription() {
-      try {
-        const response = await fetch("/api/subscription/status");
-        if (response.ok) {
-          const data = await response.json();
-          setSubscriptionData(data);
-        }
-      } catch (error) {
-        console.error("Error fetching subscription:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchSubscription();
-  }, []);
-
   const hasActiveSubscription =
     subscriptionData?.hasSubscription && subscriptionData?.access?.hasAccess;
   const sub = subscriptionData?.subscription;
+  // For pending upgrade, nextBillingDate is null - use currentPeriodEnd (monthlyPeriodEnd) for display
+  const displayDate = (d: string | Date | null | undefined) => formatDate(d) ?? "—";
+  const nextBillingDisplay = displayDate(sub?.nextBillingDate ?? sub?.currentPeriodEnd);
+  const isPendingUpgrade = sub?.status === "PENDING" && (sub?.metadata as { upgradeFromMonthly?: boolean })?.upgradeFromMonthly;
 
   const handleUpgrade = () => {
     openUpgradeModal();
@@ -101,21 +76,32 @@ export function SubscriptionCard() {
     try {
       const response = await fetch("/api/subscription/cancel", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cancelAtPeriodEnd: true }),
       });
-      if (response.ok) {
+      const data = await response.json();
+      if (response.ok && data.success) {
         toast.success(
           "Subscription will cancel at the end of the billing period."
         );
         setShowCancelConfirm(false);
-        const refetch = await fetch("/api/subscription/status");
-        if (refetch.ok) {
-          setSubscriptionData(await refetch.json());
-          // Notify other components to refresh
-          window.dispatchEvent(new CustomEvent('subscription-updated'));
-        }
+        // Optimistically update UI immediately so button switches without refresh
+        setSubscriptionData((prev) =>
+          prev && prev.subscription
+            ? {
+                ...prev,
+                subscription: {
+                  ...prev.subscription,
+                  cancelAtPeriodEnd: true,
+                  cancelledAt: data.subscription?.cancelledAt ?? prev.subscription.cancelledAt,
+                },
+              }
+            : prev
+        );
+        window.dispatchEvent(new CustomEvent("subscription-updated"));
+        refetch(true, true); // silent refetch, no loading spinner
       } else {
-        const err = await response.json().catch(() => ({}));
-        toast.error(err.error || "Failed to cancel subscription.");
+        toast.error(data.error || "Failed to cancel subscription.");
       }
     } catch (error) {
       toast.error("Failed to cancel subscription.");
@@ -124,41 +110,50 @@ export function SubscriptionCard() {
     }
   };
 
+  const handleReactivateSubscription = async () => {
+    setReactivating(true);
+    try {
+      const response = await fetch("/api/subscription/portal");
+      const data = await response.json();
+      if (response.ok && data.portalUrl) {
+        toast.success("Opening billing portal...");
+        window.location.href = data.portalUrl;
+      } else {
+        toast.error(data.error || "Failed to open billing portal.");
+      }
+    } catch (error) {
+      toast.error("Failed to open billing portal.");
+    } finally {
+      setReactivating(false);
+    }
+  };
+
   const handleUpgradeToYearly = async () => {
     setIsUpgrading(true);
     try {
-      const response = await fetch("/api/subscription/change-plan", {
+      // Use /upgrade for payment-link flow: redirects to Dodo checkout so user completes payment
+      const response = await fetch("/api/subscription/upgrade", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          targetPlan: "yearly",
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
       });
 
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success && data.paymentLink) {
         setShowUpgradeDialog(false);
-        if (data.scheduledChange) {
-          toast.success(
-            `Plan change scheduled! You'll be upgraded to yearly on your next billing date. Your current monthly plan remains active until then.`,
-            { duration: 6000 }
-          );
-        } else {
-          toast.success("Successfully changed to yearly plan! 🎉");
-        }
-        // Refresh subscription data
-        const refetch = await fetch("/api/subscription/status");
-        if (refetch.ok) {
-          setSubscriptionData(await refetch.json());
-          // Notify other components to refresh
-          window.dispatchEvent(new CustomEvent('subscription-updated'));
-        }
-      } else {
-        toast.error(data.error || "Failed to change subscription plan.");
+        toast.success("Redirecting to complete payment...");
+        window.location.href = data.paymentLink;
+        return;
       }
+      if (data.success && !data.paymentLink) {
+        setShowUpgradeDialog(false);
+        toast.success("Successfully changed to yearly plan! 🎉");
+        refetch(true);
+        window.dispatchEvent(new CustomEvent("subscription-updated"));
+        return;
+      }
+      toast.error(data.error || "Failed to change subscription plan.");
     } catch (error) {
       toast.error("Failed to change subscription plan.");
     } finally {
@@ -254,13 +249,13 @@ export function SubscriptionCard() {
                 </h3>
                 {hasActiveSubscription && sub ? (
                   <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
-                    {!sub.cancelAtPeriodEnd && (
+                    {!sub.cancelAtPeriodEnd && nextBillingDisplay !== "—" && (
                       <div className="flex items-center gap-2">
                         <HugeiconsIcon
                           icon={Calendar01Icon}
                           className="size-4 shrink-0"
                         />
-                        Next billing: {formatDate(sub.nextBillingDate)}
+                        Next billing: {nextBillingDisplay}
                       </div>
                     )}
                     <div className="flex items-center gap-2">
@@ -309,22 +304,36 @@ export function SubscriptionCard() {
                       Upgrade to Yearly
                     </Button>
                   )}
-                  {hasScheduledChange && scheduledToYearly && (
+                  {hasScheduledChange && scheduledToYearly && nextBillingDisplay !== "—" && (
                     <div className="flex-1 rounded-xl h-11 px-5 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 flex items-center justify-center gap-2">
                       <HugeiconsIcon icon={CheckmarkCircle01Icon} className="size-4 text-green-600 dark:text-green-400" />
                       <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                        Upgrading on {sub?.nextBillingDate && formatDate(sub.nextBillingDate)}
+                        Upgrading on {nextBillingDisplay}
                       </span>
                     </div>
                   )}
-                  <Button
-                    onClick={() => setShowCancelConfirm(true)}
-                    variant="outline"
-                    className="rounded-xl h-11 px-5 cursor-pointer border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive"
-                    disabled={isUpgrading}
-                  >
-                    Cancel subscription
-                  </Button>
+                  {sub?.cancelAtPeriodEnd ? (
+                    <Button
+                      onClick={handleReactivateSubscription}
+                      variant="outline"
+                      className="rounded-xl h-11 px-5 cursor-pointer border-primary/50 text-primary hover:bg-primary/10 hover:border-primary"
+                      disabled={isUpgrading || reactivating}
+                    >
+                      {reactivating ? (
+                        <HugeiconsIcon icon={Loading01Icon} className="size-4 animate-spin mr-2" />
+                      ) : null}
+                      {reactivating ? "Reactivating…" : "Reactivate subscription"}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setShowCancelConfirm(true)}
+                      variant="outline"
+                      className="rounded-xl h-11 px-5 cursor-pointer border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive"
+                      disabled={isUpgrading}
+                    >
+                      Cancel subscription
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -383,7 +392,19 @@ export function SubscriptionCard() {
                   </div>
                 </div>
                 {!sub.cancelAtPeriodEnd && (
-                  <>                    {hasScheduledChange && scheduledToYearly && (
+                  <>
+                    {isPendingUpgrade ? (
+                      <div className="rounded-xl border-2 border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20 p-4">
+                        <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                          Complete your payment to activate the yearly plan.
+                        </p>
+                        <p className="text-sm text-amber-800 dark:text-amber-200 mt-1">
+                          {nextBillingDisplay !== "—" && `Your current access continues until ${nextBillingDisplay}.`}
+                        </p>
+                      </div>
+                    ) : (
+                    <>
+                    {hasScheduledChange && scheduledToYearly && (
                       <div className="rounded-xl border-2 border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-950/20 p-4">
                         <div className="flex items-start gap-3">
                           <HugeiconsIcon icon={CheckmarkCircle01Icon} className="size-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
@@ -392,13 +413,14 @@ export function SubscriptionCard() {
                               Upgrade Scheduled
                             </p>
                             <p className="text-sm text-green-800 dark:text-green-200">
-                              Your plan will upgrade to <strong>Yearly ($89/year)</strong> on {formatDate(sub.nextBillingDate)}. 
+                              Your plan will upgrade to <strong>Yearly ($89/year)</strong> on {nextBillingDisplay}. 
                               You'll keep your current monthly plan until then.
                             </p>
                           </div>
                         </div>
                       </div>
-                    )}                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-border">
+                    )}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-border">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium text-foreground">
@@ -409,7 +431,7 @@ export function SubscriptionCard() {
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                          Due {formatDate(sub.nextBillingDate)}
+                          Due {nextBillingDisplay}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
@@ -430,11 +452,13 @@ export function SubscriptionCard() {
                       </p>
                     </div>
                   </>
+                    )}
+                  </>
                 )}
                 {sub.cancelAtPeriodEnd && (
                   <div className="rounded-xl border border-orange-200/50 bg-orange-50/50 dark:border-orange-900/30 dark:bg-orange-950/20 p-4">
                     <p className="text-sm text-orange-900 dark:text-orange-100">
-                      Your subscription will end on {formatDate(sub.nextBillingDate)}. You'll have access to all Pro features until then.
+                      Your subscription will end on {nextBillingDisplay}. You'll have access to all Pro features until then.
                     </p>
                   </div>
                 )}

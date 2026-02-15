@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, createContext, useContext } from "react";
+import { useSettingsSubscriptionOptional } from "@/contexts/settings-subscription-context";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -91,25 +92,45 @@ export function SettingsSidebar({
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
 
+  const subscriptionCtx = useSettingsSubscriptionOptional();
+
   const toggleSidebar = () => setIsCollapsed((prev) => !prev);
 
-  useEffect(() => {
-    async function checkSubscription() {
-      try {
-        const response = await fetch("/api/subscription/status");
-        if (response.ok) {
-          const data = await response.json();
-          const isActive = data.hasSubscription && data.access?.hasAccess;
-          setHasActiveSubscription(isActive);
-        }
-      } catch (error) {
-        console.error("Error checking subscription:", error);
-      } finally {
-        setIsLoadingSubscription(false);
+  // When inside SettingsSubscriptionProvider (subscription page), use shared data
+  const sharedData = subscriptionCtx?.data;
+  const sharedLoading = subscriptionCtx?.loading;
+  const hasSharedContext = !!subscriptionCtx;
+
+  const checkSubscription = async () => {
+    if (hasSharedContext) return; // Skip - using shared context
+    try {
+      const response = await fetch("/api/subscription/status");
+      if (response.ok) {
+        const data = await response.json();
+        const isActive = data.hasSubscription && data.access?.hasAccess;
+        setHasActiveSubscription(isActive);
       }
+    } catch (error) {
+      console.error("Error checking subscription:", error);
+    } finally {
+      setIsLoadingSubscription(false);
     }
-    checkSubscription();
-  }, []);
+  };
+
+  useEffect(() => {
+    if (hasSharedContext) {
+      setHasActiveSubscription(!!(sharedData?.hasSubscription && sharedData?.access?.hasAccess));
+      setIsLoadingSubscription(sharedLoading ?? true);
+    } else {
+      checkSubscription();
+    }
+  }, [hasSharedContext, sharedData?.hasSubscription, sharedData?.access?.hasAccess, sharedLoading]);
+
+  useEffect(() => {
+    if (hasSharedContext) return;
+    window.addEventListener("subscription-updated", checkSubscription);
+    return () => window.removeEventListener("subscription-updated", checkSubscription);
+  }, [hasSharedContext]);
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, toggleSidebar }}>

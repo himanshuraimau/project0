@@ -134,11 +134,8 @@ export class SubscriptionService {
         },
       });
 
-      console.log('Subscription status updated:', {
-        id: subscription.id,
-        status: subscription.status,
-        productId: subscription.productId,
-      });
+      // Verbose logging disabled - uncomment for debugging subscription sync
+      // console.log('Subscription status updated:', { id: subscription.id, status: subscription.status });
 
       return subscription;
     } catch (error) {
@@ -304,16 +301,45 @@ export class SubscriptionService {
     return await this.hasActiveSubscription(session.user.id);
   }
 
+  /** Cache TTL in ms - skip Dodo API when DB was updated recently (avoids 5–20s latency per request) */
+  private static readonly SYNC_CACHE_MS = 2 * 60 * 1000; // 2 minutes
+
+  /** In-flight sync per userId - avoids duplicate Dodo API calls when multiple components request in parallel */
+  private static syncInFlight = new Map<string, Promise<any>>();
+
   /**
    * Get subscription with Dodo sync and reconcile
    * Dodo is the source of truth: status, product_id, period dates.
    * Reconciles our DB when there's a mismatch (e.g. failed upgrade, pending payment).
+   * @param forceSync - if true, always call Dodo API; otherwise use cached DB data when recent
    */
-  static async getSubscriptionWithSync(userId: string) {
+  static async getSubscriptionWithSync(userId: string, forceSync = false) {
     const subscription = await this.getUserSubscription(userId);
 
     if (!subscription) return null;
 
+    // Skip expensive Dodo API call when we have recent data (reduces 5–20s latency per request)
+    const isRecent = subscription.updatedAt && (Date.now() - subscription.updatedAt.getTime() < this.SYNC_CACHE_MS);
+    if (!forceSync && isRecent) {
+      return subscription;
+    }
+
+    // Dedupe: if a sync is already in progress for this user, wait for it instead of starting another
+    const inFlight = this.syncInFlight.get(userId);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const syncPromise = this._doSyncWithDodo(userId, subscription);
+    this.syncInFlight.set(userId, syncPromise);
+    try {
+      return await syncPromise;
+    } finally {
+      this.syncInFlight.delete(userId);
+    }
+  }
+
+  private static async _doSyncWithDodo(userId: string, subscription: NonNullable<Awaited<ReturnType<typeof SubscriptionService.getUserSubscription>>>) {
     try {
       const dodoSubscription = await DodoSubscriptionService.getSubscription(
         subscription.dodoSubscriptionId

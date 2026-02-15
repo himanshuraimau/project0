@@ -126,6 +126,10 @@ export async function POST(request: Request) {
         await handleSubscriptionRenewed(payload);
         break;
 
+      case 'subscription.plan_changed':
+        await handleSubscriptionPlanChanged(payload);
+        break;
+
       case 'subscription.on_hold':
         await handleSubscriptionOnHold(payload);
         break;
@@ -271,8 +275,9 @@ async function handleSubscriptionUpdated(payload: any) {
     }
   }
 
-  // Update other fields if they changed (only if status wasn't already handled above)
-  if (status && !['ACTIVE', 'CANCELLED', 'FAILED'].includes(status)) {
+  // Apply period/cancel/product updates when Dodo sends them
+  // Critical: when user cancels at period end, status stays ACTIVE but cancel_at_next_billing_date=true
+  if (!['CANCELLED', 'FAILED'].includes(status || '')) {
     const updates: any = {};
     if (payload.data.next_billing_date) {
       updates.nextBillingDate = new Date(payload.data.next_billing_date);
@@ -286,8 +291,10 @@ async function handleSubscriptionUpdated(payload: any) {
     if (payload.data.cancel_at_next_billing_date !== undefined) {
       updates.cancelAtPeriodEnd = payload.data.cancel_at_next_billing_date;
     }
-
-    if (Object.keys(updates).length > 0) {
+    if (payload.data.product_id && subscription.productId !== payload.data.product_id) {
+      await SubscriptionService.updateSubscriptionProductId(subscription.dodoSubscriptionId, payload.data.product_id);
+    }
+    if (Object.keys(updates).length > 0 && status) {
       await SubscriptionService.updateSubscriptionStatus(subscription.dodoSubscriptionId, status as any, updates);
     }
   }
@@ -435,6 +442,63 @@ async function handleSubscriptionRenewed(payload: any) {
   await resetUsageCounters(subscription.userId);
 
   console.log('Subscription renewed:', subscriptionId);
+}
+
+/**
+ * Handle subscription.plan_changed - e.g. when user upgrades monthly → yearly
+ * Updates our DB with new product_id, next_billing_date, current_period_* from Dodo
+ */
+async function handleSubscriptionPlanChanged(payload: any) {
+  const subscriptionId = payload.data.subscription_id;
+  const subscription = await SubscriptionService.getSubscriptionByDodoId(subscriptionId);
+
+  if (!subscription) {
+    console.log('Subscription not found for plan_changed event:', subscriptionId);
+    return;
+  }
+
+  const data = payload.data;
+  const updates: {
+    productId?: string;
+    currentPeriodStart?: Date;
+    currentPeriodEnd?: Date;
+    nextBillingDate?: Date;
+  } = {};
+
+  if (data.product_id) {
+    updates.productId = data.product_id;
+  }
+  if (data.next_billing_date) {
+    const nextBilling = new Date(data.next_billing_date);
+    updates.nextBillingDate = nextBilling;
+    updates.currentPeriodEnd = nextBilling;
+  }
+  if (data.current_period_start) {
+    updates.currentPeriodStart = new Date(data.current_period_start);
+  }
+  if (data.current_period_end) {
+    updates.currentPeriodEnd = new Date(data.current_period_end);
+  }
+
+  // Update product ID if changed
+  if (updates.productId && subscription.productId !== updates.productId) {
+    await SubscriptionService.updateSubscriptionProductId(subscriptionId, updates.productId);
+  }
+
+  // Update billing period dates
+  if (updates.nextBillingDate || updates.currentPeriodStart || updates.currentPeriodEnd) {
+    await SubscriptionService.updateSubscriptionStatus(
+      subscription.dodoSubscriptionId,
+      (data.status?.toUpperCase() || subscription.status) as any,
+      {
+        currentPeriodStart: updates.currentPeriodStart,
+        currentPeriodEnd: updates.currentPeriodEnd,
+        nextBillingDate: updates.nextBillingDate,
+      }
+    );
+  }
+
+  console.log('Subscription plan changed:', subscriptionId, 'product_id:', data.product_id);
 }
 
 async function handleSubscriptionOnHold(payload: any) {

@@ -211,11 +211,12 @@ export class PaymentService {
       console.log(`Executing immediate plan change: ${currentBillingInterval} -> ${targetBillingInterval}`);
       
       // Call Dodo changePlan API with proration
+      // full_immediately = charge full new plan price ($89), billing cycle resets (per client spec for now)
       const changeResult = await DodoSubscriptionService.changePlan(
         existingSubscription.dodoSubscriptionId,
         targetProductId,
         {
-          prorationBehavior: comparison === 'upgrade' ? 'prorated_immediately' : 'difference_immediately',
+          prorationBehavior: 'full_immediately',
           quantity: 1,
         }
       );

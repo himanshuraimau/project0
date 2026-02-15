@@ -1150,7 +1150,7 @@ export function NewNoteSection() {
         </Dialog>
       </div>
 
-      {/* Upgrade paywall modal for free users */}
+      {/* Upgrade paywall modal for  users */}
       <UpgradeModal
         open={showUpgradeModal}
         onOpenChange={setShowUpgradeModal}

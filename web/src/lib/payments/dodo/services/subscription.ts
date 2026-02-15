@@ -230,8 +230,9 @@ export class DodoSubscriptionService {
 
   /**
    * Change subscription plan to a new product (e.g., monthly to yearly)
-   * Uses Dodo's dedicated changePlan API endpoint
-   * Dodo handles proration automatically based on the specified mode
+   * Uses Dodo's dedicated changePlan API endpoint - charges saved payment method on file.
+   * For payment screen / redirect flow, use createSubscription with payment_link instead.
+   * Proration modes: difference_immediately (price diff), prorated_immediately (time-based)
    */
   static async changePlan(
     subscriptionId: string,
@@ -248,7 +249,7 @@ export class DodoSubscriptionService {
       // This properly handles product changes with proration
       await client.subscriptions.changePlan(subscriptionId, {
         product_id: newProductId,
-        proration_billing_mode: options?.prorationBehavior || 'prorated_immediately',
+        proration_billing_mode: options?.prorationBehavior || 'full_immediately',
         quantity: options?.quantity || 1,
       });
 

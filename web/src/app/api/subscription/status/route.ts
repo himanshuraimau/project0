@@ -20,8 +20,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get subscription with sync from Dodo
-    const subscription = await SubscriptionService.getSubscriptionWithSync(userId);
+    // ?sync=1 forces Dodo API call; otherwise use cached DB when updated recently (faster)
+    const url = new URL(request.url);
+    const forceSync = url.searchParams.get('sync') === '1';
+
+    const subscription = await SubscriptionService.getSubscriptionWithSync(userId, forceSync);
 
     // Get feature access summary (needed for free tier too)
     const featureAccess = await FeatureGateService.getFeatureAccessSummary();

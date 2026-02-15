@@ -60,9 +60,15 @@ export function SubscriptionStatusCard() {
     fetchSubscriptionStatus();
   }, []);
 
-  const fetchSubscriptionStatus = async () => {
+  useEffect(() => {
+    const handler = () => fetchSubscriptionStatus();
+    window.addEventListener('subscription-updated', handler);
+    return () => window.removeEventListener('subscription-updated', handler);
+  }, []);
+
+  const fetchSubscriptionStatus = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const response = await fetch('/api/subscription/status');
 
       if (!response.ok) {
@@ -74,7 +80,7 @@ export function SubscriptionStatusCard() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -171,8 +177,22 @@ export function SubscriptionStatusCard() {
 
       if (data.success) {
         toast.success(data.message);
-        fetchSubscriptionStatus(); // Refresh status
+        // Optimistically update UI so button switches immediately
+        setStatus((prev) =>
+          prev && prev.subscription
+            ? {
+                ...prev,
+                subscription: {
+                  ...prev.subscription,
+                  cancelAtPeriodEnd: true,
+                  cancelledAt: data.subscription?.cancelledAt ?? prev.subscription.cancelledAt,
+                },
+              }
+            : prev
+        );
         window.dispatchEvent(new CustomEvent('subscription-updated'));
+        // Refetch to get full fresh state (silent = no loading spinner)
+        fetchSubscriptionStatus(true);
       } else {
         toast.error(data.error || 'Failed to cancel subscription');
       }
@@ -181,21 +201,42 @@ export function SubscriptionStatusCard() {
     }
   };
 
+  const handleReactivateSubscription = async () => {
+    try {
+      const response = await fetch('/api/subscription/portal');
+      const data = await response.json();
+      if (response.ok && data.portalUrl) {
+        toast.success('Opening billing portal...');
+        window.location.href = data.portalUrl;
+      } else {
+        toast.error(data.error || 'Failed to open billing portal');
+      }
+    } catch (err) {
+      toast.error('Failed to open billing portal');
+    }
+  };
+
   const handleUpgradeToYearly = async () => {
     try {
       setIsUpgrading(true);
-      const response = await fetch('/api/subscription/change-plan', {
+      const response = await fetch('/api/subscription/upgrade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetPlan: 'yearly' }),
+        body: JSON.stringify({}),
       });
 
       const data = await response.json();
 
+      if (data.success && data.paymentLink) {
+        setShowUpgradeDialog(false);
+        toast.success('Redirecting to complete payment...');
+        window.location.href = data.paymentLink;
+        return;
+      }
       if (data.success) {
         setShowUpgradeDialog(false);
-        toast.success('Successfully changed to yearly plan! Changes will be reflected in your next billing cycle. 🎉', { duration: 5000 });
-        fetchSubscriptionStatus(); // Refresh status
+        toast.success('Successfully changed to yearly plan! 🎉');
+        fetchSubscriptionStatus();
         window.dispatchEvent(new CustomEvent('subscription-updated'));
       } else {
         toast.error(data.error || 'Failed to change subscription plan');
@@ -386,6 +427,16 @@ export function SubscriptionStatusCard() {
             >
               <HugeiconsIcon icon={SparklesIcon} className="size-5" />
               {subscription.cancelAtPeriodEnd ? 'Upgrade to Yearly (keeps your plan)' : 'Upgrade to Yearly - Save $151'}
+            </Button>
+          )}
+          {subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && (
+            <Button
+              onClick={handleReactivateSubscription}
+              variant="outline"
+              className="rounded-xl h-12 px-5 text-base font-semibold"
+              disabled={isRetryingPayment || isCancellingPending || isUpgrading}
+            >
+              Reactivate subscription
             </Button>
           )}
           {!subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && (
