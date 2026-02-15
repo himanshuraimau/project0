@@ -41,10 +41,10 @@ export async function POST(request: NextRequest) {
 
     // Format the response message based on change type
     const message = changeType === 'upgrade'
-      ? `Successfully upgraded to ${targetPlan} plan! The change is effective immediately and you were charged a prorated amount for the remainder of your billing period.`
+      ? `Successfully upgraded to ${targetPlan} plan. The charge was applied immediately and your new billing cycle starts today.`
       : changeType === 'downgrade'
-      ? `Successfully downgraded to ${targetPlan} plan. The change is effective immediately and a prorated credit has been applied to your account.`
-      : `Successfully changed to ${targetPlan} plan. The change is effective immediately.`;
+      ? `Successfully downgraded to ${targetPlan} plan. The charge was applied immediately and your new billing cycle starts today.`
+      : `Successfully changed to ${targetPlan} plan. The charge was applied immediately and your new billing cycle starts today.`;
 
     return NextResponse.json({
       success: true,

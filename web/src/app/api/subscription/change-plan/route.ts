@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
     let message: string;
     if (immediate) {
       message = changeType === 'upgrade'
-        ? `Successfully upgraded to ${targetPlan} plan. The change is effective immediately and you were charged a prorated amount.`
-        : `Successfully changed to ${targetPlan} plan. The change is effective immediately with a prorated credit applied.`;
+        ? `Successfully upgraded to ${targetPlan} plan. The charge was applied immediately and your new billing cycle starts today.`
+        : `Successfully changed to ${targetPlan} plan. The charge was applied immediately and your new billing cycle starts today.`;
     } else {
       message = `Successfully scheduled plan change to ${targetPlan}. You'll continue on your current plan until ${formatDate(subscription.nextBillingDate)}, then switch to ${targetPlan}.`;
     }

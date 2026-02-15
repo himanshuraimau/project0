@@ -55,15 +55,31 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
           const now = Date.now();
           const oneHourAgo = now - (60 * 60 * 1000);
           const fiveMinutesAgo = now - (5 * 60 * 1000);
+          const tenMinutesAgo = now - (10 * 60 * 1000);
           
           // Filter out:
           // - Notes older than 1 hour
-          // - Notes in "completed" stage (stale)
+          // - Notes in "completed" stage (stale - these should have been removed already)
+          // - Notes that have been "generating" for more than 10 minutes (likely completed/failed)
           // - Error notes older than 5 minutes (user had time to see them)
           const validNotes = parsedNotes.filter((note: LoadingNote) => {
-            if (note.timestamp < oneHourAgo) return false;
-            if (note.stage === 'completed') return false;
-            if (note.stage === 'error' && note.timestamp < fiveMinutesAgo) return false;
+            if (note.timestamp < oneHourAgo) {
+              console.log('[DashboardRefresh] Filtering out old note (>1hr):', note.id);
+              return false;
+            }
+            if (note.stage === 'completed') {
+              console.log('[DashboardRefresh] Filtering out completed note:', note.id);
+              return false;
+            }
+            // Remove notes stuck in generating/processing for >10 minutes
+            if ((note.stage === 'generating' || note.stage === 'processing') && note.timestamp < tenMinutesAgo) {
+              console.log('[DashboardRefresh] Filtering out stale generating note (>10min):', note.id);
+              return false;
+            }
+            if (note.stage === 'error' && note.timestamp < fiveMinutesAgo) {
+              console.log('[DashboardRefresh] Filtering out old error note:', note.id);
+              return false;
+            }
             return true;
           });
           
@@ -72,6 +88,7 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
             setLoadingNotes(validNotes);
           } else {
             // Clean up stale localStorage entry
+            console.log('[DashboardRefresh] No valid notes to restore, clearing localStorage');
             localStorage.removeItem(LOADING_NOTES_KEY);
           }
         }
@@ -125,6 +142,27 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
     // Short timeout ensures quick cleanup when returning to dashboard
     if (updates.stage === 'completed') {
       console.log('[DashboardRefresh] Note completed, scheduling auto-removal:', tempId);
+      
+      // Immediately clean up localStorage to prevent restore on navigation
+      if (typeof window !== 'undefined') {
+        try {
+          const stored = localStorage.getItem(LOADING_NOTES_KEY);
+          if (stored) {
+            const parsedNotes = JSON.parse(stored);
+            const filtered = parsedNotes.filter((note: LoadingNote) => note.id !== tempId);
+            if (filtered.length > 0) {
+              localStorage.setItem(LOADING_NOTES_KEY, JSON.stringify(filtered));
+              console.log('[DashboardRefresh] Removed completed note from localStorage:', tempId);
+            } else {
+              localStorage.removeItem(LOADING_NOTES_KEY);
+              console.log('[DashboardRefresh] Cleared localStorage (no notes remaining)');
+            }
+          }
+        } catch (error) {
+          console.error('[DashboardRefresh] Failed to clean localStorage:', error);
+        }
+      }
+      
       setTimeout(() => {
         console.log('[DashboardRefresh] Auto-removing completed note:', tempId);
         setLoadingNotes(prev => prev.filter(note => note.id !== tempId));
@@ -134,6 +172,25 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
 
   const removeLoadingNote = useCallback((tempId: string) => {
     console.log(`Removing loading note: ${tempId}`);
+    
+    // Immediately update localStorage before state update
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(LOADING_NOTES_KEY);
+        if (stored) {
+          const parsedNotes = JSON.parse(stored);
+          const filtered = parsedNotes.filter((note: LoadingNote) => note.id !== tempId);
+          if (filtered.length > 0) {
+            localStorage.setItem(LOADING_NOTES_KEY, JSON.stringify(filtered));
+          } else {
+            localStorage.removeItem(LOADING_NOTES_KEY);
+          }
+        }
+      } catch (error) {
+        console.error('[DashboardRefresh] Failed to update localStorage on remove:', error);
+      }
+    }
+    
     setLoadingNotes(prev => {
       const filtered = prev.filter(note => note.id !== tempId);
       console.log(`Loading notes after removal:`, filtered);
@@ -145,6 +202,15 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
   const clearAllLoadingNotes = useCallback(() => {
     console.log('Clearing all loading notes');
     setLoadingNotes([]);
+    
+    // Also clear localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem(LOADING_NOTES_KEY);
+      } catch (error) {
+        console.error('[DashboardRefresh] Failed to clear localStorage:', error);
+      }
+    }
   }, []);
 
   const refreshNotes = useCallback(async () => {

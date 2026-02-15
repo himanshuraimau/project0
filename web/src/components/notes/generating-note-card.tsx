@@ -14,6 +14,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
+import { usePusherProgress } from "@/hooks/use-pusher-progress";
 
 export interface LoadingNoteForCard {
   id: string;
@@ -39,16 +40,6 @@ const PROGRESS_PHASES = [
   { min: 70, max: 89, label: "Chunking..." },
   { min: 90, max: 100, label: "Finishing..." },
 ] as const;
-
-interface NoteProgressSocketMessage {
-  jobId?: string;
-  id?: string;
-  progress?: number;
-  percent?: number;
-  stage?: LoadingNoteForCard["stage"];
-  message?: string;
-  currentStep?: string;
-}
 
 function getTypeIcon(type: LoadingNoteForCard["type"]) {
   switch (type) {
@@ -90,15 +81,40 @@ export function GeneratingNoteCard({
   onDismiss,
 }: GeneratingNoteCardProps) {
   const { updateLoadingNote, removeLoadingNote } = useDashboardRefresh();
-  const [socketProgress, setSocketProgress] = useState<number | null>(null);
-  const [socketStage, setSocketStage] =
-    useState<LoadingNoteForCard["stage"] | null>(null);
-  const [socketMessage, setSocketMessage] = useState<string | null>(null);
   // Always start from 0 for smooth animation
   const [animatedProgress, setAnimatedProgress] = useState<number>(0);
 
-  const effectiveStage = socketStage ?? loadingNote.stage;
+  // Use Pusher for real-time progress updates
+  const { progress: pusherProgress, stage: pusherStage, message: pusherMessage } = usePusherProgress({
+    jobId: loadingNote.id,
+    enabled: loadingNote.stage !== "completed" && loadingNote.stage !== "error",
+    onProgress: (event) => {
+      // Sync updates to context so they persist across navigation
+      if (event.stage) {
+        updateLoadingNote(loadingNote.id, { stage: event.stage });
+      }
+    },
+    onCompleted: (event) => {
+      console.log('[GeneratingNoteCard] Note completed, scheduling removal:', loadingNote.id);
+      updateLoadingNote(loadingNote.id, { stage: 'completed' });
+      // Small delay to show 100% completion before removal
+      setTimeout(() => {
+        removeLoadingNote(loadingNote.id);
+      }, 500);
+    },
+    onError: (event) => {
+      console.log('[GeneratingNoteCard] Note error:', loadingNote.id);
+      updateLoadingNote(loadingNote.id, { 
+        stage: 'error', 
+        error: event.message || 'Failed to generate note' 
+      });
+    }
+  });
+
+  const effectiveStage = pusherStage ?? loadingNote.stage;
   const isError = effectiveStage === "error";
+  const socketProgress = pusherProgress > 0 ? pusherProgress : null;
+  const socketMessage = pusherMessage;
   
   const targetPercent = useMemo(() => {
     if (isError) {
@@ -112,7 +128,7 @@ export function GeneratingNoteCard({
     }
 
     // If no socket progress yet, stay at 0 to wait for real data
-    // This prevents jumping backward when WebSocket sends initial progress
+    // This prevents jumping backward when Pusher sends initial progress
     return 0;
   }, [isError, socketProgress]);
 
@@ -163,140 +179,10 @@ export function GeneratingNoteCard({
   const typeLabel = getTypeLabel(loadingNote.type);
   const IconComponent = getTypeIcon(loadingNote.type);
 
+  // Reset animation when note ID changes
   useEffect(() => {
-    // Only reset when it's a completely new note (ID changes), not when stage changes
-    setSocketProgress(null);
-    setSocketStage(null);
-    setSocketMessage(null);
-    // Always reset to 0 for new notes
     setAnimatedProgress(0);
   }, [loadingNote.id]);
-
-  useEffect(() => {
-    if (loadingNote.stage === "completed" || loadingNote.stage === "error") {
-      return;
-    }
-
-    const configuredBaseUrl = process.env.NEXT_PUBLIC_NOTES_PROGRESS_WS_URL;
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const fallbackBaseUrl = `${protocol}//${window.location.host}/api/notes/progress/ws`;
-    const wsBaseUrl = configuredBaseUrl?.trim()
-      ? configuredBaseUrl.replace(/\/$/, "")
-      : fallbackBaseUrl;
-    const wsUrl = `${wsBaseUrl}?jobId=${encodeURIComponent(loadingNote.id)}`;
-
-    let socket: WebSocket | null = null;
-    let cancelled = false;
-
-    const connect = async () => {
-      // For internal endpoint, ensure WS upgrade hook is registered first.
-      if (!configuredBaseUrl) {
-        try {
-          const response = await fetch("/api/notes/progress/ws", { cache: "no-store" });
-          if (!response.ok) {
-            console.error('[WebSocket] Failed to register upgrade handler:', response.status);
-          }
-        } catch (error) {
-          console.error('[WebSocket] Bootstrap error:', error);
-          // Continue anyway - socket connection might still work
-        }
-      }
-
-      if (cancelled) {
-        return;
-      }
-
-      console.log('[WebSocket] Connecting to:', wsUrl);
-      socket = new WebSocket(wsUrl);
-
-      socket.onopen = () => {
-        console.log('[WebSocket] Connected successfully for job:', loadingNote.id);
-      };
-
-      socket.onerror = (error) => {
-        console.error('[WebSocket] Connection error:', error);
-        console.error('[WebSocket] Failed to connect to:', wsUrl);
-      };
-
-      socket.onclose = (event) => {
-        console.log('[WebSocket] Connection closed:', {
-          code: event.code,
-          reason: event.reason,
-          wasClean: event.wasClean,
-        });
-        
-        // Attempt reconnection after 2 seconds if not cancelled and not completed
-        if (!cancelled && loadingNote.stage !== 'completed' && loadingNote.stage !== 'error') {
-          console.log('[WebSocket] Scheduling reconnection in 2s...');
-          setTimeout(() => {
-            if (!cancelled) {
-              console.log('[WebSocket] Reconnecting...');
-              void connect();
-            }
-          }, 2000);
-        }
-      };
-
-      socket.onmessage = (event) => {
-        try {
-          const payload = JSON.parse(event.data) as NoteProgressSocketMessage;
-
-          if (
-            payload.jobId &&
-            payload.jobId !== loadingNote.id &&
-            payload.id !== loadingNote.id
-          ) {
-            return;
-          }
-
-          // Build updates object for context
-          const contextUpdates: Partial<typeof loadingNote> = {};
-          let hasUpdates = false;
-
-          const nextProgress = payload.progress ?? payload.percent;
-          if (typeof nextProgress === "number") {
-            setSocketProgress(nextProgress);
-            hasUpdates = true;
-          }
-
-          if (payload.stage) {
-            setSocketStage(payload.stage);
-            contextUpdates.stage = payload.stage;
-            hasUpdates = true;
-            
-            // Auto-remove when completed
-            if (payload.stage === 'completed') {
-              console.log('[GeneratingNoteCard] Note completed, scheduling removal:', loadingNote.id);
-              // Small delay to show 100% completion before removal
-              setTimeout(() => {
-                removeLoadingNote(loadingNote.id);
-              }, 500);
-            }
-          }
-
-          const nextMessage = payload.message ?? payload.currentStep;
-          if (nextMessage) {
-            setSocketMessage(nextMessage);
-          }
-
-          // Sync updates to context so they persist across navigation
-          if (hasUpdates && Object.keys(contextUpdates).length > 0) {
-            updateLoadingNote(loadingNote.id, contextUpdates);
-          }
-        } catch (error) {
-          console.error('[WebSocket] Failed to parse message:', error);
-          // Continue using fallback UI
-        }
-      };
-    };
-
-    void connect();
-
-    return () => {
-      cancelled = true;
-      socket?.close();
-    };
-  }, [loadingNote.id, loadingNote.stage, updateLoadingNote, removeLoadingNote]);
 
   return (
     <div

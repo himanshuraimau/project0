@@ -88,6 +88,8 @@
     "pdf-poppler": "^0.2.3",
     "pg": "^8.16.3",
     "prisma": "^6.19.0",
+    "pusher": "^5.3.2",
+    "pusher-js": "^8.4.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.65.0",

@@ -40,7 +40,7 @@ export function UpgradeToYearlyDialog({
             Upgrade to Yearly Plan
           </DialogTitle>
           <DialogDescription className="pt-2">
-            Switch to our yearly plan and save big on your subscription!
+            Switch to our yearly plan and save big on your subscription.
           </DialogDescription>
         </DialogHeader>
 
@@ -99,7 +99,7 @@ export function UpgradeToYearlyDialog({
                 className="size-5 text-primary mt-0.5 shrink-0"
               />
               <p className="text-sm text-foreground/90">
-                You&apos;ll be redirected to complete payment for the yearly plan. Your current monthly access continues until the end of your billing period.
+                Your card will be charged immediately when you complete checkout, and the yearly billing starts right away.
               </p>
             </div>
           </div>

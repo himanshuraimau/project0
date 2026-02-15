@@ -148,7 +148,7 @@ export function SubscriptionCard() {
       }
       if (data.success && !data.paymentLink) {
         setShowUpgradeDialog(false);
-        toast.success("Successfully changed to yearly plan! 🎉");
+        toast.success(data.message || "Yearly plan activated. Payment was charged immediately.");
         refetch(true);
         window.dispatchEvent(new CustomEvent("subscription-updated"));
         return;
