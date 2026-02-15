@@ -85,15 +85,14 @@ export function AppSidebar({ className }: AppSidebarProps) {
     async function checkSubscription() {
       try {
         console.log('Fetching subscription status...');
-        const response = await fetch('/api/subscription/status');
-        console.log('Response status:', response.status, 'ok:', response.ok);
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Subscription data from sidebar:', data);
+        // Use cached subscription data with request deduplication
+        const { subscriptionCache } = await import('@/lib/subscription-cache');
+        const data = await subscriptionCache.getStatus();
+        console.log('Subscription data from sidebar:', data);
           const isActive = data.hasSubscription && data.access?.hasAccess;
           console.log('Setting hasActiveSubscription to:', isActive);
           setHasActiveSubscription(isActive);
-        }
+
       } catch (error) {
         console.error('Error checking subscription:', error);
       } finally {

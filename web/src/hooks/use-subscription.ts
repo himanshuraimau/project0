@@ -3,6 +3,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { subscriptionCache } from '@/lib/subscription-cache';
 
 interface SubscriptionStatus {
   hasSubscription: boolean;
@@ -36,18 +37,13 @@ export function useSubscription() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchStatus = useCallback(async () => {
+  const fetchStatus = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/subscription/status');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch subscription status');
-      }
-
-      const data = await response.json();
+      // Use cached version with request deduplication
+      const data = await subscriptionCache.getStatus(forceRefresh);
       setStatus(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -58,7 +54,23 @@ export function useSubscription() {
   }, []);
 
   useEffect(() => {
+    // Try to get cached data first for instant display
+    const cached = subscriptionCache.getCached();
+    if (cached) {
+      setStatus(cached);
+      setLoading(false);
+    }
+
+    // Then fetch fresh data
     fetchStatus();
+
+    // Subscribe to cache updates
+    const unsubscribe = subscriptionCache.subscribe((data) => {
+      setStatus(data);
+      setError(null);
+    });
+
+    return unsubscribe;
   }, [fetchStatus]);
 
   const createSubscription = useCallback(async () => {
@@ -100,7 +112,8 @@ export function useSubscription() {
       const data = await response.json();
 
       if (data.success) {
-        await fetchStatus(); // Refresh status
+        // Invalidate cache and refresh
+        await subscriptionCache.invalidate(true);
         return { success: true, message: data.message };
       } else {
         setError(data.error);
@@ -111,7 +124,7 @@ export function useSubscription() {
       setError(errorMessage);
       return { success: false, error: errorMessage };
     }
-  }, [fetchStatus]);
+  }, []);
 
   const openCustomerPortal = useCallback(async () => {
     try {
@@ -148,7 +161,8 @@ export function useSubscription() {
         return { success: true, message: 'Redirecting to payment...' };
       }
       if (data.success) {
-        await fetchStatus();
+        // Invalidate cache and refresh
+        await subscriptionCache.invalidate(true);
         return { success: true, message: data.message };
       }
       setError(data.error);
@@ -158,7 +172,7 @@ export function useSubscription() {
       setError(errorMessage);
       return { success: false, error: errorMessage };
     }
-  }, [fetchStatus]);
+  }, []);
 
   return {
     status,

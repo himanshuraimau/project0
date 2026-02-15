@@ -1,5 +1,7 @@
 'use client';
 
+import { subscriptionCache } from '../subscription-cache';
+
 /**
  * Client-side API for checking subscription access
  * (Formerly credit-based system, now subscription-based)
@@ -22,14 +24,8 @@
  */
 export async function checkUserCredits(requiredCredits: number = 1): Promise<boolean> {
   try {
-    // Check subscription status instead of credits
-    const response = await fetch('/api/subscription/status');
-    
-    if (!response.ok) {
-      return false;
-    }
-    
-    const data = await response.json();
+    // Use cached subscription data with request deduplication
+    const data = await subscriptionCache.getStatus();
     return data.hasSubscription && data.access?.hasAccess === true;
   } catch (error) {
     console.error('Error checking subscription:', error);
@@ -74,13 +70,8 @@ export async function checkCreditsAndRedirect(requiredCredits: number = 1): Prom
  */
 export async function getCurrentCredits(): Promise<number> {
   try {
-    const response = await fetch('/api/subscription/status');
-    
-    if (!response.ok) {
-      return 0;
-    }
-    
-    const data = await response.json();
+    // Use cached subscription data with request deduplication
+    const data = await subscriptionCache.getStatus();
     // Return high number if subscribed, 0 if not (backward compatibility)
     return (data.hasSubscription && data.access?.hasAccess) ? 999999 : 0;
   } catch (error) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { subscriptionCache } from "@/lib/subscription-cache";
 
 type SubscriptionData = {
   hasSubscription: boolean;
@@ -36,12 +37,10 @@ export function SettingsSubscriptionProvider({ children }: { children: ReactNode
   const refetch = useCallback(async (sync = false, silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const url = sync ? "/api/subscription/status?sync=1" : "/api/subscription/status";
-      const response = await fetch(url);
-      if (response.ok) {
-        const json = await response.json();
-        setData(json);
-      }
+      
+      // Use cache for non-sync requests
+      const json = await subscriptionCache.getStatus(sync);
+      setData(json as any);
     } catch (error) {
       console.error("Error fetching subscription:", error);
     } finally {
@@ -50,14 +49,31 @@ export function SettingsSubscriptionProvider({ children }: { children: ReactNode
   }, []);
 
   useEffect(() => {
+    // Try to get cached data first
+    const cached = subscriptionCache.getCached();
+    if (cached) {
+      setData(cached as any);
+      setLoading(false);
+    }
+
     refetch();
+
+    // Subscribe to cache updates
+    const unsubscribe = subscriptionCache.subscribe((cachedData) => {
+      setData(cachedData as any);
+    });
+
+    return unsubscribe;
   }, [refetch]);
 
   useEffect(() => {
-    const handler = () => refetch();
+    const handler = async () => {
+      // Invalidate cache and refetch on subscription update
+      await subscriptionCache.invalidate(true);
+    };
     window.addEventListener("subscription-updated", handler);
     return () => window.removeEventListener("subscription-updated", handler);
-  }, [refetch]);
+  }, []);
 
   return (
     <SubscriptionContext.Provider value={{ data, loading, refetch, setData }}>

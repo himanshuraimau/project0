@@ -5,6 +5,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { File01Icon } from '@hugeicons/core-free-icons';
 import { useDashboardRefresh } from '@/contexts/dashboard-refresh-context';
 import { useUpgradeModal } from '@/contexts/upgrade-modal-context';
+import { subscriptionCache } from '@/lib/subscription-cache';
 
 interface FreeTierStatus {
   used: number;
@@ -22,10 +23,8 @@ export function FreeNoteCounter() {
   const fetchStatus = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/subscription/status', {
-        cache: 'no-store',
-      });
-      const data = await response.json();
+      // Use cached subscription data with request deduplication
+      const data = await subscriptionCache.getStatus();
       
       console.log('FreeNoteCounter - API response:', data);
       
