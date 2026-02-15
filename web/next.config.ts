@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // output: "standalone", 
   serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
   experimental: {
     serverActions: {

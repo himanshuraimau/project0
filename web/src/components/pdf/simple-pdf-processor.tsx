@@ -121,6 +121,7 @@ export function SimplePDFProcessor({
         const options = {
           extractImages: false,
           generateNotes: true,
+          progressJobId: tempId,
         };
         result = await processPDFWithNotes(selectedFile!, options);
         
@@ -146,6 +147,7 @@ export function SimplePDFProcessor({
             noteId: result.note.id,
             stage: 'completed'
           });
+          await new Promise((resolve) => setTimeout(resolve, 600));
         }
         
         // Remove loading note using local tempId (not currentTempId which is stale due to async setState)

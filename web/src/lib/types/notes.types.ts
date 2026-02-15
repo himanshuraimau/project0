@@ -99,6 +99,7 @@ export interface ProcessPDFOptions {
   maxPages?: number;
   generateNotes?: boolean;
   folderId?: string | null;
+  progressJobId?: string;
 }
 
 export interface ProcessPDFResult {
