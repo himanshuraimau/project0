@@ -75,6 +75,7 @@ export function UploadTextModal({
         result = await processPDFWithNotes(selectedPDFFile, {
           generateNotes: true,
           extractImages: false,
+          progressJobId: tempId,
         });
 
         if (result?.transcript?.id) {
@@ -98,6 +99,7 @@ export function UploadTextModal({
             noteId: result.note.id,
             stage: "completed",
           });
+          await new Promise((resolve) => setTimeout(resolve, 600));
         }
 
         // Use local tempId (not currentTempId which is stale due to async setState)

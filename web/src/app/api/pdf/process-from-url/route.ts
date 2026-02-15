@@ -3,6 +3,7 @@ import { PDFParser } from "@/lib/pdf-parser";
 import { NoteService } from "@/lib/note-service";
 import { FeatureGateService } from "@/lib/feature-gate-service";
 import { getUserFromAuth } from "@/lib/auth-helper";
+import { noteProgressManager } from "@/lib/note-progress-manager";
 
 const parser = new PDFParser();
 const noteService = new NoteService();
@@ -28,6 +29,26 @@ export async function POST(req: NextRequest) {
     const fileName = (typeof body.fileName === "string" ? body.fileName.trim() : null) ?? "uploaded.pdf";
     const generateNotes = body.generateNotes !== false; // default true
     const folderId = (typeof body.folderId === "string" ? body.folderId : null) || null;
+    const progressJobId =
+      typeof body.progressJobId === "string" ? body.progressJobId.trim() : "";
+
+    const publishProgress = (
+      progress: number,
+      stage: "uploading" | "processing" | "generating" | "completed" | "error",
+      message: string
+    ) => {
+      if (!progressJobId) {
+        return;
+      }
+      noteProgressManager.publish({
+        jobId: progressJobId,
+        progress,
+        stage,
+        message,
+      });
+    };
+
+    publishProgress(15, "uploading", "Extracting PDF...");
 
     if (!pdfUrl || !pdfUrl.startsWith("http")) {
       return NextResponse.json(
@@ -101,9 +122,11 @@ export async function POST(req: NextRequest) {
     // Parse PDF and extract text
     let parseResult;
     try {
+      publishProgress(40, "processing", "Parsing PDF...");
       parseResult = await parser.extractToDatabase(buffer, fileName, userId);
     } catch (parseError) {
       console.error("PDF parsing failed:", parseError);
+      publishProgress(0, "error", "Failed while parsing PDF");
 
       if (parseError instanceof Error) {
         const errorMessage = parseError.message.toLowerCase();
@@ -156,10 +179,13 @@ export async function POST(req: NextRequest) {
             upgradeUrl: reservation.upgradeUrl || '/pricing',
           };
         } else {
+          publishProgress(60, "generating", "Indexing...");
+          publishProgress(75, "generating", "Chunking...");
           noteResult = await noteService.generateAINote(parseResult.documentId, userId, folderId || undefined);
         }
       } catch (noteError) {
         console.error("Failed to generate AI notes:", noteError);
+        publishProgress(0, "error", "Failed while generating note");
         
         // Decrement counter since note creation failed
         await FeatureGateService.decrementNoteUsage(userId);
@@ -180,6 +206,8 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+
+    publishProgress(100, "completed", "Finishing...");
 
     return NextResponse.json({
       success: true,

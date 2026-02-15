@@ -61,6 +61,7 @@ export function useNotes() {
             fileName: file.name,
             generateNotes: options.generateNotes ?? true,
             folderId: options.folderId ?? null,
+            progressJobId: options.progressJobId ?? null,
           }),
         });
 
@@ -95,6 +96,10 @@ export function useNotes() {
       
       if (options.generateNotes !== undefined) {
         formData.append('generateNotes', options.generateNotes.toString());
+      }
+
+      if (options.progressJobId) {
+        formData.append('progressJobId', options.progressJobId);
       }
 
       const response = await fetch('/api/pdf/process', {

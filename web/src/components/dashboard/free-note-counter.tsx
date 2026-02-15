@@ -16,18 +16,14 @@ export function FreeNoteCounter() {
   const [status, setStatus] = useState<FreeTierStatus | null>(null);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { refreshTrigger, loadingNotes } = useDashboardRefresh();
+  const { refreshTrigger } = useDashboardRefresh();
   const { openUpgradeModal } = useUpgradeModal();
 
   const fetchStatus = useCallback(async () => {
     try {
       setIsLoading(true);
-      // Add cache-busting timestamp to ensure fresh data
-      const response = await fetch(`/api/subscription/status?t=${Date.now()}`, {
+      const response = await fetch('/api/subscription/status', {
         cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
       });
       const data = await response.json();
       
@@ -60,16 +56,6 @@ export function FreeNoteCounter() {
       fetchStatus();
     }
   }, [refreshTrigger, fetchStatus]);
-
-  useEffect(() => {
-    if (loadingNotes.length === 0) return;
-
-    const interval = setInterval(() => {
-      fetchStatus();
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [loadingNotes.length, fetchStatus]);
 
   // Don't show if user has subscription
   if (hasSubscription) {

@@ -1,17 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   File01Icon,
-  Mic01Icon,
   Upload01Icon,
+  Mic01Icon,
   Video01Icon,
   GlobeIcon,
-  Loading01Icon,
   AlertDiamondIcon,
-  RefreshIcon,
   Cancel01Icon,
+  RefreshIcon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 
@@ -32,31 +31,44 @@ interface GeneratingNoteCardProps {
 
 const STAGE_CONFIG = {
   uploading: {
-    percent: 50,
-    message: (type: LoadingNoteForCard["type"]) =>
-      type === "audio-record"
-        ? "Recording your audio..."
-        : type === "youtube" || type === "webpage"
-        ? "Fetching your link..."
-        : "Uploading your file...",
+    percent: 15,
+    message: () => "Extracting PDF...",
   },
   processing: {
-    percent: 50,
-    message: () => "Reading & analyzing content...",
+    percent: 40,
+    message: () => "Parsing PDF...",
   },
   generating: {
-    percent: 90,
-    message: () => "Writing your smart notes...",
+    percent: 75,
+    message: () => "Chunking...",
   },
   completed: {
     percent: 100,
-    message: () => "Almost there...",
+    message: () => "Finishing...",
   },
   error: {
     percent: 0,
     message: () => "Something went wrong",
   },
 } as const;
+
+const PROGRESS_PHASES = [
+  { min: 15, max: 29, label: "Extracting PDF..." },
+  { min: 30, max: 49, label: "Parsing PDF..." },
+  { min: 50, max: 69, label: "Indexing..." },
+  { min: 70, max: 89, label: "Chunking..." },
+  { min: 90, max: 100, label: "Finishing..." },
+] as const;
+
+interface NoteProgressSocketMessage {
+  jobId?: string;
+  id?: string;
+  progress?: number;
+  percent?: number;
+  stage?: LoadingNoteForCard["stage"];
+  message?: string;
+  currentStep?: string;
+}
 
 function getTypeIcon(type: LoadingNoteForCard["type"]) {
   switch (type) {
@@ -97,12 +109,184 @@ export function GeneratingNoteCard({
   onRetry,
   onDismiss,
 }: GeneratingNoteCardProps) {
-  const isError = loadingNote.stage === "error";
-  const config = STAGE_CONFIG[loadingNote.stage];
-  const percent = config.percent;
-  const message = config.message(loadingNote.type);
+  const [socketProgress, setSocketProgress] = useState<number | null>(null);
+  const [socketStage, setSocketStage] =
+    useState<LoadingNoteForCard["stage"] | null>(null);
+  const [socketMessage, setSocketMessage] = useState<string | null>(null);
+  // Always start from 0 for smooth animation
+  const [animatedProgress, setAnimatedProgress] = useState<number>(0);
+
+  const effectiveStage = socketStage ?? loadingNote.stage;
+  const isError = effectiveStage === "error";
+  const config = STAGE_CONFIG[effectiveStage];
+  const targetPercent = useMemo(() => {
+    if (isError) {
+      return 0;
+    }
+
+    if (typeof socketProgress === "number" && Number.isFinite(socketProgress)) {
+      return Math.max(0, Math.min(100, Math.round(socketProgress)));
+    }
+
+    return config.percent;
+  }, [config.percent, isError, socketProgress]);
+
+  // Smooth progress animation
+  useEffect(() => {
+    if (isError) {
+      setAnimatedProgress(0);
+      return;
+    }
+
+    const startProgress = animatedProgress;
+    const endProgress = targetPercent;
+    const duration = 800; // 800ms animation
+    const startTime = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease-out cubic function for smooth deceleration
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const currentProgress = startProgress + (endProgress - startProgress) * easeProgress;
+      
+      setAnimatedProgress(currentProgress);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [targetPercent, isError]);
+
+  const percent = Math.round(animatedProgress);
+  const phaseMessage = useMemo(() => {
+    const matchedPhase = PROGRESS_PHASES.find(
+      (phase) => percent >= phase.min && percent <= phase.max
+    );
+    // If no phase matches (percent < 15), use the first phase message
+    // instead of falling back to stage-based message
+    return matchedPhase?.label ?? PROGRESS_PHASES[0].label;
+  }, [percent]);
+  const message = socketMessage || phaseMessage;
   const typeLabel = getTypeLabel(loadingNote.type);
   const IconComponent = getTypeIcon(loadingNote.type);
+
+  useEffect(() => {
+    // Only reset when it's a completely new note (ID changes), not when stage changes
+    setSocketProgress(null);
+    setSocketStage(null);
+    setSocketMessage(null);
+    // Always reset to 0 for new notes
+    setAnimatedProgress(0);
+  }, [loadingNote.id]);
+
+  useEffect(() => {
+    if (loadingNote.stage === "completed" || loadingNote.stage === "error") {
+      return;
+    }
+
+    const configuredBaseUrl = process.env.NEXT_PUBLIC_NOTES_PROGRESS_WS_URL;
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const fallbackBaseUrl = `${protocol}//${window.location.host}/api/notes/progress/ws`;
+    const wsBaseUrl = configuredBaseUrl?.trim()
+      ? configuredBaseUrl.replace(/\/$/, "")
+      : fallbackBaseUrl;
+    const wsUrl = `${wsBaseUrl}?jobId=${encodeURIComponent(loadingNote.id)}`;
+
+    let socket: WebSocket | null = null;
+    let cancelled = false;
+
+    const connect = async () => {
+      // For internal endpoint, ensure WS upgrade hook is registered first.
+      if (!configuredBaseUrl) {
+        try {
+          const response = await fetch("/api/notes/progress/ws", { cache: "no-store" });
+          if (!response.ok) {
+            console.error('[WebSocket] Failed to register upgrade handler:', response.status);
+          }
+        } catch (error) {
+          console.error('[WebSocket] Bootstrap error:', error);
+          // Continue anyway - socket connection might still work
+        }
+      }
+
+      if (cancelled) {
+        return;
+      }
+
+      console.log('[WebSocket] Connecting to:', wsUrl);
+      socket = new WebSocket(wsUrl);
+
+      socket.onopen = () => {
+        console.log('[WebSocket] Connected successfully for job:', loadingNote.id);
+      };
+
+      socket.onerror = (error) => {
+        console.error('[WebSocket] Connection error:', error);
+        console.error('[WebSocket] Failed to connect to:', wsUrl);
+      };
+
+      socket.onclose = (event) => {
+        console.log('[WebSocket] Connection closed:', {
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean,
+        });
+        
+        // Attempt reconnection after 2 seconds if not cancelled and not completed
+        if (!cancelled && loadingNote.stage !== 'completed' && loadingNote.stage !== 'error') {
+          console.log('[WebSocket] Scheduling reconnection in 2s...');
+          setTimeout(() => {
+            if (!cancelled) {
+              console.log('[WebSocket] Reconnecting...');
+              void connect();
+            }
+          }, 2000);
+        }
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data) as NoteProgressSocketMessage;
+
+          if (
+            payload.jobId &&
+            payload.jobId !== loadingNote.id &&
+            payload.id !== loadingNote.id
+          ) {
+            return;
+          }
+
+          const nextProgress = payload.progress ?? payload.percent;
+          if (typeof nextProgress === "number") {
+            setSocketProgress(nextProgress);
+          }
+
+          if (payload.stage) {
+            setSocketStage(payload.stage);
+          }
+
+          const nextMessage = payload.message ?? payload.currentStep;
+          if (nextMessage) {
+            setSocketMessage(nextMessage);
+          }
+        } catch (error) {
+          console.error('[WebSocket] Failed to parse message:', error);
+          // Continue using fallback UI
+        }
+      };
+    };
+
+    void connect();
+
+    return () => {
+      cancelled = true;
+      socket?.close();
+    };
+  }, [loadingNote.id, loadingNote.stage]);
 
   return (
     <div

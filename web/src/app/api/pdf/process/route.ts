@@ -4,6 +4,7 @@ import { NoteService } from '@/lib/note-service';
 import { FeatureGateService } from '@/lib/feature-gate-service';
 import { join } from 'path';
 import { getUserFromAuth } from '@/lib/auth-helper';
+import { noteProgressManager } from '@/lib/note-progress-manager';
 
 const parser = new PDFParser();
 const noteService = new NoteService();
@@ -17,6 +18,25 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const progressJobId = (formData.get('progressJobId') as string | null)?.trim() || '';
+
+    const publishProgress = (
+      progress: number,
+      stage: 'uploading' | 'processing' | 'generating' | 'completed' | 'error',
+      message: string
+    ) => {
+      if (!progressJobId) {
+        return;
+      }
+      noteProgressManager.publish({
+        jobId: progressJobId,
+        progress,
+        stage,
+        message,
+      });
+    };
+
+    publishProgress(15, 'uploading', 'Extracting PDF...');
 
     // Enhanced file validation
     if (!file) {
@@ -125,9 +145,11 @@ export async function POST(request: NextRequest) {
     // Step 1: Extract text from PDF and save to database
     let parseResult;
     try {
+      publishProgress(40, 'processing', 'Parsing PDF...');
       parseResult = await parser.extractToDatabase(buffer, file.name, userId);
     } catch (parseError) {
       console.error('PDF parsing failed:', parseError);
+      publishProgress(0, 'error', 'Failed while parsing PDF');
 
       // Don't deduct credits if parsing fails
       if (parseError instanceof Error) {
@@ -199,10 +221,13 @@ export async function POST(request: NextRequest) {
             upgradeUrl: reservation.upgradeUrl || '/pricing',
           };
         } else {
+          publishProgress(60, 'generating', 'Indexing...');
+          publishProgress(75, 'generating', 'Chunking...');
           noteResult = await noteService.generateAINote(parseResult.documentId, userId, folderId || undefined);
         }
       } catch (noteError) {
         console.error('Failed to generate AI notes:', noteError);
+        publishProgress(0, 'error', 'Failed while generating note');
         
         // Decrement counter since note creation failed
         await FeatureGateService.decrementNoteUsage(userId);
@@ -231,6 +256,8 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    publishProgress(100, 'completed', 'Finishing...');
 
     return NextResponse.json({
       success: true,
