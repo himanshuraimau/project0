@@ -55,8 +55,10 @@ export function SubscriptionCard() {
   const [cancelling, setCancelling] = useState(false);
   const [reactivating, setReactivating] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showReactivateConfirm, setShowReactivateConfirm] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
   const { openUpgradeModal } = useUpgradeModal();
 
   const hasActiveSubscription =
@@ -113,6 +115,26 @@ export function SubscriptionCard() {
   const handleReactivateSubscription = async () => {
     setReactivating(true);
     try {
+      const response = await fetch("/api/subscription/reactivate", { method: "POST" });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setShowReactivateConfirm(false);
+        toast.success(data.message || "Subscription reactivated. Your plan will continue.");
+        refetch(true);
+        window.dispatchEvent(new CustomEvent("subscription-updated"));
+      } else {
+        toast.error(data.error || "Failed to reactivate subscription.");
+      }
+    } catch (error) {
+      toast.error("Failed to reactivate subscription.");
+    } finally {
+      setReactivating(false);
+    }
+  };
+
+  const handleOpenBillingPortal = async () => {
+    setIsOpeningPortal(true);
+    try {
       const response = await fetch("/api/subscription/portal");
       const data = await response.json();
       if (response.ok && data.portalUrl) {
@@ -124,7 +146,7 @@ export function SubscriptionCard() {
     } catch (error) {
       toast.error("Failed to open billing portal.");
     } finally {
-      setReactivating(false);
+      setIsOpeningPortal(false);
     }
   };
 
@@ -249,13 +271,15 @@ export function SubscriptionCard() {
                 </h3>
                 {hasActiveSubscription && sub ? (
                   <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
-                    {!sub.cancelAtPeriodEnd && nextBillingDisplay !== "—" && (
+                    {nextBillingDisplay !== "—" && (
                       <div className="flex items-center gap-2">
                         <HugeiconsIcon
                           icon={Calendar01Icon}
                           className="size-4 shrink-0"
                         />
-                        Next billing: {nextBillingDisplay}
+                        {(sub.cancelAtPeriodEnd || sub.status === "CANCELLED")
+                          ? `Access until ${nextBillingDisplay}`
+                          : `Next billing: ${nextBillingDisplay}`}
                       </div>
                     )}
                     <div className="flex items-center gap-2">
@@ -312,9 +336,9 @@ export function SubscriptionCard() {
                       </span>
                     </div>
                   )}
-                  {sub?.cancelAtPeriodEnd ? (
+                  {sub?.cancelAtPeriodEnd && sub?.status === "ACTIVE" ? (
                     <Button
-                      onClick={handleReactivateSubscription}
+                      onClick={() => setShowReactivateConfirm(true)}
                       variant="outline"
                       className="rounded-xl h-11 px-5 cursor-pointer border-primary/50 text-primary hover:bg-primary/10 hover:border-primary"
                       disabled={isUpgrading || reactivating}
@@ -324,7 +348,7 @@ export function SubscriptionCard() {
                       ) : null}
                       {reactivating ? "Reactivating…" : "Reactivate subscription"}
                     </Button>
-                  ) : (
+                  ) : sub?.status !== "CANCELLED" ? (
                     <Button
                       onClick={() => setShowCancelConfirm(true)}
                       variant="outline"
@@ -333,7 +357,15 @@ export function SubscriptionCard() {
                     >
                       Cancel subscription
                     </Button>
-                  )}
+                  ) : null}
+                  <Button
+                    onClick={handleOpenBillingPortal}
+                    variant="outline"
+                    className="rounded-xl h-11 px-5 cursor-pointer"
+                    disabled={isOpeningPortal || isUpgrading}
+                  >
+                    {isOpeningPortal ? "Opening…" : "Billing Portal"}
+                  </Button>
                 </>
               )}
             </div>
@@ -391,7 +423,7 @@ export function SubscriptionCard() {
                     </span>
                   </div>
                 </div>
-                {!sub.cancelAtPeriodEnd && (
+                {!sub.cancelAtPeriodEnd && sub.status !== "CANCELLED" && (
                   <>
                     {isPendingUpgrade ? (
                       <div className="rounded-xl border-2 border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20 p-4">
@@ -455,10 +487,12 @@ export function SubscriptionCard() {
                     )}
                   </>
                 )}
-                {sub.cancelAtPeriodEnd && (
+                {(sub.cancelAtPeriodEnd || sub.status === "CANCELLED") && (
                   <div className="rounded-xl border border-orange-200/50 bg-orange-50/50 dark:border-orange-900/30 dark:bg-orange-950/20 p-4">
                     <p className="text-sm text-orange-900 dark:text-orange-100">
-                      Your subscription will end on {nextBillingDisplay}. You'll have access to all Pro features until then.
+                      Your subscription is cancelled. You keep access to all Pro features until {nextBillingDisplay}.
+                      {sub.status === "CANCELLED" && " No future charges."}
+                      {sub.cancelAtPeriodEnd && sub.status === "ACTIVE" && " You can reactivate below to keep your plan after this period."}
                     </p>
                   </div>
                 )}
@@ -515,6 +549,36 @@ export function SubscriptionCard() {
                 />
               ) : null}
               {cancelling ? "Cancelling…" : "Cancel subscription"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showReactivateConfirm} onOpenChange={setShowReactivateConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reactivate subscription?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your plan will continue and you will be charged at the next billing date.
+              You can cancel again anytime.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={reactivating} className="cursor-pointer">
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              disabled={reactivating}
+              onClick={handleReactivateSubscription}
+              className="cursor-pointer"
+            >
+              {reactivating ? (
+                <HugeiconsIcon
+                  icon={Loading01Icon}
+                  className="size-4 animate-spin mr-2"
+                />
+              ) : null}
+              {reactivating ? "Reactivating…" : "Reactivate"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

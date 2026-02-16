@@ -564,13 +564,6 @@ function AudioRecorderModal({
                 <HugeiconsIcon icon={PlayIcon} className="size-4 shrink-0" />
                 <span>Resume</span>
               </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                className="h-10 rounded-lg bg-muted text-foreground font-medium text-sm flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                <span>Save</span>
-              </button>
             </div>
             <p className="text-xs text-muted-foreground text-center">
               Play to listen to what you&apos;ve recorded so far
@@ -733,7 +726,7 @@ export function NewNoteSection() {
   // Fetch free tier note status
   const fetchFreeNoteStatus = useCallback(async () => {
     try {
-      const response = await fetch('/api/subscription/status', {
+      const response = await fetch("/api/subscription/status", {
         cache: "no-store",
       });
       const data = await response.json();
@@ -961,12 +954,12 @@ export function NewNoteSection() {
   };
 
   const cardBase =
-    "group flex w-full items-center gap-4 rounded-xl border border-border bg-card px-5 py-4 text-left transition-colors hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer";
+    "group flex w-full items-center gap-4 rounded-xl border border-border bg-card px-5 py-4 text-left transition-colors hover:bg-primary/5 hover:border-primary/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer";
 
   const iconWrapperDefault =
-    "flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted";
+    "flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted transition-colors group-hover:bg-primary/15 group-hover:text-primary";
   const iconWrapperPrimary =
-    "flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground";
+    "flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors group-hover:bg-primary/90 group-hover:ring-2 group-hover:ring-primary/40";
 
   return (
     <div className="w-full">
@@ -1004,7 +997,7 @@ export function NewNoteSection() {
             </div>
             <HugeiconsIcon
               icon={ArrowRight01Icon}
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+              className="size-4 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-primary"
             />
           </button>
           <DialogContent
@@ -1030,7 +1023,7 @@ export function NewNoteSection() {
             <div className={iconWrapperDefault}>
               <HugeiconsIcon
                 icon={Upload01Icon}
-                className="size-5 text-muted-foreground"
+                className="size-5 text-muted-foreground transition-colors group-hover:text-primary"
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -1043,7 +1036,7 @@ export function NewNoteSection() {
             </div>
             <HugeiconsIcon
               icon={ArrowRight01Icon}
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+              className="size-4 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-primary"
             />
           </button>
           <DialogContent
@@ -1069,7 +1062,7 @@ export function NewNoteSection() {
             <div className={iconWrapperDefault}>
               <HugeiconsIcon
                 icon={File01Icon}
-                className="size-5 text-muted-foreground"
+                className="size-5 text-muted-foreground transition-colors group-hover:text-primary"
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -1082,7 +1075,7 @@ export function NewNoteSection() {
             </div>
             <HugeiconsIcon
               icon={ArrowRight01Icon}
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+              className="size-4 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-primary"
             />
           </button>
           <DialogContent
@@ -1108,7 +1101,7 @@ export function NewNoteSection() {
             <div className={iconWrapperDefault}>
               <HugeiconsIcon
                 icon={Link01Icon}
-                className="size-5 text-muted-foreground"
+                className="size-5 text-muted-foreground transition-colors group-hover:text-primary"
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -1121,7 +1114,7 @@ export function NewNoteSection() {
             </div>
             <HugeiconsIcon
               icon={ArrowRight01Icon}
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+              className="size-4 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-primary"
             />
           </button>
           <DialogContent

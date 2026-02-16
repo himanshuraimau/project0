@@ -208,14 +208,16 @@ export default function NoteHubPage() {
                     : action.href && router.push(action.href)
                 }
                 className={cn(
-                  "flex items-center cursor-pointer gap-4 rounded-lg bg-card p-4 text-left",
-                  "transition-colors hover:border-primary/20 hover:bg-muted/30",
+                  "group flex items-center cursor-pointer gap-4 rounded-lg bg-card p-4 text-left",
+                  "border border-transparent transition-colors",
+                  "hover:bg-primary/5 hover:border-primary/30",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 )}
               >
                 <div
                   className={cn(
-                    "flex size-11 shrink-0 items-center justify-center rounded-[10px] text-white",
+                    "flex size-11 shrink-0 items-center justify-center rounded-[10px] text-white transition-all",
+                    "group-hover:ring-2 group-hover:ring-primary/40 group-hover:ring-offset-2 group-hover:ring-offset-background",
                     action.iconBg
                   )}
                 >

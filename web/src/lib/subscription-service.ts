@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { DodoSubscriptionService } from '@/lib/payments/dodo';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import type { SubscriptionStatus } from '@prisma/client';
+import type { Prisma, SubscriptionStatus } from '@prisma/client';
 
 export class SubscriptionService {
   /**
@@ -118,7 +118,7 @@ export class SubscriptionService {
     additionalData?: {
       currentPeriodStart?: Date;
       currentPeriodEnd?: Date;
-      nextBillingDate?: Date;
+      nextBillingDate?: Date | null;
       cancelledAt?: Date;
       cancelAtPeriodEnd?: boolean;
       productId?: string;
@@ -199,7 +199,7 @@ export class SubscriptionService {
         where: { dodoSubscriptionId },
         data: {
           cancelAtPeriodEnd,
-          cancelledAt: new Date(),
+          cancelledAt: cancelAtPeriodEnd ? new Date() : null,
           ...periodUpdates,
           updatedAt: new Date(),
         },
@@ -399,14 +399,24 @@ export class SubscriptionService {
   /**
    * Replace subscription for upgrade: switch to new Dodo subscription (yearly, payment pending)
    * User keeps access until monthlyPeriodEnd (from old monthly) while yearly payment is pending.
+   * When yearly activates, we cancel the old monthly in Dodo using replacedMonthlyDodoSubscriptionId
+   * so Dodo does not show a leftover monthly renewal (e.g. $19 on next date).
    */
   static async replaceWithPendingYearlyUpgrade(
     userId: string,
     newDodoSubscriptionId: string,
     yearlyProductId: string,
-    monthlyPeriodEnd: Date
+    monthlyPeriodEnd: Date,
+    replacedMonthlyDodoSubscriptionId?: string
   ) {
     try {
+      const metadata: Record<string, unknown> = {
+        upgradeFromMonthly: true,
+        monthlyPeriodEnd: monthlyPeriodEnd.toISOString(),
+      };
+      if (replacedMonthlyDodoSubscriptionId) {
+        metadata.replacedMonthlyDodoSubscriptionId = replacedMonthlyDodoSubscriptionId;
+      }
       const subscription = await prisma.subscription.update({
         where: { userId },
         data: {
@@ -417,7 +427,7 @@ export class SubscriptionService {
           cancelledAt: null,
           currentPeriodEnd: monthlyPeriodEnd, // Keep access until old monthly period ends
           nextBillingDate: null,
-          metadata: { upgradeFromMonthly: true, monthlyPeriodEnd: monthlyPeriodEnd.toISOString() },
+          metadata: metadata as Prisma.InputJsonValue,
           updatedAt: new Date(),
         },
       });
@@ -560,6 +570,7 @@ export class SubscriptionService {
     }
 
     const isActive = subscription.status === 'ACTIVE';
+    const isCancelled = subscription.status === 'CANCELLED';
     const isTrial = this.isInTrialPeriod(subscription);
     const meta = subscription.metadata as { upgradeFromMonthly?: boolean; monthlyPeriodEnd?: string } | null;
     const isPendingUpgrade = !!(subscription.status === 'PENDING' && meta?.upgradeFromMonthly && meta.monthlyPeriodEnd);
@@ -567,8 +578,10 @@ export class SubscriptionService {
     const daysRemaining = monthlyEnd
       ? Math.ceil((monthlyEnd.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
       : this.getDaysUntilEnd(subscription);
+    // Access: active (including cancel-at-period-end) until period end, or cancelled but still within paid period
     const hasAccess =
-      isActive && (!subscription.cancelAtPeriodEnd || (daysRemaining && daysRemaining > 0)) ||
+      (isActive && (!subscription.cancelAtPeriodEnd || (daysRemaining != null && daysRemaining > 0))) ||
+      (isCancelled && (daysRemaining != null && daysRemaining > 0)) ||
       (isPendingUpgrade && monthlyEnd && new Date() < monthlyEnd);
 
     return {

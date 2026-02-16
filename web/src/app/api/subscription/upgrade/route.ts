@@ -120,12 +120,15 @@ export async function POST(request: NextRequest) {
       throw new Error(yearlySubscription.error || 'Failed to create yearly subscription');
     }
 
-    // Step 3: Replace our DB record - we now track the new yearly subscription (PENDING until payment)
+    // Step 3: Replace our DB record - we now track the new yearly subscription (PENDING until payment).
+    // Store the old monthly Dodo subscription ID so we can cancel it in Dodo when yearly activates
+    // (avoids double billing / leftover monthly renewal showing in Dodo).
     await SubscriptionService.replaceWithPendingYearlyUpgrade(
       userId,
       yearlySubscription.subscriptionId!,
       yearlyProductId,
-      monthlyPeriodEnd
+      monthlyPeriodEnd,
+      existingSubscription.dodoSubscriptionId
     );
 
     return NextResponse.json({

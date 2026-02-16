@@ -313,31 +313,39 @@ export class PaymentService {
       );
     }
 
-    // Cancel subscription with Dodo
-    const cancelResult = await DodoSubscriptionService.cancelSubscription(
-      subscription.dodoSubscriptionId,
-      cancelAtPeriodEnd
-    );
+    if (cancelAtPeriodEnd) {
+      // Cancel at period end: subscription stays ACTIVE in Dodo and in our DB until period end.
+      // User keeps access and can reactivate before the period ends.
+      const cancelResult = await DodoSubscriptionService.cancelSubscription(
+        subscription.dodoSubscriptionId,
+        true
+      );
+      if (!cancelResult.success) {
+        throw new Error(cancelResult.error || 'Failed to cancel subscription with Dodo');
+      }
+      const updatedSubscription = await SubscriptionService.updateSubscriptionCancelState(
+        subscription.dodoSubscriptionId,
+        true
+      );
+      return updatedSubscription;
+    }
 
+    // Cancel immediately: no further renewals, no reactivation.
+    const cancelResult = await DodoSubscriptionService.cancelSubscriptionImmediately(
+      subscription.dodoSubscriptionId
+    );
     if (!cancelResult.success) {
       throw new Error(cancelResult.error || 'Failed to cancel subscription with Dodo');
     }
-
-    // Extract period dates from Dodo response
-    const dodoData = cancelResult.data as any;
-    const periodUpdates: { currentPeriodEnd?: Date; nextBillingDate?: Date } = {};
-    if (dodoData?.next_billing_date) {
-      periodUpdates.nextBillingDate = new Date(dodoData.next_billing_date);
-      periodUpdates.currentPeriodEnd = new Date(dodoData.next_billing_date);
-    }
-
-    // Update subscription in database (keep ACTIVE when cancelAtPeriodEnd so user retains access)
-    const updatedSubscription = await SubscriptionService.updateSubscriptionCancelState(
+    const updatedSubscription = await SubscriptionService.updateSubscriptionStatus(
       subscription.dodoSubscriptionId,
-      cancelAtPeriodEnd,
-      periodUpdates
+      'CANCELLED',
+      {
+        nextBillingDate: null,
+        cancelledAt: new Date(),
+        cancelAtPeriodEnd: true,
+      }
     );
-
     return updatedSubscription;
   }
 
@@ -355,10 +363,10 @@ export class PaymentService {
       throw new Error('Only subscriptions cancelled at period end can be reactivated');
     }
 
-    // Update Dodo to remove cancellation
-    const reactivateResult = await DodoSubscriptionService.cancelSubscription(
-      subscription.dodoSubscriptionId,
-      false // Set cancel_at_next_billing_date to false
+    // Update Dodo: only send cancel_at_next_billing_date: false (do not send status).
+    // Dodo only allows updating status to "cancelled", not back to "active".
+    const reactivateResult = await DodoSubscriptionService.reactivateSubscription(
+      subscription.dodoSubscriptionId
     );
 
     if (!reactivateResult.success) {

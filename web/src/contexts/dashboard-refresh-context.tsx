@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
+import React, { createContext, useContext, useCallback, useState, useEffect, useRef } from 'react';
+import { useSession } from '@/lib/auth-client';
 
 interface LoadingNote {
   id: string;
@@ -37,9 +38,19 @@ interface DashboardRefreshContextType {
 
 const DashboardRefreshContext = createContext<DashboardRefreshContextType | null>(null);
 
-const LOADING_NOTES_KEY = 'dashboard_loading_notes';
+const LOADING_NOTES_KEY_PREFIX = 'dashboard_loading_notes_';
+const LEGACY_LOADING_NOTES_KEY = 'dashboard_loading_notes';
+
+function getLoadingNotesStorageKey(userId: string | undefined | null): string | null {
+  if (!userId) return null;
+  return `${LOADING_NOTES_KEY_PREFIX}${userId}`;
+}
 
 export function DashboardRefreshProvider({ children }: { children: React.ReactNode }) {
+  const { data: session, isPending: isSessionPending } = useSession();
+  const userId = session?.user?.id ?? null;
+  const userIdRef = useRef<string | null>(null);
+
   const [refreshHandler, setRefreshHandler] = useState<(() => Promise<void>) | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadingNotes, setLoadingNotes] = useState<LoadingNote[]>([]);
@@ -49,81 +60,70 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
   const [clonedSearchQuery, setClonedSearchQuery] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Load loading notes from localStorage on mount
+  // Load loading notes from localStorage per user (isolated per account)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem(LOADING_NOTES_KEY);
-        if (stored) {
-          const parsedNotes = JSON.parse(stored);
-          const now = Date.now();
-          const oneHourAgo = now - (60 * 60 * 1000);
-          const fiveMinutesAgo = now - (5 * 60 * 1000);
-          const tenMinutesAgo = now - (10 * 60 * 1000);
-          
-          // Filter out:
-          // - Notes older than 1 hour
-          // - Notes in "completed" stage (stale - these should have been removed already)
-          // - Notes that have been "generating" for more than 10 minutes (likely completed/failed)
-          // - Error notes older than 5 minutes (user had time to see them)
-          const validNotes = parsedNotes.filter((note: LoadingNote) => {
-            const activityTimestamp = note.lastProgressAt ?? note.timestamp;
-
-            if (note.timestamp < oneHourAgo) {
-              console.log('[DashboardRefresh] Filtering out old note (>1hr):', note.id);
-              return false;
-            }
-            if (note.stage === 'completed') {
-              console.log('[DashboardRefresh] Filtering out completed note:', note.id);
-              return false;
-            }
-            // Remove notes stuck in generating/processing for >10 minutes
-            if ((note.stage === 'generating' || note.stage === 'processing' || note.stage === 'uploading') && activityTimestamp < tenMinutesAgo) {
-              console.log('[DashboardRefresh] Filtering out stale generating note (>10min):', note.id);
-              return false;
-            }
-            if (note.stage === 'error' && activityTimestamp < fiveMinutesAgo) {
-              console.log('[DashboardRefresh] Filtering out old error note:', note.id);
-              return false;
-            }
-            return true;
-          });
-          
-          if (validNotes.length > 0) {
-            console.log('[DashboardRefresh] Restored loading notes from localStorage:', validNotes.length);
-            setLoadingNotes(validNotes);
-          } else {
-            // Clean up stale localStorage entry
-            console.log('[DashboardRefresh] No valid notes to restore, clearing localStorage');
-            localStorage.removeItem(LOADING_NOTES_KEY);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to restore loading notes:', error);
-      } finally {
-        setHasHydratedLoadingNotes(true);
-      }
-    } else {
+    if (typeof window === 'undefined') {
       setHasHydratedLoadingNotes(true);
-    }
-  }, []);
-
-  // Save loading notes to localStorage whenever they change
-  useEffect(() => {
-    if (!hasHydratedLoadingNotes) {
       return;
     }
-
-    if (typeof window !== 'undefined' && loadingNotes.length > 0) {
-      try {
-        localStorage.setItem(LOADING_NOTES_KEY, JSON.stringify(loadingNotes));
-      } catch (error) {
-        console.error('Failed to save loading notes:', error);
-      }
-    } else if (typeof window !== 'undefined' && loadingNotes.length === 0) {
-      localStorage.removeItem(LOADING_NOTES_KEY);
+    if (isSessionPending) return;
+    const storageKey = getLoadingNotesStorageKey(userId ?? undefined);
+    if (!storageKey) {
+      setLoadingNotes([]);
+      setHasHydratedLoadingNotes(true);
+      userIdRef.current = null;
+      return;
     }
-  }, [loadingNotes, hasHydratedLoadingNotes]);
+    if (userIdRef.current !== null && userIdRef.current !== userId) {
+      setLoadingNotes([]);
+    }
+    userIdRef.current = userId;
+    try {
+      // Remove legacy unscoped key so it is never read again (avoids cross-account leak)
+      localStorage.removeItem(LEGACY_LOADING_NOTES_KEY);
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsedNotes = JSON.parse(stored);
+        const now = Date.now();
+        const oneHourAgo = now - (60 * 60 * 1000);
+        const fiveMinutesAgo = now - (5 * 60 * 1000);
+        const tenMinutesAgo = now - (10 * 60 * 1000);
+        const validNotes = parsedNotes.filter((note: LoadingNote) => {
+          const activityTimestamp = note.lastProgressAt ?? note.timestamp;
+          if (note.timestamp < oneHourAgo) return false;
+          if (note.stage === 'completed') return false;
+          if ((note.stage === 'generating' || note.stage === 'processing' || note.stage === 'uploading') && activityTimestamp < tenMinutesAgo) return false;
+          if (note.stage === 'error' && activityTimestamp < fiveMinutesAgo) return false;
+          return true;
+        });
+        if (validNotes.length > 0) {
+          setLoadingNotes(validNotes);
+        } else {
+          localStorage.removeItem(storageKey);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to restore loading notes:', error);
+    } finally {
+      setHasHydratedLoadingNotes(true);
+    }
+  }, [userId, isSessionPending]);
+
+  // Save loading notes to localStorage whenever they change (user-scoped key)
+  useEffect(() => {
+    if (!hasHydratedLoadingNotes || typeof window === 'undefined') return;
+    const storageKey = getLoadingNotesStorageKey(userId ?? undefined);
+    if (!storageKey) return;
+    try {
+      if (loadingNotes.length > 0) {
+        localStorage.setItem(storageKey, JSON.stringify(loadingNotes));
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+    } catch (error) {
+      console.error('Failed to save loading notes:', error);
+    }
+  }, [loadingNotes, hasHydratedLoadingNotes, userId]);
 
   const addLoadingNote = useCallback((tempId: string, type: 'pdf' | 'audio' | 'audio-record' | 'youtube' | 'webpage', stage: LoadingNote['stage'] = 'uploading') => {
     const now = Date.now();
@@ -210,17 +210,18 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
       console.log('[DashboardRefresh] Note completed, scheduling auto-removal:', tempId);
       
       // Immediately clean up localStorage to prevent restore on navigation
-      if (typeof window !== 'undefined') {
+      const storageKey = typeof window !== 'undefined' ? getLoadingNotesStorageKey(userId ?? undefined) : null;
+      if (storageKey) {
         try {
-          const stored = localStorage.getItem(LOADING_NOTES_KEY);
+          const stored = localStorage.getItem(storageKey);
           if (stored) {
             const parsedNotes = JSON.parse(stored);
             const filtered = parsedNotes.filter((note: LoadingNote) => note.id !== tempId);
             if (filtered.length > 0) {
-              localStorage.setItem(LOADING_NOTES_KEY, JSON.stringify(filtered));
+              localStorage.setItem(storageKey, JSON.stringify(filtered));
               console.log('[DashboardRefresh] Removed completed note from localStorage:', tempId);
             } else {
-              localStorage.removeItem(LOADING_NOTES_KEY);
+              localStorage.removeItem(storageKey);
               console.log('[DashboardRefresh] Cleared localStorage (no notes remaining)');
             }
           }
@@ -228,56 +229,56 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
           console.error('[DashboardRefresh] Failed to clean localStorage:', error);
         }
       }
-      
+
       setTimeout(() => {
         console.log('[DashboardRefresh] Auto-removing completed note:', tempId);
         setLoadingNotes(prev => prev.filter(note => note.id !== tempId));
       }, 500);
     }
-  }, []);
+  }, [userId]);
 
   const removeLoadingNote = useCallback((tempId: string) => {
     console.log(`Removing loading note: ${tempId}`);
-    
-    // Immediately update localStorage before state update
-    if (typeof window !== 'undefined') {
+
+    const storageKey = typeof window !== 'undefined' ? getLoadingNotesStorageKey(userId ?? undefined) : null;
+    if (storageKey) {
       try {
-        const stored = localStorage.getItem(LOADING_NOTES_KEY);
+        const stored = localStorage.getItem(storageKey);
         if (stored) {
           const parsedNotes = JSON.parse(stored);
           const filtered = parsedNotes.filter((note: LoadingNote) => note.id !== tempId);
           if (filtered.length > 0) {
-            localStorage.setItem(LOADING_NOTES_KEY, JSON.stringify(filtered));
+            localStorage.setItem(storageKey, JSON.stringify(filtered));
           } else {
-            localStorage.removeItem(LOADING_NOTES_KEY);
+            localStorage.removeItem(storageKey);
           }
         }
       } catch (error) {
         console.error('[DashboardRefresh] Failed to update localStorage on remove:', error);
       }
     }
-    
+
     setLoadingNotes(prev => {
       const filtered = prev.filter(note => note.id !== tempId);
       console.log(`Loading notes after removal:`, filtered);
       return filtered;
     });
-  }, []);
+  }, [userId]);
 
   // Add function to clear all loading notes (useful for debugging)
   const clearAllLoadingNotes = useCallback(() => {
     console.log('Clearing all loading notes');
     setLoadingNotes([]);
-    
-    // Also clear localStorage
-    if (typeof window !== 'undefined') {
+
+    const storageKey = typeof window !== 'undefined' ? getLoadingNotesStorageKey(userId ?? undefined) : null;
+    if (storageKey) {
       try {
-        localStorage.removeItem(LOADING_NOTES_KEY);
+        localStorage.removeItem(storageKey);
       } catch (error) {
         console.error('[DashboardRefresh] Failed to clear localStorage:', error);
       }
     }
-  }, []);
+  }, [userId]);
 
   const refreshNotes = useCallback(async () => {
     if (refreshHandler && !isRefreshing) {

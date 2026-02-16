@@ -165,6 +165,70 @@ export class DodoSubscriptionService {
   }
 
   /**
+   * Reactivate a subscription that is "cancel at period end" (still active in Dodo).
+   * Only sends cancel_at_next_billing_date: false. Does NOT send status - Dodo's API
+   * only allows updating status TO "cancelled" by the merchant, not back to "active"
+   * (422: "Status can only be updated to Cancelled by the merchant").
+   * If the subscription is already fully cancelled in Dodo, it cannot be reactivated
+   * via API; the user must create a new subscription.
+   */
+  static async reactivateSubscription(
+    subscriptionId: string
+  ): Promise<SubscriptionManagementResult> {
+    try {
+      const subscription = await this.getSubscription(subscriptionId);
+      if (subscription?.status === 'cancelled') {
+        return {
+          success: false,
+          error: 'This subscription is already cancelled and cannot be reactivated. Please subscribe again to continue.',
+        };
+      }
+      const client = this.getClient();
+      const updated = await client.subscriptions.update(subscriptionId, {
+        cancel_at_next_billing_date: false,
+      });
+      return {
+        success: true,
+        subscriptionId,
+        data: updated,
+      };
+    } catch (error) {
+      console.error('Failed to reactivate Dodo subscription:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Cancel a subscription immediately in Dodo (no further renewals, no next billing shown).
+   * Use when e.g. user upgraded to yearly and the old monthly subscription must be fully
+   * cancelled so Dodo does not show a leftover monthly renewal.
+   */
+  static async cancelSubscriptionImmediately(
+    subscriptionId: string
+  ): Promise<SubscriptionManagementResult> {
+    try {
+      const client = this.getClient();
+      const updated = await client.subscriptions.update(subscriptionId, {
+        status: 'cancelled',
+      });
+      return {
+        success: true,
+        subscriptionId,
+        data: updated,
+      };
+    } catch (error) {
+      console.error('Failed to cancel Dodo subscription immediately:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
    * List all subscriptions for debugging/admin purposes
    */
   static async listSubscriptions(params?: {

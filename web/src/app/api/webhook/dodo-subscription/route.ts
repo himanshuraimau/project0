@@ -177,6 +177,31 @@ async function handleSubscriptionCreated(payload: any) {
   console.log('Subscription created:', subscriptionId);
 }
 
+/**
+ * When a yearly subscription (from monthly→yearly upgrade) becomes active, cancel the old
+ * monthly subscription in Dodo immediately so Dodo does not show a leftover monthly renewal.
+ */
+async function cancelReplacedMonthlySubscriptionIfAny(subscription: {
+  dodoSubscriptionId: string;
+  metadata: unknown;
+}): Promise<void> {
+  const metadata = (subscription.metadata as Record<string, unknown>) || {};
+  const replacedMonthlyDodoId = metadata.replacedMonthlyDodoSubscriptionId as string | undefined;
+  if (!replacedMonthlyDodoId) return;
+  try {
+    const cancelResult = await DodoSubscriptionService.cancelSubscriptionImmediately(replacedMonthlyDodoId);
+    if (cancelResult.success) {
+      console.log('Cancelled old monthly subscription in Dodo after yearly upgrade:', replacedMonthlyDodoId);
+    } else {
+      console.warn('Could not cancel old monthly subscription in Dodo:', cancelResult.error);
+    }
+  } catch (err) {
+    console.error('Error cancelling old monthly subscription in Dodo:', err);
+  }
+  const { replacedMonthlyDodoSubscriptionId: _, ...restMeta } = metadata;
+  await SubscriptionService.updateSubscriptionMetadata(subscription.dodoSubscriptionId, restMeta);
+}
+
 async function handleSubscriptionActivated(payload: any) {
   const subscriptionId = payload.data.subscription_id;
   const subscription = await SubscriptionService.getSubscriptionByDodoId(subscriptionId);
@@ -200,6 +225,8 @@ async function handleSubscriptionActivated(payload: any) {
       ? new Date(payload.data.next_billing_date)
       : thirtyDaysFromNow,
   });
+
+  await cancelReplacedMonthlySubscriptionIfAny(subscription);
 
   console.log('Subscription activated:', subscriptionId);
 }
@@ -231,6 +258,7 @@ async function handleSubscriptionUpdated(payload: any) {
               ? new Date(payload.data.next_billing_date)
               : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           });
+          await cancelReplacedMonthlySubscriptionIfAny(subscription);
           console.log('Subscription updated: PENDING -> ACTIVE:', subscriptionId);
         } else {
           // Just update status

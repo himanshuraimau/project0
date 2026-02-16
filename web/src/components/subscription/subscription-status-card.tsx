@@ -55,6 +55,9 @@ export function SubscriptionStatusCard() {
   const [isCancellingPending, setIsCancellingPending] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isReactivating, setIsReactivating] = useState(false);
+  const [showReactivateConfirm, setShowReactivateConfirm] = useState(false);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
 
   useEffect(() => {
     fetchSubscriptionStatus();
@@ -202,6 +205,27 @@ export function SubscriptionStatusCard() {
   };
 
   const handleReactivateSubscription = async () => {
+    setIsReactivating(true);
+    try {
+      const response = await fetch('/api/subscription/reactivate', { method: 'POST' });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setShowReactivateConfirm(false);
+        toast.success(data.message || 'Subscription reactivated. Your plan will continue.');
+        fetchSubscriptionStatus();
+        window.dispatchEvent(new CustomEvent('subscription-updated'));
+      } else {
+        toast.error(data.error || 'Failed to reactivate subscription');
+      }
+    } catch (err) {
+      toast.error('Failed to reactivate subscription');
+    } finally {
+      setIsReactivating(false);
+    }
+  };
+
+  const handleOpenBillingPortal = async () => {
+    setIsOpeningPortal(true);
     try {
       const response = await fetch('/api/subscription/portal');
       const data = await response.json();
@@ -213,6 +237,8 @@ export function SubscriptionStatusCard() {
       }
     } catch (err) {
       toast.error('Failed to open billing portal');
+    } finally {
+      setIsOpeningPortal(false);
     }
   };
 
@@ -347,13 +373,15 @@ export function SubscriptionStatusCard() {
           </div>
         )}
 
-        {subscription.cancelAtPeriodEnd && (
+        {(subscription.cancelAtPeriodEnd || subscription.status === 'CANCELLED') && (
           <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
             <p className="font-medium text-lg text-amber-600 dark:text-amber-400">
               Subscription cancelled
             </p>
             <p className="text-base text-muted-foreground mt-2">
-              Your subscription will end on {formatDate(subscription.currentPeriodEnd) ?? formatDate(subscription.nextBillingDate) ?? 'the end of your billing period'}
+              You keep access until {formatDate(subscription.currentPeriodEnd) ?? formatDate(subscription.nextBillingDate) ?? 'the end of your billing period'}.
+              {subscription.status === 'CANCELLED' && ' No future charges.'}
+              {subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && ' You can reactivate below to keep your plan after this period.'}
             </p>
           </div>
         )}
@@ -431,15 +459,15 @@ export function SubscriptionStatusCard() {
           )}
           {subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && (
             <Button
-              onClick={handleReactivateSubscription}
+              onClick={() => setShowReactivateConfirm(true)}
               variant="outline"
               className="rounded-xl h-12 px-5 text-base font-semibold"
-              disabled={isRetryingPayment || isCancellingPending || isUpgrading}
+              disabled={isRetryingPayment || isCancellingPending || isUpgrading || isReactivating}
             >
-              Reactivate subscription
+              {isReactivating ? 'Reactivating…' : 'Reactivate subscription'}
             </Button>
           )}
-          {!subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && (
+          {subscription.status === 'ACTIVE' && !subscription.cancelAtPeriodEnd && (
             <Button
               onClick={handleCancelSubscription}
               variant="destructive"
@@ -449,7 +477,45 @@ export function SubscriptionStatusCard() {
               Cancel
             </Button>
           )}
+          {subscription.status === 'ACTIVE' && (
+            <Button
+              onClick={handleOpenBillingPortal}
+              variant="outline"
+              className="rounded-xl h-12 px-5 text-base font-semibold"
+              disabled={isOpeningPortal || isRetryingPayment || isCancellingPending}
+            >
+              {isOpeningPortal ? 'Opening…' : 'Billing Portal'}
+            </Button>
+          )}
         </div>
+
+        {subscription.status === 'ACTIVE' && (
+          <Dialog open={showReactivateConfirm} onOpenChange={setShowReactivateConfirm}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Reactivate subscription?</DialogTitle>
+                <DialogDescription>
+                  Your plan will continue and you will be charged at the next billing date. You can cancel again anytime.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowReactivateConfirm(false)}
+                  disabled={isReactivating}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleReactivateSubscription}
+                  disabled={isReactivating}
+                >
+                  {isReactivating ? 'Reactivating…' : 'Reactivate'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
 
         {subscription.status === 'PENDING' && (
           <Dialog open={showPendingCancelDialog} onOpenChange={setShowPendingCancelDialog}>

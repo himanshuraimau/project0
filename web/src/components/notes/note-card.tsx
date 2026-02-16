@@ -24,7 +24,10 @@ function getTypeIcon(note: NotesNoteWithTranscript) {
   const type = note.transcript?.type;
   if (type === "audio") {
     const name = note.transcript?.originalName ?? "";
-    return name.toLowerCase().includes("recorded") ? Mic01Icon : Upload01Icon;
+    const isRecorded =
+      name.toLowerCase().includes("recorded") ||
+      name.toLowerCase().includes("recording");
+    return isRecorded ? Mic01Icon : Upload01Icon;
   }
   switch (type) {
     case "pdf":
