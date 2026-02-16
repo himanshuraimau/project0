@@ -12,6 +12,33 @@ export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const MIME_TO_EXTENSION: Record<string, string> = {
+  "audio/mpeg": "mp3",
+  "audio/mp3": "mp3",
+  "audio/mpga": "mp3",
+  "audio/wav": "wav",
+  "audio/wave": "wav",
+  "audio/x-wav": "wav",
+  "audio/flac": "flac",
+  "audio/m4a": "m4a",
+  "audio/x-m4a": "m4a",
+  "audio/ogg": "ogg",
+  "audio/oga": "oga",
+  "audio/webm": "webm",
+  "audio/mp4": "mp4",
+  "audio/aac": "aac",
+};
+
+function normalizeAudioMimeType(mimeType: string): string {
+  const base = mimeType.split(";")[0] ?? "";
+  return base.trim().toLowerCase();
+}
+
+function extractExtension(value: string): string | null {
+  const ext = value.split(".").pop()?.trim().toLowerCase();
+  return ext && ext.length > 0 ? ext : null;
+}
+
 export async function POST(req: NextRequest) {
   let progressJobId = "";
   const publishProgress = async (
@@ -74,7 +101,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const contentType = response.headers.get("content-type") ?? "audio/mpeg";
+    const rawContentType = response.headers.get("content-type") ?? "audio/mpeg";
+    const normalizedContentType = normalizeAudioMimeType(rawContentType);
     const buffer = await response.arrayBuffer();
     const size = buffer.byteLength;
 
@@ -89,9 +117,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const ext = fileName.includes(".") ? fileName.split(".").pop() : "mp3";
-    const safeName = fileName.includes(".") ? fileName : `${fileName}.${ext}`;
-    const file = new File([buffer], safeName, { type: contentType });
+    const fileNameExt = extractExtension(fileName);
+    const urlPathExt = extractExtension(new URL(audioUrl).pathname);
+    const mimeExt = MIME_TO_EXTENSION[normalizedContentType];
+    const finalExt = fileNameExt ?? urlPathExt ?? mimeExt ?? "mp3";
+    const baseName = fileName.replace(/\.[^/.]+$/, "") || "uploaded-audio";
+    const safeName = `${baseName}.${finalExt}`;
+    const file = new File([buffer], safeName, {
+      type: normalizedContentType || "audio/mpeg",
+    });
 
     const validation = validateAudioFile(file);
     if (!validation.ok) {

@@ -10,6 +10,7 @@ const openai = new OpenAI({
 const ALLOWED_MIME_TYPES = [
   "audio/mpeg",
   "audio/mp3",
+  "audio/mpga",
   "audio/wav",
   "audio/wave",
   "audio/x-wav",
@@ -17,18 +18,18 @@ const ALLOWED_MIME_TYPES = [
   "audio/m4a",
   "audio/x-m4a",
   "audio/ogg",
+  "audio/oga",
   "audio/webm",
   "audio/mp4",
   "audio/aac",
-  "audio/webm;codecs=opus",
-  "audio/ogg;codecs=opus",
 ];
 
-const ALLOWED_EXTENSIONS = ["mp3", "wav", "flac", "m4a", "ogg", "webm", "mp4", "aac"];
+const ALLOWED_EXTENSIONS = ["mp3", "wav", "flac", "m4a", "ogg", "oga", "webm", "mp4", "aac", "mpeg", "mpga"];
 
 const MIME_TO_EXTENSION: Record<string, string> = {
   "audio/mpeg": "mp3",
   "audio/mp3": "mp3",
+  "audio/mpga": "mp3",
   "audio/wav": "wav",
   "audio/wave": "wav",
   "audio/x-wav": "wav",
@@ -36,14 +37,18 @@ const MIME_TO_EXTENSION: Record<string, string> = {
   "audio/m4a": "m4a",
   "audio/x-m4a": "m4a",
   "audio/ogg": "ogg",
-  "audio/ogg;codecs=opus": "ogg",
+  "audio/oga": "oga",
   "audio/webm": "webm",
-  "audio/webm;codecs=opus": "webm",
   "audio/mp4": "mp4",
   "audio/aac": "aac",
 };
 
 export const MAX_AUDIO_FILE_SIZE = 25 * 1024 * 1024; // 25MB (Whisper limit)
+
+function normalizeAudioMimeType(mimeType: string): string {
+  const base = mimeType.split(";")[0] ?? "";
+  return base.trim().toLowerCase();
+}
 
 export function validateAudioFile(file: File): { ok: true } | { ok: false; status: number; body: object } {
   if (!file || !(file instanceof File)) {
@@ -65,7 +70,8 @@ export function validateAudioFile(file: File): { ok: true } | { ok: false; statu
   }
 
   const fileExtension = file.name.split(".").pop()?.toLowerCase();
-  const isValidMime = ALLOWED_MIME_TYPES.includes(file.type);
+  const normalizedMimeType = normalizeAudioMimeType(file.type);
+  const isValidMime = ALLOWED_MIME_TYPES.includes(normalizedMimeType);
   const isValidExt = fileExtension && ALLOWED_EXTENSIONS.includes(fileExtension);
   if (!isValidMime && !isValidExt) {
     return {
@@ -121,7 +127,8 @@ export async function transcribeAudioAndCreateNote(
     });
   };
 
-  let transcriptionExtension = MIME_TO_EXTENSION[audioFile.type.toLowerCase()];
+  const normalizedMimeType = normalizeAudioMimeType(audioFile.type);
+  let transcriptionExtension = MIME_TO_EXTENSION[normalizedMimeType];
   if (!transcriptionExtension) {
     const parts = audioFile.name.split(".");
     transcriptionExtension = parts[parts.length - 1]?.toLowerCase() ?? "mp3";
@@ -132,7 +139,7 @@ export async function transcribeAudioAndCreateNote(
     : `audio.${transcriptionExtension}`;
 
   const audioFileWithName = new File([await audioFile.arrayBuffer()], properFileName, {
-    type: audioFile.type,
+    type: normalizedMimeType || "audio/mpeg",
   });
 
   await publishProgress(40, "processing", "Transcribing audio...");
