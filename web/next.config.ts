@@ -60,6 +60,7 @@ const nextConfig: NextConfig = {
                   "script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
                   "https://clerk.com https://*.clerk.accounts.dev https://*.clerk.dev " +
                   "https://challenges.cloudflare.com https://static.cloudflareinsights.com " +
+                  "https://vercel.live " +
                   "https://www.youtube.com https://s.ytimg.com https://www.youtube.com/iframe_api " +
                   "http://localhost:* ws://localhost:*; " + // Allow dev server
                   "style-src 'self' 'unsafe-inline' " +
@@ -72,6 +73,7 @@ const nextConfig: NextConfig = {
                   "connect-src 'self' " +
                   "https://api.clerk.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.dev " +
                   "https://challenges.cloudflare.com https://cloudflareinsights.com " +
+                  "https://vercel.live " +
                   "https://www.youtube.com https://s.ytimg.com " +
                   "https://utfs.io https://api.uploadthing.com " + // UploadThing API
                   "https://*.amazonaws.com " + // AWS S3 buckets for audio uploads

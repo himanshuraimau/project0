@@ -341,7 +341,28 @@ function AudioRecorderModal({
     onClose();
 
     try {
-      const ext = blobToUse.type?.includes("ogg") ? "ogg" : "webm";
+      const normalizedMimeType = (blobToUse.type || "").toLowerCase();
+      let ext = "webm";
+      if (normalizedMimeType.includes("ogg")) {
+        ext = "ogg";
+      } else if (
+        normalizedMimeType.includes("mp4") ||
+        normalizedMimeType.includes("m4a")
+      ) {
+        ext = "mp4";
+      } else if (
+        normalizedMimeType.includes("mpeg") ||
+        normalizedMimeType.includes("mp3") ||
+        normalizedMimeType.includes("mpga")
+      ) {
+        ext = "mp3";
+      } else if (normalizedMimeType.includes("wav")) {
+        ext = "wav";
+      } else if (normalizedMimeType.includes("flac")) {
+        ext = "flac";
+      } else if (normalizedMimeType.includes("aac")) {
+        ext = "aac";
+      }
       const fileName = `recording-${Date.now()}.${ext}`;
       const file = new File([blobToUse], fileName, {
         type: blobToUse.type || "audio/webm",
@@ -424,7 +445,14 @@ function AudioRecorderModal({
             ...responseData.transcript,
             id: responseData.transcript?.id || tempId,
           },
-          note: responseData.note || {},
+          note: responseData.note
+            ? responseData.note
+            : {
+                error: responseData.noteError || "Failed to generate notes",
+                message:
+                  responseData.noteError ||
+                  "Note generation failed. You can retry from the transcript.",
+              },
         });
 
         // Wait for database transaction to commit before refreshing UI
@@ -783,26 +811,60 @@ export function NewNoteSection() {
     setShowLinkDialog(false);
   };
 
+  const parseNoteResult = (
+    note: unknown,
+  ): { id: string | null; error: string | null; message: string | null } => {
+    if (!note || typeof note !== "object") {
+      return { id: null, error: null, message: null };
+    }
+
+    const noteObj = note as {
+      id?: unknown;
+      error?: unknown;
+      message?: unknown;
+      note?: { id?: unknown };
+      data?: { id?: unknown };
+    };
+
+    const directId =
+      typeof noteObj.id === "string" && noteObj.id.trim().length > 0
+        ? noteObj.id
+        : null;
+    const nestedId =
+      typeof noteObj.note?.id === "string" && noteObj.note.id.trim().length > 0
+        ? noteObj.note.id
+        : typeof noteObj.data?.id === "string" && noteObj.data.id.trim().length > 0
+          ? noteObj.data.id
+          : null;
+
+    const error =
+      typeof noteObj.error === "string" && noteObj.error.trim().length > 0
+        ? noteObj.error
+        : null;
+    const message =
+      typeof noteObj.message === "string" && noteObj.message.trim().length > 0
+        ? noteObj.message
+        : null;
+
+    return { id: directId ?? nestedId, error, message };
+  };
+
   const handleAudioTranscriptionComplete = (result: {
     transcript: { id: string; content: string };
-    note: {
-      id?: string;
-      title?: string;
-      content?: string;
-      error?: string;
-      message?: string;
-    };
+    note: unknown;
   }) => {
     setShowAudioDialog(false);
 
-    if (result.note?.error) {
+    const parsed = parseNoteResult(result.note);
+
+    if (parsed.error) {
       toast.error("🎵 Audio transcribed but note generation failed", {
         description:
-          result.note.message ||
+          parsed.message ||
           "Audio was saved. You can retry generating notes from the transcript.",
         duration: 6000,
       });
-    } else if (result.note && "id" in result.note) {
+    } else if (parsed.id) {
       toast.success("🎵 Audio processed successfully! Notes generated.", {
         description: "Audio transcribed and notes created",
         duration: 4000,
@@ -825,6 +887,13 @@ export function NewNoteSection() {
           "Audio was saved but notes couldn't be generated. You can retry from the transcript.",
         duration: 5000,
       });
+      // Keep UI in sync even when note payload shape is unexpected.
+      setTimeout(() => {
+        triggerRefresh();
+      }, 400);
+      setTimeout(() => {
+        refreshNotes();
+      }, 1000);
     }
   };
 
@@ -834,24 +903,20 @@ export function NewNoteSection() {
 
   const handleRecordAudioComplete = (result: {
     transcript: { id: string; content: string };
-    note: {
-      id?: string;
-      title?: string;
-      content?: string;
-      error?: string;
-      message?: string;
-    };
+    note: unknown;
   }) => {
     setShowRecordAudioDialog(false);
 
-    if (result.note?.error) {
+    const parsed = parseNoteResult(result.note);
+
+    if (parsed.error) {
       toast.error("🎤 Audio recorded but note generation failed", {
         description:
-          result.note.message ||
+          parsed.message ||
           "Recording was saved. You can retry generating notes from the transcript.",
         duration: 6000,
       });
-    } else if (result.note && "id" in result.note) {
+    } else if (parsed.id) {
       toast.success("🎤 Audio recorded successfully! Notes generated.", {
         description: "Recording transcribed and notes created",
         duration: 4000,
@@ -874,6 +939,13 @@ export function NewNoteSection() {
           "Recording was saved but notes couldn't be generated. You can retry from the transcript.",
         duration: 5000,
       });
+      // Keep UI in sync even when note payload shape is unexpected.
+      setTimeout(() => {
+        triggerRefresh();
+      }, 400);
+      setTimeout(() => {
+        refreshNotes();
+      }, 1000);
     }
   };
 

@@ -114,6 +114,7 @@ export async function proxy(req: NextRequest) {
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
     "https://challenges.cloudflare.com https://static.cloudflareinsights.com " +
+    "https://vercel.live " +
     "https://www.youtube.com https://s.ytimg.com https://www.youtube.com/iframe_api; " +
     "style-src 'self' 'unsafe-inline'; " +
     "img-src 'self' data: https: " +
@@ -122,6 +123,7 @@ export async function proxy(req: NextRequest) {
     "font-src 'self' data:; " +
     "connect-src 'self' " +
     "https://challenges.cloudflare.com https://cloudflareinsights.com " +
+    "https://vercel.live " +
     "https://www.youtube.com https://s.ytimg.com " +
     "https://utfs.io https://api.uploadthing.com " +
     "https://*.amazonaws.com " + // AWS S3 buckets for audio uploads
