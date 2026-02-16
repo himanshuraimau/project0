@@ -34,16 +34,21 @@ export interface NotesListRef {
 export const NotesList = forwardRef<NotesListRef, NotesListProps>(
   ({ searchQuery, transcriptId, limit, folderId }, ref) => {
     const { getNotes, loading, error } = useNotes();
-    const { loadingNotes, removeLoadingNote } = useDashboardRefresh();
+    const { loadingNotes, removeLoadingNote, updateLoadingNote } =
+      useDashboardRefresh();
     const [notes, setNotes] = useState<NotesNoteWithTranscript[]>([]);
     const [hasCompletedInitialFetch, setHasCompletedInitialFetch] =
       useState(false);
 
     type DashboardLoadingNote = {
       id: string;
+      type: "pdf" | "audio" | "audio-record" | "youtube" | "webpage";
       noteId?: string;
       transcriptId?: string;
       timestamp: number;
+      progress?: number;
+      message?: string;
+      lastProgressAt?: number;
       stage: "uploading" | "processing" | "generating" | "completed" | "error";
       rehydrated?: boolean;
     };
@@ -95,9 +100,22 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
         matchingSets: MatchingSets,
         now: number
       ): string | null => {
-        const thirtyMinutesAgo = now - 30 * 60 * 1000;
+        const activityTimestamp =
+          loadingNote.lastProgressAt ?? loadingNote.timestamp;
+        const tenMinutesAgo = now - 10 * 60 * 1000;
+        const fiveMinutesAgo = now - 5 * 60 * 1000;
 
-        if (loadingNote.timestamp < thirtyMinutesAgo) return "stale";
+        if (
+          (loadingNote.stage === "uploading" ||
+            loadingNote.stage === "processing" ||
+            loadingNote.stage === "generating") &&
+          activityTimestamp < tenMinutesAgo
+        ) {
+          return "stale";
+        }
+        if (loadingNote.stage === "error" && activityTimestamp < fiveMinutesAgo) {
+          return "stale";
+        }
         if (loadingNote.stage === "completed") return "completed";
         if (loadingNote.noteId && matchingSets.noteIds.has(loadingNote.noteId)) {
           return "noteId";
@@ -197,6 +215,141 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       hasCompletedInitialFetch,
       loadingNotes,
       notes,
+    ]);
+
+    const recoveryStateRef = useRef<
+      Map<string, { attempts: number; lastAttemptAt: number }>
+    >(new Map());
+
+    const resumeStalledYoutubeGeneration = useCallback(
+      async (loadingNote: DashboardLoadingNote) => {
+        const safeProgress =
+          typeof loadingNote.progress === "number" &&
+          Number.isFinite(loadingNote.progress)
+            ? Math.max(0, Math.min(100, Math.round(loadingNote.progress)))
+            : 55;
+
+        updateLoadingNote(loadingNote.id, {
+          stage: "generating",
+          progress: Math.max(safeProgress, 60),
+          message: "Resuming note generation...",
+        });
+
+        const response = await fetch("/api/notes/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            transcriptId: loadingNote.transcriptId,
+            progressJobId: loadingNote.id,
+          }),
+        });
+
+        const result = await response.json().catch(() => null);
+
+        if (response.ok && result?.success && result?.data?.id) {
+          updateLoadingNote(loadingNote.id, {
+            transcriptId:
+              loadingNote.transcriptId ??
+              (typeof result.data.transcriptId === "string"
+                ? result.data.transcriptId
+                : undefined),
+            noteId: result.data.id,
+            stage: "completed",
+            progress: 100,
+            message: "Notes generated successfully",
+          });
+          return;
+        }
+
+        if (response.status === 404) {
+          // Transcript may still be in-flight. Keep card active and retry later.
+          return;
+        }
+
+        if (response.status === 403) {
+          updateLoadingNote(loadingNote.id, {
+            stage: "error",
+            error:
+              result?.message ||
+              result?.error ||
+              "Unable to continue note generation",
+            message:
+              result?.message ||
+              result?.error ||
+              "Unable to continue note generation",
+          });
+          return;
+        }
+
+        console.warn(
+          "[NotesList] Auto-resume failed for loading note:",
+          loadingNote.id,
+          result
+        );
+      },
+      [updateLoadingNote]
+    );
+
+    useEffect(() => {
+      const activeIds = new Set(activeLoadingNotes.map((note) => note.id));
+      recoveryStateRef.current.forEach((_, noteId) => {
+        if (!activeIds.has(noteId)) {
+          recoveryStateRef.current.delete(noteId);
+        }
+      });
+    }, [activeLoadingNotes]);
+
+    useEffect(() => {
+      if (!hasCompletedInitialFetch || activeLoadingNotes.length === 0) {
+        return;
+      }
+
+      const now = Date.now();
+      const inactivityThresholdMs = 30_000;
+      const attemptCooldownMs = 30_000;
+      const maxAttempts = 4;
+
+      activeLoadingNotes.forEach((loadingNote) => {
+        const candidate = loadingNote as DashboardLoadingNote;
+        if (candidate.type !== "youtube") return;
+        if (!candidate.rehydrated) return;
+        if (candidate.stage === "error" || candidate.stage === "completed") return;
+
+        const progress =
+          typeof candidate.progress === "number" &&
+          Number.isFinite(candidate.progress)
+            ? candidate.progress
+            : 0;
+
+        // 55% is the transcript-complete handoff. If we are still below note-generation
+        // progress after refresh and no activity arrives, re-trigger generation.
+        if (progress >= 65) return;
+
+        const activityTimestamp = candidate.lastProgressAt ?? candidate.timestamp;
+        if (now - activityTimestamp < inactivityThresholdMs) return;
+
+        const recoveryState = recoveryStateRef.current.get(candidate.id) ?? {
+          attempts: 0,
+          lastAttemptAt: 0,
+        };
+
+        if (recoveryState.attempts >= maxAttempts) return;
+        if (now - recoveryState.lastAttemptAt < attemptCooldownMs) return;
+
+        recoveryStateRef.current.set(candidate.id, {
+          attempts: recoveryState.attempts + 1,
+          lastAttemptAt: now,
+        });
+
+        void resumeStalledYoutubeGeneration(candidate).then(() => {
+          void loadNotes();
+        });
+      });
+    }, [
+      activeLoadingNotes,
+      hasCompletedInitialFetch,
+      loadNotes,
+      resumeStalledYoutubeGeneration,
     ]);
 
     // Recovery polling: if a completion socket event is missed, detect DB note creation and clear loading card

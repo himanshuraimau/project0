@@ -27,7 +27,9 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request);
     const body: GenerateNoteRequest = await request.json();
-    const { transcriptId, folderId } = body;
+    const folderId = body.folderId;
+    let transcriptId =
+      typeof body.transcriptId === "string" ? body.transcriptId.trim() : "";
     progressJobId =
       typeof body.progressJobId === "string" ? body.progressJobId.trim() : "";
 
@@ -39,10 +41,64 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 401 });
     }
 
+    // Recovery path: resolve transcript via persisted progressJobId metadata
+    if (!transcriptId && progressJobId) {
+      try {
+        const transcriptByPath = await prisma.transcript.findFirst({
+          where: {
+            userId,
+            metadata: {
+              path: ["progressJobId"],
+              equals: progressJobId,
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          select: { id: true },
+        });
+        transcriptId = transcriptByPath?.id ?? "";
+      } catch (lookupError) {
+        // Fallback for DB engines/providers where JSON path filter support differs.
+        console.warn(
+          "[notes/generate] JSON path lookup failed, using fallback scan:",
+          lookupError
+        );
+        const candidates = await prisma.transcript.findMany({
+          where: { userId },
+          orderBy: { createdAt: "desc" },
+          take: 50,
+          select: { id: true, metadata: true },
+        });
+        const matched = candidates.find((candidate) => {
+          if (
+            !candidate.metadata ||
+            typeof candidate.metadata !== "object" ||
+            Array.isArray(candidate.metadata)
+          ) {
+            return false;
+          }
+          return (
+            (candidate.metadata as Record<string, unknown>).progressJobId ===
+            progressJobId
+          );
+        });
+        transcriptId = matched?.id ?? "";
+      }
+    }
+
+    if (!transcriptId && progressJobId) {
+      const errorResponse: ApiErrorResponse = {
+        success: false,
+        error: "Transcript not found for progress job",
+        message:
+          "Transcript is not ready yet. Please retry in a few seconds.",
+      };
+      return NextResponse.json(errorResponse, { status: 404 });
+    }
+
     if (!transcriptId) {
       const errorResponse: ApiErrorResponse = {
         success: false,
-        error: 'Transcript ID is required'
+        error: "Transcript ID is required",
       };
       return NextResponse.json(errorResponse, { status: 400 });
     }

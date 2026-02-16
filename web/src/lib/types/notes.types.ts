@@ -82,7 +82,7 @@ export interface UpdateNoteRequest {
 export type NoteType = 'summary' | 'detailed' | 'action-items' | 'technical' | 'executive';
 
 export interface GenerateNoteRequest {
-  transcriptId: string;
+  transcriptId?: string;
   noteType?: NoteType;
   folderId?: string;
   progressJobId?: string;
