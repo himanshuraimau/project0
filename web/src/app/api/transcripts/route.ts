@@ -3,6 +3,8 @@ import { TranscriptService } from '@/lib/transcript-service';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiResponse, ApiSuccessResponse, ApiErrorResponse, YouTubeProcessRequest } from '@/lib/types';
 import { FeatureGateService } from '@/lib/feature-gate-service';
+import { noteProgressManager } from '@/lib/note-progress-manager';
+import { prisma } from '@/lib/prisma';
 
 const transcriptService = new TranscriptService();
 
@@ -41,6 +43,21 @@ export async function GET(request: NextRequest) {
 
 // POST /api/transcripts - Create a new transcript from YouTube URL
 export async function POST(request: NextRequest) {
+    let progressJobId = '';
+    const publishProgress = async (
+      progress: number,
+      stage: "uploading" | "processing" | "generating" | "completed" | "error",
+      message: string
+    ) => {
+      if (!progressJobId) return;
+      await noteProgressManager.publish({
+        jobId: progressJobId,
+        progress,
+        stage,
+        message,
+      });
+    };
+
     try {
         const userId = await getUserFromAuth(request);
 
@@ -54,6 +71,8 @@ export async function POST(request: NextRequest) {
 
         const body: YouTubeProcessRequest = await request.json();
         const { url: videoUrl } = body;
+        progressJobId = typeof body.progressJobId === 'string' ? body.progressJobId.trim() : '';
+        const shouldContinueToNoteGeneration = body.generateNotes !== false;
 
         if (!videoUrl) {
             const errorResponse: ApiErrorResponse = {
@@ -62,6 +81,8 @@ export async function POST(request: NextRequest) {
             };
             return NextResponse.json(errorResponse, { status: 400 });
         }
+
+        await publishProgress(20, "processing", "Fetching YouTube transcript...");
 
         // Validate YouTube URL format
         const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)/;
@@ -95,6 +116,31 @@ export async function POST(request: NextRequest) {
             userId
         );
 
+        if (progressJobId) {
+          try {
+            const metadata =
+              transcript.metadata &&
+              typeof transcript.metadata === 'object' &&
+              !Array.isArray(transcript.metadata)
+                ? (transcript.metadata as Record<string, unknown>)
+                : {};
+
+            const nextMetadata = { ...metadata, progressJobId };
+            await prisma.transcript.update({
+              where: { id: transcript.id },
+              data: { metadata: nextMetadata },
+            });
+            (transcript as typeof transcript & { metadata?: Record<string, unknown> }).metadata = nextMetadata;
+          } catch (metadataError) {
+            console.error('Failed to persist progressJobId on transcript metadata:', metadataError);
+          }
+        }
+
+        await publishProgress(55, "generating", "Transcript ready. Generating notes...");
+        if (!shouldContinueToNoteGeneration) {
+          await publishProgress(100, "completed", "Transcript generated successfully");
+        }
+
         // Increment video processing usage counter after successful processing
         await FeatureGateService.incrementVideoUsage(userId);
 
@@ -107,6 +153,11 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
         console.error('YouTube transcript processing error:', error);
+        await publishProgress(
+          0,
+          "error",
+          error instanceof Error ? error.message : "Failed to process YouTube video"
+        );
         
         // Handle specific error types
         if (error instanceof Error) {

@@ -4,6 +4,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   useRef,
   forwardRef,
   useImperativeHandle,
@@ -35,8 +36,25 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
     const { getNotes, loading, error } = useNotes();
     const { loadingNotes, removeLoadingNote } = useDashboardRefresh();
     const [notes, setNotes] = useState<NotesNoteWithTranscript[]>([]);
+    const [hasCompletedInitialFetch, setHasCompletedInitialFetch] =
+      useState(false);
 
-    const getProgressJobIdFromNote = (
+    type DashboardLoadingNote = {
+      id: string;
+      noteId?: string;
+      transcriptId?: string;
+      timestamp: number;
+      stage: "uploading" | "processing" | "generating" | "completed" | "error";
+      rehydrated?: boolean;
+    };
+
+    type MatchingSets = {
+      noteIds: Set<string>;
+      transcriptIds: Set<string>;
+      progressJobIds: Set<string>;
+    };
+
+    const getProgressJobIdFromNote = useCallback((
       note: NotesNoteWithTranscript
     ): string | null => {
       const transcript = note.transcript as
@@ -54,7 +72,50 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       }
 
       return progressJobId.trim();
-    };
+    }, []);
+
+    const createMatchingSets = useCallback(
+      (targetNotes: NotesNoteWithTranscript[]): MatchingSets => ({
+        noteIds: new Set(targetNotes.map((note) => note.id)),
+        transcriptIds: new Set(
+          targetNotes.map((note) => note.transcriptId).filter(Boolean)
+        ),
+        progressJobIds: new Set(
+          targetNotes
+            .map((note) => getProgressJobIdFromNote(note))
+            .filter((jobId): jobId is string => Boolean(jobId))
+        ),
+      }),
+      [getProgressJobIdFromNote]
+    );
+
+    const getResolvedReason = useCallback(
+      (
+        loadingNote: DashboardLoadingNote,
+        matchingSets: MatchingSets,
+        now: number
+      ): string | null => {
+        const thirtyMinutesAgo = now - 30 * 60 * 1000;
+
+        if (loadingNote.timestamp < thirtyMinutesAgo) return "stale";
+        if (loadingNote.stage === "completed") return "completed";
+        if (loadingNote.noteId && matchingSets.noteIds.has(loadingNote.noteId)) {
+          return "noteId";
+        }
+        if (matchingSets.progressJobIds.has(loadingNote.id)) {
+          return "progressJobId";
+        }
+        if (
+          loadingNote.transcriptId &&
+          matchingSets.transcriptIds.has(loadingNote.transcriptId)
+        ) {
+          return "transcriptId";
+        }
+
+        return null;
+      },
+      []
+    );
 
     // Use a ref for loadingNotes so cleanup logic doesn't cause loadNotes to recreate
     const loadingNotesRef = useRef(loadingNotes);
@@ -62,72 +123,42 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       loadingNotesRef.current = loadingNotes;
     }, [loadingNotes]);
 
-    const loadNotes = useCallback(async () => {
-      const result = await getNotes(transcriptId);
-      if (result) {
-        setNotes(result as NotesNoteWithTranscript[]);
-
-        // Auto-cleanup loading notes that have a matching note in the DB
+    const cleanupResolvedLoadingNotes = useCallback(
+      (targetNotes: NotesNoteWithTranscript[]) => {
+        const now = Date.now();
+        const matchingSets = createMatchingSets(targetNotes);
         const currentLoadingNotes = loadingNotesRef.current;
-        if (currentLoadingNotes.length > 0) {
-          const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
-          const noteIds = new Set(result.map((n) => n.id));
-          const transcriptIds = new Set(
-            result.map((n) => n.transcriptId).filter(Boolean)
+
+        currentLoadingNotes.forEach((loadingNote) => {
+          const reason = getResolvedReason(
+            loadingNote as DashboardLoadingNote,
+            matchingSets,
+            now
           );
-          const progressJobIds = new Set(
-            result
-              .map((n) => getProgressJobIdFromNote(n as NotesNoteWithTranscript))
-              .filter((jobId): jobId is string => Boolean(jobId))
+          if (!reason) return;
+
+          console.log(
+            `[NotesList] Removing loading note (${reason}):`,
+            loadingNote.id
           );
+          removeLoadingNote(loadingNote.id);
+        });
+      },
+      [createMatchingSets, getResolvedReason, removeLoadingNote]
+    );
 
-          currentLoadingNotes.forEach((loadingNote) => {
-            // Remove if stale (older than 30 minutes)
-            if (loadingNote.timestamp < thirtyMinutesAgo) {
-              console.log('[NotesList] Removing stale loading note:', loadingNote.id);
-              removeLoadingNote(loadingNote.id);
-              return;
-            }
+    const loadNotes = useCallback(async () => {
+      try {
+        const result = await getNotes(transcriptId);
+        if (!result) return;
 
-            // Remove if the note is in "completed" stage (should already be gone but safety check)
-            if (loadingNote.stage === 'completed') {
-              console.log('[NotesList] Removing completed loading note:', loadingNote.id);
-              removeLoadingNote(loadingNote.id);
-              return;
-            }
-
-            // Remove if corresponding note now exists in database
-            if (loadingNote.noteId && noteIds.has(loadingNote.noteId)) {
-              console.log('[NotesList] Removing loading note - note found in DB:', loadingNote.id);
-              removeLoadingNote(loadingNote.id);
-              return;
-            }
-
-            // Remove if transcript metadata links this note to the progress job
-            if (progressJobIds.has(loadingNote.id)) {
-              console.log('[NotesList] Removing loading note - progressJobId found in transcript metadata:', loadingNote.id);
-              removeLoadingNote(loadingNote.id);
-              return;
-            }
-
-            // Remove if transcript exists and has notes
-            if (
-              loadingNote.transcriptId &&
-              transcriptIds.has(loadingNote.transcriptId)
-            ) {
-              const noteForTranscript = result.find(
-                (n) => n.transcriptId === loadingNote.transcriptId
-              );
-              if (noteForTranscript) {
-                console.log('[NotesList] Removing loading note - transcript has note:', loadingNote.id);
-                removeLoadingNote(loadingNote.id);
-                return;
-              }
-            }
-          });
-        }
+        const fetchedNotes = result as NotesNoteWithTranscript[];
+        setNotes(fetchedNotes);
+        cleanupResolvedLoadingNotes(fetchedNotes);
+      } finally {
+        setHasCompletedInitialFetch(true);
       }
-    }, [transcriptId, getNotes, removeLoadingNote]);
+    }, [transcriptId, getNotes, cleanupResolvedLoadingNotes]);
 
     // Expose refresh method to parent component
     useImperativeHandle(
@@ -143,9 +174,34 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       loadNotes();
     }, [loadNotes, searchQuery]);
 
+    const activeLoadingNotes = useMemo(() => {
+      const matchingSets = createMatchingSets(notes);
+      const now = Date.now();
+
+      return loadingNotes.filter((loadingNote) => {
+        if (loadingNote.rehydrated && !hasCompletedInitialFetch) {
+          return false;
+        }
+
+        return (
+          getResolvedReason(
+            loadingNote as DashboardLoadingNote,
+            matchingSets,
+            now
+          ) === null
+        );
+      });
+    }, [
+      createMatchingSets,
+      getResolvedReason,
+      hasCompletedInitialFetch,
+      loadingNotes,
+      notes,
+    ]);
+
     // Recovery polling: if a completion socket event is missed, detect DB note creation and clear loading card
     useEffect(() => {
-      if (loadingNotes.length === 0) {
+      if (!hasCompletedInitialFetch || activeLoadingNotes.length === 0) {
         return;
       }
 
@@ -154,43 +210,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       }, 10000);
 
       return () => clearInterval(interval);
-    }, [loadingNotes.length, loadNotes]);
-    
-    // Additional cleanup check when component mounts or loadingNotes changes
-    // This helps clean up any stale loading notes immediately when returning to the page
-    useEffect(() => {
-      if (notes.length > 0 && loadingNotes.length > 0) {
-        const noteIds = new Set(notes.map((n) => n.id));
-        const transcriptIds = new Set(
-          notes.map((n) => n.transcriptId).filter(Boolean)
-        );
-        const progressJobIds = new Set(
-          notes
-            .map((n) => getProgressJobIdFromNote(n))
-            .filter((jobId): jobId is string => Boolean(jobId))
-        );
-        
-        loadingNotes.forEach((loadingNote) => {
-          // If note exists in DB, remove the loading state immediately
-          if (loadingNote.noteId && noteIds.has(loadingNote.noteId)) {
-            console.log('[NotesList] Immediate cleanup: note exists in DB:', loadingNote.id);
-            removeLoadingNote(loadingNote.id);
-          } else if (progressJobIds.has(loadingNote.id)) {
-            console.log('[NotesList] Immediate cleanup: progressJobId found in transcript metadata:', loadingNote.id);
-            removeLoadingNote(loadingNote.id);
-          } else if (
-            loadingNote.transcriptId &&
-            transcriptIds.has(loadingNote.transcriptId)
-          ) {
-            console.log('[NotesList] Immediate cleanup: transcript has note:', loadingNote.id);
-            removeLoadingNote(loadingNote.id);
-          } else if (loadingNote.stage === 'completed') {
-            console.log('[NotesList] Immediate cleanup: note already completed:', loadingNote.id);
-            removeLoadingNote(loadingNote.id);
-          }
-        });
-      }
-    }, [notes, loadingNotes, removeLoadingNote]);
+    }, [hasCompletedInitialFetch, activeLoadingNotes.length, loadNotes]);
 
     // Filter notes based on search query
     const filterNotes = (
@@ -267,7 +287,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
     const filteredNotes = filterByFolder(filterNotes(notes, searchQuery || ""));
 
     // Premium empty state — no notes yet
-    if (notes.length === 0 && loadingNotes.length === 0) {
+    if (notes.length === 0 && activeLoadingNotes.length === 0) {
       return (
         <div className="flex flex-col items-center text-center py-16 px-4">
           <div
@@ -349,7 +369,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       <>
         <div className="flex flex-col gap-4 w-full">
           {/* Progress cards for notes being generated */}
-          {loadingNotes.map((loadingNote) => (
+          {activeLoadingNotes.map((loadingNote) => (
             <GeneratingNoteCard
               key={loadingNote.id}
               loadingNote={loadingNote}

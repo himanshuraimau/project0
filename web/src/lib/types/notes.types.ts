@@ -85,12 +85,14 @@ export interface GenerateNoteRequest {
   transcriptId: string;
   noteType?: NoteType;
   folderId?: string;
+  progressJobId?: string;
 }
 
 export interface GenerateNotesFromTextRequest {
   text: string;
   title?: string;
   folderId?: string;
+  progressJobId?: string;
 }
 
 // PDF processing and note generation
@@ -132,7 +134,7 @@ export interface UseNotesReturn {
   processPDFWithNotes: (file: File, options?: ProcessPDFOptions) => Promise<ProcessPDFResult | null>;
   generateNotesFromTranscript: (transcriptId: string) => Promise<Note | null>;
   generateFocusedNotes: (transcriptId: string, noteType?: NoteType) => Promise<Note | null>;
-  generateNotesFromText: (text: string, title?: string) => Promise<ProcessPDFResult | null>;
+  generateNotesFromText: (text: string, title?: string, folderId?: string | null, progressJobId?: string) => Promise<ProcessPDFResult | null>;
   getNotes: (transcriptId?: string) => Promise<Note[] | null>;
   getNote: (id: string) => Promise<Note | null>;
   createNote: (noteData: CreateNoteRequest) => Promise<Note | null>;

@@ -51,7 +51,6 @@ export default function AudioUploadModal({
   const [fileName, setFileName] = useState("");
   const [audioLanguage, setAudioLanguage] = useState("English");
   const [folder, setFolder] = useState("All notes");
-  const [currentTempId, setCurrentTempId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -125,7 +124,6 @@ export default function AudioUploadModal({
     setIsProcessing(true);
 
     const tempId = `audio-upload-${Date.now()}`;
-    setCurrentTempId(tempId);
     addLoadingNote(tempId, "audio", "uploading");
 
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -180,6 +178,7 @@ export default function AudioUploadModal({
           audioUrl: transcribeUrl,
           fileName: fileDisplayName,
           folderId: null,
+          progressJobId: tempId,
         }),
       });
 
@@ -203,7 +202,6 @@ export default function AudioUploadModal({
 
         // Use local tempId (not currentTempId which is stale due to async setState)
         removeLoadingNote(tempId);
-        setCurrentTempId(null);
 
         await new Promise((resolve) => setTimeout(resolve, 200));
 

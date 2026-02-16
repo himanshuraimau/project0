@@ -6,12 +6,28 @@ import {
   validateAudioFile,
   MAX_AUDIO_FILE_SIZE,
 } from "@/lib/transcribe-audio";
+import { noteProgressManager } from "@/lib/note-progress-manager";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
+  let progressJobId = "";
+  const publishProgress = async (
+    progress: number,
+    stage: "uploading" | "processing" | "generating" | "completed" | "error",
+    message: string
+  ) => {
+    if (!progressJobId) return;
+    await noteProgressManager.publish({
+      jobId: progressJobId,
+      progress,
+      stage,
+      message,
+    });
+  };
+
   try {
     const userId = await getUserFromAuth(req);
     if (!userId) {
@@ -66,6 +82,7 @@ export async function POST(req: NextRequest) {
     const audioFile = formData.get("audio") as File;
     const fileName = (formData.get("fileName") as string) || "recorded-audio";
     const folderId = (formData.get("folderId") as string) || null;
+    progressJobId = ((formData.get("progressJobId") as string | null) ?? "").trim();
 
     const validation = validateAudioFile(audioFile);
     if (!validation.ok) {
@@ -85,11 +102,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    await publishProgress(20, "processing", "Processing audio...");
     const result = await transcribeAudioAndCreateNote(
       audioFile,
       userId,
       fileName,
-      folderId
+      folderId,
+      progressJobId || undefined
     );
 
     return NextResponse.json({
@@ -98,6 +117,11 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Audio transcription error:", error);
+    await publishProgress(
+      0,
+      "error",
+      error instanceof Error ? error.message : "Failed to transcribe audio"
+    );
     if (error instanceof Error) {
       if (error.message.includes("FormData")) {
         return NextResponse.json(

@@ -82,7 +82,7 @@ export function GeneratingNoteCard({
   onRetry,
   onDismiss,
 }: GeneratingNoteCardProps) {
-  const { updateLoadingNote, removeLoadingNote } = useDashboardRefresh();
+  const { updateLoadingNote } = useDashboardRefresh();
   const [animatedProgress, setAnimatedProgress] = useState<number>(() => {
     const savedProgress = loadingNote.progress;
     if (typeof savedProgress === "number" && Number.isFinite(savedProgress)) {
@@ -104,16 +104,12 @@ export function GeneratingNoteCard({
       });
     },
     onCompleted: (event) => {
-      console.log('[GeneratingNoteCard] Note completed, scheduling removal:', loadingNote.id);
+      console.log("[GeneratingNoteCard] Note completed, removing:", loadingNote.id);
       updateLoadingNote(loadingNote.id, {
-        stage: 'completed',
+        stage: "completed",
         progress: event.progress,
         message: event.message,
       });
-      // Small delay to show 100% completion before removal
-      setTimeout(() => {
-        removeLoadingNote(loadingNote.id);
-      }, 500);
     },
     onError: (event) => {
       console.log('[GeneratingNoteCard] Note error:', loadingNote.id);

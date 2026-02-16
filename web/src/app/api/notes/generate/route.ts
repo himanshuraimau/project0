@@ -1,17 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NoteService } from '@/lib/note-service';
-import { UserService } from '@/lib/user-service';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { ApiSuccessResponse, ApiErrorResponse, GenerateNoteRequest } from '@/lib/types';
 import { queueBackgroundTranslation } from '@/lib/translation-service';
+import { noteProgressManager } from '@/lib/note-progress-manager';
+import { prisma } from '@/lib/prisma';
 
 const noteService = new NoteService();
 
 export async function POST(request: NextRequest) {
+  let progressJobId = '';
+  const publishProgress = async (
+    progress: number,
+    stage: "uploading" | "processing" | "generating" | "completed" | "error",
+    message: string
+  ) => {
+    if (!progressJobId) return;
+    await noteProgressManager.publish({
+      jobId: progressJobId,
+      progress,
+      stage,
+      message,
+    });
+  };
+
   try {
     const userId = await getUserFromAuth(request);
     const body: GenerateNoteRequest = await request.json();
     const { transcriptId, folderId } = body;
+    progressJobId =
+      typeof body.progressJobId === "string" ? body.progressJobId.trim() : "";
 
     if (!userId) {
       const errorResponse: ApiErrorResponse = {
@@ -29,8 +47,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
+    await publishProgress(65, "generating", "Generating AI notes...");
+
+    if (progressJobId) {
+      try {
+        const transcript = await prisma.transcript.findUnique({
+          where: { id: transcriptId },
+          select: { metadata: true },
+        });
+        const metadata =
+          transcript?.metadata &&
+          typeof transcript.metadata === "object" &&
+          !Array.isArray(transcript.metadata)
+            ? (transcript.metadata as Record<string, unknown>)
+            : {};
+        await prisma.transcript.update({
+          where: { id: transcriptId },
+          data: {
+            metadata: { ...metadata, progressJobId },
+          },
+        });
+      } catch (metadataError) {
+        console.error(
+          "Failed to persist progressJobId on transcript metadata:",
+          metadataError
+        );
+      }
+    }
+
     // IDEMPOTENCY CHECK: Check if note already exists for this transcript
-    const { prisma } = await import('@/lib/prisma');
     const existingNote = await prisma.note.findFirst({
       where: {
         transcriptId: transcriptId,
@@ -44,6 +89,7 @@ export async function POST(request: NextRequest) {
     // If note already exists, return it instead of creating duplicate
     if (existingNote) {
       console.log(`Idempotency: Returning existing note ${existingNote.id} for transcript ${transcriptId}`);
+      await publishProgress(100, "completed", "Notes already available");
       const response: ApiSuccessResponse = {
         success: true,
         data: existingNote,
@@ -56,6 +102,7 @@ export async function POST(request: NextRequest) {
     const accessCheck = await FeatureGateService.checkNoteCreationAccess();
 
     if (!accessCheck.allowed) {
+      await publishProgress(0, "error", accessCheck.message || "Unable to create note");
       const errorResponse: ApiErrorResponse = {
         success: false,
         error: accessCheck.message || 'Unable to create note',
@@ -70,6 +117,7 @@ export async function POST(request: NextRequest) {
 
     const reservation = await FeatureGateService.reserveNoteUsage(userId);
     if (!reservation.allowed) {
+      await publishProgress(0, "error", reservation.message || "Unable to create note");
       const errorResponse: ApiErrorResponse = {
         success: false,
         error: reservation.error || 'Unable to create note',
@@ -96,6 +144,8 @@ export async function POST(request: NextRequest) {
     console.log('🌍 Queueing background translation for note:', note.id);
     queueBackgroundTranslation(note.id, note.title, note.content);
 
+    await publishProgress(100, "completed", "Notes generated successfully");
+
     // No credit deduction - notes from existing content are free
 
     const response: ApiSuccessResponse = {
@@ -106,6 +156,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('AI note generation error:', error);
+    await publishProgress(
+      0,
+      "error",
+      error instanceof Error ? error.message : "Failed to generate AI note"
+    );
 
     const errorResponse: ApiErrorResponse = {
       success: false,

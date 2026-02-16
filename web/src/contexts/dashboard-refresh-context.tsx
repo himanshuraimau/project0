@@ -12,6 +12,8 @@ interface LoadingNote {
   lastProgressAt?: number; // Last time we received a progress update
   transcriptId?: string;  // Link to actual transcript 
   noteId?: string;        // Link to generated note in DB
+  completedAt?: number;   // Completion timestamp for deterministic cleanup
+  rehydrated?: boolean;   // Whether restored from localStorage
   stage: 'uploading' | 'processing' | 'generating' | 'completed' | 'error';
   error?: string;         // Error message if stage is 'error'
   retryCount?: number;    // Number of retry attempts
@@ -88,14 +90,20 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
         const oneHourAgo = now - (60 * 60 * 1000);
         const fiveMinutesAgo = now - (5 * 60 * 1000);
         const tenMinutesAgo = now - (10 * 60 * 1000);
-        const validNotes = parsedNotes.filter((note: LoadingNote) => {
+        const validNotes = parsedNotes
+          .filter((note: LoadingNote) => {
           const activityTimestamp = note.lastProgressAt ?? note.timestamp;
           if (note.timestamp < oneHourAgo) return false;
+          if (note.completedAt) return false;
           if (note.stage === 'completed') return false;
           if ((note.stage === 'generating' || note.stage === 'processing' || note.stage === 'uploading') && activityTimestamp < tenMinutesAgo) return false;
           if (note.stage === 'error' && activityTimestamp < fiveMinutesAgo) return false;
           return true;
-        });
+        })
+          .map((note: LoadingNote) => ({
+            ...note,
+            rehydrated: true,
+          }));
         if (validNotes.length > 0) {
           setLoadingNotes(validNotes);
         } else {
@@ -143,6 +151,7 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
           progress: stage === 'completed' ? 100 : 0,
           stage,
           retryCount: 0,
+          rehydrated: false,
         },
       ];
     });
@@ -176,67 +185,6 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
     }, 10 * 60 * 1000); // 10 minutes
   }, []);
 
-  const updateLoadingNote = useCallback((tempId: string, updates: Partial<LoadingNote>) => {
-    setLoadingNotes(prev =>
-      prev.map(note => {
-        if (note.id !== tempId) {
-          return note;
-        }
-
-        const nextNote: LoadingNote = { ...note, ...updates };
-        const hasProgressUpdate = typeof updates.progress === 'number' && Number.isFinite(updates.progress);
-
-        if (hasProgressUpdate) {
-          nextNote.progress = Math.max(0, Math.min(100, Math.round(updates.progress as number)));
-          nextNote.lastProgressAt = Date.now();
-        }
-
-        if (updates.message !== undefined || updates.stage !== undefined) {
-          nextNote.lastProgressAt = Date.now();
-        }
-
-        if (updates.stage === 'completed' && updates.progress === undefined) {
-          nextNote.progress = 100;
-        }
-
-        return nextNote;
-      })
-    );
-
-    // Safety net: auto-remove completed loading notes after 500ms
-    // This catches any case where removeLoadingNote wasn't called explicitly
-    // Short timeout ensures quick cleanup when returning to dashboard
-    if (updates.stage === 'completed') {
-      console.log('[DashboardRefresh] Note completed, scheduling auto-removal:', tempId);
-      
-      // Immediately clean up localStorage to prevent restore on navigation
-      const storageKey = typeof window !== 'undefined' ? getLoadingNotesStorageKey(userId ?? undefined) : null;
-      if (storageKey) {
-        try {
-          const stored = localStorage.getItem(storageKey);
-          if (stored) {
-            const parsedNotes = JSON.parse(stored);
-            const filtered = parsedNotes.filter((note: LoadingNote) => note.id !== tempId);
-            if (filtered.length > 0) {
-              localStorage.setItem(storageKey, JSON.stringify(filtered));
-              console.log('[DashboardRefresh] Removed completed note from localStorage:', tempId);
-            } else {
-              localStorage.removeItem(storageKey);
-              console.log('[DashboardRefresh] Cleared localStorage (no notes remaining)');
-            }
-          }
-        } catch (error) {
-          console.error('[DashboardRefresh] Failed to clean localStorage:', error);
-        }
-      }
-
-      setTimeout(() => {
-        console.log('[DashboardRefresh] Auto-removing completed note:', tempId);
-        setLoadingNotes(prev => prev.filter(note => note.id !== tempId));
-      }, 500);
-    }
-  }, [userId]);
-
   const removeLoadingNote = useCallback((tempId: string) => {
     console.log(`Removing loading note: ${tempId}`);
 
@@ -264,6 +212,35 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
       return filtered;
     });
   }, [userId]);
+
+  const updateLoadingNote = useCallback((tempId: string, updates: Partial<LoadingNote>) => {
+    if (updates.stage === 'completed') {
+      removeLoadingNote(tempId);
+      return;
+    }
+
+    setLoadingNotes(prev =>
+      prev.map(note => {
+        if (note.id !== tempId) {
+          return note;
+        }
+
+        const nextNote: LoadingNote = { ...note, ...updates, rehydrated: false };
+        const hasProgressUpdate = typeof updates.progress === 'number' && Number.isFinite(updates.progress);
+
+        if (hasProgressUpdate) {
+          nextNote.progress = Math.max(0, Math.min(100, Math.round(updates.progress as number)));
+          nextNote.lastProgressAt = Date.now();
+        }
+
+        if (updates.message !== undefined || updates.stage !== undefined) {
+          nextNote.lastProgressAt = Date.now();
+        }
+
+        return nextNote;
+      })
+    );
+  }, [removeLoadingNote]);
 
   // Add function to clear all loading notes (useful for debugging)
   const clearAllLoadingNotes = useCallback(() => {

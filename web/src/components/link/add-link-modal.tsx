@@ -41,7 +41,6 @@ export function AddLinkModal({
   const [linkInput, setLinkInput] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currentTempId, setCurrentTempId] = useState<string | null>(null);
   const [processingUrls, setProcessingUrls] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -73,13 +72,13 @@ export function AddLinkModal({
     setProcessingUrls((prev) => new Set(prev).add(normalizedUrl));
 
     const tempId = `link-${Date.now()}`;
-    setCurrentTempId(tempId);
 
     const linkType = detectLinkType(linkInput);
     addLoadingNote(
       tempId,
       linkType === "youtube" ? "youtube" : "webpage"
     );
+    updateLoadingNote(tempId, { stage: "processing" });
 
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -94,7 +93,7 @@ export function AddLinkModal({
         const transcriptResponse = await fetch("/api/transcripts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: linkInput }),
+          body: JSON.stringify({ url: linkInput, progressJobId: tempId }),
         });
 
         const transcriptResult = await transcriptResponse.json();
@@ -113,8 +112,6 @@ export function AddLinkModal({
 
             // Use local tempId (not currentTempId which is stale due to async setState)
             removeLoadingNote(tempId);
-            setCurrentTempId(null);
-            setIsProcessing(false);
             return;
           }
 
@@ -123,9 +120,7 @@ export function AddLinkModal({
             transcriptResult.error === "FREE_TIER_LIMIT_REACHED"
           ) {
             removeLoadingNote(tempId);
-            setCurrentTempId(null);
             openUpgradeModal();
-            setIsProcessing(false);
             return;
           }
 
@@ -149,12 +144,20 @@ export function AddLinkModal({
           throw new Error(errorMsg);
         }
 
+        if (transcriptResult.data?.id) {
+          updateLoadingNote(tempId, {
+            transcriptId: transcriptResult.data.id,
+            stage: "generating",
+          });
+        }
+
         const noteResponse = await fetch("/api/notes/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             transcriptId: transcriptResult.data.id,
             folderId: selectedFolderId,
+            progressJobId: tempId,
           }),
         });
 
@@ -166,9 +169,7 @@ export function AddLinkModal({
             noteResult.error === "FREE_TIER_LIMIT_REACHED"
           ) {
             removeLoadingNote(tempId);
-            setCurrentTempId(null);
             openUpgradeModal();
-            setIsProcessing(false);
             return;
           }
           toast.warning("Transcript created, but notes generation failed", {
@@ -185,6 +186,12 @@ export function AddLinkModal({
             },
           };
         } else {
+          if (noteResult.data?.id) {
+            updateLoadingNote(tempId, {
+              noteId: noteResult.data.id,
+              stage: "completed",
+            });
+          }
           result = {
             success: true,
             data: {
@@ -200,6 +207,7 @@ export function AddLinkModal({
           body: JSON.stringify({
             url: linkInput,
             folderId: selectedFolderId,
+            progressJobId: tempId,
           }),
         });
 
@@ -212,20 +220,30 @@ export function AddLinkModal({
               result.code === "FREE_TIER_LIMIT_REACHED")
           ) {
             removeLoadingNote(tempId);
-            setCurrentTempId(null);
             openUpgradeModal();
-            setIsProcessing(false);
             return;
           }
           throw new Error(
             result.error || result.message || "Failed to process webpage"
           );
         }
+
+        if (result.data?.transcript?.id) {
+          updateLoadingNote(tempId, {
+            transcriptId: result.data.transcript.id,
+            stage: "generating",
+          });
+        }
+        if (result.data?.note?.id) {
+          updateLoadingNote(tempId, {
+            noteId: result.data.note.id,
+            stage: "completed",
+          });
+        }
       }
 
       // Use local tempId (not currentTempId which is stale due to async setState)
       removeLoadingNote(tempId);
-      setCurrentTempId(null);
 
       await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -255,14 +273,6 @@ export function AddLinkModal({
     } catch (error) {
       console.error("Error processing link:", error);
 
-      setTimeout(() => {
-        setProcessingUrls((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(normalizedUrl);
-          return newSet;
-        });
-      }, 2000);
-
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -282,6 +292,11 @@ export function AddLinkModal({
       // Don't remove loading note in finally — let error state show if there was an error
       // Successful path already called removeLoadingNote above
       setIsProcessing(false);
+      setProcessingUrls((prev) => {
+        const next = new Set(prev);
+        next.delete(normalizedUrl);
+        return next;
+      });
     }
   };
 

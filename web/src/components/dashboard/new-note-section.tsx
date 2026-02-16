@@ -28,7 +28,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { UploadTextModal } from "@/components/pdf";
 import { ProcessPDFResult } from "@/lib/types";
-import { AudioRecorder, AudioUploadModal } from "@/components/audio";
+import { AudioUploadModal } from "@/components/audio";
 import { AddLinkModal } from "@/components/link";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { toast } from "sonner";
@@ -68,7 +68,6 @@ function AudioRecorderModal({
   const [folder, setFolder] = useState("All notes");
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currentTempId, setCurrentTempId] = useState<string | null>(null);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
 
   const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
@@ -334,7 +333,6 @@ function AudioRecorderModal({
     setIsProcessing(true);
 
     const tempId = `audio-record-${Date.now()}`;
-    setCurrentTempId(tempId);
     addLoadingNote(tempId, "audio-record", "uploading");
 
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -393,6 +391,7 @@ function AudioRecorderModal({
           audioUrl: transcribeUrl,
           fileName: `recording-${Date.now()}`,
           folderId: null,
+          progressJobId: tempId,
         }),
       });
 
@@ -416,7 +415,6 @@ function AudioRecorderModal({
 
         // Use local tempId (not currentTempId which is stale due to async setState)
         removeLoadingNote(tempId);
-        setCurrentTempId(null);
 
         await new Promise((resolve) => setTimeout(resolve, 200));
 

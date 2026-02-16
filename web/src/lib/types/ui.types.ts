@@ -101,34 +101,9 @@ export interface ChatWithNoteButtonProps extends BaseComponentProps {
   noteId: string;
 }
 
-// Audio recorder props
-export interface AudioRecorderProps extends BaseComponentProps {
-  onTranscriptionComplete: (result: {
-    transcript: { id: string; content: string };
-  }) => void;
-}
-
-export interface RecordAudioProps extends BaseComponentProps {
-  onTranscriptionComplete: (result: {
-    transcript: { id: string; content: string };
-  }) => void;
-}
-
 // PDF processor props
 export interface PDFProcessorProps extends BaseComponentProps {
   onProcessComplete?: (result: ProcessPDFResult) => void;
-}
-
-export interface SimplePDFProcessorProps extends BaseComponentProps {
-  onProcessComplete?: (result: ProcessPDFResult) => void;
-  onClose?: () => void;
-}
-
-// YouTube processor props
-export interface YouTubeProcessorProps extends BaseComponentProps {
-  onProcessComplete?: (result: {
-    transcript: { id: string; content: string; originalName: string };
-  }) => void;
 }
 
 // Notes viewer props

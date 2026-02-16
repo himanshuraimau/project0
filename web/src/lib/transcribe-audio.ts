@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
 import { NoteService } from "@/lib/note-service";
+import { noteProgressManager } from "@/lib/note-progress-manager";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -103,8 +104,23 @@ export async function transcribeAudioAndCreateNote(
   audioFile: File,
   userId: string,
   fileNameForRecord: string,
-  folderId: string | null
+  folderId: string | null,
+  progressJobId?: string
 ): Promise<TranscribeResult> {
+  const publishProgress = async (
+    progress: number,
+    stage: "uploading" | "processing" | "generating" | "completed" | "error",
+    message: string
+  ) => {
+    if (!progressJobId) return;
+    await noteProgressManager.publish({
+      jobId: progressJobId,
+      progress,
+      stage,
+      message,
+    });
+  };
+
   let transcriptionExtension = MIME_TO_EXTENSION[audioFile.type.toLowerCase()];
   if (!transcriptionExtension) {
     const parts = audioFile.name.split(".");
@@ -119,6 +135,7 @@ export async function transcribeAudioAndCreateNote(
     type: audioFile.type,
   });
 
+  await publishProgress(40, "processing", "Transcribing audio...");
   const transcriptionResult = await openai.audio.transcriptions.create({
     file: audioFileWithName,
     model: "whisper-1",
@@ -142,6 +159,7 @@ export async function transcribeAudioAndCreateNote(
         fileSize: audioFile.size,
         mimeType: audioFile.type,
         duration: null,
+        ...(progressJobId ? { progressJobId } : {}),
       },
     },
   });
@@ -150,8 +168,14 @@ export async function transcribeAudioAndCreateNote(
   let noteResult: unknown = null;
 
   try {
+    await publishProgress(70, "generating", "Generating AI notes...");
     const reservation = await FeatureGateService.reserveNoteUsage(userId);
     if (!reservation.allowed) {
+      await publishProgress(
+        0,
+        "error",
+        reservation.message || "Unable to create note"
+      );
       return {
         transcription: transcriptText,
         transcript: {
@@ -177,6 +201,11 @@ export async function transcribeAudioAndCreateNote(
   } catch (error) {
     console.error("Failed to generate AI notes:", error);
     await FeatureGateService.decrementNoteUsage(userId);
+    await publishProgress(
+      0,
+      "error",
+      error instanceof Error ? error.message : "Failed to generate notes"
+    );
     return {
       transcription: transcriptText,
       transcript: {
@@ -193,6 +222,8 @@ export async function transcribeAudioAndCreateNote(
       noteError: error instanceof Error ? error.message : "Failed to generate notes",
     };
   }
+
+  await publishProgress(100, "completed", "Audio note generated successfully");
 
   return {
     transcription: transcriptText,

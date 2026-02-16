@@ -222,7 +222,8 @@ export function useNotes() {
   const generateNotesFromText = async (
     text: string,
     title: string = 'Text Note',
-    folderId?: string | null
+    folderId?: string | null,
+    progressJobId?: string
   ): Promise<ProcessPDFResult | null> => {
     setLoading(true);
     setError(null);
@@ -233,7 +234,7 @@ export function useNotes() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text, title, folderId }),
+        body: JSON.stringify({ text, title, folderId, progressJobId }),
       });
 
       const result = await response.json();

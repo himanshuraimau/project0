@@ -5,8 +5,24 @@ import { FeatureGateService } from "@/lib/feature-gate-service";
 import { ApiSuccessResponse, ApiErrorResponse, GenerateNotesFromTextRequest } from "@/lib/types";
 import { getUserFromAuth } from "@/lib/auth-helper";
 import { queueBackgroundTranslation } from "@/lib/translation-service";
+import { noteProgressManager } from "@/lib/note-progress-manager";
 
 export async function POST(request: NextRequest) {
+  let progressJobId = "";
+  const publishProgress = async (
+    progress: number,
+    stage: "uploading" | "processing" | "generating" | "completed" | "error",
+    message: string
+  ) => {
+    if (!progressJobId) return;
+    await noteProgressManager.publish({
+      jobId: progressJobId,
+      progress,
+      stage,
+      message,
+    });
+  };
+
   try {
     const userId = await getUserFromAuth(request);
 
@@ -18,7 +34,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 401 });
     }
 
-    const { text, title, folderId }: GenerateNotesFromTextRequest = await request.json();
+    const { text, title, folderId, progressJobId: incomingProgressJobId }: GenerateNotesFromTextRequest = await request.json();
+    progressJobId =
+      typeof incomingProgressJobId === "string"
+        ? incomingProgressJobId.trim()
+        : "";
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {
       const errorResponse: ApiErrorResponse = {
@@ -28,9 +48,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
+    await publishProgress(30, "processing", "Preparing text input...");
+
     // Check note creation access (allows free tier: 1 note)
     const accessCheck = await FeatureGateService.checkNoteCreationAccess();
     if (!accessCheck.allowed) {
+      await publishProgress(0, "error", accessCheck.message || "Unable to create note");
       const errorResponse: ApiErrorResponse = {
         success: false,
         error: accessCheck.message || 'Unable to create note',
@@ -61,11 +84,13 @@ export async function POST(request: NextRequest) {
         metadata: {
           source: "text-input",
           title: title || "Text Input",
+          ...(progressJobId ? { progressJobId } : {}),
         },
       },
     });
 
     // Generate AI notes from the text content
+    await publishProgress(70, "generating", "Generating AI notes...");
     let note;
     try {
       const aiNote = await generateNotesFromContent(
@@ -74,6 +99,7 @@ export async function POST(request: NextRequest) {
       );
       const reservation = await FeatureGateService.reserveNoteUsage(userId);
       if (!reservation.allowed) {
+        await publishProgress(0, "error", reservation.message || "Unable to create note");
         return NextResponse.json(
           {
             success: false,
@@ -135,9 +161,15 @@ export async function POST(request: NextRequest) {
       success: true,
       data: result,
     };
+    await publishProgress(100, "completed", "Notes generated successfully");
     return NextResponse.json(response);
   } catch (error) {
     console.error("Error in generate-from-text API:", error);
+    await publishProgress(
+      0,
+      "error",
+      error instanceof Error ? error.message : "Failed to process text input"
+    );
     const errorResponse: ApiErrorResponse = {
       success: false,
       error: "Internal server error",

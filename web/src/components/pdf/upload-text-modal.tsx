@@ -43,7 +43,6 @@ export function UploadTextModal({
   } = useDashboardRefresh();
   const [textInput, setTextInput] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-  const [currentTempId, setCurrentTempId] = useState<string | null>(null);
   const [selectedPDFFile, setSelectedPDFFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,7 +57,6 @@ export function UploadTextModal({
     if (!hasPDF && !hasText) return;
 
     const tempId = hasPDF ? `pdf-${Date.now()}` : `text-${Date.now()}`;
-    setCurrentTempId(tempId);
     addLoadingNote(tempId, "pdf", "uploading");
 
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -89,7 +87,8 @@ export function UploadTextModal({
         result = await generateNotesFromText(
           textInput,
           "Text Note",
-          selectedFolderId
+          selectedFolderId,
+          tempId
         );
       }
 
@@ -104,7 +103,6 @@ export function UploadTextModal({
 
         // Use local tempId (not currentTempId which is stale due to async setState)
         removeLoadingNote(tempId);
-        setCurrentTempId(null);
 
         await new Promise((resolve) => setTimeout(resolve, 200));
 

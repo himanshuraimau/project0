@@ -85,6 +85,7 @@ export interface YouTubeTranscriptResponse {
 export interface YouTubeProcessRequest {
   url: string;
   generateNotes?: boolean;
+  progressJobId?: string;
 }
 
 export interface YouTubeProcessResult {

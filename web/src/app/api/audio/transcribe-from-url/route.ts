@@ -6,12 +6,28 @@ import {
   validateAudioFile,
   MAX_AUDIO_FILE_SIZE,
 } from "@/lib/transcribe-audio";
+import { noteProgressManager } from "@/lib/note-progress-manager";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
+  let progressJobId = "";
+  const publishProgress = async (
+    progress: number,
+    stage: "uploading" | "processing" | "generating" | "completed" | "error",
+    message: string
+  ) => {
+    if (!progressJobId) return;
+    await noteProgressManager.publish({
+      jobId: progressJobId,
+      progress,
+      stage,
+      message,
+    });
+  };
+
   try {
     const userId = await getUserFromAuth(req);
     if (!userId) {
@@ -22,6 +38,8 @@ export async function POST(req: NextRequest) {
     const audioUrl = typeof body.audioUrl === "string" ? body.audioUrl.trim() : "";
     const fileName = (typeof body.fileName === "string" ? body.fileName.trim() : null) ?? "uploaded-audio";
     const folderId = (typeof body.folderId === "string" ? body.folderId : null) || null;
+    progressJobId =
+      typeof body.progressJobId === "string" ? body.progressJobId.trim() : "";
 
     if (!audioUrl || !audioUrl.startsWith("http")) {
       return NextResponse.json(
@@ -43,6 +61,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    await publishProgress(20, "processing", "Downloading audio...");
     const response = await fetch(audioUrl, {
       method: "GET",
       headers: { Accept: "audio/*" },
@@ -79,7 +98,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(validation.body, { status: validation.status });
     }
 
-    const result = await transcribeAudioAndCreateNote(file, userId, fileName, folderId);
+    const result = await transcribeAudioAndCreateNote(
+      file,
+      userId,
+      fileName,
+      folderId,
+      progressJobId || undefined
+    );
 
     return NextResponse.json({
       success: true,
@@ -87,6 +112,11 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Transcribe from URL error:", error);
+    await publishProgress(
+      0,
+      "error",
+      error instanceof Error ? error.message : "Failed to transcribe audio"
+    );
     if (error instanceof Error) {
       if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
         return NextResponse.json(

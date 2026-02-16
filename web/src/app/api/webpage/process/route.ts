@@ -3,11 +3,29 @@ import { WebpageCrawlerService } from '@/lib/webpage-crawler-service';
 import { NoteService } from '@/lib/note-service';
 import { FeatureGateService } from '@/lib/feature-gate-service';
 import { getUserFromAuth } from '@/lib/auth-helper';
+import { noteProgressManager } from '@/lib/note-progress-manager';
+import { prisma } from '@/lib/prisma';
 
 const webpageCrawlerService = new WebpageCrawlerService();
 const noteService = new NoteService();
 
 export async function POST(request: NextRequest) {
+  let progressJobId = '';
+  let completedSuccessfully = false;
+  const publishProgress = async (
+    progress: number,
+    stage: "uploading" | "processing" | "generating" | "completed" | "error",
+    message: string
+  ) => {
+    if (!progressJobId) return;
+    await noteProgressManager.publish({
+      jobId: progressJobId,
+      progress,
+      stage,
+      message,
+    });
+  };
+
   try {
     const userId = await getUserFromAuth(request);
 
@@ -20,6 +38,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { url, generateNotes = true, folderId } = body;
+    progressJobId =
+      typeof body.progressJobId === 'string' ? body.progressJobId.trim() : '';
 
     if (!url) {
       return NextResponse.json(
@@ -53,6 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`Processing webpage: ${url} for user: ${userId}`);
+    await publishProgress(20, "processing", "Crawling webpage...");
 
     // Step 1: Crawl the webpage and save as transcript
     const crawlResult = await webpageCrawlerService.crawlWebpage(url, userId);
@@ -61,11 +82,38 @@ export async function POST(request: NextRequest) {
 
     console.log(`Successfully crawled webpage and created transcript: ${crawlResult.documentId}`);
 
+    if (progressJobId && crawlResult.documentId) {
+      try {
+        const transcript = await prisma.transcript.findUnique({
+          where: { id: crawlResult.documentId },
+          select: { metadata: true },
+        });
+        const metadata =
+          transcript?.metadata &&
+          typeof transcript.metadata === 'object' &&
+          !Array.isArray(transcript.metadata)
+            ? (transcript.metadata as Record<string, unknown>)
+            : {};
+        await prisma.transcript.update({
+          where: { id: crawlResult.documentId },
+          data: {
+            metadata: {
+              ...metadata,
+              progressJobId,
+            },
+          },
+        });
+      } catch (metadataError) {
+        console.error('Failed to persist progressJobId on transcript metadata:', metadataError);
+      }
+    }
+
     let noteResult = null;
 
     // Step 2: Generate AI notes if requested
     if (generateNotes && crawlResult.documentId) {
       try {
+        await publishProgress(70, "generating", "Generating AI notes...");
         const reservation = await FeatureGateService.reserveNoteUsage(userId);
         if (!reservation.allowed) {
           noteResult = {
@@ -94,6 +142,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    completedSuccessfully = true;
     return NextResponse.json({
       success: true,
       data: {
@@ -116,6 +165,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Webpage processing error:', error);
+    await publishProgress(
+      0,
+      "error",
+      error instanceof Error ? error.message : "Failed to process webpage"
+    );
 
     // Handle specific error types
     if (error instanceof Error) {
@@ -161,6 +215,10 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
+  } finally {
+    if (completedSuccessfully) {
+      await publishProgress(100, "completed", "Webpage processing finished");
+    }
   }
 }
 
