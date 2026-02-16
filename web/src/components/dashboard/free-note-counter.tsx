@@ -25,17 +25,12 @@ export function FreeNoteCounter() {
       setIsLoading(true);
       // Use cached subscription data with request deduplication
       const data = await subscriptionCache.getStatus();
-      
-      console.log('FreeNoteCounter - API response:', data);
-      
+
       const hasActiveSubscription = data.hasSubscription && data.access?.hasAccess;
       setHasSubscription(hasActiveSubscription);
-      
+
       if (data.features?.freeNotes) {
-        console.log('FreeNoteCounter - Free notes data:', data.features.freeNotes);
         setStatus(data.features.freeNotes);
-      } else {
-        console.log('FreeNoteCounter - No freeNotes in features');
       }
     } catch (error) {
       console.error('Error fetching free tier status:', error);
@@ -58,7 +53,6 @@ export function FreeNoteCounter() {
 
   // Don't show if user has subscription
   if (hasSubscription) {
-    console.log('FreeNoteCounter - Hidden: User has subscription');
     return null;
   }
 
@@ -74,11 +68,8 @@ export function FreeNoteCounter() {
 
   // Don't show if status not loaded
   if (!status) {
-    console.log('FreeNoteCounter - Hidden: No status data');
     return null;
   }
-
-  console.log('FreeNoteCounter - Rendering with status:', status);
 
   const isLimitReached = status.remaining === 0;
   const isNearLimit = status.remaining <= 1 && status.remaining > 0;

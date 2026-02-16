@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
+import { normalizeS3UploadError } from "@/lib/utils/s3-upload-errors";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -254,19 +255,14 @@ export default function AudioUploadModal({
       }
     } catch (error) {
       console.error("Transcription error:", error);
+      const normalizedError = normalizeS3UploadError(error);
       // Use local tempId (not currentTempId which is stale due to async setState)
       updateLoadingNote(tempId, {
         stage: "error",
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to transcribe audio",
+        error: normalizedError,
       });
       toast.error("Failed to transcribe audio", {
-        description:
-          error instanceof Error
-            ? error.message
-            : "Please try again or contact support if the issue persists.",
+        description: normalizedError,
         duration: 5000,
       });
     } finally {

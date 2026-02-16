@@ -54,13 +54,11 @@ export interface PresignedAudioUrls {
 export async function getPresignedAudioUrls(
   userId: string,
   fileName: string,
-  contentType: string,
-  fileSizeBytes: number
+  contentType: string
 ): Promise<PresignedAudioUrls> {
   const bucket = getBucket();
   const prefix = process.env.S3_AUDIO_PREFIX ?? "audio-uploads";
   const safeName = sanitizeFileName(fileName);
-  const ext = safeName.includes(".") ? safeName.split(".").pop() ?? "bin" : "bin";
   const key = `${prefix}/${userId}/${Date.now()}-${safeName}`;
 
   const client = getS3Client();
@@ -69,7 +67,6 @@ export async function getPresignedAudioUrls(
     Bucket: bucket,
     Key: key,
     ContentType: contentType,
-    ContentLength: fileSizeBytes,
   });
 
   const getCommand = new GetObjectCommand({
@@ -98,8 +95,7 @@ export interface PresignedUploadUrls {
 export async function getPresignedPdfUrls(
   userId: string,
   fileName: string,
-  contentType: string,
-  fileSizeBytes: number
+  contentType: string
 ): Promise<PresignedUploadUrls> {
   const bucket = getBucket();
   const prefix = process.env.S3_PDF_PREFIX ?? "pdf-uploads";
@@ -112,7 +108,6 @@ export async function getPresignedPdfUrls(
     Bucket: bucket,
     Key: key,
     ContentType: contentType,
-    ContentLength: fileSizeBytes,
   });
 
   const getCommand = new GetObjectCommand({

@@ -75,7 +75,6 @@ const nextConfig: NextConfig = {
                   "https://www.youtube.com https://s.ytimg.com " +
                   "https://utfs.io https://api.uploadthing.com " + // UploadThing API
                   "https://*.amazonaws.com " + // AWS S3 buckets for audio uploads
-                  "https://*.s3.*.amazonaws.com " + // S3 bucket URLs (all regions)
                   "https://*.pusher.com wss://*.pusher.com " + // Pusher real-time updates
                   "ws://localhost:* http://localhost:*; " + // Allow dev server websockets
                   "media-src 'self' " +

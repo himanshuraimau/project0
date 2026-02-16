@@ -44,8 +44,7 @@ export async function POST(req: NextRequest) {
     const { uploadUrl, transcribeUrl } = await getPresignedAudioUrls(
       userId,
       fileName,
-      contentType,
-      fileSize
+      contentType
     );
 
     return NextResponse.json({

@@ -47,8 +47,7 @@ export async function POST(req: NextRequest) {
     const { uploadUrl, downloadUrl } = await getPresignedPdfUrls(
       userId,
       fileName,
-      contentType,
-      fileSize
+      contentType
     );
 
     return NextResponse.json({ uploadUrl, downloadUrl });

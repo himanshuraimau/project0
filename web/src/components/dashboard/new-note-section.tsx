@@ -31,6 +31,7 @@ import { ProcessPDFResult } from "@/lib/types";
 import { AudioUploadModal } from "@/components/audio";
 import { AddLinkModal } from "@/components/link";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
+import { normalizeS3UploadError } from "@/lib/utils/s3-upload-errors";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/use-subscription";
 import { UpgradeModal } from "@/components/subscription/upgrade-modal";
@@ -443,17 +444,14 @@ function AudioRecorderModal({
       }
     } catch (error) {
       console.error("Transcription error:", error);
+      const normalizedError = normalizeS3UploadError(error);
       // Use local tempId (not currentTempId which is stale)
       updateLoadingNote(tempId, {
         stage: "error",
-        error:
-          error instanceof Error ? error.message : "Failed to transcribe audio",
+        error: normalizedError,
       });
       toast.error("Failed to transcribe audio", {
-        description:
-          error instanceof Error
-            ? error.message
-            : "Please try again or contact support if the issue persists.",
+        description: normalizedError,
         duration: 5000,
       });
     } finally {
