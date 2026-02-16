@@ -528,6 +528,8 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           if (progress >= 65) return;
           void resumeStalledYoutubeGeneration(candidate).then(() => {
             void loadNotes();
+          }).catch((error) => {
+            console.error("[NotesList] Failed to auto-resume YouTube generation:", error);
           });
           return;
         }
@@ -538,6 +540,8 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           if (candidate.transcriptId || candidate.noteId) return;
           void resumeStalledAudioTranscription(candidate).then(() => {
             void loadNotes();
+          }).catch((error) => {
+            console.error("[NotesList] Failed to auto-resume audio transcription:", error);
           });
         }
       });

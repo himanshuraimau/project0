@@ -228,11 +228,56 @@ export function DashboardRefreshProvider({ children }: { children: React.ReactNo
           return note;
         }
 
-        const nextNote: LoadingNote = { ...note, ...updates, rehydrated: false };
+        const stageOrder: Record<LoadingNote['stage'], number> = {
+          uploading: 0,
+          processing: 1,
+          generating: 2,
+          completed: 3,
+          error: 4,
+        };
+        const incomingStage = updates.stage;
         const hasProgressUpdate = typeof updates.progress === 'number' && Number.isFinite(updates.progress);
+        const incomingProgress = hasProgressUpdate
+          ? Math.max(0, Math.min(100, Math.round(updates.progress as number)))
+          : null;
+        const currentProgress = typeof note.progress === 'number' && Number.isFinite(note.progress)
+          ? note.progress
+          : 0;
+
+        const isStageRegression = !!(
+          incomingStage &&
+          incomingStage !== 'error' &&
+          incomingStage !== 'completed' &&
+          stageOrder[incomingStage] < stageOrder[note.stage]
+        );
+        const isProgressRegression = incomingProgress !== null && incomingProgress < currentProgress;
+
+        // Ignore stale out-of-order updates that would roll UI backward.
+        if (isStageRegression && (incomingProgress === null || isProgressRegression)) {
+          return note;
+        }
+
+        const nextStage =
+          incomingStage &&
+          incomingStage !== 'error' &&
+          incomingStage !== 'completed' &&
+          stageOrder[incomingStage] < stageOrder[note.stage]
+            ? note.stage
+            : incomingStage ?? note.stage;
+
+        const nextNote: LoadingNote = {
+          ...note,
+          ...updates,
+          stage: nextStage,
+          rehydrated: false,
+        };
 
         if (hasProgressUpdate) {
-          nextNote.progress = Math.max(0, Math.min(100, Math.round(updates.progress as number)));
+          // Progress should be monotonic except explicit error transitions.
+          nextNote.progress =
+            incomingStage === 'error'
+              ? incomingProgress!
+              : Math.max(currentProgress, incomingProgress!);
           nextNote.lastProgressAt = Date.now();
         }
 
