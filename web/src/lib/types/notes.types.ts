@@ -102,6 +102,7 @@ export interface ProcessPDFOptions {
   generateNotes?: boolean;
   folderId?: string | null;
   progressJobId?: string;
+  onUploadComplete?: () => void;
 }
 
 export interface ProcessPDFResult {

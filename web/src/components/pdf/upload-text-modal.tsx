@@ -57,33 +57,49 @@ export function UploadTextModal({
     if (!hasPDF && !hasText) return;
 
     const tempId = hasPDF ? `pdf-${Date.now()}` : `text-${Date.now()}`;
-    addLoadingNote(tempId, "pdf", "uploading");
+    let loadingNoteCreated = false;
+    let modalClosed = false;
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    const createLoadingNote = (stage: "processing" | "generating") => {
+      if (loadingNoteCreated) {
+        return;
+      }
+      addLoadingNote(tempId, "pdf", stage);
+      loadingNoteCreated = true;
+    };
 
-    if (onClose) {
-      onClose();
-    }
+    const closeModal = () => {
+      if (modalClosed) {
+        return;
+      }
+      modalClosed = true;
+      onClose?.();
+    };
 
     try {
       let result;
 
       if (hasPDF) {
-        updateLoadingNote(tempId, { stage: "processing" });
         result = await processPDFWithNotes(selectedPDFFile, {
           generateNotes: true,
           extractImages: false,
+          folderId: selectedFolderId,
           progressJobId: tempId,
+          onUploadComplete: () => {
+            createLoadingNote("processing");
+            closeModal();
+          },
         });
 
-        if (result?.transcript?.id) {
+        if (loadingNoteCreated && result?.transcript?.id) {
           updateLoadingNote(tempId, {
             transcriptId: result.transcript.id,
             stage: "generating",
           });
         }
       } else {
-        updateLoadingNote(tempId, { stage: "generating" });
+        createLoadingNote("generating");
+        closeModal();
         result = await generateNotesFromText(
           textInput,
           "Text Note",
@@ -93,7 +109,7 @@ export function UploadTextModal({
       }
 
       if (result) {
-        if (result.note && "id" in result.note) {
+        if (loadingNoteCreated && result.note && "id" in result.note) {
           updateLoadingNote(tempId, {
             noteId: result.note.id,
             stage: "completed",
@@ -101,8 +117,9 @@ export function UploadTextModal({
           await new Promise((resolve) => setTimeout(resolve, 600));
         }
 
-        // Use local tempId (not currentTempId which is stale due to async setState)
-        removeLoadingNote(tempId);
+        if (loadingNoteCreated) {
+          removeLoadingNote(tempId);
+        }
 
         await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -124,10 +141,12 @@ export function UploadTextModal({
       } else {
         // processPDFWithNotes / generateNotesFromText returned null (internal failure)
         const errorMessage = "Failed to generate notes. Please try again.";
-        updateLoadingNote(tempId, {
-          stage: "error",
-          error: errorMessage,
-        });
+        if (loadingNoteCreated) {
+          updateLoadingNote(tempId, {
+            stage: "error",
+            error: errorMessage,
+          });
+        }
         toast.error("Failed to generate notes", {
           description: errorMessage,
           duration: 5000,
@@ -138,11 +157,12 @@ export function UploadTextModal({
       const errorMessage =
         error instanceof Error ? error.message : "Failed to generate notes";
 
-      // Use local tempId (not currentTempId which is stale)
-      updateLoadingNote(tempId, {
-        stage: "error",
-        error: errorMessage,
-      });
+      if (loadingNoteCreated) {
+        updateLoadingNote(tempId, {
+          stage: "error",
+          error: errorMessage,
+        });
+      }
 
       toast.error("Failed to generate notes", {
         description: errorMessage,

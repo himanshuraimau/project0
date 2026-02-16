@@ -95,17 +95,17 @@ export async function POST(req: NextRequest) {
     });
 
     if (!response.ok) {
-      const retryable = response.status === 403 || response.status === 404;
+      const missingAfterRefresh = response.status === 403 || response.status === 404;
       return NextResponse.json(
         {
-          error: retryable
-            ? "Uploaded audio is not available yet. This can happen if upload was interrupted by a page refresh."
+          error: missingAfterRefresh
+            ? "Uploaded audio is unavailable. Refresh during upload can interrupt transfer. Please upload the audio again."
             : `Failed to fetch audio from URL: ${response.status} ${response.statusText}`,
-          code: retryable ? "S3_AUDIO_NOT_READY" : "S3_FETCH_FAILED",
-          retryable,
+          code: missingAfterRefresh ? "S3_AUDIO_MISSING" : "S3_FETCH_FAILED",
+          retryable: false,
           upstreamStatus: response.status,
         },
-        { status: retryable ? 409 : 502 }
+        { status: missingAfterRefresh ? 409 : 502 }
       );
     }
 

@@ -52,6 +52,8 @@ export function useNotes() {
           throw new Error('Failed to upload file to storage');
         }
 
+        options.onUploadComplete?.();
+
         // Step 3: Ask API to process the PDF from the S3 URL (small JSON body)
         const response = await fetch('/api/pdf/process-from-url', {
           method: 'POST',
@@ -101,6 +103,8 @@ export function useNotes() {
       if (options.progressJobId) {
         formData.append('progressJobId', options.progressJobId);
       }
+
+      options.onUploadComplete?.();
 
       const response = await fetch('/api/pdf/process', {
         method: 'POST',

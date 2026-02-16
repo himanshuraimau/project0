@@ -447,8 +447,18 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           return;
         }
 
-        if (response.status === 409 && result?.code === "S3_AUDIO_NOT_READY") {
-          // Upload may still be finishing or was interrupted. Keep retrying.
+        if (response.status === 409 && result?.code === "S3_AUDIO_MISSING") {
+          updateLoadingNote(loadingNote.id, {
+            stage: "error",
+            error:
+              result?.message ||
+              result?.error ||
+              "Upload was interrupted after refresh. Please upload the audio again.",
+            message:
+              result?.message ||
+              result?.error ||
+              "Upload was interrupted after refresh. Please upload the audio again.",
+          });
           return;
         }
 

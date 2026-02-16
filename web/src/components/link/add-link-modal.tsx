@@ -55,9 +55,9 @@ export function AddLinkModal({
   };
 
   const handleGenerateNotes = async () => {
-    if (!linkInput.trim()) return;
-
-    const normalizedUrl = linkInput.trim().toLowerCase();
+    const trimmedLinkInput = linkInput.trim();
+    if (!trimmedLinkInput) return;
+    const normalizedUrl = trimmedLinkInput.toLowerCase();
 
     if (processingUrls.has(normalizedUrl)) {
       toast.warning("Already processing this link", {
@@ -68,32 +68,57 @@ export function AddLinkModal({
       return;
     }
 
+    const linkType = detectLinkType(trimmedLinkInput);
+    if (linkType === "webpage") {
+      try {
+        new URL(trimmedLinkInput);
+      } catch {
+        toast.error("Invalid URL", {
+          description: "Please enter a valid website URL.",
+          duration: 4000,
+        });
+        return;
+      }
+    }
+
     setIsProcessing(true);
     setProcessingUrls((prev) => new Set(prev).add(normalizedUrl));
 
     const tempId = `link-${Date.now()}`;
+    let loadingNoteCreated = false;
+    let modalClosed = false;
 
-    const linkType = detectLinkType(linkInput);
-    addLoadingNote(
-      tempId,
-      linkType === "youtube" ? "youtube" : "webpage"
-    );
-    updateLoadingNote(tempId, { stage: "processing" });
+    const createLoadingNote = (stage: "processing" | "generating") => {
+      if (loadingNoteCreated) {
+        return;
+      }
+      addLoadingNote(
+        tempId,
+        linkType === "youtube" ? "youtube" : "webpage"
+      );
+      loadingNoteCreated = true;
+      updateLoadingNote(tempId, { stage });
+    };
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    if (onClose) {
-      onClose();
-    }
+    const closeModal = () => {
+      if (modalClosed) {
+        return;
+      }
+      modalClosed = true;
+      onClose?.();
+    };
 
     try {
       let result;
 
       if (linkType === "youtube") {
+        createLoadingNote("processing");
+        closeModal();
+
         const transcriptResponse = await fetch("/api/transcripts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: linkInput, progressJobId: tempId }),
+          body: JSON.stringify({ url: trimmedLinkInput, progressJobId: tempId }),
         });
 
         const transcriptResult = await transcriptResponse.json();
@@ -110,8 +135,9 @@ export function AddLinkModal({
               duration: 8000,
             });
 
-            // Use local tempId (not currentTempId which is stale due to async setState)
-            removeLoadingNote(tempId);
+            if (loadingNoteCreated) {
+              removeLoadingNote(tempId);
+            }
             return;
           }
 
@@ -119,7 +145,9 @@ export function AddLinkModal({
             transcriptResponse.status === 403 &&
             transcriptResult.error === "FREE_TIER_LIMIT_REACHED"
           ) {
-            removeLoadingNote(tempId);
+            if (loadingNoteCreated) {
+              removeLoadingNote(tempId);
+            }
             openUpgradeModal();
             return;
           }
@@ -201,49 +229,100 @@ export function AddLinkModal({
           };
         }
       } else {
-        const response = await fetch("/api/webpage/process", {
+        const crawlResponse = await fetch("/api/webpage/process", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            url: linkInput,
+            url: trimmedLinkInput,
+            folderId: selectedFolderId,
+            generateNotes: false,
+          }),
+        });
+
+        const crawlResult = await crawlResponse.json();
+
+        if (!crawlResponse.ok || !crawlResult.success) {
+          if (
+            crawlResponse.status === 403 &&
+            (crawlResult.error === "FREE_TIER_LIMIT_REACHED" ||
+              crawlResult.code === "FREE_TIER_LIMIT_REACHED")
+          ) {
+            openUpgradeModal();
+            return;
+          }
+          throw new Error(
+            crawlResult.error || crawlResult.message || "Failed to process webpage"
+          );
+        }
+
+        const transcriptId = crawlResult.data?.transcript?.id as string | undefined;
+        if (!transcriptId) {
+          throw new Error("Webpage content was processed but transcript ID is missing");
+        }
+
+        createLoadingNote("generating");
+        updateLoadingNote(tempId, {
+          transcriptId,
+          stage: "generating",
+        });
+        closeModal();
+
+        const noteResponse = await fetch("/api/notes/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            transcriptId,
             folderId: selectedFolderId,
             progressJobId: tempId,
           }),
         });
 
-        result = await response.json();
+        const noteResult = await noteResponse.json();
 
-        if (!response.ok || !result.success) {
+        if (!noteResponse.ok || !noteResult.success) {
           if (
-            response.status === 403 &&
-            (result.error === "FREE_TIER_LIMIT_REACHED" ||
-              result.code === "FREE_TIER_LIMIT_REACHED")
+            noteResponse.status === 403 &&
+            noteResult.error === "FREE_TIER_LIMIT_REACHED"
           ) {
-            removeLoadingNote(tempId);
+            if (loadingNoteCreated) {
+              removeLoadingNote(tempId);
+            }
             openUpgradeModal();
             return;
           }
-          throw new Error(
-            result.error || result.message || "Failed to process webpage"
-          );
-        }
+          toast.warning("Webpage content saved, but notes generation failed", {
+            description:
+              "You can retry generating notes from your transcripts list.",
+            duration: 5000,
+          });
 
-        if (result.data?.transcript?.id) {
-          updateLoadingNote(tempId, {
-            transcriptId: result.data.transcript.id,
-            stage: "generating",
-          });
-        }
-        if (result.data?.note?.id) {
-          updateLoadingNote(tempId, {
-            noteId: result.data.note.id,
-            stage: "completed",
-          });
+          result = {
+            success: true,
+            data: {
+              transcript: crawlResult.data.transcript,
+              note: null,
+            },
+          };
+        } else {
+          if (noteResult.data?.id) {
+            updateLoadingNote(tempId, {
+              noteId: noteResult.data.id,
+              stage: "completed",
+            });
+          }
+          result = {
+            success: true,
+            data: {
+              transcript: crawlResult.data.transcript,
+              note: noteResult.data,
+            },
+          };
         }
       }
 
-      // Use local tempId (not currentTempId which is stale due to async setState)
-      removeLoadingNote(tempId);
+      if (loadingNoteCreated) {
+        removeLoadingNote(tempId);
+      }
 
       await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -278,11 +357,12 @@ export function AddLinkModal({
           ? error.message
           : "Failed to process link. Please try again.";
 
-      // Update loading note to error state so the shimmer stops
-      updateLoadingNote(tempId, {
-        stage: "error",
-        error: errorMessage,
-      });
+      if (loadingNoteCreated) {
+        updateLoadingNote(tempId, {
+          stage: "error",
+          error: errorMessage,
+        });
+      }
 
       toast.error("Processing failed", {
         description: errorMessage,

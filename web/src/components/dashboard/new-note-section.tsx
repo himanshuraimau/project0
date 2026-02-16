@@ -22,7 +22,6 @@ import {
   Delete01Icon,
   PlayIcon,
   MagicWand01Icon,
-  ArrowDown01Icon,
   Loading01Icon,
   Folder01Icon,
 } from "@hugeicons/core-free-icons";
@@ -292,11 +291,6 @@ function AudioRecorderModal({
     if (recordingState !== "paused") stopPreviewPlayback();
   }, [recordingState]);
 
-  const handleSave = () => {
-    // This would save without generating notes
-    console.log("Saving recording...");
-  };
-
   const handleGenerateNotes = async () => {
     let blobToUse: Blob | null = audioBlob;
 
@@ -334,11 +328,7 @@ function AudioRecorderModal({
     setIsProcessing(true);
 
     const tempId = `audio-record-${Date.now()}`;
-    addLoadingNote(tempId, "audio-record", "uploading");
-
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    onClose();
+    let loadingNoteCreated = false;
 
     try {
       const normalizedMimeType = (blobToUse.type || "").toLowerCase();
@@ -391,14 +381,7 @@ function AudioRecorderModal({
       }
 
       const { uploadUrl, transcribeUrl } = await urlRes.json();
-      updateLoadingNote(tempId, {
-        transcribeUrl,
-        fileName: file.name,
-        folderId: null,
-      });
-
       // 2) Upload recording directly to S3
-      updateLoadingNote(tempId, { stage: "uploading" });
       const putRes = await fetch(uploadUrl, {
         method: "PUT",
         body: file,
@@ -409,8 +392,19 @@ function AudioRecorderModal({
         throw new Error("Failed to upload recording to storage");
       }
 
+      // Upload succeeded: now show shimmer card and close modal
+      addLoadingNote(tempId, "audio-record", "processing");
+      loadingNoteCreated = true;
+      updateLoadingNote(tempId, {
+        stage: "processing",
+        transcribeUrl,
+        fileName: file.name,
+        folderId: null,
+      });
+
+      onClose();
+
       // 3) Transcribe from S3 URL
-      updateLoadingNote(tempId, { stage: "processing" });
       const response = await fetch("/api/audio/transcribe-from-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -469,20 +463,24 @@ function AudioRecorderModal({
         setRecordingState("idle");
       } else {
         const errorData = await response.json();
-        updateLoadingNote(tempId, {
-          stage: "error",
-          error: errorData.error || "Failed to transcribe audio",
-        });
+        if (loadingNoteCreated) {
+          updateLoadingNote(tempId, {
+            stage: "error",
+            error: errorData.error || "Failed to transcribe audio",
+          });
+        }
         throw new Error(errorData.error || "Failed to transcribe audio");
       }
     } catch (error) {
       console.error("Transcription error:", error);
       const normalizedError = normalizeS3UploadError(error);
       // Use local tempId (not currentTempId which is stale)
-      updateLoadingNote(tempId, {
-        stage: "error",
-        error: normalizedError,
-      });
+      if (loadingNoteCreated) {
+        updateLoadingNote(tempId, {
+          stage: "error",
+          error: normalizedError,
+        });
+      }
       toast.error("Failed to transcribe audio", {
         description: normalizedError,
         duration: 5000,

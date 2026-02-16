@@ -125,13 +125,7 @@ export default function AudioUploadModal({
     setIsProcessing(true);
 
     const tempId = `audio-upload-${Date.now()}`;
-    addLoadingNote(tempId, "audio", "uploading");
-
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    if (onClose) {
-      onClose();
-    }
+    let loadingNoteCreated = false;
 
     const file = audioBlob instanceof File ? audioBlob : new File([audioBlob], fileName || "uploaded-audio", { type: audioBlob.type });
     const fileDisplayName = fileName || (file.name?.replace(/\.[^/.]+$/, "") ?? "uploaded-audio");
@@ -157,14 +151,8 @@ export default function AudioUploadModal({
       }
 
       const { uploadUrl, transcribeUrl } = await urlRes.json();
-      updateLoadingNote(tempId, {
-        transcribeUrl,
-        fileName: file.name || `${fileDisplayName}.mp3`,
-        folderId: null,
-      });
 
       // 2) Upload file directly to S3
-      updateLoadingNote(tempId, { stage: "uploading" });
       const putRes = await fetch(uploadUrl, {
         method: "PUT",
         body: file,
@@ -175,8 +163,21 @@ export default function AudioUploadModal({
         throw new Error("Failed to upload file to storage");
       }
 
+      // Upload succeeded: now show shimmer card and close modal
+      addLoadingNote(tempId, "audio", "processing");
+      loadingNoteCreated = true;
+      updateLoadingNote(tempId, {
+        stage: "processing",
+        transcribeUrl,
+        fileName: file.name || `${fileDisplayName}.mp3`,
+        folderId: null,
+      });
+
+      if (onClose) {
+        onClose();
+      }
+
       // 3) Ask API to transcribe from the S3 URL (small JSON body, no size limit)
-      updateLoadingNote(tempId, { stage: "processing" });
       const response = await fetch("/api/audio/transcribe-from-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -233,10 +234,12 @@ export default function AudioUploadModal({
       } else {
         const errorData = await response.json();
 
-        updateLoadingNote(tempId, {
-          stage: "error",
-          error: errorData.error || "Failed to transcribe audio",
-        });
+        if (loadingNoteCreated) {
+          updateLoadingNote(tempId, {
+            stage: "error",
+            error: errorData.error || "Failed to transcribe audio",
+          });
+        }
 
         if (
           response.status === 403 &&
@@ -262,10 +265,12 @@ export default function AudioUploadModal({
       console.error("Transcription error:", error);
       const normalizedError = normalizeS3UploadError(error);
       // Use local tempId (not currentTempId which is stale due to async setState)
-      updateLoadingNote(tempId, {
-        stage: "error",
-        error: normalizedError,
-      });
+      if (loadingNoteCreated) {
+        updateLoadingNote(tempId, {
+          stage: "error",
+          error: normalizedError,
+        });
+      }
       toast.error("Failed to transcribe audio", {
         description: normalizedError,
         duration: 5000,
