@@ -137,6 +137,11 @@ export async function transcribeAudioAndCreateNote(
   const properFileName = audioFile.name.includes(".")
     ? audioFile.name
     : `audio.${transcriptionExtension}`;
+  const recordBaseName = (fileNameForRecord || "audio").trim() || "audio";
+  const recordHasExtension = !!recordBaseName.match(/\.[a-z0-9]+$/i);
+  const transcriptFileName = recordHasExtension
+    ? recordBaseName
+    : `${recordBaseName}.${transcriptionExtension}`;
 
   const audioFileWithName = new File([await audioFile.arrayBuffer()], properFileName, {
     type: normalizedMimeType || "audio/mpeg",
@@ -156,7 +161,7 @@ export async function transcribeAudioAndCreateNote(
 
   const transcriptRecord = await prisma.transcript.create({
     data: {
-      fileName: `${fileNameForRecord}.${audioFile.name.split(".").pop()}`,
+      fileName: transcriptFileName,
       originalName: audioFile.name,
       content: transcriptText,
       cleanContent: transcriptText,

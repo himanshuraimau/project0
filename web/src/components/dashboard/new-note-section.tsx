@@ -390,7 +390,7 @@ function AudioRecorderModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           audioUrl: transcribeUrl,
-          fileName: `recording-${Date.now()}`,
+          fileName: file.name,
           folderId: null,
           progressJobId: tempId,
         }),
@@ -713,37 +713,20 @@ export function NewNoteSection() {
   const [showRecordAudioDialog, setShowRecordAudioDialog] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const { hasAccess: hasSubscription, loading: subscriptionLoading } =
-    useSubscription();
-  const [freeNotesRemaining, setFreeNotesRemaining] = useState<number | null>(
-    null,
-  );
+  const {
+    status: subscriptionStatus,
+    hasAccess: hasSubscription,
+    loading: subscriptionLoading,
+    fetchStatus: fetchSubscriptionStatus,
+  } = useSubscription();
+  const freeNotesRemaining = subscriptionStatus?.features?.freeNotes?.remaining ?? null;
 
-  // Fetch free tier note status
-  const fetchFreeNoteStatus = useCallback(async () => {
-    try {
-      const response = await fetch("/api/subscription/status", {
-        cache: "no-store",
-      });
-      const data = await response.json();
-      if (data.features?.freeNotes) {
-        setFreeNotesRemaining(data.features.freeNotes.remaining);
-      }
-    } catch (error) {
-      console.error("Error fetching free note status:", error);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchFreeNoteStatus();
-  }, [fetchFreeNoteStatus]);
-
-  // Re-fetch when dashboard refreshes (e.g. after note creation)
+  // Refresh subscription status when dashboard refreshes (e.g. after note creation)
   useEffect(() => {
     if (refreshTrigger > 0) {
-      fetchFreeNoteStatus();
+      fetchSubscriptionStatus(true);
     }
-  }, [refreshTrigger, fetchFreeNoteStatus]);
+  }, [refreshTrigger, fetchSubscriptionStatus]);
 
   // Allow opening any generate-note card if subscribed OR has free notes remaining (free users get 1 note from any card)
   const handleGenerateNoteCardClick = (openDialog: (open: boolean) => void) => {

@@ -151,6 +151,19 @@ export async function POST(req: NextRequest) {
       "error",
       error instanceof Error ? error.message : "Failed to transcribe audio"
     );
+    const upstreamStatus =
+      typeof (error as { status?: unknown })?.status === "number"
+        ? (error as { status: number }).status
+        : null;
+    const upstreamMessage =
+      (error as { error?: { message?: string } })?.error?.message ||
+      (error instanceof Error ? error.message : "Failed to transcribe audio");
+    if (upstreamStatus === 400) {
+      return NextResponse.json(
+        { error: upstreamMessage || "Invalid audio file format for transcription." },
+        { status: 400 }
+      );
+    }
     if (error instanceof Error) {
       if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
         return NextResponse.json(

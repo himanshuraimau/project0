@@ -29,6 +29,11 @@ interface SubscriptionStatus {
     hasAccess: boolean;
     subscription: any;
     upgradeUrl: string | null;
+    freeNotes?: {
+      used: number;
+      limit: number;
+      remaining: number;
+    };
   };
 }
 

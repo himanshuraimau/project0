@@ -177,7 +177,7 @@ export default function AudioUploadModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           audioUrl: transcribeUrl,
-          fileName: fileDisplayName,
+          fileName: file.name || `${fileDisplayName}.mp3`,
           folderId: null,
           progressJobId: tempId,
         }),

@@ -6,6 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { cn } from "@/lib/utils";
+import { subscriptionCache } from "@/lib/subscription-cache";
 
 interface FreeTierStatus {
   used: number;
@@ -19,13 +20,29 @@ export function FreeTierWarning() {
   const { openUpgradeModal } = useUpgradeModal();
 
   useEffect(() => {
+    const cached = subscriptionCache.getCached();
+    if (cached) {
+      setHasSubscription(cached.hasSubscription && cached.access?.hasAccess);
+      if (cached.features?.freeNotes) {
+        setStatus(cached.features.freeNotes);
+      }
+    }
+
     fetchStatus();
+
+    const unsubscribe = subscriptionCache.subscribe((data) => {
+      setHasSubscription(data.hasSubscription && data.access?.hasAccess);
+      if (data.features?.freeNotes) {
+        setStatus(data.features.freeNotes);
+      }
+    });
+
+    return unsubscribe;
   }, []);
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch("/api/subscription/status");
-      const data = await response.json();
+      const data = await subscriptionCache.getStatus();
 
       setHasSubscription(data.hasSubscription && data.access?.hasAccess);
 

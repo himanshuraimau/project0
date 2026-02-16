@@ -21,6 +21,7 @@ import { useTheme } from "next-themes";
 import { UserControl } from "@/components/user-control";
 import { SubscriptionCard } from "@/components/shared/SubscriptionCard";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
+import { subscriptionCache } from "@/lib/subscription-cache";
 
 const SidebarContext = createContext({
   isCollapsed: false,
@@ -110,19 +111,30 @@ export function AppSidebar({ className }: AppSidebarProps) {
   useEffect(() => {
     async function checkSubscription() {
       try {
-        const response = await fetch("/api/subscription/status");
-        if (response.ok) {
-          const data = await response.json();
-          const isActive = data.hasSubscription && data.access?.hasAccess;
-          setHasActiveSubscription(isActive);
-        }
+        const data = await subscriptionCache.getStatus();
+        const isActive = data.hasSubscription && data.access?.hasAccess;
+        setHasActiveSubscription(isActive);
       } catch (error) {
         console.error("Error checking subscription:", error);
       } finally {
         setIsLoadingSubscription(false);
       }
     }
+
+    const cached = subscriptionCache.getCached();
+    if (cached) {
+      setHasActiveSubscription(!!(cached.hasSubscription && cached.access?.hasAccess));
+      setIsLoadingSubscription(false);
+    }
+
     checkSubscription();
+
+    const unsubscribe = subscriptionCache.subscribe((data) => {
+      setHasActiveSubscription(!!(data.hasSubscription && data.access?.hasAccess));
+      setIsLoadingSubscription(false);
+    });
+
+    return unsubscribe;
   }, []);
 
   const toggleSidebar = () => {
