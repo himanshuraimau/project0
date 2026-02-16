@@ -95,9 +95,17 @@ export async function POST(req: NextRequest) {
     });
 
     if (!response.ok) {
+      const retryable = response.status === 403 || response.status === 404;
       return NextResponse.json(
-        { error: `Failed to fetch audio from URL: ${response.status} ${response.statusText}` },
-        { status: 502 }
+        {
+          error: retryable
+            ? "Uploaded audio is not available yet. This can happen if upload was interrupted by a page refresh."
+            : `Failed to fetch audio from URL: ${response.status} ${response.statusText}`,
+          code: retryable ? "S3_AUDIO_NOT_READY" : "S3_FETCH_FAILED",
+          retryable,
+          upstreamStatus: response.status,
+        },
+        { status: retryable ? 409 : 502 }
       );
     }
 

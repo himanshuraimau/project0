@@ -447,6 +447,11 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           return;
         }
 
+        if (response.status === 409 && result?.code === "S3_AUDIO_NOT_READY") {
+          // Upload may still be finishing or was interrupted. Keep retrying.
+          return;
+        }
+
         if (response.status === 404) {
           // Resource may still be processing or eventual consistency delay. Retry later.
           return;
@@ -514,7 +519,22 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           lastAttemptAt: 0,
         };
 
-        if (recoveryState.attempts >= maxAttempts) return;
+        if (recoveryState.attempts >= maxAttempts) {
+          if (
+            (candidate.type === "audio" || candidate.type === "audio-record") &&
+            !candidate.transcriptId &&
+            !candidate.noteId
+          ) {
+            updateLoadingNote(candidate.id, {
+              stage: "error",
+              error:
+                "Upload was interrupted after refresh. Please upload the audio again.",
+              message:
+                "Upload was interrupted after refresh. Please upload the audio again.",
+            });
+          }
+          return;
+        }
         if (now - recoveryState.lastAttemptAt < attemptCooldownMs) return;
 
         recoveryStateRef.current.set(candidate.id, {
