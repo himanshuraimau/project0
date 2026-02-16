@@ -62,17 +62,30 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
     const completionToastShownRef = useRef<Set<string>>(new Set());
 
-    const showRecoveredYoutubeCompletionToast = useCallback(
-      (jobId: string, noteTitle?: string | null) => {
+    const showRecoveredCompletionToast = useCallback(
+      (
+        jobId: string,
+        type: DashboardLoadingNote["type"],
+        noteTitle?: string | null
+      ) => {
         if (!jobId || completionToastShownRef.current.has(jobId)) return;
         completionToastShownRef.current.add(jobId);
 
-        toast.success("YouTube note is ready", {
+        const titleByType: Record<DashboardLoadingNote["type"], string> = {
+          pdf: "PDF note is ready",
+          audio: "Audio note is ready",
+          "audio-record": "Recording note is ready",
+          youtube: "YouTube note is ready",
+          webpage: "Webpage note is ready",
+        };
+
+        toast.success(titleByType[type], {
           description:
             typeof noteTitle === "string" && noteTitle.trim().length > 0
               ? noteTitle
               : "Your refreshed generation finished successfully.",
           duration: 4000,
+          id: `recovered-note-${jobId}`,
         });
       },
       []
@@ -202,19 +215,19 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           );
           if (!reason) return;
 
-          // Refresh recovery path: show completion feedback once when a restored YouTube
+          // Refresh recovery path: show completion feedback once when a restored
           // loading card resolves to a real note.
           if (
             typedLoadingNote.rehydrated &&
-            typedLoadingNote.type === "youtube" &&
             (reason === "noteId" ||
               reason === "progressJobId" ||
               reason === "transcriptId")
           ) {
             const matchedNote = findMatchedNote(typedLoadingNote, targetNotes);
             if (matchedNote) {
-              showRecoveredYoutubeCompletionToast(
+              showRecoveredCompletionToast(
                 typedLoadingNote.id,
+                typedLoadingNote.type,
                 matchedNote.title
               );
             }
@@ -232,7 +245,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
         findMatchedNote,
         getResolvedReason,
         removeLoadingNote,
-        showRecoveredYoutubeCompletionToast,
+        showRecoveredCompletionToast,
       ]
     );
 
@@ -319,8 +332,9 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
         if (response.ok && result?.success && result?.data?.id) {
           if (loadingNote.rehydrated && loadingNote.type === "youtube") {
-            showRecoveredYoutubeCompletionToast(
+            showRecoveredCompletionToast(
               loadingNote.id,
+              loadingNote.type,
               typeof result.data.title === "string" ? result.data.title : null
             );
           }
@@ -365,7 +379,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           result
         );
       },
-      [showRecoveredYoutubeCompletionToast, updateLoadingNote]
+      [showRecoveredCompletionToast, updateLoadingNote]
     );
 
     useEffect(() => {

@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { usePusherProgress } from "@/hooks/use-pusher-progress";
+import { toast } from "sonner";
 
 export interface LoadingNoteForCard {
   id: string;
@@ -82,7 +83,8 @@ export function GeneratingNoteCard({
   onRetry,
   onDismiss,
 }: GeneratingNoteCardProps) {
-  const { updateLoadingNote } = useDashboardRefresh();
+  const { updateLoadingNote, refreshNotes } = useDashboardRefresh();
+  const completionHandledRef = React.useRef(false);
   const [animatedProgress, setAnimatedProgress] = useState<number>(() => {
     const savedProgress = loadingNote.progress;
     if (typeof savedProgress === "number" && Number.isFinite(savedProgress)) {
@@ -104,12 +106,32 @@ export function GeneratingNoteCard({
       });
     },
     onCompleted: (event) => {
+      if (completionHandledRef.current) return;
+      completionHandledRef.current = true;
+
       console.log("[GeneratingNoteCard] Note completed, removing:", loadingNote.id);
       updateLoadingNote(loadingNote.id, {
         stage: "completed",
         progress: event.progress,
         message: event.message,
       });
+
+      const completionTitleByType: Record<LoadingNoteForCard["type"], string> = {
+        pdf: "📝 Content processed successfully! Notes generated.",
+        audio: "🎵 Audio processed successfully! Notes generated.",
+        "audio-record": "🎤 Audio recorded successfully! Notes generated.",
+        youtube: "▶️ YouTube note generated successfully.",
+        webpage: "🔗 Webpage note generated successfully.",
+      };
+
+      toast.success(completionTitleByType[loadingNote.type], {
+        description: "Transcription/content processing completed and notes are ready",
+        duration: 4000,
+        id: `note-complete-${loadingNote.id}`,
+      });
+
+      // Ensure the notes list refreshes even if API callback path was skipped.
+      void refreshNotes();
     },
     onError: (event) => {
       console.log('[GeneratingNoteCard] Note error:', loadingNote.id);

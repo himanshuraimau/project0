@@ -955,9 +955,10 @@ export function NewNoteSection() {
 
   const handleTextOrPDFProcessComplete = (result: ProcessPDFResult) => {
     setShowTextDialog(false);
+    const parsed = parseNoteResult(result.note);
 
     // Show success toast
-    if (result.note && "id" in result.note) {
+    if (parsed.id) {
       toast.success("📝 Content processed successfully! Notes generated.", {
         description: "Content converted to AI-powered notes",
         duration: 4000,
@@ -977,18 +978,11 @@ export function NewNoteSection() {
           setShowUpgradeModal(true);
         }, 1500);
       }
-    } else if (
-      result.note &&
-      ("error" in result.note || "modelOverloaded" in result.note)
-    ) {
+    } else if (parsed.error) {
       // Note generation failed but transcript was saved
-      const noteObj = result.note as {
-        message?: string;
-        modelOverloaded?: boolean;
-      };
       toast.error("📝 Note generation failed", {
         description:
-          noteObj.message ||
+          parsed.message ||
           "Content was saved but AI notes couldn't be generated. You can retry from the transcript.",
         duration: 6000,
       });
