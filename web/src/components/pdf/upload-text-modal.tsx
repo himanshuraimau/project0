@@ -60,7 +60,9 @@ export function UploadTextModal({
     let loadingNoteCreated = false;
     let modalClosed = false;
 
-    const createLoadingNote = (stage: "processing" | "generating") => {
+    const createLoadingNote = (
+      stage: "uploading" | "processing" | "generating"
+    ) => {
       if (loadingNoteCreated) {
         return;
       }
@@ -80,13 +82,24 @@ export function UploadTextModal({
       let result;
 
       if (hasPDF) {
+        createLoadingNote("uploading");
+        updateLoadingNote(tempId, {
+          stage: "uploading",
+          progress: 5,
+          message: "Uploading PDF...",
+        });
+
         result = await processPDFWithNotes(selectedPDFFile, {
           generateNotes: true,
           extractImages: false,
           folderId: selectedFolderId,
           progressJobId: tempId,
           onUploadComplete: () => {
-            createLoadingNote("processing");
+            updateLoadingNote(tempId, {
+              stage: "processing",
+              progress: 20,
+              message: "Parsing PDF...",
+            });
             closeModal();
           },
         });

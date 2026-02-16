@@ -329,6 +329,13 @@ function AudioRecorderModal({
 
     const tempId = `audio-record-${Date.now()}`;
     let loadingNoteCreated = false;
+    addLoadingNote(tempId, "audio-record", "uploading");
+    loadingNoteCreated = true;
+    updateLoadingNote(tempId, {
+      stage: "uploading",
+      progress: 5,
+      message: "Preparing recording upload...",
+    });
 
     try {
       const normalizedMimeType = (blobToUse.type || "").toLowerCase();
@@ -381,6 +388,11 @@ function AudioRecorderModal({
       }
 
       const { uploadUrl, transcribeUrl } = await urlRes.json();
+      updateLoadingNote(tempId, {
+        stage: "uploading",
+        progress: 10,
+        message: "Uploading recording...",
+      });
       // 2) Upload recording directly to S3
       const putRes = await fetch(uploadUrl, {
         method: "PUT",
@@ -393,10 +405,10 @@ function AudioRecorderModal({
       }
 
       // Upload succeeded: now show shimmer card and close modal
-      addLoadingNote(tempId, "audio-record", "processing");
-      loadingNoteCreated = true;
       updateLoadingNote(tempId, {
         stage: "processing",
+        progress: 20,
+        message: "Starting transcription...",
         transcribeUrl,
         fileName: file.name,
         folderId: null,

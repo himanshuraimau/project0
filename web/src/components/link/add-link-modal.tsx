@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
+import type { NoteProgressEvent } from "@/lib/note-progress-manager";
+import { subscribeToPusherProgress } from "@/lib/realtime/pusher-client";
 
 interface AddLinkModalProps {
   onClose?: () => void;
@@ -87,8 +89,12 @@ export function AddLinkModal({
     const tempId = `link-${Date.now()}`;
     let loadingNoteCreated = false;
     let modalClosed = false;
+    let stopModalPusherSubscription: (() => void) | null = null;
+    let hasReceivedPusherEvent = false;
 
-    const createLoadingNote = (stage: "processing" | "generating") => {
+    const createLoadingNote = (
+      stage: "uploading" | "processing" | "generating"
+    ) => {
       if (loadingNoteCreated) {
         return;
       }
@@ -108,12 +114,42 @@ export function AddLinkModal({
       onClose?.();
     };
 
+    createLoadingNote("uploading");
+    updateLoadingNote(tempId, {
+      stage: "uploading",
+      progress: 5,
+      message: "Preparing link processing...",
+    });
+
+    stopModalPusherSubscription = subscribeToPusherProgress(
+      tempId,
+      (event: NoteProgressEvent) => {
+        hasReceivedPusherEvent = true;
+        updateLoadingNote(tempId, {
+          stage: event.stage,
+          progress: event.progress,
+          message: event.message,
+        });
+
+        if (
+          event.stage === "generating" ||
+          event.stage === "completed" ||
+          event.stage === "error"
+        ) {
+          closeModal();
+        }
+      }
+    );
+
     try {
       let result;
 
       if (linkType === "youtube") {
-        createLoadingNote("processing");
-        closeModal();
+        updateLoadingNote(tempId, {
+          stage: "processing",
+          progress: 20,
+          message: "Fetching YouTube transcript...",
+        });
 
         const transcriptResponse = await fetch("/api/transcripts", {
           method: "POST",
@@ -179,6 +215,12 @@ export function AddLinkModal({
           });
         }
 
+        // Fallback when Pusher updates are delayed/unavailable.
+        // Generation starts with /api/notes/generate, so close modal here if still open.
+        if (!modalClosed) {
+          closeModal();
+        }
+
         const noteResponse = await fetch("/api/notes/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -196,7 +238,9 @@ export function AddLinkModal({
             noteResponse.status === 403 &&
             noteResult.error === "FREE_TIER_LIMIT_REACHED"
           ) {
-            removeLoadingNote(tempId);
+            if (loadingNoteCreated) {
+              removeLoadingNote(tempId);
+            }
             openUpgradeModal();
             return;
           }
@@ -229,60 +273,29 @@ export function AddLinkModal({
           };
         }
       } else {
-        const crawlResponse = await fetch("/api/webpage/process", {
+        updateLoadingNote(tempId, {
+          stage: "processing",
+          progress: 20,
+          message: "Crawling webpage...",
+        });
+
+        const response = await fetch("/api/webpage/process", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             url: trimmedLinkInput,
             folderId: selectedFolderId,
-            generateNotes: false,
-          }),
-        });
-
-        const crawlResult = await crawlResponse.json();
-
-        if (!crawlResponse.ok || !crawlResult.success) {
-          if (
-            crawlResponse.status === 403 &&
-            (crawlResult.error === "FREE_TIER_LIMIT_REACHED" ||
-              crawlResult.code === "FREE_TIER_LIMIT_REACHED")
-          ) {
-            openUpgradeModal();
-            return;
-          }
-          throw new Error(
-            crawlResult.error || crawlResult.message || "Failed to process webpage"
-          );
-        }
-
-        const transcriptId = crawlResult.data?.transcript?.id as string | undefined;
-        if (!transcriptId) {
-          throw new Error("Webpage content was processed but transcript ID is missing");
-        }
-
-        createLoadingNote("generating");
-        updateLoadingNote(tempId, {
-          transcriptId,
-          stage: "generating",
-        });
-        closeModal();
-
-        const noteResponse = await fetch("/api/notes/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            transcriptId,
-            folderId: selectedFolderId,
             progressJobId: tempId,
           }),
         });
 
-        const noteResult = await noteResponse.json();
+        result = await response.json();
 
-        if (!noteResponse.ok || !noteResult.success) {
+        if (!response.ok || !result.success) {
           if (
-            noteResponse.status === 403 &&
-            noteResult.error === "FREE_TIER_LIMIT_REACHED"
+            response.status === 403 &&
+            (result.error === "FREE_TIER_LIMIT_REACHED" ||
+              result.code === "FREE_TIER_LIMIT_REACHED")
           ) {
             if (loadingNoteCreated) {
               removeLoadingNote(tempId);
@@ -290,33 +303,27 @@ export function AddLinkModal({
             openUpgradeModal();
             return;
           }
-          toast.warning("Webpage content saved, but notes generation failed", {
-            description:
-              "You can retry generating notes from your transcripts list.",
-            duration: 5000,
-          });
+          throw new Error(
+            result.error || result.message || "Failed to process webpage"
+          );
+        }
 
-          result = {
-            success: true,
-            data: {
-              transcript: crawlResult.data.transcript,
-              note: null,
-            },
-          };
-        } else {
-          if (noteResult.data?.id) {
-            updateLoadingNote(tempId, {
-              noteId: noteResult.data.id,
-              stage: "completed",
-            });
-          }
-          result = {
-            success: true,
-            data: {
-              transcript: crawlResult.data.transcript,
-              note: noteResult.data,
-            },
-          };
+        // Fallback close on API completion when Pusher events are unavailable.
+        if (!modalClosed && !hasReceivedPusherEvent) {
+          closeModal();
+        }
+
+        if (result.data?.transcript?.id) {
+          updateLoadingNote(tempId, {
+            transcriptId: result.data.transcript.id,
+            stage: "generating",
+          });
+        }
+        if (result.data?.note?.id) {
+          updateLoadingNote(tempId, {
+            noteId: result.data.note.id,
+            stage: "completed",
+          });
         }
       }
 
@@ -371,6 +378,9 @@ export function AddLinkModal({
     } finally {
       // Don't remove loading note in finally — let error state show if there was an error
       // Successful path already called removeLoadingNote above
+      if (stopModalPusherSubscription) {
+        stopModalPusherSubscription();
+      }
       setIsProcessing(false);
       setProcessingUrls((prev) => {
         const next = new Set(prev);

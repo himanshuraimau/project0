@@ -130,6 +130,14 @@ export default function AudioUploadModal({
     const file = audioBlob instanceof File ? audioBlob : new File([audioBlob], fileName || "uploaded-audio", { type: audioBlob.type });
     const fileDisplayName = fileName || (file.name?.replace(/\.[^/.]+$/, "") ?? "uploaded-audio");
 
+    addLoadingNote(tempId, "audio", "uploading");
+    loadingNoteCreated = true;
+    updateLoadingNote(tempId, {
+      stage: "uploading",
+      progress: 5,
+      message: "Preparing audio upload...",
+    });
+
     try {
       // 1) Get presigned S3 URLs (avoids Vercel 5MB body limit by uploading directly to S3)
       const urlRes = await fetch("/api/audio/upload-url", {
@@ -151,6 +159,11 @@ export default function AudioUploadModal({
       }
 
       const { uploadUrl, transcribeUrl } = await urlRes.json();
+      updateLoadingNote(tempId, {
+        stage: "uploading",
+        progress: 10,
+        message: "Uploading audio...",
+      });
 
       // 2) Upload file directly to S3
       const putRes = await fetch(uploadUrl, {
@@ -164,10 +177,10 @@ export default function AudioUploadModal({
       }
 
       // Upload succeeded: now show shimmer card and close modal
-      addLoadingNote(tempId, "audio", "processing");
-      loadingNoteCreated = true;
       updateLoadingNote(tempId, {
         stage: "processing",
+        progress: 20,
+        message: "Starting transcription...",
         transcribeUrl,
         fileName: file.name || `${fileDisplayName}.mp3`,
         folderId: null,
