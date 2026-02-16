@@ -391,6 +391,11 @@ function AudioRecorderModal({
       }
 
       const { uploadUrl, transcribeUrl } = await urlRes.json();
+      updateLoadingNote(tempId, {
+        transcribeUrl,
+        fileName: file.name,
+        folderId: null,
+      });
 
       // 2) Upload recording directly to S3
       updateLoadingNote(tempId, { stage: "uploading" });

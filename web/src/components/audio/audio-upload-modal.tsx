@@ -157,6 +157,11 @@ export default function AudioUploadModal({
       }
 
       const { uploadUrl, transcribeUrl } = await urlRes.json();
+      updateLoadingNote(tempId, {
+        transcribeUrl,
+        fileName: file.name || `${fileDisplayName}.mp3`,
+        folderId: null,
+      });
 
       // 2) Upload file directly to S3
       updateLoadingNote(tempId, { stage: "uploading" });

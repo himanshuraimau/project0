@@ -46,6 +46,9 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       type: "pdf" | "audio" | "audio-record" | "youtube" | "webpage";
       noteId?: string;
       transcriptId?: string;
+      transcribeUrl?: string;
+      fileName?: string;
+      folderId?: string | null;
       timestamp: number;
       progress?: number;
       message?: string;
@@ -382,6 +385,97 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       [showRecoveredCompletionToast, updateLoadingNote]
     );
 
+    const resumeStalledAudioTranscription = useCallback(
+      async (loadingNote: DashboardLoadingNote) => {
+        if (!loadingNote.transcribeUrl) return;
+
+        const safeProgress =
+          typeof loadingNote.progress === "number" &&
+          Number.isFinite(loadingNote.progress)
+            ? Math.max(0, Math.min(100, Math.round(loadingNote.progress)))
+            : 20;
+
+        updateLoadingNote(loadingNote.id, {
+          stage: "processing",
+          progress: Math.max(safeProgress, 25),
+          message: "Resuming audio transcription...",
+        });
+
+        const fallbackExt =
+          loadingNote.type === "audio-record" ? "webm" : "mp3";
+        const fallbackFileName = `audio-${loadingNote.id}.${fallbackExt}`;
+
+        const response = await fetch("/api/audio/transcribe-from-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            audioUrl: loadingNote.transcribeUrl,
+            fileName: loadingNote.fileName || fallbackFileName,
+            folderId: loadingNote.folderId ?? null,
+            progressJobId: loadingNote.id,
+          }),
+        });
+
+        const result = await response.json().catch(() => null);
+        const responseData = result?.data || result;
+
+        if (response.ok && responseData?.transcript?.id) {
+          const generatedNoteId =
+            typeof responseData?.note?.id === "string"
+              ? responseData.note.id
+              : null;
+
+          if (generatedNoteId && loadingNote.rehydrated) {
+            showRecoveredCompletionToast(
+              loadingNote.id,
+              loadingNote.type,
+              typeof responseData.note?.title === "string"
+                ? responseData.note.title
+                : null
+            );
+          }
+
+          updateLoadingNote(loadingNote.id, {
+            transcriptId: responseData.transcript.id,
+            noteId: generatedNoteId ?? undefined,
+            stage: generatedNoteId ? "completed" : "generating",
+            progress: generatedNoteId ? 100 : 70,
+            message: generatedNoteId
+              ? "Notes generated successfully"
+              : "Audio transcribed, generating notes...",
+          });
+          return;
+        }
+
+        if (response.status === 404) {
+          // Resource may still be processing or eventual consistency delay. Retry later.
+          return;
+        }
+
+        if (response.status === 403 || response.status === 400) {
+          updateLoadingNote(loadingNote.id, {
+            stage: "error",
+            error:
+              result?.message ||
+              result?.error ||
+              "Unable to resume audio processing",
+            message:
+              result?.message ||
+              result?.error ||
+              "Unable to resume audio processing",
+          });
+          return;
+        }
+
+        console.warn(
+          "[NotesList] Auto-resume failed for audio loading note:",
+          loadingNote.id,
+          result
+        );
+      },
+      [showRecoveredCompletionToast, updateLoadingNote]
+    );
+
     useEffect(() => {
       const activeIds = new Set(activeLoadingNotes.map((note) => note.id));
       recoveryStateRef.current.forEach((_, noteId) => {
@@ -403,7 +497,6 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
 
       activeLoadingNotes.forEach((loadingNote) => {
         const candidate = loadingNote as DashboardLoadingNote;
-        if (candidate.type !== "youtube") return;
         if (!candidate.rehydrated) return;
         if (candidate.stage === "error" || candidate.stage === "completed") return;
 
@@ -412,10 +505,6 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           Number.isFinite(candidate.progress)
             ? candidate.progress
             : 0;
-
-        // 55% is the transcript-complete handoff. If we are still below note-generation
-        // progress after refresh and no activity arrives, re-trigger generation.
-        if (progress >= 65) return;
 
         const activityTimestamp = candidate.lastProgressAt ?? candidate.timestamp;
         if (now - activityTimestamp < inactivityThresholdMs) return;
@@ -433,14 +522,30 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           lastAttemptAt: now,
         });
 
-        void resumeStalledYoutubeGeneration(candidate).then(() => {
-          void loadNotes();
-        });
+        if (candidate.type === "youtube") {
+          // 55% is the transcript-complete handoff. If we are still below note-generation
+          // progress after refresh and no activity arrives, re-trigger generation.
+          if (progress >= 65) return;
+          void resumeStalledYoutubeGeneration(candidate).then(() => {
+            void loadNotes();
+          });
+          return;
+        }
+
+        if (candidate.type === "audio" || candidate.type === "audio-record") {
+          // Resume only when transcription call was likely interrupted before transcript creation.
+          if (!candidate.transcribeUrl) return;
+          if (candidate.transcriptId || candidate.noteId) return;
+          void resumeStalledAudioTranscription(candidate).then(() => {
+            void loadNotes();
+          });
+        }
       });
     }, [
       activeLoadingNotes,
       hasCompletedInitialFetch,
       loadNotes,
+      resumeStalledAudioTranscription,
       resumeStalledYoutubeGeneration,
     ]);
 

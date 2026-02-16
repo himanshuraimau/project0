@@ -14,6 +14,9 @@ interface LoadingNote {
   noteId?: string;        // Link to generated note in DB
   completedAt?: number;   // Completion timestamp for deterministic cleanup
   rehydrated?: boolean;   // Whether restored from localStorage
+  transcribeUrl?: string; // Presigned URL used for audio transcription resume
+  fileName?: string;      // Original uploaded/recorded file name
+  folderId?: string | null; // Target folder for generated note
   stage: 'uploading' | 'processing' | 'generating' | 'completed' | 'error';
   error?: string;         // Error message if stage is 'error'
   retryCount?: number;    // Number of retry attempts
