@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Note01Icon } from "@hugeicons/core-free-icons";
+import { toast } from "sonner";
 
 interface NotesListProps {
   searchQuery?: string;
@@ -59,6 +60,24 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       progressJobIds: Set<string>;
     };
 
+    const completionToastShownRef = useRef<Set<string>>(new Set());
+
+    const showRecoveredYoutubeCompletionToast = useCallback(
+      (jobId: string, noteTitle?: string | null) => {
+        if (!jobId || completionToastShownRef.current.has(jobId)) return;
+        completionToastShownRef.current.add(jobId);
+
+        toast.success("YouTube note is ready", {
+          description:
+            typeof noteTitle === "string" && noteTitle.trim().length > 0
+              ? noteTitle
+              : "Your refreshed generation finished successfully.",
+          duration: 4000,
+        });
+      },
+      []
+    );
+
     const getProgressJobIdFromNote = useCallback((
       note: NotesNoteWithTranscript
     ): string | null => {
@@ -91,6 +110,33 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
             .filter((jobId): jobId is string => Boolean(jobId))
         ),
       }),
+      [getProgressJobIdFromNote]
+    );
+
+    const findMatchedNote = useCallback(
+      (
+        loadingNote: DashboardLoadingNote,
+        targetNotes: NotesNoteWithTranscript[]
+      ): NotesNoteWithTranscript | null => {
+        if (loadingNote.noteId) {
+          const noteById = targetNotes.find((note) => note.id === loadingNote.noteId);
+          if (noteById) return noteById;
+        }
+
+        const noteByProgressJobId = targetNotes.find(
+          (note) => getProgressJobIdFromNote(note) === loadingNote.id
+        );
+        if (noteByProgressJobId) return noteByProgressJobId;
+
+        if (loadingNote.transcriptId) {
+          const noteByTranscript = targetNotes.find(
+            (note) => note.transcriptId === loadingNote.transcriptId
+          );
+          if (noteByTranscript) return noteByTranscript;
+        }
+
+        return null;
+      },
       [getProgressJobIdFromNote]
     );
 
@@ -148,21 +194,46 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
         const currentLoadingNotes = loadingNotesRef.current;
 
         currentLoadingNotes.forEach((loadingNote) => {
+          const typedLoadingNote = loadingNote as DashboardLoadingNote;
           const reason = getResolvedReason(
-            loadingNote as DashboardLoadingNote,
+            typedLoadingNote,
             matchingSets,
             now
           );
           if (!reason) return;
 
+          // Refresh recovery path: show completion feedback once when a restored YouTube
+          // loading card resolves to a real note.
+          if (
+            typedLoadingNote.rehydrated &&
+            typedLoadingNote.type === "youtube" &&
+            (reason === "noteId" ||
+              reason === "progressJobId" ||
+              reason === "transcriptId")
+          ) {
+            const matchedNote = findMatchedNote(typedLoadingNote, targetNotes);
+            if (matchedNote) {
+              showRecoveredYoutubeCompletionToast(
+                typedLoadingNote.id,
+                matchedNote.title
+              );
+            }
+          }
+
           console.log(
             `[NotesList] Removing loading note (${reason}):`,
-            loadingNote.id
+            typedLoadingNote.id
           );
-          removeLoadingNote(loadingNote.id);
+          removeLoadingNote(typedLoadingNote.id);
         });
       },
-      [createMatchingSets, getResolvedReason, removeLoadingNote]
+      [
+        createMatchingSets,
+        findMatchedNote,
+        getResolvedReason,
+        removeLoadingNote,
+        showRecoveredYoutubeCompletionToast,
+      ]
     );
 
     const loadNotes = useCallback(async () => {
@@ -247,6 +318,13 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
         const result = await response.json().catch(() => null);
 
         if (response.ok && result?.success && result?.data?.id) {
+          if (loadingNote.rehydrated && loadingNote.type === "youtube") {
+            showRecoveredYoutubeCompletionToast(
+              loadingNote.id,
+              typeof result.data.title === "string" ? result.data.title : null
+            );
+          }
+
           updateLoadingNote(loadingNote.id, {
             transcriptId:
               loadingNote.transcriptId ??
@@ -287,7 +365,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           result
         );
       },
-      [updateLoadingNote]
+      [showRecoveredYoutubeCompletionToast, updateLoadingNote]
     );
 
     useEffect(() => {
