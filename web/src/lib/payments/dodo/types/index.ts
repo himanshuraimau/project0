@@ -1,5 +1,39 @@
 // TypeScript types for Dodo Payments integration
 
+import type { PaymentMethodType } from '../config/constants';
+
+// Supported billing currencies
+export type BillingCurrency = 'USD' | 'INR' | 'EUR' | 'GBP' | 'AED' | 'CAD' | 'AUD';
+
+// Supported billing countries
+export type BillingCountry = 'US' | 'IN' | 'GB' | 'CA' | 'AU' | 'DE' | 'FR' | 'NL' | 'BE' | 'AT' | 'PT';
+
+// Checkout session customer details
+export interface CheckoutCustomer {
+  email: string;
+  name: string;
+  phone_number?: string;
+}
+
+// Checkout session billing address
+export interface CheckoutBillingAddress {
+  street?: string;
+  city?: string;
+  state?: string;
+  country: BillingCountry | string;
+  zipcode: string;
+}
+
+// Options for creating a checkout session with regional payment methods
+export interface RegionalCheckoutOptions {
+  region?: 'IN' | 'US' | 'EU' | 'DEFAULT';
+  billingCurrency?: BillingCurrency;
+  billingCountry?: BillingCountry | string;
+  allowedPaymentMethods?: PaymentMethodType[];
+  billingAddress?: CheckoutBillingAddress;
+  phoneNumber?: string;
+}
+
 export interface DodoSubscriptionResponse {
   subscription_id: string;
   client_secret: string;
@@ -101,4 +135,23 @@ export interface SubscriptionManagementResult {
   paymentLink?: string;
   error?: string;
   data?: any;
+}
+
+// Extended checkout session params with regional payment support
+export interface CreateCheckoutSessionParams {
+  userId: string;
+  userEmail: string;
+  userName: string;
+  productId: string;
+  discountCode?: string;
+  metadata?: Record<string, unknown>;
+  regionalOptions?: RegionalCheckoutOptions;
+}
+
+// Checkout session response
+export interface CheckoutSessionResult {
+  success: boolean;
+  checkoutUrl?: string;
+  sessionId?: string;
+  error?: string;
 }

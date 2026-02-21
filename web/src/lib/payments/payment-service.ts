@@ -1,8 +1,11 @@
-import { DodoSubscriptionService, type BillingInterval } from './dodo';
+import { DodoSubscriptionService, type BillingInterval, type RegionalCheckoutOptions } from './dodo';
 import { SubscriptionService } from '../subscription-service';
 import { FeatureGateService } from '../feature-gate-service';
 
 export type PlanComparison = 'same' | 'upgrade' | 'downgrade';
+
+// Region codes for payment method selection
+export type PaymentRegion = 'IN' | 'US' | 'EU' | 'DEFAULT';
 
 export interface CreateSubscriptionParams {
   userId: string;
@@ -10,6 +13,10 @@ export interface CreateSubscriptionParams {
   userName: string;
   billingInterval: BillingInterval;
   discountCode?: string;
+  // Regional payment options (for UPI, Google Pay, etc.)
+  region?: PaymentRegion;
+  phoneNumber?: string;
+  zipcode?: string;
 }
 
 export interface PlanChangeParams {
@@ -55,7 +62,7 @@ export class PaymentService {
   }
 
   static async createSubscription(params: CreateSubscriptionParams) {
-    const { userId, userEmail, userName, billingInterval, discountCode } = params;
+    const { userId, userEmail, userName, billingInterval, discountCode, region, phoneNumber, zipcode } = params;
 
     const existingSubscription = await SubscriptionService.getSubscriptionWithSync(userId);
 
@@ -85,6 +92,16 @@ export class PaymentService {
     const productId = this.getProductId(billingInterval);
     const amount = this.getSubscriptionAmount(billingInterval);
 
+    // Build regional options if region is specified
+    const regionalOptions: RegionalCheckoutOptions | undefined = region ? {
+      region,
+      phoneNumber,
+      billingAddress: zipcode ? {
+        country: region === 'IN' ? 'IN' : region === 'US' ? 'US' : 'US',
+        zipcode,
+      } : undefined,
+    } : undefined;
+
     const checkoutSession = await DodoSubscriptionService.createCheckoutSession({
       userId,
       userEmail,
@@ -95,7 +112,9 @@ export class PaymentService {
         billingInterval,
         productId,
         amount: String(amount),
+        region: region || 'DEFAULT',
       },
+      regionalOptions,
     });
 
     if (!checkoutSession.success || !checkoutSession.checkoutUrl) {
@@ -107,6 +126,28 @@ export class PaymentService {
       sessionId: checkoutSession.sessionId,
       subscription: { id: checkoutSession.sessionId ?? '', status: 'PENDING' } as any,
     };
+  }
+
+  /**
+   * Create a subscription with India payment methods (UPI + Google Pay)
+   * 
+   * Requirements:
+   * - Billing country will be set to IN
+   * - Currency will be INR
+   * - For non-Indian merchants: Adaptive Currency must be enabled in Dodo dashboard
+   * 
+   * Test UPI IDs (test_mode only):
+   * - success@upi → successful payment
+   * - failure@upi → failed payment
+   */
+  static async createIndiaSubscription(params: Omit<CreateSubscriptionParams, 'region'> & {
+    phoneNumber?: string;
+    zipcode?: string;
+  }) {
+    return this.createSubscription({
+      ...params,
+      region: 'IN',
+    });
   }
 
   static async changePlan(params: PlanChangeParams) {

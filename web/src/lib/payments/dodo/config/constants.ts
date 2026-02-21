@@ -77,6 +77,73 @@ export const SUBSCRIPTION_PLAN_YEARLY = {
   ],
 } as const;
 
+// Payment method types supported by Dodo Payments
+export const PAYMENT_METHOD_TYPES = {
+  // Card payments
+  CREDIT: 'credit',
+  DEBIT: 'debit',
+  // Digital wallets
+  APPLE_PAY: 'apple_pay',
+  GOOGLE_PAY: 'google_pay',
+  AMAZON_PAY: 'amazon_pay',
+  CASH_APP_PAY: 'cashapp_pay',
+  REVOLUT_PAY: 'revolut_pay',
+  // India-specific
+  UPI_COLLECT: 'upi_collect',
+  // Europe-specific
+  IDEAL: 'ideal',
+  BANCONTACT: 'bancontact_card',
+  EPS: 'eps',
+  MULTIBANCO: 'multibanco',
+  // BNPL
+  KLARNA: 'klarna',
+  AFTERPAY: 'afterpay',
+} as const;
+
+export type PaymentMethodType = (typeof PAYMENT_METHOD_TYPES)[keyof typeof PAYMENT_METHOD_TYPES];
+
+// Regional payment configurations
+export const REGIONAL_PAYMENT_CONFIG = {
+  // India: UPI + Google Pay + Cards (requires INR and billing country IN)
+  IN: {
+    currency: 'INR',
+    country: 'IN',
+    paymentMethods: [
+      PAYMENT_METHOD_TYPES.UPI_COLLECT,
+      PAYMENT_METHOD_TYPES.GOOGLE_PAY,
+      PAYMENT_METHOD_TYPES.CREDIT,
+      PAYMENT_METHOD_TYPES.DEBIT,
+    ] as PaymentMethodType[],
+  },
+  // US: Cards + Digital Wallets
+  US: {
+    currency: 'USD',
+    country: 'US',
+    paymentMethods: [
+      PAYMENT_METHOD_TYPES.CREDIT,
+      PAYMENT_METHOD_TYPES.DEBIT,
+      PAYMENT_METHOD_TYPES.APPLE_PAY,
+      PAYMENT_METHOD_TYPES.GOOGLE_PAY,
+    ] as PaymentMethodType[],
+  },
+  // Default: Cards + Google Pay
+  DEFAULT: {
+    currency: 'USD',
+    country: undefined,
+    paymentMethods: [
+      PAYMENT_METHOD_TYPES.CREDIT,
+      PAYMENT_METHOD_TYPES.DEBIT,
+      PAYMENT_METHOD_TYPES.GOOGLE_PAY,
+    ] as PaymentMethodType[],
+  },
+} as const;
+
+// Test UPI IDs for testing in test_mode
+export const TEST_UPI_IDS = {
+  SUCCESS: 'success@upi',
+  FAILURE: 'failure@upi',
+} as const;
+
 // Webhook event types
 export const WEBHOOK_EVENTS = {
   SUBSCRIPTION_ACTIVE: "subscription.active",

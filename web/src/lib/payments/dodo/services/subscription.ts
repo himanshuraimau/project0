@@ -1,6 +1,6 @@
 import { getDodoClient } from '../config/client';
-import { DODO_CONFIG, SUBSCRIPTION_CONFIG, SUBSCRIPTION_CONFIG_YEARLY } from '../config/constants';
-import type { CreateSubscriptionParams, SubscriptionManagementResult } from '../types';
+import { DODO_CONFIG, SUBSCRIPTION_CONFIG, SUBSCRIPTION_CONFIG_YEARLY, REGIONAL_PAYMENT_CONFIG, type PaymentMethodType } from '../config/constants';
+import type { CreateSubscriptionParams, SubscriptionManagementResult, CreateCheckoutSessionParams, CheckoutSessionResult, RegionalCheckoutOptions } from '../types';
 
 export class DodoSubscriptionService {
   private static getClient() {
@@ -17,30 +17,103 @@ export class DodoSubscriptionService {
     return billingInterval === 'yearly' ? SUBSCRIPTION_CONFIG_YEARLY : SUBSCRIPTION_CONFIG;
   }
 
-  static async createCheckoutSession(params: {
-    userId: string;
-    userEmail: string;
-    userName: string;
-    productId: string;
-    discountCode?: string;
-    metadata?: Record<string, unknown>;
-  }): Promise<{ success: boolean; checkoutUrl?: string; sessionId?: string; error?: string }> {
+  /**
+   * Get regional payment configuration based on region code
+   */
+  private static getRegionalConfig(region?: 'IN' | 'US' | 'EU' | 'DEFAULT') {
+    switch (region) {
+      case 'IN':
+        return REGIONAL_PAYMENT_CONFIG.IN;
+      case 'US':
+        return REGIONAL_PAYMENT_CONFIG.US;
+      default:
+        return REGIONAL_PAYMENT_CONFIG.DEFAULT;
+    }
+  }
+
+  /**
+   * Build checkout session request with regional payment method support
+   */
+  private static buildCheckoutRequest(params: CreateCheckoutSessionParams) {
+    const { regionalOptions } = params;
+    const regionalConfig = this.getRegionalConfig(regionalOptions?.region);
+
+    const customerData: Record<string, any> = {
+      email: params.userEmail,
+      name: params.userName,
+    };
+
+    // Add phone number if provided (required for UPI)
+    if (regionalOptions?.phoneNumber) {
+      customerData.phone_number = regionalOptions.phoneNumber;
+    }
+
+    const request: Record<string, any> = {
+      product_cart: [{ product_id: params.productId, quantity: 1 }],
+      customer: customerData,
+      return_url: DODO_CONFIG.returnUrl,
+      metadata: {
+        userId: params.userId,
+        ...params.metadata,
+      },
+    };
+
+    // Add discount code if provided
+    if (params.discountCode) {
+      request.discount_code = params.discountCode;
+    }
+
+    // Add allowed payment methods if specified or from regional config
+    const paymentMethods = regionalOptions?.allowedPaymentMethods || regionalConfig.paymentMethods;
+    if (paymentMethods && paymentMethods.length > 0) {
+      request.allowed_payment_method_types = paymentMethods;
+    }
+
+    // Add billing currency if specified or from regional config
+    const billingCurrency = regionalOptions?.billingCurrency || regionalConfig.currency;
+    if (billingCurrency) {
+      request.billing_currency = billingCurrency;
+    }
+
+    // Add billing address if specified or use regional country
+    if (regionalOptions?.billingAddress) {
+      request.billing_address = regionalOptions.billingAddress;
+    } else if (regionalConfig.country) {
+      request.billing_address = {
+        country: regionalConfig.country,
+        zipcode: regionalOptions?.billingAddress?.zipcode || '',
+      };
+    }
+
+    return request;
+  }
+
+  /**
+   * Create a checkout session with support for regional payment methods (UPI, Google Pay, etc.)
+   * 
+   * For India (UPI + Google Pay):
+   * - Set regionalOptions.region = 'IN'
+   * - Billing currency will be set to INR
+   * - UPI, Google Pay, Credit, and Debit cards will be enabled
+   * 
+   * Test UPI IDs (test_mode only):
+   * - success@upi → successful payment
+   * - failure@upi → failed payment
+   */
+  static async createCheckoutSession(params: CreateCheckoutSessionParams): Promise<CheckoutSessionResult> {
     try {
       const client = this.getClient();
+      const request = this.buildCheckoutRequest(params);
 
-      const session = await (client as any).checkoutSessions.create({
-        product_cart: [{ product_id: params.productId, quantity: 1 }],
-        customer: {
-          email: params.userEmail,
-          name: params.userName,
-        },
-        return_url: DODO_CONFIG.returnUrl,
-        metadata: {
-          userId: params.userId,
-          ...params.metadata,
-        },
-        ...(params.discountCode ? { discount_code: params.discountCode } : {}),
+      console.log('Creating checkout session with config:', {
+        productId: params.productId,
+        region: params.regionalOptions?.region,
+        paymentMethods: request.allowed_payment_method_types,
+        currency: request.billing_currency,
+        billingCountry: request.billing_address?.country,
       });
+
+      const session = await (client as any).checkoutSessions.create(request);
 
       return {
         success: true,
@@ -54,6 +127,43 @@ export class DodoSubscriptionService {
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
+  }
+
+  /**
+   * Create a checkout session specifically configured for India (UPI + Google Pay)
+   * 
+   * Requirements for UPI:
+   * 1. Billing country must be IN
+   * 2. Currency must be INR
+   * 3. For non-Indian merchants: Adaptive Currency must be enabled in Dodo dashboard
+   * 
+   * Test UPI IDs:
+   * - success@upi → successful payment
+   * - failure@upi → failed payment
+   */
+  static async createIndiaCheckoutSession(params: {
+    userId: string;
+    userEmail: string;
+    userName: string;
+    productId: string;
+    phoneNumber?: string;
+    zipcode?: string;
+    discountCode?: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<CheckoutSessionResult> {
+    return this.createCheckoutSession({
+      ...params,
+      regionalOptions: {
+        region: 'IN',
+        billingCurrency: 'INR',
+        billingCountry: 'IN',
+        phoneNumber: params.phoneNumber,
+        billingAddress: params.zipcode ? {
+          country: 'IN',
+          zipcode: params.zipcode,
+        } : undefined,
+      },
+    });
   }
 
   static async createSubscription(params: CreateSubscriptionParams): Promise<SubscriptionManagementResult> {

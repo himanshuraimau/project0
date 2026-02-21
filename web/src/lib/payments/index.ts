@@ -21,7 +21,8 @@ export type {
   PlanComparison,
   CreateSubscriptionParams as PaymentCreateParams,
   PlanChangeParams,
-  CancelSubscriptionParams
+  CancelSubscriptionParams,
+  PaymentRegion
 } from './payment-service';
 
 // Dodo Payments Integration
@@ -37,7 +38,11 @@ export {
   WEBHOOK_EVENTS,
   getDodoClient,
   validateDodoConfig,
-  testDodoConnection
+  testDodoConnection,
+  // UPI & Regional Payment Method Constants
+  PAYMENT_METHOD_TYPES,
+  REGIONAL_PAYMENT_CONFIG,
+  TEST_UPI_IDS,
 } from './dodo';
 
 export type {
@@ -49,5 +54,21 @@ export type {
   CreateSubscriptionParams as DodoCreateParams,
   SubscriptionManagementResult,
   BillingInterval,
-  WebhookEvent
+  WebhookEvent,
+  // Regional Payment Types
+  PaymentMethodType,
+  BillingCurrency,
+  BillingCountry,
+  RegionalCheckoutOptions,
+  CreateCheckoutSessionParams,
+  CheckoutSessionResult,
 } from './dodo';
+
+// Region Detection Utilities
+export {
+  detectRegionFromPhone,
+  isIndianPincode,
+  formatIndianPhoneNumber,
+  getPaymentRegionConfig,
+  validateIndianPhoneForUPI,
+} from './utils';
