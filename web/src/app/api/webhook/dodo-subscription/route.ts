@@ -44,9 +44,11 @@ export const POST = Webhooks({
         case 'subscription.updated':
           await handleSubscriptionUpdated(payload);
           break;
+        case 'payment.succeeded':
         case 'subscription.payment_succeeded':
           await handlePaymentSucceeded(payload);
           break;
+        case 'payment.failed':
         case 'subscription.payment_failed':
           await handlePaymentFailed(payload);
           break;
@@ -517,19 +519,87 @@ async function handleSubscriptionFailed(payload: any) {
 
 async function handlePaymentSucceeded(payload: any) {
   const subscriptionId = payload.data.subscription_id;
-  const subscription = await SubscriptionService.getSubscriptionByDodoId(subscriptionId);
+  const metadata: Record<string, string> = payload.data.metadata || {};
+  
+  let subscription = await SubscriptionService.getSubscriptionByDodoId(subscriptionId);
 
   if (!subscription) {
-    console.log('Subscription not found for payment succeeded:', subscriptionId);
+    console.log('Subscription not found for payment succeeded, attempting to create:', subscriptionId);
+    
+    // Try to get userId from metadata or customer email
+    let userId: string | undefined = metadata.userId;
+
+    if (!userId) {
+      const customerEmail = payload.data.customer?.email;
+      if (customerEmail) {
+        try {
+          const user = await prisma.user.findUnique({ where: { email: customerEmail } });
+          if (user) {
+            userId = user.id;
+            console.log('Resolved userId from email:', customerEmail, '->', userId);
+          }
+        } catch (err) {
+          console.error('Error looking up user by email:', err);
+        }
+      }
+    }
+
+    if (!userId) {
+      console.error('Cannot resolve userId in payment.succeeded webhook');
+      return;
+    }
+
+    // Create the subscription since payment succeeded
+    const productId: string = payload.data.product_id || metadata.productId || process.env.NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID!;
+    const now = new Date();
+    const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const nextBillingDate = payload.data.next_billing_date ? new Date(payload.data.next_billing_date) : thirtyDaysFromNow;
+
+    try {
+      // Check if user already has a subscription and delete it
+      const existing = await SubscriptionService.getUserSubscription(userId);
+      if (existing && existing.dodoSubscriptionId !== subscriptionId) {
+        console.log('Deleting stale subscription:', { userId, oldDodoId: existing.dodoSubscriptionId, newDodoId: subscriptionId });
+        await SubscriptionService.deleteSubscription(userId);
+      }
+    } catch (deleteErr) {
+      console.error('Error deleting stale subscription:', deleteErr);
+    }
+
+    // Create and activate the subscription
+    await SubscriptionService.createSubscription({
+      userId,
+      dodoSubscriptionId: subscriptionId,
+      productId,
+      status: 'ACTIVE',
+      notesPerMonth: PRO_PLAN_LIMITS.notesPerMonth,
+      coursesPerMonth: PRO_PLAN_LIMITS.coursesPerMonth,
+      pdfProcessingPerMonth: PRO_PLAN_LIMITS.pdfProcessingPerMonth,
+      videoProcessingPerMonth: PRO_PLAN_LIMITS.videoProcessingPerMonth,
+      audioProcessingPerMonth: PRO_PLAN_LIMITS.audioProcessingPerMonth,
+      currentPeriodStart: now,
+      currentPeriodEnd: nextBillingDate,
+      nextBillingDate: nextBillingDate,
+    });
+
+    // Update Loops contact
+    const userEmail = payload.data.customer?.email;
+    if (userEmail) {
+      const r = await updateLoopsContact({ email: userEmail, plan: 'pro' });
+      if (!r.success) console.warn('Loops plan sync (pro):', r.message);
+    }
+
+    console.log('Subscription created and activated from payment.succeeded:', subscriptionId);
     return;
   }
 
+  // Subscription exists, just update billing date
   const nextBillingDate = payload.data.next_billing_date
     ? new Date(payload.data.next_billing_date)
     : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   await SubscriptionService.renewSubscription(subscription.dodoSubscriptionId, nextBillingDate);
-  console.log('Payment succeeded:', subscriptionId);
+  console.log('Payment succeeded and subscription renewed:', subscriptionId);
 }
 
 async function handlePaymentFailed(payload: any) {
