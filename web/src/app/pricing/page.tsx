@@ -3,14 +3,17 @@
 import { PricingCard } from "@/components/subscription/pricing-card";
 import { SubscriptionStatusCard } from "@/components/subscription/subscription-status-card";
 import { Navbar } from "@/components/shared/navbar";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   SparklesIcon,
   File01Icon,
   Brain01Icon,
+  Clock01Icon,
 } from "@hugeicons/core-free-icons";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 16 },
@@ -18,8 +21,16 @@ const fadeIn = {
 };
 
 export default function PricingPage() {
-  const [hasSubscription, setHasSubscription] = useState(false);
+  const [status, setStatus] = useState<{
+    hasSubscription: boolean;
+    subscription?: { status: string } | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
+  const { openUpgradeModal } = useUpgradeModal();
+
+  const hasSubscription = status?.hasSubscription ?? false;
+  const isPending =
+    hasSubscription && status?.subscription?.status === "PENDING";
 
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
@@ -27,7 +38,10 @@ export default function PricingPage() {
         const response = await fetch("/api/subscription/status");
         if (response.ok) {
           const data = await response.json();
-          setHasSubscription(data.hasSubscription);
+          setStatus({
+            hasSubscription: data.hasSubscription,
+            subscription: data.subscription ?? null,
+          });
         }
       } catch (error) {
         console.error("Failed to fetch subscription status", error);
@@ -106,7 +120,40 @@ export default function PricingPage() {
           </div>
 
           {/* Right: Pricing or subscription card */}
-          <div className="w-full shrink-0 lg:w-[420px]">
+          <div className="w-full shrink-0 lg:w-[420px] space-y-4">
+            {!loading && isPending && (
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={fadeIn}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+              >
+                <div className="flex items-start gap-3 flex-1">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
+                    <HugeiconsIcon
+                      icon={Clock01Icon}
+                      className="size-5 text-amber-600 dark:text-amber-400"
+                    />
+                  </span>
+                  <div>
+                    <p className="font-medium text-foreground">
+                      You have a pending upgrade
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Complete payment or cancel to choose a different plan.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={openUpgradeModal}
+                  className="rounded-xl font-semibold shrink-0"
+                >
+                  Complete or cancel
+                </Button>
+              </motion.div>
+            )}
+
             {!loading && !hasSubscription && (
               <motion.div
                 className="sticky top-24"
@@ -119,7 +166,7 @@ export default function PricingPage() {
               </motion.div>
             )}
 
-            {!loading && hasSubscription && (
+            {!loading && hasSubscription && !isPending && (
               <motion.div
                 className="sticky top-24"
                 initial="hidden"
@@ -128,6 +175,18 @@ export default function PricingPage() {
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 <SubscriptionStatusCard />
+              </motion.div>
+            )}
+
+            {!loading && isPending && (
+              <motion.div
+                className="sticky top-24"
+                initial="hidden"
+                animate="visible"
+                variants={fadeIn}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <PricingCard />
               </motion.div>
             )}
           </div>

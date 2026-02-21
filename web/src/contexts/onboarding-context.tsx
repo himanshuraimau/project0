@@ -10,6 +10,8 @@ interface OnboardingData {
   features?: string[];
   studyIntensity?: string;
   currentStep?: number;
+  /** Opt-in for marketing: "Get Flinote tips and product updates" (synced to Loops) */
+  wantsProductUpdates?: boolean;
 }
 
 interface OnboardingContextType {

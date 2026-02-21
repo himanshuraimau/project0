@@ -49,8 +49,9 @@ export function SubscriptionGate({
 
       const data = await response.json();
 
-      if (data.paymentLink) {
-        window.location.href = data.paymentLink;
+      const redirectUrl = data.data?.checkoutUrl || data.paymentLink;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
       }
     } catch (error) {
       console.error('Error creating subscription:', error);

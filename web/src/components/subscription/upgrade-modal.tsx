@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -10,6 +10,7 @@ import {
   Brain01Icon,
   FlashIcon,
   Message01Icon,
+  Clock01Icon,
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ export type BillingInterval = "monthly" | "yearly";
 
 const PRICING = {
   monthly: {
-    price: 19.99,
+    price: 19,
     label: "Monthly",
     sublabel: "billed monthly",
     savings: null,
@@ -55,11 +56,76 @@ interface UpgradeModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+type SubscriptionStatus = {
+  hasSubscription: boolean;
+  subscription: { status: string } | null;
+};
+
 export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
   const [billingInterval, setBillingInterval] =
     useState<BillingInterval>("yearly");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<SubscriptionStatus | null>(null);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [cancellingPending, setCancellingPending] = useState(false);
+  const [completingPayment, setCompletingPayment] = useState(false);
+
+  const isPending = status?.subscription?.status === "PENDING";
+
+  useEffect(() => {
+    if (!open) return;
+    setStatusLoading(true);
+    setError(null);
+    fetch("/api/subscription/status")
+      .then((res) => res.json())
+      .then((data) => setStatus(data))
+      .catch(() => setStatus(null))
+      .finally(() => setStatusLoading(false));
+  }, [open]);
+
+  const handleCompletePayment = async () => {
+    try {
+      setCompletingPayment(true);
+      const res = await fetch("/api/subscription/payment-link");
+      const data = await res.json();
+      if (data.paymentLink) {
+        window.location.href = data.paymentLink;
+        return;
+      }
+      setError(data.error || "Could not get payment link.");
+    } catch {
+      setError("Failed to get payment link.");
+    } finally {
+      setCompletingPayment(false);
+    }
+  };
+
+  const handleCancelPending = async () => {
+    try {
+      setCancellingPending(true);
+      setError(null);
+      const res = await fetch("/api/subscription/cancel-pending", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setStatus((prev) =>
+          prev && prev.subscription
+            ? { ...prev, subscription: null, hasSubscription: false }
+            : null
+        );
+        window.dispatchEvent(new CustomEvent("subscription-updated"));
+      } else {
+        setError(data.error || "Failed to cancel pending subscription.");
+      }
+    } catch {
+      setError("Failed to cancel pending subscription.");
+    } finally {
+      setCancellingPending(false);
+    }
+  };
 
   const handleUpgrade = async () => {
     try {
@@ -96,8 +162,56 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
       <DialogContent className="max-w-2xl border-border bg-card p-0 gap-0 overflow-hidden rounded-2xl shadow-xl dark:bg-card">
         <div className="p-6 sm:p-8">
           <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground pr-10">
-            Upgrade to Premium
+            {isPending ? "Complete your upgrade" : "Upgrade to Premium"}
           </DialogTitle>
+
+          {statusLoading && (
+            <p className="mt-2 text-muted-foreground">Loading…</p>
+          )}
+
+          {!statusLoading && isPending && (
+            <>
+              <p className="mt-2 text-lg text-muted-foreground">
+                Your subscription is waiting for payment. Complete checkout or cancel to choose a different plan.
+              </p>
+              <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex items-start gap-3 flex-1">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
+                    <HugeiconsIcon icon={Clock01Icon} className="size-5 text-amber-600 dark:text-amber-400" />
+                  </span>
+                  <div>
+                    <p className="font-medium text-foreground">Payment pending</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Click below to finish checkout, or cancel to start over.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    onClick={handleCompletePayment}
+                    disabled={completingPayment || cancellingPending}
+                    className="rounded-xl font-semibold"
+                  >
+                    {completingPayment ? "Loading…" : "Complete payment"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelPending}
+                    disabled={completingPayment || cancellingPending}
+                    className="rounded-xl font-semibold"
+                  >
+                    {cancellingPending ? "Cancelling…" : "Cancel pending"}
+                  </Button>
+                </div>
+              </div>
+              {error && (
+                <p className="mt-3 text-sm text-destructive">{error}</p>
+              )}
+            </>
+          )}
+
+          {!statusLoading && !isPending && (
+            <>
           <p className="mt-2 text-lg text-muted-foreground">
             Flinote is{" "}
             <span className="font-medium italic text-primary">faster</span>,{" "}
@@ -196,6 +310,8 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Join thousands of students learning smarter with Flinote.
           </p>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

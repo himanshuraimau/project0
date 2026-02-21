@@ -15,14 +15,12 @@ import {
   Mic01Icon,
   Upload01Icon,
   File01Icon,
-  Link01Icon,
   ArrowRight01Icon,
   Cancel01Icon,
   StopIcon,
   Delete01Icon,
   PlayIcon,
   MagicWand01Icon,
-  Loading01Icon,
   Folder01Icon,
 } from "@hugeicons/core-free-icons";
 import { UploadTextModal } from "@/components/pdf";
@@ -31,6 +29,7 @@ import { AudioUploadModal } from "@/components/audio";
 import { AddLinkModal } from "@/components/link";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { normalizeS3UploadError } from "@/lib/utils/s3-upload-errors";
+import { uploadWithProgress } from "@/lib/utils/upload-with-progress";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/use-subscription";
 import { UpgradeModal } from "@/components/subscription/upgrade-modal";
@@ -68,6 +67,7 @@ function AudioRecorderModal({
   const [folder, setFolder] = useState("All notes");
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
 
   const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
@@ -393,12 +393,22 @@ function AudioRecorderModal({
         progress: 10,
         message: "Uploading recording...",
       });
-      // 2) Upload recording directly to S3
-      const putRes = await fetch(uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type || "audio/webm" },
-      });
+      // 2) Upload recording directly to S3 with progress
+      setUploadProgress(0);
+      const putRes = await uploadWithProgress(
+        uploadUrl,
+        file,
+        file.type || "audio/webm",
+        (percent) => {
+          setUploadProgress(percent);
+          updateLoadingNote(tempId, {
+            stage: "uploading",
+            progress: 10 + Math.round((percent / 100) * 10),
+            message: "Uploading recording...",
+          });
+        }
+      );
+      setUploadProgress(null);
 
       if (!putRes.ok) {
         throw new Error("Failed to upload recording to storage");
@@ -486,6 +496,7 @@ function AudioRecorderModal({
     } catch (error) {
       console.error("Transcription error:", error);
       const normalizedError = normalizeS3UploadError(error);
+      setUploadProgress(null);
       // Use local tempId (not currentTempId which is stale)
       if (loadingNoteCreated) {
         updateLoadingNote(tempId, {
@@ -498,6 +509,7 @@ function AudioRecorderModal({
         duration: 5000,
       });
     } finally {
+      setUploadProgress(null);
       // Don't remove loading note in finally — let error state show if there was an error
       // Successful path already called removeLoadingNote above
       setIsProcessing(false);
@@ -572,11 +584,11 @@ function AudioRecorderModal({
                 {formatTime(seconds)}
               </span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="flex gap-2 w-full items-center justify-center">
               <button
                 type="button"
                 onClick={handleDelete}
-                className="h-10 rounded-lg bg-destructive/10 text-destructive font-medium text-sm flex items-center justify-center gap-1.5 cursor-pointer hover:bg-destructive/15 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="h-10 px-4 rounded-lg bg-destructive/10 text-destructive font-medium text-sm flex items-center justify-center gap-1.5 cursor-pointer hover:bg-destructive/15 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <HugeiconsIcon
                   icon={Delete01Icon}
@@ -587,7 +599,7 @@ function AudioRecorderModal({
               <button
                 type="button"
                 onClick={handlePlayPreview}
-                className="h-10 rounded-lg bg-muted text-foreground font-medium text-sm flex items-center justify-center gap-1.5 cursor-pointer hover:bg-muted/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="h-10 px-4 rounded-lg bg-muted text-foreground font-medium text-sm flex items-center justify-center gap-1.5 cursor-pointer hover:bg-muted/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <HugeiconsIcon
                   icon={isPlayingPreview ? StopIcon : PlayIcon}
@@ -598,7 +610,7 @@ function AudioRecorderModal({
               <button
                 type="button"
                 onClick={handleResume}
-                className="h-10 rounded-lg bg-primary text-primary-foreground font-medium text-sm flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="h-10 px-4 rounded-lg bg-primary text-primary-foreground font-medium text-sm flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <HugeiconsIcon icon={PlayIcon} className="size-4 shrink-0" />
                 <span>Resume</span>
@@ -722,16 +734,25 @@ function AudioRecorderModal({
             recordingState !== "recording" &&
             recordingState !== "paused")
         }
-        className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20"
+        className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex flex-col items-stretch justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20 overflow-hidden"
       >
         {isProcessing ? (
-          <>
-            <HugeiconsIcon
-              icon={Loading01Icon}
-              className="size-4 shrink-0 animate-spin"
-            />
-            <span>Processing...</span>
-          </>
+          uploadProgress !== null ? (
+            <>
+              <div className="flex items-center justify-center gap-2">
+                <span className="tabular-nums font-medium">{uploadProgress}%</span>
+                <span className="text-primary-foreground/90">Uploading…</span>
+              </div>
+              <div className="w-full h-1.5 rounded-full bg-primary-foreground/20 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-primary-foreground/90 transition-[width] duration-200 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </>
+          ) : (
+            <span className="text-primary-foreground/90">Creating notes…</span>
+          )
         ) : (
           <>
             <HugeiconsIcon icon={MagicWand01Icon} className="size-4 shrink-0" />
@@ -762,7 +783,8 @@ export function NewNoteSection() {
     loading: subscriptionLoading,
     fetchStatus: fetchSubscriptionStatus,
   } = useSubscription();
-  const freeNotesRemaining = subscriptionStatus?.features?.freeNotes?.remaining ?? null;
+  const freeNotesRemaining =
+    subscriptionStatus?.features?.freeNotes?.remaining ?? null;
 
   // Refresh subscription status when dashboard refreshes (e.g. after note creation)
   useEffect(() => {
@@ -848,7 +870,8 @@ export function NewNoteSection() {
     const nestedId =
       typeof noteObj.note?.id === "string" && noteObj.note.id.trim().length > 0
         ? noteObj.note.id
-        : typeof noteObj.data?.id === "string" && noteObj.data.id.trim().length > 0
+        : typeof noteObj.data?.id === "string" &&
+            noteObj.data.id.trim().length > 0
           ? noteObj.data.id
           : null;
 
@@ -1016,10 +1039,15 @@ export function NewNoteSection() {
   const cardBase =
     "group flex w-full items-center gap-4 rounded-xl border border-border bg-card px-5 py-4 text-left transition-colors hover:bg-primary/5 hover:border-primary/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer";
 
-  const iconWrapperDefault =
-    "flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted transition-colors group-hover:bg-primary/15 group-hover:text-primary";
-  const iconWrapperPrimary =
+  /* Icon wrappers inspired by distinct colored tiles (purple circles, lavender doc, red link) */
+  const iconWrapperRecord =
     "flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors group-hover:bg-primary/90 group-hover:ring-2 group-hover:ring-primary/40";
+  const iconWrapperUpload =
+    "flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors group-hover:bg-primary/90 group-hover:ring-2 group-hover:ring-primary/40";
+  const iconWrapperDocument =
+    "flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#8B7EC8] text-white transition-colors group-hover:bg-[#7A6BB8] group-hover:ring-2 group-hover:ring-[#8B7EC8]/40";
+  const iconWrapperLink =
+    "flex size-11 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white transition-colors group-hover:bg-red-500 group-hover:ring-2 group-hover:ring-red-500/40";
 
   return (
     <div className="w-full">
@@ -1044,7 +1072,7 @@ export function NewNoteSection() {
               handleGenerateNoteCardClick(setShowRecordAudioDialog)
             }
           >
-            <div className={iconWrapperPrimary}>
+            <div className={iconWrapperRecord}>
               <HugeiconsIcon icon={Mic01Icon} className="size-5" />
             </div>
             <div className="min-w-0 flex-1">
@@ -1080,11 +1108,8 @@ export function NewNoteSection() {
             className={cardBase}
             onClick={() => handleGenerateNoteCardClick(setShowAudioDialog)}
           >
-            <div className={iconWrapperDefault}>
-              <HugeiconsIcon
-                icon={Upload01Icon}
-                className="size-5 text-muted-foreground transition-colors group-hover:text-primary"
-              />
+            <div className={iconWrapperUpload}>
+              <HugeiconsIcon icon={Upload01Icon} className="size-5" />
             </div>
             <div className="min-w-0 flex-1">
               <div className=" font-semibold leading-snug text-foreground">
@@ -1119,11 +1144,8 @@ export function NewNoteSection() {
             className={cardBase}
             onClick={() => handleGenerateNoteCardClick(setShowTextDialog)}
           >
-            <div className={iconWrapperDefault}>
-              <HugeiconsIcon
-                icon={File01Icon}
-                className="size-5 text-muted-foreground transition-colors group-hover:text-primary"
-              />
+            <div className={iconWrapperDocument}>
+              <HugeiconsIcon icon={File01Icon} className="size-5" />
             </div>
             <div className="min-w-0 flex-1">
               <div className=" font-semibold leading-snug text-foreground">
@@ -1158,11 +1180,8 @@ export function NewNoteSection() {
             className={cardBase}
             onClick={() => handleGenerateNoteCardClick(setShowLinkDialog)}
           >
-            <div className={iconWrapperDefault}>
-              <HugeiconsIcon
-                icon={Link01Icon}
-                className="size-5 text-muted-foreground transition-colors group-hover:text-primary"
-              />
+            <div className={iconWrapperLink}>
+              <HugeiconsIcon icon={PlayIcon} className="size-5" />
             </div>
             <div className="min-w-0 flex-1">
               <div className=" font-semibold leading-snug text-foreground">

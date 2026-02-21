@@ -53,9 +53,9 @@ export function UpgradeToYearlyDialog({
                   Current (Monthly)
                 </span>
                 <div className="text-right">
-                  <div className="font-semibold text-foreground">$19.99/mo</div>
+                  <div className="font-semibold text-foreground">$19/mo</div>
                   <div className="text-xs text-muted-foreground">
-                    $240/year
+                    $228/year
                   </div>
                 </div>
               </div>
@@ -65,7 +65,7 @@ export function UpgradeToYearlyDialog({
                 </span>
                 <div className="text-right">
                   <div className="font-bold text-lg text-primary">$89/year</div>
-                  <div className="text-xs text-primary">Save $151 (63% off)</div>
+                  <div className="text-xs text-primary">Save $139 (61% off)</div>
                 </div>
               </div>
             </div>
@@ -76,7 +76,7 @@ export function UpgradeToYearlyDialog({
             <p className="text-sm font-medium text-foreground">What you get:</p>
             <ul className="space-y-2">
               {[
-                "Save $151 per year",
+                "Save $139 per year",
                 "No price increases for 12 months",
                 "Same great features",
                 "Cancel anytime",

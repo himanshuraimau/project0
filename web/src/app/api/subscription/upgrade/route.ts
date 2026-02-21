@@ -83,60 +83,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 1: Cancel current monthly subscription at period end (user keeps access until then)
-    console.log('Scheduling monthly subscription to cancel at period end...');
-    const cancelResult = await DodoSubscriptionService.cancelSubscription(
-      existingSubscription.dodoSubscriptionId,
-      true
-    );
+    // Step 1: Get the monthly period end date — user keeps access until this date while yearly payment is pending.
+    // NOTE: We do NOT cancel the monthly here. Cancellation of the old monthly happens ONLY after the yearly
+    // payment is successfully confirmed (in the webhook handler via cancelReplacedMonthlySubscriptionIfAny).
+    // Cancelling early would drop the user's subscription if they abandon the checkout page.
+    const monthlyPeriodEnd =
+      existingSubscription.nextBillingDate ||
+      existingSubscription.currentPeriodEnd ||
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    if (!cancelResult.success) {
-      throw new Error(cancelResult.error || 'Failed to schedule cancellation');
-    }
-
-    // Get monthly period end from Dodo response (user keeps access until this date)
-    const dodoData = cancelResult.data as { next_billing_date?: string } | undefined;
-    const monthlyPeriodEnd = dodoData?.next_billing_date
-      ? new Date(dodoData.next_billing_date)
-      : existingSubscription.currentPeriodEnd || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-    // Step 2: Create NEW yearly subscription with payment link - user pays here to confirm upgrade
-    console.log('Creating new yearly subscription with payment link...');
-    const yearlySubscription = await DodoSubscriptionService.createSubscription({
+    // Step 2: Create a Dodo Checkout Session for the yearly plan.
+    // Dodo will collect contact info → billing address (tax) → payment in that order.
+    // We pass metadata so the webhook knows this is a yearly upgrade and which monthly to cancel.
+    console.log('Creating yearly checkout session...');
+    const yearlyCheckoutSession = await DodoSubscriptionService.createCheckoutSession({
       userId,
       userEmail: session.user.email,
       userName: session.user.name || session.user.email.split('@')[0],
-      billingAddress: {
-        city: 'Default City',
-        country: 'US',
-        state: 'CA',
-        street: 'Default Street',
-        zipcode: '00000',
+      productId: yearlyProductId,
+      metadata: {
+        isYearlyUpgrade: 'true',
+        replacedMonthlyDodoSubscriptionId: existingSubscription.dodoSubscriptionId,
+        productId: yearlyProductId,
+        monthlyPeriodEnd: monthlyPeriodEnd.toISOString(),
       },
-      billingInterval: 'yearly',
     });
 
-    if (!yearlySubscription.success || !yearlySubscription.paymentLink) {
-      throw new Error(yearlySubscription.error || 'Failed to create yearly subscription');
+    if (!yearlyCheckoutSession.success || !yearlyCheckoutSession.checkoutUrl) {
+      throw new Error(yearlyCheckoutSession.error || 'Failed to create yearly checkout session');
     }
 
-    // Step 3: Replace our DB record - we now track the new yearly subscription (PENDING until payment).
-    // Store the old monthly Dodo subscription ID so we can cancel it in Dodo when yearly activates
-    // (avoids double billing / leftover monthly renewal showing in Dodo).
-    await SubscriptionService.replaceWithPendingYearlyUpgrade(
-      userId,
-      yearlySubscription.subscriptionId!,
-      yearlyProductId,
-      monthlyPeriodEnd,
-      existingSubscription.dodoSubscriptionId
-    );
+    // NOTE: We do NOT update the DB here. The `subscription.created` webhook fires as soon as the
+    // checkout session is initiated by Dodo. The webhook handler reads the metadata (isYearlyUpgrade,
+    // replacedMonthlyDodoSubscriptionId) and calls SubscriptionService.replaceWithPendingYearlyUpgrade
+    // at that point. This keeps the DB consistent with what Dodo actually knows about.
 
     return NextResponse.json({
       success: true,
       requiresPayment: true,
-      paymentLink: yearlySubscription.paymentLink,
+      paymentLink: yearlyCheckoutSession.checkoutUrl,
       message: 'Please complete payment to upgrade to yearly plan.',
-      subscriptionId: yearlySubscription.subscriptionId,
+      sessionId: yearlyCheckoutSession.sessionId,
     });
   } catch (error: any) {
     console.error('Error upgrading subscription:', error);

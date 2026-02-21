@@ -19,32 +19,44 @@ export function PaymentSuccessHandler() {
       return;
     }
 
+    // Dodo appends subscription_id, status, email to the return_url automatically.
+    // Pass subscription_id to the status API so it can fast-path sync from Dodo
+    // without waiting for the webhook to arrive.
+    const dodoSubscriptionId = searchParams?.get('subscription_id') ?? '';
+    const dodoStatus = searchParams?.get('status') ?? '';
+
     let timeoutId: NodeJS.Timeout;
     
     const checkSubscriptionStatus = async () => {
       try {
-        const response = await fetch('/api/subscription/status');
+        const params = new URLSearchParams();
+        if (dodoSubscriptionId) params.set('subscription_id', dodoSubscriptionId);
+
+        const response = await fetch(`/api/subscription/status?${params.toString()}`);
         const data = await response.json();
 
         if (data.hasSubscription && data.access?.hasAccess) {
           // Subscription is active!
           setStatus('success');
-          
-          // Remove the payment=success param and reload
+
+          // Clean all Dodo-appended params + payment=success, then reload
           const url = new URL(window.location.href);
           url.searchParams.delete('payment');
-          
-          // Small delay to show success message
+          url.searchParams.delete('subscription_id');
+          url.searchParams.delete('status');
+          url.searchParams.delete('email');
+          url.searchParams.delete('license_key');
+
           setTimeout(() => {
             window.location.href = url.toString();
           }, 1500);
         } else if (retryCount < 20) {
-          // Still waiting for webhook, retry after 2 seconds
+          // Still waiting — retry after 2 s (1 s if Dodo already told us active via URL param)
+          const delay = dodoStatus === 'active' ? 1000 : 2000;
           timeoutId = setTimeout(() => {
             setRetryCount(prev => prev + 1);
-          }, 2000);
+          }, delay);
         } else {
-          // Timeout after 40 seconds (20 retries * 2 seconds)
           setStatus('timeout');
         }
       } catch (error) {

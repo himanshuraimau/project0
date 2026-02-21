@@ -13,6 +13,12 @@ export function Footer() {
         </p>
         <nav className="mt-4 flex items-center justify-center gap-6 text-sm">
           <Link
+            href="/blog/"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Blog
+          </Link>
+          <Link
             href="/terms"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >

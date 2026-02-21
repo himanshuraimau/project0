@@ -191,13 +191,13 @@ For purchases made directly from Flinote (if available), refunds may be provided
 - you experience a technical issue that prevents you from accessing paid features, and
 - we are unable to resolve the issue within a reasonable time.
 
-To request help, email [**hello@flinote.ai**](mailto:hello@flinote.ai) with your account email, purchase details, and a description of the issue. Refunds, if approved, may be prorated or limited depending on the platform and applicable law.
+To request help, email [**support@flinote.ai**](mailto:support@flinote.ai) with your account email, purchase details, and a description of the issue. Refunds, if approved, may be prorated or limited depending on the platform and applicable law.
 
 ---
 
 ## 12) Copyright / DMCA-Style Notice
 
-We respect intellectual property rights. If you believe content on Flinote infringes your copyright, please email [**hello@flinote.ai**](mailto:hello@flinote.ai) with:
+We respect intellectual property rights. If you believe content on Flinote infringes your copyright, please email [**support@flinote.ai**](mailto:support@flinote.ai) with:
 
 - your contact information,
 - a description of the copyrighted work,
@@ -274,7 +274,7 @@ You agree to indemnify and hold harmless Flinote from claims, liabilities, damag
 
 **Please read this section carefully. It affects your rights.**
 
-**Informal resolution first.** Before filing a claim, you agree to try to resolve disputes informally by emailing **hello@flinote.ai** with a description of the issue.
+**Informal resolution first.** Before filing a claim, you agree to try to resolve disputes informally by emailing **support@flinote.ai** with a description of the issue.
 
 **Arbitration.** To the extent permitted by applicable law, any dispute arising out of or relating to the Services or these Terms will be resolved by **binding arbitration on an individual basis**, rather than in court. Arbitration may be conducted **remotely (online/phone/video)**. Either party may bring a claim in **small claims court** if it qualifies.
 
@@ -304,7 +304,7 @@ We may update these Terms from time to time. If changes are material, we will pr
 
 ## 22) Contact Us
 
-Questions about these Terms: [**hello@flinote.ai**](mailto:hello@flinote.ai)`;
+Questions about these Terms: [**support@flinote.ai**](mailto:support@flinote.ai)`;
 
 export const PRIVACY_CONTENT = `# Flinote Privacy Policy
 
@@ -516,9 +516,9 @@ Flinote does **not** sell personal information for money. If we engage in target
 
 Other U.S. state laws and laws in other countries may provide similar rights (such as access, deletion, correction, portability, and certain opt-outs). We will not discriminate against you for exercising applicable rights.
 
-**How to exercise your rights.** To submit a request, contact us at [**hello@flinote.ai**](mailto:hello@flinote.ai) with the subject line **"Privacy Request."** We may request information to verify your identity.
+**How to exercise your rights.** To submit a request, contact us at [**support@flinote.ai**](mailto:support@flinote.ai) with the subject line **"Privacy Request."** We may request information to verify your identity.
 
-**Appeals.** If applicable law provides an appeal right and we deny your request, you may appeal by emailing [**hello@flinote.ai**](mailto:hello@flinote.ai) with the subject line **"Privacy Appeal."**
+**Appeals.** If applicable law provides an appeal right and we deny your request, you may appeal by emailing [**support@flinote.ai**](mailto:support@flinote.ai) with the subject line **"Privacy Appeal."**
 
 ---
 
@@ -530,4 +530,4 @@ We may update this Privacy Policy from time to time. If we make material changes
 
 ## Contact Us
 
-If you have questions about this Privacy Policy or want to exercise privacy rights, contact us at: [**hello@flinote.ai**](mailto:hello@flinote.ai)`;
+If you have questions about this Privacy Policy or want to exercise privacy rights, contact us at: [**support@flinote.ai**](mailto:support@flinote.ai)`;

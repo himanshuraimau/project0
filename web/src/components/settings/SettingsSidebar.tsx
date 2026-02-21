@@ -16,6 +16,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { SubscriptionCard } from "@/components/shared/SubscriptionCard";
 import { cn } from "@/lib/utils";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 
 const SidebarContext = createContext({
   isCollapsed: false,
@@ -93,6 +94,7 @@ export function SettingsSidebar({
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
 
   const subscriptionCtx = useSettingsSubscriptionOptional();
+  const { openUpgradeModal } = useUpgradeModal();
 
   const toggleSidebar = () => setIsCollapsed((prev) => !prev);
 
@@ -243,6 +245,7 @@ export function SettingsSidebar({
                 hasActiveSubscription={hasActiveSubscription}
                 isLoading={isLoadingSubscription}
                 isDark={false}
+                onUpgradeClick={openUpgradeModal}
               />
             </div>
           )}

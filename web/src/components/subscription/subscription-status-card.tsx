@@ -339,7 +339,7 @@ export function SubscriptionStatusCard() {
   // Determine if yearly subscription based on product ID
   const yearlyProductId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY;
   const isYearly = subscription.productId === yearlyProductId;
-  const planDisplay = isYearly ? 'Pro - $89/year' : 'Pro - $19.99/month';
+  const planDisplay = isYearly ? 'Pro - $89/year' : 'Pro - $19/month';
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8 md:p-10">
@@ -394,7 +394,7 @@ export function SubscriptionStatusCard() {
                 {subscription.cancelAtPeriodEnd ? 'Change your mind? Upgrade to yearly!' : 'Upgrade to yearly and save!'}
               </p>
               <p className="text-base text-muted-foreground mt-1">
-                Switch to our yearly plan and save <strong className="text-foreground">$151 per year</strong> (63% off)
+                Switch to our yearly plan and save <strong className="text-foreground">$139 per year</strong> (61% off)
               </p>
             </div>
           </div>
@@ -454,7 +454,7 @@ export function SubscriptionStatusCard() {
               disabled={isRetryingPayment || isCancellingPending || isUpgrading}
             >
               <HugeiconsIcon icon={SparklesIcon} className="size-5" />
-              {subscription.cancelAtPeriodEnd ? 'Upgrade to Yearly (keeps your plan)' : 'Upgrade to Yearly - Save $151'}
+              {subscription.cancelAtPeriodEnd ? 'Upgrade to Yearly (keeps your plan)' : 'Upgrade to Yearly - Save $139'}
             </Button>
           )}
           {subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && (

@@ -218,7 +218,7 @@ export const ERROR_MESSAGES: Record<AppErrorType, { message: string; userMessage
   // File Processing
   [AppErrorType.FILE_TOO_LARGE]: {
     message: 'File size exceeds limit',
-    userMessage: 'File is too large. Please choose a smaller file (max 20MB).',
+    userMessage: 'File is too large. Please choose a smaller file (max 100MB).',
     statusCode: 413,
     retryable: false
   },

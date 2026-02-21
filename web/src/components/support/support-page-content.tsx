@@ -147,7 +147,7 @@ export function SupportPageContent() {
             <HugeiconsIcon icon={Mail01Icon} className="size-5" />
           </div>
           <div>
-            <p className="font-medium text-foreground mb-1">hello@flinote.ai</p>
+            <p className="font-medium text-foreground mb-1">support@flinote.ai</p>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Our support team typically responds within 24 hours on business
               days. For urgent issues, include &quot;URGENT&quot; in your

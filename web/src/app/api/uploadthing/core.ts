@@ -2,6 +2,7 @@ import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { prisma } from "@/lib/prisma";
 
 const f = createUploadthing();
 
@@ -77,6 +78,27 @@ export const ourFileRouter = {
         name: file.name,
         type: 'podcast-audio'
       };
+    }),
+
+  // Admin-only: blog cover and instructor images
+  blogImage: f({
+    image: {
+      maxFileSize: "4MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      const session = await auth.api.getSession({ headers: await headers() });
+      if (!session?.user?.id) throw new UploadThingError("Unauthorized");
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { role: true },
+      });
+      if (user?.role !== "ADMIN") throw new UploadThingError("Admin only");
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.url, name: file.name };
     }),
 } satisfies FileRouter;
 

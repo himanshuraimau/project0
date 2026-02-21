@@ -13,7 +13,7 @@ export const maxDuration = 300; // 5 minutes
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const MAX_PDF_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+const MAX_PDF_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 export async function POST(req: NextRequest) {
   try {
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           error: "File too large",
-          message: `PDF file is too large. Maximum size is 20MB. Your file is ${(size / 1024 / 1024).toFixed(2)}MB.`,
+          message: `PDF file is too large. Maximum size is 100MB. Your file is ${(size / 1024 / 1024).toFixed(2)}MB.`,
         },
         { status: 413 }
       );

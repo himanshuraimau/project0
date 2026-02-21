@@ -35,7 +35,7 @@ export function OnboardingStep5() {
 
   const handleComplete = async () => {
     try {
-      await saveStep(5, { studyIntensity: selected });
+      await saveStep(5, { studyIntensity: selected, wantsProductUpdates: subscribe });
       await completeOnboarding();
     } catch (err) {
       console.error("Failed to complete onboarding:", err);

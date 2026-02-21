@@ -1,0 +1,65 @@
+import Image from "next/image";
+import { getMetadata, baseUrl } from "@/lib/blog-metadata";
+import { renderArticleSchema } from "@/lib/blog-schema";
+import { BlogHeader } from "@/components/blog/BlogHeader";
+import { authors } from "@/app/blog/data";
+
+export const metadata = getMetadata({
+  path: "/blog/data-engineering-roadmap-2026/",
+  title: "Data Engineering Roadmap 2026 | Flinote",
+  description: "A practical roadmap for learning data engineering in 2026: tools, skills, and milestones.",
+  image: "/logo.png",
+  ogType: "article",
+});
+
+<>
+{renderArticleSchema({
+  headline: "Data Engineering Roadmap 2026",
+  description: "A practical roadmap for learning data engineering in 2026: tools, skills, and milestones.",
+  image: "/logo.png",
+  author: { name: authors.darshil.name, url: authors.darshil.link },
+  datePublished: "2026-02-05",
+  articleUrl: baseUrl + "/blog/data-engineering-roadmap-2026/",
+})}
+
+<BlogHeader
+  title="Data Engineering Roadmap 2026"
+  description="A practical roadmap for learning data engineering in 2026: tools, skills, and milestones."
+  category="Insights"
+  publishedOn="5 Feb 2026"
+/>
+
+<Image
+  src="/logo.png"
+  alt="Data Engineering Roadmap 2026"
+  width={1200}
+  height={630}
+  className="w-full aspect-video object-cover rounded-lg border border-border mb-8"
+/>
+
+## Introduction
+
+This post outlines a **practical roadmap** for aspiring data engineers in 2026. We cover the key skills, tools, and milestones that will help you land a role or level up.
+
+## Core Skills
+
+1. **SQL** – Start with standard SQL, then window functions and query optimization.
+2. **Python** – Focus on data libraries: `pandas`, `pyarrow`, and basic scripting for orchestration.
+3. **Distributed systems** – Understand batch vs streaming and at least one big-data framework (e.g. Spark).
+
+## Tools to Learn
+
+| Area        | Examples                    |
+| ----------- | --------------------------- |
+| Orchestration | Airflow, Dagster, Prefect |
+| Warehouses   | BigQuery, Snowflake, Redshift |
+| Streaming    | Kafka, Flink, ksqlDB        |
+
+## Next Steps
+
+- Build a small **batch pipeline** (e.g. ingest → transform → load into a warehouse).
+- Add a **streaming** component (e.g. Kafka + consumer).
+- Deploy and run everything with an **orchestrator**.
+
+Good luck on your data engineering journey. For more study tips, check out [Flinote](/blog/).
+</>

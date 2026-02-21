@@ -112,57 +112,53 @@ export class PaymentService {
           // Continue anyway - we'll try to create a new one
         }
       }
+
+      // If user has a stale (failed/cancelled/expired) subscription, delete the DB record so
+      // the webhook can create a fresh one when the new checkout session fires subscription.created
+      if (['CANCELLED', 'FAILED', 'EXPIRED', 'ON_HOLD'].includes(existingSubscription.status)) {
+        console.log('Removing stale subscription record before checkout:', existingSubscription.status);
+        try {
+          await SubscriptionService.deleteSubscription(userId);
+        } catch (error) {
+          console.error('Error deleting stale subscription:', error);
+        }
+      }
     }
 
     // Get product ID and amount
     const productId = this.getProductId(billingInterval);
     const amount = this.getSubscriptionAmount(billingInterval);
 
-    // Create subscription with Dodo
-    const dodoSubscription = await DodoSubscriptionService.createSubscription({
+    // Create a Dodo Checkout Session (no pre-filled billing address).
+    // Dodo will collect contact info → billing address (for tax) → payment in that order.
+    const checkoutSession = await DodoSubscriptionService.createCheckoutSession({
       userId,
       userEmail,
       userName,
-      billingAddress: {
-        city: 'Default City',
-        country: 'US',
-        state: 'CA',
-        street: 'Default Street',
-        zipcode: '00000',
-      },
-      billingInterval,
+      productId,
       discountCode,
+      metadata: {
+        billingInterval,
+        productId,
+        amount: String(amount),
+      },
     });
 
-    if (!dodoSubscription.success || !dodoSubscription.subscriptionId) {
-      throw new Error(dodoSubscription.error || 'Failed to create subscription with Dodo');
+    if (!checkoutSession.success || !checkoutSession.checkoutUrl) {
+      throw new Error(checkoutSession.error || 'Failed to create checkout session');
     }
 
-    // Create subscription record in database with feature limits
-    const subscription = await SubscriptionService.createSubscription({
-      userId,
-      dodoSubscriptionId: dodoSubscription.subscriptionId,
-      productId,
-      status: 'PENDING',
-      metadata: {
-        paymentLink: dodoSubscription.paymentLink,
-        createdAt: new Date().toISOString(),
-      },
-      // Set PRO plan feature limits
-      notesPerMonth: PRO_PLAN_LIMITS.notesPerMonth,
-      coursesPerMonth: PRO_PLAN_LIMITS.coursesPerMonth,
-      pdfProcessingPerMonth: PRO_PLAN_LIMITS.pdfProcessingPerMonth,
-      videoProcessingPerMonth: PRO_PLAN_LIMITS.videoProcessingPerMonth,
-      audioProcessingPerMonth: PRO_PLAN_LIMITS.audioProcessingPerMonth,
-      // Store discount and amount
-      dodoDiscountId: discountCode,
-      amount,
-    });
+    // NOTE: We do NOT create a DB subscription record here.
+    // Dodo fires `subscription.created` (PENDING) immediately once the checkout session
+    // starts on Dodo's side. The webhook handler creates the DB record at that point,
+    // using the userId and productId stored in the session metadata.
+    // This means the checkout URL can be returned directly without an upfront DB write.
 
     return {
-      subscription,
-      checkoutUrl: dodoSubscription.paymentLink,
-      sessionId: dodoSubscription.subscriptionId,
+      checkoutUrl: checkoutSession.checkoutUrl,
+      sessionId: checkoutSession.sessionId,
+      // Provide a stub so callers that reference result.subscription don't crash
+      subscription: { id: checkoutSession.sessionId ?? '', status: 'PENDING' } as any,
     };
   }
 

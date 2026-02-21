@@ -98,28 +98,12 @@ export function MyNotesSection() {
         </div>
       </div>
 
-      {/* Recent Notes Header */}
-      {/* <div className="flex flex-row items-center gap-2 mb-5">
-        <h3 className="text-lg font-medium text-foreground tracking-tight shrink-0">
-          Recent Notes
-        </h3>
-        <div className="flex-1 h-px bg-border/50 min-w-0" aria-hidden />
-        <button
-          type="button"
-          onClick={() => router.push("/notes")}
-          className="flex items-center gap-1.5 rounded-md py-2 px-2.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background shrink-0"
-        >
-          <span>View All</span>
-          <HugeiconsIcon icon={ArrowRight01Icon} className="size-4 shrink-0" />
-        </button>
-      </div> */}
-
       <div className="w-full rounded-lg pt-0">
         <NotesList
           ref={notesListRef}
           searchQuery={searchQuery}
           folderId={selectedFolderId}
-          limit={3}
+          groupByTime
         />
       </div>
 

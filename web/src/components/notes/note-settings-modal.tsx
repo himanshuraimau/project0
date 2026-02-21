@@ -20,8 +20,10 @@ import {
   FileDownloadIcon,
   Delete01Icon,
   Loading01Icon,
+  Share07Icon,
 } from "@hugeicons/core-free-icons";
 import { MoveToFolderDialog } from "@/components/folders/move-to-folder-dialog";
+import { ShareLinkDialog } from "@/components/notes/share-link-dialog";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -52,6 +54,7 @@ export function NoteSettingsModal({
   const [title, setTitle] = useState(note.title);
   const [savingTitle, setSavingTitle] = useState(false);
   const [showMoveDialog, setShowMoveDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -170,6 +173,25 @@ export function NoteSettingsModal({
               </Button>
             </div>
 
+            {/* Share note */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">
+                Share note
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowShareDialog(true)}
+                className="w-full justify-start gap-3 rounded-xl border border-border bg-muted/30 dark:bg-muted/20 hover:bg-muted/50 h-11 cursor-pointer"
+              >
+                <HugeiconsIcon
+                  icon={Share07Icon}
+                  className="size-5 text-muted-foreground shrink-0"
+                />
+                Share note
+              </Button>
+            </div>
+
             {/* Delete note */}
             <Button
               type="button"
@@ -219,6 +241,13 @@ export function NoteSettingsModal({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ShareLinkDialog
+        noteId={note.id}
+        noteTitle={note.title}
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+      />
     </>
   );
 }

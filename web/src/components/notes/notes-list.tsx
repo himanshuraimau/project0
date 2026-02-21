@@ -20,20 +20,112 @@ import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Note01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+export type NotesTimeRange = "all" | "today" | "week" | "month" | "year";
 
 interface NotesListProps {
   searchQuery?: string;
   transcriptId?: string;
   limit?: number;
   folderId?: string | null;
+  timeRange?: NotesTimeRange;
+  /** When true, show notes in folder-style groups: Today, This week, This month, This year */
+  groupByTime?: boolean;
 }
 
 export interface NotesListRef {
   refreshNotes: () => Promise<void>;
 }
 
+function getNoteDate(note: NotesNoteWithTranscript): Date {
+  const raw = (note as { updatedAt?: string | Date; createdAt?: string | Date }).updatedAt
+    ?? (note as { createdAt?: string | Date }).createdAt;
+  if (!raw) return new Date(0);
+  return typeof raw === "string" ? new Date(raw) : raw;
+}
+
+function filterByTimeRange(
+  notes: NotesNoteWithTranscript[],
+  timeRange: NotesTimeRange
+): NotesNoteWithTranscript[] {
+  if (!timeRange || timeRange === "all") return notes;
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekStart = new Date(todayStart);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const yearStart = new Date(now.getFullYear(), 0, 1);
+
+  return notes.filter((note) => {
+    const d = getNoteDate(note);
+    if (timeRange === "today") return d >= todayStart;
+    if (timeRange === "week") return d >= weekStart;
+    if (timeRange === "month") return d >= monthStart;
+    if (timeRange === "year") return d >= yearStart;
+    return true;
+  });
+}
+
+export type TimeGroupKey = "today" | "week" | "month" | "year" | "older";
+
+/** Assign each note to one time bucket: Today, Week, Month, Year, or Older. */
+function groupNotesByTime(
+  notes: NotesNoteWithTranscript[]
+): Record<TimeGroupKey, NotesNoteWithTranscript[]> {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekStart = new Date(todayStart);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const yearStart = new Date(now.getFullYear(), 0, 1);
+
+  const groups: Record<TimeGroupKey, NotesNoteWithTranscript[]> = {
+    today: [],
+    week: [],
+    month: [],
+    year: [],
+    older: [],
+  };
+
+  for (const note of notes) {
+    const d = getNoteDate(note);
+    if (d >= todayStart) groups.today.push(note);
+    else if (d >= weekStart) groups.week.push(note);
+    else if (d >= monthStart) groups.month.push(note);
+    else if (d >= yearStart) groups.year.push(note);
+    else groups.older.push(note);
+  }
+
+  return groups;
+}
+
+const TIME_GROUP_ORDER: TimeGroupKey[] = ["today", "week", "month", "year", "older"];
+const TIME_GROUP_LABELS: Record<TimeGroupKey, string> = {
+  today: "Today",
+  week: "Week",
+  month: "Month",
+  year: "Year",
+  older: "Older",
+};
+
 export const NotesList = forwardRef<NotesListRef, NotesListProps>(
-  ({ searchQuery, transcriptId, limit, folderId }, ref) => {
+  (
+    {
+      searchQuery,
+      transcriptId,
+      limit,
+      folderId,
+      timeRange = "all",
+      groupByTime = false,
+    },
+    ref
+  ) => {
     const { getNotes, loading, error } = useNotes();
     const { loadingNotes, removeLoadingNote, updateLoadingNote } =
       useDashboardRefresh();
@@ -668,7 +760,11 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       );
     }
 
-    const filteredNotes = filterByFolder(filterNotes(notes, searchQuery || ""));
+    const baseFiltered = filterByFolder(filterNotes(notes, searchQuery || ""));
+    const filteredNotes = groupByTime
+      ? baseFiltered
+      : filterByTimeRange(baseFiltered, timeRange);
+    const timeGroups = groupByTime ? groupNotesByTime(baseFiltered) : null;
 
     // Premium empty state — no notes yet
     if (notes.length === 0 && activeLoadingNotes.length === 0) {
@@ -706,6 +802,35 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
           </h3>
           <p className="text-sm text-muted-foreground max-w-xs">
             Try different keywords or create a new note.
+          </p>
+        </div>
+      );
+    }
+
+    // Empty state for time range filter (no notes in this period) — only when not using folder view
+    const timeRangeLabels: Record<Exclude<NotesTimeRange, "all">, string> = {
+      today: "No notes from today",
+      week: "No notes this week",
+      month: "No notes this month",
+      year: "No notes this year",
+    };
+    if (
+      !groupByTime &&
+      filteredNotes.length === 0 &&
+      timeRange &&
+      timeRange !== "all" &&
+      notes.length > 0
+    ) {
+      return (
+        <div className="flex flex-col items-center text-center py-16 px-4 rounded-2xl border border-border bg-card/50">
+          <div className="flex size-16 items-center justify-center rounded-xl bg-muted text-muted-foreground mb-4">
+            <HugeiconsIcon icon={Note01Icon} className="size-8" />
+          </div>
+          <h3 className="font-semibold text-lg text-foreground mb-2">
+            {timeRangeLabels[timeRange]}
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-sm">
+            Change the filter above to see notes from other periods.
           </p>
         </div>
       );
@@ -749,6 +874,60 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
       );
     }
 
+    // Group by Today / Week / Month only
+    if (groupByTime && timeGroups) {
+      const sectionsWithNotes = TIME_GROUP_ORDER.filter(
+        (key) => timeGroups[key].length > 0
+      );
+      const defaultOpen = sectionsWithNotes.length > 0 ? sectionsWithNotes : ["today"];
+
+      return (
+        <>
+          <div className="flex flex-col gap-4 w-full">
+            {activeLoadingNotes.map((loadingNote) => (
+              <GeneratingNoteCard
+                key={loadingNote.id}
+                loadingNote={loadingNote}
+                onDismiss={(note) => removeLoadingNote(note.id)}
+              />
+            ))}
+
+            <Accordion
+              type="multiple"
+              defaultValue={defaultOpen}
+              className="w-full"
+            >
+              {TIME_GROUP_ORDER.map((key) => {
+                const groupNotes = timeGroups[key];
+                const count = groupNotes.length;
+                if (count === 0) return null;
+                return (
+                  <AccordionItem key={key} value={key} className="border-none">
+                    <AccordionTrigger className="py-0 px-0 hover:no-underline [&[data-state=open]>svg]:rotate-180 mb-2.5">
+                      <span className="font-medium text-foreground">
+                        {TIME_GROUP_LABELS[key]}
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-0 pt-0">
+                      <div className="flex flex-col gap-4">
+                        {groupNotes.map((note) => (
+                          <NoteCard
+                            key={note.id}
+                            note={note}
+                            onUpdate={loadNotes}
+                          />
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          </div>
+        </>
+      );
+    }
+
     return (
       <>
         <div className="flex flex-col gap-4 w-full">
@@ -761,7 +940,7 @@ export const NotesList = forwardRef<NotesListRef, NotesListProps>(
             />
           ))}
 
-          {/* Show actual notes */}
+          {/* Show actual notes (all in range; limit only when explicitly set for other views) */}
           {(limit ? filteredNotes.slice(0, limit) : filteredNotes).map(
             (note) => (
               <NoteCard key={note.id} note={note} onUpdate={loadNotes} />

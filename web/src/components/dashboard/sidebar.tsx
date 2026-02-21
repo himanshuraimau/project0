@@ -18,6 +18,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 
 const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "600"],
@@ -73,6 +74,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
   const { theme } = useTheme();
+  const { openUpgradeModal } = useUpgradeModal();
   const isCollapsed = state === "collapsed";
   const isDark = theme === "dark";
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
@@ -200,13 +202,14 @@ export function AppSidebar({ className }: AppSidebarProps) {
       <SidebarFooterControls>
         {/* Upgrade to PRO Button - Only show for free tier users */}
         {!isLoadingSubscription && !hasActiveSubscription && (
-          <Link 
-            href="/pricing"
+          <button
+            type="button"
+            onClick={openUpgradeModal}
             className={cn(
               "flex items-center gap-3 rounded-lg py-3 transition-all duration-200 overflow-hidden",
               "bg-accent/10 hover:bg-accent/20 border border-accent/30",
-              "group cursor-pointer",
-              isCollapsed ? "justify-center w-full px-2" : "px-4"
+              "group cursor-pointer w-full",
+              isCollapsed ? "justify-center px-2" : "px-4"
             )}
           >
             <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
@@ -220,7 +223,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 <ArrowUpRight className={cn("w-6 h-6 shrink-0", isDark ? "text-black" : "text-white")} />
               </>
             )}
-          </Link>
+          </button>
         )}
 
         {/* Pro User Badge - Show for subscribed users */}

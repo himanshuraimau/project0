@@ -32,6 +32,59 @@ export class DodoSubscriptionService {
   }
 
   /**
+   * Create a hosted checkout session for a subscription product.
+   *
+   * Unlike `createSubscription` (which uses `subscriptions.create` and requires a billing
+   * address to be provided upfront), this uses Dodo's Checkout Sessions API which:
+   *   1. Shows the contact-information form FIRST
+   *   2. Collects the billing address (country + zip) for accurate tax calculation
+   *   3. Displays the tax-inclusive total BEFORE the customer enters payment details
+   *
+   * The Dodo-hosted checkout page order is: contact info → billing address → tax → payment.
+   * Dodo fires `subscription.created` (PENDING) immediately when the session starts, then
+   * `subscription.activated` once payment succeeds.
+   */
+  static async createCheckoutSession(params: {
+    userId: string;
+    userEmail: string;
+    userName: string;
+    productId: string;
+    discountCode?: string;
+    /** Extra metadata forwarded to the subscription's webhook payload */
+    metadata?: Record<string, unknown>;
+  }): Promise<{ success: boolean; checkoutUrl?: string; sessionId?: string; error?: string }> {
+    try {
+      const client = this.getClient();
+
+      const session = await (client as any).checkoutSessions.create({
+        product_cart: [{ product_id: params.productId, quantity: 1 }],
+        customer: {
+          email: params.userEmail,
+          name: params.userName,
+        },
+        return_url: DODO_CONFIG.returnUrl,
+        metadata: {
+          userId: params.userId,
+          ...params.metadata,
+        },
+        ...(params.discountCode ? { discount_code: params.discountCode } : {}),
+      });
+
+      return {
+        success: true,
+        checkoutUrl: session.checkout_url,
+        sessionId: session.session_id,
+      };
+    } catch (error) {
+      console.error('Failed to create Dodo checkout session:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
    * Create a new subscription with Dodo Payments
    */
   static async createSubscription(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { updateLoopsContact, sendLoopsEvent } from "@/lib/loops";
 
 // GET - Check if user completed onboarding
 export async function GET(request: NextRequest) {
@@ -28,6 +29,7 @@ export async function GET(request: NextRequest) {
         role: true,
         features: true,
         studyIntensity: true,
+        wantsProductUpdates: true,
         completedAt: true,
       },
     });
@@ -65,21 +67,23 @@ export async function POST(request: NextRequest) {
       studyIntensity,
       currentStep,
       isCompleted,
+      wantsProductUpdates,
     } = body;
 
     // Upsert onboarding data
     const onboarding = await prisma.userOnboarding.upsert({
       where: { userId: session.user.id },
       update: {
-        ...(source && { source }),
-        ...(userType && { userType }),
-        ...(role && { role }),
-        ...(features && { features }),
-        ...(studyIntensity && { studyIntensity }),
-        ...(currentStep && { currentStep }),
-        ...(isCompleted !== undefined && { 
+        ...(source !== undefined && { source: source ?? null }),
+        ...(userType !== undefined && { userType: userType ?? null }),
+        ...(role !== undefined && { role: role ?? null }),
+        ...(features !== undefined && { features }),
+        ...(studyIntensity !== undefined && { studyIntensity: studyIntensity ?? null }),
+        ...(currentStep !== undefined && { currentStep }),
+        ...(wantsProductUpdates !== undefined && { wantsProductUpdates: !!wantsProductUpdates }),
+        ...(isCompleted !== undefined && {
           isCompleted,
-          ...(isCompleted && { completedAt: new Date() })
+          ...(isCompleted && { completedAt: new Date() }),
         }),
       },
       create: {
@@ -91,13 +95,42 @@ export async function POST(request: NextRequest) {
         studyIntensity: studyIntensity || null,
         currentStep: currentStep || 1,
         isCompleted: isCompleted || false,
+        wantsProductUpdates: wantsProductUpdates !== false,
         ...(isCompleted && { completedAt: new Date() }),
       },
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      onboarding 
+    // Sync to Loops when onboarding is completed (for email marketing segments)
+    if (isCompleted && session.user.email) {
+      const name = session.user.name?.trim() || "";
+      const [firstName, ...lastParts] = name.split(/\s+/);
+      const lastName = lastParts.join(" ") || undefined;
+      const result = await updateLoopsContact({
+        email: session.user.email,
+        userId: session.user.id,
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        source: "flinote_onboarding",
+        subscribed: wantsProductUpdates !== false,
+        plan: "free",
+        referralSource: source || undefined,
+        userType: userType || undefined,
+        role: role || undefined,
+        studyIntensity: studyIntensity || undefined,
+        features: Array.isArray(features) ? features.join(",") : undefined,
+      });
+      if (!result.success) {
+        console.warn("Loops sync on onboarding complete:", result.message);
+      }
+      await sendLoopsEvent(session.user.email, "onboarding_completed", {
+        source: source || "unknown",
+        role: role || "unknown",
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      onboarding,
     });
   } catch (error) {
     console.error("Error saving onboarding:", error);

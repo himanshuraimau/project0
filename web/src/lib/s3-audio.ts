@@ -50,6 +50,7 @@ export interface PresignedAudioUrls {
 /**
  * Generate presigned PUT URL for client upload and presigned GET URL
  * for the server to fetch the file when transcribing.
+ * Keys use prefix temp/audio/ for S3 lifecycle auto-deletion.
  */
 export async function getPresignedAudioUrls(
   userId: string,
@@ -57,9 +58,10 @@ export async function getPresignedAudioUrls(
   contentType: string
 ): Promise<PresignedAudioUrls> {
   const bucket = getBucket();
-  const prefix = process.env.S3_AUDIO_PREFIX ?? "audio-uploads";
+  const prefix = process.env.S3_AUDIO_PREFIX ?? "temp/audio";
   const safeName = sanitizeFileName(fileName);
-  const key = `${prefix}/${userId}/${Date.now()}-${safeName}`;
+  const fileId = `${Date.now()}-${safeName}`;
+  const key = `${prefix}/${userId}/${fileId}`;
 
   const client = getS3Client();
 
@@ -91,6 +93,7 @@ export interface PresignedUploadUrls {
 /**
  * Generate presigned PUT URL for client upload and presigned GET URL
  * for the server to fetch the PDF when processing.
+ * Keys use prefix temp/pdf/ for S3 lifecycle auto-deletion.
  */
 export async function getPresignedPdfUrls(
   userId: string,
@@ -98,9 +101,10 @@ export async function getPresignedPdfUrls(
   contentType: string
 ): Promise<PresignedUploadUrls> {
   const bucket = getBucket();
-  const prefix = process.env.S3_PDF_PREFIX ?? "pdf-uploads";
+  const prefix = process.env.S3_PDF_PREFIX ?? "temp/pdf";
   const safeName = sanitizeFileName(fileName);
-  const key = `${prefix}/${userId}/${Date.now()}-${safeName}`;
+  const fileId = `${Date.now()}-${safeName}`;
+  const key = `${prefix}/${userId}/${fileId}`;
 
   const client = getS3Client();
 

@@ -21,10 +21,10 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6">
+      <div className="mx-auto grid max-w-7xl grid-cols-3 items-center gap-4 px-4 py-4 md:px-6">
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-medium text-lg text-foreground transition-opacity hover:opacity-90"
+          className="flex w-fit items-center gap-2.5 font-medium text-lg text-foreground transition-opacity hover:opacity-90"
         >
           <Image
             src="/logo.png"
@@ -38,7 +38,14 @@ export function Header() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <Link
+          href="/blog/"
+          className="hidden sm:block justify-self-center text-muted-foreground hover:text-foreground transition-colors text-[15px] font-medium"
+        >
+          Blog
+        </Link>
+
+        <div className="flex items-center justify-end gap-2">
           {session ? (
             <>
               <Link href="/dashboard" className="hidden sm:block">
@@ -81,6 +88,13 @@ export function Header() {
       {isMenuOpen && (
         <div className="border-t border-border bg-background md:hidden">
           <div className="flex flex-col gap-1 px-4 py-4">
+            <Link
+              href="/blog/"
+              onClick={() => setIsMenuOpen(false)}
+              className="rounded-lg px-4 py-3 text-foreground font-medium hover:bg-muted transition-colors"
+            >
+              Blog
+            </Link>
             {session ? (
               <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
                 <Button className="w-full justify-start rounded-lg" size="lg">

@@ -39,6 +39,10 @@ const PREMIUM_FEATURES = [
   "No watermarks",
 ];
 
+const PRICE_MONTHLY = 19.99;
+const PRICE_YEARLY = 89;
+const PRICE_YEARLY_PER_MONTH = PRICE_YEARLY / 12; // e.g. $7.42/mo when billed yearly
+
 function formatDate(date: string | Date | null | undefined): string | null {
   if (date == null) return null;
   const d = new Date(date);
@@ -51,7 +55,12 @@ function formatDate(date: string | Date | null | undefined): string | null {
 }
 
 export function SubscriptionCard() {
-  const { data: subscriptionData, loading: isLoading, refetch, setData: setSubscriptionData } = useSettingsSubscription();
+  const {
+    data: subscriptionData,
+    loading: isLoading,
+    refetch,
+    setData: setSubscriptionData,
+  } = useSettingsSubscription();
   const [cancelling, setCancelling] = useState(false);
   const [reactivating, setReactivating] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -65,9 +74,14 @@ export function SubscriptionCard() {
     subscriptionData?.hasSubscription && subscriptionData?.access?.hasAccess;
   const sub = subscriptionData?.subscription;
   // For pending upgrade, nextBillingDate is null - use currentPeriodEnd (monthlyPeriodEnd) for display
-  const displayDate = (d: string | Date | null | undefined) => formatDate(d) ?? "—";
-  const nextBillingDisplay = displayDate(sub?.nextBillingDate ?? sub?.currentPeriodEnd);
-  const isPendingUpgrade = sub?.status === "PENDING" && (sub?.metadata as { upgradeFromMonthly?: boolean })?.upgradeFromMonthly;
+  const displayDate = (d: string | Date | null | undefined) =>
+    formatDate(d) ?? "—";
+  const nextBillingDisplay = displayDate(
+    sub?.nextBillingDate ?? sub?.currentPeriodEnd,
+  );
+  const isPendingUpgrade =
+    sub?.status === "PENDING" &&
+    (sub?.metadata as { upgradeFromMonthly?: boolean })?.upgradeFromMonthly;
 
   const handleUpgrade = () => {
     openUpgradeModal();
@@ -84,7 +98,7 @@ export function SubscriptionCard() {
       const data = await response.json();
       if (response.ok && data.success) {
         toast.success(
-          "Subscription will cancel at the end of the billing period."
+          "Subscription will cancel at the end of the billing period.",
         );
         setShowCancelConfirm(false);
         // Optimistically update UI immediately so button switches without refresh
@@ -95,10 +109,12 @@ export function SubscriptionCard() {
                 subscription: {
                   ...prev.subscription,
                   cancelAtPeriodEnd: true,
-                  cancelledAt: data.subscription?.cancelledAt ?? prev.subscription.cancelledAt,
+                  cancelledAt:
+                    data.subscription?.cancelledAt ??
+                    prev.subscription.cancelledAt,
                 },
               }
-            : prev
+            : prev,
         );
         window.dispatchEvent(new CustomEvent("subscription-updated"));
         refetch(true, true); // silent refetch, no loading spinner
@@ -115,11 +131,15 @@ export function SubscriptionCard() {
   const handleReactivateSubscription = async () => {
     setReactivating(true);
     try {
-      const response = await fetch("/api/subscription/reactivate", { method: "POST" });
+      const response = await fetch("/api/subscription/reactivate", {
+        method: "POST",
+      });
       const data = await response.json();
       if (response.ok && data.success) {
         setShowReactivateConfirm(false);
-        toast.success(data.message || "Subscription reactivated. Your plan will continue.");
+        toast.success(
+          data.message || "Subscription reactivated. Your plan will continue.",
+        );
         refetch(true);
         window.dispatchEvent(new CustomEvent("subscription-updated"));
       } else {
@@ -170,7 +190,10 @@ export function SubscriptionCard() {
       }
       if (data.success && !data.paymentLink) {
         setShowUpgradeDialog(false);
-        toast.success(data.message || "Yearly plan activated. Payment was charged immediately.");
+        toast.success(
+          data.message ||
+            "Yearly plan activated. Payment was charged immediately.",
+        );
         refetch(true);
         window.dispatchEvent(new CustomEvent("subscription-updated"));
         return;
@@ -184,17 +207,24 @@ export function SubscriptionCard() {
   };
 
   // Determine if user is on yearly plan
-  const yearlyProductId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY;
-  const isYearly = subscriptionData?.subscription?.productId === yearlyProductId;
-  const scheduledPlan = subscriptionData?.subscription?.metadata?.scheduledProductId;
-  const hasScheduledChange = scheduledPlan && scheduledPlan !== subscriptionData?.subscription?.productId;
+  const yearlyProductId =
+    process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY;
+  const isYearly =
+    subscriptionData?.subscription?.productId === yearlyProductId;
+  const scheduledPlan =
+    subscriptionData?.subscription?.metadata?.scheduledProductId;
+  const hasScheduledChange =
+    scheduledPlan &&
+    scheduledPlan !== subscriptionData?.subscription?.productId;
   const scheduledToYearly = scheduledPlan === yearlyProductId;
-  
+
   const planDisplay = hasActiveSubscription
     ? isYearly
-      ? "Pro - $89/year"
-      : "Pro - $19.99/month"
+      ? `Pro - $${PRICE_YEARLY}/year`
+      : `Pro - $${PRICE_MONTHLY}/month`
     : "Free";
+  const hasSubscriptionHistory =
+    subscriptionData?.hasSubscription && !hasActiveSubscription;
 
   if (isLoading) {
     return (
@@ -240,7 +270,10 @@ export function SubscriptionCard() {
           >
             {hasScheduledChange && scheduledToYearly && (
               <div className="absolute -top-3 right-4 inline-flex items-center gap-1.5 rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
-                <HugeiconsIcon icon={CheckmarkCircle01Icon} className="size-3.5" />
+                <HugeiconsIcon
+                  icon={CheckmarkCircle01Icon}
+                  className="size-3.5"
+                />
                 Upgrading to Yearly
               </div>
             )}
@@ -277,7 +310,7 @@ export function SubscriptionCard() {
                           icon={Calendar01Icon}
                           className="size-4 shrink-0"
                         />
-                        {(sub.cancelAtPeriodEnd || sub.status === "CANCELLED")
+                        {sub.cancelAtPeriodEnd || sub.status === "CANCELLED"
                           ? `Access until ${nextBillingDisplay}`
                           : `Next billing: ${nextBillingDisplay}`}
                       </div>
@@ -288,12 +321,16 @@ export function SubscriptionCard() {
                         className="size-4 shrink-0"
                       />
                       Status:{" "}
-                      <span className={`font-medium ${
-                        sub.cancelAtPeriodEnd
-                          ? "text-orange-600 dark:text-orange-400"
-                          : "text-green-600 dark:text-green-400"
-                      }`}>
-                        {sub.cancelAtPeriodEnd ? "Cancelling at period end" : sub.displayStatus}
+                      <span
+                        className={`font-medium ${
+                          sub.cancelAtPeriodEnd
+                            ? "text-orange-600 dark:text-orange-400"
+                            : "text-green-600 dark:text-green-400"
+                        }`}
+                      >
+                        {sub.cancelAtPeriodEnd
+                          ? "Cancelling at period end"
+                          : sub.displayStatus}
                       </span>
                     </div>
                   </div>
@@ -310,12 +347,31 @@ export function SubscriptionCard() {
 
             <div className="mt-5 flex flex-col sm:flex-row gap-3">
               {!hasActiveSubscription ? (
-                <Button
-                  onClick={handleUpgrade}
-                  className="w-full sm:w-auto rounded-xl h-11 px-6 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 cursor-pointer font-medium"
-                >
-                  Upgrade to Pro — $19.99/month
-                </Button>
+                <>
+                  <div className="flex flex-col gap-1 w-full sm:w-auto">
+                    <Button
+                      onClick={handleUpgrade}
+                      className="w-full sm:w-auto rounded-xl h-11 px-6 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 cursor-pointer font-medium"
+                    >
+                      Upgrade to Pro
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      ${PRICE_MONTHLY}/mo or $
+                      {PRICE_YEARLY_PER_MONTH.toFixed(2)}/mo when billed yearly
+                      (${PRICE_YEARLY}/yr)
+                    </p>
+                  </div>
+                  {hasSubscriptionHistory && (
+                    <Button
+                      onClick={handleOpenBillingPortal}
+                      variant="outline"
+                      className="rounded-xl h-11 px-5 cursor-pointer shrink-0"
+                      disabled={isOpeningPortal}
+                    >
+                      {isOpeningPortal ? "Opening…" : "Billing Portal"}
+                    </Button>
+                  )}
+                </>
               ) : (
                 <>
                   {!isYearly && !hasScheduledChange && (
@@ -328,14 +384,19 @@ export function SubscriptionCard() {
                       Upgrade to Yearly
                     </Button>
                   )}
-                  {hasScheduledChange && scheduledToYearly && nextBillingDisplay !== "—" && (
-                    <div className="flex-1 rounded-xl h-11 px-5 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 flex items-center justify-center gap-2">
-                      <HugeiconsIcon icon={CheckmarkCircle01Icon} className="size-4 text-green-600 dark:text-green-400" />
-                      <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                        Upgrading on {nextBillingDisplay}
-                      </span>
-                    </div>
-                  )}
+                  {hasScheduledChange &&
+                    scheduledToYearly &&
+                    nextBillingDisplay !== "—" && (
+                      <div className="flex-1 rounded-xl h-11 px-5 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 flex items-center justify-center gap-2">
+                        <HugeiconsIcon
+                          icon={CheckmarkCircle01Icon}
+                          className="size-4 text-green-600 dark:text-green-400"
+                        />
+                        <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                          Upgrading on {nextBillingDisplay}
+                        </span>
+                      </div>
+                    )}
                   {sub?.cancelAtPeriodEnd && sub?.status === "ACTIVE" ? (
                     <Button
                       onClick={() => setShowReactivateConfirm(true)}
@@ -344,9 +405,14 @@ export function SubscriptionCard() {
                       disabled={isUpgrading || reactivating}
                     >
                       {reactivating ? (
-                        <HugeiconsIcon icon={Loading01Icon} className="size-4 animate-spin mr-2" />
+                        <HugeiconsIcon
+                          icon={Loading01Icon}
+                          className="size-4 animate-spin mr-2"
+                        />
                       ) : null}
-                      {reactivating ? "Reactivating…" : "Reactivate subscription"}
+                      {reactivating
+                        ? "Reactivating…"
+                        : "Reactivate subscription"}
                     </Button>
                   ) : sub?.status !== "CANCELLED" ? (
                     <Button
@@ -371,32 +437,16 @@ export function SubscriptionCard() {
             </div>
           </div>
 
-          {/* Premium features */}
-          <section>
-            <h3 className="text-base font-semibold text-foreground mb-4">
-              Premium features
-            </h3>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {PREMIUM_FEATURES.map((text, i) => (
-                <li key={i} className="flex items-center gap-3">
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <HugeiconsIcon
-                      icon={CheckmarkCircle01Icon}
-                      className="size-3.5"
-                    />
-                  </span>
-                  <span className="text-sm text-muted-foreground">{text}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-
           <div className="h-px bg-border" />
 
-          {/* Billing history */}
+          {/* Billing history / Transaction history */}
           <section>
             <h3 className="text-base font-semibold text-foreground mb-4">
-              Billing history
+              {hasActiveSubscription
+                ? "Billing history"
+                : hasSubscriptionHistory
+                  ? "Transaction history"
+                  : "Billing history"}
             </h3>
             {hasActiveSubscription && sub ? (
               <div className="space-y-3">
@@ -416,7 +466,7 @@ export function SubscriptionCard() {
                   </div>
                   <div className="text-right shrink-0">
                     <span className="font-semibold text-foreground">
-                      {isYearly ? "$89" : "$19.99"}
+                      {isYearly ? `$${PRICE_YEARLY}` : `$${PRICE_MONTHLY}`}
                     </span>
                     <span className="text-sm text-muted-foreground">
                       {isYearly ? "/year" : "/month"}
@@ -431,71 +481,107 @@ export function SubscriptionCard() {
                           Complete your payment to activate the yearly plan.
                         </p>
                         <p className="text-sm text-amber-800 dark:text-amber-200 mt-1">
-                          {nextBillingDisplay !== "—" && `Your current access continues until ${nextBillingDisplay}.`}
+                          {nextBillingDisplay !== "—" &&
+                            `Your current access continues until ${nextBillingDisplay}.`}
                         </p>
                       </div>
                     ) : (
-                    <>
-                    {hasScheduledChange && scheduledToYearly && (
-                      <div className="rounded-xl border-2 border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-950/20 p-4">
-                        <div className="flex items-start gap-3">
-                          <HugeiconsIcon icon={CheckmarkCircle01Icon} className="size-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
-                          <div className="space-y-1">
-                            <p className="text-sm font-semibold text-green-900 dark:text-green-100">
-                              Upgrade Scheduled
-                            </p>
-                            <p className="text-sm text-green-800 dark:text-green-200">
-                              Your plan will upgrade to <strong>Yearly ($89/year)</strong> on {nextBillingDisplay}. 
-                              You'll keep your current monthly plan until then.
+                      <>
+                        {hasScheduledChange && scheduledToYearly && (
+                          <div className="rounded-xl border-2 border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-950/20 p-4">
+                            <div className="flex items-start gap-3">
+                              <HugeiconsIcon
+                                icon={CheckmarkCircle01Icon}
+                                className="size-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5"
+                              />
+                              <div className="space-y-1">
+                                <p className="text-sm font-semibold text-green-900 dark:text-green-100">
+                                  Upgrade Scheduled
+                                </p>
+                                <p className="text-sm text-green-800 dark:text-green-200">
+                                  Your plan will upgrade to{" "}
+                                  <strong>Yearly (${PRICE_YEARLY}/year)</strong>{" "}
+                                  on {nextBillingDisplay}. You'll keep your
+                                  current monthly plan until then.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-border">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium text-foreground">
+                                Next payment
+                              </span>
+                              <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                                Upcoming
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-0.5">
+                              Due {nextBillingDisplay}
                             </p>
                           </div>
+                          <div className="text-right shrink-0">
+                            <span className="font-semibold text-foreground">
+                              {hasScheduledChange && scheduledToYearly
+                                ? `$${PRICE_YEARLY}`
+                                : isYearly
+                                  ? `$${PRICE_YEARLY}`
+                                  : `$${PRICE_MONTHLY}`}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {hasScheduledChange && scheduledToYearly
+                                ? "/year"
+                                : isYearly
+                                  ? "/year"
+                                  : "/month"}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-border">
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-foreground">
-                            Next payment
-                          </span>
-                          <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-                            Upcoming
-                          </span>
+                        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+                          <p className="text-sm text-foreground/90">
+                            {hasScheduledChange && scheduledToYearly
+                              ? `Your payment method will be charged $${PRICE_YEARLY} for the yearly plan on the next billing date.`
+                              : "Your payment method will be charged automatically on the next billing date."}
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-0.5">
-                          Due {nextBillingDisplay}
-                        </p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <span className="font-semibold text-foreground">
-                          {hasScheduledChange && scheduledToYearly ? "$89" : isYearly ? "$89" : "$19.99"}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {hasScheduledChange && scheduledToYearly ? "/year" : isYearly ? "/year" : "/month"}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-                      <p className="text-sm text-foreground/90">
-                        {hasScheduledChange && scheduledToYearly 
-                          ? "Your payment method will be charged $89 for the yearly plan on the next billing date."
-                          : "Your payment method will be charged automatically on the next billing date."
-                        }
-                      </p>
-                    </div>
-                  </>
+                      </>
                     )}
                   </>
                 )}
                 {(sub.cancelAtPeriodEnd || sub.status === "CANCELLED") && (
                   <div className="rounded-xl border border-orange-200/50 bg-orange-50/50 dark:border-orange-900/30 dark:bg-orange-950/20 p-4">
                     <p className="text-sm text-orange-900 dark:text-orange-100">
-                      Your subscription is cancelled. You keep access to all Pro features until {nextBillingDisplay}.
+                      Your subscription is cancelled. You keep access to all Pro
+                      features until {nextBillingDisplay}.
                       {sub.status === "CANCELLED" && " No future charges."}
-                      {sub.cancelAtPeriodEnd && sub.status === "ACTIVE" && " You can reactivate below to keep your plan after this period."}
+                      {sub.cancelAtPeriodEnd &&
+                        sub.status === "ACTIVE" &&
+                        " You can reactivate below to keep your plan after this period."}
                     </p>
                   </div>
                 )}
+              </div>
+            ) : hasSubscriptionHistory && sub ? (
+              <div className="flex flex-col items-center justify-center py-10 px-4 rounded-2xl border border-border bg-muted/20">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-3">
+                  <HugeiconsIcon icon={CreditCardIcon} className="size-6" />
+                </div>
+                <p className="font-medium text-foreground">Past subscription</p>
+                <p className="text-sm text-muted-foreground text-center mt-1 max-w-sm">
+                  You had a Pro subscription that has ended. View past invoices
+                  and payment history in the Billing Portal.
+                </p>
+                <Button
+                  onClick={handleOpenBillingPortal}
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 rounded-xl cursor-pointer"
+                  disabled={isOpeningPortal}
+                >
+                  {isOpeningPortal ? "Opening…" : "Open Billing Portal"}
+                </Button>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4 rounded-2xl border border-border bg-muted/20">
@@ -554,17 +640,23 @@ export function SubscriptionCard() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={showReactivateConfirm} onOpenChange={setShowReactivateConfirm}>
+      <AlertDialog
+        open={showReactivateConfirm}
+        onOpenChange={setShowReactivateConfirm}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Reactivate subscription?</AlertDialogTitle>
             <AlertDialogDescription>
-              Your plan will continue and you will be charged at the next billing date.
-              You can cancel again anytime.
+              Your plan will continue and you will be charged at the next
+              billing date. You can cancel again anytime.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={reactivating} className="cursor-pointer">
+            <AlertDialogCancel
+              disabled={reactivating}
+              className="cursor-pointer"
+            >
               Cancel
             </AlertDialogCancel>
             <Button

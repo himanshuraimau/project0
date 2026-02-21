@@ -13,6 +13,7 @@ import {
   SidebarLeft01Icon,
   ArrowRight01Icon,
   Shield01Icon,
+  Note01Icon,
 } from "@hugeicons/core-free-icons";
 import type { IconSvgElement } from "@hugeicons/react";
 import Link from "next/link";
@@ -228,31 +229,58 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 );
               })}
               {isAdmin && (
-                <li className={cn("pt-2 mt-2 border-t border-sidebar-border/50", isCollapsed && "border-t-0 pt-0 mt-0")}>
-                  <Link
-                    href="/dashboard/admin"
-                    className={cn(
-                      "flex items-center rounded-md transition-colors duration-150",
-                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
-                      pathname === "/dashboard/admin"
-                        ? "bg-primary/15 text-primary font-medium border border-primary/30"
-                        : "text-muted-foreground hover:bg-(--sidebar-accent)/70 hover:text-sidebar-foreground",
-                      isCollapsed
-                        ? "justify-center w-10 h-10 mx-auto"
-                        : "gap-3 py-2.5 px-3 w-full"
-                    )}
-                  >
-                    <HugeiconsIcon
-                      icon={Shield01Icon}
-                      className="size-5 shrink-0"
-                    />
-                    {!isCollapsed && (
-                      <span className="text-[15px] leading-snug truncate">
-                        Admin
-                      </span>
-                    )}
-                  </Link>
-                </li>
+                <>
+                  <li className={cn("pt-2 mt-2 border-t border-sidebar-border/50", isCollapsed && "border-t-0 pt-0 mt-0")}>
+                    <Link
+                      href="/dashboard/admin"
+                      className={cn(
+                        "flex items-center rounded-md transition-colors duration-150",
+                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+                        pathname === "/dashboard/admin"
+                          ? "bg-primary/15 text-primary font-medium border border-primary/30"
+                          : "text-muted-foreground hover:bg-(--sidebar-accent)/70 hover:text-sidebar-foreground",
+                        isCollapsed
+                          ? "justify-center w-10 h-10 mx-auto"
+                          : "gap-3 py-2.5 px-3 w-full"
+                      )}
+                    >
+                      <HugeiconsIcon
+                        icon={Shield01Icon}
+                        className="size-5 shrink-0"
+                      />
+                      {!isCollapsed && (
+                        <span className="text-[15px] leading-snug truncate">
+                          Admin
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/dashboard/admin/blog"
+                      className={cn(
+                        "flex items-center rounded-md transition-colors duration-150",
+                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+                        pathname?.startsWith("/dashboard/admin/blog")
+                          ? "bg-primary/15 text-primary font-medium border border-primary/30"
+                          : "text-muted-foreground hover:bg-(--sidebar-accent)/70 hover:text-sidebar-foreground",
+                        isCollapsed
+                          ? "justify-center w-10 h-10 mx-auto"
+                          : "gap-3 py-2.5 px-3 w-full"
+                      )}
+                    >
+                      <HugeiconsIcon
+                        icon={Note01Icon}
+                        className="size-5 shrink-0"
+                      />
+                      {!isCollapsed && (
+                        <span className="text-[15px] leading-snug truncate">
+                          Blog
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                </>
               )}
             </ul>
           </nav>

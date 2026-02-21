@@ -30,6 +30,7 @@ const DynamicInlineChatbot = dynamic(
 );
 
 import { TranslateModal } from "@/components/notes/TranslateModal";
+import { ShareLinkDialog } from "@/components/notes/share-link-dialog";
 import { LanguageCode } from "@/lib/types";
 import LoadingScreen from "@/components/LoadingScreen";
 
@@ -39,6 +40,7 @@ export default function NoteHubPage() {
   const searchParams = useSearchParams();
   const [isChatbotMinimized, setIsChatbotMinimized] = useState(false);
   const [isTranslateModalOpen, setIsTranslateModalOpen] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [translatedContent, setTranslatedContent] = useState<string | null>(
     null
   );
@@ -183,6 +185,7 @@ export default function NoteHubPage() {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setShowShareDialog(true)}
               className="h-[40px] rounded-md gap-2 border-border bg-muted/50 hover:bg-muted font-medium"
             >
               <HugeiconsIcon icon={Share07Icon} className="size-4" />
@@ -306,6 +309,13 @@ export default function NoteHubPage() {
         noteId={note.id}
         isOpen={isTranslateModalOpen}
         onClose={() => setIsTranslateModalOpen(false)}
+      />
+
+      <ShareLinkDialog
+        noteId={note.id}
+        noteTitle={note.title}
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
       />
     </div>
   );

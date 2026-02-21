@@ -103,6 +103,7 @@ export interface ProcessPDFOptions {
   folderId?: string | null;
   progressJobId?: string;
   onUploadComplete?: () => void;
+  onUploadProgress?: (percent: number) => void;
 }
 
 export interface ProcessPDFResult {

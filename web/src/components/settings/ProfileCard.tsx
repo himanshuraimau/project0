@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { UserIcon, Camera01Icon } from "@hugeicons/core-free-icons";
+import { UserIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
   const [saving, setSaving] = useState(false);
   const [subscriptionData, setSubscriptionData] = useState<{
     hasSubscription: boolean;
+    access?: { hasAccess: boolean };
     subscription?: {
       productId: string;
       metadata?: {
@@ -37,6 +38,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
     };
   } | null>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(true);
+  const [memberSince, setMemberSince] = useState<string | null>(null);
 
   const displayName = user.name || "User";
   const initials =
@@ -44,7 +46,24 @@ export function ProfileCard({ user }: ProfileCardProps) {
       ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
       : displayName.charAt(0).toUpperCase();
 
-  const getMemberSince = () => "October 2025";
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const res = await fetch("/api/user/profile");
+        if (res.ok) {
+          const data = await res.json();
+          const createdAt = data?.user?.createdAt;
+          if (createdAt) {
+            const date = new Date(createdAt);
+            setMemberSince(date.toLocaleDateString("en-US", { month: "long", year: "numeric" }));
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching profile for member since:", err);
+      }
+    }
+    fetchProfile();
+  }, []);
 
   useEffect(() => {
     async function fetchSubscription() {
@@ -75,7 +94,8 @@ export function ProfileCard({ user }: ProfileCardProps) {
 
   const getPlanDisplay = () => {
     if (loadingSubscription) return "Loading...";
-    if (!subscriptionData?.hasSubscription) return "Free Plan";
+    const hasAccess = subscriptionData?.hasSubscription && subscriptionData?.access?.hasAccess;
+    if (!hasAccess) return "Free Plan";
     
     const yearlyProductId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY;
     const isYearly = subscriptionData.subscription?.productId === yearlyProductId;
@@ -89,7 +109,8 @@ export function ProfileCard({ user }: ProfileCardProps) {
   };
 
   const getPlanBadgeColor = () => {
-    if (!subscriptionData?.hasSubscription) {
+    const hasAccess = subscriptionData?.hasSubscription && subscriptionData?.access?.hasAccess;
+    if (!hasAccess) {
       return "bg-muted/50 text-muted-foreground";
     }
     return "bg-primary/10 text-primary";
@@ -130,13 +151,6 @@ export function ProfileCard({ user }: ProfileCardProps) {
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <button
-              type="button"
-              className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-lg border-2 border-background bg-muted text-muted-foreground shadow-sm transition-colors hover:bg-muted/80 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
-              aria-label="Change photo"
-            >
-              <HugeiconsIcon icon={Camera01Icon} className="size-4" />
-            </button>
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="font-semibold text-foreground truncate">
@@ -145,16 +159,11 @@ export function ProfileCard({ user }: ProfileCardProps) {
             <span className={`inline-flex mt-1.5 items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getPlanBadgeColor()}`}>
               {getPlanDisplay()}
             </span>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Member since {getMemberSince()}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3 rounded-xl cursor-pointer"
-            >
-              Change photo
-            </Button>
+            {memberSince && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Member since {memberSince}
+              </p>
+            )}
           </div>
         </div>
 

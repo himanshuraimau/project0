@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { normalizeS3UploadError } from "@/lib/utils/s3-upload-errors";
+import { uploadWithProgress } from "@/lib/utils/upload-with-progress";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -11,7 +12,6 @@ import {
   Cancel01Icon,
   Folder01Icon,
   MagicWand01Icon,
-  Loading01Icon,
   Mic01Icon,
 } from "@hugeicons/core-free-icons";
 import {
@@ -48,6 +48,7 @@ export default function AudioUploadModal({
   } = useDashboardRefresh();
   const { openUpgradeModal } = useUpgradeModal();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [fileName, setFileName] = useState("");
   const [audioLanguage, setAudioLanguage] = useState("English");
@@ -165,12 +166,22 @@ export default function AudioUploadModal({
         message: "Uploading audio...",
       });
 
-      // 2) Upload file directly to S3
-      const putRes = await fetch(uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type || "audio/mpeg" },
-      });
+      // 2) Upload file directly to S3 with progress
+      setUploadProgress(0);
+      const putRes = await uploadWithProgress(
+        uploadUrl,
+        file,
+        file.type || "audio/mpeg",
+        (percent) => {
+          setUploadProgress(percent);
+          updateLoadingNote(tempId, {
+            stage: "uploading",
+            progress: 10 + Math.round((percent / 100) * 10),
+            message: "Uploading audio...",
+          });
+        }
+      );
+      setUploadProgress(null);
 
       if (!putRes.ok) {
         throw new Error("Failed to upload file to storage");
@@ -289,6 +300,7 @@ export default function AudioUploadModal({
         duration: 5000,
       });
     } finally {
+      setUploadProgress(null);
       // Don't remove loading note in finally — let error state show if there was an error
       // Successful path already called removeLoadingNote above
       setIsProcessing(false);
@@ -465,16 +477,25 @@ export default function AudioUploadModal({
         type="button"
         onClick={transcribeAudio}
         disabled={isProcessing || !audioBlob}
-        className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20"
+        className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex flex-col items-stretch justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20 overflow-hidden"
       >
         {isProcessing ? (
-          <>
-            <HugeiconsIcon
-              icon={Loading01Icon}
-              className="size-4 shrink-0 animate-spin"
-            />
-            <span>Processing...</span>
-          </>
+          uploadProgress !== null ? (
+            <>
+              <div className="flex items-center justify-center gap-2">
+                <span className="tabular-nums font-medium">{uploadProgress}%</span>
+                <span className="text-primary-foreground/90">Uploading…</span>
+              </div>
+              <div className="w-full h-1.5 rounded-full bg-primary-foreground/20 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-primary-foreground/90 transition-[width] duration-200 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </>
+          ) : (
+            <span className="text-primary-foreground/90">Creating notes…</span>
+          )
         ) : (
           <>
             <HugeiconsIcon icon={MagicWand01Icon} className="size-4 shrink-0" />

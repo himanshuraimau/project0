@@ -4,11 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  extensions = [vector]
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
 }
-
 enum UserRole {
   USER
   ADMIN
@@ -445,6 +443,25 @@ enum PodcastStatus {
   FAILED
 }
 
+// Blog posts (admin-created, markdown content)
+model BlogPost {
+  id                  String    @id @default(cuid())
+  title               String
+  slug                String    @unique
+  content             String    // Markdown
+  coverImageUrl       String?
+  instructorName      String
+  instructorImageUrl  String?
+  publishedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  createdById         String?
+
+  @@index([slug])
+  @@index([publishedAt])
+  @@map("blog_posts")
+}
+
 // User Onboarding Model
 model UserOnboarding {
   id            String    @id @default(cuid())
@@ -457,6 +474,9 @@ model UserOnboarding {
   features      Json?     // Array of selected features (record, notes, transcripts, ai-chat, quiz, flashcards)
   studyIntensity String?  // Study time commitment (light, regular, focused, intense)
   
+  // Marketing: opt-in for tips and product updates (synced to Loops)
+  wantsProductUpdates Boolean @default(true)
+
   // Completion tracking
   isCompleted   Boolean   @default(false)
   completedAt   DateTime?

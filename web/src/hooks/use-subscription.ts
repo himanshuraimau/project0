@@ -88,9 +88,13 @@ export function useSubscription() {
 
       const data = await response.json();
 
-      if (data.paymentLink) {
-        window.location.href = data.paymentLink;
-        return { success: true, paymentLink: data.paymentLink };
+      // Support both response shapes:
+      // New shape: { data: { checkoutUrl } }  (checkout sessions flow)
+      // Old shape: { paymentLink }             (legacy)
+      const redirectUrl = data.data?.checkoutUrl || data.paymentLink;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+        return { success: true, paymentLink: redirectUrl };
       } else if (data.error) {
         setError(data.error);
         return { success: false, error: data.error };

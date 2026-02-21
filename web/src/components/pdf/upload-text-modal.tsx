@@ -12,7 +12,6 @@ import {
   File01Icon,
   Folder01Icon,
   MagicWand01Icon,
-  Loading01Icon,
   Upload01Icon,
   Delete01Icon,
 } from "@hugeicons/core-free-icons";
@@ -44,6 +43,7 @@ export function UploadTextModal({
   const [textInput, setTextInput] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [selectedPDFFile, setSelectedPDFFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -94,7 +94,9 @@ export function UploadTextModal({
           extractImages: false,
           folderId: selectedFolderId,
           progressJobId: tempId,
+          onUploadProgress: (percent) => setUploadProgress(percent),
           onUploadComplete: () => {
+            setUploadProgress(null);
             updateLoadingNote(tempId, {
               stage: "processing",
               progress: 20,
@@ -167,6 +169,7 @@ export function UploadTextModal({
       }
     } catch (error) {
       console.error("Error generating notes:", error);
+      setUploadProgress(null);
       const errorMessage =
         error instanceof Error ? error.message : "Failed to generate notes";
 
@@ -201,10 +204,10 @@ export function UploadTextModal({
       return;
     }
 
-    const maxFileSize = 20 * 1024 * 1024; // 20MB
+    const maxFileSize = 100 * 1024 * 1024; // 100MB
     if (file.size > maxFileSize) {
       toast.error("File too large", {
-        description: "PDF must be less than 20MB",
+        description: "PDF must be less than 100MB",
       });
       return;
     }
@@ -373,16 +376,25 @@ export function UploadTextModal({
           disabled={
             loading || (!textInput.trim() && !selectedPDFFile)
           }
-          className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20"
+          className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex flex-col items-stretch justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20 overflow-hidden"
         >
           {loading ? (
-            <>
-              <HugeiconsIcon
-                icon={Loading01Icon}
-                className="size-4 shrink-0 animate-spin"
-              />
-              <span>Processing...</span>
-            </>
+            uploadProgress !== null ? (
+              <>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="tabular-nums font-medium">{uploadProgress}%</span>
+                  <span className="text-primary-foreground/90">Uploading…</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-primary-foreground/20 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary-foreground/90 transition-[width] duration-200 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </>
+            ) : (
+              <span className="text-primary-foreground/90">Creating notes…</span>
+            )
           ) : (
             <>
               <HugeiconsIcon icon={MagicWand01Icon} className="size-4 shrink-0" />

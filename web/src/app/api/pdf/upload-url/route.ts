@@ -4,7 +4,7 @@ import { getPresignedPdfUrls, isS3Configured } from "@/lib/s3-audio";
 
 export const dynamic = "force-dynamic";
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,8 +37,8 @@ export async function POST(req: NextRequest) {
     if (fileSize <= 0 || fileSize > MAX_FILE_SIZE) {
       return NextResponse.json(
         {
-          error: `File size must be between 1 byte and 20MB. Received: ${(fileSize / 1024 / 1024).toFixed(2)}MB.`,
-          maxSizeMB: 20,
+          error: `File size must be between 1 byte and 100MB. Received: ${(fileSize / 1024 / 1024).toFixed(2)}MB.`,
+          maxSizeMB: 100,
         },
         { status: 400 }
       );

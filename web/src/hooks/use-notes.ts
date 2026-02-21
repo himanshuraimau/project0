@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useUpgradeModal } from '@/contexts/upgrade-modal-context';
+import { uploadWithProgress } from '@/lib/utils/upload-with-progress';
 import type { 
   Note, 
   ProcessPDFResult, 
@@ -40,13 +41,16 @@ export function useNotes() {
       // If S3 is configured, use the S3 upload flow
       if (urlRes.ok) {
         const { uploadUrl, downloadUrl } = await urlRes.json();
+        const contentType = file.type || 'application/pdf';
 
-        // Step 2: Upload file directly to S3
-        const putRes = await fetch(uploadUrl, {
-          method: 'PUT',
-          body: file,
-          headers: { 'Content-Type': file.type || 'application/pdf' },
-        });
+        // Step 2: Upload file directly to S3 (with optional progress)
+        const putRes = options.onUploadProgress
+          ? await uploadWithProgress(uploadUrl, file, contentType, options.onUploadProgress)
+          : await fetch(uploadUrl, {
+              method: 'PUT',
+              body: file,
+              headers: { 'Content-Type': contentType },
+            });
 
         if (!putRes.ok) {
           throw new Error('Failed to upload file to storage');

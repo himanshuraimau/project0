@@ -1,13 +1,15 @@
 import type { NextConfig } from "next";
+import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
+  pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   // output: "standalone", 
   serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
   experimental: {
     serverActions: {
-      bodySizeLimit: "25mb", 
+      bodySizeLimit: "100mb", 
     },
-    proxyClientMaxBodySize: "25mb", 
+    proxyClientMaxBodySize: "100mb", 
   },
   images: {
     remotePatterns: [
@@ -42,6 +44,12 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "s.ytimg.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "utfs.io",
         port: "",
         pathname: "/**",
       },
@@ -97,4 +105,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withMDX = createMDX({
+  extension: /\.(md|mdx)$/,
+});
+
+export default withMDX(nextConfig);

@@ -68,12 +68,8 @@ export async function POST(request: NextRequest) {
       data: {
         checkoutUrl: result.checkoutUrl,
         sessionId: result.sessionId,
-        subscription: {
-          id: result.subscription.id,
-          status: result.subscription.status,
-        },
       },
-      message: 'Subscription created successfully. Please complete payment.',
+      message: 'Redirecting to checkout to complete payment.',
     });
   } catch (error: any) {
     console.error('Error creating subscription:', error);
