@@ -50,10 +50,20 @@ export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
       setError(null);
 
       // Validate phone for India region
-      if (region === "IN" && !phoneNumber.trim()) {
-        setError("Phone number is required for UPI payments");
-        setLoading(false);
-        return;
+      if (region === "IN") {
+        const cleanedPhone = phoneNumber.replace(/[\s\-\(\)]/g, '');
+        if (!cleanedPhone) {
+          setError("Phone number is required for UPI payments");
+          setLoading(false);
+          return;
+        }
+        // Validate it looks like an Indian number (10 digits starting with 6-9)
+        const phoneDigits = cleanedPhone.replace(/^\+?91/, '');
+        if (phoneDigits.length !== 10 || !/^[6-9]\d{9}$/.test(phoneDigits)) {
+          setError("Please enter a valid 10-digit Indian mobile number");
+          setLoading(false);
+          return;
+        }
       }
 
       const response = await fetch("/api/subscription/create", {
@@ -63,9 +73,9 @@ export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
         },
         body: JSON.stringify({
           billingInterval,
-          region,
+          region: region === "DEFAULT" ? undefined : region,
           phoneNumber: region === "IN" ? phoneNumber.trim() : undefined,
-          zipcode: region === "IN" && zipcode.trim() ? zipcode.trim() : undefined,
+          zipcode: region === "IN" ? (zipcode.trim() || "110001") : undefined,
         }),
       });
 

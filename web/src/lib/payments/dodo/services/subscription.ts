@@ -32,11 +32,25 @@ export class DodoSubscriptionService {
   }
 
   /**
+   * Format phone number for India (ensure +91 prefix)
+   */
+  private static formatIndianPhone(phone: string): string {
+    const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+    if (cleaned.startsWith('+91')) return cleaned;
+    if (cleaned.startsWith('91') && cleaned.length === 12) return '+' + cleaned;
+    if (cleaned.length === 10 && /^[6-9]\d{9}$/.test(cleaned)) return '+91' + cleaned;
+    return phone;
+  }
+
+  /**
    * Build checkout session request with regional payment method support
+   * 
+   * IMPORTANT: Regional params (billing_currency, allowed_payment_method_types) 
+   * only work when Adaptive Currency is enabled in Dodo dashboard.
    */
   private static buildCheckoutRequest(params: CreateCheckoutSessionParams) {
     const { regionalOptions } = params;
-    const regionalConfig = this.getRegionalConfig(regionalOptions?.region);
+    const hasRegion = regionalOptions?.region && regionalOptions.region !== 'DEFAULT';
 
     const customerData: Record<string, any> = {
       email: params.userEmail,
@@ -44,8 +58,12 @@ export class DodoSubscriptionService {
     };
 
     // Add phone number if provided (required for UPI)
+    // Format for India to ensure +91 prefix
     if (regionalOptions?.phoneNumber) {
-      customerData.phone_number = regionalOptions.phoneNumber;
+      const phone = regionalOptions.region === 'IN' 
+        ? this.formatIndianPhone(regionalOptions.phoneNumber)
+        : regionalOptions.phoneNumber;
+      customerData.phone_number = phone;
     }
 
     const request: Record<string, any> = {
@@ -63,26 +81,37 @@ export class DodoSubscriptionService {
       request.discount_code = params.discountCode;
     }
 
-    // Add allowed payment methods if specified or from regional config
-    const paymentMethods = regionalOptions?.allowedPaymentMethods || regionalConfig.paymentMethods;
-    if (paymentMethods && paymentMethods.length > 0) {
-      request.allowed_payment_method_types = paymentMethods;
-    }
+    // Only add regional payment configuration if a specific region is selected
+    // This ensures the default checkout behavior works when no region is specified
+    if (hasRegion) {
+      const regionalConfig = this.getRegionalConfig(regionalOptions.region);
 
-    // Add billing currency if specified or from regional config
-    const billingCurrency = regionalOptions?.billingCurrency || regionalConfig.currency;
-    if (billingCurrency) {
-      request.billing_currency = billingCurrency;
-    }
+      // Add allowed payment methods
+      const paymentMethods = regionalOptions.allowedPaymentMethods || regionalConfig.paymentMethods;
+      if (paymentMethods && paymentMethods.length > 0) {
+        request.allowed_payment_method_types = paymentMethods;
+      }
 
-    // Add billing address if specified or use regional country
-    if (regionalOptions?.billingAddress) {
-      request.billing_address = regionalOptions.billingAddress;
-    } else if (regionalConfig.country) {
-      request.billing_address = {
-        country: regionalConfig.country,
-        zipcode: regionalOptions?.billingAddress?.zipcode || '',
-      };
+      // Add billing currency
+      const billingCurrency = regionalOptions.billingCurrency || regionalConfig.currency;
+      if (billingCurrency) {
+        request.billing_currency = billingCurrency;
+      }
+
+      // Add billing address - ensure zipcode is never empty for India
+      // Use provided address or construct from regional config
+      if (regionalOptions.billingAddress && regionalOptions.billingAddress.zipcode) {
+        request.billing_address = regionalOptions.billingAddress;
+      } else if (regionalConfig.country) {
+        // Use provided zipcode or default pincode for the region
+        const defaultZipcode = regionalConfig.country === 'IN' ? '110001' : '10001';
+        const zipcode = regionalOptions.billingAddress?.zipcode || defaultZipcode;
+        
+        request.billing_address = {
+          country: regionalConfig.country,
+          zipcode: zipcode,
+        };
+      }
     }
 
     return request;
