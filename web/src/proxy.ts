@@ -18,6 +18,7 @@ const publicRoutes = [
   "/api/auth", // Better Auth endpoints
   "/api/health",
   "/api/webhooks", // Webhook endpoints (authenticated via secret header)
+  "/api/webhook",
   "/api/notes",
   "/api/transcripts",
   "/api/documents",
