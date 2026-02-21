@@ -1,6 +1,7 @@
 import { getDodoClient } from '../config/client';
 import { DODO_CONFIG, SUBSCRIPTION_CONFIG, SUBSCRIPTION_CONFIG_YEARLY, REGIONAL_PAYMENT_CONFIG, type PaymentMethodType } from '../config/constants';
 import type { CreateSubscriptionParams, SubscriptionManagementResult, CreateCheckoutSessionParams, CheckoutSessionResult, RegionalCheckoutOptions } from '../types';
+import { prisma } from '@/lib/prisma';
 
 export class DodoSubscriptionService {
   private static getClient() {
@@ -43,109 +44,90 @@ export class DodoSubscriptionService {
   }
 
   /**
-   * Build checkout session request with regional payment method support
-   * 
-   * IMPORTANT: Regional params (billing_currency, allowed_payment_method_types) 
-   * only work when Adaptive Currency is enabled in Dodo dashboard.
-   */
-  private static buildCheckoutRequest(params: CreateCheckoutSessionParams) {
-    const { regionalOptions } = params;
-
-    const customerData: Record<string, any> = {
-      email: params.userEmail,
-      name: params.userName,
-    };
-
-    // Add phone number if provided (required for UPI)
-    // Format for India to ensure +91 prefix
-    if (regionalOptions?.phoneNumber) {
-      const phone = regionalOptions.region === 'IN' 
-        ? this.formatIndianPhone(regionalOptions.phoneNumber)
-        : regionalOptions.phoneNumber;
-      customerData.phone_number = phone;
-    }
-
-    const request: Record<string, any> = {
-      product_cart: [{ product_id: params.productId, quantity: 1 }],
-      customer: customerData,
-      return_url: DODO_CONFIG.returnUrl,
-      metadata: {
-        userId: params.userId,
-        ...params.metadata,
-      },
-    };
-
-    // Add discount code if provided
-    if (params.discountCode) {
-      request.discount_code = params.discountCode;
-    }
-
-    // Determine region config — fall back to IN so every request carries
-    // full billing info (required for 3DS / RuPay card authentication).
-    const effectiveRegion = (regionalOptions?.region && regionalOptions.region !== 'DEFAULT')
-      ? regionalOptions.region
-      : 'IN';
-    const regionalConfig = this.getRegionalConfig(effectiveRegion);
-
-    // Always include allowed payment methods
-    const paymentMethods = regionalOptions?.allowedPaymentMethods || regionalConfig.paymentMethods;
-    if (paymentMethods && paymentMethods.length > 0) {
-      request.allowed_payment_method_types = paymentMethods;
-    }
-
-    // Always include billing currency (INR when region is IN / DEFAULT)
-    request.billing_currency = regionalOptions?.billingCurrency || regionalConfig.currency || 'INR';
-
-    // Always include full billing address — mirrors the working vibepost setup.
-    // Card gateways (especially Indian 3DS / RuPay) reject payments without it.
-    const providedAddress = regionalOptions?.billingAddress;
-    const defaultZipcode = effectiveRegion === 'IN' ? '110001' : '10001';
-
-    request.billing_address = {
-      city:    providedAddress?.city    || 'Default City',
-      country: providedAddress?.country || regionalConfig.country || 'IN',
-      state:   providedAddress?.state   || 'Default State',
-      street:  providedAddress?.street  || 'Default Address',
-      zipcode: providedAddress?.zipcode || defaultZipcode,
-    };
-
-    return request;
-  }
-
-  /**
-   * Create a checkout session with support for regional payment methods (UPI, Google Pay, etc.)
-   * 
-   * For India (UPI + Google Pay):
-   * - Set regionalOptions.region = 'IN'
-   * - Billing currency will be set to INR
-   * - UPI, Google Pay, Credit, and Debit cards will be enabled
-   * 
-   * Test UPI IDs (test_mode only):
-   * - success@upi → successful payment
-   * - failure@upi → failed payment
+   * Create a checkout URL using subscriptions.create() + payment_link: true.
+   *
+   * This mirrors the vibepost implementation that works reliably with Indian
+   * cards (3DS / RuPay) by:
+   *  1. Pre-creating a Dodo customer once and persisting the ID.
+   *  2. Passing a full billing address so the card gateway has data for 3DS.
+   *  3. Using the Subscriptions API (not Checkout Sessions) which correctly
+   *     handles 3DS authentication for Indian payment methods.
    */
   static async createCheckoutSession(params: CreateCheckoutSessionParams): Promise<CheckoutSessionResult> {
     try {
       const client = this.getClient();
-      const request = this.buildCheckoutRequest(params);
+      const { regionalOptions } = params;
 
-      console.log('Creating checkout session with config:', {
+      // ── 1. Customer: reuse stored ID or create a new one ─────────────────
+      let customerId: string;
+
+      const user = await prisma.user.findUnique({ where: { id: params.userId } });
+
+      if (user?.dodoCustomerId) {
+        customerId = user.dodoCustomerId;
+        console.log('Reusing Dodo customer:', customerId);
+      } else {
+        const customer = await (client as any).customers.create({
+          name: params.userName,
+          email: params.userEmail,
+        });
+        customerId = customer.customer_id;
+        // Persist so we reuse it on future checkouts
+        await prisma.user.update({
+          where: { id: params.userId },
+          data: { dodoCustomerId: customerId },
+        });
+        console.log('Created Dodo customer:', customerId);
+      }
+
+      // ── 2. Billing address (required for 3DS / RuPay card auth) ──────────
+      const addr = regionalOptions?.billingAddress;
+      const billing = {
+        city:    addr?.city    || 'Default City',
+        country: addr?.country || 'IN',
+        state:   addr?.state   || 'Default State',
+        street:  addr?.street  || 'Default Address',
+        zipcode: addr?.zipcode || '110001',
+      };
+
+      // ── 3. Build subscription request ─────────────────────────────────────
+      const subscriptionRequest: Record<string, any> = {
+        billing,
+        customer: { customer_id: customerId },
+        product_id: params.productId,
+        payment_link: true,
+        return_url: DODO_CONFIG.returnUrl,
+        quantity: 1,
+        metadata: {
+          userId: params.userId,
+          ...params.metadata,
+        },
+      };
+
+      if (params.discountCode) {
+        subscriptionRequest.discount_code = params.discountCode;
+      }
+
+      console.log('Creating Dodo subscription (subscriptions.create + payment_link):', {
         productId: params.productId,
-        region: params.regionalOptions?.region,
-        paymentMethods: request.allowed_payment_method_types,
-        currency: request.billing_currency,
-        billingCountry: request.billing_address?.country,
+        customerId,
+        billingCountry: billing.country,
+        billingCity: billing.city,
       });
 
-      const session = await (client as any).checkoutSessions.create(request);
+      const subscription = await (client as any).subscriptions.create(subscriptionRequest);
+
+      if (!subscription.payment_link) {
+        throw new Error('Dodo did not return a payment_link');
+      }
 
       return {
         success: true,
-        checkoutUrl: session.checkout_url,
-        sessionId: session.session_id,
+        checkoutUrl: subscription.payment_link,
+        sessionId: subscription.subscription_id,
       };
     } catch (error) {
-      console.error('Failed to create Dodo checkout session:', error);
+      console.error('Failed to create Dodo subscription checkout:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -154,16 +136,7 @@ export class DodoSubscriptionService {
   }
 
   /**
-   * Create a checkout session specifically configured for India (UPI + Google Pay)
-   * 
-   * Requirements for UPI:
-   * 1. Billing country must be IN
-   * 2. Currency must be INR
-   * 3. For non-Indian merchants: Adaptive Currency must be enabled in Dodo dashboard
-   * 
-   * Test UPI IDs:
-   * - success@upi → successful payment
-   * - failure@upi → failed payment
+   * @deprecated Use createCheckoutSession — kept for backward compatibility.
    */
   static async createIndiaCheckoutSession(params: {
     userId: string;
@@ -179,13 +152,7 @@ export class DodoSubscriptionService {
       ...params,
       regionalOptions: {
         region: 'IN',
-        billingCurrency: 'INR',
-        billingCountry: 'IN',
-        phoneNumber: params.phoneNumber,
-        billingAddress: params.zipcode ? {
-          country: 'IN',
-          zipcode: params.zipcode,
-        } : undefined,
+        billingAddress: params.zipcode ? { country: 'IN', zipcode: params.zipcode } : undefined,
       },
     });
   }
