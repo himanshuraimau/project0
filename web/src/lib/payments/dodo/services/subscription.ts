@@ -50,7 +50,6 @@ export class DodoSubscriptionService {
    */
   private static buildCheckoutRequest(params: CreateCheckoutSessionParams) {
     const { regionalOptions } = params;
-    const hasRegion = regionalOptions?.region && regionalOptions.region !== 'DEFAULT';
 
     const customerData: Record<string, any> = {
       email: params.userEmail,
@@ -81,38 +80,34 @@ export class DodoSubscriptionService {
       request.discount_code = params.discountCode;
     }
 
-    // Only add regional payment configuration if a specific region is selected
-    // This ensures the default checkout behavior works when no region is specified
-    if (hasRegion) {
-      const regionalConfig = this.getRegionalConfig(regionalOptions.region);
+    // Determine region config — fall back to IN so every request carries
+    // full billing info (required for 3DS / RuPay card authentication).
+    const effectiveRegion = (regionalOptions?.region && regionalOptions.region !== 'DEFAULT')
+      ? regionalOptions.region
+      : 'IN';
+    const regionalConfig = this.getRegionalConfig(effectiveRegion);
 
-      // Add allowed payment methods
-      const paymentMethods = regionalOptions.allowedPaymentMethods || regionalConfig.paymentMethods;
-      if (paymentMethods && paymentMethods.length > 0) {
-        request.allowed_payment_method_types = paymentMethods;
-      }
-
-      // Add billing currency
-      const billingCurrency = regionalOptions.billingCurrency || regionalConfig.currency;
-      if (billingCurrency) {
-        request.billing_currency = billingCurrency;
-      }
-
-      // Add billing address - ensure zipcode is never empty for India
-      // Use provided address or construct from regional config
-      if (regionalOptions.billingAddress && regionalOptions.billingAddress.zipcode) {
-        request.billing_address = regionalOptions.billingAddress;
-      } else if (regionalConfig.country) {
-        // Use provided zipcode or default pincode for the region
-        const defaultZipcode = regionalConfig.country === 'IN' ? '110001' : '10001';
-        const zipcode = regionalOptions.billingAddress?.zipcode || defaultZipcode;
-        
-        request.billing_address = {
-          country: regionalConfig.country,
-          zipcode: zipcode,
-        };
-      }
+    // Always include allowed payment methods
+    const paymentMethods = regionalOptions?.allowedPaymentMethods || regionalConfig.paymentMethods;
+    if (paymentMethods && paymentMethods.length > 0) {
+      request.allowed_payment_method_types = paymentMethods;
     }
+
+    // Always include billing currency (INR when region is IN / DEFAULT)
+    request.billing_currency = regionalOptions?.billingCurrency || regionalConfig.currency || 'INR';
+
+    // Always include full billing address — mirrors the working vibepost setup.
+    // Card gateways (especially Indian 3DS / RuPay) reject payments without it.
+    const providedAddress = regionalOptions?.billingAddress;
+    const defaultZipcode = effectiveRegion === 'IN' ? '110001' : '10001';
+
+    request.billing_address = {
+      city:    providedAddress?.city    || 'Default City',
+      country: providedAddress?.country || regionalConfig.country || 'IN',
+      state:   providedAddress?.state   || 'Default State',
+      street:  providedAddress?.street  || 'Default Address',
+      zipcode: providedAddress?.zipcode || defaultZipcode,
+    };
 
     return request;
   }
