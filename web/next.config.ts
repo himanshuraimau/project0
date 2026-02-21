@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: process.cwd(),
+  },
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   // output: "standalone", 
   serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"],

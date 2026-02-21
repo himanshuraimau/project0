@@ -18,6 +18,9 @@ export async function POST(request: NextRequest) {
 
     // Reactivate subscription using centralized PaymentService
     const subscription = await PaymentService.reactivateSubscription(userId);
+    if (!subscription) {
+      throw new Error('No subscription found');
+    }
 
     return NextResponse.json({
       success: true,
