@@ -1,9 +1,6 @@
-// Subscription Gate Component - Blocks features behind subscription paywall
-
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, Loader2, Sparkles } from 'lucide-react';
@@ -14,14 +11,13 @@ interface SubscriptionGateProps {
   loadingMessage?: string;
 }
 
-export function SubscriptionGate({ 
-  children, 
+export function SubscriptionGate({
+  children,
   featureName = 'this feature',
   loadingMessage = 'Checking subscription...'
 }: SubscriptionGateProps) {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     checkAccess();
@@ -31,7 +27,6 @@ export function SubscriptionGate({
     try {
       const response = await fetch('/api/subscription/status');
       const data = await response.json();
-      
       setHasAccess(data.access?.hasAccess || false);
     } catch (error) {
       console.error('Error checking subscription:', error);
@@ -43,10 +38,7 @@ export function SubscriptionGate({
 
   const handleSubscribe = async () => {
     try {
-      const response = await fetch('/api/subscription/create', {
-        method: 'POST',
-      });
-
+      const response = await fetch('/api/subscription/create', { method: 'POST' });
       const data = await response.json();
 
       const redirectUrl = data.data?.checkoutUrl || data.paymentLink;
@@ -78,9 +70,7 @@ export function SubscriptionGate({
               <Lock className="h-6 w-6 text-primary" />
             </div>
             <CardTitle>Subscription Required</CardTitle>
-            <CardDescription>
-              Subscribe to unlock {featureName} and all other premium features
-            </CardDescription>
+            <CardDescription>Subscribe to unlock {featureName} and all other premium features</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2 text-sm">
@@ -96,21 +86,16 @@ export function SubscriptionGate({
                 <Sparkles className="h-4 w-4 text-primary" />
                 <span>Unlimited YouTube processing</span>
               </div>
-              {/* TODO: COURSE_GENERATION_FEATURE - Uncomment to re-enable course generation feature */}
-              {/* <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span>AI course generation</span>
-              </div> */}
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
                 <span>Start with 1 free note</span>
               </div>
             </div>
-            
+
             <Button onClick={handleSubscribe} className="w-full" size="lg">
               Start Free Trial - $19.99/month
             </Button>
-            
+
             <p className="text-xs text-center text-muted-foreground">
               Cancel anytime. No commitment required.
             </p>

@@ -1,56 +1,28 @@
-// Dodo Payments subscription management service
-
 import { getDodoClient } from '../config/client';
 import { DODO_CONFIG, SUBSCRIPTION_CONFIG, SUBSCRIPTION_CONFIG_YEARLY } from '../config/constants';
-import type { 
-  CreateSubscriptionParams, 
-  SubscriptionManagementResult,
-} from '../types';
+import type { CreateSubscriptionParams, SubscriptionManagementResult } from '../types';
 
 export class DodoSubscriptionService {
-  /**
-   * Get or create the Dodo client (lazy initialization)
-   */
   private static getClient() {
     return getDodoClient();
   }
 
-  /**
-   * Get the appropriate product ID based on billing interval
-   */
   private static getProductId(billingInterval: 'monthly' | 'yearly' = 'monthly'): string {
-    return billingInterval === 'yearly' 
-      ? DODO_CONFIG.subscriptionProductIdYearly 
+    return billingInterval === 'yearly'
+      ? DODO_CONFIG.subscriptionProductIdYearly
       : DODO_CONFIG.subscriptionProductId;
   }
 
-  /**
-   * Get the appropriate subscription config based on billing interval
-   */
   private static getSubscriptionConfig(billingInterval: 'monthly' | 'yearly' = 'monthly') {
     return billingInterval === 'yearly' ? SUBSCRIPTION_CONFIG_YEARLY : SUBSCRIPTION_CONFIG;
   }
 
-  /**
-   * Create a hosted checkout session for a subscription product.
-   *
-   * Unlike `createSubscription` (which uses `subscriptions.create` and requires a billing
-   * address to be provided upfront), this uses Dodo's Checkout Sessions API which:
-   *   1. Shows the contact-information form FIRST
-   *   2. Collects the billing address (country + zip) for accurate tax calculation
-   *   3. Displays the tax-inclusive total BEFORE the customer enters payment details
-   *
-   * The Dodo-hosted checkout page order is: contact info → billing address → tax → payment.
-   * Dodo fires `subscription.created` (PENDING) immediately when the session starts, then
-   * `subscription.activated` once payment succeeds.
-   */
   static async createCheckoutSession(params: {
     userId: string;
     userEmail: string;
     userName: string;
     productId: string;
     discountCode?: string;
-    /** Extra metadata forwarded to the subscription's webhook payload */
     metadata?: Record<string, unknown>;
   }): Promise<{ success: boolean; checkoutUrl?: string; sessionId?: string; error?: string }> {
     try {
@@ -84,23 +56,17 @@ export class DodoSubscriptionService {
     }
   }
 
-  /**
-   * Create a new subscription with Dodo Payments
-   */
-  static async createSubscription(
-    params: CreateSubscriptionParams
-  ): Promise<SubscriptionManagementResult> {
+  static async createSubscription(params: CreateSubscriptionParams): Promise<SubscriptionManagementResult> {
     try {
       const billingInterval = params.billingInterval || 'monthly';
       const productId = this.getProductId(billingInterval);
 
-      // Validate configuration before making the request
       if (!DODO_CONFIG.apiKey) {
         throw new Error('DODO_PAYMENTS_API_KEY is not configured');
       }
-      
+
       if (!productId) {
-        const envVar = billingInterval === 'yearly' 
+        const envVar = billingInterval === 'yearly'
           ? 'NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY'
           : 'NEXT_PUBLIC_DODO_PAYMENT_SUBSCRIPTION_ID';
         throw new Error(`${envVar} is not configured`);
@@ -139,7 +105,7 @@ export class DodoSubscriptionService {
       };
     } catch (error) {
       console.error('Failed to create Dodo subscription:', error);
-      
+
       if (error && typeof error === 'object') {
         const err = error as any;
         if (err.status === 401) {
@@ -157,57 +123,30 @@ export class DodoSubscriptionService {
     }
   }
 
-  /**
-   * Retrieve subscription details from Dodo
-   */
-  static async getSubscription(
-    subscriptionId: string
-  ): Promise<any | null> {
+  static async getSubscription(subscriptionId: string): Promise<any | null> {
     try {
       const client = this.getClient();
-      const subscription = await client.subscriptions.retrieve(subscriptionId);
-      return subscription;
+      return await client.subscriptions.retrieve(subscriptionId);
     } catch (error) {
       console.error('Failed to retrieve Dodo subscription:', error);
       return null;
     }
   }
 
-  /**
-   * Cancel a subscription
-   */
-  static async cancelSubscription(
-    subscriptionId: string,
-    cancelAtPeriodEnd: boolean = true
-  ): Promise<SubscriptionManagementResult> {
+  static async cancelSubscription(subscriptionId: string, cancelAtPeriodEnd: boolean = true): Promise<SubscriptionManagementResult> {
     try {
       const subscription = await this.getSubscription(subscriptionId);
-      
+
       if (subscription?.status === 'pending') {
-        // Use PATCH to cancel pending subscriptions
         const client = this.getClient();
-        const updated = await client.subscriptions.update(subscriptionId, {
-          status: 'cancelled',
-        });
-        
-        return {
-          success: true,
-          subscriptionId,
-          data: updated,
-        };
+        const updated = await client.subscriptions.update(subscriptionId, { status: 'cancelled' });
+        return { success: true, subscriptionId, data: updated };
       }
 
-      // For active subscriptions, use PATCH update - Dodo has no /cancel endpoint
       const client = this.getClient();
-      const updated = await client.subscriptions.update(subscriptionId, {
-        cancel_at_next_billing_date: cancelAtPeriodEnd,
-      });
+      const updated = await client.subscriptions.update(subscriptionId, { cancel_at_next_billing_date: cancelAtPeriodEnd });
 
-      return {
-        success: true,
-        subscriptionId,
-        data: updated,
-      };
+      return { success: true, subscriptionId, data: updated };
     } catch (error) {
       console.error('Failed to cancel Dodo subscription:', error);
       return {
@@ -217,34 +156,20 @@ export class DodoSubscriptionService {
     }
   }
 
-  /**
-   * Reactivate a subscription that is "cancel at period end" (still active in Dodo).
-   * Only sends cancel_at_next_billing_date: false. Does NOT send status - Dodo's API
-   * only allows updating status TO "cancelled" by the merchant, not back to "active"
-   * (422: "Status can only be updated to Cancelled by the merchant").
-   * If the subscription is already fully cancelled in Dodo, it cannot be reactivated
-   * via API; the user must create a new subscription.
-   */
-  static async reactivateSubscription(
-    subscriptionId: string
-  ): Promise<SubscriptionManagementResult> {
+  static async reactivateSubscription(subscriptionId: string): Promise<SubscriptionManagementResult> {
     try {
       const subscription = await this.getSubscription(subscriptionId);
       if (subscription?.status === 'cancelled') {
         return {
           success: false,
-          error: 'This subscription is already cancelled and cannot be reactivated. Please subscribe again to continue.',
+          error: 'This subscription is already cancelled and cannot be reactivated. Please subscribe again.',
         };
       }
+
       const client = this.getClient();
-      const updated = await client.subscriptions.update(subscriptionId, {
-        cancel_at_next_billing_date: false,
-      });
-      return {
-        success: true,
-        subscriptionId,
-        data: updated,
-      };
+      const updated = await client.subscriptions.update(subscriptionId, { cancel_at_next_billing_date: false });
+
+      return { success: true, subscriptionId, data: updated };
     } catch (error) {
       console.error('Failed to reactivate Dodo subscription:', error);
       return {
@@ -254,24 +179,11 @@ export class DodoSubscriptionService {
     }
   }
 
-  /**
-   * Cancel a subscription immediately in Dodo (no further renewals, no next billing shown).
-   * Use when e.g. user upgraded to yearly and the old monthly subscription must be fully
-   * cancelled so Dodo does not show a leftover monthly renewal.
-   */
-  static async cancelSubscriptionImmediately(
-    subscriptionId: string
-  ): Promise<SubscriptionManagementResult> {
+  static async cancelSubscriptionImmediately(subscriptionId: string): Promise<SubscriptionManagementResult> {
     try {
       const client = this.getClient();
-      const updated = await client.subscriptions.update(subscriptionId, {
-        status: 'cancelled',
-      });
-      return {
-        success: true,
-        subscriptionId,
-        data: updated,
-      };
+      const updated = await client.subscriptions.update(subscriptionId, { status: 'cancelled' });
+      return { success: true, subscriptionId, data: updated };
     } catch (error) {
       console.error('Failed to cancel Dodo subscription immediately:', error);
       return {
@@ -281,9 +193,6 @@ export class DodoSubscriptionService {
     }
   }
 
-  /**
-   * List all subscriptions for debugging/admin purposes
-   */
   static async listSubscriptions(params?: {
     customerId?: string;
     status?: 'pending' | 'active' | 'on_hold' | 'cancelled' | 'failed' | 'expired';
@@ -296,7 +205,6 @@ export class DodoSubscriptionService {
         status: params?.status,
         page_size: params?.pageSize || 10,
       });
-
       return response.items || [];
     } catch (error) {
       console.error('Failed to list Dodo subscriptions:', error);
@@ -304,40 +212,22 @@ export class DodoSubscriptionService {
     }
   }
 
-  /**
-   * Check if a subscription is active
-   */
   static isSubscriptionActive(subscription: any): boolean {
-    return subscription.status === 'active' && 
-           (!subscription.cancelled_at || subscription.cancel_at_next_billing_date === false);
+    return subscription.status === 'active' && (!subscription.cancelled_at || subscription.cancel_at_next_billing_date === false);
   }
 
-  /**
-   * Check if a subscription is in trial period
-   */
   static isSubscriptionInTrial(subscription: any): boolean {
     if (!subscription.trial_end) return false;
     return new Date(subscription.trial_end) > new Date();
   }
 
-  /**
-   * Get subscription billing period info
-   * Dodo uses previous_billing_date + next_billing_date; fallback when current_period_* is missing
-   */
   static getSubscriptionPeriodInfo(subscription: any) {
-    const nextBilling = subscription.next_billing_date
-      ? new Date(subscription.next_billing_date)
-      : undefined;
-    const prevBilling = subscription.previous_billing_date
-      ? new Date(subscription.previous_billing_date)
-      : undefined;
+    const nextBilling = subscription.next_billing_date ? new Date(subscription.next_billing_date) : undefined;
+    const prevBilling = subscription.previous_billing_date ? new Date(subscription.previous_billing_date) : undefined;
+
     return {
-      currentPeriodStart: subscription.current_period_start
-        ? new Date(subscription.current_period_start)
-        : prevBilling,
-      currentPeriodEnd: subscription.current_period_end
-        ? new Date(subscription.current_period_end)
-        : nextBilling,
+      currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start) : prevBilling,
+      currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end) : nextBilling,
       nextBillingDate: nextBilling,
       trialEnd: subscription.trial_end ? new Date(subscription.trial_end) : undefined,
       isInTrial: this.isSubscriptionInTrial(subscription),
@@ -345,12 +235,6 @@ export class DodoSubscriptionService {
     };
   }
 
-  /**
-   * Change subscription plan to a new product (e.g., monthly to yearly)
-   * Uses Dodo's dedicated changePlan API endpoint - charges saved payment method on file.
-   * For payment screen / redirect flow, use createSubscription with payment_link instead.
-   * Proration modes: difference_immediately (price diff), prorated_immediately (time-based)
-   */
   static async changePlan(
     subscriptionId: string,
     newProductId: string,
@@ -361,26 +245,18 @@ export class DodoSubscriptionService {
   ): Promise<SubscriptionManagementResult> {
     try {
       const client = this.getClient();
-      
-      // Use Dodo SDK's dedicated changePlan method
-      // This properly handles product changes with proration
+
       await client.subscriptions.changePlan(subscriptionId, {
         product_id: newProductId,
         proration_billing_mode: options?.prorationBehavior || 'full_immediately',
         quantity: options?.quantity || 1,
       });
 
-      // Get the updated subscription to return
       const updated = await this.getSubscription(subscriptionId);
 
-      return {
-        success: true,
-        subscriptionId,
-        data: updated,
-      };
+      return { success: true, subscriptionId, data: updated };
     } catch (error) {
       console.error('Failed to change Dodo subscription plan:', error);
-      
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to change subscription plan',
@@ -388,14 +264,8 @@ export class DodoSubscriptionService {
     }
   }
 
-  /**
-   * @deprecated Use changePlan instead for better proration handling
-   * Upgrade subscription to a new product (e.g., monthly to yearly)
-   */
-  static async upgradeSubscription(
-    subscriptionId: string,
-    newProductId: string
-  ): Promise<SubscriptionManagementResult> {
+  /** @deprecated Use changePlan instead */
+  static async upgradeSubscription(subscriptionId: string, newProductId: string): Promise<SubscriptionManagementResult> {
     return this.changePlan(subscriptionId, newProductId);
   }
 }

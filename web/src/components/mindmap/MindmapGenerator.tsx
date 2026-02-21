@@ -9,8 +9,6 @@ import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
-  Share07Icon,
-  StarIcon,
   Brain01Icon,
 } from "@hugeicons/core-free-icons";
 
@@ -35,12 +33,6 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [isFavorite, setIsFavorite] = useState(false);
-
-  const handleToggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    toast.success(isFavorite ? "Removed from favorites" : "Added to favorites");
-  };
 
   const generateMindmap = async () => {
     setLoading(true);
@@ -169,46 +161,6 @@ export function MindmapGenerator({ noteId }: MindmapGeneratorProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                navigator.clipboard
-                  .writeText(window.location.href)
-                  .then(() =>
-                    toast.success("Link copied to clipboard", {
-                      position: "top-center",
-                    }),
-                  )
-                  .catch(() =>
-                    toast.error("Failed to copy link", {
-                      position: "top-center",
-                    }),
-                  );
-              }}
-              className="h-9 rounded-lg border-border text-muted-foreground hover:text-foreground gap-1.5"
-            >
-              <HugeiconsIcon icon={Share07Icon} className="size-4" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleToggleFavorite}
-              className={`h-9 w-9 rounded-lg ${
-                isFavorite
-                  ? "text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <HugeiconsIcon
-                icon={StarIcon}
-                className={`size-5 ${isFavorite ? "fill-current" : ""}`}
-              />
-            </Button>
-          </div>
         </div>
 
         <MarkmapViewer

@@ -13,7 +13,6 @@ import {
   VolumeHighIcon,
   VolumeOffIcon,
   Download01Icon,
-  Share07Icon,
 } from "@hugeicons/core-free-icons";
 import { PodcastAskInput } from "./PodcastAskInput";
 import { PodcastSpeaker } from "./types";
@@ -25,10 +24,9 @@ interface PodcastPlayerProps {
   coverImage?: string;
   duration: number;
   onAskQuestion?: (question: string) => void;
-  onShare?: () => void;
   onDownload?: () => void;
   onTimeUpdate?: (currentTime: number) => void;
-  seekTo?: number; // External control for seeking to a specific time
+  seekTo?: number;
 }
 
 export function PodcastPlayer({
@@ -41,7 +39,6 @@ export function PodcastPlayer({
   coverImage,
   duration,
   onAskQuestion,
-  onShare,
   onDownload,
   onTimeUpdate,
   seekTo,
@@ -217,16 +214,6 @@ export function PodcastPlayer({
           </div>
         )}
 
-        {/* Share Icon Overlay */}
-        <button
-          onClick={onShare}
-          className="absolute top-3 right-3 rounded-full bg-white/85 dark:bg-background/80 backdrop-blur-sm p-2 shadow-sm hover:bg-white dark:hover:bg-background transition-colors"
-        >
-          <HugeiconsIcon
-            icon={Share07Icon}
-            className="size-4 text-foreground"
-          />
-        </button>
       </div>
 
       {/* Title */}

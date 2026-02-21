@@ -7,26 +7,18 @@ import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
-  Share07Icon,
   Download01Icon,
-  StarIcon,
 } from "@hugeicons/core-free-icons";
 
 interface PodcastHeaderProps {
   title: string;
   noteId: string;
-  isFavorite?: boolean;
-  onToggleFavorite?: () => void;
-  onShare?: () => void;
   onDownload?: () => void;
 }
 
 export function PodcastHeader({
   title,
   noteId,
-  isFavorite = false,
-  onToggleFavorite,
-  onShare,
   onDownload,
 }: PodcastHeaderProps) {
   return (
@@ -51,33 +43,6 @@ export function PodcastHeader({
             >
               <HugeiconsIcon icon={Download01Icon} className="size-4" />
               <span className="hidden sm:inline">Download</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onShare}
-              disabled={!onShare}
-              className="h-9 rounded-lg border-border text-muted-foreground hover:text-foreground gap-1.5"
-            >
-              <HugeiconsIcon icon={Share07Icon} className="size-4" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onToggleFavorite}
-              className={`h-9 w-9 rounded-lg ${
-                isFavorite
-                  ? "text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <HugeiconsIcon
-                icon={StarIcon}
-                className={`size-5 ${isFavorite ? "fill-current" : ""}`}
-              />
             </Button>
           </div>
         </div>

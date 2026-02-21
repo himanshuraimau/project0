@@ -12,21 +12,17 @@ import {
   ArrowLeft01Icon,
   Copy01Icon,
   Download01Icon,
-  Share07Icon,
-  StarIcon,
   Search01Icon,
   Alert01Icon,
   Loading01Icon,
   File01Icon,
 } from "@hugeicons/core-free-icons";
-import { cn } from "@/lib/utils";
 
 export default function TranscriptPage() {
   const { note } = useNoteContext();
   const [transcript, setTranscript] = useState<string | null>(null);
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -79,32 +75,6 @@ export default function TranscriptPage() {
       URL.revokeObjectURL(url);
       toast.success("Transcript downloaded", { position: "top-center" });
     }
-  };
-
-  const handleShare = async () => {
-    try {
-      const shareUrl = window.location.href;
-      if (navigator.share) {
-        await navigator.share({
-          title: `Transcript: ${note?.title}`,
-          text: "Check out this transcript",
-          url: shareUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success("Link copied to clipboard", { position: "top-center" });
-      }
-    } catch (error) {
-      console.error("Share error:", error);
-    }
-  };
-
-  const handleToggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    toast.success(
-      isFavorite ? "Removed from favorites" : "Added to favorites",
-      { position: "top-center" }
-    );
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -161,31 +131,6 @@ export default function TranscriptPage() {
               >
                 <HugeiconsIcon icon={Download01Icon} className="size-4" />
                 <span className="hidden sm:inline">Download</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleShare}
-                className="h-9 rounded-lg border-border text-muted-foreground hover:text-foreground gap-1.5"
-              >
-                <HugeiconsIcon icon={Share07Icon} className="size-4" />
-                <span className="hidden sm:inline">Share</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleToggleFavorite}
-                className={cn(
-                  "h-9 w-9 rounded-lg shrink-0",
-                  isFavorite
-                    ? "text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <HugeiconsIcon
-                  icon={StarIcon}
-                  className={cn("size-5", isFavorite && "fill-current")}
-                />
               </Button>
             </div>
           </div>

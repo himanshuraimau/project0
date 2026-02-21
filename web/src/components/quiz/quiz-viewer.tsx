@@ -7,14 +7,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
-  Share07Icon,
-  StarIcon,
   Tick01Icon,
   Cancel01Icon,
   MedalFirstPlaceIcon,
   Clock01Icon,
 } from "@hugeicons/core-free-icons";
-import { toast } from "sonner";
 
 export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
   quiz,
@@ -28,7 +25,6 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
   }>({});
   const [showResults, setShowResults] = useState(false);
   const [reviewMode, setReviewMode] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [startTime] = useState(Date.now());
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -97,34 +93,6 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
     });
   };
 
-  const handleShare = async () => {
-    try {
-      const shareUrl = window.location.href;
-      if (navigator.share) {
-        await navigator.share({
-          title: `Quiz: ${noteTitle}`,
-          text: "Check out this AI-generated quiz!",
-          url: shareUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success("Link copied to clipboard", {
-          position: "top-center",
-        });
-      }
-    } catch (error) {
-      console.error("Share error:", error);
-    }
-  };
-
-  const handleToggleFavorite = () => {
-    setIsFavorite((prev) => !prev);
-    toast.success(
-      !isFavorite ? "Added quiz to favorites" : "Removed from favorites",
-      { position: "top-center" }
-    );
-  };
-
   const calculateScore = () => {
     let correct = 0;
     quiz.forEach((question, index) => {
@@ -165,32 +133,6 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
               You answered {score.correct} of {score.total} questions correctly
               in {formatTime(elapsedTime)}.
             </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShare}
-              className="h-9 rounded-lg border-border text-muted-foreground hover:text-foreground gap-1.5"
-            >
-              <HugeiconsIcon icon={Share07Icon} className="size-4" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleToggleFavorite}
-              className={`h-9 w-9 rounded-lg ${
-                isFavorite
-                  ? "text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <HugeiconsIcon
-                icon={StarIcon}
-                className={`size-5 ${isFavorite ? "fill-current" : ""}`}
-              />
-            </Button>
           </div>
         </div>
 
@@ -272,13 +214,6 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
                   Try again
                 </Button>
                 <Button
-                  variant="outline"
-                  onClick={handleShare}
-                  className="flex-1 h-10 rounded-lg border-border text-sm font-medium"
-                >
-                  Share results
-                </Button>
-                <Button
                   variant="ghost"
                   onClick={() => router.back()}
                   className="flex-1 h-10 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -310,32 +245,6 @@ export const QuizViewer: React.FC<QuizViewerProps & { noteTitle?: string }> = ({
               Question {currentIndex + 1} of {quiz.length} · Elapsed{" "}
               {formatTime(elapsedTime)}
             </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShare}
-              className="h-9 rounded-lg border-border text-muted-foreground hover:text-foreground gap-1.5"
-            >
-              <HugeiconsIcon icon={Share07Icon} className="size-4" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleToggleFavorite}
-              className={`h-9 w-9 rounded-lg ${
-                isFavorite
-                  ? "text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <HugeiconsIcon
-                icon={StarIcon}
-                className={`size-5 ${isFavorite ? "fill-current" : ""}`}
-              />
-            </Button>
           </div>
         </div>
 

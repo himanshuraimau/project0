@@ -1,5 +1,3 @@
-// useSubscription Hook - React hook for subscription management
-
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -46,8 +44,6 @@ export function useSubscription() {
     try {
       setLoading(true);
       setError(null);
-      
-      // Use cached version with request deduplication
       const data = await subscriptionCache.getStatus(forceRefresh);
       setStatus(data);
     } catch (err) {
@@ -59,17 +55,14 @@ export function useSubscription() {
   }, []);
 
   useEffect(() => {
-    // Try to get cached data first for instant display
     const cached = subscriptionCache.getCached();
     if (cached) {
       setStatus(cached);
       setLoading(false);
     }
 
-    // Then fetch fresh data
     fetchStatus();
 
-    // Subscribe to cache updates
     const unsubscribe = subscriptionCache.subscribe((data) => {
       setStatus(data);
       setError(null);
@@ -81,16 +74,10 @@ export function useSubscription() {
   const createSubscription = useCallback(async () => {
     try {
       setError(null);
-      
-      const response = await fetch('/api/subscription/create', {
-        method: 'POST',
-      });
 
+      const response = await fetch('/api/subscription/create', { method: 'POST' });
       const data = await response.json();
 
-      // Support both response shapes:
-      // New shape: { data: { checkoutUrl } }  (checkout sessions flow)
-      // Old shape: { paymentLink }             (legacy)
       const redirectUrl = data.data?.checkoutUrl || data.paymentLink;
       if (redirectUrl) {
         window.location.href = redirectUrl;
@@ -111,7 +98,7 @@ export function useSubscription() {
   const cancelSubscription = useCallback(async (cancelAtPeriodEnd: boolean = true) => {
     try {
       setError(null);
-      
+
       const response = await fetch('/api/subscription/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,7 +108,6 @@ export function useSubscription() {
       const data = await response.json();
 
       if (data.success) {
-        // Invalidate cache and refresh
         await subscriptionCache.invalidate(true);
         return { success: true, message: data.message };
       } else {
@@ -138,7 +124,7 @@ export function useSubscription() {
   const openCustomerPortal = useCallback(async () => {
     try {
       setError(null);
-      
+
       const response = await fetch('/api/subscription/portal');
       const data = await response.json();
 
@@ -165,12 +151,12 @@ export function useSubscription() {
         body: JSON.stringify({}),
       });
       const data = await response.json();
+
       if (data.success && data.paymentLink) {
         window.location.href = data.paymentLink;
         return { success: true, message: 'Redirecting to payment...' };
       }
       if (data.success) {
-        // Invalidate cache and refresh
         await subscriptionCache.invalidate(true);
         return { success: true, message: data.message };
       }
@@ -192,7 +178,6 @@ export function useSubscription() {
     isTrial: status?.access?.isTrial || false,
     daysRemaining: status?.access?.daysRemaining || null,
     subscription: status?.subscription || null,
-    // Actions
     fetchStatus,
     createSubscription,
     cancelSubscription,

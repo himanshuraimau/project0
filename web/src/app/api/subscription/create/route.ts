@@ -1,5 +1,3 @@
-// API endpoint to create a new subscription and get payment link
-
 import { NextResponse, NextRequest } from 'next/server';
 import { PaymentService } from '@/lib/payments';
 import { getUserFromAuth } from '@/lib/auth-helper';
@@ -12,16 +10,12 @@ export async function POST(request: NextRequest) {
     const userId = await getUserFromAuth(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse request body for billing interval and discount code
     let billingInterval: BillingInterval = 'monthly';
     let discountCode: string | undefined;
-    
+
     try {
       const body = await request.json();
       if (body.billingInterval === 'yearly') {
@@ -31,30 +25,20 @@ export async function POST(request: NextRequest) {
         discountCode = body.discountCode.trim();
       }
     } catch {
-      // No body or invalid JSON - default to monthly
+      // Default to monthly if no body
     }
 
-    // Get user details from Better Auth session
-    const session = await auth.api.getSession({
-      headers: await headers()
-    });
-    
+    const session = await auth.api.getSession({ headers: await headers() });
+
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const email = session.user.email;
     if (!email) {
-      return NextResponse.json(
-        { error: 'User email not found' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'User email not found' }, { status: 400 });
     }
 
-    // Create subscription using centralized PaymentService
     const result = await PaymentService.createSubscription({
       userId,
       userEmail: email,
@@ -74,17 +58,10 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating subscription:', error);
 
-    // Handle specific error cases
     if (error.message?.includes('already')) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { error: error.message || 'Failed to create subscription' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Failed to create subscription' }, { status: 500 });
   }
 }

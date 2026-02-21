@@ -1,10 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import React from "react";
 import {
   Accordion,
   AccordionContent,
@@ -14,12 +10,9 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Mail01Icon,
-  MailSend01Icon,
-  HelpCircleIcon,
   NoteEditIcon,
   CreditCardIcon,
 } from "@hugeicons/core-free-icons";
-import { toast } from "sonner";
 
 const FAQ_SECTIONS = [
   {
@@ -64,32 +57,6 @@ const FAQ_SECTIONS = [
 ] as const;
 
 export function SupportPageContent() {
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!subject.trim() || !message.trim()) {
-      toast.error("Please fill in both subject and message.");
-      return;
-    }
-    setSending(true);
-    try {
-      // Placeholder: in a real app you'd POST to an API
-      await new Promise((r) => setTimeout(r, 800));
-      toast.success("Message sent. We'll get back to you within 24 hours.");
-      setSubject("");
-      setMessage("");
-    } catch {
-      toast.error(
-        "Something went wrong. Please try again or email us directly."
-      );
-    } finally {
-      setSending(false);
-    }
-  };
-
   return (
     <>
       {/* Intro */}
@@ -155,48 +122,6 @@ export function SupportPageContent() {
             </p>
           </div>
         </div>
-      </section>
-
-      {/* Contact form */}
-      <section className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground tracking-tight mb-5">
-          Contact us
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="support-subject" className="text-foreground">
-              Subject
-            </Label>
-            <Input
-              id="support-subject"
-              placeholder="What can we help you with?"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="h-11 rounded-xl border-border bg-muted/30 focus-visible:ring-primary/30"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="support-message" className="text-foreground">
-              Message
-            </Label>
-            <Textarea
-              id="support-message"
-              placeholder="Describe your question or concern in detail..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={5}
-              className="rounded-xl border-border bg-muted/30 focus-visible:ring-primary/30 resize-none"
-            />
-          </div>
-          <Button
-            type="submit"
-            disabled={sending}
-            className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 cursor-pointer"
-          >
-            <HugeiconsIcon icon={MailSend01Icon} className="size-4 mr-2" />
-            {sending ? "Sending..." : "Send message"}
-          </Button>
-        </form>
       </section>
     </>
   );

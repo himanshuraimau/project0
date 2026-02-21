@@ -5,15 +5,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
-  Share07Icon,
-  StarIcon,
-  Tick01Icon,
-  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { FlashcardViewerProps } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { SessionComplete } from "./SessionComplete";
-import { toast } from "sonner";
 
 export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   flashcards,
@@ -26,7 +21,6 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
   const [showAnswer, setShowAnswer] = useState(false);
   const [gotRight, setGotRight] = useState<number[]>([]);
   const [gotWrong, setGotWrong] = useState<number[]>([]);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
 
   if (flashcards.length === 0) {
@@ -104,31 +98,6 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
     }
   };
 
-  const handleShare = async () => {
-    try {
-      const shareUrl = window.location.href;
-      if (navigator.share) {
-        await navigator.share({
-          title: `Flashcards: ${noteTitle}`,
-          text: "Check out these AI-generated flashcards!",
-          url: shareUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success("Link copied to clipboard", {
-          position: "top-center",
-        });
-      }
-    } catch (error) {
-      console.error("Share error:", error);
-    }
-  };
-
-  const handleToggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    // You can add API call here to save favorite status
-  };
-
   const handleRestartSession = () => {
     setCurrentIndex(0);
     setShowAnswer(false);
@@ -157,32 +126,6 @@ export const FlashcardViewer: React.FC<FlashcardViewerProps> = ({
               Card {currentIndex + 1} of {flashcards.length} ·{" "}
               {gotRight.length} got it right · {gotWrong.length} to review
             </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShare}
-              className="h-9 rounded-lg border-border text-muted-foreground hover:text-foreground gap-1.5"
-            >
-              <HugeiconsIcon icon={Share07Icon} className="size-4" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleToggleFavorite}
-              className={`h-9 w-9 rounded-lg ${
-                isFavorite
-                  ? "text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <HugeiconsIcon
-                icon={StarIcon}
-                className={`size-5 ${isFavorite ? "fill-current" : ""}`}
-              />
-            </Button>
           </div>
         </div>
 

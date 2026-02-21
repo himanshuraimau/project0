@@ -1,32 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
-/**
- * Payment Success Handler Component
- * Shows a loading message while waiting for webhook to activate subscription
- */
 export function PaymentSuccessHandler() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [retryCount, setRetryCount] = useState(0);
   const [status, setStatus] = useState<'checking' | 'success' | 'timeout'>('checking');
 
   useEffect(() => {
-    // Only run if payment=success is in the URL
     if (searchParams?.get('payment') !== 'success') {
       return;
     }
 
-    // Dodo appends subscription_id, status, email to the return_url automatically.
-    // Pass subscription_id to the status API so it can fast-path sync from Dodo
-    // without waiting for the webhook to arrive.
     const dodoSubscriptionId = searchParams?.get('subscription_id') ?? '';
     const dodoStatus = searchParams?.get('status') ?? '';
 
     let timeoutId: NodeJS.Timeout;
-    
+
     const checkSubscriptionStatus = async () => {
       try {
         const params = new URLSearchParams();
@@ -36,10 +27,8 @@ export function PaymentSuccessHandler() {
         const data = await response.json();
 
         if (data.hasSubscription && data.access?.hasAccess) {
-          // Subscription is active!
           setStatus('success');
 
-          // Clean all Dodo-appended params + payment=success, then reload
           const url = new URL(window.location.href);
           url.searchParams.delete('payment');
           url.searchParams.delete('subscription_id');
@@ -51,7 +40,6 @@ export function PaymentSuccessHandler() {
             window.location.href = url.toString();
           }, 1500);
         } else if (retryCount < 20) {
-          // Still waiting — retry after 2 s (1 s if Dodo already told us active via URL param)
           const delay = dodoStatus === 'active' ? 1000 : 2000;
           timeoutId = setTimeout(() => {
             setRetryCount(prev => prev + 1);
@@ -76,9 +64,8 @@ export function PaymentSuccessHandler() {
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [searchParams, retryCount, router]);
+  }, [searchParams, retryCount]);
 
-  // Only show this component if payment=success is in the URL
   if (searchParams?.get('payment') !== 'success') {
     return null;
   }
@@ -91,12 +78,9 @@ export function PaymentSuccessHandler() {
             <div className="flex items-center justify-center mb-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
-            <h2 className="text-2xl font-bold text-center mb-2">
-              Processing Payment...
-            </h2>
+            <h2 className="text-2xl font-bold text-center mb-2">Processing Payment...</h2>
             <p className="text-center text-muted-foreground">
-              Please wait while we activate your subscription.
-              This usually takes a few seconds.
+              Please wait while we activate your subscription. This usually takes a few seconds.
             </p>
             <p className="text-center text-sm text-muted-foreground mt-4">
               Attempt {retryCount + 1} of 20
@@ -113,12 +97,8 @@ export function PaymentSuccessHandler() {
                 </svg>
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-center mb-2 text-green-600">
-              Payment Successful!
-            </h2>
-            <p className="text-center text-muted-foreground">
-              Your subscription is now active. Redirecting...
-            </p>
+            <h2 className="text-2xl font-bold text-center mb-2 text-green-600">Payment Successful!</h2>
+            <p className="text-center text-muted-foreground">Your subscription is now active. Redirecting...</p>
           </>
         )}
 
@@ -131,12 +111,9 @@ export function PaymentSuccessHandler() {
                 </svg>
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-center mb-2 text-yellow-600">
-              Taking Longer Than Expected
-            </h2>
+            <h2 className="text-2xl font-bold text-center mb-2 text-yellow-600">Taking Longer Than Expected</h2>
             <p className="text-center text-muted-foreground mb-4">
-              Your payment was successful, but we're still activating your subscription.
-              This can take up to a few minutes.
+              Your payment was successful, but we're still activating your subscription. This can take up to a few minutes.
             </p>
             <div className="flex gap-2">
               <button

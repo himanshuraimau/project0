@@ -174,26 +174,6 @@ export function PodcastPage({
     // You can integrate this with your chat/AI system
   };
 
-  const handleShare = async () => {
-    try {
-      const shareUrl = `${window.location.origin}/notes/${noteId}`;
-      if (navigator.share) {
-        await navigator.share({
-          title: `Podcast: ${noteTitle}`,
-          text: "Check out this AI-generated podcast!",
-          url: shareUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success("Link copied to clipboard", {
-          position: "top-center",
-        });
-      }
-    } catch (error) {
-      console.error("Share error:", error);
-    }
-  };
-
   const handleDownload = async () => {
     if (!podcast?.audioUrl) {
       toast.error("No audio URL available for download", {
@@ -342,7 +322,6 @@ export function PodcastPage({
       <PodcastHeader
         title={podcast.title}
         noteId={noteId}
-        onShare={handleShare}
         onDownload={handleDownload}
       />
 
@@ -377,7 +356,6 @@ export function PodcastPage({
                 speakers={podcast.speakers}
                 coverImage={podcast.coverImage}
                 onAskQuestion={handleAskQuestion}
-                onShare={handleShare}
                 onDownload={handleDownload}
                 onTimeUpdate={setCurrentTime}
               />
