@@ -26,6 +26,9 @@ export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
   const [region, setRegion] = useState<PaymentRegion>(defaultRegion);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [zipcode, setZipcode] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [street, setStreet] = useState("");
 
   const pricing = {
     monthly: {
@@ -75,7 +78,10 @@ export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
           billingInterval,
           region: region === "DEFAULT" ? undefined : region,
           phoneNumber: region === "IN" ? phoneNumber.trim() : undefined,
-          zipcode: region === "IN" ? (zipcode.trim() || "110001") : undefined,
+          zipcode: zipcode.trim() || undefined,
+          city: city.trim() || undefined,
+          state: state.trim() || undefined,
+          street: street.trim() || undefined,
         }),
       });
 
@@ -211,9 +217,10 @@ export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
         )}
       </div>
 
-      {/* India region: Phone number input */}
-      {isIndiaRegion && (
-        <div className="space-y-3 mb-6">
+      {/* Billing address */}
+      <div className="space-y-3 mb-6">
+        {/* Phone - only for India */}
+        {isIndiaRegion && (
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-1.5">
               Phone Number <span className="text-destructive">*</span>
@@ -236,22 +243,46 @@ export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
               Required for UPI payments
             </p>
           </div>
-          <div>
-            <label htmlFor="zipcode" className="block text-sm font-medium text-foreground mb-1.5">
-              PIN Code <span className="text-muted-foreground">(optional)</span>
-            </label>
-            <input
-              type="text"
-              id="zipcode"
-              value={zipcode}
-              onChange={(e) => setZipcode(e.target.value)}
-              placeholder="560001"
-              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              maxLength={6}
-            />
-          </div>
+        )}
+
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          Billing Address
+        </p>
+
+        <input
+          type="text"
+          value={street}
+          onChange={(e) => setStreet(e.target.value)}
+          placeholder="Street address"
+          className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+        />
+
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            type="text"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="City"
+            className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+          <input
+            type="text"
+            value={zipcode}
+            onChange={(e) => setZipcode(e.target.value)}
+            placeholder={isIndiaRegion ? "PIN code" : "ZIP code"}
+            className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            maxLength={isIndiaRegion ? 6 : 10}
+          />
         </div>
-      )}
+
+        <input
+          type="text"
+          value={state}
+          onChange={(e) => setState(e.target.value)}
+          placeholder="State"
+          className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+        />
+      </div>
 
       {/* Features */}
       <ul className="space-y-3 mb-6">

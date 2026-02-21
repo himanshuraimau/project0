@@ -66,6 +66,10 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
     useState<BillingInterval>("yearly");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zipcode, setZipcode] = useState("");
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
   const [cancellingPending, setCancellingPending] = useState(false);
@@ -134,7 +138,13 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
       const response = await fetch("/api/subscription/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ billingInterval }),
+        body: JSON.stringify({
+          billingInterval,
+          street: street.trim() || undefined,
+          city: city.trim() || undefined,
+          state: state.trim() || undefined,
+          zipcode: zipcode.trim() || undefined,
+        }),
       });
       const data = await response.json();
 
@@ -281,6 +291,42 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
                 {monthly.sublabel}
               </p>
             </button>
+          </div>
+
+          {/* Billing address — sent at session creation for 3DS card auth */}
+          <div className="mt-6 space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Billing Address</p>
+            <input
+              type="text"
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
+              placeholder="Street address"
+              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="City"
+                className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+              <input
+                type="text"
+                value={zipcode}
+                onChange={(e) => setZipcode(e.target.value)}
+                placeholder="PIN / ZIP code"
+                className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                maxLength={10}
+              />
+            </div>
+            <input
+              type="text"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              placeholder="State"
+              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
           </div>
 
           {error && (

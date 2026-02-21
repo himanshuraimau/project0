@@ -17,6 +17,9 @@ export interface CreateSubscriptionParams {
   region?: PaymentRegion;
   phoneNumber?: string;
   zipcode?: string;
+  city?: string;
+  state?: string;
+  street?: string;
 }
 
 export interface PlanChangeParams {
@@ -62,7 +65,7 @@ export class PaymentService {
   }
 
   static async createSubscription(params: CreateSubscriptionParams) {
-    const { userId, userEmail, userName, billingInterval, discountCode, region, phoneNumber, zipcode } = params;
+    const { userId, userEmail, userName, billingInterval, discountCode, region, phoneNumber, zipcode, city, state, street } = params;
 
     const existingSubscription = await SubscriptionService.getSubscriptionWithSync(userId);
 
@@ -92,15 +95,21 @@ export class PaymentService {
     const productId = this.getProductId(billingInterval);
     const amount = this.getSubscriptionAmount(billingInterval);
 
-    // Build regional options if region is specified
-    const regionalOptions: RegionalCheckoutOptions | undefined = region ? {
-      region,
+    // Always build regional options with billing address for 3DS card auth.
+    // Even when no region is selected, we need billing data.
+    const hasBillingInput = zipcode || city || state || street;
+    const effectiveRegion = region || 'IN';
+    const regionalOptions: RegionalCheckoutOptions = {
+      region: effectiveRegion,
       phoneNumber,
-      billingAddress: zipcode ? {
-        country: region === 'IN' ? 'IN' : region === 'US' ? 'US' : 'US',
-        zipcode,
-      } : undefined,
-    } : undefined;
+      billingAddress: {
+        country: effectiveRegion === 'US' ? 'US' : 'IN',
+        zipcode: zipcode || '',
+        city: city || '',
+        state: state || '',
+        street: street || '',
+      },
+    };
 
     const checkoutSession = await DodoSubscriptionService.createCheckoutSession({
       userId,

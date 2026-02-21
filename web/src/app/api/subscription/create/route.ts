@@ -21,6 +21,9 @@ export async function POST(request: NextRequest) {
     let region: PaymentRegion | undefined;
     let phoneNumber: string | undefined;
     let zipcode: string | undefined;
+    let city: string | undefined;
+    let state: string | undefined;
+    let street: string | undefined;
 
     try {
       const body = await request.json();
@@ -39,6 +42,15 @@ export async function POST(request: NextRequest) {
       }
       if (body.zipcode && typeof body.zipcode === 'string') {
         zipcode = body.zipcode.trim();
+      }
+      if (body.city && typeof body.city === 'string') {
+        city = body.city.trim();
+      }
+      if (body.state && typeof body.state === 'string') {
+        state = body.state.trim();
+      }
+      if (body.street && typeof body.street === 'string') {
+        street = body.street.trim();
       }
     } catch {
       // Default to monthly if no body
@@ -64,6 +76,9 @@ export async function POST(request: NextRequest) {
       region,
       phoneNumber,
       zipcode,
+      city,
+      state,
+      street,
     });
 
     return NextResponse.json({

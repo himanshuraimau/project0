@@ -71,11 +71,20 @@ export function useSubscription() {
     return unsubscribe;
   }, [fetchStatus]);
 
-  const createSubscription = useCallback(async () => {
+  const createSubscription = useCallback(async (billing?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipcode?: string;
+  }) => {
     try {
       setError(null);
 
-      const response = await fetch('/api/subscription/create', { method: 'POST' });
+      const response = await fetch('/api/subscription/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(billing ? { ...billing } : {}),
+      });
       const data = await response.json();
 
       const redirectUrl = data.data?.checkoutUrl || data.paymentLink;

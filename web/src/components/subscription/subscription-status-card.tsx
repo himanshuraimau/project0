@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { UpgradeToYearlyDialog } from '@/components/subscription/upgrade-to-yearly-dialog';
+import { useUpgradeModal } from '@/contexts/upgrade-modal-context';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   AlertCircleIcon,
@@ -58,6 +59,7 @@ export function SubscriptionStatusCard() {
   const [isReactivating, setIsReactivating] = useState(false);
   const [showReactivateConfirm, setShowReactivateConfirm] = useState(false);
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const { openUpgradeModal } = useUpgradeModal();
 
   useEffect(() => {
     fetchSubscriptionStatus();
@@ -87,28 +89,8 @@ export function SubscriptionStatusCard() {
     }
   };
 
-  const handleSubscribe = async () => {
-    try {
-      const response = await fetch('/api/subscription/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ billingInterval: 'monthly' }),
-      });
-
-      const data = await response.json();
-
-      if (data.data?.checkoutUrl) {
-        window.location.href = data.data.checkoutUrl;
-      } else if (data.paymentLink) {
-        window.location.href = data.paymentLink;
-      } else if (data.error) {
-        setError(data.error);
-      }
-    } catch (err) {
-      setError('Failed to create subscription');
-    }
+  const handleSubscribe = () => {
+    openUpgradeModal();
   };
 
   const handleRetryPayment = async () => {
