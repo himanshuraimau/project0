@@ -21,7 +21,7 @@
     "@aws-sdk/client-s3": "^3.988.0",
     "@aws-sdk/s3-request-presigner": "^3.988.0",
     "@better-auth/expo": "^1.4.5",
-    "@dodopayments/nextjs": "^0.2.0",
+    "@dodopayments/nextjs": "^0.3.4",
     "@hookform/resolvers": "^5.2.2",
     "@hugeicons/core-free-icons": "^1.2.1",
     "@hugeicons/react": "^1.1.1",

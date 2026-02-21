@@ -28,75 +28,127 @@ export const POST = Webhooks({
   webhookKey: process.env.DODO_PAYMENTS_WEBHOOK_KEY!,
 
   onPayload: async (payload: any) => {
-    const eventType = payload.type;
-    console.log('Received Dodo webhook:', eventType);
+    try {
+      const eventType = payload.type;
+      console.log('Received Dodo webhook:', eventType);
+      console.log('Webhook payload:', JSON.stringify(payload, null, 2));
 
-    switch (eventType) {
-      case 'subscription.created':
-        await handleSubscriptionCreated(payload);
-        break;
-      case 'subscription.activated':
-      case 'subscription.active':
-        await handleSubscriptionActivated(payload);
-        break;
-      case 'subscription.updated':
-        await handleSubscriptionUpdated(payload);
-        break;
-      case 'subscription.payment_succeeded':
-        await handlePaymentSucceeded(payload);
-        break;
-      case 'subscription.payment_failed':
-        await handlePaymentFailed(payload);
-        break;
-      case 'subscription.cancelled':
-        await handleSubscriptionCancelled(payload);
-        break;
-      case 'subscription.failed':
-        await handleSubscriptionFailed(payload);
-        break;
-      case 'subscription.expired':
-        await handleSubscriptionExpired(payload);
-        break;
-      case 'subscription.renewed':
-        await handleSubscriptionRenewed(payload);
-        break;
-      case 'subscription.plan_changed':
-        await handleSubscriptionPlanChanged(payload);
-        break;
-      case 'subscription.on_hold':
-        await handleSubscriptionOnHold(payload);
-        break;
-      default:
-        console.log('Unhandled webhook event:', eventType);
+      switch (eventType) {
+        case 'subscription.created':
+          await handleSubscriptionCreated(payload);
+          break;
+        case 'subscription.activated':
+        case 'subscription.active':
+          await handleSubscriptionActivated(payload);
+          break;
+        case 'subscription.updated':
+          await handleSubscriptionUpdated(payload);
+          break;
+        case 'subscription.payment_succeeded':
+          await handlePaymentSucceeded(payload);
+          break;
+        case 'subscription.payment_failed':
+          await handlePaymentFailed(payload);
+          break;
+        case 'subscription.cancelled':
+          await handleSubscriptionCancelled(payload);
+          break;
+        case 'subscription.failed':
+          await handleSubscriptionFailed(payload);
+          break;
+        case 'subscription.expired':
+          await handleSubscriptionExpired(payload);
+          break;
+        case 'subscription.renewed':
+          await handleSubscriptionRenewed(payload);
+          break;
+        case 'subscription.plan_changed':
+          await handleSubscriptionPlanChanged(payload);
+          break;
+        case 'subscription.on_hold':
+          await handleSubscriptionOnHold(payload);
+          break;
+        default:
+          console.log('Unhandled webhook event:', eventType);
+      }
+    } catch (error) {
+      console.error('Error processing webhook payload:', error);
+      console.error('Payload that caused error:', JSON.stringify(payload, null, 2));
+      throw error;
     }
   },
 
   onSubscriptionActive: async (payload: any) => {
-    await handleSubscriptionActivated(payload);
+    try {
+      await handleSubscriptionActivated(payload);
+    } catch (error) {
+      console.error('Error in onSubscriptionActive:', error);
+      throw error;
+    }
   },
   onSubscriptionCancelled: async (payload: any) => {
-    await handleSubscriptionCancelled(payload);
+    try {
+      await handleSubscriptionCancelled(payload);
+    } catch (error) {
+      console.error('Error in onSubscriptionCancelled:', error);
+      throw error;
+    }
   },
   onSubscriptionRenewed: async (payload: any) => {
-    await handleSubscriptionRenewed(payload);
+    try {
+      await handleSubscriptionRenewed(payload);
+    } catch (error) {
+      console.error('Error in onSubscriptionRenewed:', error);
+      throw error;
+    }
   },
   onSubscriptionPlanChanged: async (payload: any) => {
-    await handleSubscriptionPlanChanged(payload);
+    try {
+      await handleSubscriptionPlanChanged(payload);
+    } catch (error) {
+      console.error('Error in onSubscriptionPlanChanged:', error);
+      throw error;
+    }
   },
   onSubscriptionOnHold: async (payload: any) => {
-    await handleSubscriptionOnHold(payload);
+    try {
+      await handleSubscriptionOnHold(payload);
+    } catch (error) {
+      console.error('Error in onSubscriptionOnHold:', error);
+      throw error;
+    }
   },
   onSubscriptionFailed: async (payload: any) => {
-    await handleSubscriptionFailed(payload);
+    try {
+      await handleSubscriptionFailed(payload);
+    } catch (error) {
+      console.error('Error in onSubscriptionFailed:', error);
+      throw error;
+    }
   },
   onSubscriptionExpired: async (payload: any) => {
-    await handleSubscriptionExpired(payload);
+    try {
+      await handleSubscriptionExpired(payload);
+    } catch (error) {
+      console.error('Error in onSubscriptionExpired:', error);
+      throw error;
+    }
   },
   onPaymentSucceeded: async (payload: any) => {
-    await handlePaymentSucceeded(payload);
+    try {
+      await handlePaymentSucceeded(payload);
+    } catch (error) {
+      console.error('Error in onPaymentSucceeded:', error);
+      throw error;
+    }
   },
   onPaymentFailed: async (payload: any) => {
-    await handlePaymentFailed(payload);
+    try {
+      await handlePaymentFailed(payload);
+      } catch (error) {
+      console.error('Error in onPaymentFailed:', error);
+      throw error;
+    }
   },
 });
 
