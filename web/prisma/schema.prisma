@@ -4,41 +4,42 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
+
 enum UserRole {
   USER
   ADMIN
 }
 
 model User {
-  id            String        @id @default(cuid())
-  name          String?
-  email         String        @unique
-  emailVerified Boolean       @default(false)
-  image         String?
-  role          UserRole      @default(USER) // USER by default; set to ADMIN in DB when needed
-  notesCount    Int           @default(0)
-  coursesCount  Int           @default(0) // Total courses created (for reference)
+  id                  String    @id @default(cuid())
+  name                String?
+  email               String    @unique
+  emailVerified       Boolean   @default(false)
+  image               String?
+  role                UserRole  @default(USER) // USER by default; set to ADMIN in DB when needed
+  notesCount          Int       @default(0)
+  coursesCount        Int       @default(0) // Total courses created (for reference)
   lastCourseResetDate DateTime? // Track when monthly course count was last reset
-  
+
   // Usage tracking (reset monthly on subscription renewal)
-  usedNotesThisMonth       Int       @default(0)
-  usedCoursesThisMonth     Int       @default(0)
-  usedPdfProcessingThisMonth Int     @default(0)
-  usedVideoProcessingThisMonth Int   @default(0)
-  usedAudioProcessingThisMonth Int   @default(0)
-  lastUsageResetDate       DateTime?
-  
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  
+  usedNotesThisMonth           Int       @default(0)
+  usedCoursesThisMonth         Int       @default(0)
+  usedPdfProcessingThisMonth   Int       @default(0)
+  usedVideoProcessingThisMonth Int       @default(0)
+  usedAudioProcessingThisMonth Int       @default(0)
+  lastUsageResetDate           DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  subscription  Subscription?
-  sessions      Session[]
-  accounts      Account[]
-  onboarding    UserOnboarding?
+  subscription Subscription?
+  sessions     Session[]
+  accounts     Account[]
+  onboarding   UserOnboarding?
 
   @@map("users")
 }
@@ -59,20 +60,20 @@ model Session {
 
 // Better Auth Account Model (for OAuth providers)
 model Account {
-  id                String   @id
-  accountId         String
-  providerId        String
-  userId            String
-  accessToken       String?
-  refreshToken      String?
-  idToken           String?
-  accessTokenExpiresAt DateTime?
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
-  scope             String?
-  password          String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
   @@map("accounts")
@@ -100,15 +101,15 @@ model Subscription {
   status             SubscriptionStatus @default(PENDING)
 
   // Feature allowances (null = unlimited)
-  notesPerMonth           Int?    // null for unlimited
-  coursesPerMonth         Int     @default(5)
-  pdfProcessingPerMonth   Int?    // null for unlimited
-  videoProcessingPerMonth Int?    // null for unlimited
-  audioProcessingPerMonth Int?    // null for unlimited
-  
+  notesPerMonth           Int? // null for unlimited
+  coursesPerMonth         Int  @default(5)
+  pdfProcessingPerMonth   Int? // null for unlimited
+  videoProcessingPerMonth Int? // null for unlimited
+  audioProcessingPerMonth Int? // null for unlimited
+
   // Discount tracking
-  dodoDiscountId          String?
-  amount                  Int?    // Actual charged amount in cents
+  dodoDiscountId String?
+  amount         Int? // Actual charged amount in cents
 
   // Billing period information
   currentPeriodStart DateTime?
@@ -180,21 +181,21 @@ model Folder {
 }
 
 model Note {
-  id             String             @id @default(cuid())
+  id             String            @id @default(cuid())
   title          String
   content        String
   transcriptId   String
   userId         String?
   folderId       String?
-  isCloned       Boolean            @default(false)
+  isCloned       Boolean           @default(false)
   sourceNoteId   String?
   originalAuthor String?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
   flashcard      Flashcard?
-  chunks         NoteChunk[]        @relation("NoteToChunks")
-  transcript     Transcript         @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
-  folder         Folder?            @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  chunks         NoteChunk[]       @relation("NoteToChunks")
+  transcript     Transcript        @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+  folder         Folder?           @relation(fields: [folderId], references: [id], onDelete: SetNull)
   quiz           Quiz?
   mindmap        MindMap?
   translations   NoteTranslation[]
@@ -208,17 +209,17 @@ model Note {
 }
 
 model SharedLink {
-  id         String    @id @default(cuid())
-  noteId     String
-  token      String    @unique
-  createdBy  String
-  createdAt  DateTime  @default(now())
-  expiresAt  DateTime?
-  viewCount  Int       @default(0)
-  isActive   Boolean   @default(true)
-  
-  note       Note      @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  
+  id        String    @id @default(cuid())
+  noteId    String
+  token     String    @unique
+  createdBy String
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  viewCount Int       @default(0)
+  isActive  Boolean   @default(true)
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
   @@index([token])
   @@index([noteId])
   @@index([createdBy])
@@ -279,36 +280,36 @@ model MindMap {
 }
 
 model Podcast {
-  id          String   @id @default(cuid())
-  noteId      String
-  userId      String?
-  
+  id     String  @id @default(cuid())
+  noteId String
+  userId String?
+
   // Microservice Integration
-  jobId       String?  @unique // Microservice job ID
-  podcastId   String?  @unique // Microservice podcast ID
-  
+  jobId     String? @unique // Microservice job ID
+  podcastId String? @unique // Microservice podcast ID
+
   // Status and Progress
-  status      PodcastStatus @default(GENERATING)
-  progress    Float?        @default(0)
+  status       PodcastStatus @default(GENERATING)
+  progress     Float?        @default(0)
   errorMessage String?
-  
+
   // Audio File Information
-  audioUrl    String?  // S3 URL from microservice
-  duration    Int?     // Duration in seconds
-  transcript  Json?    // Transcript array from microservice
-  
+  audioUrl   String? // S3 URL from microservice
+  duration   Int? // Duration in seconds
+  transcript Json? // Transcript array from microservice
+
   // Metadata
   title       String
   description String?
-  
+
   // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   completedAt DateTime?
-  
+
   // Relations
-  note        Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
   @@index([noteId])
   @@index([userId])
   @@index([status])
@@ -316,8 +317,6 @@ model Podcast {
   @@index([podcastId])
   @@map("podcasts")
 }
-
-
 
 model NoteChunk {
   id         Int                   @id @default(autoincrement())
@@ -445,17 +444,17 @@ enum PodcastStatus {
 
 // Blog posts (admin-created, markdown content)
 model BlogPost {
-  id                  String    @id @default(cuid())
-  title               String
-  slug                String    @unique
-  content             String    // Markdown
-  coverImageUrl       String?
-  instructorName      String
-  instructorImageUrl  String?
-  publishedAt         DateTime?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  createdById         String?
+  id                 String    @id @default(cuid())
+  title              String
+  slug               String    @unique
+  content            String // Markdown
+  coverImageUrl      String?
+  instructorName     String
+  instructorImageUrl String?
+  publishedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  createdById        String?
 
   @@index([slug])
   @@index([publishedAt])
@@ -464,29 +463,29 @@ model BlogPost {
 
 // User Onboarding Model
 model UserOnboarding {
-  id            String    @id @default(cuid())
-  userId        String    @unique
-  
+  id     String @id @default(cuid())
+  userId String @unique
+
   // Onboarding responses
-  source        String?   // How they found Flinote (instagram, tiktok, facebook, etc.)
-  userType      String?   // Who will use it (just-me, me-family, someone-else)
-  role          String?   // Role/occupation (professional, student, parent, teacher, administrator)
-  features      Json?     // Array of selected features (record, notes, transcripts, ai-chat, quiz, flashcards)
-  studyIntensity String?  // Study time commitment (light, regular, focused, intense)
-  
+  source         String? // How they found Flinote (instagram, tiktok, facebook, etc.)
+  userType       String? // Who will use it (just-me, me-family, someone-else)
+  role           String? // Role/occupation (professional, student, parent, teacher, administrator)
+  features       Json? // Array of selected features (record, notes, transcripts, ai-chat, quiz, flashcards)
+  studyIntensity String? // Study time commitment (light, regular, focused, intense)
+
   // Marketing: opt-in for tips and product updates (synced to Loops)
   wantsProductUpdates Boolean @default(true)
 
   // Completion tracking
-  isCompleted   Boolean   @default(false)
-  completedAt   DateTime?
-  currentStep   Int       @default(1) // Track which step they're on
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  currentStep Int       @default(1) // Track which step they're on
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([isCompleted])
   @@map("user_onboarding")

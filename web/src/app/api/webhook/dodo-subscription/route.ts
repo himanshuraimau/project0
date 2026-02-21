@@ -3,7 +3,8 @@
 
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { DodoWebhookService, DodoSubscriptionService } from '@/lib/payments/dodo';
+import { Webhook } from 'standardwebhooks';
+import { DodoSubscriptionService } from '@/lib/payments/dodo';
 import { SubscriptionService } from '@/lib/subscription-service';
 import { prisma } from '@/lib/prisma';
 import { PRO_PLAN_LIMITS } from '@/lib/config/subscription-limits';
@@ -40,9 +41,9 @@ export async function POST(request: Request) {
     const webhookId = headersList.get('webhook-id');
     const webhookSignature = headersList.get('webhook-signature');
     const webhookTimestamp = headersList.get('webhook-timestamp');
-    const webhookKey = process.env.DODO_PAYMENTS_WEBHOOK_KEY || process.env.DODO_WEBHOOK_KEY;
 
-    if (!webhookKey) {
+    const webhookSecret = process.env.DODO_PAYMENTS_WEBHOOK_KEY;
+    if (!webhookSecret) {
       console.error('DODO_PAYMENTS_WEBHOOK_KEY not configured');
       return NextResponse.json(
         { error: 'Webhook configuration error' },
@@ -51,7 +52,7 @@ export async function POST(request: Request) {
     }
 
     if (!webhookId || !webhookSignature || !webhookTimestamp) {
-      console.error('Missing required webhook headers');
+      console.error('Missing required webhook headers:', { webhookId: !!webhookId, webhookSignature: !!webhookSignature, webhookTimestamp: !!webhookTimestamp });
       return NextResponse.json(
         { error: 'Missing webhook headers' },
         { status: 400 }
@@ -60,33 +61,28 @@ export async function POST(request: Request) {
 
     const body = await request.text();
 
-    // Verify timestamp (prevent replay attacks)
-    if (!DodoWebhookService.verifyWebhookTimestamp(webhookTimestamp)) {
-      console.error('Webhook timestamp verification failed');
-      return NextResponse.json(
-        { error: 'Invalid timestamp' },
-        { status: 401 }
-      );
-    }
-
-    // Verify signature (Standard Webhooks format)
-    if (!DodoWebhookService.verifyWebhookSignature(body, {
-      'webhook-id': webhookId,
-      'webhook-signature': webhookSignature,
-      'webhook-timestamp': webhookTimestamp,
-    }, webhookKey)) {
-      console.error('Invalid webhook signature');
+    // Use standardwebhooks library to verify (recommended by Dodo)
+    const wh = new Webhook(webhookSecret);
+    let payload: any;
+    
+    try {
+      payload = wh.verify(body, {
+        'webhook-id': webhookId,
+        'webhook-signature': webhookSignature,
+        'webhook-timestamp': webhookTimestamp,
+      });
+    } catch (verifyError) {
+      console.error('Webhook signature verification failed:', verifyError);
       return NextResponse.json(
         { error: 'Invalid signature' },
         { status: 401 }
       );
     }
 
-    // Parse webhook payload
-    const payload = JSON.parse(body);
     const eventType = payload.type;
 
-    console.log('Received Dodo webhook:', eventType, payload);
+    console.log('✅ Received Dodo webhook:', eventType);
+    console.log('Webhook payload:', JSON.stringify(payload, null, 2));
 
     // Handle different event types
     switch (eventType) {

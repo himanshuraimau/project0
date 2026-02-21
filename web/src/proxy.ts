@@ -18,7 +18,7 @@ const publicRoutes = [
   "/api/auth", // Better Auth endpoints
   "/api/health",
   "/api/webhooks", // Webhook endpoints (authenticated via secret header)
-  "/api/webhook",
+  "/api/webhook", // Dodo webhook endpoint (authenticated via signature verification)
   "/api/notes",
   "/api/transcripts",
   "/api/documents",
