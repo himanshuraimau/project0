@@ -44,7 +44,7 @@ const settingsNavItems: {
   {
     title: "Contact support",
     icon: HeadphonesIcon,
-    href: "/dashboard/support",
+    href: "/settings/support",
     id: "support",
   },
   {

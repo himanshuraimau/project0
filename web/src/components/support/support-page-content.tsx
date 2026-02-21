@@ -1,18 +1,24 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Mail01Icon,
   NoteEditIcon,
   CreditCardIcon,
+  SentIcon,
 } from "@hugeicons/core-free-icons";
+import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
 
 const FAQ_SECTIONS = [
   {
@@ -56,7 +62,123 @@ const FAQ_SECTIONS = [
   },
 ] as const;
 
+const SUBJECT_MIN_LENGTH = 3;
+const SUBJECT_MAX_LENGTH = 120;
+const MESSAGE_MIN_LENGTH = 10;
+const MESSAGE_MAX_LENGTH = 2000;
+
+interface ContactSupportResponse {
+  success?: boolean;
+  message?: string;
+}
+
 export function SupportPageContent() {
+  const { data: session } = useSession();
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [result, setResult] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const trimmedSubjectLength = subject.trim().length;
+  const trimmedMessageLength = message.trim().length;
+
+  const canSubmit =
+    trimmedSubjectLength >= SUBJECT_MIN_LENGTH &&
+    trimmedSubjectLength <= SUBJECT_MAX_LENGTH &&
+    trimmedMessageLength >= MESSAGE_MIN_LENGTH &&
+    trimmedMessageLength <= MESSAGE_MAX_LENGTH &&
+    !!session?.user?.email &&
+    !isSubmitting;
+
+  const getValidationError = (): string | null => {
+    if (!session?.user?.email) {
+      return "Your account email is missing. Please sign in again.";
+    }
+    if (trimmedSubjectLength < SUBJECT_MIN_LENGTH) {
+      return `Subject must be at least ${SUBJECT_MIN_LENGTH} characters.`;
+    }
+    if (trimmedSubjectLength > SUBJECT_MAX_LENGTH) {
+      return `Subject must be less than ${SUBJECT_MAX_LENGTH + 1} characters.`;
+    }
+    if (trimmedMessageLength < MESSAGE_MIN_LENGTH) {
+      return `Message must be at least ${MESSAGE_MIN_LENGTH} characters.`;
+    }
+    if (trimmedMessageLength > MESSAGE_MAX_LENGTH) {
+      return `Message must be less than ${MESSAGE_MAX_LENGTH + 1} characters.`;
+    }
+    return null;
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+
+    const validationError = getValidationError();
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setResult("Sending....");
+    try {
+      const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY;
+      if (!accessKey) {
+        throw new Error(
+          "Support form is not configured. Add NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY."
+        );
+      }
+
+      const user = session?.user;
+      if (!user?.email) {
+        throw new Error("Your account email is missing. Please sign in again.");
+      }
+
+      const userName = user.name?.trim() || "Flinote user";
+      const userEmail = user.email.trim();
+
+      const formData = new FormData(formElement);
+      formData.set("access_key", accessKey);
+      formData.set("name", userName);
+      formData.set("email", userEmail);
+      formData.set("replyto", userEmail);
+      formData.set("subject", `[Flinote Support] ${subject.trim()}`);
+      formData.set("source", "Web settings contact support form");
+      formData.set("user_id", user.id);
+      formData.set("botcheck", "");
+
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = (await response.json().catch(() => null)) as
+        | ContactSupportResponse
+        | null;
+
+      if (!response.ok || !data?.success) {
+        throw new Error(
+          data?.message || "We could not send your message. Please try again."
+        );
+      }
+
+      setResult("Form Submitted Successfully");
+      toast.success("Message sent. Our support team will reach out soon.");
+      formElement.reset();
+      setSubject("");
+      setMessage("");
+    } catch (error) {
+      setResult("Error");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to send message right now."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <>
       {/* Intro */}
@@ -122,6 +244,84 @@ export function SupportPageContent() {
             </p>
           </div>
         </div>
+      </section>
+
+      {/* Contact form */}
+      <section className="rounded-2xl border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold text-foreground tracking-tight mb-1">
+          Contact us
+        </h2>
+        <p className="text-sm text-muted-foreground mb-5">
+          Share your issue or question and we will follow up on email.
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label
+              htmlFor="support-subject"
+              className="text-sm font-medium text-foreground"
+            >
+              Subject
+            </label>
+            <Input
+              id="support-subject"
+              name="subject"
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+              placeholder="Write a short subject"
+              maxLength={SUBJECT_MAX_LENGTH}
+              required
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {trimmedSubjectLength}/{SUBJECT_MAX_LENGTH}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="support-message"
+              className="text-sm font-medium text-foreground"
+            >
+              Message
+            </label>
+            <Textarea
+              id="support-message"
+              name="message"
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              placeholder="Tell us what happened and what you need help with."
+              rows={6}
+              maxLength={MESSAGE_MAX_LENGTH}
+              required
+            />
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Minimum {MESSAGE_MIN_LENGTH} characters.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {trimmedMessageLength}/{MESSAGE_MAX_LENGTH}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button type="submit" disabled={!canSubmit} className="min-w-32">
+              {isSubmitting ? (
+                "Sending..."
+              ) : (
+                <>
+                  <HugeiconsIcon icon={SentIcon} className="size-4" />
+                  Send message
+                </>
+              )}
+            </Button>
+          </div>
+          {!!result && (
+            <span className="block text-right text-sm text-muted-foreground">
+              {result}
+            </span>
+          )}
+        </form>
       </section>
     </>
   );

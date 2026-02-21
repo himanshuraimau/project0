@@ -6,3 +6,4 @@ export { ProfileCard } from "./ProfileCard";
 export { PreferencesCard } from "./PreferencesCard";
 export { NotificationsCard } from "./NotificationsCard";
 export { SubscriptionCard } from "./SubscriptionCard";
+export { SupportContent } from "./SupportContent";

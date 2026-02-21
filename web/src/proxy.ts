@@ -151,6 +151,7 @@ export async function proxy(req: NextRequest) {
       "https://vercel.live " +
       "https://www.youtube.com https://s.ytimg.com " +
       "https://utfs.io https://api.uploadthing.com " +
+      "https://api.web3forms.com " +
       "https://*.amazonaws.com " + // AWS S3 buckets for audio uploads
       "https://*.pusher.com wss://*.pusher.com; " + // Pusher real-time updates
       "media-src 'self' " +
