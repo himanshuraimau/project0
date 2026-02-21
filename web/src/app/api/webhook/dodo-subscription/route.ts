@@ -1,9 +1,7 @@
 // Webhook endpoint to handle Dodo Payments subscription events
-// Uses Standard Webhooks specification
+// Uses the official @dodopayments/nextjs adapter for signature verification
 
-import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-import { Webhook } from 'standardwebhooks';
+import { Webhooks } from '@dodopayments/nextjs';
 import { DodoSubscriptionService } from '@/lib/payments/dodo';
 import { SubscriptionService } from '@/lib/subscription-service';
 import { prisma } from '@/lib/prisma';
@@ -30,61 +28,20 @@ async function resetUsageCounters(userId: string): Promise<void> {
     console.log(`🔄 Reset usage counters for user ${userId}`);
   } catch (error) {
     console.error('Error resetting usage counters:', error);
-    // Don't throw - this shouldn't fail the webhook
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    // Get webhook headers (Standard Webhooks format)
-    const headersList = await headers();
-    const webhookId = headersList.get('webhook-id');
-    const webhookSignature = headersList.get('webhook-signature');
-    const webhookTimestamp = headersList.get('webhook-timestamp');
-
-    const webhookSecret = process.env.DODO_PAYMENTS_WEBHOOK_KEY;
-    if (!webhookSecret) {
-      console.error('DODO_PAYMENTS_WEBHOOK_KEY not configured');
-      return NextResponse.json(
-        { error: 'Webhook configuration error' },
-        { status: 500 }
-      );
-    }
-
-    if (!webhookId || !webhookSignature || !webhookTimestamp) {
-      console.error('Missing required webhook headers:', { webhookId: !!webhookId, webhookSignature: !!webhookSignature, webhookTimestamp: !!webhookTimestamp });
-      return NextResponse.json(
-        { error: 'Missing webhook headers' },
-        { status: 400 }
-      );
-    }
-
-    const body = await request.text();
-
-    // Use standardwebhooks library to verify (recommended by Dodo)
-    const wh = new Webhook(webhookSecret);
-    let payload: any;
-    
-    try {
-      payload = wh.verify(body, {
-        'webhook-id': webhookId,
-        'webhook-signature': webhookSignature,
-        'webhook-timestamp': webhookTimestamp,
-      });
-    } catch (verifyError) {
-      console.error('Webhook signature verification failed:', verifyError);
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      );
-    }
-
+// Use the official Dodo Next.js webhook handler
+// This handles signature verification automatically
+export const POST = Webhooks({
+  webhookKey: process.env.DODO_PAYMENTS_WEBHOOK_KEY!,
+  
+  // Generic handler for all payloads - we route to specific handlers
+  onPayload: async (payload: any) => {
     const eventType = payload.type;
-
     console.log('✅ Received Dodo webhook:', eventType);
     console.log('Webhook payload:', JSON.stringify(payload, null, 2));
 
-    // Handle different event types
     switch (eventType) {
       case 'subscription.created':
         await handleSubscriptionCreated(payload);
@@ -134,16 +91,54 @@ export async function POST(request: Request) {
       default:
         console.log('Unhandled webhook event:', eventType);
     }
+  },
 
-    return NextResponse.json({ received: true });
-  } catch (error) {
-    console.error('Error processing webhook:', error);
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    );
-  }
-}
+  // Specific event handlers (these also get called by the adapter)
+  onSubscriptionActive: async (payload: any) => {
+    console.log('✅ onSubscriptionActive called');
+    await handleSubscriptionActivated(payload);
+  },
+
+  onSubscriptionCancelled: async (payload: any) => {
+    console.log('✅ onSubscriptionCancelled called');
+    await handleSubscriptionCancelled(payload);
+  },
+
+  onSubscriptionRenewed: async (payload: any) => {
+    console.log('✅ onSubscriptionRenewed called');
+    await handleSubscriptionRenewed(payload);
+  },
+
+  onSubscriptionPlanChanged: async (payload: any) => {
+    console.log('✅ onSubscriptionPlanChanged called');
+    await handleSubscriptionPlanChanged(payload);
+  },
+
+  onSubscriptionOnHold: async (payload: any) => {
+    console.log('✅ onSubscriptionOnHold called');
+    await handleSubscriptionOnHold(payload);
+  },
+
+  onSubscriptionFailed: async (payload: any) => {
+    console.log('✅ onSubscriptionFailed called');
+    await handleSubscriptionFailed(payload);
+  },
+
+  onSubscriptionExpired: async (payload: any) => {
+    console.log('✅ onSubscriptionExpired called');
+    await handleSubscriptionExpired(payload);
+  },
+
+  onPaymentSucceeded: async (payload: any) => {
+    console.log('✅ onPaymentSucceeded called');
+    await handlePaymentSucceeded(payload);
+  },
+
+  onPaymentFailed: async (payload: any) => {
+    console.log('✅ onPaymentFailed called');
+    await handlePaymentFailed(payload);
+  },
+});
 
 // Handler functions for each event type
 
@@ -230,8 +225,6 @@ async function handleSubscriptionCreated(payload: any) {
       await SubscriptionService.deleteSubscription(customerId);
     } catch (deleteErr) {
       console.error('Error deleting old subscription in subscription.created webhook:', deleteErr);
-      // If delete fails, the create below will also fail due to unique constraint
-      // Let it fail and log the error
     }
   }
 
@@ -730,11 +723,9 @@ async function handleSubscriptionRenewed(payload: any) {
         );
       } else {
         console.error('Failed to execute scheduled plan change:', changeResult.error);
-        // Don't fail the renewal, just log the error
       }
     } catch (error) {
       console.error('Error executing scheduled plan change:', error);
-      // Don't fail the renewal, just log the error
     }
   }
 
