@@ -1,16 +1,24 @@
 import { Stack, Redirect } from 'expo-router'
 import { useSession } from '@/lib/auth'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { View, ActivityIndicator } from 'react-native'
 import { OnboardingProvider } from '@/lib/contexts/OnboardingContext'
 
 export default function OnboardingLayout() {
   const { data: session, isPending } = useSession()
+  const { theme } = useTheme()
 
-  // Show loading while checking auth
   if (isPending) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
-        <ActivityIndicator size="large" color="#fff" />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     )
   }

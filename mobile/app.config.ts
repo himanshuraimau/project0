@@ -29,6 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         edgeToEdgeEnabled: true,
         softwareKeyboardLayoutMode: "resize",
         permissions: [
+            "android.permission.INTERNET",
             "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",

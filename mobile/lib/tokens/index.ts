@@ -1,9 +1,9 @@
-import { getTheme } from '@/lib/theme/semantic'
-import type { ThemeMode } from '@/lib/theme/types'
+import { themeWithCompat } from '@/lib/design-system'
+import type { ThemeMode } from '@/lib/design-system'
 
 export const tokens = {
   card: (mode: ThemeMode = 'light') => {
-    const t = getTheme(mode)
+    const t = themeWithCompat(mode)
     return {
       backgroundColor: t.colors.surface,
       borderColor: t.colors.border,
@@ -15,7 +15,7 @@ export const tokens = {
   },
 
   button: (mode: ThemeMode = 'light') => {
-    const t = getTheme(mode)
+    const t = themeWithCompat(mode)
     return {
       container: {
         backgroundColor: t.colors.primary,
@@ -37,7 +37,7 @@ export const tokens = {
   },
 
   socialButton: (mode: ThemeMode = 'light') => {
-    const t = getTheme(mode)
+    const t = themeWithCompat(mode)
     return {
       container: {
         backgroundColor: t.colors.surface,
@@ -59,7 +59,7 @@ export const tokens = {
   },
 
   headline: (mode: ThemeMode = 'light') => {
-    const t = getTheme(mode)
+    const t = themeWithCompat(mode)
     return {
       color: t.colors.text,
       fontSize: t.fontSize['2xl'],
@@ -69,7 +69,7 @@ export const tokens = {
   },
 
   input: (mode: ThemeMode = 'light') => {
-    const t = getTheme(mode)
+    const t = themeWithCompat(mode)
     return {
       container: {
         backgroundColor: t.colors.inputBackground,
@@ -90,7 +90,7 @@ export const tokens = {
   },
 
   link: (mode: ThemeMode = 'light') => {
-    const t = getTheme(mode)
+    const t = themeWithCompat(mode)
     return {
       color: t.colors.accent,
       textDecorationLine: 'none' as const,
