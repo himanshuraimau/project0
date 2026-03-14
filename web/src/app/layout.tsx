@@ -24,7 +24,7 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://flinote.ai";
 
 export const metadata: Metadata = {
   title: {
-    default: "Flinote – AI-Powered Study Tools | Notes, Flashcards & Quizzes",
+    default: "Flinote",
     template: "%s | Flinote",
   },
   description:

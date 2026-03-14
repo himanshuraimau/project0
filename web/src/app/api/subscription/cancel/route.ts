@@ -1,5 +1,3 @@
-// API endpoint to cancel user's subscription
-
 import { NextResponse, NextRequest } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { PaymentService } from '@/lib/payments';
@@ -9,26 +7,18 @@ export async function POST(request: NextRequest) {
     const userId = await getUserFromAuth(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get body params (body may be empty)
     let body: { cancelAtPeriodEnd?: boolean } = {};
     try {
       body = await request.json();
     } catch {
-      // Empty body is fine, use defaults
+      // Empty body is fine
     }
     const { cancelAtPeriodEnd = true } = body;
 
-    // Cancel subscription using centralized PaymentService
-    const subscription = await PaymentService.cancelSubscription({
-      userId,
-      cancelAtPeriodEnd,
-    });
+    const subscription = await PaymentService.cancelSubscription({ userId, cancelAtPeriodEnd });
 
     return NextResponse.json({
       success: true,
@@ -39,24 +29,18 @@ export async function POST(request: NextRequest) {
         cancelledAt: subscription.cancelledAt,
       },
       message: cancelAtPeriodEnd
-        ? `Your subscription will be cancelled at the end of the current billing period (${formatDate(subscription.currentPeriodEnd || subscription.nextBillingDate)}). Any scheduled plan changes have also been cancelled.`
+        ? `Your subscription will be cancelled at the end of the current billing period (${formatDate(subscription.currentPeriodEnd || subscription.nextBillingDate)}).`
         : 'Your subscription has been cancelled immediately.',
     });
   } catch (error: any) {
     console.error('Error cancelling subscription:', error);
-    
+
     if (error.message?.includes('not found')) {
-      return NextResponse.json(
-        { error: 'No subscription found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
     }
 
     if (error.message?.includes('already cancelled')) {
-      return NextResponse.json(
-        { error: 'Subscription is already cancelled' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Subscription is already cancelled' }, { status: 400 });
     }
 
     return NextResponse.json(
@@ -69,10 +53,5 @@ export async function POST(request: NextRequest) {
 function formatDate(date: Date | string | null | undefined): string {
   if (!date) return 'the end of your billing period';
   const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
-

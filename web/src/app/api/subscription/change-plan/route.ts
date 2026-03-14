@@ -1,30 +1,17 @@
-// API endpoint to change subscription plan (e.g., monthly to yearly)
-// Supports both immediate (with proration) and scheduled (at renewal) changes
-// Default: immediate upgrade for monthly→yearly (plan updates right away); scheduled for downgrades
-
 import { NextResponse, NextRequest } from 'next/server';
 import { PaymentService } from '@/lib/payments';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import type { BillingInterval } from '@/lib/payments';
-
-interface ChangePlanRequest {
-  targetPlan: 'yearly' | 'monthly';
-  immediate?: boolean; // If true, change immediately with proration; if false, schedule at renewal
-}
 
 export async function POST(request: NextRequest) {
   try {
     const userId = await getUserFromAuth(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body: ChangePlanRequest = await request.json();
-    // Default immediate=true for upgrades so plan/billing updates right away (fixes stale next_billing display)
+    const body = await request.json();
     const { targetPlan, immediate = true } = body;
 
     if (!targetPlan || !['yearly', 'monthly'].includes(targetPlan)) {
@@ -34,21 +21,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Change plan using centralized PaymentService
     const { subscription, changeType, scheduledChange } = await PaymentService.changePlan({
       userId,
       targetBillingInterval: targetPlan as BillingInterval,
       immediate,
     });
 
-    // Format the response message
     let message: string;
     if (immediate) {
       message = changeType === 'upgrade'
-        ? `Successfully upgraded to ${targetPlan} plan. The charge was applied immediately and your new billing cycle starts today.`
-        : `Successfully changed to ${targetPlan} plan. The charge was applied immediately and your new billing cycle starts today.`;
+        ? `Successfully upgraded to ${targetPlan} plan. The prorated charge was applied immediately.`
+        : `Successfully changed to ${targetPlan} plan. The prorated charge was applied immediately.`;
     } else {
-      message = `Successfully scheduled plan change to ${targetPlan}. You'll continue on your current plan until ${formatDate(subscription.nextBillingDate)}, then switch to ${targetPlan}.`;
+      message = `Successfully scheduled plan change to ${targetPlan}. You'll switch at your next billing date.`;
     }
 
     return NextResponse.json({
@@ -57,7 +42,7 @@ export async function POST(request: NextRequest) {
       subscription: {
         id: subscription.id,
         status: subscription.status,
-        productId: subscription.productId,
+        priceId: subscription.priceId,
       },
       changeType,
       scheduledChange: immediate ? false : scheduledChange,
@@ -66,24 +51,11 @@ export async function POST(request: NextRequest) {
     console.error('Error changing subscription plan:', error);
 
     if (error.message?.includes('not found')) {
-      return NextResponse.json(
-        { error: 'No active subscription found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'No active subscription found' }, { status: 404 });
     }
 
-    if (error.message?.includes('already on')) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
-    }
-
-    if (error.message?.includes('must be active')) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
+    if (error.message?.includes('already on') || error.message?.includes('must be active')) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     return NextResponse.json(
@@ -91,14 +63,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-function formatDate(date: Date | string | null | undefined): string {
-  if (!date) return 'your next billing date';
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
 }

@@ -38,12 +38,20 @@ export function Header() {
           </div>
         </Link>
 
-        <Link
-          href="/blog/"
-          className="hidden sm:block justify-self-center text-muted-foreground hover:text-foreground transition-colors text-[15px] font-medium"
-        >
-          Blog
-        </Link>
+        <div className="hidden sm:flex justify-self-center items-center gap-6">
+          <Link
+            href="/#features"
+            className="text-muted-foreground hover:text-foreground transition-colors text-[15px] font-medium"
+          >
+            Features
+          </Link>
+          <Link
+            href="/blog/"
+            className="text-muted-foreground hover:text-foreground transition-colors text-[15px] font-medium"
+          >
+            Blog
+          </Link>
+        </div>
 
         <div className="flex items-center justify-end gap-2">
           {session ? (
@@ -88,6 +96,13 @@ export function Header() {
       {isMenuOpen && (
         <div className="border-t border-border bg-background md:hidden">
           <div className="flex flex-col gap-1 px-4 py-4">
+            <Link
+              href="/#features"
+              onClick={() => setIsMenuOpen(false)}
+              className="rounded-lg px-4 py-3 text-foreground font-medium hover:bg-muted transition-colors"
+            >
+              Features
+            </Link>
             <Link
               href="/blog/"
               onClick={() => setIsMenuOpen(false)}

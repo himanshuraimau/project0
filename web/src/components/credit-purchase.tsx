@@ -30,7 +30,7 @@ const CREDIT_PLANS: CreditPlan[] = [
     credits: 100,
     price: 1999, // $19.99 in cents
     description: 'Best for regular users',
-    productId: process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO || 'pdt_ncCa7erBoNtO9GunYcJL3'
+    productId: process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID || ''
   },
   {
     id: 'enterprise',
@@ -38,7 +38,7 @@ const CREDIT_PLANS: CreditPlan[] = [
     credits: 500,
     price: 9999, // $99.99 in cents
     description: 'For teams and heavy usage',
-    productId: process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_ENTERPRISE || 'pdt_VJWdaLBqdd6pcy67TXlJ6'
+    productId: ''
   }
 ]
 

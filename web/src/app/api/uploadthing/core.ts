@@ -15,7 +15,7 @@ export const ourFileRouter = {
       maxFileCount: 1,
     },
     pdf: {
-      maxFileSize: "16MB", 
+      maxFileSize: "128MB",
       maxFileCount: 1,
     },
   })

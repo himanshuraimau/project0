@@ -1,4 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more
 
 
 /node_modules
@@ -10,14 +9,14 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
+
 /coverage
 
-# next.js
+# next
 /.next/
 /out/
 
-# production
+# producti
 /build
 
 # misc

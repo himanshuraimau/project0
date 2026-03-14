@@ -14,6 +14,8 @@ export const auth = betterAuth({
     requireEmailVerification: false, // Set to true in production with email service
   },
 
+  baseURL: process.env.NODE_ENV === "development" ? "http://localhost:3000/" : undefined,
+
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,

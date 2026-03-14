@@ -4,8 +4,6 @@ import React, { useCallback, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { genUploader } from "uploadthing/client";
-import type { OurFileRouter } from "@/app/api/uploadthing/core";
 import { useTheme } from "next-themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +15,30 @@ import { ArrowLeft01Icon, Image01Icon, UserIcon, CheckmarkCircle01Icon, Loading0
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-const { uploadFiles } = genUploader<OurFileRouter>();
+async function uploadImageToS3(file: File, scope: "blog" | "profile"): Promise<string> {
+  const res = await fetch("/api/image/upload-url", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      scope,
+    }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error ?? "Failed to get upload URL");
+  }
+  const { uploadUrl, publicUrl } = await res.json();
+  const uploadRes = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type },
+    body: file,
+  });
+  if (!uploadRes.ok) throw new Error("S3 upload failed");
+  return publicUrl;
+}
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default),
@@ -71,14 +92,13 @@ export function BlogEditorForm({ postId, initial }: BlogEditorFormProps) {
 
   const handleCoverFile = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = e.target.files;
-      if (!files?.length) return;
+      const file = e.target.files?.[0];
+      if (!file) return;
       setCoverUploading(true);
       e.target.value = "";
       try {
-        const res = await uploadFiles("blogImage", { files: Array.from(files) });
-        const url = res?.[0]?.url;
-        if (url) setCoverImageUrl(url);
+        const url = await uploadImageToS3(file, "blog");
+        setCoverImageUrl(url);
       } catch {
         toast.error("Cover image upload failed");
       } finally {
@@ -90,14 +110,13 @@ export function BlogEditorForm({ postId, initial }: BlogEditorFormProps) {
 
   const handleInstructorFile = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = e.target.files;
-      if (!files?.length) return;
+      const file = e.target.files?.[0];
+      if (!file) return;
       setInstructorUploading(true);
       e.target.value = "";
       try {
-        const res = await uploadFiles("blogImage", { files: Array.from(files) });
-        const url = res?.[0]?.url;
-        if (url) setInstructorImageUrl(url);
+        const url = await uploadImageToS3(file, "blog");
+        setInstructorImageUrl(url);
       } catch {
         toast.error("Instructor image upload failed");
       } finally {

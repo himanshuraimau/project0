@@ -7,98 +7,21 @@ import {
   SparklesIcon,
   Tick01Icon,
   LockIcon,
-  SmartPhone01Icon,
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
+import { initializePaddle } from "@paddle/paddle-js";
 
 type BillingInterval = "monthly" | "yearly";
-type PaymentRegion = "DEFAULT" | "IN";
 
-interface PricingCardProps {
-  defaultRegion?: PaymentRegion;
-}
-
-export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
+export function PricingCard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [billingInterval, setBillingInterval] =
     useState<BillingInterval>("yearly");
-  const [region, setRegion] = useState<PaymentRegion>(defaultRegion);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [zipcode, setZipcode] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [street, setStreet] = useState("");
 
   const pricing = {
-    monthly: {
-      price: 19.99,
-      priceINR: 1699,
-      period: "/month",
-      savings: null as string | null,
-      savingsINR: null as string | null,
-    },
-    yearly: {
-      price: 89,
-      priceINR: 7499,
-      period: "/year",
-      savings: "Save $151/year (63% off)",
-      savingsINR: "Save ₹12,889/year (63% off)",
-    },
-  };
-
-  const handleSubscribe = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Validate phone for India region
-      if (region === "IN") {
-        const cleanedPhone = phoneNumber.replace(/[\s\-\(\)]/g, '');
-        if (!cleanedPhone) {
-          setError("Phone number is required for UPI payments");
-          setLoading(false);
-          return;
-        }
-        // Validate it looks like an Indian number (10 digits starting with 6-9)
-        const phoneDigits = cleanedPhone.replace(/^\+?91/, '');
-        if (phoneDigits.length !== 10 || !/^[6-9]\d{9}$/.test(phoneDigits)) {
-          setError("Please enter a valid 10-digit Indian mobile number");
-          setLoading(false);
-          return;
-        }
-      }
-
-      const response = await fetch("/api/subscription/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          billingInterval,
-          region: region === "DEFAULT" ? undefined : region,
-          phoneNumber: region === "IN" ? phoneNumber.trim() : undefined,
-          zipcode: zipcode.trim() || undefined,
-          city: city.trim() || undefined,
-          state: state.trim() || undefined,
-          street: street.trim() || undefined,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.data?.checkoutUrl) {
-        window.location.href = data.data.checkoutUrl;
-      } else if (data.paymentLink) {
-        window.location.href = data.paymentLink;
-      } else if (data.error) {
-        setError(data.error);
-      }
-    } catch (err) {
-      setError("Failed to create subscription. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    monthly: { price: 19, period: "/month", savings: null as string | null },
+    yearly: { price: 89, period: "/year", savings: "Save 63% vs monthly" },
   };
 
   const features = [
@@ -108,15 +31,65 @@ export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
     "Priority support",
   ];
 
+  const handleSubscribe = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch("/api/subscription/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ billingInterval }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success || !data.data) {
+        setError(data.error || "Failed to start checkout. Please try again.");
+        return;
+      }
+
+      const { priceId, clientToken, environment, customerEmail, customData, discountCode } = data.data;
+
+      const returnUrl = data.data.returnUrl;
+
+      const paddle = await initializePaddle({
+        token: clientToken,
+        environment: environment === "production" ? "production" : "sandbox",
+        eventCallback: (event) => {
+          if (event.name === "checkout.completed" && event.data) {
+            const data = event.data as any;
+            const transactionId = data.transaction_id || '';
+            const url = new URL(returnUrl, window.location.origin);
+            if (transactionId) {
+              url.searchParams.set('transaction_id', transactionId);
+            }
+            url.searchParams.set('status', 'active');
+            window.location.href = url.toString();
+          }
+        },
+      });
+
+      if (!paddle) throw new Error("Paddle failed to initialize");
+
+      paddle.Checkout.open({
+        items: [{ priceId, quantity: 1 }],
+        customer: { email: customerEmail },
+        customData,
+        ...(discountCode ? { discountCode } : {}),
+        settings: { successUrl: returnUrl },
+      });
+    } catch {
+      setError("Failed to start checkout. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const currentPricing = pricing[billingInterval];
-  const isIndiaRegion = region === "IN";
-  const displayPrice = isIndiaRegion ? currentPricing.priceINR : currentPricing.price;
-  const currencySymbol = isIndiaRegion ? "₹" : "$";
-  const savingsText = isIndiaRegion ? currentPricing.savingsINR : currentPricing.savings;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
-      {/* Header */}
       <div className="text-center mb-8">
         <div className="inline-flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-5">
           <HugeiconsIcon icon={SparklesIcon} className="size-6" />
@@ -132,37 +105,6 @@ export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
         </p>
       </div>
 
-      {/* Region toggle */}
-      <div className="flex justify-center mb-4">
-        <div className="inline-flex rounded-full border border-border bg-muted/50 p-1">
-          <button
-            type="button"
-            onClick={() => setRegion("DEFAULT")}
-            className={cn(
-              "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-              region === "DEFAULT"
-                ? "bg-background text-foreground shadow-sm border border-border"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            International
-          </button>
-          <button
-            type="button"
-            onClick={() => setRegion("IN")}
-            className={cn(
-              "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-              region === "IN"
-                ? "bg-background text-foreground shadow-sm border border-border"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            🇮🇳 India (UPI)
-          </button>
-        </div>
-      </div>
-
-      {/* Billing toggle */}
       <div className="flex justify-center mb-6">
         <div className="inline-flex rounded-full border border-border bg-muted/50 p-1">
           <button
@@ -192,102 +134,28 @@ export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
         </div>
       </div>
 
-      {/* Price */}
       <div className="text-center mb-6">
         <div className="flex items-baseline justify-center gap-1.5 mb-1">
           <span className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            {currencySymbol}{displayPrice}
+            ${currentPricing.price}
           </span>
           <span className="text-lg text-muted-foreground">
             {currentPricing.period}
           </span>
         </div>
-        {savingsText && (
+        {currentPricing.savings && (
           <p className="text-sm font-medium text-primary mt-1">
-            {savingsText}
+            {currentPricing.savings}
           </p>
         )}
         <p className="text-xs text-muted-foreground mt-2">
           Cancel anytime · No commitment
         </p>
-        {isIndiaRegion && (
-          <p className="text-xs text-muted-foreground mt-1">
-            Pay with UPI, Google Pay, or Cards
-          </p>
-        )}
       </div>
 
-      {/* Billing address */}
-      <div className="space-y-3 mb-6">
-        {/* Phone - only for India */}
-        {isIndiaRegion && (
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-1.5">
-              Phone Number <span className="text-destructive">*</span>
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                +91
-              </span>
-              <input
-                type="tel"
-                id="phone"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="9876543210"
-                className="w-full h-10 pl-12 pr-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                maxLength={10}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Required for UPI payments
-            </p>
-          </div>
-        )}
-
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-          Billing Address
-        </p>
-
-        <input
-          type="text"
-          value={street}
-          onChange={(e) => setStreet(e.target.value)}
-          placeholder="Street address"
-          className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-        />
-
-        <div className="grid grid-cols-2 gap-3">
-          <input
-            type="text"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="City"
-            className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-          />
-          <input
-            type="text"
-            value={zipcode}
-            onChange={(e) => setZipcode(e.target.value)}
-            placeholder={isIndiaRegion ? "PIN code" : "ZIP code"}
-            className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            maxLength={isIndiaRegion ? 6 : 10}
-          />
-        </div>
-
-        <input
-          type="text"
-          value={state}
-          onChange={(e) => setState(e.target.value)}
-          placeholder="State"
-          className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-        />
-      </div>
-
-      {/* Features */}
       <ul className="space-y-3 mb-6">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-center gap-3">
+        {features.map((feature) => (
+          <li key={feature} className="flex items-center gap-3">
             <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
               <HugeiconsIcon icon={Tick01Icon} className="size-3" />
             </span>
@@ -311,7 +179,7 @@ export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
         {loading ? (
           <span className="flex items-center justify-center gap-2">
             <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            Creating subscription…
+            Opening checkout…
           </span>
         ) : (
           "Get started now"
@@ -320,8 +188,7 @@ export function PricingCard({ defaultRegion = "DEFAULT" }: PricingCardProps) {
 
       <p className="flex items-center justify-center gap-2 mt-5 text-xs text-muted-foreground">
         <HugeiconsIcon icon={LockIcon} className="size-3.5" />
-        Secure payment
-        {isIndiaRegion && " · RBI compliant"}
+        Secure payment via Paddle
       </p>
     </div>
   );

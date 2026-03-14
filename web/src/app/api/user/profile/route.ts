@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { UserService } from '@/lib/user-service'
 import { getUserFromAuth } from '@/lib/auth-helper'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
         hasSubscription: !!user.subscription,
         subscription: user.subscription ? {
           status: user.subscription.status,
-          productId: user.subscription.productId,
+          priceId: user.subscription.priceId,
           currentPeriodStart: user.subscription.currentPeriodStart,
           currentPeriodEnd: user.subscription.currentPeriodEnd,
           nextBillingDate: user.subscription.nextBillingDate,
@@ -43,6 +44,33 @@ export async function GET(request: NextRequest) {
       { error: 'Failed to fetch user profile' },
       { status: 500 }
     )
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const userId = await getUserFromAuth(request)
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { image } = await request.json()
+
+    if (typeof image !== 'string' || !image.startsWith('https://')) {
+      return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 })
+    }
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { image },
+      select: { id: true, image: true },
+    })
+
+    return NextResponse.json({ success: true, user })
+  } catch (error) {
+    console.error('Error updating profile image:', error)
+    return NextResponse.json({ error: 'Failed to update profile image' }, { status: 500 })
   }
 }
 
@@ -73,7 +101,7 @@ export async function POST(request: NextRequest) {
         hasSubscription: !!user.subscription,
         subscription: user.subscription ? {
           status: user.subscription.status,
-          productId: user.subscription.productId,
+          priceId: user.subscription.priceId,
           currentPeriodStart: user.subscription.currentPeriodStart,
           currentPeriodEnd: user.subscription.currentPeriodEnd,
           nextBillingDate: user.subscription.nextBillingDate,

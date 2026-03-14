@@ -5,7 +5,7 @@
  * like UPI and Google Pay for India.
  */
 
-import type { PaymentRegion } from '../payment-service';
+type PaymentRegion = 'IN' | 'US' | 'EU' | 'DEFAULT';
 
 // Indian phone number pattern: starts with +91 or 91, followed by 10 digits
 const INDIA_PHONE_REGEX = /^(?:\+?91)?[6-9]\d{9}$/;

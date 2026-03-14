@@ -1,14 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { UserIcon } from "@hugeicons/core-free-icons";
+import { UserIcon, Loading01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+
+async function uploadProfileImageToS3(file: File): Promise<string> {
+  const res = await fetch("/api/image/upload-url", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      scope: "profile",
+    }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error ?? "Failed to get upload URL");
+  }
+  const { uploadUrl, publicUrl } = await res.json();
+  const uploadRes = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type },
+    body: file,
+  });
+  if (!uploadRes.ok) throw new Error("Upload to S3 failed");
+  return publicUrl;
+}
 
 interface ProfileCardProps {
   user: {
@@ -26,13 +51,16 @@ export function ProfileCard({ user }: ProfileCardProps) {
   );
   const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user.image ?? null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [subscriptionData, setSubscriptionData] = useState<{
     hasSubscription: boolean;
     access?: { hasAccess: boolean };
     subscription?: {
-      productId: string;
+      priceId: string;
       metadata?: {
-        scheduledProductId?: string;
+        scheduledPriceId?: string;
         scheduledPlanType?: string;
       };
     };
@@ -97,9 +125,9 @@ export function ProfileCard({ user }: ProfileCardProps) {
     const hasAccess = subscriptionData?.hasSubscription && subscriptionData?.access?.hasAccess;
     if (!hasAccess) return "Free Plan";
     
-    const yearlyProductId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY;
-    const isYearly = subscriptionData.subscription?.productId === yearlyProductId;
-    const scheduledToYearly = subscriptionData.subscription?.metadata?.scheduledProductId === yearlyProductId;
+    const yearlyPriceId = process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID;
+    const isYearly = subscriptionData.subscription?.priceId === yearlyPriceId;
+    const scheduledToYearly = subscriptionData.subscription?.metadata?.scheduledPriceId === yearlyPriceId;
     
     if (scheduledToYearly && !isYearly) {
       return "Pro Plan (Monthly → Yearly)";
@@ -114,6 +142,29 @@ export function ProfileCard({ user }: ProfileCardProps) {
       return "bg-muted/50 text-muted-foreground";
     }
     return "bg-primary/10 text-primary";
+  };
+
+  const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setAvatarUploading(true);
+    try {
+      const url = await uploadProfileImageToS3(file);
+      // Save to DB
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: url }),
+      });
+      if (!res.ok) throw new Error("Failed to save profile image");
+      setAvatarUrl(url);
+      toast.success("Profile photo updated");
+    } catch {
+      toast.error("Could not upload photo. Try again.");
+    } finally {
+      setAvatarUploading(false);
+    }
   };
 
   const handleSaveChanges = async () => {
@@ -144,13 +195,35 @@ export function ProfileCard({ user }: ProfileCardProps) {
       <div className="p-6 space-y-6">
         {/* Avatar & identity */}
         <div className="flex items-start gap-4 pb-6 border-b border-border/80">
-          <div className="relative shrink-0">
+          <div className="relative shrink-0 group">
             <Avatar className="size-20 rounded-2xl border-2 border-border">
-              <AvatarImage src={user.image ?? undefined} alt="" />
+              <AvatarImage src={avatarUrl ?? undefined} alt="" />
               <AvatarFallback className="rounded-2xl bg-primary/15 text-primary text-xl font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>
+            {/* Upload overlay */}
+            <button
+              type="button"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={avatarUploading}
+              className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity disabled:cursor-not-allowed"
+              aria-label="Change profile photo"
+            >
+              {avatarUploading ? (
+                <HugeiconsIcon icon={Loading01Icon} className="size-5 text-white animate-spin" />
+              ) : (
+                <span className="text-xs text-white font-medium">Change</span>
+              )}
+            </button>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleAvatarFile}
+              disabled={avatarUploading}
+            />
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="font-semibold text-foreground truncate">

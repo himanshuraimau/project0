@@ -44,14 +44,14 @@ const envSchema = z.object({
   SCRAPPER_API_KEY: z.string().optional(),
   SCRAPE_DO_API_TOKEN: z.string().optional(),
   
-  // Payment Processing (Dodo Payments)
-  DODO_PAYMENTS_API_KEY: z.string().optional(),
-  DODO_PAYMENTS_WEBHOOK_KEY: z.string().optional(),
-  DODO_PAYMENTS_RETURN_URL: z.string().optional(),
-  DODO_PAYMENTS_ENVIRONMENT: z.enum(['test_mode', 'live_mode']).default('test_mode'),
-  NEXT_PUBLIC_DODO_PRODUCT_ID_PRO: z.string().optional(),
-  NEXT_PUBLIC_DODO_PRODUCT_ID_ENTERPRISE: z.string().optional(),
-  NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY: z.string().optional(),
+  // Payment Processing (Paddle)
+  PADDLE_API_KEY: z.string().optional(),
+  PADDLE_WEBHOOK_SECRET: z.string().optional(),
+  PADDLE_RETURN_URL: z.string().optional(),
+  NEXT_PUBLIC_PADDLE_CLIENT_TOKEN: z.string().optional(),
+  NEXT_PUBLIC_PADDLE_ENVIRONMENT: z.enum(['sandbox', 'production']).default('sandbox'),
+  NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID: z.string().optional(),
+  NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID: z.string().optional(),
   
   // Environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -164,15 +164,15 @@ export const config = {
   
   // Payments
   payments: {
-    dodo: {
-      apiKey: env.DODO_PAYMENTS_API_KEY || '',
-      webhookKey: env.DODO_PAYMENTS_WEBHOOK_KEY || '',
-      returnUrl: env.DODO_PAYMENTS_RETURN_URL || '',
-      environment: env.DODO_PAYMENTS_ENVIRONMENT,
-      products: {
-        pro: env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO || '',
-        proYearly: env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY || '',
-        enterprise: env.NEXT_PUBLIC_DODO_PRODUCT_ID_ENTERPRISE || '',
+    paddle: {
+      apiKey: env.PADDLE_API_KEY || '',
+      webhookSecret: env.PADDLE_WEBHOOK_SECRET || '',
+      returnUrl: env.PADDLE_RETURN_URL || '',
+      clientToken: env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN || '',
+      environment: env.NEXT_PUBLIC_PADDLE_ENVIRONMENT,
+      prices: {
+        monthly: env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID || '',
+        yearly: env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID || '',
       },
     },
   },

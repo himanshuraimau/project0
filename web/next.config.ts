@@ -24,6 +24,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "**.s3.**.amazonaws.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "avatar.vercel.sh",
       },
       {
@@ -73,9 +79,11 @@ const nextConfig: NextConfig = {
                   "https://challenges.cloudflare.com https://static.cloudflareinsights.com " +
                   "https://vercel.live " +
                   "https://www.youtube.com https://s.ytimg.com https://www.youtube.com/iframe_api " +
+                  "https://cdn.paddle.com " +
                   "http://localhost:* ws://localhost:*; " + // Allow dev server
                   "style-src 'self' 'unsafe-inline' " +
-                  "https://clerk.com https://*.clerk.accounts.dev; " +
+                  "https://clerk.com https://*.clerk.accounts.dev " +
+                  "https://cdn.paddle.com https://sandbox-cdn.paddle.com; " +
                   "img-src 'self' data: https: " +
                   "https://img.youtube.com https://i.ytimg.com https://images.clerk.dev https://*.clerk.dev https://s.ytimg.com " +
                   "https://utfs.io; " + // UploadThing images
@@ -87,6 +95,7 @@ const nextConfig: NextConfig = {
                   "https://vercel.live " +
                   "https://www.youtube.com https://s.ytimg.com " +
                   "https://utfs.io https://api.uploadthing.com " + // UploadThing API
+                  "https://*.paddle.com " + // Paddle API
                   "https://*.amazonaws.com " + // AWS S3 buckets for audio uploads
                   "https://*.pusher.com wss://*.pusher.com " + // Pusher real-time updates
                   "ws://localhost:* http://localhost:*; " + // Allow dev server websockets
@@ -97,7 +106,8 @@ const nextConfig: NextConfig = {
                   "frame-src 'self' " +
                   "https://www.youtube.com https://www.youtube-nocookie.com " +
                   "https://clerk.com https://*.clerk.accounts.dev " +
-                  "https://challenges.cloudflare.com; " +
+                  "https://challenges.cloudflare.com " +
+                  "https://*.paddle.com; " + // Paddle checkout overlay
                   "worker-src blob:; " +
                   "child-src blob:;"
                 : "", // Production CSP handled by middleware

@@ -1,12 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { PaymentService, type PaymentRegion } from '@/lib/payments';
+import { PaymentService } from '@/lib/payments';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import type { BillingInterval } from '@/lib/payments';
-
-// Valid payment regions
-const VALID_REGIONS: PaymentRegion[] = ['IN', 'US', 'EU', 'DEFAULT'];
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,12 +15,6 @@ export async function POST(request: NextRequest) {
 
     let billingInterval: BillingInterval = 'monthly';
     let discountCode: string | undefined;
-    let region: PaymentRegion | undefined;
-    let phoneNumber: string | undefined;
-    let zipcode: string | undefined;
-    let city: string | undefined;
-    let state: string | undefined;
-    let street: string | undefined;
 
     try {
       const body = await request.json();
@@ -32,25 +23,6 @@ export async function POST(request: NextRequest) {
       }
       if (body.discountCode && typeof body.discountCode === 'string') {
         discountCode = body.discountCode.trim();
-      }
-      // Parse regional payment options
-      if (body.region && VALID_REGIONS.includes(body.region)) {
-        region = body.region;
-      }
-      if (body.phoneNumber && typeof body.phoneNumber === 'string') {
-        phoneNumber = body.phoneNumber.trim();
-      }
-      if (body.zipcode && typeof body.zipcode === 'string') {
-        zipcode = body.zipcode.trim();
-      }
-      if (body.city && typeof body.city === 'string') {
-        city = body.city.trim();
-      }
-      if (body.state && typeof body.state === 'string') {
-        state = body.state.trim();
-      }
-      if (body.street && typeof body.street === 'string') {
-        street = body.street.trim();
       }
     } catch {
       // Default to monthly if no body
@@ -67,29 +39,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User email not found' }, { status: 400 });
     }
 
-    const result = await PaymentService.createSubscription({
+    const checkoutData = await PaymentService.getCheckoutData({
       userId,
       userEmail: email,
       userName: session.user.name || email.split('@')[0],
       billingInterval,
       discountCode,
-      region,
-      phoneNumber,
-      zipcode,
-      city,
-      state,
-      street,
     });
 
     return NextResponse.json({
       success: true,
-      data: {
-        checkoutUrl: result.checkoutUrl,
-        sessionId: result.sessionId,
-      },
-      message: region === 'IN' 
-        ? 'Redirecting to checkout. UPI and Google Pay available for India.' 
-        : 'Redirecting to checkout to complete payment.',
+      data: checkoutData,
     });
   } catch (error: any) {
     console.error('Error creating subscription:', error);
@@ -98,6 +58,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ error: error.message || 'Failed to create subscription' }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || 'Failed to create subscription' },
+      { status: 500 }
+    );
   }
 }

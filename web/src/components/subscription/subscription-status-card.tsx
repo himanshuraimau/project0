@@ -25,7 +25,7 @@ interface SubscriptionStatus {
     id: string;
     status: string;
     displayStatus: string;
-    productId: string;
+    priceId: string;
     currentPeriodStart: string;
     currentPeriodEnd: string;
     nextBillingDate: string;
@@ -318,9 +318,8 @@ export function SubscriptionStatusCard() {
     });
   };
 
-  // Determine if yearly subscription based on product ID
-  const yearlyProductId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY;
-  const isYearly = subscription.productId === yearlyProductId;
+  const yearlyPriceId = process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID;
+  const isYearly = subscription.priceId === yearlyPriceId;
   const planDisplay = isYearly ? 'Pro - $89/year' : 'Pro - $19/month';
 
   return (
@@ -355,7 +354,19 @@ export function SubscriptionStatusCard() {
           </div>
         )}
 
-        {(subscription.cancelAtPeriodEnd || subscription.status === 'CANCELLED') && (
+        {/* Monthly Cancelled but still active: show only "Monthly Active until" (no upgrade/reactivate CTAs) */}
+        {!isYearly && subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && (
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
+            <p className="font-medium text-lg text-amber-600 dark:text-amber-400">
+              Monthly Active until: {formatDate(subscription.currentPeriodEnd) ?? formatDate(subscription.nextBillingDate) ?? 'the end of your billing period'}
+            </p>
+            <p className="text-base text-muted-foreground mt-2">
+              Nothing can be purchased until the current period ends.
+            </p>
+          </div>
+        )}
+        {/* Yearly cancelled or status CANCELLED: show standard cancelled message (with reactivate for yearly) */}
+        {((isYearly && subscription.cancelAtPeriodEnd) || subscription.status === 'CANCELLED') && (
           <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
             <p className="font-medium text-lg text-amber-600 dark:text-amber-400">
               Subscription cancelled
@@ -363,22 +374,8 @@ export function SubscriptionStatusCard() {
             <p className="text-base text-muted-foreground mt-2">
               You keep access until {formatDate(subscription.currentPeriodEnd) ?? formatDate(subscription.nextBillingDate) ?? 'the end of your billing period'}.
               {subscription.status === 'CANCELLED' && ' No future charges.'}
-              {subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && ' You can reactivate below to keep your plan after this period.'}
+              {subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && isYearly && ' You can reactivate below to keep your plan after this period.'}
             </p>
-          </div>
-        )}
-
-        {!isYearly && subscription.status === 'ACTIVE' && (
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 flex items-start gap-4">
-            <HugeiconsIcon icon={SparklesIcon} className="size-6 text-primary mt-0.5 shrink-0" />
-            <div>
-              <p className="font-medium text-lg text-primary">
-                {subscription.cancelAtPeriodEnd ? 'Change your mind? Upgrade to yearly!' : 'Upgrade to yearly and save!'}
-              </p>
-              <p className="text-base text-muted-foreground mt-1">
-                Switch to our yearly plan and save <strong className="text-foreground">$139 per year</strong> (61% off)
-              </p>
-            </div>
           </div>
         )}
 
@@ -429,16 +426,7 @@ export function SubscriptionStatusCard() {
               </Button>
             </>
           )}
-          {subscription.status === 'ACTIVE' && !isYearly && (
-            <Button
-              onClick={() => setShowUpgradeDialog(true)}
-              className="flex-1 rounded-xl h-12 text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
-              disabled={isRetryingPayment || isCancellingPending || isUpgrading}
-            >
-              <HugeiconsIcon icon={SparklesIcon} className="size-5" />
-              {subscription.cancelAtPeriodEnd ? 'Upgrade to Yearly (keeps your plan)' : 'Upgrade to Yearly - Save $139'}
-            </Button>
-          )}
+          {/* Upgrade to Yearly: hidden for monthly (nothing can be purchased until period ends when monthly cancelled) */}
           {subscription.cancelAtPeriodEnd && subscription.status === 'ACTIVE' && (
             <Button
               onClick={() => setShowReactivateConfirm(true)}
@@ -456,7 +444,7 @@ export function SubscriptionStatusCard() {
               className="rounded-xl h-12 px-5 text-base font-semibold"
               disabled={isRetryingPayment || isCancellingPending || isUpgrading}
             >
-              Cancel
+              {isYearly ? 'Cancel Yearly' : 'Cancel Monthly'}
             </Button>
           )}
           {subscription.status === 'ACTIVE' && (

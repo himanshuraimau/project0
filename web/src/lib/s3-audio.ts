@@ -127,6 +127,47 @@ export async function getPresignedPdfUrls(
   return { uploadUrl, downloadUrl, key };
 }
 
+export interface PresignedImageUrls {
+  uploadUrl: string;
+  publicUrl: string;
+  key: string;
+}
+
+/**
+ * Generate presigned PUT URL for client image upload.
+ * Returns both the presigned upload URL and the permanent public URL for the image.
+ * Keys use prefix images/ so they are not subject to temp lifecycle deletion.
+ */
+export async function getPresignedImageUrl(
+  userId: string,
+  fileName: string,
+  contentType: string,
+  prefix: string = "images"
+): Promise<PresignedImageUrls> {
+  const bucket = getBucket();
+  const safeName = sanitizeFileName(fileName);
+  const fileId = `${Date.now()}-${safeName}`;
+  const key = `${prefix}/${userId}/${fileId}`;
+
+  const client = getS3Client();
+  const region = process.env.AWS_REGION!;
+
+  const putCommand = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ContentType: contentType,
+  });
+
+  const uploadUrl = await getSignedUrl(client, putCommand, {
+    expiresIn: PRESIGNED_PUT_EXPIRES_IN,
+  });
+
+  // Permanent public URL (requires bucket/object to be publicly readable)
+  const publicUrl = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
+
+  return { uploadUrl, publicUrl, key };
+}
+
 export function isS3Configured(): boolean {
   return !!(
     process.env.AWS_REGION &&

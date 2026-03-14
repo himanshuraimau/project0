@@ -3,7 +3,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { SubscriptionService } from '@/lib/subscription-service';
-import { DodoSubscriptionService } from '@/lib/payments/dodo';
+import { PaddleSubscriptionService } from '@/lib/payments/paddle';
 
 export async function GET(request: NextRequest) {
   try {

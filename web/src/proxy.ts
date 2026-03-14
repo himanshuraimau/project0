@@ -18,7 +18,7 @@ const publicRoutes = [
   "/api/auth", // Better Auth endpoints
   "/api/health",
   "/api/webhooks", // Webhook endpoints (authenticated via secret header)
-  "/api/webhook", // Dodo webhook endpoint (authenticated via signature verification)
+  "/api/webhook", // Paddle webhook endpoint (authenticated via signature verification)
   "/api/notes",
   "/api/transcripts",
   "/api/documents",
@@ -140,8 +140,9 @@ export async function proxy(req: NextRequest) {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
       "https://challenges.cloudflare.com https://static.cloudflareinsights.com " +
       "https://vercel.live " +
-      "https://www.youtube.com https://s.ytimg.com https://www.youtube.com/iframe_api; " +
-      "style-src 'self' 'unsafe-inline'; " +
+      "https://www.youtube.com https://s.ytimg.com https://www.youtube.com/iframe_api " +
+      "https://cdn.paddle.com https://sandbox-cdn.paddle.com https://public.profitwell.com; " +
+      "style-src 'self' 'unsafe-inline' https://cdn.paddle.com https://sandbox-cdn.paddle.com; " +
       "img-src 'self' data: https: " +
       "https://img.youtube.com https://i.ytimg.com https://s.ytimg.com " +
       "https://utfs.io; " +
@@ -153,14 +154,16 @@ export async function proxy(req: NextRequest) {
       "https://utfs.io https://api.uploadthing.com " +
       "https://api.web3forms.com " +
       "https://*.amazonaws.com " + // AWS S3 buckets for audio uploads
-      "https://*.pusher.com wss://*.pusher.com; " + // Pusher real-time updates
+      "https://*.pusher.com wss://*.pusher.com " + // Pusher real-time updates
+      "https://*.paddle.com; " +
       "media-src 'self' " +
       "https://utfs.io " +
       "https://*.amazonaws.com " +
       "blob: data:; " +
       "frame-src 'self' " +
       "https://www.youtube.com https://www.youtube-nocookie.com " +
-      "https://challenges.cloudflare.com; " +
+      "https://challenges.cloudflare.com " +
+      "https://*.paddle.com; " +
       "worker-src blob:; " +
       "child-src blob:;",
   );

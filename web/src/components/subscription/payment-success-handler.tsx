@@ -13,15 +13,17 @@ export function PaymentSuccessHandler() {
       return;
     }
 
-    const dodoSubscriptionId = searchParams?.get('subscription_id') ?? '';
-    const dodoStatus = searchParams?.get('status') ?? '';
+    const paddleSubscriptionId = searchParams?.get('subscription_id') ?? '';
+    const paddleTransactionId = searchParams?.get('transaction_id') ?? '';
+    const paddleStatus = searchParams?.get('status') ?? '';
 
     let timeoutId: NodeJS.Timeout;
 
     const checkSubscriptionStatus = async () => {
       try {
         const params = new URLSearchParams();
-        if (dodoSubscriptionId) params.set('subscription_id', dodoSubscriptionId);
+        if (paddleSubscriptionId) params.set('subscription_id', paddleSubscriptionId);
+        if (paddleTransactionId) params.set('transaction_id', paddleTransactionId);
 
         const response = await fetch(`/api/subscription/status?${params.toString()}`);
         const data = await response.json();
@@ -32,6 +34,7 @@ export function PaymentSuccessHandler() {
           const url = new URL(window.location.href);
           url.searchParams.delete('payment');
           url.searchParams.delete('subscription_id');
+          url.searchParams.delete('transaction_id');
           url.searchParams.delete('status');
           url.searchParams.delete('email');
           url.searchParams.delete('license_key');
@@ -40,7 +43,7 @@ export function PaymentSuccessHandler() {
             window.location.href = url.toString();
           }, 1500);
         } else if (retryCount < 20) {
-          const delay = dodoStatus === 'active' ? 1000 : 2000;
+          const delay = paddleStatus === 'active' ? 1000 : 2000;
           timeoutId = setTimeout(() => {
             setRetryCount(prev => prev + 1);
           }, delay);

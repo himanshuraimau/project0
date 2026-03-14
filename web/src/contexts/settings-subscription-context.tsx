@@ -11,11 +11,11 @@ type SubscriptionData = {
     createdAt: string;
     displayStatus: string;
     status: string;
-    productId: string;
+    priceId: string;
     cancelAtPeriodEnd?: boolean;
     cancelledAt?: string | null;
     metadata?: {
-      scheduledProductId?: string;
+      scheduledPriceId?: string;
       scheduledPlanType?: string;
       scheduledAt?: string;
     };

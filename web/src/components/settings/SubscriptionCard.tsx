@@ -39,7 +39,7 @@ const PREMIUM_FEATURES = [
   "No watermarks",
 ];
 
-const PRICE_MONTHLY = 19.99;
+const PRICE_MONTHLY = 19;
 const PRICE_YEARLY = 89;
 const PRICE_YEARLY_PER_MONTH = PRICE_YEARLY / 12; // e.g. $7.42/mo when billed yearly
 
@@ -173,7 +173,7 @@ export function SubscriptionCard() {
   const handleUpgradeToYearly = async () => {
     setIsUpgrading(true);
     try {
-      // Use /upgrade for payment-link flow: redirects to Dodo checkout so user completes payment
+      // Use /upgrade for immediate plan change via Paddle API
       const response = await fetch("/api/subscription/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -207,16 +207,16 @@ export function SubscriptionCard() {
   };
 
   // Determine if user is on yearly plan
-  const yearlyProductId =
-    process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO_SUBSCRIPTION_YEARLY;
+  const yearlyPriceId =
+    process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID;
   const isYearly =
-    subscriptionData?.subscription?.productId === yearlyProductId;
+    subscriptionData?.subscription?.priceId === yearlyPriceId;
   const scheduledPlan =
-    subscriptionData?.subscription?.metadata?.scheduledProductId;
+    subscriptionData?.subscription?.metadata?.scheduledPriceId;
   const hasScheduledChange =
     scheduledPlan &&
-    scheduledPlan !== subscriptionData?.subscription?.productId;
-  const scheduledToYearly = scheduledPlan === yearlyProductId;
+    scheduledPlan !== subscriptionData?.subscription?.priceId;
+  const scheduledToYearly = scheduledPlan === yearlyPriceId;
 
   const planDisplay = hasActiveSubscription
     ? isYearly
@@ -268,7 +268,7 @@ export function SubscriptionCard() {
                 : "border-border bg-muted/20"
             }`}
           >
-            {hasScheduledChange && scheduledToYearly && (
+            {!isYearly && hasScheduledChange && scheduledToYearly && (
               <div className="absolute -top-3 right-4 inline-flex items-center gap-1.5 rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
                 <HugeiconsIcon
                   icon={CheckmarkCircle01Icon}
@@ -277,12 +277,7 @@ export function SubscriptionCard() {
                 Upgrading to Yearly
               </div>
             )}
-            {!isYearly && hasActiveSubscription && !hasScheduledChange && (
-              <div className="absolute -top-3 right-4 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-md">
-                <HugeiconsIcon icon={SparklesIcon} className="size-3.5" />
-                Save $151 with yearly!
-              </div>
-            )}
+            {/* Yearly upsell badge hidden for Monthly Cancelled (nothing to purchase until period ends) */}
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="min-w-0">
                 <span
@@ -311,7 +306,9 @@ export function SubscriptionCard() {
                           className="size-4 shrink-0"
                         />
                         {sub.cancelAtPeriodEnd || sub.status === "CANCELLED"
-                          ? `Access until ${nextBillingDisplay}`
+                          ? isYearly
+                            ? `Access until ${nextBillingDisplay}`
+                            : `Monthly Active until: ${nextBillingDisplay}`
                           : `Next billing: ${nextBillingDisplay}`}
                       </div>
                     )}
@@ -374,17 +371,9 @@ export function SubscriptionCard() {
                 </>
               ) : (
                 <>
-                  {!isYearly && !hasScheduledChange && (
-                    <Button
-                      onClick={() => setShowUpgradeDialog(true)}
-                      className="flex-1 rounded-xl h-11 px-5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 cursor-pointer font-medium gap-2"
-                      disabled={isUpgrading}
-                    >
-                      <HugeiconsIcon icon={SparklesIcon} className="size-4" />
-                      Upgrade to Yearly
-                    </Button>
-                  )}
-                  {hasScheduledChange &&
+                  {/* Upgrade UI: only for monthly (hidden for Yearly Active) */}
+                  {!isYearly &&
+                    hasScheduledChange &&
                     scheduledToYearly &&
                     nextBillingDisplay !== "—" && (
                       <div className="flex-1 rounded-xl h-11 px-5 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 flex items-center justify-center gap-2">
@@ -414,14 +403,14 @@ export function SubscriptionCard() {
                         ? "Reactivating…"
                         : "Reactivate subscription"}
                     </Button>
-                  ) : sub?.status !== "CANCELLED" ? (
+                  ) : sub?.status !== "CANCELLED" && !sub?.cancelAtPeriodEnd ? (
                     <Button
                       onClick={() => setShowCancelConfirm(true)}
                       variant="outline"
                       className="rounded-xl h-11 px-5 cursor-pointer border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive"
                       disabled={isUpgrading}
                     >
-                      Cancel subscription
+                      {isYearly ? "Cancel Yearly" : "Cancel Monthly"}
                     </Button>
                   ) : null}
                   <Button
@@ -568,20 +557,30 @@ export function SubscriptionCard() {
                 <div className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-3">
                   <HugeiconsIcon icon={CreditCardIcon} className="size-6" />
                 </div>
-                <p className="font-medium text-foreground">Past subscription</p>
+                <p className="font-medium text-foreground">Plan ended</p>
                 <p className="text-sm text-muted-foreground text-center mt-1 max-w-sm">
-                  You had a Pro subscription that has ended. View past invoices
-                  and payment history in the Billing Portal.
+                  Your Pro subscription has ended. Upgrade again or view past
+                  invoices in the Billing Portal.
                 </p>
-                <Button
-                  onClick={handleOpenBillingPortal}
-                  variant="outline"
-                  size="sm"
-                  className="mt-4 rounded-xl cursor-pointer"
-                  disabled={isOpeningPortal}
-                >
-                  {isOpeningPortal ? "Opening…" : "Open Billing Portal"}
-                </Button>
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  <Button
+                    onClick={handleUpgrade}
+                    size="sm"
+                    className="rounded-xl cursor-pointer"
+                  >
+                    <HugeiconsIcon icon={SparklesIcon} className="size-4 mr-1.5" />
+                    Upgrade to Pro
+                  </Button>
+                  <Button
+                    onClick={handleOpenBillingPortal}
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl cursor-pointer"
+                    disabled={isOpeningPortal}
+                  >
+                    {isOpeningPortal ? "Opening…" : "Billing Portal"}
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4 rounded-2xl border border-border bg-muted/20">
