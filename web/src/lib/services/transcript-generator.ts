@@ -6,7 +6,7 @@
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 
-const MAX_OUTPUT_CHARS = 2800; // Leave buffer for 3000 char limit
+const MAX_OUTPUT_CHARS = 4000; // Leave buffer for OpenAI TTS 4096 char limit
 
 const SYSTEM_PROMPT = `You are a professional narrator script writer. Your task is to convert study notes into a clear, engaging narration script.
 
@@ -19,8 +19,9 @@ RULES:
 6. Remove bullet points, numbered lists - convert to flowing prose
 7. Keep technical terms but explain them briefly when first introduced
 8. The output MUST be under ${MAX_OUTPUT_CHARS} characters
-9. Focus on the most important concepts if the content is long
-10. Start with a brief introduction and end with a summary
+9. The narration should be at most 6 minutes long when spoken aloud (roughly 900 words max). It can be shorter but NEVER longer.
+10. Focus on the most important concepts if the content is long
+11. Start with a brief introduction and end with a summary
 
 OUTPUT FORMAT:
 Just the narration script text, ready to be read aloud. No titles, no section headers, no formatting.`;
@@ -53,7 +54,7 @@ export async function generateVoiceTranscript(
     model: openai("gpt-5-mini"),
     system: SYSTEM_PROMPT,
     prompt: userPrompt,
-    maxOutputTokens: 1500,
+    maxOutputTokens: 2000,
   });
 
   // Ensure we don't exceed character limit
@@ -73,8 +74,8 @@ export async function generateVoiceTranscript(
   }
 
   const wordCount = transcript.split(/\s+/).length;
-  // Average speaking rate: 150 words per minute
-  const estimatedDurationSeconds = Math.round((wordCount / 150) * 60);
+  // Average speaking rate: 150 words per minute, capped at 6 minutes
+  const estimatedDurationSeconds = Math.min(Math.round((wordCount / 150) * 60), 360);
 
   return {
     transcript,

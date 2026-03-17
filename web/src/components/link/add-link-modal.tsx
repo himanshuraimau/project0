@@ -9,8 +9,6 @@ import {
   Cancel01Icon,
   Link01Icon,
   Folder01Icon,
-  MagicWand01Icon,
-  Loading01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   Select,
@@ -494,27 +492,19 @@ export function AddLinkModal({
         </div>
       </div>
 
+      {/* Processing status */}
+      {isProcessing && (
+        <p className="text-sm text-muted-foreground text-center mb-4">Processing…</p>
+      )}
+
       {/* Generate Notes */}
       <button
         type="button"
         onClick={handleGenerateNotes}
         disabled={isProcessing || !linkInput.trim()}
-        className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20"
+        className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex items-center justify-center cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20"
       >
-        {isProcessing ? (
-          <>
-            <HugeiconsIcon
-              icon={Loading01Icon}
-              className="size-4 shrink-0 animate-spin"
-            />
-            <span>Processing...</span>
-          </>
-        ) : (
-          <>
-            <HugeiconsIcon icon={MagicWand01Icon} className="size-4 shrink-0" />
-            <span>Generate notes</span>
-          </>
-        )}
+        Generate notes
       </button>
     </div>
   );

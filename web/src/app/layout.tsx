@@ -7,6 +7,7 @@ import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/react";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -137,6 +138,7 @@ export default function RootLayout({
           <UpgradeModalProvider>
             {children}
             <Toaster />
+            <Analytics />
           </UpgradeModalProvider>
         </ThemeProvider>
       </body>

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { prisma } from '@/lib/prisma';
 import { generateVoiceTranscript } from '@/lib/services/transcript-generator';
-import { getUnrealSpeechService } from '@/lib/services/unreal-speech';
+import { generateSpeechAudio } from '@/lib/services/openai-tts';
+import { uploadThingAudioStorageService } from '@/lib/uploadthing';
 
 export async function POST(request: NextRequest) {
     try {
@@ -85,20 +86,31 @@ export async function POST(request: NextRequest) {
 
             const transcriptResult = await generateVoiceTranscript(noteContent, note.title);
 
-            // Step 2: Generate audio using Unreal Speech
+            // Step 2: Generate audio using OpenAI TTS
             await prisma.podcast.update({
                 where: { id: podcast.id },
                 data: { progress: 50 },
             });
 
-            const unrealService = getUnrealSpeechService();
-            const { audioUrl, response } = await unrealService.generateAndDownloadAudio(
-                transcriptResult.transcript,
-                { VoiceId: 'Sierra' }
+            const audioBuffer = await generateSpeechAudio(transcriptResult.transcript);
+
+            // Step 3: Upload audio to UploadThing
+            await prisma.podcast.update({
+                where: { id: podcast.id },
+                data: { progress: 80 },
+            });
+
+            const { url: audioUrl } = await uploadThingAudioStorageService.uploadPodcastAudio(
+                audioBuffer,
+                {
+                    title: note.title,
+                    podcastId: podcast.id,
+                    duration: transcriptResult.estimatedDurationSeconds,
+                    size: audioBuffer.length,
+                    mimeType: 'audio/mpeg',
+                }
             );
 
-            // Step 3: Update database with completed status
-            // Note: Using Unreal Speech URL directly (expires in 90 days)
             await prisma.podcast.update({
                 where: { id: podcast.id },
                 data: { progress: 90 },

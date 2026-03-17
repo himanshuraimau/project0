@@ -11,7 +11,6 @@ import {
   Upload01Icon,
   Cancel01Icon,
   Folder01Icon,
-  MagicWand01Icon,
   Mic01Icon,
 } from "@hugeicons/core-free-icons";
 import {
@@ -472,36 +471,34 @@ export default function AudioUploadModal({
         </div>
       </div>
 
+      {/* Upload progress */}
+      {isProcessing && uploadProgress !== null && (
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Uploading…</span>
+            <span className="tabular-nums font-medium text-foreground">{uploadProgress}%</span>
+          </div>
+          <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full bg-primary transition-[width] duration-200 ease-out"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {isProcessing && uploadProgress === null && (
+        <p className="text-sm text-muted-foreground text-center mb-4">Creating notes…</p>
+      )}
+
       {/* Generate Notes */}
       <button
         type="button"
         onClick={transcribeAudio}
         disabled={isProcessing || !audioBlob}
-        className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex flex-col items-stretch justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20 overflow-hidden"
+        className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex items-center justify-center cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20"
       >
-        {isProcessing ? (
-          uploadProgress !== null ? (
-            <>
-              <div className="flex items-center justify-center gap-2">
-                <span className="tabular-nums font-medium">{uploadProgress}%</span>
-                <span className="text-primary-foreground/90">Uploading…</span>
-              </div>
-              <div className="w-full h-1.5 rounded-full bg-primary-foreground/20 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-primary-foreground/90 transition-[width] duration-200 ease-out"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </>
-          ) : (
-            <span className="text-primary-foreground/90">Creating notes…</span>
-          )
-        ) : (
-          <>
-            <HugeiconsIcon icon={MagicWand01Icon} className="size-4 shrink-0" />
-            <span>Generate notes</span>
-          </>
-        )}
+        Generate notes
       </button>
     </div>
   );
