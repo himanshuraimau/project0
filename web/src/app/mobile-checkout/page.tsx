@@ -1,7 +1,7 @@
 'use client';
 
 import { initializePaddle } from '@paddle/paddle-js';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 type MobileCheckoutData = {
@@ -21,7 +21,27 @@ function appendQuery(url: string, query: Record<string, string>) {
   return parsed.toString();
 }
 
-export default function MobileCheckoutPage() {
+function CheckoutStatus({ statusMessage, error }: { statusMessage: string; error: string | null }) {
+  return (
+    <main className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-sm text-center">
+        <h1 className="text-xl font-semibold mb-2">Flinote Checkout</h1>
+        {!error ? (
+          <p className="text-sm text-muted-foreground">{statusMessage}</p>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-xs text-muted-foreground">
+              Please go back to the app and try again.
+            </p>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
+
+function MobileCheckoutContent() {
   const searchParams = useSearchParams();
   const token = useMemo(() => searchParams?.get('token') ?? '', [searchParams]);
   const [statusMessage, setStatusMessage] = useState('Preparing secure checkout...');
@@ -92,21 +112,13 @@ export default function MobileCheckoutPage() {
     run();
   }, [token]);
 
+  return <CheckoutStatus statusMessage={statusMessage} error={error} />;
+}
+
+export default function MobileCheckoutPage() {
   return (
-    <main className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-sm text-center">
-        <h1 className="text-xl font-semibold mb-2">Flinote Checkout</h1>
-        {!error ? (
-          <p className="text-sm text-muted-foreground">{statusMessage}</p>
-        ) : (
-          <div className="space-y-3">
-            <p className="text-sm text-destructive">{error}</p>
-            <p className="text-xs text-muted-foreground">
-              Please go back to the app and try again.
-            </p>
-          </div>
-        )}
-      </div>
-    </main>
+    <Suspense fallback={<CheckoutStatus statusMessage="Preparing secure checkout..." error={null} />}>
+      <MobileCheckoutContent />
+    </Suspense>
   );
 }
