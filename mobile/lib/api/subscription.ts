@@ -2,7 +2,10 @@ import apiClient, { handleApiResponse, handleApiError } from './client';
 import {
   SubscriptionStatusResponse,
   CreateSubscriptionRequest,
+  CreateSubscriptionBackendResponse,
+  CreateSubscriptionApiEnvelope,
   CreateSubscriptionResponse,
+  LegacyCreateSubscriptionResponse,
   SubscriptionPortalResponse,
   PaymentLinkResponse,
   CancelPendingResponse,
@@ -11,7 +14,7 @@ import {
 
 /**
  * Subscription API Module
- * Handles subscription management with Dodo Payments
+ * Handles subscription management with Paddle Billing
  */
 
 /**
@@ -44,11 +47,32 @@ export const createSubscription = async (
   data: CreateSubscriptionRequest
 ): Promise<CreateSubscriptionResponse> => {
   try {
-    const response = await apiClient.post<ApiResponse<CreateSubscriptionResponse>>(
-      '/subscription/create',
+    const response = await apiClient.post<CreateSubscriptionBackendResponse>(
+      '/subscription/mobile-checkout',
       data
     );
-    return handleApiResponse<CreateSubscriptionResponse>(response);
+
+    const payload = response.data as CreateSubscriptionBackendResponse;
+
+    // New response shape: { success, data: { checkoutUrl } }
+    if (
+      (payload as CreateSubscriptionApiEnvelope)?.success &&
+      (payload as CreateSubscriptionApiEnvelope)?.data?.checkoutUrl
+    ) {
+      return {
+        checkoutUrl: (payload as CreateSubscriptionApiEnvelope).data!.checkoutUrl,
+        expiresAt: (payload as CreateSubscriptionApiEnvelope).data!.expiresAt,
+      };
+    }
+
+    // Legacy fallback: { checkoutUrl, sessionId? }
+    if ((payload as LegacyCreateSubscriptionResponse)?.checkoutUrl) {
+      return {
+        checkoutUrl: (payload as LegacyCreateSubscriptionResponse).checkoutUrl,
+      };
+    }
+
+    throw new Error((payload as CreateSubscriptionApiEnvelope)?.error || 'No checkout URL returned');
   } catch (error) {
     return handleApiError(error);
   }

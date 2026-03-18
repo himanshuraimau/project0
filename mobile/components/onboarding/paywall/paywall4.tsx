@@ -11,28 +11,36 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { authClient } from "@/lib/auth/auth-client";
+import * as WebBrowser from "expo-web-browser";
+import {
+  maybeCompleteAuthSessionOnce,
+  signInWithGoogleSingleFlight,
+} from "@/lib/auth/social-google";
+
+maybeCompleteAuthSessionOnce();
 
 export default function Paywall4() {
-  const router = useRouter();
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
+  const appScheme = (process.env.EXPO_PUBLIC_APP_SCHEME || "flinote").toLowerCase();
+
+  React.useEffect(() => {
+    void WebBrowser.warmUpAsync();
+    return () => {
+      void WebBrowser.coolDownAsync();
+    };
+  }, []);
 
   const handleGoogleAuth = React.useCallback(async () => {
     setIsGoogleLoading(true);
     try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/(home)",
-      });
-      router.replace("/(home)");
+      await signInWithGoogleSingleFlight(`${appScheme}://`);
     } catch (err: any) {
       console.error("Google OAuth error:", err);
       alert(err?.message || "Authentication failed. Please try again.");
     } finally {
       setIsGoogleLoading(false);
     }
-  }, [router]);
+  }, [appScheme]);
 
   return (
     <LinearGradient

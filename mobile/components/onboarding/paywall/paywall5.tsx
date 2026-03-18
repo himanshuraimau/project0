@@ -23,7 +23,7 @@ import BackButton from '../../ui/BackButton';
 
 /**
  * PaywallScreen Component
- * Displays subscription plans and handles payment flow via Dodo Payments
+ * Displays subscription plans and handles payment flow via Paddle Checkout
  */
 
 // Subscription plan configuration
@@ -44,7 +44,7 @@ const PLANS = [
         period: '/month',
         recommended: true,
         savings: 'Save 17%',
-        billingInterval: 'monthly' as const,
+        billingInterval: 'yearly' as const,
     },
 ];
 
@@ -61,6 +61,7 @@ export default function PaywallScreen() {
     const user = session?.user;
     const router = useRouter();
     const { isSubscribed, refreshSubscription } = useSubscription();
+    const appScheme = (process.env.EXPO_PUBLIC_APP_SCHEME || 'flinote').toLowerCase();
 
     const [selectedPlan, setSelectedPlan] = useState(PLANS[1].id); // Default to yearly
     const [isLoading, setIsLoading] = useState(false);
@@ -94,16 +95,24 @@ export default function PaywallScreen() {
 
             // Parse the URL
             if (url.includes('payment-status')) {
-                const urlParams = new URLSearchParams(url.split('?')[1]);
+                const queryString = url.includes('?') ? url.split('?')[1] : '';
+                const urlParams = new URLSearchParams(queryString);
                 const status = urlParams.get('status');
-                const sessionId = urlParams.get('session_id');
+                const transactionId = urlParams.get('transaction_id');
+                const subscriptionId = urlParams.get('subscription_id');
 
                 console.log('💳 Payment status:', status);
-                console.log('🆔 Session ID:', sessionId);
+                console.log('🧾 Transaction ID:', transactionId);
+                console.log('🆔 Subscription ID:', subscriptionId);
 
                 if (status === 'success') {
-                    // Refresh subscription status
+                    // Refresh subscription immediately and once again shortly after webhook processing
                     await refreshSubscription();
+                    setTimeout(() => {
+                        refreshSubscription().catch((error) => {
+                            console.error('Delayed refresh failed:', error);
+                        });
+                    }, 2000);
 
                     // Mark onboarding as completed
                     try {
@@ -164,7 +173,6 @@ export default function PaywallScreen() {
 
             // Get user info from Better Auth
             const userEmail = user?.email;
-            const userName = user?.name || 'User';
 
             if (!userEmail) {
                 Alert.alert(
@@ -184,12 +192,9 @@ export default function PaywallScreen() {
 
             // Create subscription checkout session
             const response = await createSubscription({
-                planId: selectedPlan,
-                customerEmail: userEmail,
-                customerName: userName,
-                successUrl: 'Flinote://payment-status?status=success',
-                cancelUrl: 'Flinote://payment-status?status=canceled',
                 billingInterval,
+                successUrl: `${appScheme}://payment-status`,
+                cancelUrl: `${appScheme}://payment-status`,
             });
 
             console.log('✅ Checkout session created:', response);

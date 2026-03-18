@@ -101,7 +101,8 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
             if (data?.subscription) {
                 console.log('  - id:', data.subscription.id);
                 console.log('  - status:', data.subscription.status);
-                console.log('  - productId:', data.subscription.productId);
+                console.log('  - priceId:', data.subscription.priceId);
+                console.log('  - legacy productId:', data.subscription.productId);
                 console.log('  - currentPeriodEnd:', data.subscription.currentPeriodEnd);
             }
             console.log('-------------------------------------------');

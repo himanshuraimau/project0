@@ -236,12 +236,12 @@ export const checkSubscription = async () => {
 /**
  * Example: Create a subscription
  */
-export const createNewSubscription = async (productId: string) => {
+export const createNewSubscription = async (billingInterval: 'monthly' | 'yearly' = 'monthly') => {
   try {
     const result = await subscriptionApi.createSubscription({
-      productId,
-      successUrl: 'myapp://subscription/success',
-      cancelUrl: 'myapp://subscription/cancel',
+      billingInterval,
+      successUrl: 'flinote://payment-status',
+      cancelUrl: 'flinote://payment-status',
     });
     console.log('Subscription checkout URL:', result.checkoutUrl);
     return result;

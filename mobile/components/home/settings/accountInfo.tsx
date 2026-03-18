@@ -1,8 +1,6 @@
 import React from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
-import { useRouter } from 'expo-router'
-import { useTheme } from '@/lib/hooks/useTheme'
 import { useSession } from '@/lib/auth'
 import { useTranslation } from 'react-i18next'
 import * as Clipboard from 'expo-clipboard'
@@ -18,6 +16,7 @@ import {
 import BackButton from '@/components/ui/BackButton'
 import { useSubscription } from '@/lib/contexts/SubscriptionContext'
 import { useAlert } from '@/lib/contexts/AlertContext';
+import { getSubscriptionPlanDisplay } from '@/lib/subscription/plan';
 
 interface InfoCardProps {
   icon: keyof typeof Feather.glyphMap
@@ -48,8 +47,6 @@ const InfoCard: React.FC<InfoCardProps> = ({ icon, label, value, iconBackgroundC
 }
 
 export default function AccountInfo() {
-  const { theme } = useTheme()
-  const router = useRouter()
   const { data: session } = useSession()
   const user = session?.user
   const { t } = useTranslation()
@@ -70,9 +67,7 @@ export default function AccountInfo() {
     if (!isSubscribed || !subscription) {
       return t('accountInfo.free')
     }
-    // Check if yearly based on productId containing 'yearly'
-    const isYearly = subscription.productId?.toLowerCase().includes('yearly')
-    return isYearly ? 'Pro - $199.99/year' : 'Pro - $19.99/month'
+    return getSubscriptionPlanDisplay(subscription)
   }
 
   const copyUserId = async () => {

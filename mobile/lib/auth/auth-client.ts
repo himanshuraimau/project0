@@ -7,12 +7,13 @@ import * as SecureStore from "expo-secure-store";
 // /api so the auth client posts to the correct endpoints (e.g. http://192.168.1.6:3000).
 const rawApiUrl = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 const AUTH_BASE_URL = rawApiUrl.replace(/\/api\/?$/i, "");
+const APP_SCHEME = (process.env.EXPO_PUBLIC_APP_SCHEME || "flinote").toLowerCase();
 
 export const authClient = createAuthClient({
   baseURL: AUTH_BASE_URL,
   plugins: [
     expoClient({
-      scheme: "flinote", // MUST match app scheme
+      scheme: APP_SCHEME, // MUST match app scheme in app.config.ts
       storagePrefix: "better-auth", // MUST match backend cookiePrefix
       storage: SecureStore,
     })

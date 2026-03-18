@@ -1,10 +1,12 @@
-import { authClient } from '@/lib/auth/auth-client'
 import { AuthScreenShell } from '@/components/auth/AuthScreenShell'
+import { maybeCompleteAuthSessionOnce, signInWithGoogleSingleFlight } from '@/lib/auth/social-google'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Alert, Text } from 'react-native'
 
-WebBrowser.maybeCompleteAuthSession()
+maybeCompleteAuthSessionOnce()
+const APP_SCHEME = (process.env.EXPO_PUBLIC_APP_SCHEME || 'flinote').toLowerCase()
+const MOBILE_AUTH_CALLBACK_URL = `${APP_SCHEME}://`
 
 function isNetworkError(err: unknown): boolean {
   if (err instanceof TypeError && err.message === 'Network request failed') return true
@@ -25,10 +27,11 @@ export default function SignInScreen() {
   const handleGoogleSignIn = useCallback(async () => {
     setLoading(true)
     try {
-      const response = await authClient.signIn.social({
-        provider: 'google',
-        callbackURL: '/(home)',
-      })
+      const result = await signInWithGoogleSingleFlight(MOBILE_AUTH_CALLBACK_URL)
+      if (result.skipped) {
+        return
+      }
+      const response = result.response
       if (response.data && !response.error) {
         // Navigation handled by auth layout
       } else {

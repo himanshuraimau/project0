@@ -1,11 +1,13 @@
-import { authClient } from '@/lib/auth/auth-client'
 import { AuthScreenShell } from '@/components/auth/AuthScreenShell'
+import { maybeCompleteAuthSessionOnce, signInWithGoogleSingleFlight } from '@/lib/auth/social-google'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Alert, Linking, Text } from 'react-native'
 import { useTheme } from '@/lib/hooks/useTheme'
 
-WebBrowser.maybeCompleteAuthSession()
+maybeCompleteAuthSessionOnce()
+const APP_SCHEME = (process.env.EXPO_PUBLIC_APP_SCHEME || 'flinote').toLowerCase()
+const MOBILE_AUTH_CALLBACK_URL = `${APP_SCHEME}://`
 
 const TERMS_URL = 'https://flinote.ai/terms'
 const PRIVACY_URL = 'https://flinote.ai/privacy'
@@ -32,10 +34,11 @@ export default function SignUpScreen() {
   const handleGoogleSignUp = useCallback(async () => {
     setLoading(true)
     try {
-      const response = await authClient.signIn.social({
-        provider: 'google',
-        callbackURL: '/(home)',
-      })
+      const result = await signInWithGoogleSingleFlight(MOBILE_AUTH_CALLBACK_URL)
+      if (result.skipped) {
+        return
+      }
+      const response = result.response
       if (response.data && !response.error) {
         // Navigation handled by auth layout
       } else {

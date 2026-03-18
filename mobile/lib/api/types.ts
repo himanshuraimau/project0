@@ -48,8 +48,10 @@ export interface User {
 export interface Subscription {
   id: string;
   userId: string;
-  dodoSubscriptionId: string;
-  productId: string;
+  paddleSubscriptionId?: string;
+  dodoSubscriptionId?: string; // legacy fallback
+  priceId?: string;
+  productId?: string; // legacy fallback
   status: SubscriptionStatus;
   currentPeriodStart?: string;
   currentPeriodEnd?: string;
@@ -494,18 +496,41 @@ export interface SubscriptionStatusResponse {
 }
 
 export interface CreateSubscriptionRequest {
-  planId: string;
-  customerEmail: string;
-  customerName: string;
-  successUrl: string;
-  cancelUrl: string;
   billingInterval?: BillingInterval;
+  discountCode?: string;
+  successUrl?: string;
+  cancelUrl?: string;
+  // legacy fields kept optional during migration
+  planId?: string;
+  customerEmail?: string;
+  customerName?: string;
+}
+
+export interface CreateSubscriptionApiData {
+  checkoutUrl: string;
+  expiresAt?: string;
+}
+
+export interface CreateSubscriptionApiEnvelope {
+  success: boolean;
+  data?: CreateSubscriptionApiData;
+  error?: string;
+  message?: string;
 }
 
 export interface CreateSubscriptionResponse {
   checkoutUrl: string;
-  sessionId: string;
+  expiresAt?: string;
 }
+
+export interface LegacyCreateSubscriptionResponse {
+  checkoutUrl: string;
+  sessionId?: string;
+}
+
+export type CreateSubscriptionBackendResponse =
+  | CreateSubscriptionApiEnvelope
+  | LegacyCreateSubscriptionResponse;
 
 export interface SubscriptionPortalResponse {
   portalUrl: string;

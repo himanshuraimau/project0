@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router'
 import React, { useEffect } from 'react'
 import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
 import BackButton from '@/components/ui/BackButton'
+import { getSubscriptionPlanDetails } from '@/lib/subscription/plan'
 
 export default function SubscriptionManager() {
   const router = useRouter()
@@ -42,26 +43,9 @@ export default function SubscriptionManager() {
     )
   }
 
-  // Helper function to get plan details from productId
-  const getPlanDetails = () => {
-    if (!subscription?.productId) {
-      return { name: 'Premium', price: '$19.99', interval: 'month' }
-    }
-
-    const productId = subscription.productId.toLowerCase()
-
-    // Check if it's a yearly plan
-    if (productId.includes('yearly') || productId.includes('annual')) {
-      return { name: 'Pro', price: '$89', interval: 'year' }
-    }
-
-    // Default to monthly
-    return { name: 'Pro', price: '$19.99', interval: 'month' }
-  }
-
   // If user has an active subscription, show details
   if (hasAccess && subscription) {
-    const planDetails = getPlanDetails()
+    const planDetails = getSubscriptionPlanDetails(subscription)
 
     return (
       <LinearGradient
@@ -164,7 +148,7 @@ export default function SubscriptionManager() {
 
             {/* What's Included Section */}
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>What's Included</Text>
+              <Text style={styles.cardTitle}>What&apos;s Included</Text>
               <Text style={styles.cardSubtitle}>
                 Everything you need to supercharge your learning
               </Text>
