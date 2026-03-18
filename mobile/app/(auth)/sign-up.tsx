@@ -1,5 +1,7 @@
 import { AuthScreenShell } from '@/components/auth/AuthScreenShell'
 import { maybeCompleteAuthSessionOnce, signInWithGoogleSingleFlight } from '@/lib/auth/social-google'
+import Constants from 'expo-constants'
+import * as ExpoLinking from 'expo-linking'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Alert, Linking, Text } from 'react-native'
@@ -7,7 +9,11 @@ import { useTheme } from '@/lib/hooks/useTheme'
 
 maybeCompleteAuthSessionOnce()
 const APP_SCHEME = (process.env.EXPO_PUBLIC_APP_SCHEME || 'flinote').toLowerCase()
-const MOBILE_AUTH_CALLBACK_URL = `${APP_SCHEME}://`
+const IS_EXPO_GO = Constants.appOwnership === 'expo'
+// In Expo Go, callback must use exp://; in standalone/dev build, use custom scheme.
+const MOBILE_AUTH_CALLBACK_URL = IS_EXPO_GO
+  ? ExpoLinking.createURL('/auth-callback')
+  : ExpoLinking.createURL('/auth-callback', { scheme: APP_SCHEME })
 
 const TERMS_URL = 'https://flinote.ai/terms'
 const PRIVACY_URL = 'https://flinote.ai/privacy'
