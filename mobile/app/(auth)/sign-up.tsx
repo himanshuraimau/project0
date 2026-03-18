@@ -10,10 +10,10 @@ import { useTheme } from '@/lib/hooks/useTheme'
 maybeCompleteAuthSessionOnce()
 const APP_SCHEME = (process.env.EXPO_PUBLIC_APP_SCHEME || 'flinote').toLowerCase()
 const IS_EXPO_GO = Constants.appOwnership === 'expo'
-// In Expo Go, callback must use exp://; in standalone/dev build, use custom scheme.
+// Redirect to an existing app route so Expo Router can resolve it reliably.
 const MOBILE_AUTH_CALLBACK_URL = IS_EXPO_GO
-  ? ExpoLinking.createURL('/auth-callback')
-  : ExpoLinking.createURL('/auth-callback', { scheme: APP_SCHEME })
+  ? ExpoLinking.createURL('/sign-in')
+  : ExpoLinking.createURL('/sign-in', { scheme: APP_SCHEME })
 
 const TERMS_URL = 'https://flinote.ai/terms'
 const PRIVACY_URL = 'https://flinote.ai/privacy'
