@@ -1,6 +1,7 @@
 import apiClient, { handleApiResponse, handleApiError } from './client';
 import {
   SubscriptionStatusResponse,
+  GetSubscriptionStatusParams,
   CreateSubscriptionRequest,
   CreateSubscriptionBackendResponse,
   CreateSubscriptionApiEnvelope,
@@ -21,10 +22,17 @@ import {
  * Get subscription status for the authenticated user
  * Returns full subscription status including access info
  */
-export const getSubscriptionStatus = async (): Promise<SubscriptionStatusResponse> => {
+export const getSubscriptionStatus = async (
+  params?: GetSubscriptionStatusParams
+): Promise<SubscriptionStatusResponse> => {
   try {
     console.log('📡 API: Calling GET /subscription/status...');
-    const response = await apiClient.get<SubscriptionStatusResponse>('/subscription/status');
+    const response = await apiClient.get<SubscriptionStatusResponse>('/subscription/status', {
+      params: {
+        ...(params?.transactionId ? { transaction_id: params.transactionId } : {}),
+        ...(params?.subscriptionId ? { subscription_id: params.subscriptionId } : {}),
+      },
+    });
     console.log('📡 API: Response received from /subscription/status');
     console.log('📡 API: Response status:', response.status);
     console.log('📡 API: Response data:', JSON.stringify(response.data, null, 2));
