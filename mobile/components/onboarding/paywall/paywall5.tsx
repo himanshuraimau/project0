@@ -95,14 +95,6 @@ export default function PaywallScreen() {
 
             // Parse the URL
             if (url.includes('payment-status')) {
-                if (Platform.OS === 'ios') {
-                    try {
-                        await WebBrowser.dismissBrowser();
-                    } catch (error) {
-                        console.warn('Unable to dismiss payment browser:', error);
-                    }
-                }
-
                 const queryString = url.includes('?') ? url.split('?')[1] : '';
                 const urlParams = new URLSearchParams(queryString);
                 const status = urlParams.get('status');

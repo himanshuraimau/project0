@@ -15,15 +15,6 @@ type MobileCheckoutData = {
   cancelUrl: string;
 };
 
-function isHttpUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
-
 function appendQuery(url: string, query: Record<string, string>) {
   const parsed = new URL(url);
   Object.entries(query).forEach(([key, value]) => parsed.searchParams.set(key, value));
@@ -104,17 +95,14 @@ function MobileCheckoutContent() {
         }
 
         hasOpenedRef.current = true;
-        const checkoutSettings = isHttpUrl(data.successUrl)
-          ? { successUrl: data.successUrl }
-          : undefined;
-
         paddle.Checkout.open({
           items: [{ priceId: data.priceId, quantity: 1 }],
           customer: { email: data.customerEmail },
           customData: data.customData,
           ...(data.discountCode ? { discountCode: data.discountCode } : {}),
-          // Paddle only accepts http(s) success URLs. App deep links are handled after checkout.completed.
-          ...(checkoutSettings ? { settings: checkoutSettings } : {}),
+          settings: {
+            successUrl: data.successUrl,
+          },
         });
       } catch (err: any) {
         setError(err.message || 'Failed to open checkout');
