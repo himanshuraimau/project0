@@ -495,11 +495,6 @@ export interface SubscriptionStatusResponse {
   features?: any;
 }
 
-export interface GetSubscriptionStatusParams {
-  transactionId?: string;
-  subscriptionId?: string;
-}
-
 export interface CreateSubscriptionRequest {
   billingInterval?: BillingInterval;
   discountCode?: string;

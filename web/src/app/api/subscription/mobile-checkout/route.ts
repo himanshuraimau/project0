@@ -12,8 +12,7 @@ import { getUserFromAuth } from '@/lib/auth-helper';
 function isAllowedRedirectUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    // Expo Go uses exp/exps during development, while installed builds use the app scheme.
-    return ['http:', 'https:', 'flinote:', 'exp:', 'exps:'].includes(parsed.protocol);
+    return ['http:', 'https:', 'flinote:'].includes(parsed.protocol);
   } catch {
     return false;
   }

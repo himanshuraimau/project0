@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { getSubscriptionStatus } from '@/lib/api/subscription';
-import { GetSubscriptionStatusParams, Subscription, SubscriptionStatusResponse } from '@/lib/api/types';
+import { Subscription, SubscriptionStatusResponse } from '@/lib/api/types';
 import { useSession } from '@/lib/auth/auth-client';
 
 /**
@@ -16,7 +16,7 @@ interface SubscriptionContextType {
     isActive: boolean;
     isTrial: boolean;
     daysRemaining: number | null;
-    refreshSubscription: (params?: GetSubscriptionStatusParams) => Promise<void>;
+    refreshSubscription: () => Promise<void>;
     error: string | null;
 }
 
@@ -73,7 +73,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     /**
      * Fetch subscription status from API
      */
-    const fetchSubscriptionStatus = async (params?: GetSubscriptionStatusParams) => {
+    const fetchSubscriptionStatus = async () => {
         try {
             setIsLoading(true);
             setError(null);
@@ -87,7 +87,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
             }
 
             console.log('🔄 Fetching subscription status...');
-            const data = await getSubscriptionStatus(params);
+            const data = await getSubscriptionStatus();
 
             // DETAILED LOGGING FOR DEBUGGING
             console.log('═══════════════════════════════════════════');
@@ -137,9 +137,9 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     /**
      * Refresh subscription status (can be called manually)
      */
-    const refreshSubscription = async (params?: GetSubscriptionStatusParams) => {
+    const refreshSubscription = async () => {
         console.log('🔄 Manual refresh subscription called');
-        await fetchSubscriptionStatus(params);
+        await fetchSubscriptionStatus();
     };
 
     // Fetch subscription status when session is ready
