@@ -100,9 +100,7 @@ function MobileCheckoutContent() {
           customer: { email: data.customerEmail },
           customData: data.customData,
           ...(data.discountCode ? { discountCode: data.discountCode } : {}),
-          settings: {
-            successUrl: data.successUrl,
-          },
+          // Mobile redirects are handled in checkout.completed / checkout.closed.
         });
       } catch (err: any) {
         setError(err.message || 'Failed to open checkout');

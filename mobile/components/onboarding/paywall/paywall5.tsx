@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as ExpoLinking from 'expo-linking';
 import { useSession } from '@/lib/auth';
 import * as WebBrowser from 'expo-web-browser';
 import { Check } from 'lucide-react-native';
@@ -62,7 +63,7 @@ export default function PaywallScreen() {
     const { data: session } = useSession();
     const user = session?.user;
     const router = useRouter();
-    const { isSubscribed, refreshSubscription } = useSubscription();
+    const { isSubscribed } = useSubscription();
     const appScheme = (process.env.EXPO_PUBLIC_APP_SCHEME || 'flinote').toLowerCase();
 
     const { theme, mode } = useTheme();
@@ -92,85 +93,6 @@ export default function PaywallScreen() {
     }, [isSubscribed, router]);
 
     /**
-     * Handle deep link for payment status
-     */
-    useEffect(() => {
-        const handleDeepLink = async (event: { url: string }) => {
-            const url = event.url;
-            console.log('🔗 Deep link received:', url);
-
-            // Parse the URL
-            if (url.includes('payment-status')) {
-                const queryString = url.includes('?') ? url.split('?')[1] : '';
-                const urlParams = new URLSearchParams(queryString);
-                const status = urlParams.get('status');
-                const transactionId = urlParams.get('transaction_id');
-                const subscriptionId = urlParams.get('subscription_id');
-
-                console.log('💳 Payment status:', status);
-                console.log('🧾 Transaction ID:', transactionId);
-                console.log('🆔 Subscription ID:', subscriptionId);
-
-                if (status === 'success') {
-                    // Refresh subscription immediately and once again shortly after webhook processing
-                    await refreshSubscription();
-                    setTimeout(() => {
-                        refreshSubscription().catch((error) => {
-                            console.error('Delayed refresh failed:', error);
-                        });
-                    }, 2000);
-
-                    // Mark onboarding as completed
-                    try {
-                        await markOnboardingCompleted();
-                    } catch (error) {
-                        console.error('Failed to mark onboarding complete:', error);
-                    }
-
-                    // Show success message
-                    Alert.alert(
-                        '🎉 Success!',
-                        'Your subscription is now active. Welcome to premium!',
-                        [
-                            {
-                                text: 'Get Started',
-                                onPress: () => router.replace('/(home)'),
-                            },
-                        ]
-                    );
-                } else if (status === 'canceled' || status === 'cancelled') {
-                    Alert.alert(
-                        '❌ Payment Canceled',
-                        'Your payment was canceled. You can try again anytime.',
-                        [{ text: 'OK' }]
-                    );
-                } else {
-                    Alert.alert(
-                        '⚠️ Payment Failed',
-                        'Something went wrong with your payment. Please try again.',
-                        [{ text: 'OK' }]
-                    );
-                }
-            }
-        };
-
-        // Listen for deep links (app already open)
-        const subscription = Linking.addEventListener('url', handleDeepLink);
-
-        // Check if app was opened via deep link
-        Linking.getInitialURL().then((url) => {
-            if (url) {
-                handleDeepLink({ url });
-            }
-        });
-
-        // Cleanup
-        return () => {
-            subscription.remove();
-        };
-    }, [refreshSubscription, router]);
-
-    /**
      * Handle subscription purchase
      */
     const handleSubscribe = async () => {
@@ -195,12 +117,13 @@ export default function PaywallScreen() {
             // Get the selected plan details
             const plan = PLANS.find(p => p.id === selectedPlan);
             const billingInterval = plan?.billingInterval || 'monthly';
+            const redirectUrl = ExpoLinking.createURL('/payment-status', { scheme: appScheme });
 
             // Create subscription checkout session
             const response = await createSubscription({
                 billingInterval,
-                successUrl: `${appScheme}://payment-status`,
-                cancelUrl: `${appScheme}://payment-status`,
+                successUrl: redirectUrl,
+                cancelUrl: redirectUrl,
             });
 
             console.log('✅ Checkout session created:', response);
