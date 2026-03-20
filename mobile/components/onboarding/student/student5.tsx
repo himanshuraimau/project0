@@ -1,18 +1,15 @@
 import React, { useState } from 'react'
-import { SafeAreaView, View, Text, TouchableOpacity, Platform, ScrollView } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
-import { BlurGradient } from '../../ui/BlurGradient'
+import { OnboardingScreenShell } from '../OnboardingScreenShell'
+import { OnboardingOptionRow } from '../OnboardingOptionRow'
 import { ContinueButton } from '../../ui/ContinueButton'
-import { ChevronLeft } from 'lucide-react-native'
-import { OptionButton } from '../../ui/OptionButton'
-import styles from '../onboarding-styles/student5'
 
 export default function Student5() {
   const router = useRouter()
   const [selected, setSelected] = useState<string | null>(null)
 
   const handleContinue = () => {
-    // finish onboarding and go to step4
     router.push('/(onboarding)/student-flow/student6' as any)
   }
 
@@ -25,56 +22,41 @@ export default function Student5() {
   ]
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Purple blur gradient */}
-      <BlurGradient
-        colors={['#9810FA', '#441AFF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={-112}
-        top={450}
-      />
-
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
-        </TouchableOpacity>
-        <View style={styles.progressWrap}>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
-          </View>
-        </View>
-      </View>
-
-      <ScrollView style={styles.scrollContent} contentContainerStyle={styles.content}>
-        <Text style={styles.context}>Personalizing Flinote for you...</Text>
-        <Text style={styles.title}>What's your main goal?</Text>
-
-        <View style={styles.options}>
-          {OPTIONS.map((o) => (
-            <OptionButton
-              key={o.id}
-              icon={o.icon}
-              label={o.label}
-              iconBg={o.iconBg}
-              selected={selected === o.id}
-              onPress={() => setSelected(o.id)}
-              style={styles.optionOverride}
-            />
-          ))}
-        </View>
-      </ScrollView>
-
-      <View style={styles.footer}>
+    <OnboardingScreenShell
+      currentStep={5}
+      totalSteps={9}
+      showBackButton={true}
+      subHeading="Personalizing Flinote for you..."
+      mainHeading="What's your main goal?"
+      footer={
         <ContinueButton
           onPress={handleContinue}
           disabled={!selected}
         />
+      }
+    >
+      <View style={styles.options}>
+        {OPTIONS.map((o, i) => (
+          <OnboardingOptionRow
+            key={o.id}
+            icon={<Text style={styles.emoji}>{o.icon}</Text>}
+            label={o.label}
+            isSelected={selected === o.id}
+            onPress={() => setSelected(o.id)}
+            index={i}
+            iconBackgroundColor={o.iconBg}
+          />
+        ))}
       </View>
-
-    </SafeAreaView>
+    </OnboardingScreenShell>
   )
 }
 
-// styles imported from onboarding-styles/student5
+const styles = StyleSheet.create({
+  options: {
+    gap: 10,
+  },
+  emoji: {
+    fontSize: 20,
+  },
+})

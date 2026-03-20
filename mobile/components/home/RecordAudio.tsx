@@ -18,6 +18,7 @@ import { Mic } from "lucide-react-native";
 import FullWidthButton from "@/components/ui/FullWidthButton";
 import FolderSelect from "@/components/ui/FolderSelect";
 import { useAlert } from "@/lib/contexts/AlertContext";
+import { useTheme } from "@/lib/hooks/useTheme";
 
 // Lightweight local Icon fallback using emoji so the component works without extra deps
 const Icon: React.FC<{
@@ -61,6 +62,9 @@ const RecordAudio: React.FC<Props> = ({
     visibleProp ?? true
   );
   const { showAlert } = useAlert();
+  const { theme, mode } = useTheme();
+  const c = theme.colors;
+  const isDark = mode === "dark";
   const visible =
     typeof visibleProp === "boolean" ? visibleProp : internalVisible;
   const [phase, setPhase] = useState<Phase>("initial");
@@ -391,13 +395,132 @@ const RecordAudio: React.FC<Props> = ({
     else setInternalVisible(false);
   };
 
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: "flex-end",
+      backgroundColor: isDark ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.4)",
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    container: {
+      backgroundColor: c.card,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      paddingHorizontal: 10,
+      paddingBottom: 16,
+    },
+    containerContent: {
+      paddingTop: 0,
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 7,
+      marginHorizontal: 8,
+    },
+    title: { color: c.foreground, fontSize: 20, fontWeight: "600" },
+    separator: {
+      height: 1,
+      backgroundColor: c.border,
+      marginHorizontal: -40,
+      width: Dimensions.get("window").width + 20,
+    },
+    row: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
+    field: { marginTop: 8 },
+    label: {
+      fontFamily: "Inter",
+      fontWeight: "500",
+      fontSize: 18,
+      lineHeight: 32,
+      color: c.foreground,
+      marginBottom: 6,
+    },
+    folderRow: { flexDirection: "row", alignItems: "center" },
+    folderIconWrap: {
+      width: 28,
+      height: 28,
+      borderRadius: 8,
+      backgroundColor: c.accent,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 8,
+    },
+    content: { marginTop: 20, alignItems: "center", width: "100%" },
+    buttonContainer: {
+      width: "100%",
+    },
+    timerButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: c.destructive,
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      borderRadius: 14,
+      width: "100%",
+      justifyContent: "center",
+    },
+    timerText: { color: c.background, fontSize: 16, fontWeight: "500" },
+    actionRowContainer: {
+      flexDirection: "row",
+      width: "100%",
+      gap: 8,
+    },
+    actionButton: {
+      flex: 1,
+    },
+    demoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 18,
+    },
+    demoControl: { flex: 1, alignItems: "center", paddingVertical: 8 },
+    demoText: { color: c.mutedForeground },
+  });
+
+  const pickerStyles = {
+    inputIOS: {
+      color: c.foreground,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : c.muted,
+      borderRadius: 10,
+      fontSize: 14,
+      borderWidth: 1.26,
+      borderColor: c.border,
+      height: 53,
+    },
+    inputAndroid: {
+      color: c.foreground,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : c.muted,
+      borderRadius: 10,
+      fontSize: 14,
+      borderWidth: 1.26,
+      borderColor: c.border,
+      height: 53,
+    },
+    placeholder: {
+      color: c.mutedForeground,
+    },
+    iconContainer: {
+      top: 16,
+      right: 16,
+    },
+  };
+
   const inner = (
     <>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Record audio</Text>
           <TouchableOpacity onPress={close}>
-            <Icon name="close" size={22} color="#111" />
+            <Icon name="close" size={22} color={c.foreground} />
           </TouchableOpacity>
         </View>
       </View>
@@ -412,7 +535,7 @@ const RecordAudio: React.FC<Props> = ({
             style={pickerStyles}
             useNativeAndroidPickerStyle={false}
             placeholder={{}}
-            Icon={() => <Icon name="caret" size={18} color="#6b6b6b" />}
+            Icon={() => <Icon name="caret" size={18} color={c.mutedForeground} />}
           />
         </View>
 
@@ -429,7 +552,7 @@ const RecordAudio: React.FC<Props> = ({
                 onPress={startRecording}
                 buttonText="Start recording"
                 icon={<Mic size={20} color="#FFFFFF" style={{ marginRight: 8 }} />}
-                backgroundColor="#FF6467"
+                backgroundColor={c.destructive}
                 textColor="#FFFFFF"
                 style={{ marginTop: 0 }}
               />
@@ -448,7 +571,7 @@ const RecordAudio: React.FC<Props> = ({
               <FullWidthButton
                 onPress={stopRecording}
                 buttonText="Stop"
-                backgroundColor="#8F8F8F"
+                backgroundColor={c.mutedForeground}
                 textColor="#FFFFFF"
                 style={{ marginTop: 12, height: 48 }}
               />
@@ -462,8 +585,8 @@ const RecordAudio: React.FC<Props> = ({
                   <FullWidthButton
                     onPress={reset}
                     buttonText="Delete"
-                    backgroundColor="#FFE2E2"
-                    textColor="#FB2C36"
+                    backgroundColor={isDark ? 'rgba(239,68,68,0.12)' : '#FFE2E2'}
+                    textColor={c.destructive}
                     style={{ marginTop: 12, height: 48 }}
                     textStyle={{ fontSize: 14 }}
                   />
@@ -472,7 +595,7 @@ const RecordAudio: React.FC<Props> = ({
                   <FullWidthButton
                     onPress={startRecording}
                     buttonText="Resume"
-                    backgroundColor="#FB2C36"
+                    backgroundColor={c.destructive}
                     textColor="#FFFFFF"
                     style={{ marginTop: 12, height: 48 }}
                     textStyle={{ fontSize: 14 }}
@@ -482,7 +605,7 @@ const RecordAudio: React.FC<Props> = ({
                   <FullWidthButton
                     onPress={togglePlayback}
                     buttonText={isPlaying ? "Pause" : "Play"}
-                    backgroundColor="#8F8F8F"
+                    backgroundColor={c.mutedForeground}
                     textColor="#FFFFFF"
                     style={{ marginTop: 12, height: 48 }}
                     textStyle={{ fontSize: 14 }}
@@ -523,121 +646,3 @@ const RecordAudio: React.FC<Props> = ({
 };
 
 export default RecordAudio;
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.6)",
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  container: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingHorizontal: 10,
-    paddingBottom: 16,
-  },
-  containerContent: {
-    paddingTop: 0,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 7,
-    marginHorizontal: 8,
-  },
-  title: { color: "#111", fontSize: 20, fontWeight: "600" },
-  separator: {
-    height: 1,
-    backgroundColor: "#e0e0e0",
-    marginHorizontal: -40,
-    width: Dimensions.get("window").width + 20,
-  },
-  row: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
-  field: { marginTop: 8 },
-  label: {
-    fontFamily: "Arimo",
-    fontWeight: "700",
-    fontSize: 18,
-    lineHeight: 32,
-    color: "#364153",
-    marginBottom: 6,
-  },
-  folderRow: { flexDirection: "row", alignItems: "center" },
-  folderIconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: "#f2efff",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-  content: { marginTop: 20, alignItems: "center", width: "100%" },
-  buttonContainer: {
-    width: "100%",
-  },
-  timerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ff6b6b",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    width: "100%",
-    justifyContent: "center",
-  },
-  timerText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  actionRowContainer: {
-    flexDirection: "row",
-    width: "100%",
-    gap: 8,
-  },
-  actionButton: {
-    flex: 1,
-  },
-  demoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 18,
-  },
-  demoControl: { flex: 1, alignItems: "center", paddingVertical: 8 },
-  demoText: { color: "#9aa0a6" },
-});
-const pickerStyles = {
-  inputIOS: {
-    color: "#111",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 10,
-    fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: "#D4D4D4",
-    height: 53,
-  },
-  inputAndroid: {
-    color: "#111",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 10,
-    fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: "#D4D4D4",
-    height: 53,
-  },
-  placeholder: {
-    color: "#6b6b6b",
-  },
-  iconContainer: {
-    top: 16,
-    right: 16,
-  },
-};

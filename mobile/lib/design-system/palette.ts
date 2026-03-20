@@ -5,33 +5,33 @@
 
 import type { BrandScale, NeutralScale } from './types'
 
-/** Brand: Violet, hue 278° — oklch → hex */
+/** Brand: Violet, hue 278° — oklch gamut-mapped → hex (matches web design-tokens.css) */
 export const brand: BrandScale = {
-  50: '#faf5ff',
-  100: '#f3e8ff',
-  200: '#e9d5ff',
-  300: '#d8b4fe',
-  400: '#c084fc',
-  500: '#a855f7',
-  600: '#9333ea',
-  700: '#7e22ce',
-  800: '#6b21a8',
-  900: '#581c87',
-  950: '#3b0764',
+  50: '#f7f9ff',
+  100: '#ebeeff',
+  200: '#d7dcff',
+  300: '#b1baff',
+  400: '#858dff',
+  500: '#625bfd',
+  600: '#4f3be7',
+  700: '#402cc3',
+  800: '#322599',
+  900: '#252070',
+  950: '#131141',
 }
 
-/** Neutral: slight violet tint — oklch → hex */
+/** Neutral: slight violet tint — oklch gamut-mapped → hex (matches web design-tokens.css) */
 export const neutral: NeutralScale = {
   0: '#ffffff',
-  50: '#fafafa',
-  100: '#f5f4f6',
-  200: '#e7e5eb',
-  300: '#d4d1d9',
-  400: '#a29eaa',
-  500: '#6f6b78',
-  600: '#4f4b55',
-  700: '#3d3a42',
-  800: '#27252c',
-  900: '#1c1a1f',
-  950: '#0f0e11',
+  50: '#fbfbfc',
+  100: '#f4f4f7',
+  200: '#e6e7eb',
+  300: '#d2d3d9',
+  400: '#8d8e95',
+  500: '#6f7077',
+  600: '#53545a',
+  700: '#3e3f43',
+  800: '#28282b',
+  900: '#17181a',
+  950: '#070708',
 }

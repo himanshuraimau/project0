@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
@@ -29,7 +28,9 @@ interface FAQSection {
 }
 
 export default function Support() {
-  const { theme } = useTheme()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
   const router = useRouter()
   const { t } = useTranslation()
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -116,19 +117,159 @@ export default function Support() {
     Linking.openURL(`mailto:${email}?subject=${emailSubject}&body=${emailBody}`)
   }
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    safeArea: {
+      flex: 1,
+      paddingHorizontal: 20,
+      paddingVertical: 40,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '500',
+      color: c.foreground,
+      letterSpacing: -0.5,
+      flex: 1,
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontSize: 16,
+      color: c.mutedForeground,
+      textAlign: 'center',
+      marginBottom: 24,
+      paddingHorizontal: 20,
+    },
+    content: {
+      flex: 1,
+    },
+    section: {
+      marginBottom: 32,
+    },
+    sectionTitle: {
+      fontSize: 22,
+      fontWeight: '500',
+      color: c.foreground,
+      marginBottom: 16,
+    },
+    faqItem: {
+      backgroundColor: c.card,
+      borderRadius: 14,
+      marginBottom: 12,
+      overflow: 'hidden',
+      borderWidth: 0.5,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+    },
+    faqQuestion: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 16,
+    },
+    faqQuestionText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.foreground,
+      flex: 1,
+      marginRight: 12,
+    },
+    faqAnswer: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      paddingTop: 4,
+    },
+    faqAnswerText: {
+      fontSize: 15,
+      color: c.mutedForeground,
+      lineHeight: 22,
+    },
+    emailCard: {
+      flexDirection: 'row',
+      backgroundColor: c.accent,
+      borderRadius: 14,
+      padding: 16,
+      alignItems: 'flex-start',
+      borderWidth: 0.5,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+    },
+    emailIcon: {
+      marginRight: 16,
+      marginTop: 2,
+    },
+    emailContent: {
+      flex: 1,
+    },
+    emailAddress: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.foreground,
+      marginBottom: 8,
+    },
+    emailDescription: {
+      fontSize: 14,
+      color: c.mutedForeground,
+      lineHeight: 20,
+    },
+    form: {
+      backgroundColor: c.card,
+      borderRadius: 14,
+      padding: 16,
+      borderWidth: 0.5,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+    },
+    inputGroup: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: c.foreground,
+      marginBottom: 8,
+    },
+    input: {
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: 12,
+      padding: 12,
+      fontSize: 15,
+      color: c.foreground,
+    },
+    textArea: {
+      height: 120,
+      paddingTop: 12,
+    },
+    sendButton: {
+      backgroundColor: c.primary,
+      borderRadius: 12,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sendButtonText: {
+      color: c.primaryForeground,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  })
+
   return (
     <>
-      <LinearGradient
-        colors={[theme.colors.background, '#FBF7FF', '#F3E8FF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0.5 }}
-        style={styles.container}
-      >
-        <StatusBar barStyle="dark-content" />
+      <View style={styles.container}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={styles.safeArea}>
           {/* Title Row with Back Button */}
           <View style={styles.titleRow}>
-            <BackButton iconColor="#374151" />
+            <BackButton iconColor={c.foreground} />
             <Text style={styles.title}>Help Centre</Text>
             <View style={{ width: 40 }} />
           </View>
@@ -153,7 +294,7 @@ export default function Support() {
                       <Feather
                         name={expandedId === item.id ? 'chevron-up' : 'chevron-down'}
                         size={20}
-                        color="#9CA3AF"
+                        color={c.mutedForeground}
                       />
                     </TouchableOpacity>
                     {expandedId === item.id && (
@@ -170,7 +311,7 @@ export default function Support() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Support Email</Text>
               <View style={styles.emailCard}>
-                <Feather name="mail" size={24} color="#8B5CF6" style={styles.emailIcon} />
+                <Feather name="mail" size={24} color={c.primary} style={styles.emailIcon} />
                 <View style={styles.emailContent}>
                   <Text style={styles.emailAddress}>support@https://project0-nu.vercel.app</Text>
                   <Text style={styles.emailDescription}>
@@ -190,7 +331,7 @@ export default function Support() {
                   <TextInput
                     style={styles.input}
                     placeholder="What can we help you with?"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={c.mutedForeground}
                     value={subject}
                     onChangeText={setSubject}
                   />
@@ -201,7 +342,7 @@ export default function Support() {
                   <TextInput
                     style={[styles.input, styles.textArea]}
                     placeholder="Describe your question or concern in detail..."
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={c.mutedForeground}
                     value={message}
                     onChangeText={setMessage}
                     multiline
@@ -215,7 +356,7 @@ export default function Support() {
                   onPress={handleSendMessage}
                   activeOpacity={0.8}
                 >
-                  <Feather name="send" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+                  <Feather name="send" size={18} color={c.primaryForeground} style={{ marginRight: 8 }} />
                   <Text style={styles.sendButtonText}>Send Message</Text>
                 </TouchableOpacity>
               </View>
@@ -225,183 +366,7 @@ export default function Support() {
             <View style={{ height: 40 }} />
           </ScrollView>
         </SafeAreaView>
-      </LinearGradient>
+      </View>
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 40,
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  timeBadge: {
-    backgroundColor: '#DC2626',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  timeText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  statusIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  backButton: {
-    padding: 8,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1F2937',
-    letterSpacing: -0.5,
-    flex: 1,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 20,
-  },
-  content: {
-    flex: 1,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 16,
-  },
-  faqItem: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginBottom: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  faqQuestion: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-  },
-  faqQuestionText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    flex: 1,
-    marginRight: 12,
-  },
-  faqAnswer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    paddingTop: 4,
-  },
-  faqAnswerText: {
-    fontSize: 15,
-    color: '#6B7280',
-    lineHeight: 22,
-  },
-  emailCard: {
-    flexDirection: 'row',
-    backgroundColor: '#F3E8FF',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'flex-start',
-  },
-  emailIcon: {
-    marginRight: 16,
-    marginTop: 2,
-  },
-  emailContent: {
-    flex: 1,
-  },
-  emailAddress: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  emailDescription: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-  },
-  form: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 15,
-    color: '#1F2937',
-  },
-  textArea: {
-    height: 120,
-    paddingTop: 12,
-  },
-  sendButton: {
-    backgroundColor: '#8B5CF6',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  homeIndicator: {
-    width: 134,
-    height: 5,
-    backgroundColor: '#1F2937',
-    borderRadius: 3,
-    alignSelf: 'center',
-    marginBottom: 8,
-    opacity: 0.3,
-  },
-})

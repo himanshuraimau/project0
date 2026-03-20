@@ -27,7 +27,7 @@ export const onboardingStep2Styles = StyleSheet.create({
   progressBarFill: {
     width: '45%',
     height: '100%',
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4f3be7',
     borderRadius: 20,
   },
   headerContainer: {
@@ -35,15 +35,15 @@ export const onboardingStep2Styles = StyleSheet.create({
   },
   subHeading: {
     fontSize: 15,
-    fontFamily: 'Arimo',
-    fontWeight: '700',
+    fontFamily: 'Inter',
+    fontWeight: '500',
     lineHeight: 22,
-    color: '#7C3AED',
+    color: '#4f3be7',
     marginBottom: 8,
   },
   mainHeading: {
     fontSize: 21,
-    fontWeight: '800',
+    fontWeight: '500',
     color: '#000000',
     lineHeight: 40,
   },
@@ -77,7 +77,7 @@ export const onboardingStep2Styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   optionButtonSelected: {
-    borderColor: '#7C3AED',
+    borderColor: '#4f3be7',
     backgroundColor: '#F5F3FF',
   },
   iconCircle: {
@@ -90,7 +90,7 @@ export const onboardingStep2Styles = StyleSheet.create({
   },
   optionText: {
     flex: 1,
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontSize: 17,
     fontWeight: '400',
     lineHeight: 26,
@@ -124,13 +124,13 @@ export const onboardingStep2Styles = StyleSheet.create({
     marginTop: 24,
   },
   continueButton: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4f3be7',
     borderRadius: 28,
     paddingVertical: 18,
     paddingHorizontal: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#7C3AED',
+    shadowColor: '#4f3be7',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -142,7 +142,7 @@ export const onboardingStep2Styles = StyleSheet.create({
   continueButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '500',
   },
 })
 

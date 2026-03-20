@@ -10,6 +10,7 @@ import {
     Alert,
     Animated,
     Easing,
+    StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,18 +18,20 @@ import { Audio } from 'expo-av';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import Svg, { Path } from 'react-native-svg';
+import { BlurView } from 'expo-blur';
 import { podcastApi, Podcast } from '@/lib/api';
 import BackButton from '@/components/ui/BackButton';
+import { useTheme } from '@/lib/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.9;
 
 // Custom Replay 10 seconds icon component
 const Replay10Icon = ({ size = 28, color = "#6B7280" }) => (
-    <Svg 
-        width={size} 
-        height={size} 
-        viewBox="0 -960 960 960" 
+    <Svg
+        width={size}
+        height={size}
+        viewBox="0 -960 960 960"
         fill={color}
     >
         <Path d="M480-80q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T120-440h80q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440q0-117-81.5-198.5T480-720h-6l62 62-56 58-160-160 160-160 56 58-62 62h6q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-440q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-80ZM360-320v-180h-60v-60h120v240h-60Zm140 0q-17 0-28.5-11.5T460-360v-160q0-17 11.5-28.5T500-560h80q17 0 28.5 11.5T620-520v160q0 17-11.5 28.5T580-320h-80Zm20-60h40v-120h-40v120Z" />
@@ -37,10 +40,10 @@ const Replay10Icon = ({ size = 28, color = "#6B7280" }) => (
 
 // Custom Forward 10 seconds icon component
 const Forward10Icon = ({ size = 28, color = "#6B7280" }) => (
-    <Svg 
-        width={size} 
-        height={size} 
-        viewBox="0 -960 960 960" 
+    <Svg
+        width={size}
+        height={size}
+        viewBox="0 -960 960 960"
         fill={color}
     >
         <Path d="M360-320v-180h-60v-60h120v240h-60Zm140 0q-17 0-28.5-11.5T460-360v-160q0-17 11.5-28.5T500-560h80q17 0 28.5 11.5T620-520v160q0 17-11.5 28.5T580-320h-80Zm20-60h40v-120h-40v120ZM480-80q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T120-440q0-75 28.5-140.5t77-114q48.5-48.5 114-77T480-800h6l-62-62 56-58 160 160-160 160-56-58 62-62h-6q-117 0-198.5 81.5T200-440q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440h80q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-80Z" />
@@ -50,7 +53,19 @@ const Forward10Icon = ({ size = 28, color = "#6B7280" }) => (
 const NUM_BARS = 20; // Number of bars to render
 
 // Custom PodcastWaveform component
-const PodcastWaveform = ({ isPlaying }: { isPlaying: boolean }) => {
+const PodcastWaveform = ({
+    isPlaying,
+    barColor,
+    edgeBarColor,
+    containerBg,
+    borderColor,
+}: {
+    isPlaying: boolean;
+    barColor: string;
+    edgeBarColor: string;
+    containerBg: string;
+    borderColor: string;
+}) => {
     // 1. Create an array of Animated Values, one for each bar
     const animations = useRef([...Array(NUM_BARS)].map(() => new Animated.Value(0))).current;
     const animationRefs = useRef<Animated.CompositeAnimation[]>([]).current;
@@ -60,10 +75,10 @@ const PodcastWaveform = ({ isPlaying }: { isPlaying: boolean }) => {
             // Logic to make center bars taller and faster, edge bars shorter and slower
             const isCenter = index > NUM_BARS / 3 && index < (NUM_BARS * 2) / 3;
             const baseDuration = isCenter ? 400 : 700;
-            
+
             // Random variation to simulate natural voice
-            const randomDuration = baseDuration + Math.random() * 300; 
-            const randomHeight = isCenter 
+            const randomDuration = baseDuration + Math.random() * 300;
+            const randomHeight = isCenter
                 ? 40 + Math.random() * 60  // Center bars go tall (40-100%)
                 : 10 + Math.random() * 30; // Edge bars stay short (10-40%)
 
@@ -102,12 +117,12 @@ const PodcastWaveform = ({ isPlaying }: { isPlaying: boolean }) => {
                     animation.stop();
                 }
             });
-            
+
             // Reset all bars to their minimum height with a slower, smoother transition
             animations.forEach((anim, index) => {
                 const isCenter = index > NUM_BARS / 3 && index < (NUM_BARS * 2) / 3;
                 const targetValue = isCenter ? 0.3 : 0.1; // Small base height
-                
+
                 Animated.timing(anim, {
                     toValue: targetValue,
                     duration: 800, // Slower duration for smoother pause transition
@@ -128,7 +143,10 @@ const PodcastWaveform = ({ isPlaying }: { isPlaying: boolean }) => {
     }, [isPlaying]);
 
     return (
-        <View style={waveformStyles.container}>
+        <View style={[waveformStyles.container, {
+            backgroundColor: containerBg,
+            borderColor: borderColor,
+        }]}>
             <View style={waveformStyles.visualizerContainer}>
                 {animations.map((anim, index) => {
                     // Interpolate 0-1 to pixel heights
@@ -141,17 +159,17 @@ const PodcastWaveform = ({ isPlaying }: { isPlaying: boolean }) => {
                         outputRange: [minHeight, maxHeight]
                     });
 
-                    // Color logic: Center is Light Purple, Edges are Gray
-                    const barColor = isCenter ? '#E9D5FF' : '#52525b'; 
+                    // Color logic: Center is themed, Edges are muted
+                    const color = isCenter ? barColor : edgeBarColor;
 
                     return (
                         <Animated.View
                             key={index}
                             style={[
                                 waveformStyles.bar,
-                                { 
+                                {
                                     height,
-                                    backgroundColor: barColor,
+                                    backgroundColor: color,
                                     // Slight opacity change for "breathing" effect
                                     opacity: anim.interpolate({
                                         inputRange: [0, 1],
@@ -174,6 +192,9 @@ interface PodcastPlayerViewProps {
 
 export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerViewProps) {
     const router = useRouter();
+    const { theme, mode } = useTheme();
+    const c = theme.colors;
+    const isDark = mode === 'dark';
 
     const [podcast, setPodcast] = useState<Podcast | null>(null);
     const [loading, setLoading] = useState(true);
@@ -206,27 +227,27 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
     // Smooth position animation using requestAnimationFrame
     const startPositionAnimation = () => {
         lastUpdateTimeRef.current = Date.now();
-        
+
         const animate = () => {
             if (!isPlayingRef.current) return;
-            
+
             const now = Date.now();
             const deltaTime = now - lastUpdateTimeRef.current;
             lastUpdateTimeRef.current = now;
-            
+
             // Calculate new position based on elapsed time and playback speed
             const increment = deltaTime * playbackSpeedRef.current;
             const newPosition = Math.min(positionRef.current + increment, durationRef.current);
-            
+
             positionRef.current = newPosition;
             setPosition(newPosition);
-            
+
             // Continue animation if still playing
             if (isPlayingRef.current && newPosition < durationRef.current) {
                 animationFrameRef.current = requestAnimationFrame(animate);
             }
         };
-        
+
         animationFrameRef.current = requestAnimationFrame(animate);
     };
 
@@ -247,7 +268,7 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
 
             const { sound } = await Audio.Sound.createAsync(
                 { uri: audioUrl },
-                { 
+                {
                     shouldPlay: false,
                     progressUpdateIntervalMillis: 500, // Sync every 500ms for accuracy
                 },
@@ -268,7 +289,7 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                 setDuration(status.durationMillis);
                 durationRef.current = status.durationMillis;
             }
-            
+
             // Sync position from actual playback (source of truth)
             // But skip if we just did a seek operation to avoid jumping back
             if (status.positionMillis !== undefined && !ignoreNextCallbackRef.current) {
@@ -276,17 +297,17 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                 setPosition(status.positionMillis);
                 lastUpdateTimeRef.current = Date.now();
             }
-            
+
             // Reset the ignore flag after processing
             if (ignoreNextCallbackRef.current) {
                 ignoreNextCallbackRef.current = false;
             }
-            
+
             // Handle play state changes
             if (status.isPlaying !== isPlayingRef.current) {
                 isPlayingRef.current = status.isPlaying;
                 setIsPlaying(status.isPlaying);
-                
+
                 if (status.isPlaying) {
                     lastUpdateTimeRef.current = Date.now();
                     startPositionAnimation();
@@ -334,11 +355,11 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
 
                 if (selectedPodcast) {
                     const status = selectedPodcast.status as string;
-                    
+
                     // Check if podcast is completed but audio is not yet available
                     if (status === 'COMPLETED' && !selectedPodcast.audioUrl) {
                         Alert.alert(
-                            'Processing', 
+                            'Processing',
                             'Your podcast is being finalized. Please wait a moment and try again.',
                             [{ text: 'OK', onPress: () => router.back() }]
                         );
@@ -348,7 +369,7 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                     // Check if podcast is still generating
                     if (status === 'GENERATING' || status === 'IN_PROGRESS') {
                         Alert.alert(
-                            'Still Generating', 
+                            'Still Generating',
                             'Your podcast is still being generated. Please check back in a few minutes.',
                             [{ text: 'OK', onPress: () => router.back() }]
                         );
@@ -358,7 +379,7 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                     // Check if podcast failed
                     if (status === 'FAILED') {
                         Alert.alert(
-                            'Generation Failed', 
+                            'Generation Failed',
                             'This podcast failed to generate. Please try generating a new one.',
                             [{ text: 'OK', onPress: () => router.back() }]
                         );
@@ -368,7 +389,7 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                     // Check if podcast is superseded
                     if (status === 'SUPERSEDED') {
                         Alert.alert(
-                            'Outdated Podcast', 
+                            'Outdated Podcast',
                             'This podcast has been replaced by a newer version.',
                             [{ text: 'OK', onPress: () => router.back() }]
                         );
@@ -381,7 +402,7 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                         await setupAudio(selectedPodcast.audioUrl);
                     } else {
                         Alert.alert(
-                            'Audio Not Available', 
+                            'Audio Not Available',
                             'The podcast audio is not yet available. Please try again in a moment.',
                             [{ text: 'OK', onPress: () => router.back() }]
                         );
@@ -428,15 +449,15 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
         try {
             // Calculate new position
             const newPosition = Math.max(0, Math.min(durationRef.current, positionRef.current + seconds * 1000));
-            
+
             // Update local state immediately for responsive UI
             positionRef.current = newPosition;
             setPosition(newPosition);
             lastUpdateTimeRef.current = Date.now();
-            
+
             // Set flag to ignore the next callback (which will have stale position)
             ignoreNextCallbackRef.current = true;
-            
+
             // Seek the audio
             await soundRef.current.setPositionAsync(newPosition);
         } catch (error) {
@@ -453,7 +474,7 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
         // Update speed in state and ref immediately
         setPlaybackSpeed(nextSpeed);
         playbackSpeedRef.current = nextSpeed;
-        
+
         // Reset timing to prevent jumps when speed changes
         lastUpdateTimeRef.current = Date.now();
 
@@ -474,11 +495,11 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
 
         try {
             setIsDownloading(true);
-            
+
             // Generate filename
             const fileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_podcast.mp3`;
             const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-            
+
             // Download the file
             const downloadResult = await FileSystem.downloadAsync(
                 podcast.audioUrl,
@@ -490,22 +511,22 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                 if (FileSystem.StorageAccessFramework) {
                     try {
                         const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-                        
+
                         if (permissions.granted) {
                             const uri = await FileSystem.StorageAccessFramework.createFileAsync(
                                 permissions.directoryUri,
                                 fileName,
                                 'audio/mpeg'
                             );
-                            
+
                             const content = await FileSystem.readAsStringAsync(downloadResult.uri, {
                                 encoding: FileSystem.EncodingType.Base64,
                             });
-                            
+
                             await FileSystem.writeAsStringAsync(uri, content, {
                                 encoding: FileSystem.EncodingType.Base64,
                             });
-                            
+
                             Alert.alert('Success', 'Podcast downloaded successfully to your selected folder!');
                         } else {
                             Alert.alert('Info', `Podcast saved to app folder: ${fileName}`);
@@ -534,7 +555,7 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
 
         try {
             setIsSharing(true);
-            
+
             const isAvailable = await Sharing.isAvailableAsync();
             if (!isAvailable) {
                 Alert.alert('Error', 'Sharing is not available on this device');
@@ -544,7 +565,7 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
             // Download the file to a temporary location first
             const fileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_podcast.mp3`;
             const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
-            
+
             const downloadResult = await FileSystem.downloadAsync(
                 podcast.audioUrl,
                 fileUri
@@ -579,10 +600,14 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
         router.push(`/notes/${noteId}/podcasts`);
     };
 
+    // --- Dynamic styles that depend on theme ---
+    const styles = makeStyles(c, isDark);
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#3B82F6" />
+                <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+                <ActivityIndicator size="large" color={c.primary} />
                 <Text style={styles.loadingText}>Loading podcast...</Text>
             </View>
         );
@@ -591,7 +616,8 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
     if (!podcast) {
         return (
             <View style={styles.emptyContainer}>
-                <Ionicons name="mic-off-outline" size={64} color="#9CA3AF" />
+                <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+                <Ionicons name="mic-off-outline" size={64} color={c.mutedForeground} />
                 <Text style={styles.emptyText}>No podcast available</Text>
                 <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                     <Text style={styles.backButtonText}>Go Back</Text>
@@ -604,9 +630,11 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
 
     return (
         <View style={styles.container}>
+            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+
             {/* Header */}
             <View style={styles.header}>
-                <BackButton iconColor="#1F2937" />
+                <BackButton iconColor={c.foreground} />
 
                 <Text style={styles.headerTitle}>Podcast</Text>
 
@@ -617,9 +645,9 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                         disabled={isDownloading}
                     >
                         {isDownloading ? (
-                            <ActivityIndicator size="small" color="#1F2937" />
+                            <ActivityIndicator size="small" color={c.foreground} />
                         ) : (
-                            <Ionicons name="download-outline" size={24} color="#1F2937" />
+                            <Ionicons name="download-outline" size={24} color={c.foreground} />
                         )}
                     </TouchableOpacity>
 
@@ -629,9 +657,9 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                         disabled={isSharing}
                     >
                         {isSharing ? (
-                            <ActivityIndicator size="small" color="#1F2937" />
+                            <ActivityIndicator size="small" color={c.foreground} />
                         ) : (
-                            <Ionicons name="share-outline" size={24} color="#1F2937" />
+                            <Ionicons name="share-outline" size={24} color={c.foreground} />
                         )}
                     </TouchableOpacity>
                 </View>
@@ -641,309 +669,291 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Main Card */}
-                <View style={styles.card}>
-                    {/* Card Header Controls */}
-                    <View style={styles.cardHeader}>
-                        <TouchableOpacity
-                            style={styles.speedButton}
-                            onPress={changePlaybackSpeed}
-                        >
-                            <Text style={styles.speedButtonText}>{playbackSpeed}x</Text>
-                        </TouchableOpacity>
+                {/* Main Card — Glass */}
+                <BlurView
+                    intensity={isDark ? 30 : 15}
+                    tint={isDark ? 'dark' : 'light'}
+                    style={{
+                        borderRadius: 24,
+                        overflow: 'hidden',
+                        borderWidth: 0.5,
+                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                        width: CARD_WIDTH,
+                    }}
+                >
+                    <View style={{
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)',
+                        padding: 20,
+                    }}>
+                        {/* Card Header Controls */}
+                        <View style={styles.cardHeader}>
+                            <TouchableOpacity
+                                style={styles.speedButton}
+                                onPress={changePlaybackSpeed}
+                            >
+                                <Text style={styles.speedButtonText}>{playbackSpeed}x</Text>
+                            </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.viewAllButton}
-                            onPress={navigateToAllPodcasts}
-                        >
-                            <Text style={styles.viewAllButtonText}>View All Podcasts</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Podcast Artwork */}
-                    <View style={styles.artworkContainer}>
-                        <PodcastWaveform isPlaying={isPlaying} />
-                    </View>
-
-                    {/* Episode Metadata */}
-                    <Text style={styles.episodeTitle}>
-                        {podcast.title || 'Untitled Podcast'}
-                    </Text>
-
-                    {/* Playback Timeline */}
-                    <View style={styles.timelineContainer}>
-                        <View style={styles.timeRow}>
-                            <Text style={styles.timeText}>{formatTime(position)}</Text>
-                            <Text style={styles.timeText}>{formatTime(duration)}</Text>
+                            <TouchableOpacity
+                                style={styles.viewAllButton}
+                                onPress={navigateToAllPodcasts}
+                            >
+                                <Text style={styles.viewAllButtonText}>View All Podcasts</Text>
+                            </TouchableOpacity>
                         </View>
 
-                        <View style={styles.progressBarContainer}>
-                            <View style={styles.progressBarBackground}>
-                                <View
-                                    style={[styles.progressBarFill, { width: `${progress * 100}%` }]}
-                                />
+                        {/* Podcast Artwork */}
+                        <View style={styles.artworkContainer}>
+                            <PodcastWaveform
+                                isPlaying={isPlaying}
+                                barColor={isDark ? c.ring : '#d7dcff'}
+                                edgeBarColor={c.mutedForeground}
+                                containerBg={c.foreground}
+                                borderColor={isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'}
+                            />
+                        </View>
+
+                        {/* Episode Metadata */}
+                        <Text style={styles.episodeTitle}>
+                            {podcast.title || 'Untitled Podcast'}
+                        </Text>
+
+                        {/* Playback Timeline */}
+                        <View style={styles.timelineContainer}>
+                            <View style={styles.timeRow}>
+                                <Text style={styles.timeText}>{formatTime(position)}</Text>
+                                <Text style={styles.timeText}>{formatTime(duration)}</Text>
+                            </View>
+
+                            <View style={styles.progressBarContainer}>
+                                <View style={styles.progressBarBackground}>
+                                    <View
+                                        style={[styles.progressBarFill, { width: `${progress * 100}%` }]}
+                                    />
+                                </View>
                             </View>
                         </View>
+
+                        {/* Playback Controls */}
+                        <View style={styles.controlsContainer}>
+                            <TouchableOpacity
+                                style={styles.secondaryControl}
+                                onPress={() => skipSeconds(-10)}
+                            >
+                                <Replay10Icon size={30} color={c.mutedForeground} />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.primaryControl}
+                                onPress={togglePlayPause}
+                            >
+                                <Ionicons
+                                    name={isPlaying ? 'pause' : 'play'}
+                                    size={40}
+                                    color={c.background}
+                                    style={!isPlaying ? { marginLeft: 4 } : {}}
+                                />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.secondaryControl}
+                                onPress={() => skipSeconds(10)}
+                            >
+                                <Forward10Icon size={30} color={c.mutedForeground} />
+                            </TouchableOpacity>
+                        </View>
                     </View>
-
-                    {/* Playback Controls */}
-                    <View style={styles.controlsContainer}>
-                        <TouchableOpacity
-                            style={styles.secondaryControl}
-                            onPress={() => skipSeconds(-10)}
-                        >
-                            <Replay10Icon size={30} color="#6B7280" />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.primaryControl}
-                            onPress={togglePlayPause}
-                        >
-                            <Ionicons
-                                name={isPlaying ? 'pause' : 'play'}
-                                size={40}
-                                color="#FFFFFF"
-                                style={!isPlaying ? { marginLeft: 4 } : {}}
-                            />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.secondaryControl}
-                            onPress={() => skipSeconds(10)}
-                        >
-                            <Forward10Icon size={30} color="#6B7280" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                </BlurView>
             </ScrollView>
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB',
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F9FAFB',
-    },
-    loadingText: {
-        marginTop: 16,
-        fontSize: 16,
-        color: '#6B7280',
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F9FAFB',
-        padding: 24,
-    },
-    emptyText: {
-        marginTop: 16,
-        fontSize: 18,
-        color: '#6B7280',
-        textAlign: 'center',
-    },
-    backButton: {
-        marginTop: 24,
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        backgroundColor: '#3B82F6',
-        borderRadius: 8,
-    },
-    backButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingTop: 60,
-        paddingBottom: 16,
-        backgroundColor: '#FFFFFF',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    headerButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F3F4F6',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#1F2937',
-    },
-    headerActions: {
-        flexDirection: 'row',
-    },
-    scrollContent: {
-        paddingVertical: 10,
-        alignItems: 'center',
-    },
-    card: {
-        width: CARD_WIDTH,
-        backgroundColor: '#F5F5F5',
-        borderRadius: 24,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 12,
-    },
-    speedButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        backgroundColor: '#E5E7EB',
-        borderRadius: 30,
-    },
-    speedButtonText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#1F2937',
-    },
-    viewAllButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        backgroundColor: '#EEF2FF',
-        borderRadius: 20,
-    },
-    viewAllButtonText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#6366F1',
-    },
-    artworkContainer: {
-        width: '100%',
-        aspectRatio: 1,
-        marginBottom: 8,
-    },
-    artwork: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        overflow: 'hidden',
-    },
-    waveformContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        position: 'absolute',
-    },
-    waveformBar: {
-        width: 6,
-        backgroundColor: '#6366F1',
-        borderRadius: 3,
-    },
-    musicIcon: {
-        opacity: 0.6,
-    },
-    episodeTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#1F2937',
-        textAlign: 'center',
-        marginBottom: 24,
-        lineHeight: 28,
-    },
-    timelineContainer: {
-        marginBottom: 32,
-    },
-    timeRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    timeText: {
-        fontSize: 12,
-        color: '#6B7280',
-        fontWeight: '500',
-    },
-    progressBarContainer: {
-        width: '100%',
-    },
-    progressBarBackground: {
-        height: 4,
-        backgroundColor: '#E5E7EB',
-        borderRadius: 2,
-        overflow: 'hidden',
-    },
-    progressBarFill: {
-        height: '100%',
-        backgroundColor: '#6366F1',
-        borderRadius: 2,
-    },
-    controlsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 48,
-    },
-    secondaryControl: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        borderWidth: 2,
-        borderColor: '#E5E7EB',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        position: 'relative',
-    },
-    skipText: {
-        position: 'absolute',
-        fontSize: 10,
-        fontWeight: '700',
-        color: '#6B7280',
-        bottom: 8,
-    },
-    primaryControl: {
-        width: 72,
-        height: 72,
-        borderRadius: 36,
-        backgroundColor: '#000',
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-});
+// --- Factory function for theme-aware styles ---
+const makeStyles = (c: ReturnType<typeof useTheme>['theme']['colors'], isDark: boolean) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: c.background,
+        },
+        loadingContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: c.background,
+        },
+        loadingText: {
+            marginTop: 16,
+            fontSize: 16,
+            color: c.mutedForeground,
+        },
+        emptyContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: c.background,
+            padding: 24,
+        },
+        emptyText: {
+            marginTop: 16,
+            fontSize: 18,
+            color: c.mutedForeground,
+            textAlign: 'center',
+        },
+        backButton: {
+            marginTop: 24,
+            paddingHorizontal: 24,
+            paddingVertical: 12,
+            backgroundColor: c.primary,
+            borderRadius: 8,
+        },
+        backButtonText: {
+            color: c.background,
+            fontSize: 16,
+            fontWeight: '600',
+        },
+        header: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 16,
+            paddingTop: 60,
+            paddingBottom: 16,
+            backgroundColor: c.card,
+            borderBottomWidth: 1,
+            borderBottomColor: c.border,
+        },
+        headerButton: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: c.muted,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        headerTitle: {
+            fontSize: 18,
+            fontWeight: '600',
+            color: c.foreground,
+        },
+        headerActions: {
+            flexDirection: 'row',
+        },
+        scrollContent: {
+            paddingVertical: 10,
+            alignItems: 'center',
+        },
+        cardHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 12,
+        },
+        speedButton: {
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : c.card,
+            borderRadius: 30,
+            borderWidth: 0.5,
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : c.border,
+        },
+        speedButtonText: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: c.foreground,
+        },
+        viewAllButton: {
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            backgroundColor: c.accent,
+            borderRadius: 20,
+        },
+        viewAllButtonText: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: c.primary,
+        },
+        artworkContainer: {
+            width: '100%',
+            aspectRatio: 1,
+            marginBottom: 8,
+        },
+        episodeTitle: {
+            fontSize: 20,
+            fontWeight: '600',
+            color: c.foreground,
+            textAlign: 'center',
+            marginBottom: 24,
+            lineHeight: 28,
+        },
+        timelineContainer: {
+            marginBottom: 32,
+        },
+        timeRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 8,
+        },
+        timeText: {
+            fontSize: 12,
+            color: c.mutedForeground,
+            fontWeight: '500',
+        },
+        progressBarContainer: {
+            width: '100%',
+        },
+        progressBarBackground: {
+            height: 4,
+            backgroundColor: c.border,
+            borderRadius: 2,
+            overflow: 'hidden',
+        },
+        progressBarFill: {
+            height: '100%',
+            backgroundColor: c.primary,
+            borderRadius: 2,
+        },
+        controlsContainer: {
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 48,
+        },
+        secondaryControl: {
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            borderWidth: 0.5,
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : c.border,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : c.card,
+            position: 'relative',
+        },
+        primaryControl: {
+            width: 72,
+            height: 72,
+            borderRadius: 36,
+            backgroundColor: c.foreground,
+            justifyContent: 'center',
+            alignItems: 'center',
+            shadowColor: c.foreground,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 8,
+            elevation: 8,
+        },
+    });
 
+// --- Static waveform styles (no theme dependency for layout) ---
 const waveformStyles = StyleSheet.create({
     container: {
-        width: '100%', 
+        width: '100%',
         height: 280,
-        backgroundColor: '#000000', // Pure Black
         borderRadius: 24,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: '#27272a', // Subtle Zinc/Gray border
-        shadowColor: "#E9D5FF",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 12,
@@ -954,7 +964,7 @@ const waveformStyles = StyleSheet.create({
         alignItems: 'center', // Centers bars vertically
         justifyContent: 'center',
         height: 140,
-        gap: 4, // Space between bars (Use marginLeft if gap not supported)
+        gap: 4, // Space between bars
     },
     bar: {
         width: 8, // Thickness of bars

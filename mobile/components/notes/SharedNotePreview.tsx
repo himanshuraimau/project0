@@ -148,8 +148,8 @@ export default function SharedNotePreview({
             code { background: #F3F4F6; padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 14px; }
             pre { background: #F3F4F6; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 16px 0; }
             pre code { background: none; padding: 0; }
-            blockquote { border-left: 4px solid #7C3AED; padding-left: 16px; margin: 16px 0; color: #6B7280; font-style: italic; }
-            a { color: #7C3AED; text-decoration: underline; }
+            blockquote { border-left: 4px solid #4f3be7; padding-left: 16px; margin: 16px 0; color: #6B7280; font-style: italic; }
+            a { color: #4f3be7; text-decoration: underline; }
             strong { font-weight: 700; color: #111827; }
             em { font-style: italic; color: #4B5563; }
             table { width: 100%; border-collapse: collapse; margin: 16px 0; }
@@ -171,14 +171,14 @@ export default function SharedNotePreview({
   if (loading) {
     return (
       <LinearGradient
-        colors={['#FFFFFF', '#FBF7FF']}
+        colors={['#FFFFFF', '#f7f9ff']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#7C3AED" />
+            <ActivityIndicator size="large" color="#4f3be7" />
             <Text style={styles.loadingText}>{t('share.loadingNote')}</Text>
           </View>
         </SafeAreaView>
@@ -189,7 +189,7 @@ export default function SharedNotePreview({
   if (error || !noteData) {
     return (
       <LinearGradient
-        colors={['#FFFFFF', '#FBF7FF']}
+        colors={['#FFFFFF', '#f7f9ff']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.container}
@@ -217,7 +217,7 @@ export default function SharedNotePreview({
 
   return (
     <LinearGradient
-      colors={['#FFFFFF', '#FBF7FF']}
+      colors={['#FFFFFF', '#f7f9ff']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -263,7 +263,7 @@ export default function SharedNotePreview({
 
             {!session?.user && (
               <View style={styles.loginPrompt}>
-                <Feather name="info" size={16} color="#7C3AED" />
+                <Feather name="info" size={16} color="#4f3be7" />
                 <Text style={styles.loginPromptText}>
                   {t('share.loginToSave')}
                 </Text>
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
     marginTop: 16,
     marginBottom: 8,
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4f3be7',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4f3be7',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 12,
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   },
   noteTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
     marginBottom: 12,
   },
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#7C3AED',
+    borderLeftColor: '#4f3be7',
   },
   loginPromptText: {
     fontSize: 13,

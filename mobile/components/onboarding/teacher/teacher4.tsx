@@ -1,95 +1,57 @@
 import React, { useState } from 'react'
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TouchableOpacity,
-  Platform,
-} from 'react-native'
+import { Text, View, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
-import { BlurGradient } from '../../ui/BlurGradient'
+import { OnboardingScreenShell } from '../OnboardingScreenShell'
+import { OnboardingOptionRow } from '../OnboardingOptionRow'
 import { ContinueButton } from '../../ui/ContinueButton'
-import { ChevronLeft } from 'lucide-react-native'
-import { OptionButton } from '../../ui/OptionButton'
-import styles from '../onboarding-styles/teacher4'
+
+const options = [
+  { id: 'class', emoji: '📗', label: 'Yes, a specific class', iconBg: '#DCFCE7' },
+  { id: 'exam', emoji: '📑', label: 'Yes, an upcoming exam', iconBg: '#FFE2E2' },
+  { id: 'other', emoji: '👀', label: 'Yes, something else', iconBg: '#F3F4F6' },
+  { id: 'general', emoji: '📝', label: 'No, just generally help me', iconBg: '#FCE7F3' },
+]
 
 export default function Teacher4() {
   const router = useRouter()
   const [selected, setSelected] = useState<string | null>(null)
 
-  const handleContinue = () => {
-    // finish onboarding and go to step4
-    router.push('/(onboarding)/step4' as any)
-  }
-
-  const OPTIONS = [
-    { id: 'class', icon: '📗', label: 'Yes, a specific class', iconBg: '#DCFCE7' },
-    { id: 'exam', icon: '📑', label: 'Yes, an upcoming exam', iconBg: '#FFE2E2' },
-    { id: 'other', icon: '👀', label: 'Yes, something else', iconBg: '#F3F4F6' },
-    { id: 'general', icon: '📝', label: 'No, just generally help me', iconBg: '#FCE7F3' },
-  ]
-
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top blur gradient - Purple */}
-      <BlurGradient
-        colors={['#9810FA', '#441AFF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={227}
-        top={-44}
-      />
-
-      {/* Bottom blur gradient - Teal-Blue */}
-      <BlurGradient
-        colors={['#14C3A2', '#4C57FF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={-16}
-        top={654}
-      />
-
-      {/* Header with back button and progress */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
-        </TouchableOpacity>
-        <View style={styles.progressWrap}>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Flinote for you...</Text>
-        <Text style={styles.title}>Do you want us to focus on a class or an exam?</Text>
-
-        <View style={styles.options}>
-          {OPTIONS.map((o) => (
-            <OptionButton
-              key={o.id}
-              icon={o.icon}
-              label={o.label}
-              iconBg={o.iconBg}
-              selected={selected === o.id}
-              onPress={() => setSelected(o.id)}
-              style={styles.optionOverride}
-            />
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.footer}>
+    <OnboardingScreenShell
+      currentStep={4}
+      totalSteps={4}
+      showBackButton
+      subHeading="Personalizing Flinote for you..."
+      mainHeading="Do you want us to focus on a class or an exam?"
+      footer={
         <ContinueButton
-          onPress={handleContinue}
+          onPress={() => router.push('/(onboarding)/step4' as any)}
           disabled={!selected}
         />
+      }
+    >
+      <View style={styles.options}>
+        {options.map((o, i) => (
+          <OnboardingOptionRow
+            key={o.id}
+            icon={<Text style={styles.emoji}>{o.emoji}</Text>}
+            label={o.label}
+            isSelected={selected === o.id}
+            onPress={() => setSelected(o.id)}
+            index={i}
+            iconBackgroundColor={o.iconBg}
+          />
+        ))}
       </View>
-    </SafeAreaView>
+    </OnboardingScreenShell>
   )
 }
 
-// styles imported from onboarding-styles/teacher4
+const styles = StyleSheet.create({
+  options: {
+    gap: 10,
+  },
+  emoji: {
+    fontSize: 20,
+  },
+})

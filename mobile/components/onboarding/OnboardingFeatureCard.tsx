@@ -1,16 +1,15 @@
 /**
- * Multi-select feature card for onboarding grid (Step4).
- * Theme-aware: semantic tokens, theme.shadow(), design-system radius/spacing.
+ * Multi-select feature card — true frosted glass.
  */
 
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import React from 'react'
 import { Pressable, Text, View, StyleSheet } from 'react-native'
-import Animated, { FadeIn } from 'react-native-reanimated'
+import { BlurView } from 'expo-blur'
+import Animated from 'react-native-reanimated'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { radius as dsRadius, spacing as dsSpacing } from '@/lib/design-system'
-import { usePressScale } from '@/lib/ui/auth-animations'
+import { onboardingEntrance, usePressScale } from '@/lib/ui/auth-animations'
 
 export type OnboardingFeatureCardProps = {
   icon: React.ReactNode
@@ -18,6 +17,7 @@ export type OnboardingFeatureCardProps = {
   isSelected: boolean
   onPress: () => void
   entranceDelay?: number
+  index?: number
 }
 
 export function OnboardingFeatureCard({
@@ -25,7 +25,7 @@ export function OnboardingFeatureCard({
   label,
   isSelected,
   onPress,
-  entranceDelay = 0,
+  index = 0,
 }: OnboardingFeatureCardProps) {
   const { theme, mode } = useTheme()
   const c = theme.colors
@@ -33,16 +33,20 @@ export function OnboardingFeatureCard({
   const isDark = mode === 'dark'
   const [scaleStyle, pressIn, pressOut] = usePressScale()
 
-  const cardShadow = theme.shadow({ offset: 2, opacity: isDark ? 0.18 : 0.06 })
-
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     onPress()
   }
 
+  const glassBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)'
+  const glassBorder = isSelected
+    ? c.primary
+    : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)')
+  const glassHighlight = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)'
+
   return (
     <Animated.View
-      entering={entranceDelay > 0 ? FadeIn.duration(260).delay(entranceDelay).springify() : undefined}
+      entering={onboardingEntrance.option(index)}
       style={[scaleStyle, styles.wrapper]}
     >
       <Pressable
@@ -52,37 +56,51 @@ export function OnboardingFeatureCard({
         style={[
           styles.card,
           {
-            backgroundColor: isSelected ? c.accent : c.card,
-            borderRadius: dsRadius.radiusXl,
-            borderWidth: 1.5,
-            borderColor: isSelected ? c.primary : c.border,
+            borderColor: glassBorder,
+            borderWidth: isSelected ? 1.5 : 1,
           },
-          cardShadow,
         ]}
       >
-        {isSelected && (
-          <View
-            style={[
-              styles.checkBadge,
-              {
-                backgroundColor: c.primary,
-                borderRadius: dsRadius.radiusFull,
-              },
-            ]}
-          >
-            <Ionicons name="checkmark" size={12} color={c.primaryForeground} />
-          </View>
-        )}
-        <View style={styles.iconWrap}>{icon}</View>
-        <Text
+        <BlurView
+          intensity={isDark ? 20 : 40}
+          tint={isDark ? 'dark' : 'light'}
+          style={[StyleSheet.absoluteFill, { borderRadius: 18 }]}
+        />
+        <View
           style={[
-            styles.label,
+            StyleSheet.absoluteFill,
             {
-              color: c.foreground,
-              fontSize: t.textSm,
-              fontWeight: t.weightMedium,
+              borderRadius: 18,
+              backgroundColor: isSelected
+                ? (isDark ? 'rgba(79,59,231,0.08)' : 'rgba(79,59,231,0.04)')
+                : glassBg,
+              borderTopWidth: StyleSheet.hairlineWidth,
+              borderTopColor: glassHighlight,
             },
           ]}
+        />
+
+        {/* Check badge */}
+        <View
+          style={[
+            styles.checkBadge,
+            isSelected
+              ? { backgroundColor: c.primary, borderWidth: 0 }
+              : {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                },
+          ]}
+        >
+          {isSelected && (
+            <Ionicons name="checkmark" size={11} color={c.primaryForeground} />
+          )}
+        </View>
+
+        <View style={styles.iconWrap}>{icon}</View>
+        <Text
+          style={[styles.label, { color: c.foreground, fontWeight: t.weightMedium }]}
           numberOfLines={2}
         >
           {label}
@@ -96,9 +114,11 @@ const styles = StyleSheet.create({
   wrapper: { width: '47%' },
   card: {
     aspectRatio: 1,
-    padding: dsSpacing.space4,
+    padding: 16,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   checkBadge: {
     position: 'absolute',
@@ -106,10 +126,11 @@ const styles = StyleSheet.create({
     right: 10,
     width: 20,
     height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
   iconWrap: { marginBottom: 10 },
-  label: { textAlign: 'center', lineHeight: 20 },
+  label: { textAlign: 'center', fontSize: 14, lineHeight: 20 },
 })

@@ -64,7 +64,7 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
     if (loading && !refreshing) {
       return (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#7C3AED" />
+          <ActivityIndicator size="large" color="#4f3be7" />
           <Text style={styles.loadingText}>Loading folders...</Text>
         </View>
       );
@@ -117,7 +117,7 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
 
   return (
     <LinearGradient
-      colors={['#FFFFFF', '#FBF7FF']}
+      colors={['#FFFFFF', '#f7f9ff']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -138,7 +138,7 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#7C3AED"
+              tintColor="#4f3be7"
             />
           }
           showsVerticalScrollIndicator={false}
@@ -147,7 +147,7 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
         {/* FAB - Create Folder Button */}
         {folders.length > 0 && (
           <LinearGradient
-            colors={['#7C3AED', '#4F46E5']}
+            colors={['#4f3be7', '#4F46E5']}
             style={styles.fabGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 34,
-    fontWeight: '800',
+    fontWeight: '500',
     color: '#111827',
     marginBottom: 4,
   },
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
     marginBottom: 8,
     textAlign: 'center',
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   retryButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4f3be7',
     borderRadius: 12,
   },
   retryButtonText: {
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
     marginBottom: 8,
     textAlign: 'center',
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   createButton: {
     paddingVertical: 14,
     paddingHorizontal: 28,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4f3be7',
     borderRadius: 12,
   },
   createButtonText: {
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     right: 20,
     bottom: 60,
     borderRadius: 999,
-    shadowColor: '#7C3AED',
+    shadowColor: '#4f3be7',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

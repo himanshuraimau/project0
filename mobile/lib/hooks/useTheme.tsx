@@ -31,7 +31,7 @@ export const ThemeProvider: React.FC<{
   forceMode?: ThemeMode
 }> = ({ children, forceMode }) => {
   const system = useColorScheme()
-  const [preference, setPreference] = useState<ThemePreference>('system')
+  const [preference, setPreference] = useState<ThemePreference>('light')
   const mode: ThemeMode = forceMode ?? resolveMode(preference, system)
   const theme = useMemo(() => themeWithCompat(mode), [mode])
 

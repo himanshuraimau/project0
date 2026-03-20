@@ -1,147 +1,91 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { ChevronLeft } from 'lucide-react-native'
 import React from 'react'
-import { SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { BlurGradient } from '../../ui/BlurGradient'
+import { Text, View, StyleSheet } from 'react-native'
+import { BlurView } from 'expo-blur'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { ContinueButton } from '../../ui/ContinueButton'
+import { OnboardingScreenShell } from '../OnboardingScreenShell'
+import Animated from 'react-native-reanimated'
+import { onboardingEntrance } from '@/lib/ui/auth-animations'
+
+const features = [
+  'Capture meeting notes effortlessly',
+  'Collect and organize notes faster',
+  'Document policy discussions clearly',
+  'Summarize and share reports faster',
+]
 
 export default function WorkingProfessional2() {
   const router = useRouter()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const t = theme.typography
+  const isDark = mode === 'dark'
+
+  const checkBg = isDark ? 'rgba(79,59,231,0.15)' : 'rgba(79,59,231,0.08)'
+
   return (
-    <SafeAreaView style={styles.screen}>
-      <StatusBar barStyle="dark-content" translucent={false} backgroundColor="#F7F5FF" />
-
-      {/* Gaussian Blur */}
-      <BlurGradient
-        colors={['#9810FA', '#441AFF']}
-        width={286}
-        height={256}
-        opacity={0.1}
-        right={-30}
-        top={-40}
-      />
-
-
-      {/* Navigation header with back and progress */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
-        </TouchableOpacity>
-        <View style={styles.progressWrap}>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
-          </View>
-        </View>
-      </View>
-
-      {/* Content */}
-      <View style={styles.content}>
-        <Text style={styles.title}>You're in the right place.</Text>
-        <Text style={styles.subtitle}>Trusted by thousands of professionals like you</Text>
-
-        <View style={styles.features}>
-          <View style={styles.featureItem}>
-            <View style={styles.checkContainer}>
-              <Ionicons name="checkmark" size={16} color="#2C94CA" />
-            </View>
-            <Text style={styles.featureText}>Capture meeting notes effortlessly</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.checkContainer}>
-              <Ionicons name="checkmark" size={16} color="#2C94CA" />
-            </View>
-            <Text style={styles.featureText}>Collect and organize notes faster</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.checkContainer}>
-              <Ionicons name="checkmark" size={16} color="#2C94CA" />
-            </View>
-            <Text style={styles.featureText}>Document policy discussions clearly</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.checkContainer}>
-              <Ionicons name="checkmark" size={16} color="#2C94CA" />
-            </View>
-            <Text style={styles.featureText}>Summarize and share reports faster</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Continue button */}
-      <View style={styles.footer}>
+    <OnboardingScreenShell
+      currentStep={2}
+      totalSteps={4}
+      showBackButton
+      subHeading="You're in the right place"
+      mainHeading="Trusted by thousands of professionals"
+      footer={
         <ContinueButton
           onPress={() => router.push('/(onboarding)/workingProfessional/workingProfessional3' as any)}
         />
+      }
+    >
+      <View style={{ gap: 14 }}>
+        {features.map((text, i) => (
+          <Animated.View
+            key={i}
+            entering={onboardingEntrance.option(i)}
+            style={[
+              styles.featureRow,
+              {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
+                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)',
+              },
+            ]}
+          >
+            <BlurView
+              intensity={isDark ? 20 : 40}
+              tint={isDark ? 'dark' : 'light'}
+              style={[StyleSheet.absoluteFill, { borderRadius: 14 }]}
+            />
+            <View style={[styles.checkCircle, { backgroundColor: checkBg }]}>
+              <Ionicons name="checkmark" size={15} color={c.primary} />
+            </View>
+            <Text style={[styles.featureText, { color: c.foreground, fontWeight: t.weightMedium }]}>
+              {text}
+            </Text>
+          </Animated.View>
+        ))}
       </View>
-    </SafeAreaView>
+    </OnboardingScreenShell>
   )
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#F7F5FF', // light off-white
-  },
-  statusBar: {
-    height: 24,
+  featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
   },
-  time: {
-    fontSize: 14,
-    color: '#0F172A',
-    fontWeight: '600',
-  },
-  statusRight: { flexDirection: 'row', alignItems: 'center' },
-  statusIcon: { fontSize: 13 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
-  back: {
-    fontSize: 22,
-    color: '#0F172A',
-    marginRight: 16,
-  },
-  progressWrap: { flex: 1, paddingRight: 16 },
-  progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
-  progressFill: { width: '50%', height: '100%', backgroundColor: '#7C3AED' },
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    flex: 1,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#0F172A',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#374151',
-    marginBottom: 24,
-  },
-  features: { marginTop: 6 },
-  featureItem: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 18 },
-  checkContainer: {
-    width: 24,
-    height: 24,
-    backgroundColor: '#E5F4F8',
+  checkCircle: {
+    width: 28,
+    height: 28,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
-    marginTop: 2,
   },
-  featureText: { fontSize: 16, color: '#0F172A', flex: 1 },
-  footer: { paddingHorizontal: 16, paddingBottom: 40 },
-
-  gestureBar: {
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 3,
-    marginTop: 8,
-    marginHorizontal: 120,
-  },
+  featureText: { fontSize: 15, lineHeight: 21, flex: 1 },
 })

@@ -1,30 +1,30 @@
 import React, { useState } from 'react'
-import { SafeAreaView, View, Text, TouchableOpacity, Platform, Dimensions } from 'react-native'
+import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import Svg, { Line, Polyline } from 'react-native-svg'
-import { BlurGradient } from '../../ui/BlurGradient'
+import { BlurView } from 'expo-blur'
+import Animated from 'react-native-reanimated'
+import { OnboardingScreenShell } from '../OnboardingScreenShell'
 import { ContinueButton } from '../../ui/ContinueButton'
-import { ChevronLeft } from 'lucide-react-native'
-import styles from '../onboarding-styles/student9'
-
-const { width } = Dimensions.get('window')
+import { useTheme } from '@/lib/hooks/useTheme'
+import { onboardingEntrance } from '@/lib/ui/auth-animations'
 
 export default function Student9() {
   const router = useRouter()
   const params = useLocalSearchParams()
   const currentGpa = parseFloat(params.currentGpa as string) || 3.8
   const goalGpa = parseFloat(params.goalGpa as string) || 3.8
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const t = theme.typography
+  const isDark = mode === 'dark'
   const [activeChart, setActiveChart] = useState<'Flinote' | 'self-study'>('Flinote')
 
   const chartWidth = 281.02
   const chartHeight = 192
 
-  // Generate chart data points based on current and goal GPA
-  // Y-axis represents GPA (inverted because SVG Y increases downward)
-  // Scale: 0 GPA at y=192, 10 GPA at y=0
   const gpaToY = (gpa: number) => chartHeight - (gpa / 10) * chartHeight
 
-  // Create 5 points for Flinote (goal GPA progression - student8)
   const FlinotePoints = [
     { x: 0, y: gpaToY(currentGpa) },
     { x: 60, y: gpaToY(currentGpa + (goalGpa - currentGpa) * 0.25) },
@@ -33,7 +33,6 @@ export default function Student9() {
     { x: 240, y: gpaToY(goalGpa) },
   ]
 
-  // Create 5 points for self-study (stays at current GPA - student7)
   const selfStudyPoints = [
     { x: 0, y: gpaToY(currentGpa) },
     { x: 60, y: gpaToY(currentGpa) },
@@ -42,7 +41,6 @@ export default function Student9() {
     { x: 240, y: gpaToY(currentGpa) },
   ]
 
-  // Convert data points to SVG polyline points
   const FlinotePolyline = FlinotePoints
     .map(point => `${(point.x / 240) * chartWidth},${point.y}`)
     .join(' ')
@@ -52,61 +50,72 @@ export default function Student9() {
     .join(' ')
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Teal-Blue blur gradient */}
-      <BlurGradient
-        colors={['#14C3A2', '#4C57FF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={-83}
-        top={537.05}
-      />
-
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
-        </TouchableOpacity>
-        <View style={styles.progressWrap}>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.mainTitle}>Nice start!</Text>
-        <Text style={styles.subtitle}>Consistency compounds.</Text>
-        <Text style={styles.description}>
+    <OnboardingScreenShell
+      currentStep={9}
+      totalSteps={9}
+      showBackButton={true}
+      subHeading="Nice start!"
+      mainHeading="Consistency compounds."
+      footer={
+        <ContinueButton
+          onPress={() => router.push('/(onboarding)/step4' as any)}
+        />
+      }
+    >
+      <Animated.View entering={onboardingEntrance.option(0)}>
+        <Text style={[styles.description, { color: c.mutedForeground }]}>
           Record and review regularly to see steady progress.
         </Text>
+      </Animated.View>
 
-        <View style={styles.card}>
+      <Animated.View
+        entering={onboardingEntrance.option(1)}
+        style={[styles.card, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)' }]}
+      >
+        <BlurView intensity={isDark ? 20 : 40} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 20 }]} />
+        <View style={[StyleSheet.absoluteFill, { borderRadius: 20, backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)' }]} />
+
+        <View style={styles.cardInner}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Your GPA</Text>
+            <Text style={[styles.cardTitle, { color: c.foreground, fontWeight: t.weightSemibold }]}>Your GPA</Text>
             <View style={styles.badges}>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => setActiveChart('Flinote')}
-                style={activeChart === 'Flinote' ? styles.badgePurple : styles.badgeGrey}
+                style={[
+                  styles.badge,
+                  activeChart === 'Flinote'
+                    ? { backgroundColor: c.primary }
+                    : { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
+                ]}
               >
-                <Text style={activeChart === 'Flinote' ? styles.badgePurpleText : styles.badgeGreyText}>
+                <Text style={[
+                  styles.badgeText,
+                  { color: activeChart === 'Flinote' ? c.primaryForeground : c.mutedForeground },
+                ]}>
                   with Flinote
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </Pressable>
+              <Pressable
                 onPress={() => setActiveChart('self-study')}
-                style={activeChart === 'self-study' ? styles.badgePurple : styles.badgeGrey}
+                style={[
+                  styles.badge,
+                  activeChart === 'self-study'
+                    ? { backgroundColor: c.primary }
+                    : { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
+                ]}
               >
-                <Text style={activeChart === 'self-study' ? styles.badgePurpleText : styles.badgeGreyText}>
+                <Text style={[
+                  styles.badgeText,
+                  { color: activeChart === 'self-study' ? c.primaryForeground : c.mutedForeground },
+                ]}>
                   self-study
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
 
           <View style={styles.chartContainer}>
             <Svg width={chartWidth} height={chartHeight}>
-              {/* Horizontal grid lines */}
               {[0, 47.75, 95.51, 143.26, 191.02].map((y, i) => (
                 <Line
                   key={i}
@@ -114,26 +123,24 @@ export default function Student9() {
                   y1={y}
                   x2={chartWidth}
                   y2={y}
-                  stroke="#E5E7EB"
+                  stroke={isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}
                   strokeWidth="0.98"
                 />
               ))}
 
-              {/* Flinote line - purple when active, grey when inactive */}
               <Polyline
                 points={FlinotePolyline}
                 fill="none"
-                stroke={activeChart === 'Flinote' ? '#7C3AED' : '#D1D1D6'}
+                stroke={activeChart === 'Flinote' ? c.primary : (isDark ? 'rgba(255,255,255,0.15)' : '#D1D1D6')}
                 strokeWidth="4.02"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
 
-              {/* Self-study line - purple when active, grey when inactive */}
               <Polyline
                 points={selfStudyPolyline}
                 fill="none"
-                stroke={activeChart === 'self-study' ? '#7C3AED' : '#D1D1D6'}
+                stroke={activeChart === 'self-study' ? c.primary : (isDark ? 'rgba(255,255,255,0.15)' : '#D1D1D6')}
                 strokeWidth="4.02"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -141,16 +148,49 @@ export default function Student9() {
             </Svg>
           </View>
         </View>
-      </View>
-
-      <View style={styles.footer}>
-        <ContinueButton
-          onPress={() => router.push('/(onboarding)/step4' as any)}
-        />
-      </View>
-
-    </SafeAreaView>
+      </Animated.View>
+    </OnboardingScreenShell>
   )
 }
 
-// styles imported from onboarding-styles/student9
+const styles = StyleSheet.create({
+  description: {
+    fontSize: 15,
+    lineHeight: 21,
+    marginBottom: 24,
+  },
+  card: {
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  cardInner: {
+    padding: 20,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  cardTitle: {
+    fontSize: 17,
+    lineHeight: 22,
+  },
+  badges: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  badge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  badgeText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  chartContainer: {
+    alignItems: 'center',
+  },
+})

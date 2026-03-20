@@ -1,69 +1,100 @@
-import React from 'react'
-import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import React from 'react'
+import { Text, View, StyleSheet } from 'react-native'
+import { BlurView } from 'expo-blur'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { ContinueButton } from '../../ui/ContinueButton'
-import { ChevronLeft } from 'lucide-react-native'
-import { TestimonialCard } from '../../ui/TestimonialCard'
-import { BlurGradient } from '../../ui/BlurGradient'
-import styles from '../onboarding-styles/administrator3'
+import { OnboardingScreenShell } from '../OnboardingScreenShell'
+import Animated from 'react-native-reanimated'
+import { onboardingEntrance } from '@/lib/ui/auth-animations'
 
 export default function Administrator3() {
   const router = useRouter()
-  const handleContinue = () => {
-    router.push('/(onboarding)/step4' as any)
-  }
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const t = theme.typography
+  const isDark = mode === 'dark'
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Gaussian Blur 1 */}
-      <BlurGradient
-        colors={['#9810FA', '#441AFF']}
-        width={256}
-        height={256}
-        left={239.4}
-        top={-102.4}
-        opacity={0.1}
-      />
-      {/* Gaussian Blur 2 */}
-      <BlurGradient
-        colors={['#14C3A2', '#4C57FF']}
-        width={256}
-        height={256}
-        left={-102.4}
-        top={698.4}
-        opacity={0.1}
-      />
+    <OnboardingScreenShell
+      currentStep={3}
+      totalSteps={3}
+      showBackButton
+      subHeading="Personalizing Flinote for you..."
+      mainHeading="You're in the right place."
+      footer={
+        <ContinueButton
+          onPress={() => router.push('/(onboarding)/step4' as any)}
+        />
+      }
+    >
+      {/* Testimonial card — frosted glass */}
+      <Animated.View
+        entering={onboardingEntrance.option(0)}
+        style={[
+          styles.card,
+          {
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)',
+          },
+        ]}
+      >
+        <BlurView
+          intensity={isDark ? 25 : 50}
+          tint={isDark ? 'dark' : 'light'}
+          style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
+        />
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              borderRadius: 20,
+              backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
+              borderTopWidth: StyleSheet.hairlineWidth,
+              borderTopColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)',
+            },
+          ]}
+        />
 
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
-        </TouchableOpacity>
-        <View style={styles.progressWrap}>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
+        <View style={styles.cardHeader}>
+          <View>
+            <Text style={[styles.cardName, { color: c.foreground, fontWeight: t.weightSemibold }]}>
+              Josh berk
+            </Text>
+            <Text style={[styles.cardRole, { color: c.mutedForeground }]}>
+              head of school
+            </Text>
+          </View>
+          <View style={styles.stars}>
+            {Array.from({ length: 5 }, (_, i) => (
+              <Ionicons key={i} name="star" size={14} color="#FFB800" />
+            ))}
           </View>
         </View>
-      </View>
 
-      <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Flinote for you...</Text>
-        <Text style={styles.title}>You're in the right place.</Text>
-
-        <TestimonialCard
-          name="Josh berk"
-          title="head of school"
-          quote="Flinote keeps my all notes organized. I walk away with clean summaries, follow-ups, and no missed details. Even from the busiest days"
-          stars={5}
-        />
-      </View>
-
-      <View style={styles.footer}>
-        <ContinueButton
-          onPress={handleContinue}
-        />
-      </View>
-    </SafeAreaView>
+        <Text style={[styles.quote, { color: c.foreground }]}>
+          "Flinote keeps my all notes organized. I walk away with clean summaries, follow-ups, and no missed details. Even from the busiest days"
+        </Text>
+      </Animated.View>
+    </OnboardingScreenShell>
   )
 }
 
-// styles imported from onboarding-styles/administrator3
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 24,
+    overflow: 'hidden',
+    gap: 16,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  cardName: { fontSize: 17, lineHeight: 22 },
+  cardRole: { fontSize: 13, lineHeight: 18, marginTop: 2 },
+  stars: { flexDirection: 'row', gap: 3 },
+  quote: { fontSize: 15, lineHeight: 23, letterSpacing: 0.1 },
+})

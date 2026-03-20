@@ -1,89 +1,91 @@
-import React from 'react'
-import { View, Text, TouchableOpacity, StatusBar, SafeAreaView } from 'react-native'
-import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { ChevronLeft } from 'lucide-react-native'
-import { BlurGradient } from '../../ui/BlurGradient'
+import { useRouter } from 'expo-router'
+import React from 'react'
+import { Text, View, StyleSheet } from 'react-native'
+import { BlurView } from 'expo-blur'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { ContinueButton } from '../../ui/ContinueButton'
-import styles from '../onboarding-styles/teacher1'
+import { OnboardingScreenShell } from '../OnboardingScreenShell'
+import Animated from 'react-native-reanimated'
+import { onboardingEntrance } from '@/lib/ui/auth-animations'
+
+const features = [
+  'Streamline lecture prep and delivery',
+  'Collect and organize notes faster',
+  'Inspire students through smarter learning',
+  'Turn classroom discussions into shareable notes',
+]
 
 export default function Teacher1() {
   const router = useRouter()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const t = theme.typography
+  const isDark = mode === 'dark'
+
+  const checkBg = isDark ? 'rgba(79,59,231,0.15)' : 'rgba(79,59,231,0.08)'
+
   return (
-    <SafeAreaView style={styles.screen}>
-
-
-      {/* Bottom left blur gradient */}
-      <BlurGradient
-        colors={['#14C3A2', '#4C57FF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={-66}
-        top={650}
-      />
-
-      {/* Top right blur gradient */}
-      <BlurGradient
-        colors={['#9810FA', '#441AFF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={265}
-        top={116.5}
-      />
-
-      {/* Header with back button and progress */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
-        </TouchableOpacity>
-        <View style={styles.progressWrap}>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.title}>You're in the right place.</Text>
-        <Text style={styles.subtitle}>Trusted by educators or professionals like you</Text>
-
-        <View style={styles.features}>
-          <View style={styles.featureItem}>
-            <View style={styles.checkContainer}>
-              <Ionicons name="checkmark" size={16} color="#2C94CA" />
-            </View>
-            <Text style={styles.featureText}>Streamline lecture prep and delivery</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.checkContainer}>
-              <Ionicons name="checkmark" size={16} color="#2C94CA" />
-            </View>
-            <Text style={styles.featureText}>Collect and organize notes faster</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.checkContainer}>
-              <Ionicons name="checkmark" size={16} color="#2C94CA" />
-            </View>
-            <Text style={styles.featureText}>Inspire students through smarter learning</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.checkContainer}>
-              <Ionicons name="checkmark" size={16} color="#2C94CA" />
-            </View>
-            <Text style={styles.featureText}>Turn classroom discussions into shareable notes</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.footer}>
+    <OnboardingScreenShell
+      currentStep={1}
+      totalSteps={4}
+      showBackButton
+      subHeading="You're in the right place"
+      mainHeading="Trusted by educators like you"
+      footer={
         <ContinueButton
           onPress={() => router.push('/(onboarding)/teacher-flow/teacher2' as any)}
         />
+      }
+    >
+      <View style={{ gap: 14 }}>
+        {features.map((text, i) => (
+          <Animated.View
+            key={i}
+            entering={onboardingEntrance.option(i)}
+            style={[
+              styles.featureRow,
+              {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
+                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)',
+              },
+            ]}
+          >
+            <BlurView
+              intensity={isDark ? 20 : 40}
+              tint={isDark ? 'dark' : 'light'}
+              style={[StyleSheet.absoluteFill, { borderRadius: 14 }]}
+            />
+            <View style={[styles.checkCircle, { backgroundColor: checkBg }]}>
+              <Ionicons name="checkmark" size={15} color={c.primary} />
+            </View>
+            <Text style={[styles.featureText, { color: c.foreground, fontWeight: t.weightMedium }]}>
+              {text}
+            </Text>
+          </Animated.View>
+        ))}
       </View>
-    </SafeAreaView>
+    </OnboardingScreenShell>
   )
 }
 
-// styles imported from onboarding-styles/teacher1
+const styles = StyleSheet.create({
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  checkCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureText: { fontSize: 15, lineHeight: 21, flex: 1 },
+})

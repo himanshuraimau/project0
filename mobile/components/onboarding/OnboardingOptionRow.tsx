@@ -1,16 +1,16 @@
 /**
- * Selectable option row for onboarding. Theme-aware: all colors from semantic
- * tokens, shadows via theme.shadow(), radius/spacing from design-system scale.
+ * Selectable option row — true frosted glass.
+ * BlurView background, glass highlight border, satisfying selection.
  */
 
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import React from 'react'
 import { Pressable, Text, View, StyleSheet } from 'react-native'
-import Animated, { FadeIn } from 'react-native-reanimated'
+import { BlurView } from 'expo-blur'
+import Animated from 'react-native-reanimated'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { radius as dsRadius, spacing as dsSpacing } from '@/lib/design-system'
-import { usePressScale } from '@/lib/ui/auth-animations'
+import { onboardingEntrance, usePressScale } from '@/lib/ui/auth-animations'
 
 export type OnboardingOptionRowProps = {
   icon: React.ReactNode
@@ -20,6 +20,7 @@ export type OnboardingOptionRowProps = {
   onPress: () => void
   entranceDelay?: number
   iconBackgroundColor?: string
+  index?: number
 }
 
 export function OnboardingOptionRow({
@@ -28,8 +29,8 @@ export function OnboardingOptionRow({
   subtitle,
   isSelected,
   onPress,
-  entranceDelay = 0,
   iconBackgroundColor,
+  index = 0,
 }: OnboardingOptionRowProps) {
   const { theme, mode } = useTheme()
   const c = theme.colors
@@ -37,18 +38,20 @@ export function OnboardingOptionRow({
   const isDark = mode === 'dark'
   const [scaleStyle, pressIn, pressOut] = usePressScale()
 
-  const cardShadow = theme.shadow({ offset: 2, opacity: isDark ? 0.18 : 0.06 })
-
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     onPress()
   }
 
+  // Glass tints
+  const glassBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)'
+  const glassBorder = isSelected
+    ? c.primary
+    : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)')
+  const glassHighlight = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)'
+
   return (
-    <Animated.View
-      entering={entranceDelay > 0 ? FadeIn.duration(280).delay(entranceDelay).springify() : undefined}
-      style={scaleStyle}
-    >
+    <Animated.View entering={onboardingEntrance.option(index)} style={scaleStyle}>
       <Pressable
         onPress={handlePress}
         onPressIn={pressIn}
@@ -56,20 +59,38 @@ export function OnboardingOptionRow({
         style={[
           styles.row,
           {
-            backgroundColor: isSelected ? c.accent : c.card,
-            borderRadius: dsRadius.radiusXl,
-            borderWidth: 1.5,
-            borderColor: isSelected ? c.primary : c.border,
+            borderColor: glassBorder,
+            borderWidth: isSelected ? 1.5 : 1,
           },
-          cardShadow,
         ]}
       >
+        {/* Glass backdrop */}
+        <BlurView
+          intensity={isDark ? 20 : 40}
+          tint={isDark ? 'dark' : 'light'}
+          style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
+        />
+        {/* Glass fill + top highlight */}
         <View
           style={[
-            styles.iconCircle,
+            StyleSheet.absoluteFill,
             {
-              backgroundColor: iconBackgroundColor ?? c.muted,
-              borderRadius: dsRadius.radiusMd,
+              borderRadius: 16,
+              backgroundColor: isSelected
+                ? (isDark ? 'rgba(79,59,231,0.08)' : 'rgba(79,59,231,0.04)')
+                : glassBg,
+              borderTopWidth: StyleSheet.hairlineWidth,
+              borderTopColor: glassHighlight,
+            },
+          ]}
+        />
+
+        <View
+          style={[
+            styles.iconWrap,
+            {
+              backgroundColor: iconBackgroundColor
+                ?? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)'),
             },
           ]}
         >
@@ -78,24 +99,14 @@ export function OnboardingOptionRow({
 
         <View style={styles.labelWrap}>
           <Text
-            style={[
-              styles.label,
-              {
-                color: c.foreground,
-                fontWeight: t.weightMedium,
-                fontSize: t.textBase,
-              },
-            ]}
+            style={[styles.label, { color: c.foreground, fontWeight: t.weightMedium }]}
             numberOfLines={1}
           >
             {label}
           </Text>
           {subtitle != null && (
             <Text
-              style={[
-                styles.subtitle,
-                { color: c.mutedForeground, fontSize: t.textSm },
-              ]}
+              style={[styles.subtitle, { color: c.mutedForeground }]}
               numberOfLines={1}
             >
               {subtitle}
@@ -103,17 +114,21 @@ export function OnboardingOptionRow({
           )}
         </View>
 
+        {/* Radio indicator */}
         <View
           style={[
-            styles.checkBadge,
-            {
-              backgroundColor: isSelected ? c.primary : c.muted,
-              borderRadius: dsRadius.radiusFull,
-            },
+            styles.radio,
+            isSelected
+              ? { backgroundColor: c.primary, borderWidth: 0 }
+              : {
+                  backgroundColor: 'transparent',
+                  borderWidth: 1.5,
+                  borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
+                },
           ]}
         >
           {isSelected && (
-            <Ionicons name="checkmark" size={14} color={c.primaryForeground} />
+            <Ionicons name="checkmark" size={12} color={c.primaryForeground} />
           )}
         </View>
       </Pressable>
@@ -125,23 +140,27 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: dsSpacing.space4,
+    paddingHorizontal: 16,
     paddingVertical: 14,
-    gap: dsSpacing.space3,
-    minHeight: 68,
+    gap: 14,
+    borderRadius: 16,
+    minHeight: 64,
+    overflow: 'hidden',
   },
-  iconCircle: {
-    width: 44,
-    height: 44,
+  iconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   labelWrap: { flex: 1 },
-  label: { lineHeight: 22 },
-  subtitle: { marginTop: 2 },
-  checkBadge: {
-    width: 24,
-    height: 24,
+  label: { fontSize: 16, lineHeight: 22 },
+  subtitle: { fontSize: 13, lineHeight: 18, marginTop: 2 },
+  radio: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
   },

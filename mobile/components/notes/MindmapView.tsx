@@ -22,6 +22,7 @@ import { useRouter } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
+import { BlurView } from 'expo-blur';
 import { notesApi } from '@/lib/api';
 import { getMindMapByNoteId, generateMindMap, deleteMindMap } from '@/lib/api/mindmap';
 import type { Note, MindMap } from '@/lib/api/types';
@@ -29,6 +30,7 @@ import { getTranslatedNote } from '@/lib/utils/translation';
 import BackButton from '@/components/ui/BackButton';
 import { useAlert } from '@/lib/contexts/AlertContext';
 import CustomAlert from '@/components/ui/CustomAlert';
+import { useTheme } from '@/lib/hooks/useTheme';
 
 interface MindmapViewProps {
     noteId: string;
@@ -37,6 +39,9 @@ interface MindmapViewProps {
 const MindmapView = ({ noteId }: MindmapViewProps) => {
     const router = useRouter();
     const { showAlert } = useAlert();
+    const { theme, mode } = useTheme();
+    const c = theme.colors;
+    const isDark = mode === 'dark';
     const webViewRef = useRef<WebView>(null);
     const [note, setNote] = useState<Note | null>(null);
     const [mindmap, setMindmap] = useState<MindMap | null>(null);
@@ -157,6 +162,11 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             .replace(/`/g, '\\`')
             .replace(/\$/g, '\\$');
 
+        const bgColor = isDark ? '#0a0a0a' : '#ffffff';
+        const textColor = isDark ? '#f5f5f5' : '#111827';
+        const statusColor = isDark ? '#858dff' : '#4f3be7';
+        const errorColor = isDark ? '#f14d4c' : '#EF4444';
+
         return `<!DOCTYPE html>
 <html>
 <head>
@@ -165,31 +175,31 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; overflow: hidden; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: ${bgColor}; color: ${textColor}; }
         #mindmap { width: 100%; height: 100%; }
-        .status { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; padding: 20px; font-size: 14px; color: #7C3AED; }
-        .error { color: #EF4444; }
+        .status { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; padding: 20px; font-size: 14px; color: ${statusColor}; }
+        .error { color: ${errorColor}; }
     </style>
 </head>
 <body>
     <div class="status" id="status">Loading...</div>
     <svg id="mindmap"></svg>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.15.4"></script>
     <script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.15.4/dist/browser/index.js"></script>
-    
+
     <script>
         const markdown = \`${escapedMarkdown}\`;
         let loadedScripts = 0;
-        
+
         function log(msg) {
             console.log(msg);
             if (window.ReactNativeWebView) {
                 window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'log', message: msg }));
             }
         }
-        
+
         function updateStatus(msg, isError = false) {
             const el = document.getElementById('status');
             if (el) {
@@ -197,26 +207,26 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                 el.className = isError ? 'status error' : 'status';
             }
         }
-        
+
         function init() {
             try {
                 log('Initializing Markmap...');
                 updateStatus('Rendering...');
-                
+
                 if (!window.markmap) {
                     throw new Error('Markmap library not loaded');
                 }
-                
+
                 const { Transformer, Markmap } = window.markmap;
-                
+
                 if (!Transformer) {
                     throw new Error('Transformer not available');
                 }
-                
+
                 log('Transforming markdown...');
                 const transformer = new Transformer();
                 const { root } = transformer.transform(markdown);
-                
+
                 log('Creating Markmap instance...');
                 const svg = document.getElementById('mindmap');
                 const mm = Markmap.create(svg, {
@@ -229,27 +239,27 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                     zoom: true,
                     initialExpandLevel: -1,
                     color: (node) => {
-                        const colors = ['#7C3AED', '#FF6B00', '#00B4D8', '#4A90E2', '#F03E89'];
+                        const colors = ['#4f3be7', '#FF6B00', '#00B4D8', '#4A90E2', '#F03E89'];
                         return colors[node.depth % colors.length];
                     }
                 }, root);
-                
+
                 log('Markmap created successfully');
                 document.getElementById('status').style.display = 'none';
-                
+
                 setTimeout(() => {
                     mm.fit();
                     // Apply initial zoom after fit
                     const currentState = mm.state;
                     mm.setData(root, { ...currentState, zoom: (currentState.zoom || 1) * 1.3 });
                 }, 100);
-                
+
             } catch (error) {
                 log('Error: ' + error.message);
                 updateStatus('Error: ' + error.message, true);
             }
         }
-        
+
         // Wait for all scripts to load
         window.addEventListener('load', () => {
             log('Window loaded');
@@ -362,45 +372,45 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
 
                         // Get the actual bounding box of all SVG content
                         const bbox = svg.getBBox();
-                        
+
                         // Add padding around the content (increased for better visibility)
                         const padding = 80;
                         const width = bbox.width + (padding * 2);
                         const height = bbox.height + (padding * 2);
-                        
+
                         window.ReactNativeWebView.postMessage(JSON.stringify({
                             type: 'log',
                             message: 'Size: ' + width + 'x' + height
                         }));
-                        
+
                         // Clone the SVG
                         const svgClone = svg.cloneNode(true);
-                        
+
                         // Set proper dimensions and viewBox to capture all content
                         svgClone.setAttribute('width', width);
                         svgClone.setAttribute('height', height);
-                        svgClone.setAttribute('viewBox', 
-                            (bbox.x - padding) + ' ' + 
-                            (bbox.y - padding) + ' ' + 
-                            width + ' ' + 
+                        svgClone.setAttribute('viewBox',
+                            (bbox.x - padding) + ' ' +
+                            (bbox.y - padding) + ' ' +
+                            width + ' ' +
                             height
                         );
-                        
+
                         // Serialize the SVG
                         const svgData = new XMLSerializer().serializeToString(svgClone);
-                        
+
                         // Create a canvas to convert SVG to PNG
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        
+
                         // Set canvas size (scale up for maximum quality - 8x resolution for ultra-sharp output)
                         const scale = 10;
                         canvas.width = width * scale;
                         canvas.height = height * scale;
-                        
+
                         // Create an image
                         const img = new Image();
-                        
+
                         img.onload = function() {
                             try {
                                 window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -411,28 +421,28 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                                 // Enable maximum quality rendering
                                 ctx.imageSmoothingEnabled = true;
                                 ctx.imageSmoothingQuality = 'high';
-                                
+
                                 // Use better compositing for sharper output
                                 ctx.globalCompositeOperation = 'source-over';
 
                                 // Fill white background
                                 ctx.fillStyle = '#ffffff';
                                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                                
+
                                 // Scale context for high-quality rendering
                                 ctx.scale(scale, scale);
-                                
+
                                 // Draw the image with explicit dimensions for sharpest output
                                 ctx.drawImage(img, 0, 0, width, height);
-                                
+
                                 // Convert to PNG data URL with maximum quality
                                 const dataUrl = canvas.toDataURL('image/png', 1.0);
-                                
+
                                 window.ReactNativeWebView.postMessage(JSON.stringify({
                                     type: 'log',
                                     message: 'Canvas converted to PNG, size: ' + dataUrl.length
                                 }));
-                                
+
                                 // Send to React Native
                                 window.ReactNativeWebView.postMessage(JSON.stringify({
                                     type: 'capture_image',
@@ -445,25 +455,25 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                                 }));
                             }
                         };
-                        
+
                         img.onerror = function(err) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({
                                 type: 'capture_error',
                                 message: 'Failed to load SVG as image'
                             }));
                         };
-                        
+
                         // Convert SVG to base64 data URL (works in React Native WebView)
                         const svgBase64 = btoa(unescape(encodeURIComponent(svgData)));
                         const svgDataUrl = 'data:image/svg+xml;base64,' + svgBase64;
-                        
+
                         window.ReactNativeWebView.postMessage(JSON.stringify({
                             type: 'log',
                             message: 'Loading SVG into image...'
                         }));
-                        
+
                         img.src = svgDataUrl;
-                        
+
                     } catch (err) {
                         window.ReactNativeWebView.postMessage(JSON.stringify({
                             type: 'capture_error',
@@ -483,7 +493,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         if (isSaving) return;
 
         setIsSaving(true);
-        
+
         try {
             // Request media library permissions
             const { status } = await MediaLibrary.requestPermissionsAsync(true);
@@ -590,13 +600,274 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         handleGenerateMindmap();
     };
 
+    const styles = StyleSheet.create({
+        safeArea: {
+            flex: 1,
+            backgroundColor: c.background,
+        },
+        container: {
+            flex: 1,
+            backgroundColor: c.background,
+        },
+        header: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: c.border,
+        },
+        headerSpacer: {
+            width: 48,
+        },
+        headerButton: {
+            width: 48,
+            height: 48,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        headerButtonDisabled: {
+            opacity: 0.5,
+        },
+        titleContainer: {
+            flex: 1,
+            alignItems: 'center',
+        },
+        title: {
+            fontSize: 24,
+            fontWeight: '500',
+            color: c.foreground,
+            textAlign: 'center',
+        },
+        scrollView: {
+            flex: 1,
+            backgroundColor: c.background,
+        },
+        scrollContent: {
+            paddingHorizontal: 20,
+            paddingVertical: 20,
+        },
+        card: {
+            backgroundColor: c.card,
+            borderRadius: 16,
+            paddingHorizontal: 10,
+            paddingVertical: 20,
+            marginBottom: 16,
+        },
+        cardTitle: {
+            fontSize: 20,
+            fontWeight: '500',
+            color: c.foreground,
+            marginBottom: 12,
+        },
+        titleSection: {
+            marginBottom: 24,
+        },
+        metadataRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        metadataText: {
+            fontSize: 14,
+            color: c.mutedForeground,
+            fontWeight: '500',
+        },
+        metadataDot: {
+            width: 4,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: c.mutedForeground,
+            marginHorizontal: 8,
+        },
+        mindMapContainer: {
+            minHeight: 500,
+            paddingVertical: 20,
+        },
+        mindMapWebViewContainer: {
+            height: 335,
+            borderRadius: 12,
+            overflow: 'hidden',
+            backgroundColor: c.background,
+            borderWidth: 1,
+            borderColor: c.border,
+        },
+        markdownInput: {
+            flex: 1,
+            padding: 15,
+            fontSize: 14,
+            fontFamily: 'monospace',
+            color: c.foreground,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+            borderColor: c.border,
+        },
+        headerButtons: {
+            flexDirection: 'row',
+            gap: 8,
+        },
+        webView: {
+            flex: 1,
+            backgroundColor: c.background,
+        },
+        webViewLoading: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: c.background,
+        },
+        footer: {
+            gap: 12,
+            marginTop: 20,
+        },
+        saveButton: {
+            backgroundColor: c.foreground,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 16,
+            borderRadius: 12,
+            gap: 8,
+        },
+        saveButtonDisabled: {
+            opacity: 0.6,
+        },
+        saveButtonText: {
+            color: c.background,
+            fontSize: 16,
+            fontWeight: '600',
+        },
+        actionRow: {
+            flexDirection: 'row',
+            gap: 12,
+        },
+        shareButton: {
+            flex: 1,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.card,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 16,
+            borderRadius: 12,
+            borderWidth: 0.5,
+            borderColor: c.border,
+            gap: 8,
+        },
+        shareButtonText: {
+            color: c.foreground,
+            fontSize: 16,
+            fontWeight: '600',
+        },
+        createButton: {
+            flex: 1,
+            backgroundColor: c.primary,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 16,
+            borderRadius: 12,
+        },
+        createButtonText: {
+            color: c.primaryForeground,
+            fontSize: 16,
+            fontWeight: '600',
+        },
+        loadingContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 40,
+        },
+        loadingText: {
+            marginTop: 12,
+            fontSize: 16,
+            color: c.mutedForeground,
+            fontWeight: '500',
+        },
+        errorContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 40,
+            paddingHorizontal: 40,
+        },
+        errorText: {
+            color: c.destructive,
+            fontSize: 16,
+            textAlign: 'center',
+            fontWeight: '600',
+            marginBottom: 20,
+        },
+        retryButton: {
+            paddingVertical: 12,
+            paddingHorizontal: 24,
+            backgroundColor: c.primary,
+            borderRadius: 12,
+        },
+        retryButtonText: {
+            color: c.primaryForeground,
+            fontSize: 16,
+            fontWeight: '600',
+        },
+        emptyStateContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 60,
+            paddingHorizontal: 40,
+        },
+        emptyStateTitle: {
+            marginTop: 24,
+            color: c.foreground,
+            fontSize: 24,
+            textAlign: 'center',
+            fontWeight: '500',
+        },
+        emptyStateSubtitle: {
+            marginTop: 12,
+            color: c.mutedForeground,
+            fontSize: 16,
+            textAlign: 'center',
+            lineHeight: 24,
+        },
+        generateButton: {
+            marginTop: 32,
+            paddingVertical: 16,
+            paddingHorizontal: 32,
+            backgroundColor: c.primary,
+            borderRadius: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            minWidth: 200,
+            justifyContent: 'center',
+        },
+        generateButtonText: {
+            color: c.primaryForeground,
+            fontSize: 16,
+            fontWeight: '600',
+            marginLeft: 8,
+        },
+        backButtonError: {
+            marginTop: 12,
+            paddingVertical: 12,
+            paddingHorizontal: 24,
+        },
+        backButtonErrorText: {
+            color: c.mutedForeground,
+            fontSize: 16,
+            fontWeight: '600',
+        },
+    });
 
     if (loading) {
         return (
             <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
                 <View style={styles.container}>
                     <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#7C3AED" />
+                        <ActivityIndicator size="large" color={c.primary} />
                         <Text style={styles.loadingText}>Loading...</Text>
                     </View>
                 </View>
@@ -624,10 +895,10 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     if (isGenerating) {
         return (
             <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
                 <View style={styles.container}>
                     <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#7C3AED" />
+                        <ActivityIndicator size="large" color={c.primary} />
                         <Text style={styles.loadingText}>Generating mindmap...</Text>
                     </View>
                 </View>
@@ -639,10 +910,10 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     if (!mindmap) {
         return (
             <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
                 <View style={styles.container}>
                     <View style={styles.emptyStateContainer}>
-                        <Feather name="help-circle" size={64} color="#7C3AED" />
+                        <Feather name="help-circle" size={64} color={c.primary} />
                         <Text style={styles.emptyStateTitle}>No Mindmap Available</Text>
                         <Text style={styles.emptyStateSubtitle}>
                             Generate a mindmap from this note to visualize key concepts
@@ -653,10 +924,10 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                             disabled={isGenerating}
                         >
                             {isGenerating ? (
-                                <ActivityIndicator size="small" color="#FFFFFF" />
+                                <ActivityIndicator size="small" color={c.primaryForeground} />
                             ) : (
                                 <>
-                                    <Feather name="zap" size={20} color="#FFFFFF" />
+                                    <Feather name="zap" size={20} color={c.primaryForeground} />
                                     <Text style={styles.generateButtonText}>Generate Mindmap</Text>
                                 </>
                             )}
@@ -675,11 +946,11 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
             <View style={styles.container}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <BackButton />
+                    <BackButton iconColor={c.foreground} />
                     <View style={styles.titleContainer}>
                         <Text style={styles.title}>MindMap</Text>
                     </View>
@@ -690,9 +961,9 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                             disabled={!mindmap}
                         >
                             {isEditing ? (
-                                <Eye size={24} color="#7C3AED" />
+                                <Eye size={24} color={c.primary} />
                             ) : (
-                                <Edit size={24} color="#7C3AED" />
+                                <Edit size={24} color={c.primary} />
                             )}
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -701,9 +972,9 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                             disabled={isDeleting || !mindmap}
                         >
                             {isDeleting ? (
-                                <ActivityIndicator size="small" color="#EF4444" />
+                                <ActivityIndicator size="small" color={c.destructive} />
                             ) : (
-                                <Feather name="trash-2" size={24} color={mindmap ? "#EF4444" : "#D1D5DB"} />
+                                <Feather name="trash-2" size={24} color={mindmap ? c.destructive : c.border} />
                             )}
                         </TouchableOpacity>
                     </View>
@@ -726,6 +997,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                                     value={markdownInput}
                                     onChangeText={handleMarkdownChange}
                                     placeholder="# Enter markdown here..."
+                                    placeholderTextColor={c.mutedForeground}
                                     textAlignVertical="top"
                                 />
                             ) : (
@@ -750,7 +1022,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                                     }}
                                     renderLoading={() => (
                                         <View style={styles.webViewLoading}>
-                                            <ActivityIndicator size="large" color="#7C3AED" />
+                                            <ActivityIndicator size="large" color={c.primary} />
                                             <Text style={styles.loadingText}>Loading visualization...</Text>
                                         </View>
                                     )}
@@ -770,12 +1042,12 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                             >
                                 {isSaving ? (
                                     <>
-                                        <ActivityIndicator size="small" color="#FFFFFF" />
+                                        <ActivityIndicator size="small" color={c.background} />
                                         <Text style={styles.saveButtonText}>Saving...</Text>
                                     </>
                                 ) : (
                                     <>
-                                        <Download size={20} color="#FFF" />
+                                        <Download size={20} color={c.background} />
                                         <Text style={styles.saveButtonText}>Save as Image</Text>
                                     </>
                                 )}
@@ -784,7 +1056,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                             {/* Share and Create New Buttons */}
                             <View style={styles.actionRow}>
                                 <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
-                                    <Share2 size={20} color="#000" />
+                                    <Share2 size={20} color={c.foreground} />
                                     <Text style={styles.shareButtonText}>Share</Text>
                                 </TouchableOpacity>
 
@@ -796,7 +1068,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                     )}
                 </ScrollView>
             </View>
-            
+
             {/* Custom Alert for Mindmap Saved */}
             <CustomAlert
                 visible={showSavedAlert}
@@ -814,266 +1086,5 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    headerSpacer: {
-        width: 48,
-    },
-    headerButton: {
-        width: 48,
-        height: 48,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    headerButtonDisabled: {
-        opacity: 0.5,
-    },
-    titleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#111827',
-        textAlign: 'center',
-    },
-    scrollView: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    scrollContent: {
-        paddingHorizontal: 20,
-        paddingVertical: 20,
-    },
-    card: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        paddingHorizontal: 10,
-        paddingVertical: 20,
-        marginBottom: 16
-    },
-    cardTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#111827',
-        marginBottom: 12,
-    },
-    titleSection: {
-        marginBottom: 24,
-    },
-    metadataRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    metadataText: {
-        fontSize: 14,
-        color: '#6B7280',
-        fontWeight: '500',
-    },
-    metadataDot: {
-        width: 4,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: '#6B7280',
-        marginHorizontal: 8,
-    },
-    mindMapContainer: {
-        minHeight: 500,
-        paddingVertical: 20,
-    },
-    mindMapWebViewContainer: {
-        height: 335,
-        borderRadius: 12,
-        overflow: 'hidden',
-        backgroundColor: '#FFFFFF',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    markdownInput: {
-        flex: 1,
-        padding: 15,
-        fontSize: 14,
-        fontFamily: 'monospace',
-        color: '#111827',
-        backgroundColor: '#F9FAFB',
-    },
-    headerButtons: {
-        flexDirection: 'row',
-        gap: 8,
-    },
-    webView: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    webViewLoading: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-    },
-    footer: {
-        gap: 12,
-        marginTop: 20,
-    },
-    saveButton: {
-        backgroundColor: '#000',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 16,
-        borderRadius: 12,
-        gap: 8,
-    },
-    saveButtonDisabled: {
-        opacity: 0.6,
-    },
-    saveButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    actionRow: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    shareButton: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        gap: 8,
-    },
-    shareButtonText: {
-        color: '#111827',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    createButton: {
-        flex: 1,
-        backgroundColor: '#7C3AED',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    createButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 40,
-    },
-    loadingText: {
-        marginTop: 12,
-        fontSize: 16,
-        color: '#6B7280',
-        fontWeight: '500',
-    },
-    errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 40,
-        paddingHorizontal: 40,
-    },
-    errorText: {
-        color: '#EF4444',
-        fontSize: 16,
-        textAlign: 'center',
-        fontWeight: '600',
-        marginBottom: 20,
-    },
-    retryButton: {
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        backgroundColor: '#7C3AED',
-        borderRadius: 12,
-    },
-    retryButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    emptyStateContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 60,
-        paddingHorizontal: 40,
-    },
-    emptyStateTitle: {
-        marginTop: 24,
-        color: '#111827',
-        fontSize: 24,
-        textAlign: 'center',
-        fontWeight: '700',
-    },
-    emptyStateSubtitle: {
-        marginTop: 12,
-        color: '#6B7280',
-        fontSize: 16,
-        textAlign: 'center',
-        lineHeight: 24,
-    },
-    generateButton: {
-        marginTop: 32,
-        paddingVertical: 16,
-        paddingHorizontal: 32,
-        backgroundColor: '#7C3AED',
-        borderRadius: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        minWidth: 200,
-        justifyContent: 'center',
-    },
-    generateButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-        marginLeft: 8,
-    },
-    backButtonError: {
-        marginTop: 12,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-    },
-    backButtonErrorText: {
-        color: '#6B7280',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-});
 
 export default MindmapView;

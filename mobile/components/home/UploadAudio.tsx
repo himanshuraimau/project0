@@ -16,6 +16,7 @@ import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
 import FullWidthButton from '@/components/ui/FullWidthButton';
 import FolderSelect from '@/components/ui/FolderSelect';
 import { useAlert } from '@/lib/contexts/AlertContext';
+import { useTheme } from '@/lib/hooks/useTheme';
 
 // Local emoji icon fallback (keeps component dependency-free)
 const Icon: React.FC<{ name: string; size?: number; color?: string; style?: any }> = ({
@@ -46,6 +47,9 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
   const { transcribeAudio, generateAINote } = useNoteCreation();
   const [internalVisible, setInternalVisible] = useState<boolean>(visibleProp ?? true);
   const { showAlert } = useAlert();
+  const { theme, mode } = useTheme();
+  const c = theme.colors;
+  const isDark = mode === 'dark';
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [language, setLanguage] = useState('english');
   const [folder, setFolder] = useState('');  // Empty string = no folder (uncategorized)
@@ -204,20 +208,126 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
     }
   };
 
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    container: {
+      backgroundColor: c.card,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      paddingHorizontal: 10,
+      paddingBottom: 16,
+    },
+    containerContent: {
+      paddingTop: 0,
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 7,
+      marginHorizontal: 8,
+    },
+    title: { color: c.foreground, fontSize: 20, fontWeight: '600' },
+    separator: {
+      height: 1,
+      backgroundColor: c.border,
+      marginHorizontal: -40,
+      width: Dimensions.get('window').width + 20,
+    },
+    uploadArea: {
+      marginTop: 8,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+      borderRadius: 12,
+      borderWidth: 0.5,
+      borderColor: c.border,
+      paddingVertical: 40,
+      paddingHorizontal: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    uploadText: { color: c.mutedForeground, marginTop: 12 },
+    fileInfo: { color: c.mutedForeground, fontSize: 12, marginTop: 4 },
+    row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 14 },
+    pickerWrap: { marginVertical: 8 },
+    label: {
+      fontFamily: 'Inter',
+      fontWeight: '500',
+      fontSize: 18,
+      lineHeight: 32,
+      color: c.foreground,
+      marginBottom: 6,
+    },
+    folderRow: { flexDirection: 'row', alignItems: 'center' },
+    folderIconWrap: {
+      width: 28,
+      height: 28,
+      borderRadius: 8,
+      backgroundColor: c.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 8,
+    },
+    buttonContainer: {
+    },
+  });
+
+  const pickerStyles = {
+    inputIOS: {
+      color: c.foreground,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+      borderRadius: 10,
+      fontSize: 14,
+      borderWidth: 1.26,
+      borderColor: c.border,
+      height: 53,
+      width: 300,
+    },
+    inputAndroid: {
+      color: c.foreground,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+      borderRadius: 10,
+      fontSize: 14,
+      borderWidth: 1.26,
+      borderColor: c.border,
+      height: 53,
+      width: 300,
+    },
+    placeholder: {
+      color: c.mutedForeground,
+    },
+    iconContainer: {
+      top: 16,
+      right: 16,
+    },
+  };
+
   const inner = (
     <>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Upload audio</Text>
           <TouchableOpacity onPress={close}>
-            <Icon name="close" size={22} color="#111" />
+            <Icon name="close" size={22} color={c.foreground} />
           </TouchableOpacity>
         </View>
       </View>
       <View style={styles.separator} />
       <View style={[styles.container, styles.containerContent]}>
         <TouchableOpacity style={styles.uploadArea} onPress={pickAudioFile} activeOpacity={0.7}>
-          <Upload size={44} color="#6b6b6b" />
+          <Upload size={44} color={c.mutedForeground} />
           <Text style={styles.uploadText}>
             {selectedFile ? selectedFile.name : 'Drag audio file here, or click to select'}
           </Text>
@@ -237,7 +347,7 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
             style={pickerStyles}
             useNativeAndroidPickerStyle={false}
             placeholder={{}}
-            Icon={() => <Icon name="caret" size={16} color="#6b6b6b" />}
+            Icon={() => <Icon name="caret" size={16} color={c.mutedForeground} />}
           />
         </View>
 
@@ -274,109 +384,3 @@ const UploadAudio: React.FC<Props> = ({ visible: visibleProp, onClose, inline = 
 };
 
 export default UploadAudio;
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  container: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingHorizontal: 10,
-    paddingBottom: 16,
-  },
-  containerContent: {
-    paddingTop: 0,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 7,
-    marginHorizontal: 8,
-  },
-  title: { color: '#111', fontSize: 20, fontWeight: '600' },
-  separator: {
-    height: 1,
-    backgroundColor: '#e0e0e0',
-    marginHorizontal: -40,
-    width: Dimensions.get('window').width + 20,
-  },
-  uploadArea: {
-    marginTop: 8,
-    backgroundColor: '#fbfbfd',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e6e6ea',
-    paddingVertical: 40,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  uploadText: { color: '#6b6b6b', marginTop: 12 },
-  fileInfo: { color: '#6b6b6b', fontSize: 12, marginTop: 4 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 14 },
-  pickerWrap: { marginVertical: 8 },
-  label: {
-    fontFamily: 'Arimo',
-    fontWeight: '700',
-    fontSize: 18,
-    lineHeight: 32,
-    color: '#364153',
-    marginBottom: 6,
-  },
-  folderRow: { flexDirection: 'row', alignItems: 'center' },
-  folderIconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: '#f2efff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  buttonContainer: {
-  },
-});
-
-const pickerStyles = {
-  inputIOS: {
-    color: '#111',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
-    width: 300,
-  },
-  inputAndroid: {
-    color: '#111',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
-    width: 300,
-  },
-  placeholder: {
-    color: '#6b6b6b',
-  },
-  iconContainer: {
-    top: 16,
-    right: 16,
-  },
-};

@@ -1,6 +1,6 @@
 import { StyleSheet, Platform } from 'react-native'
 
-const PURPLE = '#7C3AED'
+const PURPLE = '#4f3be7'
 const BG = '#FFFFFF'
 
 export default StyleSheet.create({
@@ -13,7 +13,7 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   timeWrap: { backgroundColor: '#FF4D4F', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  time: { color: '#fff', fontWeight: '700', fontFamily: 'Arimo', fontSize: 13 },
+  time: { color: '#fff', fontWeight: '500', fontFamily: 'Inter', fontSize: 13 },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
@@ -23,14 +23,14 @@ export default StyleSheet.create({
   scrollContent: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 24 },
   context: {
-    color: '#7C3AED',
+    color: '#4f3be7',
     fontSize: 15,
-    fontFamily: 'Arimo',
-    fontWeight: '700',
+    fontFamily: 'Inter',
+    fontWeight: '500',
     lineHeight: 22,
     marginBottom: 8,
   },
-  title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 16, fontFamily: 'Arimo' },
+  title: { fontSize: 22, fontWeight: '500', color: '#111827', marginBottom: 16, fontFamily: 'Inter' },
   options: { marginTop: 6, gap: 12 },
   option: {
     flexDirection: 'row',
@@ -47,7 +47,7 @@ export default StyleSheet.create({
     elevation: 2,
     marginBottom: 0,
   },
-  optionSelected: { borderColor: PURPLE, backgroundColor: '#FBF7FF', borderWidth: 2 },
+  optionSelected: { borderColor: PURPLE, backgroundColor: '#f7f9ff', borderWidth: 2 },
   iconContainer: {
     width: 43.98,
     height: 43.98,
@@ -60,18 +60,18 @@ export default StyleSheet.create({
     fontSize: 24,
     lineHeight: 32,
     color: '#0A0A0A',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
   },
   optionLabel: {
     fontSize: 15,
     lineHeight: 22,
     color: '#000000',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontWeight: '400',
   },
   footer: { paddingHorizontal: 16, paddingBottom: 40 },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', paddingVertical: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0' },
-  ctaText: { color: '#111827', fontSize: 16, fontWeight: '700', marginRight: 8 },
-  ctaArrow: { color: '#111827', fontSize: 18, fontWeight: '700' },
+  ctaText: { color: '#111827', fontSize: 16, fontWeight: '500', marginRight: 8 },
+  ctaArrow: { color: '#111827', fontSize: 18, fontWeight: '500' },
   optionOverride: { height: 70 },
 })

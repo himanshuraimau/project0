@@ -1,6 +1,6 @@
 import { StyleSheet, Platform } from 'react-native'
 
-const PURPLE = '#7C3AED'
+const PURPLE = '#4f3be7'
 const BG = '#FFFFFF'
 
 export default StyleSheet.create({
@@ -13,7 +13,7 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   timeWrap: { backgroundColor: '#FF4D4F', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  time: { color: '#fff', fontWeight: '700', fontFamily: 'Arimo', fontSize: 13 },
+  time: { color: '#fff', fontWeight: '500', fontFamily: 'Inter', fontSize: 13 },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
@@ -24,28 +24,28 @@ export default StyleSheet.create({
   mainTitle: {
     fontSize: 28,
     lineHeight: 36,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#9810FA',
     textAlign: 'center',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 20,
     lineHeight: 30,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#9810FA',
     textAlign: 'center',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     marginBottom: 12,
   },
   description: {
     fontSize: 16,
     lineHeight: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#1E2939',
     textAlign: 'center',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     marginBottom: 32,
     paddingHorizontal: 60,
   },
@@ -75,14 +75,14 @@ export default StyleSheet.create({
     lineHeight: 28,
     fontWeight: '400',
     color: '#000000',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
   },
   badges: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   badgePurple: {
-    backgroundColor: '#F3E8FF',
+    backgroundColor: '#ebeeff',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
@@ -91,11 +91,11 @@ export default StyleSheet.create({
     marginRight: 17,
   },
   badgePurpleText: {
-    color: '#7C3AED',
+    color: '#4f3be7',
     fontSize: 14,
     lineHeight: 20,
     fontWeight: '400',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
   },
   badgeGrey: {
     paddingHorizontal: 0,
@@ -109,13 +109,13 @@ export default StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     fontWeight: '400',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
   },
   chartContainer: { marginTop: 8 },
   footer: { paddingHorizontal: 16, paddingBottom: 40 },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 12 },
-  ctaText: { color: '#fff', fontSize: 16, fontWeight: '700', marginRight: 8 },
-  ctaArrow: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  ctaText: { color: '#fff', fontSize: 16, fontWeight: '500', marginRight: 8 },
+  ctaArrow: { color: '#fff', fontSize: 18, fontWeight: '500' },
   leftGradient: { position: 'absolute', left: -40, top: 80, width: 220, height: 420, borderRadius: 220, backgroundColor: '#F5EEFF', opacity: 0.7, transform: [{ rotate: '-25deg' }] },
   homeIndicator: { height: 6, backgroundColor: '#E9E9EF', marginHorizontal: 110, borderRadius: 3, marginTop: 10, marginBottom: Platform.OS === 'ios' ? 24 : 8 },
 })

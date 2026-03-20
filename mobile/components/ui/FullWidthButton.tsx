@@ -85,8 +85,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    fontFamily: 'Arimo',
-    fontWeight: '700',
+    fontFamily: 'Inter',
+    fontWeight: '500',
     fontSize: 19,
     lineHeight: 28,
   },

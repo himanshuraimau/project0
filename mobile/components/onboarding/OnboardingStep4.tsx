@@ -41,8 +41,8 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
       currentStep={4}
       totalSteps={5}
       showBackButton
-      subHeading="Personalizing Flinote for you..."
-      mainHeading="Which part of Flinote will help you most?"
+      subHeading="Personalizing for you"
+      mainHeading="Which features will help you most?"
       footer={
         <ContinueButton
           onPress={handleContinue}
@@ -50,7 +50,7 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
         />
       }
     >
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 14 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12 }}>
         {features.map((f, i) => (
           <OnboardingFeatureCard
             key={f.id}
@@ -58,7 +58,7 @@ export default function OnboardingStep4({ onContinue }: OnboardingStep4Props) {
             label={f.label}
             isSelected={selectedFeatures.includes(f.id)}
             onPress={() => toggleFeature(f.id)}
-            entranceDelay={60 + i * 45}
+            index={i}
           />
         ))}
       </View>

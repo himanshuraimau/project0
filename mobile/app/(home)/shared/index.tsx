@@ -68,7 +68,7 @@ export default function SharedNotesScreen() {
 
     return (
         <LinearGradient
-            colors={['#FFFFFF', '#FBF7FF']}
+            colors={['#FFFFFF', '#f7f9ff']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.container}
@@ -90,7 +90,7 @@ export default function SharedNotesScreen() {
                 >
                     {loading && !refreshing ? (
                         <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color="#7C3AED" />
+                            <ActivityIndicator size="large" color="#4f3be7" />
                             <Text style={styles.loadingText}>{t('home.loadingNotes')}</Text>
                         </View>
                     ) : error ? (
@@ -133,7 +133,7 @@ export default function SharedNotesScreen() {
                                                     {formatDate(note.createdAt)}
                                                 </Text>
                                                 <View style={styles.sharedBadge}>
-                                                    <Feather name="users" size={10} color="#7C3AED" />
+                                                    <Feather name="users" size={10} color="#4f3be7" />
                                                     <Text style={styles.sharedBadgeText}>
                                                         {t('share.sharedWithMe')}
                                                     </Text>
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 20,
-        fontWeight: '700',
+        fontWeight: '500',
         color: '#111827',
     },
     content: {
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
         paddingVertical: 12,
         paddingHorizontal: 24,
-        backgroundColor: '#7C3AED',
+        backgroundColor: '#4f3be7',
         borderRadius: 12,
     },
     retryButtonText: {
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
         color: '#111827',
         fontSize: 20,
-        fontWeight: '700',
+        fontWeight: '500',
         textAlign: 'center',
     },
     emptySubtitle: {
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     },
     noteTitle: {
         color: '#111827',
-        fontWeight: '700',
+        fontWeight: '500',
         fontSize: 16,
         marginBottom: 6,
     },
@@ -286,13 +286,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        backgroundColor: '#F3E8FF',
+        backgroundColor: '#ebeeff',
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 6,
     },
     sharedBadgeText: {
-        color: '#7C3AED',
+        color: '#4f3be7',
         fontSize: 10,
         fontWeight: '600',
     },

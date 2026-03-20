@@ -22,7 +22,7 @@ export const COLORS = {
 export const TYPOGRAPHY = {
   title: {
     fontSize: 24,
-    fontWeight: '700' as const,
+    fontWeight: '500' as const,
     color: COLORS.black,
     paddingBottom: 16,
   },

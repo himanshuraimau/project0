@@ -48,18 +48,18 @@ export const welcomeScreenStyles = StyleSheet.create({
     marginTop: -height * 0.1,
   },
   headlineText: {
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontSize: 48,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#FFFFFF',
     letterSpacing: -1.2,
     lineHeight: 48,
     textAlign: 'center',
   },
   headlineHighlight: {
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontSize: 48,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: -1.2,
     lineHeight: 48,
     textAlign: 'center',
@@ -97,7 +97,7 @@ export const welcomeScreenStyles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   featureTagText: {
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 20,
@@ -125,7 +125,7 @@ export const welcomeScreenStyles = StyleSheet.create({
     paddingHorizontal: 20.8,
   },
   glassButtonText: {
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 20,
@@ -156,7 +156,7 @@ export const welcomeScreenStyles = StyleSheet.create({
     flex: 1,
   },
   primaryButtonText: {
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontSize: 16,
     fontWeight: '400',
     lineHeight: 24,
@@ -174,7 +174,7 @@ export const welcomeScreenStyles = StyleSheet.create({
     marginTop: -65,
   },
   footerText: {
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 20,

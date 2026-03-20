@@ -1,6 +1,6 @@
 import { StyleSheet, Platform } from 'react-native'
 
-const PURPLE = '#7C3AED'
+const PURPLE = '#4f3be7'
 const BG = '#F7F5FF'
 
 export default StyleSheet.create({
@@ -11,12 +11,12 @@ export default StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '100%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 16, paddingTop: 18, flex: 1, width: '100%' },
-  context: { color: PURPLE, fontSize: 15, fontWeight: '700', lineHeight: 22, marginBottom: 70, fontFamily: 'Arimo', width: '100%' },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 16, fontFamily: 'Arimo', width: '100%' },
+  context: { color: PURPLE, fontSize: 15, fontWeight: '500', lineHeight: 22, marginBottom: 70, fontFamily: 'Inter', width: '100%' },
+  title: { fontSize: 28, fontWeight: '500', marginBottom: 16, fontFamily: 'Inter', width: '100%' },
   testimonialCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 6 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
   nameSection: { flex: 1 },
-  cardName: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
+  cardName: { fontSize: 16, fontWeight: '500', marginBottom: 4 },
   cardTitle: { fontSize: 14, color: '#6B7280' },
   starsContainer: { flexDirection: 'row', gap: 4 },
   star: { fontSize: 16 },

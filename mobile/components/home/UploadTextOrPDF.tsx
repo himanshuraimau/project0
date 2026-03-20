@@ -15,6 +15,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import FullWidthButton from '@/components/ui/FullWidthButton';
 import FolderSelect from '@/components/ui/FolderSelect';
 import { useAlert } from '@/lib/contexts/AlertContext';
+import { useTheme } from '@/lib/hooks/useTheme';
 
 // Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient in all environments
 let Icon: any = null;
@@ -51,6 +52,9 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
   const { generateNoteFromText, processPDF } = useNoteCreation();
   const [internalVisible, setInternalVisible] = useState<boolean>(visibleProp ?? true);
   const { showAlert } = useAlert();
+  const { theme, mode } = useTheme();
+  const c = theme.colors;
+  const isDark = mode === 'dark';
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [titleValue, setTitleValue] = useState('');
   const [textValue, setTextValue] = useState('');
@@ -140,11 +144,11 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
   const handlePDFUpload = async () => {
     try {
       let lastNoteId: string | null = null;
-      
+
       // Process each PDF file
       for (const pdf of selectedPDFs) {
         const formData = new FormData();
-        
+
         // Append the PDF file
         formData.append('file', {
           uri: pdf.uri,
@@ -222,12 +226,12 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
       // Check file sizes (25MB limit per file)
       const maxSize = 25 * 1024 * 1024; // 25MB
       const oversizedFiles = result.assets.filter(file => file.size && file.size > maxSize);
-      
+
       if (oversizedFiles.length > 0) {
-        const fileList = oversizedFiles.map(f => 
+        const fileList = oversizedFiles.map(f =>
           `${f.name} (${(f.size! / 1024 / 1024).toFixed(2)}MB)`
         ).join(', ');
-        
+
         showAlert(
           'Files Too Large',
           `The following files exceed the 25MB limit: ${fileList}. Please select smaller files.`
@@ -250,13 +254,133 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
     }
   };
 
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    container: {
+      backgroundColor: c.card,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      paddingHorizontal: 10,
+      paddingBottom: 16,
+    },
+    containerContent: {
+      paddingTop: 0,
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 7,
+      marginHorizontal: 8,
+    },
+    title: { color: c.foreground, fontSize: 20, fontWeight: '600' },
+    separator: {
+      height: 1,
+      backgroundColor: c.border,
+      marginHorizontal: -40,
+      width: Dimensions.get('window').width + 20,
+    },
+    field: { marginTop: 8 },
+    label: {
+      fontFamily: 'Inter',
+      fontWeight: '500',
+      fontSize: 18,
+      lineHeight: 32,
+      color: c.foreground,
+      marginBottom: 6,
+    },
+    errorContainer: {
+      backgroundColor: isDark ? 'rgba(239,68,68,0.12)' : '#FEE2E2',
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(239,68,68,0.25)' : '#FCA5A5',
+    },
+    errorText: {
+      color: c.destructive,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    titleInput: {
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: c.border,
+      padding: 12,
+      color: c.foreground,
+      fontSize: 14,
+    },
+    textInput: {
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+      borderRadius: 10,
+      borderWidth: 1.26,
+      borderColor: c.border,
+      padding: 12,
+      textAlignVertical: 'top',
+      minHeight: 120,
+      color: c.foreground,
+    },
+    folderRow: { flexDirection: 'row', alignItems: 'center' },
+    folderIconWrap: {
+      width: 28,
+      height: 28,
+      borderRadius: 8,
+      backgroundColor: c.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 8,
+    },
+    pdfListContainer: {
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+      borderRadius: 12,
+      padding: 8,
+      borderWidth: 0.5,
+      borderColor: c.border,
+    },
+    pdfItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.card,
+      borderRadius: 8,
+      padding: 10,
+      marginBottom: 6,
+    },
+    pdfName: {
+      flex: 1,
+      color: c.foreground,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    removePdfButton: {
+      padding: 4,
+      marginLeft: 8,
+    },
+    actionsColumn: {
+      flexDirection: 'column',
+      marginTop: 18,
+    },
+    buttonDisabled: {
+      opacity: 0.5,
+    },
+  });
+
   const inner = (
     <>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Upload Text</Text>
           <TouchableOpacity onPress={close} disabled={loading}>
-            <Icon name="close" size={20} color="#111" />
+            <Icon name="close" size={20} color={c.foreground} />
           </TouchableOpacity>
         </View>
       </View>
@@ -273,7 +397,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
           <TextInput
             style={styles.textInput}
             placeholder="Enter your text here..."
-            placeholderTextColor="#8b8b8b"
+            placeholderTextColor={c.mutedForeground}
             multiline
             numberOfLines={6}
             value={textValue}
@@ -293,7 +417,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
             <View style={styles.pdfListContainer}>
               {selectedPDFs.map((pdf, index) => (
                 <View key={index} style={styles.pdfItem}>
-                  <Icon name="file" size={16} color="#7C3AED" style={{ marginRight: 8 }} />
+                  <Icon name="file" size={16} color={c.primary} style={{ marginRight: 8 }} />
                   <Text style={styles.pdfName} numberOfLines={1}>
                     {pdf.name}
                   </Text>
@@ -303,7 +427,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
                     }}
                     style={styles.removePdfButton}
                   >
-                    <Icon name="close" size={16} color="#EF4444" />
+                    <Icon name="close" size={16} color={c.destructive} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -316,9 +440,9 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
             onPress={handleImportPDF}
             disabled={loading}
             buttonText="Import PDF(s)"
-            icon={<Icon name="file" size={20} color="#101828" style={{ marginRight: 8 }} />}
-            backgroundColor="#E6E6E6"
-            textColor="#101828"
+            icon={<Icon name="file" size={20} color={c.foreground} style={{ marginRight: 8 }} />}
+            backgroundColor={c.border}
+            textColor={c.foreground}
             style={{ marginTop: 0 }}
           />
 
@@ -349,124 +473,3 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
 };
 
 export default UploadTextOrPDF;
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  container: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingHorizontal: 10,
-    paddingBottom: 16,
-  },
-  containerContent: {
-    paddingTop: 0,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 7,
-    marginHorizontal: 8,
-  },
-  title: { color: '#111', fontSize: 20, fontWeight: '600' },
-  separator: {
-    height: 1,
-    backgroundColor: '#e0e0e0',
-    marginHorizontal: -40,
-    width: Dimensions.get('window').width + 20,
-  },
-  field: { marginTop: 8 },
-  label: {
-    fontFamily: 'Arimo',
-    fontWeight: '700',
-    fontSize: 18,
-    lineHeight: 32,
-    color: '#364153',
-    marginBottom: 6,
-  },
-  errorContainer: {
-    backgroundColor: '#FEE2E2',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#FCA5A5',
-  },
-  errorText: {
-    color: '#DC2626',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  titleInput: {
-    backgroundColor: '#fbfbfd',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e6e6ea',
-    padding: 12,
-    color: '#111',
-    fontSize: 14,
-  },
-  textInput: {
-    backgroundColor: '#fbfbfd',
-    borderRadius: 10,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    padding: 12,
-    textAlignVertical: 'top',
-    minHeight: 120,
-    color: '#111',
-  },
-  folderRow: { flexDirection: 'row', alignItems: 'center' },
-  folderIconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: '#f2efff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  pdfListContainer: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: '#e6e6ea',
-  },
-  pdfItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 6,
-  },
-  pdfName: {
-    flex: 1,
-    color: '#111',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  removePdfButton: {
-    padding: 4,
-    marginLeft: 8,
-  },
-  actionsColumn: { 
-    flexDirection: 'column', 
-    marginTop: 18,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-});
-

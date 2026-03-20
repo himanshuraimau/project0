@@ -1,12 +1,11 @@
 /**
- * Shared onboarding shell. Theme-aware: all colors from semantic tokens,
- * all radius/spacing from design-system scale, shadows via theme.shadow().
+ * Premium onboarding shell — true iOS glass.
+ * BlurView footer, frosted nav, material depth.
  */
 
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
-import React, { useEffect, type ReactNode } from 'react'
+import React, { type ReactNode } from 'react'
 import {
   Platform,
   Pressable,
@@ -16,15 +15,13 @@ import {
   View,
   StyleSheet,
 } from 'react-native'
-import Animated, {
-  FadeInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
+import { BlurView } from 'expo-blur'
+import { LinearGradient } from 'expo-linear-gradient'
+import Animated from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { radius as dsRadius, spacing as dsSpacing } from '@/lib/design-system'
+import { neutral } from '@/lib/design-system'
+import { onboardingEntrance } from '@/lib/ui/auth-animations'
 import * as Haptics from 'expo-haptics'
 
 export type OnboardingScreenShellProps = {
@@ -54,29 +51,24 @@ export function OnboardingScreenShell({
   const t = theme.typography
   const isDark = mode === 'dark'
 
-  const progress = Math.min(1, Math.max(0, currentStep / totalSteps))
-  const progressWidth = useSharedValue(progress)
-  useEffect(() => {
-    progressWidth.value = withTiming(progress, { duration: 380 })
-  }, [progress, progressWidth])
+  const dotActive = c.primary
+  const dotInactive = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
 
-  const progressStyle = useAnimatedStyle(() => ({
-    width: `${progressWidth.value * 100}%`,
-  }))
-
-  const backBtnShadow = theme.shadow({ offset: 1, opacity: isDark ? 0.15 : 0.06 })
+  // Ambient background — subtle depth, not a flat fill
+  const bgFrom = isDark ? neutral[950] : '#f4f4f8'
+  const bgTo = isDark ? '#0d0c16' : '#ecedf4'
 
   return (
-    <View style={[styles.container, { backgroundColor: c.background }]}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+    <View style={styles.root}>
       <LinearGradient
-        colors={[c.background, isDark ? c.card : c.accent]}
-        locations={[0.35, 1]}
+        colors={[bgFrom, bgTo, bgFrom]}
+        locations={[0, 0.5, 1]}
         style={StyleSheet.absoluteFill}
       />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-        {/* Top bar */}
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        {/* ── Nav bar: frosted back button + progress dots ─── */}
         <View style={styles.navBar}>
           {showBackButton ? (
             <Pressable
@@ -87,57 +79,61 @@ export function OnboardingScreenShell({
               hitSlop={14}
               style={({ pressed }) => [
                 styles.backBtn,
-                {
-                  backgroundColor: c.card,
-                  borderRadius: dsRadius.radiusFull,
-                  opacity: pressed ? 0.7 : 1,
-                },
-                backBtnShadow,
+                { opacity: pressed ? 0.5 : 1 },
               ]}
             >
-              <Ionicons name="chevron-back" size={20} color={c.foreground} />
+              <BlurView
+                intensity={isDark ? 30 : 50}
+                tint={isDark ? 'dark' : 'light'}
+                style={[StyleSheet.absoluteFill, { borderRadius: 12 }]}
+              />
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  styles.backBtnOverlay,
+                  {
+                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)',
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.3)',
+                  },
+                ]}
+              />
+              <Ionicons name="chevron-back" size={18} color={c.foreground} />
             </Pressable>
           ) : (
-            <View style={styles.backBtn} />
+            <View style={styles.backBtnSpacer} />
           )}
 
-          <View
-            style={[
-              styles.progressTrack,
-              {
-                backgroundColor: c.muted,
-                borderRadius: dsRadius.radiusFull,
-              },
-            ]}
-          >
-            <Animated.View
-              style={[
-                styles.progressFill,
-                { backgroundColor: c.primary, borderRadius: dsRadius.radiusFull },
-                progressStyle,
-              ]}
-            />
+          {/* Progress dots */}
+          <View style={styles.dotsRow}>
+            {Array.from({ length: totalSteps }, (_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor: i < currentStep ? dotActive : dotInactive,
+                    width: i < currentStep ? 22 : 7,
+                  },
+                ]}
+              />
+            ))}
           </View>
+
+          <View style={styles.backBtnSpacer} />
         </View>
 
+        {/* ── Scrollable content ─────────────────────────────── */}
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Animated.View
-            entering={FadeInDown.duration(300).delay(60).springify()}
-            style={styles.header}
-          >
+          <Animated.View entering={onboardingEntrance.header} style={styles.header}>
             <Text
               style={[
                 styles.subHeading,
-                {
-                  color: c.primary,
-                  fontSize: t.textSm,
-                  fontWeight: t.weightSemibold,
-                },
+                { color: c.primary, fontWeight: t.weightSemibold },
               ]}
             >
               {subHeading}
@@ -145,10 +141,7 @@ export function OnboardingScreenShell({
             <Text
               style={[
                 styles.mainHeading,
-                {
-                  color: c.foreground,
-                  fontWeight: t.weightBold,
-                },
+                { color: c.foreground, fontWeight: t.weightBold },
               ]}
             >
               {mainHeading}
@@ -158,57 +151,95 @@ export function OnboardingScreenShell({
           {children}
         </ScrollView>
 
-        {footer != null ? <View style={styles.footer}>{footer}</View> : null}
+        {/* ── Frosted footer bar ─────────────────────────────── */}
+        {footer != null && (
+          <Animated.View entering={onboardingEntrance.footer} style={styles.footerWrap}>
+            <BlurView
+              intensity={isDark ? 40 : 70}
+              tint={isDark ? 'dark' : 'light'}
+              style={StyleSheet.absoluteFill}
+            />
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                {
+                  borderTopWidth: StyleSheet.hairlineWidth,
+                  borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  backgroundColor: isDark ? 'rgba(12,11,20,0.5)' : 'rgba(255,255,255,0.4)',
+                },
+              ]}
+            />
+            <View style={styles.footerInner}>
+              {footer}
+            </View>
+          </Animated.View>
+        )}
       </SafeAreaView>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  safeArea: { flex: 1 },
+  root: { flex: 1 },
+  safe: { flex: 1 },
 
   navBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: dsSpacing.space5,
-    paddingTop: Platform.OS === 'ios' ? 6 : 10,
-    paddingBottom: dsSpacing.space4,
-    gap: dsSpacing.space3,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 4 : 10,
+    paddingBottom: 14,
   },
   backBtn: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  progressTrack: {
-    flex: 1,
-    height: 5,
     overflow: 'hidden',
   },
-  progressFill: {
-    height: '100%',
+  backBtnOverlay: {
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  backBtnSpacer: { width: 38 },
+  dotsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  dot: {
+    height: 5,
+    borderRadius: 2.5,
   },
 
   scrollView: { flex: 1 },
   scrollContent: {
-    paddingHorizontal: dsSpacing.space6,
-    paddingTop: dsSpacing.space2,
-    paddingBottom: dsSpacing.space10,
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 40,
   },
 
-  header: { marginBottom: dsSpacing.space8 },
-  subHeading: { marginBottom: dsSpacing.space1 },
+  header: { marginBottom: 28 },
+  subHeading: {
+    fontSize: 13,
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
   mainHeading: {
-    fontSize: 26,
-    lineHeight: 33,
-    letterSpacing: -0.4,
+    fontSize: 28,
+    lineHeight: 34,
+    letterSpacing: -0.5,
   },
 
-  footer: {
-    paddingHorizontal: dsSpacing.space6,
-    paddingTop: dsSpacing.space3,
-    paddingBottom: dsSpacing.space5,
+  footerWrap: {
+    overflow: 'hidden',
+  },
+  footerInner: {
+    paddingHorizontal: 24,
+    paddingTop: 14,
+    paddingBottom: 10,
   },
 })

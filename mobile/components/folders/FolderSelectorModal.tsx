@@ -44,12 +44,12 @@ export default function FolderSelectorModal({
     const [searchQuery, setSearchQuery] = useState('');
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newFolderName, setNewFolderName] = useState('');
-    const [newFolderColor, setNewFolderColor] = useState('#7C3AED');
+    const [newFolderColor, setNewFolderColor] = useState('#4f3be7');
     const [creating, setCreating] = useState(false);
 
     const folderColors = [
-        '#7C3AED', '#EC4899', '#F59E0B', '#10B981',
-        '#3B82F6', '#8B5CF6', '#EF4444', '#14B8A6'
+        '#4f3be7', '#EC4899', '#F59E0B', '#10B981',
+        '#3B82F6', '#858dff', '#EF4444', '#14B8A6'
     ];
 
     useEffect(() => {
@@ -116,7 +116,7 @@ export default function FolderSelectorModal({
 
             // Reset form
             setNewFolderName('');
-            setNewFolderColor('#7C3AED');
+            setNewFolderColor('#4f3be7');
             setShowCreateForm(false);
         } catch (error: any) {
             console.error('Failed to create folder:', error);
@@ -152,7 +152,7 @@ export default function FolderSelectorModal({
                         {/* Header */}
                         <View style={styles.header}>
                             <View style={styles.headerLeft}>
-                                <FolderIcon size={24} color="#7C3AED" />
+                                <FolderIcon size={24} color="#4f3be7" />
                                 <Text style={styles.title}>{t('folders.moveToFolder')}</Text>
                             </View>
                             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -181,7 +181,7 @@ export default function FolderSelectorModal({
                         <ScrollView style={styles.foldersList} showsVerticalScrollIndicator={false}>
                             {loading ? (
                                 <View style={styles.loadingContainer}>
-                                    <ActivityIndicator size="large" color="#7C3AED" />
+                                    <ActivityIndicator size="large" color="#4f3be7" />
                                 </View>
                             ) : (
                                 <>
@@ -204,7 +204,7 @@ export default function FolderSelectorModal({
                                             </Text>
                                         </View>
                                         {currentFolderId === null && (
-                                            <Feather name="check" size={20} color="#7C3AED" />
+                                            <Feather name="check" size={20} color="#4f3be7" />
                                         )}
                                     </TouchableOpacity>
 
@@ -222,10 +222,10 @@ export default function FolderSelectorModal({
                                             <View
                                                 style={[
                                                     styles.folderIcon,
-                                                    { backgroundColor: `${folder.color || '#7C3AED'}15` },
+                                                    { backgroundColor: `${folder.color || '#4f3be7'}15` },
                                                 ]}
                                             >
-                                                <FolderIcon size={20} color={folder.color || '#7C3AED'} />
+                                                <FolderIcon size={20} color={folder.color || '#4f3be7'} />
                                             </View>
                                             <View style={styles.folderInfo}>
                                                 <Text style={styles.folderName}>{folder.name}</Text>
@@ -234,7 +234,7 @@ export default function FolderSelectorModal({
                                                 </Text>
                                             </View>
                                             {currentFolderId === folder.id && (
-                                                <Feather name="check" size={20} color="#7C3AED" />
+                                                <Feather name="check" size={20} color="#4f3be7" />
                                             )}
                                         </TouchableOpacity>
                                     ))}
@@ -247,7 +247,7 @@ export default function FolderSelectorModal({
                                             disabled={saving}
                                         >
                                             <View style={styles.createFolderIcon}>
-                                                <Feather name="plus" size={20} color="#7C3AED" />
+                                                <Feather name="plus" size={20} color="#4f3be7" />
                                             </View>
                                             <Text style={styles.createFolderText}>
                                                 {t('folders.createFolder')}
@@ -296,7 +296,7 @@ export default function FolderSelectorModal({
                                                     onPress={() => {
                                                         setShowCreateForm(false);
                                                         setNewFolderName('');
-                                                        setNewFolderColor('#7C3AED');
+                                                        setNewFolderColor('#4f3be7');
                                                     }}
                                                     disabled={creating}
                                                 >
@@ -331,7 +331,7 @@ export default function FolderSelectorModal({
                         {/* Loading Overlay */}
                         {saving && (
                             <View style={styles.savingOverlay}>
-                                <ActivityIndicator size="large" color="#7C3AED" />
+                                <ActivityIndicator size="large" color="#4f3be7" />
                                 <Text style={styles.savingText}>{t('common.loading')}</Text>
                             </View>
                         )}
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 20,
-        fontWeight: '700',
+        fontWeight: '500',
         color: '#1F2937',
     },
     closeButton: {
@@ -410,9 +410,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#F9FAFB',
     },
     folderItemSelected: {
-        backgroundColor: '#F3E8FF',
+        backgroundColor: '#ebeeff',
         borderWidth: 1,
-        borderColor: '#7C3AED',
+        borderColor: '#4f3be7',
     },
     folderIcon: {
         width: 40,
@@ -471,9 +471,9 @@ const styles = StyleSheet.create({
         padding: 14,
         borderRadius: 12,
         marginBottom: 8,
-        backgroundColor: '#F3E8FF',
+        backgroundColor: '#ebeeff',
         borderWidth: 1,
-        borderColor: '#E9D5FF',
+        borderColor: '#d7dcff',
         borderStyle: 'dashed',
     },
     createFolderIcon: {
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     createFolderText: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#7C3AED',
+        color: '#4f3be7',
     },
     createForm: {
         backgroundColor: '#F9FAFB',
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     },
     createFormTitle: {
         fontSize: 16,
-        fontWeight: '700',
+        fontWeight: '500',
         color: '#111827',
         marginBottom: 12,
     },
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 16,
         borderRadius: 8,
-        backgroundColor: '#7C3AED',
+        backgroundColor: '#4f3be7',
         alignItems: 'center',
     },
     createButtonText: {

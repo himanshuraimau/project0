@@ -31,7 +31,7 @@ export const tokens = {
       text: {
         color: t.colors.primaryText,
         fontSize: t.fontSize.md,
-        fontWeight: '700' as const,
+        fontWeight: '500' as const,
       },
     }
   },
@@ -53,7 +53,7 @@ export const tokens = {
       text: {
         color: t.colors.text,
         fontSize: t.fontSize.md,
-        fontWeight: '700' as const,
+        fontWeight: '500' as const,
       },
     }
   },
@@ -63,7 +63,7 @@ export const tokens = {
     return {
       color: t.colors.text,
       fontSize: t.fontSize['2xl'],
-      fontWeight: '800' as const,
+      fontWeight: '500' as const,
       letterSpacing: 0.2,
     } as const
   },

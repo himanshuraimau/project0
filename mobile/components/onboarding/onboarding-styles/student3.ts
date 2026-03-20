@@ -1,6 +1,6 @@
 import { StyleSheet, Platform } from 'react-native'
 
-const PURPLE = '#7C3AED'
+const PURPLE = '#4f3be7'
 const BG = '#FFFFFF'
 
 export default StyleSheet.create({
@@ -13,7 +13,7 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   timeWrap: { backgroundColor: '#FF4D4F', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  time: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  time: { color: '#fff', fontWeight: '500', fontSize: 13 },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
@@ -23,14 +23,14 @@ export default StyleSheet.create({
   scrollContent: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 24 },
   context: {
-    color: '#7C3AED',
+    color: '#4f3be7',
     fontSize: 15,
-    fontFamily: 'Arimo',
-    fontWeight: '700',
+    fontFamily: 'Inter',
+    fontWeight: '500',
     lineHeight: 22,
     marginBottom: 8,
   },
-  title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 16 },
+  title: { fontSize: 22, fontWeight: '500', color: '#111827', marginBottom: 16 },
   options: { marginTop: 6, gap: 12 },
   option: {
     flexDirection: 'row',
@@ -48,8 +48,8 @@ export default StyleSheet.create({
     marginBottom: 0,
   },
   optionSelected: {
-    backgroundColor: '#FBF7FF',
-    borderColor: '#7C3AED',
+    backgroundColor: '#f7f9ff',
+    borderColor: '#4f3be7',
     borderWidth: 2,
     shadowColor: 'rgba(0, 0, 0, 0.15)',
     shadowOffset: { width: 0, height: 2 },
@@ -68,7 +68,7 @@ export default StyleSheet.create({
   },
   optionLabel: {
     fontSize: 15,
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontWeight: '400',
     lineHeight: 22,
     color: '#000000',

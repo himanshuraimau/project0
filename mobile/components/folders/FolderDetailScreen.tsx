@@ -119,7 +119,7 @@ export const FolderDetailScreen: React.FC<FolderDetailScreenProps> = ({
       >
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#7C3AED" />
+            <ActivityIndicator size="large" color="#4f3be7" />
             <Text style={styles.loadingText}>Loading folder...</Text>
           </View>
         </SafeAreaView>
@@ -205,7 +205,7 @@ export const FolderDetailScreen: React.FC<FolderDetailScreenProps> = ({
           
           {loadingNotes ? (
             <View style={styles.loadingNotesContainer}>
-              <ActivityIndicator size="small" color="#7C3AED" />
+              <ActivityIndicator size="small" color="#4f3be7" />
               <Text style={styles.loadingNotesText}>Loading notes...</Text>
             </View>
           ) : notes.length === 0 ? (
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   },
   folderName: {
     fontSize: 26,
-    fontWeight: '800',
+    fontWeight: '500',
     color: '#111827',
     marginBottom: 8,
     textAlign: 'center',
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
     paddingHorizontal: 20,
     marginBottom: 16,
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   noteTitle: {
     color: '#111827',
-    fontWeight: '700',
+    fontWeight: '500',
     fontSize: 16,
     marginBottom: 4,
   },
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   },
   emptyNotesTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
     marginTop: 16,
     marginBottom: 8,
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
     marginTop: 16,
     marginBottom: 8,
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   backButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4f3be7',
     borderRadius: 12,
   },
   backButtonText: {

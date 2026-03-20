@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   },
   folderName: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
     marginBottom: 6,
   },

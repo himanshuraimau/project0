@@ -4,12 +4,10 @@ import { View } from 'react-native'
 import { OnboardingOptionCard } from './OnboardingOptionCard'
 import { OnboardingScreenShell } from './OnboardingScreenShell'
 
-const STAGGER = 50
-
 const options = [
   { id: 'professional', emoji: '💼', title: 'Working professional', description: "I'm currently employed full or part time", accentColor: '#FEF3C7' },
   { id: 'student', emoji: '🍎', title: 'Student', description: 'Lectures, study notes, summaries, etc.', accentColor: '#FCE7F3' },
-  { id: 'parent', emoji: '👶', title: 'Parent', description: "For my child's classes and activities", accentColor: '#F3E8FF' },
+  { id: 'parent', emoji: '👶', title: 'Parent', description: "For my child's classes and activities", accentColor: '#ebeeff' },
   { id: 'teacher', emoji: '✏️', title: 'Teacher', description: 'To record lectures, scribble notes, or other', accentColor: '#FEF3C7' },
   { id: 'administrator', emoji: '🏛️', title: 'Administrator', description: 'Trying Flinote for my school/district', accentColor: '#DBEAFE' },
 ]
@@ -36,10 +34,10 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
       currentStep={3}
       totalSteps={5}
       showBackButton
-      subHeading="Personalizing Flinote for you..."
+      subHeading="Personalizing for you"
       mainHeading="Which best describes you?"
     >
-      <View style={{ gap: 16 }}>
+      <View style={{ gap: 10 }}>
         {options.map((opt, i) => (
           <OnboardingOptionCard
             key={opt.id}
@@ -49,7 +47,7 @@ export default function OnboardingStep3({ onContinue }: OnboardingStep3Props) {
             accentColor={opt.accentColor}
             isSelected={selectedOption === opt.id}
             onPress={() => handleOptionSelect(opt.id)}
-            entranceDelay={80 + i * STAGGER}
+            index={i}
           />
         ))}
       </View>

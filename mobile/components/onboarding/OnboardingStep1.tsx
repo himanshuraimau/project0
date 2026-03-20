@@ -6,8 +6,6 @@ import { useTheme } from '@/lib/hooks/useTheme'
 import { OnboardingOptionRow } from './OnboardingOptionRow'
 import { OnboardingScreenShell } from './OnboardingScreenShell'
 
-const STAGGER = 50
-
 const options = [
   { id: 'instagram', icon: (c: string) => <Ionicons name="logo-instagram" size={24} color={c} />, label: 'Instagram Reels' },
   { id: 'tiktok', icon: (c: string) => <Ionicons name="logo-tiktok" size={24} color={c} />, label: 'TikTok' },
@@ -46,7 +44,7 @@ export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
     <OnboardingScreenShell
       currentStep={1}
       totalSteps={5}
-      subHeading="Personalizing Flinote for you..."
+      subHeading="Personalizing for you"
       mainHeading="Where did you find us?"
       showBackButton={false}
     >
@@ -58,7 +56,7 @@ export default function OnboardingStep1({ onContinue }: OnboardingStep1Props) {
             label={opt.label}
             isSelected={selectedOption === opt.id}
             onPress={() => handleOptionSelect(opt.id)}
-            entranceDelay={80 + i * STAGGER}
+            index={i}
           />
         ))}
       </View>

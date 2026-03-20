@@ -1,70 +1,117 @@
 import React from 'react'
-import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { ChevronLeft } from 'lucide-react-native'
+import { BlurView } from 'expo-blur'
+import Animated from 'react-native-reanimated'
+import { OnboardingScreenShell } from '../OnboardingScreenShell'
 import { ContinueButton } from '../../ui/ContinueButton'
-import { TestimonialCard } from '../../ui/TestimonialCard'
-import { BlurGradient } from '../../ui/BlurGradient'
-import styles from '../onboarding-styles/parent4'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { onboardingEntrance } from '@/lib/ui/auth-animations'
 
 export default function Parent4() {
   const router = useRouter()
-  const handleContinue = () => {
-    router.push('/(onboarding)/parent/parent5' as any)
-  }
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const t = theme.typography
+  const isDark = mode === 'dark'
 
   return (
-    <SafeAreaView style={styles.container}>
-      <BlurGradient
-        colors={['#14C3A2', '#4C57FF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={-102.4}
-        top={698.4}
-      />
+    <OnboardingScreenShell
+      currentStep={4}
+      totalSteps={5}
+      showBackButton={true}
+      subHeading="Personalizing Flinote for you..."
+      mainHeading="You're in the right place."
+      footer={
+        <ContinueButton
+          onPress={() => router.push('/(onboarding)/parent/parent5' as any)}
+        />
+      }
+    >
+      <Animated.View entering={onboardingEntrance.option(0)}>
+        <View
+          style={[
+            styles.card,
+            {
+              borderColor: isDark
+                ? 'rgba(255,255,255,0.08)'
+                : 'rgba(255,255,255,0.6)',
+            },
+          ]}
+        >
+          <BlurView
+            intensity={isDark ? 20 : 40}
+            tint={isDark ? 'dark' : 'light'}
+            style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
+          />
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                borderRadius: 20,
+                backgroundColor: isDark
+                  ? 'rgba(255,255,255,0.04)'
+                  : 'rgba(255,255,255,0.5)',
+              },
+            ]}
+          />
 
-      <BlurGradient
-        colors={['#9810FA', '#441AFF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={239.4}
-        top={-102.4}
-      />
+          {/* Stars */}
+          <View style={styles.starsRow}>
+            {Array.from({ length: 5 }, (_, i) => (
+              <Ionicons key={i} name="star" size={18} color="#FBBF24" />
+            ))}
+          </View>
 
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
-        </TouchableOpacity>
-        <View style={styles.progressWrap}>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
+          {/* Quote */}
+          <Text style={[styles.quote, { color: c.foreground }]}>
+            {"\u201C"}Started out for my oldest, but now everyone's hooked. It's been such a great tool for all my kids in school.{"\u201D"}
+          </Text>
+
+          {/* Attribution */}
+          <View style={styles.attribution}>
+            <Text
+              style={[
+                styles.name,
+                { color: c.foreground, fontWeight: t.weightSemibold },
+              ]}
+            >
+              Jessica Cole
+            </Text>
+            <Text style={[styles.title, { color: c.mutedForeground }]}>
+              Mom of 4
+            </Text>
           </View>
         </View>
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Flinote for you...</Text>
-        <Text style={styles.title}>You're in the right place.</Text>
-
-        <TestimonialCard
-          name="Jessica Cole"
-          title="Mom of 4"
-          quote="Started out for my oldest, but now everyone's hooked. It's been such a great tool for all my kids in school."
-          stars={5}
-        />
-      </View>
-
-      <View style={styles.footer}>
-        <ContinueButton
-          onPress={handleContinue}
-        />
-      </View>
-
-    </SafeAreaView>
+      </Animated.View>
+    </OnboardingScreenShell>
   )
 }
 
-// styles imported from onboarding-styles/parent4
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: 'hidden',
+    padding: 24,
+    gap: 14,
+  },
+  starsRow: {
+    flexDirection: 'row',
+    gap: 3,
+  },
+  quote: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  attribution: {
+    gap: 2,
+  },
+  name: {
+    fontSize: 15,
+  },
+  title: {
+    fontSize: 13,
+  },
+})

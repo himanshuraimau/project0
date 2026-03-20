@@ -15,6 +15,7 @@ import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
 import FullWidthButton from '@/components/ui/FullWidthButton';
 import FolderSelect from '@/components/ui/FolderSelect';
 import { useAlert } from '@/lib/contexts/AlertContext';
+import { useTheme } from '@/lib/hooks/useTheme';
 
 // Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient
 let Icon: any = null;
@@ -45,6 +46,9 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
   const { processWebpage, processYouTube, generateAINote } = useNoteCreation();
   const [internalVisible, setInternalVisible] = useState<boolean>(visibleProp ?? true);
   const { showAlert } = useAlert();
+  const { theme, mode } = useTheme();
+  const c = theme.colors;
+  const isDark = mode === 'dark';
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [link, setLink] = useState('');
   const [folder, setFolder] = useState('');  // Empty string = no folder (uncategorized)
@@ -91,23 +95,23 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
     try {
       // Step 1: Process webpage/YouTube to extract content
       setProcessingStep('extracting');
-      
+
       // Ensure URL has protocol
       const url = link.trim().startsWith('http') ? link.trim() : `https://${link.trim()}`;
-      
+
       // Detect if it's a YouTube URL
       const isYouTube = isYouTubeUrl(url);
 
       let result: { transcript: { id: string; content?: string }; note?: { id: string; title: string } | null };
-      
+
       if (isYouTube) {
         // Use YouTube API for YouTube URLs
         const youtubeResult = await processYouTube({ url, folderId: folder || undefined });
-        
+
         if (!youtubeResult) {
           return;
         }
-        
+
         // ProcessYouTubeResponse is a Transcript directly (backend returns data: transcript)
         result = {
           transcript: youtubeResult,
@@ -177,13 +181,115 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
     }
   };
 
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    container: {
+      backgroundColor: c.card,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      paddingHorizontal: 10,
+      paddingBottom: 16,
+    },
+    containerContent: {
+      paddingTop: 0,
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 7,
+      marginHorizontal: 8,
+    },
+    title: { color: c.foreground, fontSize: 20, fontWeight: '600' },
+    separator: {
+      height: 1,
+      backgroundColor: c.border,
+      marginHorizontal: -40,
+      width: Dimensions.get('window').width + 20,
+    },
+    field: { marginTop: 8 },
+    label: {
+      fontFamily: 'Inter',
+      fontWeight: '500',
+      fontSize: 18,
+      lineHeight: 32,
+      color: c.foreground,
+      marginBottom: 6,
+    },
+    input: {
+      color: c.foreground,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+      borderRadius: 10,
+      fontSize: 14,
+      borderWidth: 1.26,
+      borderColor: c.border,
+      height: 53,
+    },
+    helper: { color: c.mutedForeground, fontSize: 12, marginTop: 8 },
+    folderRow: { flexDirection: 'row', alignItems: 'center' },
+    folderIconWrap: {
+      width: 28,
+      height: 28,
+      borderRadius: 8,
+      backgroundColor: c.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 8,
+    },
+    buttonContainer: {
+    },
+  });
+
+  const pickerStyles = {
+    inputIOS: {
+      color: c.foreground,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+      borderRadius: 10,
+      fontSize: 14,
+      borderWidth: 1.26,
+      borderColor: c.border,
+      height: 53,
+    },
+    inputAndroid: {
+      color: c.foreground,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+      borderRadius: 10,
+      fontSize: 14,
+      borderWidth: 1.26,
+      borderColor: c.border,
+      height: 53,
+    },
+    placeholder: {
+      color: c.mutedForeground,
+    },
+    iconContainer: {
+      top: 16,
+      right: 16,
+    },
+  };
+
   const inner = (
     <>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Add link</Text>
           <TouchableOpacity onPress={close}>
-            <Icon name="close" size={20} color="#111" />
+            <Icon name="close" size={20} color={c.foreground} />
           </TouchableOpacity>
         </View>
       </View>
@@ -194,7 +300,7 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
           <TextInput
             style={styles.input}
             placeholder="youtube.com/anyvideo"
-            placeholderTextColor="#8b8b8b"
+            placeholderTextColor={c.mutedForeground}
             value={link}
             onChangeText={setLink}
             autoCapitalize="none"
@@ -237,105 +343,3 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
 };
 
 export default WebLink;
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  container: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingHorizontal: 10,
-    paddingBottom: 16,
-  },
-  containerContent: {
-    paddingTop: 0,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 7,
-    marginHorizontal: 8,
-  },
-  title: { color: '#111', fontSize: 20, fontWeight: '600' },
-  separator: {
-    height: 1,
-    backgroundColor: '#e0e0e0',
-    marginHorizontal: -40,
-    width: Dimensions.get('window').width + 20,
-  },
-  field: { marginTop: 8 },
-  label: {
-    fontFamily: 'Arimo',
-    fontWeight: '700',
-    fontSize: 18,
-    lineHeight: 32,
-    color: '#364153',
-    marginBottom: 6,
-  },
-  input: {
-    color: '#111',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
-  },
-  helper: { color: '#8b8b8b', fontSize: 12, marginTop: 8 },
-  folderRow: { flexDirection: 'row', alignItems: 'center' },
-  folderIconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: '#f2efff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  buttonContainer: {
-  },
-});
-
-const pickerStyles = {
-  inputIOS: {
-    color: '#111',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
-  },
-  inputAndroid: {
-    color: '#111',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
-  },
-  placeholder: {
-    color: '#6b6b6b',
-  },
-  iconContainer: {
-    top: 16,
-    right: 16,
-  },
-};

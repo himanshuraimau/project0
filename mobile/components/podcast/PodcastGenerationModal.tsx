@@ -200,7 +200,7 @@ export default function PodcastGenerationModal({
                                     ]}
                                 >
                                     <LinearGradient
-                                        colors={['#6366F1', '#8B5CF6']}
+                                        colors={['#6366F1', '#858dff']}
                                         style={styles.iconGradient}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 1 }}
@@ -227,7 +227,7 @@ export default function PodcastGenerationModal({
                                     <View style={styles.progressContainer}>
                                         <View style={styles.progressBar}>
                                             <LinearGradient
-                                                colors={['#6366F1', '#8B5CF6']}
+                                                colors={['#6366F1', '#858dff']}
                                                 style={[
                                                     styles.progressFill,
                                                     { width: `${job?.progress || 0}%` },

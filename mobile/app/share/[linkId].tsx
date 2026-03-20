@@ -15,7 +15,7 @@ export default function SharePreviewScreen() {
     if (!params.linkId || !params.token) {
         return (
             <LinearGradient
-                colors={['#FFFFFF', '#FBF7FF']}
+                colors={['#FFFFFF', '#f7f9ff']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.container}
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     },
     errorTitle: {
         fontSize: 20,
-        fontWeight: '700',
+        fontWeight: '500',
         color: '#111827',
         marginTop: 16,
         marginBottom: 8,

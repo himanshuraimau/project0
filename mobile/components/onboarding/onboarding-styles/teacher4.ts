@@ -1,6 +1,6 @@
 import { StyleSheet, Platform } from 'react-native'
 
-const PURPLE = '#7C3AED'
+const PURPLE = '#4f3be7'
 const BG = '#FFFFFF'
 
 export default StyleSheet.create({
@@ -8,7 +8,7 @@ export default StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
   progressWrap: { flex: 1, paddingRight: 16 },
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
-  progressFill: { width: '100%', height: '100%', backgroundColor: '#7C3AED' },
+  progressFill: { width: '100%', height: '100%', backgroundColor: '#4f3be7' },
   content: {
     paddingHorizontal: 16,
     paddingTop: 20,
@@ -16,10 +16,10 @@ export default StyleSheet.create({
     width: '100%'
   },
   context: {
-    color: '#7C3AED',
+    color: '#4f3be7',
     fontSize: 15,
-    fontFamily: 'Arimo',
-    fontWeight: '700',
+    fontFamily: 'Inter',
+    fontWeight: '500',
     lineHeight: 22,
     marginBottom: 8,
     width: '100%',
@@ -29,7 +29,7 @@ export default StyleSheet.create({
     fontWeight: '400',
     lineHeight: 25,
     marginBottom: 14,
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     color: '#000000',
     width: '100%',
   },
@@ -70,7 +70,7 @@ export default StyleSheet.create({
   },
   optionLabel: {
     fontSize: 15,
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontWeight: '400',
     lineHeight: 22,
     color: '#000000',
@@ -92,8 +92,8 @@ export default StyleSheet.create({
   },
   continueText: {
     fontSize: 20,
-    fontWeight: '700',
-    fontFamily: 'Arimo',
+    fontWeight: '500',
+    fontFamily: 'Inter',
     lineHeight: 24,
     color: '#000000',
     textAlign: 'center',

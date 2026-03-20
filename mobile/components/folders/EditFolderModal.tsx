@@ -27,7 +27,7 @@ interface EditFolderModalProps {
 
 const FOLDER_COLORS = [
   { name: 'Indigo', value: '#6366f1' },
-  { name: 'Purple', value: '#8b5cf6' },
+  { name: 'Purple', value: '#858dff' },
   { name: 'Pink', value: '#ec4899' },
   { name: 'Rose', value: '#f43f5e' },
   { name: 'Orange', value: '#f97316' },
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: '500',
     color: '#111827',
     marginBottom: 4,
   },
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     color: '#374151',
   },
   updateButton: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4f3be7',
   },
   updateButtonDisabled: {
     backgroundColor: '#D1D5DB',

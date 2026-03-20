@@ -1,6 +1,6 @@
 import { StyleSheet, Platform } from 'react-native'
 
-const PURPLE = '#7C3AED'
+const PURPLE = '#4f3be7'
 const BG = '#F8F8FA'
 
 export default StyleSheet.create({
@@ -11,8 +11,8 @@ export default StyleSheet.create({
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
   progressFill: { width: '33%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 16, paddingTop: 18, flex: 1, width: '100%' },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 8, fontFamily: 'Arimo' },
-  subtitle: { color: '#0B0C10', fontSize: 17, lineHeight: 22, marginBottom: 24, fontFamily: 'Arimo', fontWeight: '400' },
+  title: { fontSize: 28, fontWeight: '500', marginBottom: 8, fontFamily: 'Inter' },
+  subtitle: { color: '#0B0C10', fontSize: 17, lineHeight: 22, marginBottom: 24, fontFamily: 'Inter', fontWeight: '400' },
   features: { marginTop: 6 },
   featureRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 19 },
   checkContainer: {
@@ -24,6 +24,6 @@ export default StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  featureText: { fontSize: 16, lineHeight: 22, color: '#0B0C10', fontFamily: 'Arimo', flex: 1 },
+  featureText: { fontSize: 16, lineHeight: 22, color: '#0B0C10', fontFamily: 'Inter', flex: 1 },
   footer: { paddingHorizontal: 16, paddingBottom: 40 },
 })

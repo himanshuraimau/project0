@@ -7,7 +7,7 @@ import { brand, neutral } from './palette'
 import { statusColors } from './status-colors'
 import type { SemanticColors, ThemeMode } from './types'
 
-const primaryForegroundLight = '#faf5ff' as const
+const primaryForegroundLight = '#fbfbff' as const
 const primaryForegroundDark = neutral[950]
 
 export const semanticLight: SemanticColors = {
@@ -47,8 +47,8 @@ export const semanticLight: SemanticColors = {
   chart1: brand[600],
   chart2: brand[400],
   chart3: brand[300],
-  chart4: '#c73659' as const,
-  chart5: '#5cb85c' as const,
+  chart4: '#ec4899' as const,
+  chart5: '#22c55e' as const,
 }
 
 export const semanticDark: SemanticColors = {
@@ -66,7 +66,7 @@ export const semanticDark: SemanticColors = {
   mutedForeground: neutral[400],
   accent: neutral[800],
   accentForeground: neutral[50],
-  destructive: '#d64538' as const,
+  destructive: '#f14d4c' as const,
   destructiveForeground: statusColors.destructiveForeground,
   border: neutral[700],
   input: neutral[700],
@@ -88,8 +88,8 @@ export const semanticDark: SemanticColors = {
   chart1: brand[400],
   chart2: brand[300],
   chart3: brand[500],
-  chart4: '#e8556e' as const,
-  chart5: '#6ed46e' as const,
+  chart4: '#f472b6' as const,
+  chart5: '#4ade80' as const,
 }
 
 export function getSemanticColors(mode: ThemeMode): SemanticColors {

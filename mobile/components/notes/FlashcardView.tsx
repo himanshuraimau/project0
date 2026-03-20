@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -21,9 +21,11 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { BlurView } from 'expo-blur'
 import { notesApi } from '@/lib/api'
 import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
+import { useTheme } from '@/lib/hooks/useTheme'
 import ViewShot from 'react-native-view-shot'
 import * as Sharing from 'expo-sharing'
 
@@ -120,45 +122,41 @@ const flipCardStyles = StyleSheet.create({
 })
 
 // Stacked Card Component for background cards
-const StackedCard = ({ index }: { index: number }) => {
+const StackedCard = ({ index, cardBg, shadowColor }: { index: number; cardBg: string; shadowColor: string }) => {
   const offset = (index + 1) * 8
   const scale = 1 - (index + 1) * 0.04
   const opacity = 1 - (index + 1) * 0.15
 
   return (
     <View
-      style={[
-        stackStyles.stackedCard,
-        {
-          width: CARD_WIDTH * scale,
-          height: CARD_HEIGHT,
-          top: -offset,
-          opacity: Math.max(opacity, 0.5),
-          zIndex: -index - 1,
-        },
-      ]}
+      style={{
+        position: 'absolute',
+        backgroundColor: cardBg,
+        borderRadius: 28,
+        shadowColor: shadowColor,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
+        width: CARD_WIDTH * scale,
+        height: CARD_HEIGHT,
+        top: -offset,
+        opacity: Math.max(opacity, 0.5),
+        zIndex: -index - 1,
+        alignSelf: 'center',
+      }}
     />
   )
 }
-
-const stackStyles = StyleSheet.create({
-  stackedCard: {
-    position: 'absolute',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    alignSelf: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-})
 
 export default function FlashcardView({ noteId }: FlashcardViewProps) {
   const router = useRouter()
   const { t } = useTranslation()
   const { showAlert } = useAlert()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
+
   const [flashcardState, setFlashcardState] = useState<FlashcardState>('loading')
   const [currentCard, setCurrentCard] = useState(0)
   const [flashcards, setFlashcards] = useState<FlashcardItem[]>([])
@@ -175,6 +173,474 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
   // Ref for screenshot capture
   const completionScreenRef = useRef<ViewShot>(null)
+
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    headerSection: {
+      backgroundColor: c.background,
+      paddingBottom: 8,
+    },
+    headerTopRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      paddingBottom: 8,
+    },
+    circularBackButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: c.muted,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: c.foreground,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    headerSecondRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+    },
+    cardLabel: {
+      fontSize: 17,
+      fontWeight: '600',
+      color: c.foreground,
+    },
+    remainingCount: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: c.mutedForeground,
+    },
+    progressBarContainer: {
+      paddingHorizontal: 20,
+      paddingBottom: 12,
+    },
+    progressBarBackground: {
+      height: 10,
+      backgroundColor: c.border,
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    progressBarFill: {
+      height: '100%',
+      backgroundColor: c.info,
+      borderRadius: 4,
+    },
+    titleContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '500',
+      color: c.foreground,
+      textAlign: 'center',
+    },
+    headerRight: {
+      width: 48,
+      alignItems: 'flex-end',
+    },
+    deleteButton: {
+      padding: 8,
+    },
+    deleteButtonDisabled: {
+      opacity: 0.5,
+    },
+    headerTime: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.foreground,
+    },
+    headerIcon: {
+      marginRight: 4,
+    },
+    content: {
+      flex: 1,
+    },
+    contentContainer: {
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      flexGrow: 1,
+    },
+    cardStackContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 30,
+      marginBottom: 30,
+      position: 'relative',
+      minHeight: CARD_HEIGHT + 20,
+    },
+    flipCardContainer: {
+      width: CARD_WIDTH,
+      minHeight: CARD_HEIGHT,
+      backfaceVisibility: 'hidden',
+      zIndex: 10,
+    },
+    flashcard: {
+      backgroundColor: c.card,
+      borderRadius: 28,
+      paddingVertical: 40,
+      paddingHorizontal: 24,
+      width: CARD_WIDTH,
+      minHeight: CARD_HEIGHT,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: c.foreground,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.15,
+      shadowRadius: 16,
+      elevation: 8,
+      borderWidth: 0.5,
+      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+    },
+    flashcardBack: {
+      backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : '#F1FCF5',
+    },
+    flashcardText: {
+      fontSize: 18,
+      lineHeight: 30,
+      textAlign: 'center',
+      color: c.foreground,
+      fontWeight: '500',
+    },
+    helperText: {
+      textAlign: 'center',
+      fontSize: 14,
+      color: c.mutedForeground,
+      fontWeight: '400',
+      marginTop: 24,
+    },
+    feedbackCard: {
+      paddingHorizontal: 12,
+    },
+    feedbackContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 16,
+    },
+    navButton: {
+      width: 48,
+      height: 48,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: c.foreground,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    navButtonDisabled: {
+      opacity: 0.5,
+    },
+    feedbackButtonsContainer: {
+      flexDirection: 'row',
+      gap: 5,
+      flex: 1,
+      justifyContent: 'center',
+    },
+    gotItWrongButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEF2F2',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(239,68,68,0.25)' : '#FECACA',
+      borderRadius: 10,
+    },
+    gotItWrongText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: c.destructive,
+    },
+    gotItRightButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      backgroundColor: c.success,
+      borderRadius: 10,
+    },
+    gotItRightText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: c.background,
+    },
+    backButton: {
+      width: 48,
+      height: 48,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: c.card,
+      borderWidth: 1.25,
+      borderColor: c.border,
+      borderRadius: 24,
+      shadowColor: c.foreground,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 2,
+    },
+    nextButton: {
+      width: 48,
+      height: 48,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: c.card,
+      borderWidth: 1.25,
+      borderColor: c.border,
+      borderRadius: 24,
+      shadowColor: c.foreground,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 2,
+    },
+    completionContainer: {
+      flex: 1,
+      alignItems: 'center',
+      paddingTop: 20,
+    },
+    completionCircle: {
+      width: 128,
+      height: 128,
+      borderRadius: 64,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 32,
+    },
+    completionCircleSuccess: {
+      backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D0FAE5',
+    },
+    completionCircleRetry: {
+      backgroundColor: isDark ? 'rgba(251,191,36,0.2)' : '#FED7AA',
+    },
+    emojiIcon: {
+      fontFamily: 'Inter',
+      fontStyle: 'normal',
+      fontWeight: '400',
+      fontSize: 60,
+      lineHeight: 60,
+      textAlign: 'center',
+      color: c.foreground,
+      width: 60,
+      height: 60,
+    },
+    completionScoreContainer: {
+      width: 87,
+      height: 40,
+      backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D0FAE5',
+      borderRadius: 100,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    completionScoreText: {
+      fontFamily: 'Inter',
+      fontStyle: 'normal',
+      fontWeight: '400',
+      fontSize: 16,
+      lineHeight: 24,
+      textAlign: 'center',
+      color: c.success,
+    },
+    completionScoreRetryText: {
+      color: c.warning,
+    },
+    completionMessage: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: c.foreground,
+      marginBottom: 24,
+    },
+    completionStats: {
+      alignItems: 'center',
+      marginBottom: 48,
+    },
+    completionStat: {
+      fontSize: 14,
+      color: c.mutedForeground,
+      fontWeight: '500',
+      marginBottom: 4,
+    },
+    completionActions: {
+      width: '100%',
+      gap: 12,
+    },
+    completionActionsRetry: {
+      width: '100%',
+      gap: 12,
+      marginTop: 'auto',
+      paddingBottom: 20,
+    },
+    shareButton: {
+      backgroundColor: c.primary,
+      borderRadius: 14,
+      paddingVertical: 18,
+      alignItems: 'center',
+    },
+    shareButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.background,
+    },
+    shareButtonBlack: {
+      backgroundColor: c.foreground,
+      borderRadius: 14,
+      paddingVertical: 18,
+      alignItems: 'center',
+    },
+    shareButtonBlackText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.background,
+    },
+    createNewButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.muted,
+      borderRadius: 14,
+      paddingVertical: 18,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+    createNewButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.foreground,
+    },
+    retakeButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.muted,
+      borderRadius: 14,
+      paddingVertical: 18,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+    retakeButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.foreground,
+    },
+    homeIndicator: {
+      height: 6,
+      backgroundColor: c.border,
+      borderRadius: 999,
+      marginTop: 12,
+      marginBottom: 6,
+      alignSelf: 'center',
+      width: 120,
+      opacity: 0.7,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+    },
+    loadingText: {
+      marginTop: 12,
+      color: c.mutedForeground,
+      fontSize: 16,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+      paddingHorizontal: 40,
+    },
+    errorTitle: {
+      marginTop: 24,
+      color: c.foreground,
+      fontSize: 24,
+      textAlign: 'center',
+      fontWeight: '500',
+    },
+    errorSubtitle: {
+      marginTop: 12,
+      color: c.mutedForeground,
+      fontSize: 16,
+      textAlign: 'center',
+      lineHeight: 24,
+    },
+    errorText: {
+      marginTop: 16,
+      color: c.destructive,
+      fontSize: 16,
+      textAlign: 'center',
+      fontWeight: '600',
+    },
+    generateButton: {
+      marginTop: 32,
+      paddingVertical: 16,
+      paddingHorizontal: 32,
+      backgroundColor: c.primary,
+      borderRadius: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      minWidth: 200,
+      justifyContent: 'center',
+    },
+    generateButtonText: {
+      color: c.background,
+      fontSize: 16,
+      fontWeight: '600',
+      marginLeft: 8,
+    },
+    retryButton: {
+      marginTop: 20,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      backgroundColor: c.primary,
+      borderRadius: 12,
+    },
+    retryButtonText: {
+      color: c.background,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    backButtonError: {
+      marginTop: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+    },
+    backButtonErrorText: {
+      color: c.mutedForeground,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  }), [c, isDark])
 
   // Fetch flashcards data on mount
   useEffect(() => {
@@ -474,10 +940,10 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#7C3AED" />
+            <ActivityIndicator size="large" color={c.primary} />
             <Text style={styles.loadingText}>
               {isGenerating ? t('flashcards.generating') : t('common.loading')}
             </Text>
@@ -490,13 +956,13 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
   if (error) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={styles.safeArea}>
           <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 }}>
             <BackButton />
           </View>
           <View style={styles.errorContainer}>
-            <Feather name="alert-circle" size={48} color="#EF4444" />
+            <Feather name="alert-circle" size={48} color={c.destructive} />
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={generateFlashcards}>
               <Text style={styles.retryButtonText}>{t('flashcards.generate')}</Text>
@@ -514,10 +980,10 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
   if (!flashcards || flashcards.length === 0) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.errorContainer}>
-            <Feather name="help-circle" size={64} color="#7C3AED" />
+            <Feather name="help-circle" size={64} color={c.primary} />
             <Text style={styles.errorTitle}>No Flashcards Available</Text>
             <Text style={styles.errorSubtitle}>
               Generate flashcards from this note to help you study
@@ -528,10 +994,10 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color={c.background} />
               ) : (
                 <>
-                  <Feather name="zap" size={20} color="#FFFFFF" />
+                  <Feather name="zap" size={20} color={c.background} />
                   <Text style={styles.generateButtonText}>Generate Flashcards</Text>
                 </>
               )}
@@ -557,7 +1023,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea}>
         {/* Header Section */}
         <View style={styles.headerSection}>
@@ -568,7 +1034,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
               style={styles.circularBackButton}
               onPress={() => router.back()}
             >
-              <Feather name="chevron-left" size={24} color="#374151" />
+              <Feather name="chevron-left" size={24} color={c.foreground} />
             </TouchableOpacity>
 
             {/* Spacer */}
@@ -583,9 +1049,9 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                   disabled={isDeleting}
                 >
                   {isDeleting ? (
-                    <ActivityIndicator size="small" color="#EF4444" />
+                    <ActivityIndicator size="small" color={c.destructive} />
                   ) : (
-                    <Feather name="trash-2" size={20} color="#EF4444" />
+                    <Feather name="trash-2" size={20} color={c.destructive} />
                   )}
                 </TouchableOpacity>
               ) : (
@@ -619,9 +1085,9 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
               {/* Card Stack Effect */}
               <View style={styles.cardStackContainer}>
                 {/* Background stacked cards for deck illusion */}
-                {cardsLeft >= 2 && <StackedCard index={1} />}
-                {cardsLeft >= 1 && <StackedCard index={0} />}
-                
+                {cardsLeft >= 2 && <StackedCard index={1} cardBg={c.card} shadowColor={c.foreground} />}
+                {cardsLeft >= 1 && <StackedCard index={0} cardBg={c.card} shadowColor={c.foreground} />}
+
                 {/* Main Flashcard with Flip Animation */}
                 <FlipCard
                   isFlipped={isFlipped}
@@ -648,56 +1114,60 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
               {/* Bottom Feedback Controls */}
               <View style={styles.feedbackCard}>
-                <View style={styles.feedbackContainer}>
+                <BlurView intensity={isDark ? 25 : 12} tint={isDark ? 'dark' : 'light'} style={{ borderRadius: 16, overflow: 'hidden' }}>
+                  <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)', padding: 12 }}>
+                    <View style={styles.feedbackContainer}>
 
-                  {/* Feedback Buttons */}
-                  <View style={styles.feedbackButtonsContainer}>
-                    {/* Back Button */}
-                    <TouchableOpacity
-                      style={[styles.backButton, currentCard === 0 && styles.navButtonDisabled]}
-                      onPress={moveToPreviousCard}
-                      disabled={currentCard === 0}
-                    >
-                      <Feather name="chevron-left" size={20} color={currentCard === 0 ? "#9CA3AF" : "#000"} />
-                    </TouchableOpacity>
+                      {/* Feedback Buttons */}
+                      <View style={styles.feedbackButtonsContainer}>
+                        {/* Back Button */}
+                        <TouchableOpacity
+                          style={[styles.backButton, currentCard === 0 && styles.navButtonDisabled]}
+                          onPress={moveToPreviousCard}
+                          disabled={currentCard === 0}
+                        >
+                          <Feather name="chevron-left" size={20} color={currentCard === 0 ? c.mutedForeground : c.foreground} />
+                        </TouchableOpacity>
 
-                    {/* Got it wrong Button */}
-                    <TouchableOpacity
-                      style={styles.gotItWrongButton}
-                      onPress={handleGotItWrong}
-                    >
-                      <Feather name="chevron-left" size={24} color="#EF4444" />
-                      <Text style={styles.gotItWrongText}>Got it wrong</Text>
-                    </TouchableOpacity>
+                        {/* Got it wrong Button */}
+                        <TouchableOpacity
+                          style={styles.gotItWrongButton}
+                          onPress={handleGotItWrong}
+                        >
+                          <Feather name="chevron-left" size={24} color={c.destructive} />
+                          <Text style={styles.gotItWrongText}>Got it wrong</Text>
+                        </TouchableOpacity>
 
-                    {/* Got it right Button */}
-                    <TouchableOpacity
-                      style={styles.gotItRightButton}
-                      onPress={handleGotItRight}
-                    >
-                      <Text style={styles.gotItRightText}>Got it right</Text>
-                      <Feather name="chevron-right" size={24} color="#FFFFFF" />
-                    </TouchableOpacity>
+                        {/* Got it right Button */}
+                        <TouchableOpacity
+                          style={styles.gotItRightButton}
+                          onPress={handleGotItRight}
+                        >
+                          <Text style={styles.gotItRightText}>Got it right</Text>
+                          <Feather name="chevron-right" size={24} color={c.background} />
+                        </TouchableOpacity>
 
-                    {/* Next Button */}
-                    <TouchableOpacity
-                      style={[styles.nextButton, currentCard >= flashcards.length - 1 && styles.navButtonDisabled]}
-                      onPress={moveToNextCard}
-                      disabled={currentCard >= flashcards.length - 1}
-                    >
-                      <Feather name="chevron-right" size={20} color={currentCard >= flashcards.length - 1 ? "#9CA3AF" : "#000"} />
-                    </TouchableOpacity>
+                        {/* Next Button */}
+                        <TouchableOpacity
+                          style={[styles.nextButton, currentCard >= flashcards.length - 1 && styles.navButtonDisabled]}
+                          onPress={moveToNextCard}
+                          disabled={currentCard >= flashcards.length - 1}
+                        >
+                          <Feather name="chevron-right" size={20} color={currentCard >= flashcards.length - 1 ? c.mutedForeground : c.foreground} />
+                        </TouchableOpacity>
+                      </View>
+
+
+                    </View>
                   </View>
-
-                  
-                </View>
+                </BlurView>
               </View>
             </>
           )}
 
           {/* Completion Screen - Success */}
           {isSuccess && (
-            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: '#FFFFFF' }}>
+            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: c.background }}>
               <View style={styles.completionContainer}>
                 <View style={[styles.completionCircle, styles.completionCircleSuccess]}>
                   <Text style={styles.emojiIcon}>🏆</Text>
@@ -721,7 +1191,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                   </TouchableOpacity>
 
                   <TouchableOpacity style={styles.createNewButton} onPress={handleCreateNew}>
-                    <Feather name="plus" size={20} color="#374151" />
+                    <Feather name="plus" size={20} color={c.foreground} />
                     <Text style={styles.createNewButtonText}>{t('flashcards.createNew')}</Text>
                   </TouchableOpacity>
                 </View>
@@ -731,7 +1201,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
           {/* Completion Screen - Retry */}
           {isRetry && (
-            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: '#FFFFFF' }}>
+            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: c.background }}>
               <View style={styles.completionContainer}>
                 <View style={[styles.completionCircle, styles.completionCircleRetry]}>
                   <Text style={styles.emojiIcon}>😅</Text>
@@ -751,7 +1221,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
                 <View style={styles.completionActionsRetry}>
                   <TouchableOpacity style={styles.retakeButton} onPress={handleRetake}>
-                    <Feather name="rotate-cw" size={20} color="#374151" />
+                    <Feather name="rotate-cw" size={20} color={c.foreground} />
                     <Text style={styles.retakeButtonText}>{t('flashcards.retake')}</Text>
                   </TouchableOpacity>
 
@@ -760,7 +1230,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                   </TouchableOpacity>
 
                   <TouchableOpacity style={styles.createNewButton} onPress={handleCreateNew}>
-                    <Feather name="plus" size={20} color="#374151" />
+                    <Feather name="plus" size={20} color={c.foreground} />
                     <Text style={styles.createNewButtonText}>{t('flashcards.createNew')}</Text>
                   </TouchableOpacity>
                 </View>
@@ -774,469 +1244,3 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  safeArea: {
-    flex: 1,
-  },
-  headerSection: {
-    backgroundColor: '#FFFFFF',
-    paddingBottom: 8,
-  },
-  headerTopRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
-  },
-  circularBackButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  headerSecondRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  cardLabel: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  remainingCount: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#6B7280',
-  },
-  progressBarContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-  },
-  progressBarBackground: {
-    height: 10,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#3B82F6',
-    borderRadius: 4,
-  },
-  titleContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-    textAlign: 'center',
-  },
-  headerRight: {
-    width: 48,
-    alignItems: 'flex-end',
-  },
-  deleteButton: {
-    padding: 8,
-  },
-  deleteButtonDisabled: {
-    opacity: 0.5,
-  },
-  headerTime: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-  },
-  headerIcon: {
-    marginRight: 4,
-  },
-  content: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    flexGrow: 1,
-  },
-  cardStackContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 30,
-    marginBottom: 30,
-    position: 'relative',
-    minHeight: CARD_HEIGHT + 20,
-  },
-  flipCardContainer: {
-    width: CARD_WIDTH,
-    minHeight: CARD_HEIGHT,
-    backfaceVisibility: 'hidden',
-    zIndex: 10,
-  },
-  flashcard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    paddingVertical: 40,
-    paddingHorizontal: 24,
-    width: CARD_WIDTH,
-    minHeight: CARD_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  flashcardBack: {
-    backgroundColor: '#F1FCF5',
-  },
-  flashcardText: {
-    fontSize: 18,
-    lineHeight: 30,
-    textAlign: 'center',
-    color: '#111827',
-    fontWeight: '500',
-  },
-  helperText: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#9CA3AF',
-    fontWeight: '400',
-    marginTop: 24,
-  },
-  feedbackCard: {
-    paddingHorizontal: 12,
-  },
-  feedbackContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  navButton: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  navButtonDisabled: {
-    opacity: 0.5,
-  },
-  feedbackButtonsContainer: {
-    flexDirection: 'row',
-    gap: 5,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  gotItWrongButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: 10,
-  },
-  gotItWrongText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#EF4444',
-  },
-  gotItRightButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: '#10B981',
-    borderRadius: 10,
-  },
-  gotItRightText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#FFFFFF',
-  },
-  backButton: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.25,
-    borderColor: '#E5E7EB',
-    borderRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  nextButton: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.25,
-    borderColor: '#E5E7EB',
-    borderRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  completionContainer: {
-    flex: 1,
-    alignItems: 'center',
-    paddingTop: 20,
-  },
-  completionCircle: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  completionCircleSuccess: {
-    backgroundColor: '#D0FAE5',
-  },
-  completionCircleRetry: {
-    backgroundColor: '#FED7AA',
-  },
-  emojiIcon: {
-    fontFamily: 'Arimo',
-    fontStyle: 'normal',
-    fontWeight: '400',
-    fontSize: 60,
-    lineHeight: 60,
-    textAlign: 'center',
-    color: '#0A0A0A',
-    width: 60,
-    height: 60,
-  },
-  completionScoreContainer: {
-    width: 87,
-    height: 40,
-    backgroundColor: '#D0FAE5',
-    borderRadius: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  completionScoreText: {
-    fontFamily: 'Arimo',
-    fontStyle: 'normal',
-    fontWeight: '400',
-    fontSize: 16,
-    lineHeight: 24,
-    textAlign: 'center',
-    color: '#009966',
-  },
-  completionScoreRetryText: {
-    color: '#F97316',
-  },
-  completionMessage: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 24,
-  },
-  completionStats: {
-    alignItems: 'center',
-    marginBottom: 48,
-  },
-  completionStat: {
-    fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  completionActions: {
-    width: '100%',
-    gap: 12,
-  },
-  completionActionsRetry: {
-    width: '100%',
-    gap: 12,
-    marginTop: 'auto',
-    paddingBottom: 20,
-  },
-  shareButton: {
-    backgroundColor: '#7C3AED',
-    borderRadius: 14,
-    paddingVertical: 18,
-    alignItems: 'center',
-  },
-  shareButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  shareButtonBlack: {
-    backgroundColor: '#111827',
-    borderRadius: 14,
-    paddingVertical: 18,
-    alignItems: 'center',
-  },
-  shareButtonBlackText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  createNewButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 14,
-    paddingVertical: 18,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  createNewButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  retakeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 14,
-    paddingVertical: 18,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  retakeButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  homeIndicator: {
-    height: 6,
-    backgroundColor: '#E6E6F0',
-    borderRadius: 999,
-    marginTop: 12,
-    marginBottom: 6,
-    alignSelf: 'center',
-    width: 120,
-    opacity: 0.7,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  loadingText: {
-    marginTop: 12,
-    color: '#6B7280',
-    fontSize: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 40,
-  },
-  errorTitle: {
-    marginTop: 24,
-    color: '#111827',
-    fontSize: 24,
-    textAlign: 'center',
-    fontWeight: '700',
-  },
-  errorSubtitle: {
-    marginTop: 12,
-    color: '#6B7280',
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  errorText: {
-    marginTop: 16,
-    color: '#EF4444',
-    fontSize: 16,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  generateButton: {
-    marginTop: 32,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    backgroundColor: '#7C3AED',
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minWidth: 200,
-    justifyContent: 'center',
-  },
-  generateButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  retryButton: {
-    marginTop: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#7C3AED',
-    borderRadius: 12,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  backButtonError: {
-    marginTop: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  backButtonErrorText: {
-    color: '#6B7280',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-})

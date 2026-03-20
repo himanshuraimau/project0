@@ -1,13 +1,19 @@
 import React, { useState, useRef } from 'react'
-import { SafeAreaView, View, Text, TouchableOpacity, Platform } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
-import { BlurGradient } from '../../ui/BlurGradient'
+import { BlurView } from 'expo-blur'
+import Animated from 'react-native-reanimated'
+import { OnboardingScreenShell } from '../OnboardingScreenShell'
 import { ContinueButton } from '../../ui/ContinueButton'
-import { ChevronLeft } from 'lucide-react-native'
-import styles from '../onboarding-styles/student7'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { onboardingEntrance } from '@/lib/ui/auth-animations'
 
 export default function Student7() {
   const router = useRouter()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const t = theme.typography
+  const isDark = mode === 'dark'
   const [gpa, setGpa] = useState<number>(3.8)
   const intervalRef = useRef<any>(null)
 
@@ -42,75 +48,91 @@ export default function Student7() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Purple blur gradient */}
-      <BlurGradient
-        colors={['#9810FA', '#441AFF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={217}
-        top={18.56}
-      />
+    <OnboardingScreenShell
+      currentStep={7}
+      totalSteps={9}
+      showBackButton={true}
+      subHeading="Personalizing Flinote for you..."
+      mainHeading="What's your current GPA?"
+      footer={
+        <ContinueButton
+          onPress={() => router.push(`/(onboarding)/student-flow/student8?currentGpa=${gpa}` as any)}
+        />
+      }
+    >
+      <Animated.View entering={onboardingEntrance.option(0)}>
+        <Text style={[styles.subtitle, { color: c.mutedForeground }]}>
+          Not sure? A close estimate is fine. You can skip.
+        </Text>
+      </Animated.View>
 
-      {/* Teal-Blue blur gradient */}
-      <BlurGradient
-        colors={['#14C3A2', '#4C57FF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={-90}
-        top={497.56}
-      />
-
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
-        </TouchableOpacity>
-        <View style={styles.progressWrap}>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.context}>Personalizing Flinote for you...</Text>
-        <Text style={styles.title}>What's your current GPA?</Text>
-        <Text style={styles.subtitle}>Not sure? A close estimate is fine. You can skip.</Text>
-
+      <Animated.View entering={onboardingEntrance.option(1)} style={[styles.gpaCard, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)' }]}>
+        <BlurView intensity={isDark ? 20 : 40} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 20 }]} />
+        <View style={[StyleSheet.absoluteFill, { borderRadius: 20, backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)' }]} />
         <View style={styles.gpaWrap}>
           <TouchableOpacity
-            style={styles.gpaButton}
+            style={[styles.gpaButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
             onPressIn={startDecrement}
             onPressOut={stopCounter}
             activeOpacity={0.8}
           >
-            <Text style={styles.gpaButtonText}>−</Text>
+            <Text style={[styles.gpaButtonText, { color: c.foreground }]}>−</Text>
           </TouchableOpacity>
 
           <View style={styles.gpaValueWrap}>
-            <Text style={styles.gpaValue}>{gpa.toFixed(1)}</Text>
+            <Text style={[styles.gpaValue, { color: c.foreground, fontWeight: t.weightBold }]}>{gpa.toFixed(1)}</Text>
           </View>
 
           <TouchableOpacity
-            style={styles.gpaButton}
+            style={[styles.gpaButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
             onPressIn={startIncrement}
             onPressOut={stopCounter}
             activeOpacity={0.8}
           >
-            <Text style={styles.gpaButtonText}>+</Text>
+            <Text style={[styles.gpaButtonText, { color: c.foreground }]}>+</Text>
           </TouchableOpacity>
         </View>
-      </View>
-
-      <View style={styles.footer}>
-        <ContinueButton
-          onPress={() => router.push(`/(onboarding)/student-flow/student8?currentGpa=${gpa}` as any)}
-        />
-      </View>
-    </SafeAreaView>
+      </Animated.View>
+    </OnboardingScreenShell>
   )
 }
 
-// styles imported from onboarding-styles/student7
+const styles = StyleSheet.create({
+  subtitle: {
+    fontSize: 15,
+    lineHeight: 21,
+    marginBottom: 28,
+  },
+  gpaCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  gpaWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+    gap: 24,
+  },
+  gpaButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gpaButtonText: {
+    fontSize: 28,
+    lineHeight: 32,
+  },
+  gpaValueWrap: {
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  gpaValue: {
+    fontSize: 48,
+    lineHeight: 56,
+  },
+})

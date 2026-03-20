@@ -5,8 +5,6 @@ import { View } from 'react-native'
 import { OnboardingOptionRow } from './OnboardingOptionRow'
 import { OnboardingScreenShell } from './OnboardingScreenShell'
 
-const STAGGER = 60
-
 const options = [
   {
     id: 'just-me',
@@ -52,11 +50,11 @@ export default function OnboardingStep2({ onContinue }: OnboardingStep2Props) {
       currentStep={2}
       totalSteps={5}
       showBackButton
-      subHeading="Personalizing Flinote for you..."
+      subHeading="Personalizing for you"
       mainHeading="Who will use Flinote?"
       contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}
     >
-      <View style={{ gap: 16, marginTop: 24 }}>
+      <View style={{ gap: 12, marginTop: 24 }}>
         {options.map((opt, i) => (
           <OnboardingOptionRow
             key={opt.id}
@@ -65,7 +63,7 @@ export default function OnboardingStep2({ onContinue }: OnboardingStep2Props) {
             iconBackgroundColor={opt.iconBackgroundColor}
             isSelected={selectedOption === opt.id}
             onPress={() => handleOptionSelect(opt.id)}
-            entranceDelay={60 + i * STAGGER}
+            index={i}
           />
         ))}
       </View>

@@ -1,6 +1,6 @@
 import { StyleSheet, Platform } from 'react-native'
 
-const PURPLE = '#7C3AED'
+const PURPLE = '#4f3be7'
 const BG = '#FFFFFF'
 
 export default StyleSheet.create({
@@ -13,7 +13,7 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   timeWrap: { backgroundColor: '#FF4D4F', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  time: { color: '#fff', fontWeight: '700', fontFamily: 'Arimo', fontSize: 13 },
+  time: { color: '#fff', fontWeight: '500', fontFamily: 'Inter', fontSize: 13 },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
@@ -28,20 +28,20 @@ export default StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#000000',
     marginBottom: 32,
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     lineHeight: 28,
     textAlign: 'center',
   },
   subtitle: {
-    color: '#7C3AED',
+    color: '#4f3be7',
     fontSize: 20,
     marginTop: 50,
     marginBottom: 54,
-    fontFamily: 'Arimo',
-    fontWeight: '700',
+    fontFamily: 'Inter',
+    fontWeight: '500',
     lineHeight: 19,
     textAlign: 'center',
   },
@@ -65,15 +65,15 @@ export default StyleSheet.create({
   },
   check: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '500',
     fontSize: 14,
   },
   bulletText: {
     flex: 1,
     fontSize: 18,
     color: '#000000',
-    fontFamily: 'Arimo',
-    fontWeight: '700',
+    fontFamily: 'Inter',
+    fontWeight: '500',
     lineHeight: 22,
   },
   footer: {
@@ -96,14 +96,14 @@ export default StyleSheet.create({
   ctaText: {
     color: '#FFFFFF',
     fontSize: 17,
-    fontFamily: 'Arimo',
-    fontWeight: '700',
+    fontFamily: 'Inter',
+    fontWeight: '500',
     lineHeight: 24,
     marginRight: 8,
   },
   ctaArrow: {
     color: '#FFFFFF',
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '500',
   },
 })

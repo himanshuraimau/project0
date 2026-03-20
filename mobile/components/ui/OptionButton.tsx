@@ -42,8 +42,8 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   optionSelected: {
-    borderColor: '#7C3AED',
-    backgroundColor: '#FBF7FF',
+    borderColor: '#4f3be7',
+    backgroundColor: '#f7f9ff',
     borderWidth: 2,
   },
   iconContainer: {
@@ -58,13 +58,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     lineHeight: 32,
     color: '#0A0A0A',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
   },
   optionLabel: {
     fontSize: 15,
     lineHeight: 22,
     color: '#000000',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontWeight: '400',
     flex: 1,
     flexWrap: 'wrap',

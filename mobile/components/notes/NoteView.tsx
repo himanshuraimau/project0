@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { BookOpen, Brain, Layers } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
@@ -16,18 +15,18 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { WebView } from 'react-native-webview'
+import { BlurView } from 'expo-blur'
 import { marked } from 'marked'
 import { notesApi } from '@/lib/api'
 import type { Note } from '@/lib/api/types'
 import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
+import { useTheme } from '@/lib/hooks/useTheme'
 
 import { ShareLinkModal } from '@/components/notes'
 import FolderSelectorModal from '@/components/folders/FolderSelectorModal'
 
 import TranslationModal from './TranslationModal'
-
-
 
 interface NoteViewProps {
   noteId: string
@@ -39,20 +38,21 @@ export default function NoteView({ noteId }: NoteViewProps) {
   const router = useRouter()
   const { t, i18n } = useTranslation()
   const { showAlert } = useAlert()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
   const [note, setNote] = useState<Note | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [webViewHeight, setWebViewHeight] = useState(400)
   const [deleting, setDeleting] = useState(false)
 
-
   const [showTranslationModal, setShowTranslationModal] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('en') // Track note's display language
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en')
 
   const [shareModalVisible, setShareModalVisible] = useState(false)
   const [showFolderModal, setShowFolderModal] = useState(false)
 
-  // Load saved language preference for this note
   useEffect(() => {
     const loadSavedLanguage = async () => {
       try {
@@ -67,7 +67,6 @@ export default function NoteView({ noteId }: NoteViewProps) {
     loadSavedLanguage();
   }, [noteId]);
 
-  // Save language preference whenever it changes
   const handleLanguageChange = async (language: string) => {
     setSelectedLanguage(language);
     try {
@@ -77,7 +76,6 @@ export default function NoteView({ noteId }: NoteViewProps) {
     }
   };
 
-  // Fetch note data on mount or when language changes
   const fetchNote = useCallback(async () => {
     try {
       setLoading(true)
@@ -98,50 +96,29 @@ export default function NoteView({ noteId }: NoteViewProps) {
     }
   }, [noteId, i18n.language, fetchNote])
 
-  // Get translated content based on selected language for this note
   const getDisplayContent = () => {
     if (!note) return { title: '', content: '' }
 
-    // If English or no translations, return original
     if (selectedLanguage === 'en' || !note.translations || note.translations.length === 0) {
-      return {
-        title: note.title,
-        content: note.content,
-      }
+      return { title: note.title, content: note.content }
     }
 
-    // Find translation for selected language
-    const translation = note.translations.find(
-      (t) => t.language === selectedLanguage
-    )
+    const translation = note.translations.find((t) => t.language === selectedLanguage)
 
-    // Return translation if found, otherwise return original
     if (translation) {
-      return {
-        title: translation.title,
-        content: translation.content,
-      }
+      return { title: translation.title, content: translation.content }
     }
 
-    return {
-      title: note.title,
-      content: note.content,
-    }
+    return { title: note.title, content: note.content }
   }
 
   const { title: displayTitle, content: displayContent } = getDisplayContent()
 
-  // Format date to readable format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
-  // Calculate estimated read time based on content length
   const calculateReadTime = (content: string) => {
     const wordsPerMinute = 200
     const wordCount = content.split(/\s+/).length
@@ -149,18 +126,12 @@ export default function NoteView({ noteId }: NoteViewProps) {
     return `${minutes} min read`
   }
 
-  // Convert Markdown to HTML
   const convertToHTML = (content: string) => {
     try {
-      // Check if content is already HTML (contains HTML tags)
       if (content.includes('<p>') || content.includes('<div>') || content.includes('<h1>')) {
         return content
       }
-      // Convert Markdown to HTML
-      return marked(content, {
-        breaks: true,
-        gfm: true
-      }) as string
+      return marked(content, { breaks: true, gfm: true }) as string
     } catch (error) {
       console.error('Error converting markdown to HTML:', error)
       return content
@@ -182,45 +153,27 @@ export default function NoteView({ noteId }: NoteViewProps) {
     { id: 6, icon: 'plus', iconType: 'feather', label: t('note.mindMap'), color: '#FFFFFF', bgColor: '#2B7FFF' },
   ]
 
-  // Handle action chip press
   const handleChipPress = (chipId: number) => {
-    if (chipId === 1) { // Translate chip
-      setShowTranslationModal(true)
-    } else if (chipId === 2) { // Transcript chip
-      router.push(`/notes/${noteId}/transcript`)
-    } else if (chipId === 3) { // Folder chip
-      setShowFolderModal(true)
-    }
+    if (chipId === 1) setShowTranslationModal(true)
+    else if (chipId === 2) router.push(`/notes/${noteId}/transcript`)
+    else if (chipId === 3) setShowFolderModal(true)
   }
 
-
-  // Handle study tool press
   const handleStudyToolPress = (toolId: number) => {
-    if (toolId === 3) { // Take quiz
-      router.push(`/notes/${noteId}/quiz`)
-    } else if (toolId === 1) { // Edit note
-      router.push(`/notes/${noteId}/edit`)
-    } else if (toolId === 2) { // Chat
-      router.push(`/notes/${noteId}/chat`)
-    } else if (toolId === 4) { // Flashcards
-      router.push(`/notes/${noteId}/flashcards`)
-    } else if (toolId === 5) { // Podcast
-      router.push(`/notes/${noteId}/podcasts`)
-    } else if (toolId === 6) { // MindMap
-      router.push(`/notes/${noteId}/mindmap`)
-    }
+    if (toolId === 3) router.push(`/notes/${noteId}/quiz`)
+    else if (toolId === 1) router.push(`/notes/${noteId}/edit`)
+    else if (toolId === 2) router.push(`/notes/${noteId}/chat`)
+    else if (toolId === 4) router.push(`/notes/${noteId}/flashcards`)
+    else if (toolId === 5) router.push(`/notes/${noteId}/podcasts`)
+    else if (toolId === 6) router.push(`/notes/${noteId}/mindmap`)
   }
 
-  // Handle delete note
   const handleDeleteNote = () => {
     showAlert(
       t('note.deleteNote'),
       t('note.deleteConfirmation'),
       [
-        {
-          text: t('common.cancel'),
-          style: 'cancel',
-        },
+        { text: t('common.cancel'), style: 'cancel' },
         {
           text: t('common.delete'),
           style: 'destructive',
@@ -231,10 +184,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
               router.back()
             } catch (err: any) {
               console.error('Failed to delete note:', err)
-              showAlert(
-                t('common.error'),
-                err.message || t('note.failedToDelete')
-              )
+              showAlert(t('common.error'), err.message || t('note.failedToDelete'))
             } finally {
               setDeleting(false)
             }
@@ -244,72 +194,291 @@ export default function NoteView({ noteId }: NoteViewProps) {
     )
   }
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderBottomWidth: 0.5,
+      borderBottomColor: c.border,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    headerCenter: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    emojiIcon: {
+      fontSize: 24,
+    },
+    headerRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    shareButton: {
+      backgroundColor: isDark ? 'rgba(130,100,255,0.15)' : c.accent,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 100,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 8,
+      borderWidth: 0.5,
+      borderColor: isDark ? 'rgba(130,100,255,0.3)' : 'rgba(0,0,0,0.04)',
+    },
+    shareButtonText: {
+      color: c.primary,
+      fontWeight: '600',
+      fontSize: 13,
+      lineHeight: 20,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: 20,
+    },
+    titleSection: {
+      paddingTop: 24,
+      paddingBottom: 16,
+      alignSelf: 'stretch',
+    },
+    noteTitle: {
+      fontFamily: 'Inter',
+      fontWeight: '400',
+      fontSize: 24,
+      lineHeight: 32,
+      color: c.foreground,
+      marginBottom: 12,
+    },
+    metadataRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    metadataText: {
+      fontSize: 14,
+      color: c.mutedForeground,
+      fontWeight: '500',
+    },
+    metadataDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: c.mutedForeground,
+      marginHorizontal: 8,
+    },
+    glassChipsContainer: {
+      borderRadius: 16,
+      overflow: 'hidden',
+      borderWidth: 0.5,
+      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+      marginVertical: 16,
+    },
+    glassOverlay: {
+      flexDirection: 'row',
+      gap: 9,
+      padding: 12,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)',
+    },
+    chip: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : c.muted,
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      borderRadius: 20,
+      gap: 6,
+    },
+    chipText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: c.foreground,
+    },
+    studyToolsSection: {
+      paddingVertical: 0,
+      marginTop: 24,
+    },
+    sectionTitle: {
+      fontFamily: 'Inter',
+      fontWeight: '500',
+      fontSize: 14,
+      lineHeight: 16,
+      letterSpacing: 0.6,
+      color: c.mutedForeground,
+      marginBottom: 16,
+    },
+    studyToolsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    studyToolCard: {
+      width: '49%',
+      height: 60,
+      borderRadius: 16,
+      padding: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 12,
+    },
+    toolIconContainer: {
+      width: 24,
+      height: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    editNoteIcon: {},
+    toolLabel: {
+      fontFamily: 'Inter',
+      fontWeight: '500',
+      fontSize: 18,
+      lineHeight: 28,
+      color: '#FFFFFF',
+    },
+    overviewSection: {
+      paddingVertical: 16,
+    },
+    overviewTitle: {
+      fontSize: 20,
+      fontWeight: '500',
+      color: c.primary,
+      marginBottom: 16,
+    },
+    webView: {
+      backgroundColor: 'transparent',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+    },
+    loadingText: {
+      marginTop: 12,
+      color: c.mutedForeground,
+      fontSize: 16,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+      paddingHorizontal: 40,
+    },
+    errorText: {
+      marginTop: 16,
+      color: c.destructive,
+      fontSize: 16,
+      textAlign: 'center',
+      fontWeight: '600',
+    },
+    retryButton: {
+      marginTop: 20,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      backgroundColor: c.primary,
+      borderRadius: 12,
+    },
+    retryButtonText: {
+      color: c.primaryForeground,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    backButtonError: {
+      marginTop: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+    },
+    backButtonErrorText: {
+      color: c.mutedForeground,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    deleteSection: {
+      paddingVertical: 24,
+      alignItems: 'center',
+    },
+    deleteButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      backgroundColor: isDark ? 'rgba(239,68,68,0.1)' : '#FEE2E2',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(239,68,68,0.2)' : '#FECACA',
+    },
+    deleteButtonText: {
+      color: c.destructive,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  })
+
   // Show loading state
   if (loading) {
     return (
-      <LinearGradient
-        colors={['#FFFFFF', '#FBF7FF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.container}
-      >
-        <StatusBar barStyle="dark-content" />
+      <View style={styles.container}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#7C3AED" />
+            <ActivityIndicator size="large" color={c.primary} />
             <Text style={styles.loadingText}>{t('common.loading')}</Text>
           </View>
         </SafeAreaView>
-      </LinearGradient>
+      </View>
     )
   }
 
   // Show error state
   if (error || !note) {
     return (
-      <LinearGradient
-        colors={['#FFFFFF', '#FBF7FF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.container}
-      >
-        <StatusBar barStyle="dark-content" />
+      <View style={styles.container}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.errorContainer}>
-            <Feather name="alert-circle" size={48} color="#EF4444" />
+            <Feather name="alert-circle" size={48} color={c.destructive} />
             <Text style={styles.errorText}>{error || t('note.failedToLoad')}</Text>
-            <TouchableOpacity
-              style={styles.retryButton}
-              onPress={fetchNote}
-            >
+            <TouchableOpacity style={styles.retryButton} onPress={fetchNote}>
               <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.backButtonError}
-              onPress={() => router.back()}
-            >
+            <TouchableOpacity style={styles.backButtonError} onPress={() => router.back()}>
               <Text style={styles.backButtonErrorText}>{t('common.back')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
-      </LinearGradient>
+      </View>
     )
   }
 
   return (
     <>
-      <LinearGradient
-        colors={['#FFFFFF', '#FBF7FF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.container}
-      >
-        <StatusBar barStyle="dark-content" />
+      <View style={styles.container}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={styles.safeArea}>
           {/* Custom Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <BackButton iconColor="#111827" />
+              <BackButton iconColor={c.foreground} />
             </View>
 
             <View style={styles.headerCenter}>
@@ -326,10 +495,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
             </View>
           </View>
 
-          <ScrollView
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-          >
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             {/* Title and Metadata */}
             <View style={styles.titleSection}>
               <Text style={styles.noteTitle}>{displayTitle}</Text>
@@ -340,19 +506,21 @@ export default function NoteView({ noteId }: NoteViewProps) {
               </View>
             </View>
 
-            {/* Action Chips */}
-            <View style={styles.chipsContainer}>
-              {actionChips.map((chip) => (
-                <TouchableOpacity
-                  key={chip.id}
-                  style={styles.chip}
-                  onPress={() => handleChipPress(chip.id)}
-                >
-                  <Feather name={chip.icon as any} size={16} color="#6B7280" />
-                  <Text style={styles.chipText}>{chip.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            {/* Glass Action Chips */}
+            <BlurView intensity={isDark ? 30 : 15} tint={isDark ? 'dark' : 'light'} style={styles.glassChipsContainer}>
+              <View style={styles.glassOverlay}>
+                {actionChips.map((chip) => (
+                  <TouchableOpacity
+                    key={chip.id}
+                    style={styles.chip}
+                    onPress={() => handleChipPress(chip.id)}
+                  >
+                    <Feather name={chip.icon as any} size={16} color={c.mutedForeground} />
+                    <Text style={styles.chipText}>{chip.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </BlurView>
 
             {/* Study Tools Section */}
             <View style={styles.studyToolsSection}>
@@ -361,39 +529,20 @@ export default function NoteView({ noteId }: NoteViewProps) {
                 {studyTools.map((tool) => (
                   <TouchableOpacity
                     key={tool.id}
-                    style={[
-                      styles.studyToolCard,
-                      { backgroundColor: tool.bgColor }
-                    ]}
+                    style={[styles.studyToolCard, { backgroundColor: tool.bgColor }]}
                     onPress={() => handleStudyToolPress(tool.id)}
                   >
-                    <View style={[
-                      styles.toolIconContainer,
-                      tool.id === 1 && styles.editNoteIcon
-                    ]}>
+                    <View style={[styles.toolIconContainer, tool.id === 1 && styles.editNoteIcon]}>
                       {tool.iconType === 'lucide' ? (
                         tool.icon === 'BookOpen' ? (
-                          <BookOpen
-                            size={24}
-                            color={tool.color}
-                          />
+                          <BookOpen size={24} color={tool.color} />
                         ) : tool.icon === 'brain' ? (
-                          <Brain
-                            size={24}
-                            color={tool.color}
-                          />
+                          <Brain size={24} color={tool.color} />
                         ) : tool.icon === 'Layers' ? (
-                          <Layers
-                            size={24}
-                            color={tool.color}
-                          />
+                          <Layers size={24} color={tool.color} />
                         ) : null
                       ) : (
-                        <Feather
-                          name={tool.icon as any}
-                          size={24}
-                          color={tool.color}
-                        />
+                        <Feather name={tool.icon as any} size={24} color={tool.color} />
                       )}
                     </View>
                     <Text style={styles.toolLabel}>{tool.label}</Text>
@@ -414,146 +563,61 @@ export default function NoteView({ noteId }: NoteViewProps) {
                       <head>
                         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
                         <style>
-                          * {
-                            margin: 0;
-                            padding: 0;
-                            box-sizing: border-box;
-                          }
+                          * { margin: 0; padding: 0; box-sizing: border-box; }
                           body {
                             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
                             font-size: 15px;
                             line-height: 24px;
-                            color: #374151;
-                            padding: 0;
-                            margin: 0;
+                            color: ${c.foreground};
+                            padding: 0; margin: 0;
                             overflow-x: hidden;
+                            background-color: transparent;
                           }
-                          h1 {
-                            font-size: 24px;
-                            font-weight: 800;
-                            color: #111827;
-                            margin-top: 20px;
-                            margin-bottom: 12px;
-                          }
-                          h1:first-child {
-                            margin-top: 0;
-                          }
-                          h2 {
-                            font-size: 20px;
-                            font-weight: 700;
-                            color: #111827;
-                            margin-top: 16px;
-                            margin-bottom: 10px;
-                          }
-                          h3 {
-                            font-size: 18px;
-                            font-weight: 600;
-                            color: #111827;
-                            margin-top: 14px;
-                            margin-bottom: 8px;
-                          }
-                          p {
-                            font-size: 15px;
-                            line-height: 24px;
-                            color: #374151;
-                            margin-bottom: 12px;
-                          }
-                          a {
-                            color: #7C3AED;
-                            text-decoration: underline;
-                          }
-                          strong, b {
-                            font-weight: 700;
-                            color: #111827;
-                          }
-                          em, i {
-                            font-style: italic;
-                          }
-                          u {
-                            text-decoration: underline;
-                          }
-                          ul, ol {
-                            margin-bottom: 12px;
-                            padding-left: 20px;
-                          }
-                          li {
-                            margin-bottom: 6px;
-                            line-height: 24px;
-                          }
+                          h1 { font-size: 24px; font-weight: 800; color: ${c.foreground}; margin-top: 20px; margin-bottom: 12px; }
+                          h1:first-child { margin-top: 0; }
+                          h2 { font-size: 20px; font-weight: 700; color: ${c.foreground}; margin-top: 16px; margin-bottom: 10px; }
+                          h3 { font-size: 18px; font-weight: 600; color: ${c.foreground}; margin-top: 14px; margin-bottom: 8px; }
+                          p { font-size: 15px; line-height: 24px; color: ${c.foreground}; margin-bottom: 12px; }
+                          a { color: ${c.primary}; text-decoration: underline; }
+                          strong, b { font-weight: 700; color: ${c.foreground}; }
+                          em, i { font-style: italic; }
+                          u { text-decoration: underline; }
+                          ul, ol { margin-bottom: 12px; padding-left: 20px; }
+                          li { margin-bottom: 6px; line-height: 24px; color: ${c.foreground}; }
                           code {
-                            background-color: #F3F4F6;
+                            background-color: ${c.muted};
                             color: #EC4899;
-                            padding: 2px 6px;
-                            border-radius: 4px;
-                            font-family: monospace;
-                            font-size: 14px;
+                            padding: 2px 6px; border-radius: 4px;
+                            font-family: monospace; font-size: 14px;
                           }
                           pre {
-                            background-color: #F9FAFB;
-                            padding: 12px;
-                            border-radius: 8px;
-                            border-left: 3px solid #7C3AED;
-                            margin-bottom: 12px;
-                            overflow-x: auto;
+                            background-color: ${c.muted};
+                            padding: 12px; border-radius: 8px;
+                            border-left: 3px solid ${c.primary};
+                            margin-bottom: 12px; overflow-x: auto;
                           }
-                          pre code {
-                            background-color: transparent;
-                            padding: 0;
-                            color: #374151;
-                          }
+                          pre code { background-color: transparent; padding: 0; color: ${c.foreground}; }
                           blockquote {
-                            background-color: #F3F4F6;
-                            border-left: 4px solid #7C3AED;
-                            padding-left: 12px;
-                            padding-top: 8px;
-                            padding-bottom: 8px;
+                            background-color: ${c.muted};
+                            border-left: 4px solid ${c.primary};
+                            padding-left: 12px; padding-top: 8px; padding-bottom: 8px;
                             margin-bottom: 12px;
                           }
-                          table {
-                            border: 1px solid #E5E7EB;
-                            border-radius: 8px;
-                            margin-bottom: 12px;
-                            width: 100%;
-                            border-collapse: collapse;
-                          }
-                          th {
-                            font-weight: 700;
-                            padding: 8px;
-                            border-bottom: 2px solid #E5E7EB;
-                            background-color: #F9FAFB;
-                            text-align: left;
-                          }
-                          td {
-                            padding: 8px;
-                            border-bottom: 1px solid #F3F4F6;
-                          }
-                          hr {
-                            background-color: #E5E7EB;
-                            height: 1px;
-                            border: none;
-                            margin: 16px 0;
-                          }
-                          img {
-                            max-width: 100%;
-                            height: auto;
-                            display: block;
-                            margin: 12px 0;
-                          }
+                          table { border: 1px solid ${c.border}; border-radius: 8px; margin-bottom: 12px; width: 100%; border-collapse: collapse; }
+                          th { font-weight: 700; padding: 8px; border-bottom: 2px solid ${c.border}; background-color: ${c.muted}; text-align: left; color: ${c.foreground}; }
+                          td { padding: 8px; border-bottom: 1px solid ${c.border}; color: ${c.foreground}; }
+                          hr { background-color: ${c.border}; height: 1px; border: none; margin: 16px 0; }
+                          img { max-width: 100%; height: auto; display: block; margin: 12px 0; }
                         </style>
                       </head>
                       <body>
                         ${convertToHTML(displayContent)}
                         <script>
-                          // Send height to React Native
                           function sendHeight() {
                             const height = document.body.scrollHeight;
                             window.ReactNativeWebView.postMessage(JSON.stringify({ height }));
                           }
-                          
-                          // Send height when content loads
                           window.addEventListener('load', sendHeight);
-                          
-                          // Send height after a short delay to ensure all content is rendered
                           setTimeout(sendHeight, 100);
                           setTimeout(sendHeight, 500);
                         </script>
@@ -569,7 +633,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
                   try {
                     const data = JSON.parse(event.nativeEvent.data);
                     if (data.height) {
-                      setWebViewHeight(data.height + 20); // Add some padding
+                      setWebViewHeight(data.height + 20);
                     }
                   } catch (e) {
                     console.log('Error parsing WebView message:', e);
@@ -588,10 +652,10 @@ export default function NoteView({ noteId }: NoteViewProps) {
                 disabled={deleting}
               >
                 {deleting ? (
-                  <ActivityIndicator size="small" color="#EF4444" />
+                  <ActivityIndicator size="small" color={c.destructive} />
                 ) : (
                   <>
-                    <Feather name="trash-2" size={20} color="#EF4444" />
+                    <Feather name="trash-2" size={20} color={c.destructive} />
                     <Text style={styles.deleteButtonText}>{t('note.deleteNote')}</Text>
                   </>
                 )}
@@ -602,7 +666,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
             <View style={{ height: 40 }} />
           </ScrollView>
         </SafeAreaView>
-      </LinearGradient>
+      </View>
 
       {/* Translation Modal */}
       <TranslationModal
@@ -612,7 +676,7 @@ export default function NoteView({ noteId }: NoteViewProps) {
         currentLanguage={selectedLanguage}
         onLanguageSelect={(language: string) => {
           handleLanguageChange(language)
-          fetchNote() // Refresh to ensure translations are loaded
+          fetchNote()
         }}
       />
 
@@ -633,294 +697,9 @@ export default function NoteView({ noteId }: NoteViewProps) {
         noteId={noteId}
         currentFolderId={note?.folderId}
         onFolderSelected={() => {
-          // Refresh note to get updated folder info
           fetchNote()
         }}
       />
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  timeBadge: {
-    backgroundColor: '#F87171',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  timeText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  backButton: {
-    padding: 4,
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  emojiIcon: {
-    fontSize: 24,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  statusIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  shareButton: {
-    backgroundColor: '#F3E8FF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 26843500,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  shareButtonText: {
-    color: '#9810FA',
-    fontWeight: '400',
-    fontSize: 13,
-    lineHeight: 20,
-    fontFamily: 'Arimo',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  titleSection: {
-    paddingTop: 24,
-    paddingBottom: 16,
-    flex: 0,
-    alignSelf: 'stretch',
-    flexGrow: 0,
-  },
-  noteTitle: {
-    fontFamily: 'Arimo',
-    fontStyle: 'normal',
-    fontWeight: '400',
-    fontSize: 24,
-    lineHeight: 32,
-    color: '#0A0A0A',
-    marginBottom: 12,
-  },
-  metadataRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  metadataText: {
-    fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  metadataDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#6B7280',
-    marginHorizontal: 8,
-  },
-  chipsContainer: {
-    flexDirection: 'row',
-    gap: 9,
-    paddingVertical: 16,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#E5E7EB',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  studyToolsSection: {
-    paddingVertical: 0,
-    marginTop: 24,
-  },
-  sectionTitle: {
-    fontFamily: 'Arimo',
-    fontStyle: 'normal',
-    fontWeight: '700',
-    fontSize: 14,
-    lineHeight: 16,
-    letterSpacing: 0.6,
-    color: '#99A1AF',
-    marginBottom: 16,
-  },
-  studyToolsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  studyToolCard: {
-    width: '49%',
-    height: 59.99,
-    borderRadius: 16,
-    padding: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 11.99,
-    marginBottom: 12,
-  },
-
-  editNoteCard: {
-    backgroundColor: '#FF6900',
-  },
-  toolIconContainer: {
-    width: 23.99,
-    height: 23.99,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  editNoteIcon: {
-  },
-  toolLabel: {
-    fontFamily: 'Arimo',
-    fontStyle: 'normal',
-    fontWeight: '700',
-    fontSize: 18,
-    lineHeight: 28,
-    color: '#FFFFFF',
-  },
-  editNoteLabel: {
-    fontFamily: 'Arimo',
-    fontStyle: 'normal',
-    fontWeight: '700',
-    fontSize: 18,
-    lineHeight: 28,
-    color: '#FFFFFF',
-  },
-  overviewSection: {
-    paddingVertical: 16,
-  },
-  overviewTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#7C3AED',
-    marginBottom: 16,
-  },
-  overviewContent: {
-    fontSize: 15,
-    lineHeight: 24,
-    color: '#374151',
-  },
-  webView: {
-    backgroundColor: 'transparent',
-  },
-  homeIndicator: {
-    height: 6,
-    backgroundColor: '#E6E6F0',
-    borderRadius: 999,
-    marginTop: 12,
-    marginBottom: 6,
-    alignSelf: 'center',
-    width: 120,
-    opacity: 0.7,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  loadingText: {
-    marginTop: 12,
-    color: '#6B7280',
-    fontSize: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 40,
-  },
-  errorText: {
-    marginTop: 16,
-    color: '#EF4444',
-    fontSize: 16,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  retryButton: {
-    marginTop: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#7C3AED',
-    borderRadius: 12,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  backButtonError: {
-    marginTop: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  backButtonErrorText: {
-    color: '#6B7280',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  deleteSection: {
-    paddingVertical: 24,
-    alignItems: 'center',
-  },
-  deleteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FECACA',
-  },
-  deleteButtonText: {
-    color: '#EF4444',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-})
-
-

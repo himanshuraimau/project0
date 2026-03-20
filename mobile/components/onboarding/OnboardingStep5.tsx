@@ -5,8 +5,6 @@ import { ContinueButton } from '../ui/ContinueButton'
 import { OnboardingOptionRow } from './OnboardingOptionRow'
 import { OnboardingScreenShell } from './OnboardingScreenShell'
 
-const STAGGER = 50
-
 const studyOptions = [
   { id: 'light', emoji: '✅', label: 'Light', subtitle: '10 min / day' },
   { id: 'regular', emoji: '🔥', label: 'Regular', subtitle: '20 min / day' },
@@ -19,9 +17,7 @@ interface OnboardingStep5Props {
 }
 
 function EmojiIcon({ emoji }: { emoji: string }) {
-  return (
-    <Text style={{ fontSize: 22 }}>{emoji}</Text>
-  )
+  return <Text style={{ fontSize: 22 }}>{emoji}</Text>
 }
 
 export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
@@ -41,11 +37,11 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
       currentStep={5}
       totalSteps={5}
       showBackButton
-      subHeading="Personalizing Flinote for you..."
-      mainHeading="How much time do you want to study each day?"
+      subHeading="Almost done"
+      mainHeading="How much time do you study each day?"
       footer={<ContinueButton onPress={handleContinue} />}
     >
-      <View style={{ gap: 14 }}>
+      <View style={{ gap: 10 }}>
         {studyOptions.map((opt, i) => (
           <OnboardingOptionRow
             key={opt.id}
@@ -54,7 +50,7 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
             subtitle={opt.subtitle}
             isSelected={selectedOption === opt.id}
             onPress={() => setSelectedOption(opt.id)}
-            entranceDelay={80 + i * STAGGER}
+            index={i}
           />
         ))}
       </View>

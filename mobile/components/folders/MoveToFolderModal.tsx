@@ -121,7 +121,7 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
                 </View>
               </View>
               {currentFolderId === null && (
-                <Check size={20} color="#7C3AED" strokeWidth={3} />
+                <Check size={20} color="#4f3be7" strokeWidth={3} />
               )}
             </TouchableOpacity>
 
@@ -162,7 +162,7 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
                     </View>
                   </View>
                   {isSelected && (
-                    <Check size={20} color="#7C3AED" strokeWidth={3} />
+                    <Check size={20} color="#4f3be7" strokeWidth={3} />
                   )}
                 </TouchableOpacity>
               );
@@ -181,7 +181,7 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
 
           {loading && (
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="#7C3AED" />
+              <ActivityIndicator size="large" color="#4f3be7" />
             </View>
           )}
         </Pressable>
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: '500',
     color: '#111827',
     marginBottom: 4,
   },
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   },
   folderOptionSelected: {
     backgroundColor: '#F5F3FF',
-    borderColor: '#7C3AED',
+    borderColor: '#4f3be7',
   },
   folderOptionLeft: {
     flexDirection: 'row',
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   },
   folderName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
     marginBottom: 2,
   },
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
     marginTop: 12,
     marginBottom: 4,

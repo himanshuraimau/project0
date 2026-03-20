@@ -4,12 +4,12 @@
  */
 
 export const statusColors = {
-  success: '#00b87c' as const,
-  successForeground: '#e6faf4' as const,
-  warning: '#e6a117' as const,
-  warningForeground: '#2d1f00' as const,
-  destructive: '#c7382a' as const,
-  destructiveForeground: '#fff5f4' as const,
-  info: '#3b5bdb' as const,
-  infoForeground: '#edf2ff' as const,
+  success: '#00ab62' as const,
+  successForeground: '#f7fef9' as const,
+  warning: '#f4a500' as const,
+  warningForeground: '#2f1e02' as const,
+  destructive: '#df202e' as const,
+  destructiveForeground: '#fffbfa' as const,
+  info: '#0089ea' as const,
+  infoForeground: '#f9fcff' as const,
 }

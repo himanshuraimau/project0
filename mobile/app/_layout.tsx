@@ -2,6 +2,13 @@ import { ThemeProvider, useTheme } from '@/lib/hooks/useTheme'
 import { AuthTokenProvider } from '@/components/auth/AuthTokenProvider'
 import { SubscriptionProvider } from '@/lib/contexts/SubscriptionContext'
 import { AlertProvider } from '@/lib/contexts/AlertContext'
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+} from '@expo-google-fonts/inter'
 import { useFonts } from 'expo-font'
 import { Slot } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
@@ -18,7 +25,11 @@ SplashScreen.preventAutoHideAsync()
 function ThemedRoot() {
   const { theme, mode } = useTheme()
   const [fontsLoaded] = useFonts({
-    'Arimo': require('../assets/fonts/Arimo.ttf'),
+    'Inter': Inter_400Regular,
+    'Inter_500': Inter_500Medium,
+    'Inter_600': Inter_600SemiBold,
+    'Inter_700': Inter_700Bold,
+    'Inter_800': Inter_800ExtraBold,
   })
   const [i18nInitialized, setI18nInitialized] = useState(false)
 

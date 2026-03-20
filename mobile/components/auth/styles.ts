@@ -17,12 +17,12 @@ export const authStyles = StyleSheet.create({
   subHeading: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#5B21B6',
+    color: '#322599',
     marginBottom: 8,
   },
   mainHeading: {
     fontSize: 32,
-    fontWeight: '800',
+    fontWeight: '500',
     color: '#1A1A1A',
     textAlign: 'center',
   },
@@ -92,7 +92,7 @@ export const authStyles = StyleSheet.create({
     color: '#A0A0A0',
   },
   primaryButton: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4f3be7',
     borderRadius: 28,
     paddingVertical: 18,
     paddingHorizontal: 32,
@@ -103,7 +103,7 @@ export const authStyles = StyleSheet.create({
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   footerContainer: {
     flexDirection: 'row',
@@ -117,9 +117,9 @@ export const authStyles = StyleSheet.create({
     fontSize: 15,
   },
   footerLink: {
-    color: '#7C3AED',
+    color: '#4f3be7',
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   clerkBranding: {
     alignItems: 'center',

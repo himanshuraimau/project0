@@ -86,17 +86,17 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '500',
     lineHeight: 24,
     color: '#0B0C10',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
   },
   titleText: {
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 20,
     color: '#5A6171',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
   },
   starsContainer: {
     flexDirection: 'row',
@@ -110,6 +110,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     lineHeight: 24,
     color: '#0B0C10',
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
   },
 })

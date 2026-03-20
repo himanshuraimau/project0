@@ -48,7 +48,7 @@ const FolderSelect: React.FC<FolderSelectProps> = ({
       <Text style={styles.label}>Folder</Text>
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#7C3AED" />
+          <ActivityIndicator size="small" color="#4f3be7" />
           <Text style={styles.loadingText}>Loading folders...</Text>
         </View>
       ) : (
@@ -74,8 +74,8 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   label: {
-    fontFamily: 'Arimo',
-    fontWeight: '700',
+    fontFamily: 'Inter',
+    fontWeight: '500',
     fontSize: 18,
     lineHeight: 32,
     color: '#364153',

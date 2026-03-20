@@ -9,8 +9,8 @@ import {
     ActivityIndicator,
     Platform,
     Linking,
+    StatusBar,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useSession } from '@/lib/auth';
@@ -20,6 +20,8 @@ import { createSubscription } from '@/lib/api/subscription';
 import { useSubscription } from '@/lib/contexts/SubscriptionContext';
 import { markOnboardingCompleted } from '@/lib/storage/onboardingStorage';
 import BackButton from '../../ui/BackButton';
+import { useTheme } from '@/lib/hooks/useTheme';
+import { BlurView } from 'expo-blur';
 
 /**
  * PaywallScreen Component
@@ -62,6 +64,10 @@ export default function PaywallScreen() {
     const router = useRouter();
     const { isSubscribed, refreshSubscription } = useSubscription();
     const appScheme = (process.env.EXPO_PUBLIC_APP_SCHEME || 'flinote').toLowerCase();
+
+    const { theme, mode } = useTheme();
+    const c = theme.colors;
+    const isDark = mode === 'dark';
 
     const [selectedPlan, setSelectedPlan] = useState(PLANS[1].id); // Default to yearly
     const [isLoading, setIsLoading] = useState(false);
@@ -202,8 +208,8 @@ export default function PaywallScreen() {
             // Open checkout URL in WebBrowser
             const result = await WebBrowser.openBrowserAsync(response.checkoutUrl, {
                 presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
-                toolbarColor: '#6366f1',
-                controlsColor: 'white',
+                toolbarColor: c.primary,
+                controlsColor: c.primaryForeground,
             });
 
             console.log('📱 WebBrowser result:', result);
@@ -244,9 +250,230 @@ export default function PaywallScreen() {
         );
     };
 
+    const styles = StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: c.background,
+            paddingVertical: 44,
+        },
+        backButton: {
+            position: 'absolute',
+            top: 44,
+            left: 20,
+            zIndex: 10,
+        },
+        scrollContent: {
+            padding: 20,
+            paddingBottom: 40,
+        },
+        header: {
+            marginBottom: 30,
+            alignItems: 'center',
+        },
+        title: {
+            fontSize: 32,
+            fontWeight: '500',
+            color: c.foreground,
+            marginBottom: 8,
+            textAlign: 'center',
+        },
+        subtitle: {
+            fontSize: 16,
+            color: c.mutedForeground,
+            textAlign: 'center',
+            lineHeight: 22,
+        },
+        plansContainer: {
+            marginBottom: 20,
+        },
+        planCard: {
+            backgroundColor: c.card,
+            borderRadius: 12,
+            padding: 12,
+            marginBottom: 8,
+            borderWidth: 1,
+            borderColor: c.border,
+            position: 'relative' as const,
+            ...Platform.select({
+                ios: {
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                },
+                android: {
+                    elevation: 4,
+                },
+            }),
+        },
+        planCardSelected: {
+            borderColor: c.primary,
+            borderWidth: 2,
+            backgroundColor: isDark ? 'rgba(130,100,255,0.08)' : c.card,
+        },
+        recommendedBadge: {
+            position: 'absolute' as const,
+            top: -10,
+            right: 20,
+            backgroundColor: c.success,
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+            borderRadius: 12,
+        },
+        recommendedText: {
+            color: c.background,
+            fontSize: 10,
+            fontWeight: '500',
+            letterSpacing: 0.5,
+        },
+        planHeader: {
+            flexDirection: 'row' as const,
+            alignItems: 'center' as const,
+            justifyContent: 'space-between' as const,
+            marginBottom: 2,
+        },
+        planName: {
+            fontSize: 18,
+            fontWeight: '500',
+            color: c.foreground,
+        },
+        savingsBadge: {
+            backgroundColor: isDark ? 'rgba(251,191,36,0.12)' : '#fef3c7',
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 8,
+            marginLeft: 8,
+        },
+        savingsText: {
+            color: c.warning,
+            fontSize: 11,
+            fontWeight: '600',
+        },
+        priceContainer: {
+            flexDirection: 'row' as const,
+            alignItems: 'center' as const,
+            marginBottom: 8,
+        },
+        price: {
+            fontSize: 24,
+            fontWeight: '500',
+            color: c.primary,
+        },
+        period: {
+            fontSize: 14,
+            color: c.mutedForeground,
+            marginLeft: 4,
+        },
+        selectionIndicator: {
+            position: 'absolute' as const,
+            top: 12,
+            right: 12,
+        },
+        selectedCircle: {
+            width: 28,
+            height: 28,
+            borderRadius: 14,
+            backgroundColor: c.primary,
+            alignItems: 'center' as const,
+            justifyContent: 'center' as const,
+        },
+        unselectedCircle: {
+            width: 28,
+            height: 28,
+            borderRadius: 14,
+            borderWidth: 2,
+            borderColor: c.border,
+        },
+        featuresContainer: {
+            backgroundColor: c.card,
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 20,
+            ...Platform.select({
+                ios: {
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                },
+                android: {
+                    elevation: 4,
+                },
+            }),
+        },
+        featuresTitle: {
+            fontSize: 16,
+            fontWeight: '500',
+            color: c.foreground,
+            marginBottom: 10,
+        },
+        featureRow: {
+            flexDirection: 'row' as const,
+            alignItems: 'center' as const,
+            marginBottom: 8,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+            borderRadius: 10,
+            padding: 12,
+        },
+        featureText: {
+            fontSize: 14,
+            color: c.foreground,
+            marginLeft: 8,
+        },
+        subscribeButtonContainer: {
+            borderRadius: 16,
+            overflow: 'hidden' as const,
+            ...Platform.select({
+                ios: {
+                    shadowColor: c.primary,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 12,
+                },
+                android: {
+                    elevation: 8,
+                },
+            }),
+        },
+        subscribeButton: {
+            backgroundColor: c.primary,
+            paddingVertical: 18,
+            alignItems: 'center' as const,
+            justifyContent: 'center' as const,
+            borderRadius: 16,
+        },
+        subscribeButtonText: {
+            color: c.primaryForeground,
+            fontSize: 18,
+            fontWeight: '500',
+        },
+        skipButton: {
+            paddingVertical: 12,
+            alignItems: 'center' as const,
+        },
+        skipButtonText: {
+            color: c.mutedForeground,
+            fontSize: 16,
+            fontWeight: '600',
+        },
+        terms: {
+            fontSize: 12,
+            color: c.mutedForeground,
+            textAlign: 'center' as const,
+            marginTop: 8,
+            lineHeight: 18,
+        },
+        termsLink: {
+            textDecorationLine: 'underline' as const,
+            color: c.primary,
+            fontWeight: '500',
+        },
+    });
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <BackButton style={styles.backButton} />
+            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+            <BackButton style={styles.backButton} iconColor={c.foreground} />
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
@@ -295,7 +522,7 @@ export default function PaywallScreen() {
                             <View style={styles.selectionIndicator}>
                                 {selectedPlan === plan.id && (
                                     <View style={styles.selectedCircle}>
-                                        <Check size={16} color="#fff" strokeWidth={3} />
+                                        <Check size={16} color={c.primaryForeground} strokeWidth={3} />
                                     </View>
                                 )}
                                 {selectedPlan !== plan.id && <View style={styles.unselectedCircle} />}
@@ -309,7 +536,7 @@ export default function PaywallScreen() {
                     <Text style={styles.featuresTitle}>What&apos;s Included:</Text>
                     {FEATURES.map((feature, index) => (
                         <View key={index} style={styles.featureRow}>
-                            <Check size={16} color="#10b981" strokeWidth={2.5} />
+                            <Check size={16} color={c.success} strokeWidth={2.5} />
                             <Text style={styles.featureText}>{feature}</Text>
                         </View>
                     ))}
@@ -322,18 +549,13 @@ export default function PaywallScreen() {
                     disabled={isLoading}
                     activeOpacity={0.8}
                 >
-                    <LinearGradient
-                        colors={['#6366f1', '#8b5cf6']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.subscribeButton}
-                    >
+                    <View style={styles.subscribeButton}>
                         {isLoading ? (
-                            <ActivityIndicator color="#fff" size="small" />
+                            <ActivityIndicator color={c.primaryForeground} size="small" />
                         ) : (
                             <Text style={styles.subscribeButtonText}>Subscribe Now</Text>
                         )}
-                    </LinearGradient>
+                    </View>
                 </TouchableOpacity>
 
                 {/* Skip Button */}
@@ -348,14 +570,14 @@ export default function PaywallScreen() {
                 {/* Terms */}
                 <Text style={styles.terms}>
                     By subscribing, you agree to our{" "}
-                    <Text 
+                    <Text
                         style={styles.termsLink}
                         onPress={() => Linking.openURL('https://flinote.ai/terms')}
                     >
                         Terms of Service
                     </Text>{" "}
                     and{" "}
-                    <Text 
+                    <Text
                         style={styles.termsLink}
                         onPress={() => Linking.openURL('https://flinote.ai/privacy')}
                     >
@@ -367,217 +589,3 @@ export default function PaywallScreen() {
         </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f9fafb',
-        paddingVertical: 44,
-    },
-    backButton: {
-        position: 'absolute',
-        top: 44,
-        left: 20,
-        zIndex: 10,
-    },
-    scrollContent: {
-        padding: 20,
-        paddingBottom: 40,
-    },
-    header: {
-        marginBottom: 30,
-        alignItems: 'center',
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#111827',
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    subtitle: {
-        fontSize: 16,
-        color: '#6b7280',
-        textAlign: 'center',
-        lineHeight: 22,
-    },
-    plansContainer: {
-        marginBottom: 20,
-    },
-    planCard: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 12,
-        marginBottom: 8,
-        borderWidth: 2,
-        borderColor: '#e5e7eb',
-        position: 'relative',
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-            },
-            android: {
-                elevation: 4,
-            },
-        }),
-    },
-    planCardSelected: {
-        borderColor: '#6366f1',
-        borderWidth: 3,
-    },
-    recommendedBadge: {
-        position: 'absolute',
-        top: -10,
-        right: 20,
-        backgroundColor: '#10b981',
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    recommendedText: {
-        color: '#fff',
-        fontSize: 10,
-        fontWeight: 'bold',
-        letterSpacing: 0.5,
-    },
-    planHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 2,
-    },
-    planName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#111827',
-    },
-    savingsBadge: {
-        backgroundColor: '#fef3c7',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-        marginLeft: 8,
-    },
-    savingsText: {
-        color: '#d97706',
-        fontSize: 11,
-        fontWeight: '600',
-    },
-    priceContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    price: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#6366f1',
-    },
-    period: {
-        fontSize: 14,
-        color: '#6b7280',
-        marginLeft: 4,
-    },
-    selectionIndicator: {
-        position: 'absolute',
-        top: 12,
-        right: 12,
-    },
-    selectedCircle: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: '#6366f1',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    unselectedCircle: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        borderWidth: 2,
-        borderColor: '#d1d5db',
-    },
-    featuresContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 20,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-            },
-            android: {
-                elevation: 4,
-            },
-        }),
-    },
-    featuresTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#111827',
-        marginBottom: 10,
-    },
-    featureRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    featureText: {
-        fontSize: 14,
-        color: '#374151',
-        marginLeft: 8,
-    },
-    subscribeButtonContainer: {
-        borderRadius: 16,
-        overflow: 'hidden',
-        ...Platform.select({
-            ios: {
-                shadowColor: '#6366f1',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 12,
-            },
-            android: {
-                elevation: 8,
-            },
-        }),
-    },
-    subscribeButton: {
-        paddingVertical: 18,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    subscribeButtonText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    skipButton: {
-        paddingVertical: 12,
-        alignItems: 'center',
-    },
-    skipButtonText: {
-        color: '#6b7280',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    terms: {
-        fontSize: 12,
-        color: '#9ca3af',
-        textAlign: 'center',
-        marginTop: 8,
-        lineHeight: 18,
-    },
-    termsLink: {
-        textDecorationLine: 'underline',
-        color: '#6366f1',
-        fontWeight: '500',
-    },
-});

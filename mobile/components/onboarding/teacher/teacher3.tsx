@@ -1,110 +1,100 @@
-import React from 'react'
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StatusBar,
-  SafeAreaView,
-} from 'react-native'
-import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { ChevronLeft } from 'lucide-react-native'
-import { BlurGradient } from '../../ui/BlurGradient'
+import { useRouter } from 'expo-router'
+import React from 'react'
+import { Text, View, StyleSheet } from 'react-native'
+import { BlurView } from 'expo-blur'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { ContinueButton } from '../../ui/ContinueButton'
-import styles from '../onboarding-styles/teacher3'
+import { OnboardingScreenShell } from '../OnboardingScreenShell'
+import Animated from 'react-native-reanimated'
+import { onboardingEntrance } from '@/lib/ui/auth-animations'
 
 export default function Teacher3() {
   const router = useRouter()
-
-  const handleContinue = () => {
-    router.push('/(onboarding)/teacher-flow/teacher4' as any)
-  }
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const t = theme.typography
+  const isDark = mode === 'dark'
 
   return (
-    <SafeAreaView style={styles.container}>
-
-
-      {/* Top blur gradient */}
-      <BlurGradient
-        colors={['#9810FA', '#441AFF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={239.4}
-        top={-102.4}
-      />
-
-      {/* Bottom blur gradient */}
-      <BlurGradient
-        colors={['#14C3A2', '#4C57FF']}
-        width={256}
-        height={256}
-        opacity={0.1}
-        left={-102.4}
-        top={698.4}
-      />
-
-      {/* Header with back and progress */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={28} color="#000000" style={{ marginRight: 12 }} />
-        </TouchableOpacity>
-        <View style={styles.progressWrap}>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.content}>
-        {/* Contextual Text */}
-        <Text style={styles.contextText}>Personalizing Flinote for you...</Text>
-
-        {/* Main Title */}
-        <Text style={styles.mainTitle}>You're in the right place.</Text>
-
-        {/* Testimonial Card Container */}
-        <View style={styles.cardContainer}>
-          {/* Card blur gradient */}
-          <BlurGradient
-            colors={['#4C57FF', '#14C3A2']}
-            width={128}
-            height={128}
-            opacity={0.2}
-            left={254.6}
-            top={-37.6}
-          />
-
-          {/* Testimonial Card */}
-          <View style={styles.testimonialCard}>
-            <View style={styles.cardContent}>
-              <View style={styles.cardHeader}>
-                <View style={styles.nameSection}>
-                  <Text style={styles.cardName}>James Welsh</Text>
-                  <Text style={styles.cardTitle}>University Lecturer</Text>
-                </View>
-                <View style={styles.starsContainer}>
-                  <Ionicons name="star" size={16} color="#FFB800" />
-                  <Ionicons name="star" size={16} color="#FFB800" />
-                  <Ionicons name="star" size={16} color="#FFB800" />
-                  <Ionicons name="star" size={16} color="#FFB800" />
-                  <Ionicons name="star" size={16} color="#FFB800" />
-                </View>
-              </View>
-
-              <Text style={styles.quote}>
-                "Helped my daughter so much I bought the family plan. Now we all organize notes faster!"
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.footer}>
+    <OnboardingScreenShell
+      currentStep={3}
+      totalSteps={4}
+      showBackButton
+      subHeading="Personalizing Flinote for you..."
+      mainHeading="You're in the right place."
+      footer={
         <ContinueButton
-          onPress={handleContinue}
+          onPress={() => router.push('/(onboarding)/teacher-flow/teacher4' as any)}
         />
-      </View>
-    </SafeAreaView>
+      }
+    >
+      {/* Testimonial card — frosted glass */}
+      <Animated.View
+        entering={onboardingEntrance.option(0)}
+        style={[
+          styles.card,
+          {
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)',
+          },
+        ]}
+      >
+        <BlurView
+          intensity={isDark ? 25 : 50}
+          tint={isDark ? 'dark' : 'light'}
+          style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
+        />
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              borderRadius: 20,
+              backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
+              borderTopWidth: StyleSheet.hairlineWidth,
+              borderTopColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)',
+            },
+          ]}
+        />
+
+        <View style={styles.cardHeader}>
+          <View>
+            <Text style={[styles.cardName, { color: c.foreground, fontWeight: t.weightSemibold }]}>
+              James Welsh
+            </Text>
+            <Text style={[styles.cardRole, { color: c.mutedForeground }]}>
+              University Lecturer
+            </Text>
+          </View>
+          <View style={styles.stars}>
+            {Array.from({ length: 5 }, (_, i) => (
+              <Ionicons key={i} name="star" size={14} color="#FFB800" />
+            ))}
+          </View>
+        </View>
+
+        <Text style={[styles.quote, { color: c.foreground }]}>
+          "Helped my daughter so much I bought the family plan. Now we all organize notes faster!"
+        </Text>
+      </Animated.View>
+    </OnboardingScreenShell>
   )
 }
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 24,
+    overflow: 'hidden',
+    gap: 16,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  cardName: { fontSize: 17, lineHeight: 22 },
+  cardRole: { fontSize: 13, lineHeight: 18, marginTop: 2 },
+  stars: { flexDirection: 'row', gap: 3 },
+  quote: { fontSize: 15, lineHeight: 23, letterSpacing: 0.1 },
+})

@@ -1,6 +1,6 @@
 import { StyleSheet, Platform } from 'react-native'
 
-const PURPLE = '#7C3AED'
+const PURPLE = '#4f3be7'
 const BG = '#FFFFFF'
 
 export default StyleSheet.create({
@@ -12,7 +12,7 @@ export default StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  time: { fontSize: 14, fontWeight: '600', fontFamily: 'Arimo' },
+  time: { fontSize: 14, fontWeight: '600', fontFamily: 'Inter' },
   statusIcons: { flexDirection: 'row' },
   icon: { marginLeft: 8, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
@@ -22,22 +22,22 @@ export default StyleSheet.create({
   progressFill: { width: '100%', height: '100%', backgroundColor: PURPLE },
   content: { paddingHorizontal: 20, paddingTop: 18, flex: 1 },
   context: {
-    color: '#7C3AED',
+    color: '#4f3be7',
     fontSize: 15,
-    fontFamily: 'Arimo',
-    fontWeight: '700',
+    fontFamily: 'Inter',
+    fontWeight: '500',
     lineHeight: 22,
     marginBottom: 8,
   },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 14, fontFamily: 'Arimo' },
+  title: { fontSize: 22, fontWeight: '500', marginBottom: 14, fontFamily: 'Inter' },
   options: { marginTop: 6, gap: 12 },
   option: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E6E6F0' },
-  optionSelected: { borderColor: PURPLE, backgroundColor: '#FBF7FF' },
+  optionSelected: { borderColor: PURPLE, backgroundColor: '#f7f9ff' },
   optionIcon: { fontSize: 20, marginRight: 12 },
   optionLabel: { fontSize: 16 },
   footer: { paddingHorizontal: 16, paddingBottom: 40 },
   continueWrap: { borderRadius: 14, overflow: 'hidden' },
   continueButton: { backgroundColor: '#fff', borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#E6E6E6' },
-  continueText: { fontSize: 16, fontWeight: '700', color: '#000' },
+  continueText: { fontSize: 16, fontWeight: '500', color: '#000' },
   optionOverride: { height: 70 },
 })

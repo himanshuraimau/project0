@@ -8,7 +8,7 @@ export default StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60 },
   progressWrap: { flex: 1, paddingRight: 16 },
   progressTrack: { height: 6, backgroundColor: '#EEE8FF', borderRadius: 6, overflow: 'hidden' },
-  progressFill: { width: '50%', height: '100%', backgroundColor: '#7C3AED' },
+  progressFill: { width: '50%', height: '100%', backgroundColor: '#4f3be7' },
   content: {
     paddingHorizontal: 16,
     paddingTop: 20,
@@ -19,8 +19,8 @@ export default StyleSheet.create({
     marginTop: 16,
     marginBottom: 32,
     fontSize: 24,
-    fontWeight: '700',
-    fontFamily: 'Arimo',
+    fontWeight: '500',
+    fontFamily: 'Inter',
     lineHeight: 32,
     color: '#0A0A0A',
   },
@@ -45,7 +45,7 @@ export default StyleSheet.create({
   },
   optionIcon: {
     fontSize: 20,
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontWeight: '400',
     lineHeight: 28,
     color: '#0A0A0A',
@@ -53,7 +53,7 @@ export default StyleSheet.create({
   },
   optionText: {
     fontSize: 16,
-    fontFamily: 'Arimo',
+    fontFamily: 'Inter',
     fontWeight: '400',
     lineHeight: 24,
     color: '#101828',
@@ -79,8 +79,8 @@ export default StyleSheet.create({
   continueButtonText: {
     color: '#FFFFFF',
     fontSize: 17,
-    fontWeight: '700',
-    fontFamily: 'Arimo',
+    fontWeight: '500',
+    fontFamily: 'Inter',
     lineHeight: 24,
     marginRight: 8
   },

@@ -11,8 +11,8 @@ import {
   Animated
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { useTheme } from '@/lib/hooks/useTheme';
 
 const features = [
   { name: 'Instant notes', basic: true, unlimited: true },
@@ -27,6 +27,9 @@ const features = [
 
 export default function App() {
   const router = useRouter();
+  const { theme, mode } = useTheme();
+  const c = theme.colors;
+  const isDark = mode === 'dark';
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'unlimited'>('unlimited');
   const slideAnim = useRef(new Animated.Value(1)).current; // 0 for basic, 1 for unlimited
 
@@ -39,15 +42,156 @@ export default function App() {
     }).start();
   }, [selectedPlan]);
 
+  const styles = StyleSheet.create({
+    mainContainer: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: 20,
+      paddingTop: 40,
+      paddingBottom: 100, // Space for footer
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: 30,
+    },
+    headerTitle: {
+      fontSize: 28,
+      fontWeight: '500',
+      color: c.foreground,
+      textAlign: 'center',
+      lineHeight: 36,
+    },
+    card: {
+      backgroundColor: c.card,
+      borderRadius: 24,
+      paddingVertical: 24,
+      paddingHorizontal: 20,
+      // Shadow for iOS
+      shadowColor: isDark ? 'transparent' : '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      // Elevation for Android
+      elevation: isDark ? 0 : 5,
+      borderWidth: isDark ? 0.5 : 0,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'transparent',
+    },
+    toggleContainer: {
+      alignItems: 'flex-end', // Align to right
+      marginBottom: 20,
+    },
+    toggleWrapper: {
+      flexDirection: 'row',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : c.muted,
+      borderRadius: 20,
+      padding: 2,
+      width: 180,
+      height: 36,
+      position: 'relative',
+    },
+    toggleActiveBackground: {
+      position: 'absolute',
+      width: 88, // Half of toggle width minus padding
+      height: 32,
+      backgroundColor: c.primary,
+      borderRadius: 18,
+      left: 2,
+      top: 2,
+    },
+    toggleOption: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 18,
+      zIndex: 1,
+    },
+    toggleTextInactive: {
+      color: c.mutedForeground,
+      fontWeight: '600',
+      fontSize: 13,
+    },
+    toggleTextActive: {
+      color: c.primaryForeground,
+      fontWeight: '500',
+      fontSize: 13,
+    },
+    tableContainer: {
+      marginTop: 10,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 24,
+    },
+    featureText: {
+      flex: 1,
+      fontSize: 15,
+      color: c.foreground,
+      fontWeight: '500',
+    },
+    iconColumn: {
+      width: 60,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkCircleGray: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: c.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkCirclePurple: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: c.success,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    dashLine: {
+      width: 12,
+      height: 2,
+      backgroundColor: c.mutedForeground,
+      borderRadius: 1,
+    },
+    footer: {
+      position: 'absolute',
+      bottom: 50,
+      left: 20,
+      right: 20,
+    },
+    button: {
+      shadowColor: c.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.4,
+      shadowRadius: 10,
+      elevation: 10,
+    },
+    buttonInner: {
+      backgroundColor: c.primary,
+      paddingVertical: 18,
+      borderRadius: 30,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buttonText: {
+      color: c.primaryForeground,
+      fontSize: 18,
+      fontWeight: '500',
+    },
+  });
+
   return (
     <View style={styles.mainContainer}>
-      <StatusBar barStyle="dark-content" />
-
-      {/* Background Gradient */}
-      <LinearGradient
-        colors={['#F3F0FF', '#FFFFFF']}
-        style={styles.backgroundGradient}
-      />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -117,7 +261,7 @@ export default function App() {
                         <Feather
                           name="check"
                           size={selectedPlan === 'basic' ? 14 : 12}
-                          color={selectedPlan === 'basic' ? '#FFF' : '#9CA3AF'}
+                          color={selectedPlan === 'basic' ? c.primaryForeground : c.mutedForeground}
                         />
                       </View>
                     ) : (
@@ -131,7 +275,7 @@ export default function App() {
                       <Feather
                         name="check"
                         size={selectedPlan === 'unlimited' ? 14 : 12}
-                        color={selectedPlan === 'unlimited' ? '#FFF' : '#9CA3AF'}
+                        color={selectedPlan === 'unlimited' ? c.primaryForeground : c.mutedForeground}
                       />
                     </View>
                   </View>
@@ -145,171 +289,12 @@ export default function App() {
         {/* Bottom Button */}
         <View style={styles.footer}>
           <TouchableOpacity style={styles.button} onPress={() => router.push('/(onboarding)/paywall/paywall3' as any)}>
-            <LinearGradient
-              colors={['#7C3AED', '#6D28D9']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.buttonGradient}
-            >
+            <View style={styles.buttonInner}>
               <Text style={styles.buttonText}>Try 3 days FREE 🔥</Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  backgroundGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    height: '40%', // Fade out halfway down
-  },
-  safeArea: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    paddingBottom: 100, // Space for footer
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#000',
-    textAlign: 'center',
-    lineHeight: 36,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    // Shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    // Elevation for Android
-    elevation: 5,
-  },
-  toggleContainer: {
-    alignItems: 'flex-end', // Align to right
-    marginBottom: 20,
-  },
-  toggleWrapper: {
-    flexDirection: 'row',
-    backgroundColor: '#E5E7EB', // Light gray background
-    borderRadius: 20,
-    padding: 2,
-    width: 180,
-    height: 36,
-    position: 'relative',
-  },
-  toggleActiveBackground: {
-    position: 'absolute',
-    width: 88, // Half of toggle width minus padding
-    height: 32,
-    backgroundColor: '#8B5CF6', // Purple
-    borderRadius: 18,
-    left: 2,
-    top: 2,
-  },
-  toggleOption: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 18,
-    zIndex: 1,
-  },
-  toggleActive: {
-    backgroundColor: '#8B5CF6', // Purple
-  },
-  toggleTextInactive: {
-    color: '#4B5563',
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  toggleTextActive: {
-    color: '#FFF',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  tableContainer: {
-    marginTop: 10,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  featureText: {
-    flex: 1,
-    fontSize: 15,
-    color: '#1F2937',
-    fontWeight: '500',
-  },
-  iconColumn: {
-    width: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkCircleGray: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#E5E7EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkCirclePurple: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#8B5CF6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dashLine: {
-    width: 12,
-    height: 2,
-    backgroundColor: '#9CA3AF',
-    borderRadius: 1,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 50,
-    left: 20,
-    right: 20,
-  },
-  button: {
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  buttonGradient: {
-    paddingVertical: 18,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});

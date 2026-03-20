@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import {
@@ -12,16 +11,17 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Share,
-  Platform,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as Sharing from 'expo-sharing'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { BlurView } from 'expo-blur'
 import { notesApi } from '@/lib/api'
 import type { Note } from '@/lib/api/types'
 import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
+import { useTheme } from '@/lib/hooks/useTheme'
 
 interface TranscriptViewProps {
   noteId: string
@@ -30,6 +30,9 @@ interface TranscriptViewProps {
 export default function TranscriptView({ noteId }: TranscriptViewProps) {
   const router = useRouter()
   const { showAlert } = useAlert()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
   const [note, setNote] = useState<Note | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -114,14 +117,167 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
     }
   }
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderBottomWidth: 0.5,
+      borderBottomColor: c.border,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    headerCenter: {
+      flex: 1,
+      alignItems: 'flex-start',
+      paddingLeft: 8,
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '500',
+      color: c.foreground,
+    },
+    headerRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    actionIcons: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    iconButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : c.muted,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    searchBlur: {
+      marginHorizontal: 20,
+      marginVertical: 16,
+      marginBottom: 24,
+      borderRadius: 12,
+      overflow: 'hidden',
+      borderWidth: 0.5,
+      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+    },
+    searchInner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: 44,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)',
+    },
+    searchInput: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      color: c.foreground,
+      fontSize: 15,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: 20,
+    },
+    transcriptForSection: {
+      marginBottom: 40,
+    },
+    transcriptForLabel: {
+      fontFamily: 'Inter',
+      fontWeight: '500',
+      fontSize: 20,
+      lineHeight: 24,
+      color: c.primary,
+    },
+    transcriptTitle: {
+      marginTop: 10,
+      marginBottom: 20,
+      fontFamily: 'Inter',
+      fontWeight: '400',
+      fontSize: 17,
+      lineHeight: 24,
+      color: c.foreground,
+    },
+    transcriptContent: {
+      marginBottom: 24,
+    },
+    contentText: {
+      fontSize: 15,
+      color: c.foreground,
+      lineHeight: 24,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+    },
+    loadingText: {
+      marginTop: 12,
+      color: c.mutedForeground,
+      fontSize: 16,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+      paddingHorizontal: 40,
+    },
+    errorText: {
+      marginTop: 16,
+      color: c.destructive,
+      fontSize: 16,
+      textAlign: 'center',
+      fontWeight: '600',
+    },
+    retryButton: {
+      marginTop: 20,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      backgroundColor: c.primary,
+      borderRadius: 12,
+    },
+    retryButtonText: {
+      color: c.primaryForeground,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    backButtonError: {
+      marginTop: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+    },
+    backButtonErrorText: {
+      color: c.mutedForeground,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  })
+
   // Show loading state
   if (loading) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#7C3AED" />
+            <ActivityIndicator size="large" color={c.primary} />
             <Text style={styles.loadingText}>Loading transcript...</Text>
           </View>
         </SafeAreaView>
@@ -133,10 +289,10 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
   if (error || !note) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.errorContainer}>
-            <Feather name="alert-circle" size={48} color="#EF4444" />
+            <Feather name="alert-circle" size={48} color={c.destructive} />
             <Text style={styles.errorText}>{error || 'Transcript not found'}</Text>
             <TouchableOpacity
               style={styles.retryButton}
@@ -159,12 +315,12 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
   return (
     <>
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={styles.safeArea}>
           {/* Custom Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <BackButton iconColor="#111827" />
+              <BackButton iconColor={c.foreground} />
             </View>
 
             <View style={styles.headerCenter}>
@@ -174,37 +330,39 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
             <View style={styles.headerRight}>
               <View style={styles.actionIcons}>
                 <TouchableOpacity style={styles.iconButton} onPress={handleCopy}>
-                  <Feather name="copy" size={20} color="#374151" />
+                  <Feather name="copy" size={18} color={c.foreground} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.iconButton} onPress={handleDownload}>
-                  <Feather name="download" size={20} color="#374151" />
+                  <Feather name="download" size={18} color={c.foreground} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
-                  <Feather name="share-2" size={20} color="#374151" />
+                  <Feather name="share-2" size={18} color={c.foreground} />
                 </TouchableOpacity>
               </View>
             </View>
           </View>
 
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <Feather name="search" size={18} color="#9CA3AF" style={{ marginLeft: 12 }} />
-            <TextInput
-              placeholder="Search in transcript..."
-              placeholderTextColor="#9CA3AF"
-              style={styles.searchInput}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity
-                onPress={() => setSearchQuery('')}
-                style={{ paddingRight: 12 }}
-              >
-                <Feather name="x" size={18} color="#9CA3AF" />
-              </TouchableOpacity>
-            )}
-          </View>
+          {/* Glass Search Bar */}
+          <BlurView intensity={isDark ? 20 : 10} tint={isDark ? 'dark' : 'light'} style={styles.searchBlur}>
+            <View style={styles.searchInner}>
+              <Feather name="search" size={18} color={c.mutedForeground} style={{ marginLeft: 12 }} />
+              <TextInput
+                placeholder="Search in transcript..."
+                placeholderTextColor={c.mutedForeground}
+                style={styles.searchInput}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setSearchQuery('')}
+                  style={{ paddingRight: 12 }}
+                >
+                  <Feather name="x" size={18} color={c.mutedForeground} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </BlurView>
 
           <ScrollView
             style={styles.content}
@@ -231,194 +389,3 @@ export default function TranscriptView({ noteId }: TranscriptViewProps) {
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderBottomWidth: 2,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  timeBadge: {
-    backgroundColor: '#F87171',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  timeText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  backButton: {
-    padding: 4,
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'flex-start',
-    paddingLeft: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  statusIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  actionIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  iconButton: {
-    padding: 4,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    height: 44,
-    marginHorizontal: 20,
-    marginVertical: 16,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    color: '#111827',
-    fontSize: 15,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  transcriptForSection: {
-    marginBottom: 40,
-  },
-  transcriptForLabel: {
-    width: 136,
-    height: 24,
-    left: 0,
-    top: -1.74,
-    fontFamily: 'Arimo',
-    fontStyle: 'normal',
-    fontWeight: '700',
-    fontSize: 20,
-    lineHeight: 24,
-    color: '#9810FA',
-  },
-  transcriptTitle: {
-    width: 338,
-    height: 48,
-    marginTop: 10,
-    marginBottom: 20,
-    fontFamily: 'Arimo',
-    fontStyle: 'normal',
-    fontWeight: '400',
-    fontSize: 17,
-    lineHeight: 24,
-    color: '#364153',
-  },
-  transcriptMetadata: {
-    fontSize: 13,
-    color: '#6B7280',
-    lineHeight: 20,
-  },
-  transcriptContent: {
-    marginBottom: 24,
-  },
-  contentText: {
-    fontSize: 15,
-    color: '#374151',
-    lineHeight: 24,
-  },
-  homeIndicator: {
-    height: 6,
-    backgroundColor: '#E6E6F0',
-    borderRadius: 999,
-    marginTop: 12,
-    marginBottom: 6,
-    alignSelf: 'center',
-    width: 120,
-    opacity: 0.7,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  loadingText: {
-    marginTop: 12,
-    color: '#6B7280',
-    fontSize: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 40,
-  },
-  errorText: {
-    marginTop: 16,
-    color: '#EF4444',
-    fontSize: 16,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  retryButton: {
-    marginTop: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#7C3AED',
-    borderRadius: 12,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  backButtonError: {
-    marginTop: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  backButtonErrorText: {
-    color: '#6B7280',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-})
