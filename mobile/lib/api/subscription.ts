@@ -11,6 +11,7 @@ import {
   PaymentLinkResponse,
   CancelPendingResponse,
   ApiResponse,
+  SubscriptionMutationResponse,
 } from './types';
 
 /**
@@ -91,10 +92,57 @@ export const createSubscription = async (
  */
 export const cancelSubscription = async (): Promise<{ message: string }> => {
   try {
-    const response = await apiClient.post<ApiResponse<{ message: string }>>(
-      '/subscription/cancel'
+    const response = await apiClient.post<SubscriptionMutationResponse>(
+      '/subscription/cancel',
+      { cancelAtPeriodEnd: true }
     );
-    return handleApiResponse<{ message: string }>(response);
+    return { message: response.data.message };
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
+
+/**
+ * Cancel subscription with explicit period behavior
+ */
+export const cancelSubscriptionWithOptions = async (
+  cancelAtPeriodEnd: boolean = true
+): Promise<SubscriptionMutationResponse> => {
+  try {
+    const response = await apiClient.post<SubscriptionMutationResponse>(
+      '/subscription/cancel',
+      { cancelAtPeriodEnd }
+    );
+    return response.data;
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
+
+/**
+ * Reactivate a subscription that was scheduled to cancel
+ */
+export const reactivateSubscription = async (): Promise<SubscriptionMutationResponse> => {
+  try {
+    const response = await apiClient.post<SubscriptionMutationResponse>(
+      '/subscription/reactivate'
+    );
+    return response.data;
+  } catch (error) {
+    return handleApiError(error);
+  }
+};
+
+/**
+ * Upgrade a Paddle-managed monthly plan to yearly immediately
+ */
+export const upgradeSubscriptionToYearly = async (): Promise<SubscriptionMutationResponse> => {
+  try {
+    const response = await apiClient.post<SubscriptionMutationResponse>(
+      '/subscription/upgrade',
+      {}
+    );
+    return response.data;
   } catch (error) {
     return handleApiError(error);
   }
@@ -105,10 +153,10 @@ export const cancelSubscription = async (): Promise<{ message: string }> => {
  */
 export const getSubscriptionPortal = async (): Promise<SubscriptionPortalResponse> => {
   try {
-    const response = await apiClient.post<ApiResponse<SubscriptionPortalResponse>>(
+    const response = await apiClient.get<SubscriptionPortalResponse>(
       '/subscription/portal'
     );
-    return handleApiResponse<SubscriptionPortalResponse>(response);
+    return response.data;
   } catch (error) {
     return handleApiError(error);
   }
@@ -148,6 +196,9 @@ export default {
   getSubscriptionStatus,
   createSubscription,
   cancelSubscription,
+  cancelSubscriptionWithOptions,
+  reactivateSubscription,
+  upgradeSubscriptionToYearly,
   getSubscriptionPortal,
   getPaymentLink,
   cancelPendingSubscription,

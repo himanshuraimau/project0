@@ -56,6 +56,8 @@ export interface Subscription {
   entitlementId?: string;
   store?: string;
   environment?: string;
+  displayStatus?: string;
+  managementUrl?: string;
   priceId?: string;
   productId?: string; // legacy fallback
   status: SubscriptionStatus;
@@ -545,6 +547,28 @@ export type CreateSubscriptionBackendResponse =
 
 export interface SubscriptionPortalResponse {
   portalUrl: string;
+  provider?: string;
+  managedExternally?: boolean;
+  subscription?: {
+    id: string;
+    status: string;
+  };
+}
+
+export interface SubscriptionMutationResponse {
+  success: boolean;
+  message: string;
+  subscription: {
+    id: string;
+    status: string;
+    priceId?: string;
+    cancelAtPeriodEnd?: boolean;
+    cancelledAt?: string | null;
+    nextBillingDate?: string;
+  };
+  changeType?: 'same' | 'upgrade' | 'downgrade';
+  scheduledChange?: boolean;
+  immediate?: boolean;
 }
 
 export interface PaymentLinkResponse {

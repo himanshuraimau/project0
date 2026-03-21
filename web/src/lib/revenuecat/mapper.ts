@@ -17,7 +17,9 @@ function isFutureDate(date: Date | null): boolean {
 }
 
 function mapStoreToBillingProvider(store?: string | null): RevenueCatSubscriptionMirror['billingProvider'] {
-  switch (store) {
+  const normalizedStore = store?.trim().toUpperCase() || null;
+
+  switch (normalizedStore) {
     case 'APP_STORE':
     case 'MAC_APP_STORE':
       return 'APP_STORE';
@@ -109,6 +111,7 @@ export function mapRevenueCatSubscriberToMirror(
       fallbackEvent?.type === 'BILLING_ISSUE'
   );
   const store = entitlement.store || linkedSubscription?.store || fallbackEvent?.store || null;
+  const normalizedStore = store?.trim().toUpperCase() || null;
   const environment =
     fallbackEvent?.environment ||
     (linkedSubscription?.is_sandbox ? 'SANDBOX' : store ? 'PRODUCTION' : null);
@@ -136,7 +139,7 @@ export function mapRevenueCatSubscriberToMirror(
     cancelAtPeriodEnd: Boolean(unsubscribeDetectedAt),
     cancelledAt,
     trialEnd: null,
-    store,
+    store: normalizedStore ? normalizedStore.toLowerCase() : null,
     environment,
     managementUrl: subscriber.management_url || null,
     metadata: {

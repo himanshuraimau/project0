@@ -1,23 +1,30 @@
 import { useSubscription } from '@/lib/contexts/SubscriptionContext'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   Linking,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import BackButton from '@/components/ui/BackButton'
-import { getSubscriptionPlanDetails } from '@/lib/subscription/plan'
+import { getSubscriptionPlanDetails, isYearlySubscription } from '@/lib/subscription/plan'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { BlurView } from 'expo-blur'
 import { restoreRevenueCatPurchases } from '@/lib/revenuecat'
+import {
+  cancelSubscriptionWithOptions,
+  getSubscriptionPortal,
+  getSubscriptionStatus,
+  reactivateSubscription,
+  upgradeSubscriptionToYearly,
+} from '@/lib/api/subscription'
+import type { SubscriptionStatusResponse } from '@/lib/api/types'
 
 export default function SubscriptionManager() {
   const router = useRouter()
@@ -27,27 +34,91 @@ export default function SubscriptionManager() {
     isActive,
     isTrial,
     daysRemaining,
-    isLoading
+    isLoading,
+    refreshSubscription,
   } = useSubscription()
+  const [backendStatus, setBackendStatus] = useState<SubscriptionStatusResponse | null>(null)
+  const [isSyncingBackend, setIsSyncingBackend] = useState(false)
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+  const [isReactivating, setIsReactivating] = useState(false)
+  const [isUpgrading, setIsUpgrading] = useState(false)
 
   const { theme, mode } = useTheme()
   const c = theme.colors
   const isDark = mode === 'dark'
+  const hasBackendSubscription = backendStatus?.hasSubscription === true && Boolean(backendStatus.subscription)
+  const effectiveSubscription = hasBackendSubscription ? backendStatus?.subscription ?? null : subscription
+  const effectiveHasAccess = hasBackendSubscription ? backendStatus?.access?.hasAccess ?? false : hasAccess
+  const effectiveIsActive = hasBackendSubscription ? backendStatus?.access?.isActive ?? false : isActive
+  const effectiveIsTrial = hasBackendSubscription ? backendStatus?.access?.isTrial ?? false : isTrial
+  const effectiveDaysRemaining = hasBackendSubscription
+    ? backendStatus?.access?.daysRemaining ?? null
+    : daysRemaining
   const managementUrl =
-    typeof subscription?.metadata === 'object' && subscription?.metadata
-      ? (subscription.metadata as Record<string, unknown>).managementURL
-      : null
+    effectiveSubscription?.managementUrl ||
+    (typeof effectiveSubscription?.metadata === 'object' && effectiveSubscription?.metadata
+      ? (effectiveSubscription.metadata as Record<string, unknown>).managementURL
+      : null)
+  const billingProvider = effectiveSubscription?.billingProvider || null
+  const isPaddleManaged =
+    billingProvider === 'PADDLE' || Boolean(effectiveSubscription?.paddleSubscriptionId)
+  const isYearlyPlan = isYearlySubscription(effectiveSubscription)
 
-  // Redirect to paywall if user doesn't have a subscription
+  const refreshManagementState = useCallback(
+    async (silent: boolean = false) => {
+      try {
+        if (!silent) {
+          setIsSyncingBackend(true)
+        }
+
+        const data = await getSubscriptionStatus()
+        setBackendStatus(data)
+        return data
+      } catch (error: any) {
+        if (error?.statusCode === 404 || error?.message?.includes('not found')) {
+          setBackendStatus(null)
+          return null
+        }
+
+        console.error('Failed to sync subscription management state:', error)
+        return null
+      } finally {
+        if (!silent) {
+          setIsSyncingBackend(false)
+        }
+      }
+    },
+    []
+  )
+
+  // Load provider-aware subscription state from the backend so mobile can expose
+  // the same Paddle management actions as the web settings screen.
   useEffect(() => {
-    if (!isLoading && !hasAccess) {
+    if (!isLoading) {
+      void refreshManagementState(false)
+    }
+  }, [isLoading, refreshManagementState])
+
+  // Redirect to paywall only when we know there is no active access and no
+  // subscription history to manage.
+  useEffect(() => {
+    if (!isLoading && !isSyncingBackend && !effectiveHasAccess && !effectiveSubscription) {
       router.replace('/(onboarding)/paywall/paywall5' as any)
     }
-  }, [isLoading, hasAccess, router])
+  }, [isLoading, isSyncingBackend, effectiveHasAccess, effectiveSubscription, router])
+
+  const syncAllSubscriptionState = useCallback(async () => {
+    await Promise.all([
+      refreshSubscription(),
+      refreshManagementState(true),
+    ])
+  }, [refreshSubscription, refreshManagementState])
 
   const handleRestorePurchases = async () => {
     try {
       await restoreRevenueCatPurchases()
+      await syncAllSubscriptionState()
       Alert.alert('Restored', 'Purchases restored. Your subscription status will refresh automatically.')
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to restore purchases.')
@@ -55,13 +126,122 @@ export default function SubscriptionManager() {
   }
 
   const handleOpenManagement = async () => {
-    if (typeof managementUrl !== 'string' || !managementUrl) {
-      Alert.alert('Manage subscription', 'Subscription management is not available for this purchase yet.')
-      return
-    }
+    try {
+      setIsOpeningPortal(true)
 
-    await Linking.openURL(managementUrl)
+      const portal = await getSubscriptionPortal()
+      if (portal.portalUrl) {
+        await Linking.openURL(portal.portalUrl)
+        return
+      }
+
+      if (typeof managementUrl === 'string' && managementUrl) {
+        await Linking.openURL(managementUrl)
+        return
+      }
+
+      Alert.alert('Manage subscription', 'Subscription management is not available for this purchase yet.')
+    } catch (error: any) {
+      if (typeof managementUrl === 'string' && managementUrl) {
+        await Linking.openURL(managementUrl)
+        return
+      }
+
+      Alert.alert('Manage subscription', error.message || 'Failed to open subscription management.')
+    } finally {
+      setIsOpeningPortal(false)
+    }
   }
+
+  const handleCancelSubscription = () => {
+    Alert.alert(
+      'Cancel subscription?',
+      'Your subscription will remain active until the end of the current billing period.',
+      [
+        { text: 'Keep subscription', style: 'cancel' },
+        {
+          text: 'Cancel at period end',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsCancelling(true)
+              const result = await cancelSubscriptionWithOptions(true)
+              await syncAllSubscriptionState()
+              Alert.alert('Subscription updated', result.message)
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'Failed to cancel subscription.')
+            } finally {
+              setIsCancelling(false)
+            }
+          },
+        },
+      ]
+    )
+  }
+
+  const handleReactivateSubscription = async () => {
+    try {
+      setIsReactivating(true)
+      const result = await reactivateSubscription()
+      await syncAllSubscriptionState()
+      Alert.alert('Subscription reactivated', result.message)
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to reactivate subscription.')
+    } finally {
+      setIsReactivating(false)
+    }
+  }
+
+  const handleUpgradeToYearly = async () => {
+    try {
+      setIsUpgrading(true)
+      const result = await upgradeSubscriptionToYearly()
+      await syncAllSubscriptionState()
+      Alert.alert('Plan updated', result.message)
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to upgrade subscription.')
+    } finally {
+      setIsUpgrading(false)
+    }
+  }
+
+  const providerLabel = useMemo(() => {
+    switch (billingProvider) {
+      case 'PADDLE':
+        return 'Paddle'
+      case 'APP_STORE':
+        return 'App Store'
+      case 'PLAY_STORE':
+        return 'Google Play'
+      case 'TEST_STORE':
+        return 'RevenueCat Test Store'
+      default:
+        return 'External billing'
+    }
+  }, [billingProvider])
+
+  const canCancel = Boolean(
+    effectiveSubscription &&
+      isPaddleManaged &&
+      effectiveIsActive &&
+      !effectiveSubscription.cancelAtPeriodEnd &&
+      effectiveSubscription.status !== 'CANCELLED'
+  )
+  const canReactivate = Boolean(
+    effectiveSubscription &&
+      isPaddleManaged &&
+      effectiveIsActive &&
+      effectiveSubscription.cancelAtPeriodEnd
+  )
+  const canUpgradeToYearly = Boolean(
+    effectiveSubscription &&
+      isPaddleManaged &&
+      effectiveIsActive &&
+      !effectiveSubscription.cancelAtPeriodEnd &&
+      !isYearlyPlan
+  )
+  const shouldShowRestore = !isPaddleManaged
+  const managementButtonLabel = isPaddleManaged ? 'Open Billing Portal' : 'Open Subscription Management'
 
   const styles = StyleSheet.create({
     container: {
@@ -253,6 +433,11 @@ export default function SubscriptionManager() {
       fontWeight: '600',
       color: c.foreground,
     },
+    buttonSpinnerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
     warningCard: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -425,7 +610,7 @@ export default function SubscriptionManager() {
     },
   })
 
-  if (isLoading) {
+  if (isLoading || (isSyncingBackend && !effectiveSubscription && !effectiveHasAccess)) {
     return (
       <View style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
@@ -439,8 +624,17 @@ export default function SubscriptionManager() {
   }
 
   // If user has an active subscription, show details
-  if (hasAccess && subscription) {
-    const planDetails = getSubscriptionPlanDetails(subscription)
+  if (effectiveSubscription) {
+    const planDetails = getSubscriptionPlanDetails(effectiveSubscription)
+    const statusLabel = effectiveHasAccess
+      ? effectiveIsTrial
+        ? 'Trial Active'
+        : effectiveSubscription.cancelAtPeriodEnd
+          ? 'Cancelling'
+          : 'Premium Active'
+      : effectiveSubscription.cancelAtPeriodEnd
+        ? 'Ending Soon'
+        : effectiveSubscription.displayStatus || 'Subscription History'
 
     return (
       <View style={styles.container}>
@@ -455,9 +649,13 @@ export default function SubscriptionManager() {
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             {/* Status Badge */}
             <View style={styles.statusBadge}>
-              <Feather name="check-circle" size={20} color={c.success} />
-              <Text style={styles.statusText}>
-                {isTrial ? 'Trial Active' : 'Premium Active'}
+              <Feather
+                name={effectiveHasAccess ? 'check-circle' : 'clock'}
+                size={20}
+                color={effectiveHasAccess ? c.success : c.warning}
+              />
+              <Text style={[styles.statusText, !effectiveHasAccess ? { color: c.warning } : null]}>
+                {statusLabel}
               </Text>
             </View>
 
@@ -470,7 +668,7 @@ export default function SubscriptionManager() {
                 <View style={styles.planHeaderText}>
                   <Text style={styles.planName}>{planDetails.name} Plan</Text>
                   <Text style={styles.planSubtitle}>
-                    {isTrial ? 'Trial Period' : 'Full Access'}
+                    {effectiveIsTrial ? 'Trial Period' : 'Full Access'}
                   </Text>
                 </View>
               </View>
@@ -486,20 +684,20 @@ export default function SubscriptionManager() {
                 <View style={styles.planInfoItem}>
                   <Text style={styles.planInfoLabel}>Status</Text>
                   <View style={styles.planInfoValueContainer}>
-                    <View style={[styles.statusDot, { backgroundColor: isActive ? c.success : c.warning }]} />
+                    <View style={[styles.statusDot, { backgroundColor: effectiveIsActive ? c.success : c.warning }]} />
                     <Text style={styles.planInfoValue}>
-                      {isActive && !isTrial ? 'Active' : isTrial ? 'Trial' : 'Inactive'}
+                      {effectiveIsActive && !effectiveIsTrial ? 'Active' : effectiveIsTrial ? 'Trial' : 'Inactive'}
                     </Text>
                   </View>
                 </View>
 
-                {(isActive || isTrial) && (subscription.nextBillingDate || subscription.currentPeriodEnd) && (
+                {(effectiveIsActive || effectiveIsTrial) && (effectiveSubscription.nextBillingDate || effectiveSubscription.currentPeriodEnd) && (
                   <View style={styles.planInfoItem}>
                     <Text style={styles.planInfoLabel}>
-                      {isTrial ? 'Trial Ends' : 'Next Billing'}
+                      {effectiveIsTrial ? 'Trial Ends' : 'Next Billing'}
                     </Text>
                     <Text style={styles.planInfoValue}>
-                      {new Date((subscription.nextBillingDate || subscription.currentPeriodEnd)!).toLocaleDateString('en-US', {
+                      {new Date((effectiveSubscription.nextBillingDate || effectiveSubscription.currentPeriodEnd)!).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric'
@@ -508,11 +706,11 @@ export default function SubscriptionManager() {
                   </View>
                 )}
 
-                {daysRemaining !== null && (
+                {effectiveDaysRemaining !== null && (
                   <View style={styles.planInfoItem}>
                     <Text style={styles.planInfoLabel}>Days Remaining</Text>
                     <Text style={[styles.planInfoValue, styles.daysRemainingText]}>
-                      {daysRemaining} days
+                      {effectiveDaysRemaining} days
                     </Text>
                   </View>
                 )}
@@ -523,11 +721,16 @@ export default function SubscriptionManager() {
                     {planDetails.interval === 'year' ? 'Yearly' : 'Monthly'}
                   </Text>
                 </View>
+
+                <View style={styles.planInfoItem}>
+                  <Text style={styles.planInfoLabel}>Provider</Text>
+                  <Text style={styles.planInfoValue}>{providerLabel}</Text>
+                </View>
               </View>
             </View>
 
             {/* Cancel Warning */}
-            {subscription.cancelAtPeriodEnd && (
+            {effectiveSubscription.cancelAtPeriodEnd && (
               <View style={styles.warningCard}>
                 <Feather name="alert-circle" size={18} color={c.warning} />
                 <Text style={styles.warningText}>
@@ -539,16 +742,88 @@ export default function SubscriptionManager() {
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Manage Subscription</Text>
               <Text style={styles.cardSubtitle}>
-                Restore your purchases or open the store management page for this subscription.
+                {isPaddleManaged
+                  ? 'Open the Paddle billing portal, cancel at period end, or upgrade your current plan.'
+                  : 'Open your store management page or restore purchases for this subscription.'}
               </Text>
-              {typeof managementUrl === 'string' && managementUrl ? (
-                <TouchableOpacity style={styles.actionButton} onPress={handleOpenManagement}>
-                  <Text style={styles.actionButtonText}>Open Subscription Management</Text>
+
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleOpenManagement}
+                disabled={isOpeningPortal}
+              >
+                {isOpeningPortal ? (
+                  <View style={styles.buttonSpinnerRow}>
+                    <ActivityIndicator size="small" color={c.primaryForeground} />
+                    <Text style={styles.actionButtonText}>Opening…</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.actionButtonText}>{managementButtonLabel}</Text>
+                )}
+              </TouchableOpacity>
+
+              {canUpgradeToYearly ? (
+                <TouchableOpacity
+                  style={styles.secondaryButton}
+                  onPress={handleUpgradeToYearly}
+                  disabled={isUpgrading}
+                >
+                  {isUpgrading ? (
+                    <View style={styles.buttonSpinnerRow}>
+                      <ActivityIndicator size="small" color={c.foreground} />
+                      <Text style={styles.secondaryButtonText}>Upgrading…</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.secondaryButtonText}>Upgrade to Yearly</Text>
+                  )}
                 </TouchableOpacity>
               ) : null}
-              <TouchableOpacity style={styles.secondaryButton} onPress={handleRestorePurchases}>
-                <Text style={styles.secondaryButtonText}>Restore Purchases</Text>
-              </TouchableOpacity>
+
+              {canCancel ? (
+                <TouchableOpacity
+                  style={styles.secondaryButton}
+                  onPress={handleCancelSubscription}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? (
+                    <View style={styles.buttonSpinnerRow}>
+                      <ActivityIndicator size="small" color={c.foreground} />
+                      <Text style={styles.secondaryButtonText}>Cancelling…</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.secondaryButtonText}>Cancel Subscription</Text>
+                  )}
+                </TouchableOpacity>
+              ) : null}
+
+              {canReactivate ? (
+                <TouchableOpacity
+                  style={styles.secondaryButton}
+                  onPress={handleReactivateSubscription}
+                  disabled={isReactivating}
+                >
+                  {isReactivating ? (
+                    <View style={styles.buttonSpinnerRow}>
+                      <ActivityIndicator size="small" color={c.foreground} />
+                      <Text style={styles.secondaryButtonText}>Reactivating…</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.secondaryButtonText}>Reactivate Subscription</Text>
+                  )}
+                </TouchableOpacity>
+              ) : null}
+
+              {shouldShowRestore ? (
+                <TouchableOpacity style={styles.secondaryButton} onPress={handleRestorePurchases}>
+                  <Text style={styles.secondaryButtonText}>Restore Purchases</Text>
+                </TouchableOpacity>
+              ) : null}
+
+              {isSyncingBackend ? (
+                <Text style={[styles.cardSubtitle, { marginBottom: 0, marginTop: 14 }]}>
+                  Syncing billing details…
+                </Text>
+              ) : null}
             </View>
 
             {/* What's Included Section */}

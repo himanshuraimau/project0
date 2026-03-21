@@ -21,6 +21,7 @@ import { markOnboardingCompleted } from '@/lib/storage/onboardingStorage';
 import BackButton from '../../ui/BackButton';
 import { useTheme } from '@/lib/hooks/useTheme';
 import {
+  getRevenueCatEntitlementId,
   isRevenueCatPurchaseCancelled,
   mapOfferingToRevenueCatPlans,
   purchaseRevenueCatPackage,
@@ -84,7 +85,26 @@ export default function PaywallScreen() {
       }
 
       console.log('🛒 Starting RevenueCat purchase for:', user.email);
-      await purchaseRevenueCatPackage(selectedRevenueCatPlan.package);
+      const customerInfo = await purchaseRevenueCatPackage(selectedRevenueCatPlan.package);
+      const entitlementId = getRevenueCatEntitlementId();
+      const entitlement =
+        customerInfo.entitlements.active[entitlementId] ||
+        customerInfo.entitlements.all[entitlementId] ||
+        null;
+
+      if (!entitlement?.isActive) {
+        console.error('❌ RevenueCat purchase completed without expected active entitlement', {
+          entitlementId,
+          activeEntitlements: Object.keys(customerInfo.entitlements.active),
+          allEntitlements: Object.keys(customerInfo.entitlements.all),
+          purchasedProductId: selectedRevenueCatPlan.package.product.identifier,
+        });
+
+        throw new Error(
+          `Purchase completed, but RevenueCat did not return an active "${entitlementId}" entitlement. Check the RevenueCat dashboard product-to-entitlement mapping.`
+        );
+      }
+
       await refreshSubscription();
       await markOnboardingCompleted();
       router.replace('/(home)');
