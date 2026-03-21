@@ -84,7 +84,16 @@ model Verification {
 model Subscription {
   id                      String             @id @default(cuid())
   userId                  String             @unique
-  paddleSubscriptionId    String             @unique
+  billingProvider         BillingProvider    @default(PADDLE)
+  providerSubscriptionId  String?
+  providerCustomerId      String?
+  revenueCatAppUserId     String?
+  revenueCatCustomerId    String?
+  entitlementId           String?
+  store                   String?
+  environment             String?
+  managementUrl           String?
+  paddleSubscriptionId    String?            @unique
   priceId                 String
   status                  SubscriptionStatus @default(PENDING)
   currentPeriodStart      DateTime?
@@ -109,6 +118,17 @@ model Subscription {
   @@index([paddleSubscriptionId])
   @@index([status])
   @@map("subscriptions")
+}
+
+model WebhookEvent {
+  id        String          @id @default(cuid())
+  provider  WebhookProvider
+  eventId   String
+  payload   Json?
+  createdAt DateTime        @default(now())
+
+  @@unique([provider, eventId])
+  @@map("webhook_events")
 }
 
 model Transcript {
@@ -440,6 +460,19 @@ enum SubscriptionStatus {
   CANCELLED
   FAILED
   EXPIRED
+}
+
+enum BillingProvider {
+  PADDLE
+  APP_STORE
+  PLAY_STORE
+  TEST_STORE
+  UNKNOWN
+}
+
+enum WebhookProvider {
+  PADDLE
+  REVENUECAT
 }
 
 enum PodcastStatus {

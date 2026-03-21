@@ -37,8 +37,8 @@ export class SubscriptionService {
 
   static async createSubscription(params: {
     userId: string;
-    paddleSubscriptionId: string;
     priceId: string;
+    paddleSubscriptionId?: string | null;
     status?: SubscriptionStatus;
     currentPeriodStart?: Date;
     currentPeriodEnd?: Date;
@@ -52,11 +52,29 @@ export class SubscriptionService {
     audioProcessingPerMonth?: number | null;
     paddleDiscountId?: string;
     amount?: number;
+    billingProvider?: 'PADDLE' | 'APP_STORE' | 'PLAY_STORE' | 'TEST_STORE' | 'UNKNOWN';
+    providerSubscriptionId?: string | null;
+    providerCustomerId?: string | null;
+    revenueCatAppUserId?: string | null;
+    revenueCatCustomerId?: string | null;
+    entitlementId?: string | null;
+    store?: string | null;
+    environment?: string | null;
+    managementUrl?: string | null;
   }) {
     try {
       const subscription = await prisma.subscription.create({
         data: {
           userId: params.userId,
+          billingProvider: params.billingProvider || 'PADDLE',
+          providerSubscriptionId: params.providerSubscriptionId,
+          providerCustomerId: params.providerCustomerId,
+          revenueCatAppUserId: params.revenueCatAppUserId,
+          revenueCatCustomerId: params.revenueCatCustomerId,
+          entitlementId: params.entitlementId,
+          store: params.store,
+          environment: params.environment,
+          managementUrl: params.managementUrl,
           paddleSubscriptionId: params.paddleSubscriptionId,
           priceId: params.priceId,
           status: params.status || 'PENDING',
@@ -80,6 +98,30 @@ export class SubscriptionService {
     } catch (error) {
       console.error('Error creating subscription:', error);
       throw new Error('Failed to create subscription in database');
+    }
+  }
+
+  static isPaddleManagedSubscription(subscription: {
+    billingProvider?: string | null;
+    paddleSubscriptionId?: string | null;
+  } | null | undefined) {
+    if (!subscription) return false;
+    return subscription.billingProvider === 'PADDLE' || Boolean(subscription.paddleSubscriptionId);
+  }
+
+  static getProviderManagementMessage(subscription: {
+    billingProvider?: string | null;
+    store?: string | null;
+  } | null | undefined) {
+    switch (subscription?.billingProvider) {
+      case 'APP_STORE':
+        return 'This subscription is managed in the App Store.';
+      case 'PLAY_STORE':
+        return 'This subscription is managed in Google Play.';
+      case 'TEST_STORE':
+        return 'This subscription is managed through the RevenueCat Test Store.';
+      default:
+        return 'This subscription is managed outside Paddle.';
     }
   }
 
@@ -177,7 +219,7 @@ export class SubscriptionService {
       let subscription = await this.getUserSubscription(userId);
       if (!subscription) return false;
 
-      if (subscription.status === 'PENDING') {
+      if (subscription.status === 'PENDING' && this.isPaddleManagedSubscription(subscription)) {
         subscription = await this.getSubscriptionWithSync(userId);
         if (!subscription) return false;
       }
@@ -206,6 +248,9 @@ export class SubscriptionService {
   static async getSubscriptionWithSync(userId: string) {
     const subscription = await this.getUserSubscription(userId);
     if (!subscription) return null;
+    if (!this.isPaddleManagedSubscription(subscription) || !subscription.paddleSubscriptionId) {
+      return subscription;
+    }
 
     const inFlight = this.syncInFlight.get(userId);
     if (inFlight) return inFlight;
@@ -223,6 +268,10 @@ export class SubscriptionService {
     userId: string,
     subscription: NonNullable<Awaited<ReturnType<typeof SubscriptionService.getUserSubscription>>>
   ) {
+    if (!subscription.paddleSubscriptionId) {
+      return subscription;
+    }
+
     try {
       const paddleSubscription = await PaddleSubscriptionService.getSubscription(
         subscription.paddleSubscriptionId

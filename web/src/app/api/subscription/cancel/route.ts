@@ -43,6 +43,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Subscription is already cancelled' }, { status: 400 });
     }
 
+    if (error.message?.includes('managed')) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
     return NextResponse.json(
       { error: error.message || 'Failed to cancel subscription' },
       { status: 500 }

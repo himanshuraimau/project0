@@ -18,6 +18,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
     }
 
+    if (!SubscriptionService.isPaddleManagedSubscription(subscription)) {
+      if (!subscription.managementUrl) {
+        return NextResponse.json(
+          {
+            error: SubscriptionService.getProviderManagementMessage(subscription),
+            provider: subscription.billingProvider,
+            managedExternally: true,
+          },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json({
+        portalUrl: subscription.managementUrl,
+        provider: subscription.billingProvider,
+        managedExternally: true,
+        subscription: {
+          id: subscription.id,
+          status: subscription.status,
+        },
+      });
+    }
+
     let customerId = subscription.user?.paddleCustomerId;
 
     // If customer ID is missing, fetch it from Paddle and save it
@@ -37,9 +60,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Customer not found' }, { status: 400 });
     }
 
+    const paddleSubscriptionId = subscription.paddleSubscriptionId;
+    if (!paddleSubscriptionId) {
+      return NextResponse.json({ error: 'Paddle subscription not found' }, { status: 400 });
+    }
+
     const portalUrl = await PaddleSubscriptionService.getPortalUrl(
       customerId,
-      subscription.paddleSubscriptionId
+      paddleSubscriptionId
     );
 
     if (!portalUrl) {

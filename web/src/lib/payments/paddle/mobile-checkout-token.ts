@@ -3,7 +3,7 @@ import crypto from 'crypto';
 export type MobileCheckoutTokenPayload = {
   priceId: string;
   customerEmail: string;
-  customData: { userId: string };
+  customData: { userId: string; revenuecat_app_user_id?: string };
   environment: string;
   clientToken: string;
   discountCode?: string;

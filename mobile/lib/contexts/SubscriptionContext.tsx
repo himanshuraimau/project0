@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getSubscriptionStatus } from '@/lib/api/subscription';
 import { GetSubscriptionStatusParams, Subscription, SubscriptionStatusResponse } from '@/lib/api/types';
 import { useSession } from '@/lib/auth/auth-client';
+import { mapRevenueCatCustomerInfoToSubscriptionStatus, useRevenueCat } from '@/lib/revenuecat';
 
 /**
  * Subscription Context
@@ -30,8 +30,13 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     console.log('🎯 SubscriptionProvider component rendering...');
 
     const { data: session, isPending } = useSession();
+    const {
+        customerInfo,
+        isLoading: revenueCatLoading,
+        error: revenueCatError,
+        refreshCustomerInfo,
+    } = useRevenueCat();
     const [subscriptionData, setSubscriptionData] = useState<SubscriptionStatusResponse | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     /**
@@ -74,20 +79,20 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
      * Fetch subscription status from API
      */
     const fetchSubscriptionStatus = async (params?: GetSubscriptionStatusParams) => {
+        void params;
         try {
-            setIsLoading(true);
             setError(null);
 
             // Check if user is authenticated using Better Auth session
             if (!session?.user) {
                 console.log('📭 No active session, skipping subscription fetch');
                 setSubscriptionData(null);
-                setIsLoading(false);
                 return;
             }
 
-            console.log('🔄 Fetching subscription status...');
-            const data = await getSubscriptionStatus(params);
+            console.log('🔄 Fetching RevenueCat subscription status...');
+            const nextCustomerInfo = await refreshCustomerInfo();
+            const data = mapRevenueCatCustomerInfoToSubscriptionStatus(nextCustomerInfo);
 
             // DETAILED LOGGING FOR DEBUGGING
             console.log('═══════════════════════════════════════════');
@@ -129,8 +134,6 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
             } else {
                 setError(err.message || 'Failed to fetch subscription status');
             }
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -148,14 +151,24 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         console.log('  - isPending:', isPending);
         console.log('  - session:', session?.user ? 'User logged in' : 'No user');
 
-        if (!isPending) {
-            fetchSubscriptionStatus();
+        if (isPending) {
+            return;
         }
-    }, [session, isPending]);
+
+        if (!session?.user) {
+            setSubscriptionData(null);
+            setError(null);
+            return;
+        }
+
+        const mapped = mapRevenueCatCustomerInfoToSubscriptionStatus(customerInfo);
+        setSubscriptionData(mapped);
+        setError(revenueCatError);
+    }, [session, isPending, customerInfo, revenueCatError]);
 
     const value: SubscriptionContextType = {
         subscription: subscriptionData?.subscription ?? null,
-        isLoading,
+        isLoading: isPending || revenueCatLoading,
         isSubscribed,
         hasAccess,
         isActive,

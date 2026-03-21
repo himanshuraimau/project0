@@ -25,6 +25,20 @@ export interface CancelSubscriptionParams {
 }
 
 export class PaymentService {
+  private static assertPaddleManagedSubscription(
+    subscription: Awaited<ReturnType<typeof SubscriptionService.getUserSubscription>>
+  ): NonNullable<Awaited<ReturnType<typeof SubscriptionService.getUserSubscription>>> & {
+    paddleSubscriptionId: string;
+  } {
+    if (SubscriptionService.isPaddleManagedSubscription(subscription) && subscription?.paddleSubscriptionId) {
+      return subscription as NonNullable<Awaited<ReturnType<typeof SubscriptionService.getUserSubscription>>> & {
+        paddleSubscriptionId: string;
+      };
+    }
+
+    throw new Error(SubscriptionService.getProviderManagementMessage(subscription));
+  }
+
   static compareBillingIntervals(current: BillingInterval, requested: BillingInterval): PlanComparison {
     if (current === requested) return 'same';
     if (current === 'monthly' && requested === 'yearly') return 'upgrade';
@@ -69,7 +83,10 @@ export class PaymentService {
       clientToken: PADDLE_CONFIG.clientToken,
       environment: PADDLE_CONFIG.environment,
       customerEmail: userEmail,
-      customData: { userId },
+      customData: {
+        userId,
+        revenuecat_app_user_id: userId,
+      },
       discountCode,
       returnUrl: PADDLE_CONFIG.returnUrl,
     };
@@ -84,8 +101,10 @@ export class PaymentService {
       throw new Error('No active subscription found');
     }
 
+    const managedSubscription = this.assertPaddleManagedSubscription(existingSubscription);
+
     const paddleSubscription = await PaddleSubscriptionService.getSubscription(
-      existingSubscription.paddleSubscriptionId
+      managedSubscription.paddleSubscriptionId
     );
 
     if (!paddleSubscription) {
@@ -112,7 +131,7 @@ export class PaymentService {
 
     if (immediate) {
       const changeResult = await PaddleSubscriptionService.changePlan(
-        existingSubscription.paddleSubscriptionId,
+        managedSubscription.paddleSubscriptionId,
         targetPriceId,
         'prorated_immediately'
       );
@@ -122,7 +141,7 @@ export class PaymentService {
       }
 
       await SubscriptionService.updateSubscriptionPriceId(
-        existingSubscription.paddleSubscriptionId,
+        managedSubscription.paddleSubscriptionId,
         targetPriceId
       );
 
@@ -135,12 +154,12 @@ export class PaymentService {
       };
     }
 
-    const metadata = (existingSubscription.metadata as any) || {};
+    const metadata = (managedSubscription.metadata as any) || {};
     delete metadata.scheduledPriceId;
     delete metadata.scheduledPlanType;
     delete metadata.scheduledAt;
 
-    await SubscriptionService.updateSubscriptionMetadata(existingSubscription.paddleSubscriptionId, {
+    await SubscriptionService.updateSubscriptionMetadata(managedSubscription.paddleSubscriptionId, {
       ...metadata,
       scheduledPriceId: targetPriceId,
       scheduledPlanType: targetBillingInterval,
@@ -169,17 +188,19 @@ export class PaymentService {
       throw new Error('Subscription is already cancelled');
     }
 
-    const metadata = (subscription.metadata as any) || {};
+    const managedSubscription = this.assertPaddleManagedSubscription(subscription);
+
+    const metadata = (managedSubscription.metadata as any) || {};
     if (metadata.scheduledPriceId) {
       delete metadata.scheduledPriceId;
       delete metadata.scheduledPlanType;
       delete metadata.scheduledAt;
-      await SubscriptionService.updateSubscriptionMetadata(subscription.paddleSubscriptionId, metadata);
+      await SubscriptionService.updateSubscriptionMetadata(managedSubscription.paddleSubscriptionId, metadata);
     }
 
     const effectiveFrom = cancelAtPeriodEnd ? 'next_billing_period' : 'immediately' as const;
     const cancelResult = await PaddleSubscriptionService.cancelSubscription(
-      subscription.paddleSubscriptionId,
+      managedSubscription.paddleSubscriptionId,
       effectiveFrom
     );
 
@@ -189,13 +210,13 @@ export class PaymentService {
 
     if (cancelAtPeriodEnd) {
       return await SubscriptionService.updateSubscriptionCancelState(
-        subscription.paddleSubscriptionId,
+        managedSubscription.paddleSubscriptionId,
         true
       );
     }
 
     return await SubscriptionService.updateSubscriptionStatus(
-      subscription.paddleSubscriptionId,
+      managedSubscription.paddleSubscriptionId,
       'CANCELLED',
       { nextBillingDate: null, cancelledAt: new Date(), cancelAtPeriodEnd: false }
     );
@@ -208,19 +229,21 @@ export class PaymentService {
       throw new Error('No subscription found');
     }
 
-    if (subscription.status !== 'ACTIVE' || !subscription.cancelAtPeriodEnd) {
+    const managedSubscription = this.assertPaddleManagedSubscription(subscription);
+
+    if (managedSubscription.status !== 'ACTIVE' || !managedSubscription.cancelAtPeriodEnd) {
       throw new Error('Only subscriptions cancelled at period end can be reactivated');
     }
 
     const reactivateResult = await PaddleSubscriptionService.reactivateSubscription(
-      subscription.paddleSubscriptionId
+      managedSubscription.paddleSubscriptionId
     );
 
     if (!reactivateResult.success) {
       throw new Error(reactivateResult.error || 'Failed to reactivate subscription');
     }
 
-    await SubscriptionService.updateSubscriptionCancelState(subscription.paddleSubscriptionId, false);
+    await SubscriptionService.updateSubscriptionCancelState(managedSubscription.paddleSubscriptionId, false);
 
     return await SubscriptionService.getUserSubscription(userId);
   }
@@ -245,7 +268,11 @@ export class PaymentService {
       ? { targetBillingInterval: metadata.scheduledPlanType as BillingInterval, scheduledAt: metadata.scheduledAt }
       : null;
 
-    const currentBillingInterval = this.getBillingIntervalFromPriceId(subscription.priceId);
+    const currentBillingInterval = SubscriptionService.isPaddleManagedSubscription(subscription)
+      ? this.getBillingIntervalFromPriceId(subscription.priceId)
+      : /year|annual/i.test(subscription.priceId)
+        ? 'yearly'
+        : 'monthly';
 
     return {
       hasSubscription: true,

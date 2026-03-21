@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
 async function resolveUserId(data: any): Promise<string | null> {
   const customData = data.customData || data.custom_data;
   if (customData?.userId) return customData.userId;
+  if (customData?.revenuecat_app_user_id) return customData.revenuecat_app_user_id;
 
   const customerId = data.customerId || data.customer_id;
   if (customerId) {
@@ -159,12 +160,14 @@ async function handleSubscriptionActivated(data: any) {
   }
 
   if (!subscription) return;
+  const paddleSubscriptionId = subscription.paddleSubscriptionId;
+  if (!paddleSubscriptionId) return;
 
   const billingDates = PaddleSubscriptionService.extractBillingDates(data);
   const now = new Date();
   const thirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-  await SubscriptionService.activateSubscription(subscription.paddleSubscriptionId, {
+  await SubscriptionService.activateSubscription(paddleSubscriptionId, {
     currentPeriodStart: billingDates.currentPeriodStart ?? now,
     currentPeriodEnd: billingDates.currentPeriodEnd ?? thirtyDays,
     nextBillingDate: billingDates.nextBillingDate ?? thirtyDays,
@@ -192,12 +195,14 @@ async function handleSubscriptionUpdated(data: any) {
   const subscription = await SubscriptionService.getSubscriptionByPaddleId(subscriptionId);
 
   if (!subscription) return;
+  const paddleSubscriptionId = subscription.paddleSubscriptionId;
+  if (!paddleSubscriptionId) return;
 
   const paddleStatus = data.status;
   const dbStatus = PaddleSubscriptionService.mapPaddleStatus(paddleStatus) as SubscriptionStatus;
   const billingDates = PaddleSubscriptionService.extractBillingDates(data);
 
-  await SubscriptionService.updateSubscriptionStatus(subscription.paddleSubscriptionId, dbStatus, {
+  await SubscriptionService.updateSubscriptionStatus(paddleSubscriptionId, dbStatus, {
     currentPeriodStart: billingDates.currentPeriodStart,
     currentPeriodEnd: billingDates.currentPeriodEnd,
     nextBillingDate: billingDates.nextBillingDate,
@@ -206,7 +211,7 @@ async function handleSubscriptionUpdated(data: any) {
 
   const newPriceId = data.items?.[0]?.price?.id;
   if (newPriceId && subscription.priceId !== newPriceId) {
-    await SubscriptionService.updateSubscriptionPriceId(subscription.paddleSubscriptionId, newPriceId);
+    await SubscriptionService.updateSubscriptionPriceId(paddleSubscriptionId, newPriceId);
   }
 
   if (dbStatus === 'ACTIVE' && subscription.user?.email) {
@@ -221,8 +226,10 @@ async function handleSubscriptionCanceled(data: any) {
   const subscription = await SubscriptionService.getSubscriptionByPaddleId(subscriptionId);
 
   if (!subscription) return;
+  const paddleSubscriptionId = subscription.paddleSubscriptionId;
+  if (!paddleSubscriptionId) return;
 
-  await SubscriptionService.cancelSubscription(subscription.paddleSubscriptionId, false);
+  await SubscriptionService.cancelSubscription(paddleSubscriptionId, false);
 
   if (subscription.user?.email) {
     await updateLoopsContact({ email: subscription.user.email, plan: 'free' }).catch(() => {});
@@ -233,28 +240,34 @@ async function handleSubscriptionPastDue(data: any) {
   const subscriptionId = data.id;
   const subscription = await SubscriptionService.getSubscriptionByPaddleId(subscriptionId);
   if (!subscription) return;
+  const paddleSubscriptionId = subscription.paddleSubscriptionId;
+  if (!paddleSubscriptionId) return;
 
-  await SubscriptionService.updateSubscriptionStatus(subscription.paddleSubscriptionId, 'PAST_DUE');
+  await SubscriptionService.updateSubscriptionStatus(paddleSubscriptionId, 'PAST_DUE');
 }
 
 async function handleSubscriptionPaused(data: any) {
   const subscriptionId = data.id;
   const subscription = await SubscriptionService.getSubscriptionByPaddleId(subscriptionId);
   if (!subscription) return;
+  const paddleSubscriptionId = subscription.paddleSubscriptionId;
+  if (!paddleSubscriptionId) return;
 
-  await SubscriptionService.updateSubscriptionStatus(subscription.paddleSubscriptionId, 'PAUSED');
+  await SubscriptionService.updateSubscriptionStatus(paddleSubscriptionId, 'PAUSED');
 }
 
 async function handleSubscriptionResumed(data: any) {
   const subscriptionId = data.id;
   const subscription = await SubscriptionService.getSubscriptionByPaddleId(subscriptionId);
   if (!subscription) return;
+  const paddleSubscriptionId = subscription.paddleSubscriptionId;
+  if (!paddleSubscriptionId) return;
 
   const billingDates = PaddleSubscriptionService.extractBillingDates(data);
   const now = new Date();
   const thirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-  await SubscriptionService.activateSubscription(subscription.paddleSubscriptionId, {
+  await SubscriptionService.activateSubscription(paddleSubscriptionId, {
     currentPeriodStart: billingDates.currentPeriodStart ?? now,
     currentPeriodEnd: billingDates.currentPeriodEnd ?? thirtyDays,
     nextBillingDate: billingDates.nextBillingDate ?? thirtyDays,
@@ -267,6 +280,8 @@ async function handleTransactionCompleted(data: any) {
 
   const subscription = await SubscriptionService.getSubscriptionByPaddleId(subscriptionId);
   if (!subscription) return;
+  const paddleSubscriptionId = subscription.paddleSubscriptionId;
+  if (!paddleSubscriptionId) return;
 
   if (subscription.status === 'ACTIVE') {
     const billingDates = PaddleSubscriptionService.extractBillingDates(
@@ -274,7 +289,7 @@ async function handleTransactionCompleted(data: any) {
     );
 
     if (billingDates.nextBillingDate) {
-      await SubscriptionService.renewSubscription(subscription.paddleSubscriptionId, billingDates.nextBillingDate);
+      await SubscriptionService.renewSubscription(paddleSubscriptionId, billingDates.nextBillingDate);
     }
 
     await SubscriptionService.resetUsageCounters(subscription.userId);

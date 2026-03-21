@@ -14,7 +14,7 @@ export function isYearlySubscription(subscription: Subscription | null | undefin
   if (!subscription) return false;
 
   const { yearly } = getPriceIdConfig();
-  const normalizedPriceId = subscription.priceId?.toLowerCase();
+  const normalizedPriceId = subscription.priceId?.toLowerCase() || '';
 
   if (yearly && normalizedPriceId === yearly.toLowerCase()) {
     return true;
@@ -22,7 +22,14 @@ export function isYearlySubscription(subscription: Subscription | null | undefin
 
   // Fallback for legacy data during rollout
   const legacyProductId = subscription.productId?.toLowerCase() || '';
-  return legacyProductId.includes('yearly') || legacyProductId.includes('annual');
+  return (
+    normalizedPriceId.includes('yearly') ||
+    normalizedPriceId.includes('annual') ||
+    normalizedPriceId.includes('year') ||
+    legacyProductId.includes('yearly') ||
+    legacyProductId.includes('annual') ||
+    legacyProductId.includes('year')
+  );
 }
 
 export function getSubscriptionPlanDisplay(subscription: Subscription | null | undefined): string {

@@ -50,6 +50,12 @@ export interface Subscription {
   userId: string;
   paddleSubscriptionId?: string;
   dodoSubscriptionId?: string; // legacy fallback
+  providerSubscriptionId?: string;
+  providerCustomerId?: string;
+  billingProvider?: string;
+  entitlementId?: string;
+  store?: string;
+  environment?: string;
   priceId?: string;
   productId?: string; // legacy fallback
   status: SubscriptionStatus;

@@ -26,6 +26,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (!SubscriptionService.isPaddleManagedSubscription(subscription)) {
+      return NextResponse.json(
+        { error: SubscriptionService.getProviderManagementMessage(subscription) },
+        { status: 400 }
+      );
+    }
+
     // Only allow getting payment link for pending subscriptions
     if (subscription.status !== 'PENDING') {
       return NextResponse.json(

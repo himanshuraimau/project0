@@ -17,6 +17,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
     }
 
+    if (!SubscriptionService.isPaddleManagedSubscription(subscription) || !subscription.paddleSubscriptionId) {
+      return NextResponse.json(
+        { error: SubscriptionService.getProviderManagementMessage(subscription) },
+        { status: 400 }
+      );
+    }
+
     if (subscription.status !== 'PENDING') {
       return NextResponse.json(
         { error: 'This endpoint is only for pending subscriptions. Use /api/subscription/cancel for active subscriptions.' },

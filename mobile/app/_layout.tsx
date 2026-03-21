@@ -2,6 +2,7 @@ import { ThemeProvider, useTheme } from '@/lib/hooks/useTheme'
 import { AuthTokenProvider } from '@/components/auth/AuthTokenProvider'
 import { SubscriptionProvider } from '@/lib/contexts/SubscriptionContext'
 import { AlertProvider } from '@/lib/contexts/AlertContext'
+import { RevenueCatProvider } from '@/lib/revenuecat'
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -84,15 +85,17 @@ function ThemedRoot() {
 export default function RootLayout() {
   return (
     <AuthTokenProvider>
-      <SubscriptionProvider>
-        <ThemeProvider>
-          <AlertProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <ThemedRoot />
-            </GestureHandlerRootView>
-          </AlertProvider>
-        </ThemeProvider>
-      </SubscriptionProvider>
+      <RevenueCatProvider>
+        <SubscriptionProvider>
+          <ThemeProvider>
+            <AlertProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <ThemedRoot />
+              </GestureHandlerRootView>
+            </AlertProvider>
+          </ThemeProvider>
+        </SubscriptionProvider>
+      </RevenueCatProvider>
     </AuthTokenProvider>
   )
 }

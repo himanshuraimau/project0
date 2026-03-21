@@ -2,11 +2,22 @@ import { useSubscription } from '@/lib/contexts/SubscriptionContext'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import React, { useEffect } from 'react'
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 import BackButton from '@/components/ui/BackButton'
 import { getSubscriptionPlanDetails } from '@/lib/subscription/plan'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { BlurView } from 'expo-blur'
+import { restoreRevenueCatPurchases } from '@/lib/revenuecat'
 
 export default function SubscriptionManager() {
   const router = useRouter()
@@ -22,6 +33,10 @@ export default function SubscriptionManager() {
   const { theme, mode } = useTheme()
   const c = theme.colors
   const isDark = mode === 'dark'
+  const managementUrl =
+    typeof subscription?.metadata === 'object' && subscription?.metadata
+      ? (subscription.metadata as Record<string, unknown>).managementURL
+      : null
 
   // Redirect to paywall if user doesn't have a subscription
   useEffect(() => {
@@ -29,6 +44,24 @@ export default function SubscriptionManager() {
       router.replace('/(onboarding)/paywall/paywall5' as any)
     }
   }, [isLoading, hasAccess, router])
+
+  const handleRestorePurchases = async () => {
+    try {
+      await restoreRevenueCatPurchases()
+      Alert.alert('Restored', 'Purchases restored. Your subscription status will refresh automatically.')
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to restore purchases.')
+    }
+  }
+
+  const handleOpenManagement = async () => {
+    if (typeof managementUrl !== 'string' || !managementUrl) {
+      Alert.alert('Manage subscription', 'Subscription management is not available for this purchase yet.')
+      return
+    }
+
+    await Linking.openURL(managementUrl)
+  }
 
   const styles = StyleSheet.create({
     container: {
@@ -363,6 +396,33 @@ export default function SubscriptionManager() {
       textAlign: 'center',
       lineHeight: 22,
     },
+    actionButton: {
+      marginTop: 12,
+      borderRadius: 12,
+      backgroundColor: c.primary,
+      paddingHorizontal: 18,
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    secondaryButton: {
+      marginTop: 12,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: c.border,
+      paddingHorizontal: 18,
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    actionButtonText: {
+      color: c.primaryForeground,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    secondaryButtonText: {
+      color: c.foreground,
+      fontSize: 15,
+      fontWeight: '600',
+    },
   })
 
   if (isLoading) {
@@ -475,6 +535,21 @@ export default function SubscriptionManager() {
                 </Text>
               </View>
             )}
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Manage Subscription</Text>
+              <Text style={styles.cardSubtitle}>
+                Restore your purchases or open the store management page for this subscription.
+              </Text>
+              {typeof managementUrl === 'string' && managementUrl ? (
+                <TouchableOpacity style={styles.actionButton} onPress={handleOpenManagement}>
+                  <Text style={styles.actionButtonText}>Open Subscription Management</Text>
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity style={styles.secondaryButton} onPress={handleRestorePurchases}>
+                <Text style={styles.secondaryButtonText}>Restore Purchases</Text>
+              </TouchableOpacity>
+            </View>
 
             {/* What's Included Section */}
             <View style={styles.card}>
