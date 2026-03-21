@@ -129,7 +129,10 @@ export const handleApiResponse = <T>(response: any): T => {
 // Helper function to handle API errors
 export const handleApiError = (error: any): never => {
   if (isAxiosError(error)) {
-    const message = error.response?.data?.message || error.message;
+    const message =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message;
     const statusCode = error.response?.status;
     const errorData = error.response?.data;
 

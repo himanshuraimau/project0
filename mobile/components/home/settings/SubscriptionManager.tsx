@@ -43,12 +43,27 @@ export default function SubscriptionManager() {
   const [isCancelling, setIsCancelling] = useState(false)
   const [isReactivating, setIsReactivating] = useState(false)
   const [isUpgrading, setIsUpgrading] = useState(false)
+  const [isRestoring, setIsRestoring] = useState(false)
 
   const { theme, mode } = useTheme()
   const c = theme.colors
   const isDark = mode === 'dark'
   const hasBackendSubscription = backendStatus?.hasSubscription === true && Boolean(backendStatus.subscription)
-  const effectiveSubscription = hasBackendSubscription ? backendStatus?.subscription ?? null : subscription
+  const backendSubscription = hasBackendSubscription ? backendStatus?.subscription ?? null : null
+  const clientSubscription = subscription
+  const backendMetadata =
+    typeof backendSubscription?.metadata === 'object' && backendSubscription?.metadata
+      ? (backendSubscription.metadata as Record<string, unknown>)
+      : {}
+  const clientMetadata =
+    typeof clientSubscription?.metadata === 'object' && clientSubscription?.metadata
+      ? (clientSubscription.metadata as Record<string, unknown>)
+      : {}
+  const mergedMetadata = {
+    ...clientMetadata,
+    ...backendMetadata,
+  }
+  const effectiveSubscription = backendSubscription ?? clientSubscription
   const effectiveHasAccess = hasBackendSubscription ? backendStatus?.access?.hasAccess ?? false : hasAccess
   const effectiveIsActive = hasBackendSubscription ? backendStatus?.access?.isActive ?? false : isActive
   const effectiveIsTrial = hasBackendSubscription ? backendStatus?.access?.isTrial ?? false : isTrial
@@ -57,13 +72,20 @@ export default function SubscriptionManager() {
     : daysRemaining
   const managementUrl =
     effectiveSubscription?.managementUrl ||
-    (typeof effectiveSubscription?.metadata === 'object' && effectiveSubscription?.metadata
-      ? (effectiveSubscription.metadata as Record<string, unknown>).managementURL
-      : null)
-  const billingProvider = effectiveSubscription?.billingProvider || null
+    (typeof mergedMetadata.managementURL === 'string' ? mergedMetadata.managementURL : null)
+  const billingProvider =
+    effectiveSubscription?.billingProvider && effectiveSubscription.billingProvider !== 'UNKNOWN'
+      ? effectiveSubscription.billingProvider
+      : clientSubscription?.billingProvider ||
+        (typeof mergedMetadata.provider === 'string' ? mergedMetadata.provider : null)
   const isPaddleManaged =
     billingProvider === 'PADDLE' || Boolean(effectiveSubscription?.paddleSubscriptionId)
   const isYearlyPlan = isYearlySubscription(effectiveSubscription)
+  const canOpenManagement = Boolean(isPaddleManaged || (typeof managementUrl === 'string' && managementUrl))
+  const managementUnavailableMessage =
+    billingProvider === 'TEST_STORE'
+      ? 'RevenueCat Test Store purchases do not have a subscription management page. This purchase is only for development testing.'
+      : 'Subscription management is not available for this purchase yet.'
 
   const refreshManagementState = useCallback(
     async (silent: boolean = false) => {
@@ -117,22 +139,41 @@ export default function SubscriptionManager() {
 
   const handleRestorePurchases = async () => {
     try {
+      setIsRestoring(true)
       await restoreRevenueCatPurchases()
       await syncAllSubscriptionState()
+
+      if (effectiveHasAccess) {
+        Alert.alert(
+          'Already active',
+          'Your subscription is already active on this account. Restore re-synced it successfully.'
+        )
+        return
+      }
+
       Alert.alert('Restored', 'Purchases restored. Your subscription status will refresh automatically.')
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to restore purchases.')
+    } finally {
+      setIsRestoring(false)
     }
   }
 
   const handleOpenManagement = async () => {
     try {
+      if (!canOpenManagement) {
+        Alert.alert('Manage subscription', managementUnavailableMessage)
+        return
+      }
+
       setIsOpeningPortal(true)
 
-      const portal = await getSubscriptionPortal()
-      if (portal.portalUrl) {
-        await Linking.openURL(portal.portalUrl)
-        return
+      if (isPaddleManaged) {
+        const portal = await getSubscriptionPortal()
+        if (portal.portalUrl) {
+          await Linking.openURL(portal.portalUrl)
+          return
+        }
       }
 
       if (typeof managementUrl === 'string' && managementUrl) {
@@ -140,14 +181,17 @@ export default function SubscriptionManager() {
         return
       }
 
-      Alert.alert('Manage subscription', 'Subscription management is not available for this purchase yet.')
+      Alert.alert('Manage subscription', managementUnavailableMessage)
     } catch (error: any) {
       if (typeof managementUrl === 'string' && managementUrl) {
         await Linking.openURL(managementUrl)
         return
       }
 
-      Alert.alert('Manage subscription', error.message || 'Failed to open subscription management.')
+      Alert.alert(
+        'Manage subscription',
+        error.message || managementUnavailableMessage || 'Failed to open subscription management.'
+      )
     } finally {
       setIsOpeningPortal(false)
     }
@@ -241,6 +285,7 @@ export default function SubscriptionManager() {
       !isYearlyPlan
   )
   const shouldShowRestore = !isPaddleManaged
+  const showManagementButton = canOpenManagement
   const managementButtonLabel = isPaddleManaged ? 'Open Billing Portal' : 'Open Subscription Management'
 
   const styles = StyleSheet.create({
@@ -744,23 +789,31 @@ export default function SubscriptionManager() {
               <Text style={styles.cardSubtitle}>
                 {isPaddleManaged
                   ? 'Open the Paddle billing portal, cancel at period end, or upgrade your current plan.'
-                  : 'Open your store management page or restore purchases for this subscription.'}
+                  : canOpenManagement
+                    ? 'Open your store management page or restore purchases for this subscription.'
+                    : 'Restore purchases to re-sync this subscription on this device.'}
               </Text>
 
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={handleOpenManagement}
-                disabled={isOpeningPortal}
-              >
-                {isOpeningPortal ? (
-                  <View style={styles.buttonSpinnerRow}>
-                    <ActivityIndicator size="small" color={c.primaryForeground} />
-                    <Text style={styles.actionButtonText}>Opening…</Text>
-                  </View>
-                ) : (
-                  <Text style={styles.actionButtonText}>{managementButtonLabel}</Text>
-                )}
-              </TouchableOpacity>
+              {showManagementButton ? (
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleOpenManagement}
+                  disabled={isOpeningPortal}
+                >
+                  {isOpeningPortal ? (
+                    <View style={styles.buttonSpinnerRow}>
+                      <ActivityIndicator size="small" color={c.primaryForeground} />
+                      <Text style={styles.actionButtonText}>Opening…</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.actionButtonText}>{managementButtonLabel}</Text>
+                  )}
+                </TouchableOpacity>
+              ) : (
+                <Text style={[styles.cardSubtitle, { marginBottom: 0 }]}>
+                  {managementUnavailableMessage}
+                </Text>
+              )}
 
               {canUpgradeToYearly ? (
                 <TouchableOpacity
@@ -814,8 +867,19 @@ export default function SubscriptionManager() {
               ) : null}
 
               {shouldShowRestore ? (
-                <TouchableOpacity style={styles.secondaryButton} onPress={handleRestorePurchases}>
-                  <Text style={styles.secondaryButtonText}>Restore Purchases</Text>
+                <TouchableOpacity
+                  style={styles.secondaryButton}
+                  onPress={handleRestorePurchases}
+                  disabled={isRestoring}
+                >
+                  {isRestoring ? (
+                    <View style={styles.buttonSpinnerRow}>
+                      <ActivityIndicator size="small" color={c.foreground} />
+                      <Text style={styles.secondaryButtonText}>Restoring…</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.secondaryButtonText}>Restore Purchases</Text>
+                  )}
                 </TouchableOpacity>
               ) : null}
 
