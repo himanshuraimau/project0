@@ -1,167 +1,23 @@
 import React, { useState } from 'react'
-import { Feather } from '@expo/vector-icons'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { LANGUAGES, setLanguage } from '@/lib/i18n/i18n'
 import { translateAllNotes, TranslationProgress } from '@/lib/service/noteTranslation'
-import { BlurView } from 'expo-blur'
 import {
-  SafeAreaView,
   StatusBar,
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
   StyleSheet,
   ActivityIndicator,
   Modal,
 } from 'react-native'
-import BackButton from '@/components/ui/BackButton'
-import { useAlert } from '@/lib/contexts/AlertContext';
-
-interface LanguageOptionProps {
-  code: string
-  name: string
-  nativeName: string
-  flag: string
-  isSelected: boolean
-  isCurrent: boolean
-  onPress: () => void
-  isChanging: boolean
-  c: any
-  isDark: boolean
-}
-
-const LanguageOption: React.FC<LanguageOptionProps> = ({
-  code,
-  name,
-  nativeName,
-  flag,
-  isSelected,
-  isCurrent,
-  onPress,
-  isChanging,
-  c,
-  isDark,
-}) => {
-  const styles = StyleSheet.create({
-    languageOption: {
-      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.card,
-      borderRadius: 14,
-      padding: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 12,
-      borderWidth: 0.5,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-    },
-    languageOptionSelected: {
-      borderColor: c.primary,
-      borderWidth: 2,
-      backgroundColor: isDark ? 'rgba(130,100,255,0.12)' : c.accent,
-    },
-    languageLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-    },
-    radioCircle: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      borderWidth: 2,
-      borderColor: c.border,
-      marginRight: 12,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    radioCircleSelected: {
-      borderColor: c.primary,
-    },
-    radioCircleInner: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      backgroundColor: c.primary,
-    },
-    flagEmoji: {
-      fontSize: 28,
-      marginRight: 12,
-    },
-    languageTextContainer: {
-      flex: 1,
-    },
-    languageName: {
-      fontSize: 17,
-      fontWeight: '600',
-      color: c.foreground,
-      letterSpacing: -0.2,
-      marginBottom: 2,
-    },
-    languageSubName: {
-      fontSize: 14,
-      fontWeight: '400',
-      color: c.mutedForeground,
-      letterSpacing: -0.1,
-    },
-    languageRight: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    currentBadge: {
-      backgroundColor: c.success,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 8,
-    },
-    currentBadgeText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: c.successForeground,
-      letterSpacing: 0.3,
-    },
-  })
-
-  return (
-    <TouchableOpacity
-      style={[
-        styles.languageOption,
-        isSelected && styles.languageOptionSelected,
-      ]}
-      onPress={onPress}
-      disabled={isChanging}
-      activeOpacity={0.7}
-    >
-      <View style={styles.languageLeft}>
-        <View
-          style={[
-            styles.radioCircle,
-            isSelected && styles.radioCircleSelected,
-          ]}
-        >
-          {isSelected && <View style={styles.radioCircleInner} />}
-        </View>
-        <Text style={styles.flagEmoji}>{flag}</Text>
-        <View style={styles.languageTextContainer}>
-          <Text style={styles.languageName}>{nativeName}</Text>
-          <Text style={styles.languageSubName}>{name}</Text>
-        </View>
-      </View>
-      <View style={styles.languageRight}>
-        {isCurrent && (
-          <View style={styles.currentBadge}>
-            <Text style={styles.currentBadgeText}>Current</Text>
-          </View>
-        )}
-        {isChanging && isSelected && (
-          <ActivityIndicator size="small" color={c.primary} style={{ marginLeft: 8 }} />
-        )}
-      </View>
-    </TouchableOpacity>
-  )
-}
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useAlert } from '@/lib/contexts/AlertContext'
+import { neutral } from '@/lib/design-system'
 
 export default function ChangeLanguage() {
   const { theme, mode } = useTheme()
@@ -173,286 +29,318 @@ export default function ChangeLanguage() {
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language)
   const [translationProgress, setTranslationProgress] = useState<TranslationProgress | null>(null)
   const [showTranslationModal, setShowTranslationModal] = useState(false)
-  const { showAlert } = useAlert();
+  const { showAlert } = useAlert()
 
   const handleLanguageChange = async (languageCode: string) => {
-    if (languageCode === i18n.language) {
-      return // Already selected
-    }
+    if (languageCode === i18n.language) return
 
     setIsChanging(true)
     setSelectedLanguage(languageCode)
 
     try {
-      // First, change the app language
       await setLanguage(languageCode)
-
-      // Show translation modal and start translating notes
       setShowTranslationModal(true)
 
-      // Get language name for display
-      const languageName = LANGUAGES[languageCode as keyof typeof LANGUAGES]?.nativeName || languageCode
-
-      // Translate all notes in the background
       const result = await translateAllNotes(languageCode, (progress) => {
         setTranslationProgress(progress)
       })
 
-      // Hide translation modal
       setShowTranslationModal(false)
       setTranslationProgress(null)
 
-      // Show appropriate success/partial success message
       setTimeout(() => {
         if (result.success) {
           if (result.failedCount === 0) {
-            // All notes translated successfully
             showAlert(
               t('language.translationComplete'),
-              t('language.translationCompleteMessage', {
-                count: result.translatedCount,
-                total: result.totalNotes,
-              }),
-              [
-                {
-                  text: t('common.ok'),
-                  onPress: () => router.back(),
-                },
-              ]
+              t('language.translationCompleteMessage', { count: result.translatedCount, total: result.totalNotes }),
+              [{ text: t('common.ok'), onPress: () => router.back() }]
             )
           } else {
-            // Partial success
             showAlert(
               t('language.translationPartialSuccess'),
-              t('language.translationPartialMessage', {
-                success: result.translatedCount,
-                failed: result.failedCount,
-              }),
-              [
-                {
-                  text: t('common.ok'),
-                  onPress: () => router.back(),
-                },
-              ]
+              t('language.translationPartialMessage', { success: result.translatedCount, failed: result.failedCount }),
+              [{ text: t('common.ok'), onPress: () => router.back() }]
             )
           }
         } else {
-          // Translation failed but language was changed
           showAlert(
             t('language.languageChanged'),
             t('language.translationFailedMessage'),
-            [
-              {
-                text: t('common.ok'),
-                onPress: () => router.back(),
-              },
-            ]
+            [{ text: t('common.ok'), onPress: () => router.back() }]
           )
         }
       }, 300)
     } catch (error) {
-      console.error('Error changing language:', error)
       setShowTranslationModal(false)
       setTranslationProgress(null)
       showAlert(t('common.error'), t('language.errorChanging'))
-      setSelectedLanguage(i18n.language) // Revert selection
+      setSelectedLanguage(i18n.language)
     } finally {
       setIsChanging(false)
     }
   }
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: c.background,
-    },
-    safeArea: {
-      flex: 1,
-      paddingHorizontal: 20,
-      marginVertical: 40,
-    },
-    header: {
-      marginBottom: 32,
-    },
-    headerTitle: {
-      fontSize: 32,
-      fontWeight: '500',
-      color: c.foreground,
-      letterSpacing: -0.5,
-      marginBottom: 4,
-    },
-    headerSubtitle: {
-      fontSize: 16,
-      fontWeight: '400',
-      color: c.mutedForeground,
-      letterSpacing: -0.2,
-    },
-    languagesList: {
-      flex: 1,
-    },
-    languagesListContent: {
-      paddingBottom: 20,
-    },
-    sectionTitle: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: c.mutedForeground,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-      marginBottom: 16,
-    },
-    modalOverlay: {
-      flex: 1,
-      justifyContent: 'flex-end',
-    },
-    modalBlur: {
-      flex: 1,
-      justifyContent: 'flex-end',
-    },
-    modalContent: {
-      backgroundColor: isDark ? 'rgba(23,24,26,0.92)' : 'rgba(255,255,255,0.92)',
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      padding: 32,
-      alignItems: 'center',
-      borderWidth: 0.5,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-      borderBottomWidth: 0,
-    },
-    modalIconContainer: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: isDark ? 'rgba(130,100,255,0.12)' : c.accent,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 20,
-    },
-    modalTitle: {
-      fontSize: 20,
-      fontWeight: '500',
-      color: c.foreground,
-      textAlign: 'center',
-      marginBottom: 8,
-      letterSpacing: -0.3,
-    },
-    modalSubtitle: {
-      fontSize: 15,
-      fontWeight: '500',
-      color: c.mutedForeground,
-      textAlign: 'center',
-      marginBottom: 4,
-      letterSpacing: -0.2,
-    },
-    modalCurrentNote: {
-      fontSize: 13,
-      fontWeight: '400',
-      color: c.mutedForeground,
-      textAlign: 'center',
-      fontStyle: 'italic',
-      paddingHorizontal: 16,
-    },
-    progressBarContainer: {
-      width: '100%',
-      height: 8,
-      backgroundColor: c.border,
-      borderRadius: 4,
-      overflow: 'hidden',
-      marginTop: 20,
-    },
-    progressBar: {
-      height: '100%',
-      backgroundColor: c.primary,
-      borderRadius: 4,
-    },
-  })
+  const cardBg = isDark ? neutral[900] : '#fff'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const languages = Object.entries(LANGUAGES)
 
   return (
     <>
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: isDark ? neutral[950] : '#f0f0f0' }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-        <SafeAreaView style={styles.safeArea}>
-          {/* Header with Back Button */}
+        <SafeAreaView style={styles.safe} edges={['top']}>
+          {/* Header */}
           <View style={styles.header}>
-            <BackButton iconColor={c.foreground} />
-            <Text style={styles.headerTitle}>{t('language.title')}</Text>
-            <Text style={styles.headerSubtitle}>{t('language.subtitle')}</Text>
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={12}
+              style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
+            >
+              <Feather name="arrow-left" size={24} color={c.foreground} />
+            </Pressable>
+            <Text style={[styles.headerTitle, { color: c.foreground }]}>
+              {t('language.title')}
+            </Text>
+            <View style={{ width: 24 }} />
           </View>
 
-          {/* Language Options List */}
           <ScrollView
-            style={styles.languagesList}
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.languagesListContent}
           >
-            <Text style={styles.sectionTitle}>{t('language.available')}</Text>
-            {Object.entries(LANGUAGES).map(([code, { name, nativeName, flag }]) => (
-              <LanguageOption
-                key={code}
-                code={code}
-                name={name}
-                nativeName={nativeName}
-                flag={flag}
-                isSelected={selectedLanguage === code}
-                isCurrent={i18n.language === code}
-                onPress={() => handleLanguageChange(code)}
-                isChanging={isChanging}
-                c={c}
-                isDark={isDark}
-              />
-            ))}
+            {/* Current language card */}
+            <View style={[styles.currentCard, { backgroundColor: isDark ? 'rgba(52,199,89,0.08)' : 'rgba(52,199,89,0.06)', borderColor: isDark ? 'rgba(52,199,89,0.15)' : 'rgba(52,199,89,0.12)' }]}>
+              <View style={[styles.currentIcon, { backgroundColor: '#34C759' }]}>
+                <Ionicons name="checkmark-circle" size={18} color="#fff" />
+              </View>
+              <View style={styles.currentInfo}>
+                <Text style={[styles.currentLabel, { color: c.mutedForeground }]}>Current language</Text>
+                <Text style={[styles.currentValue, { color: c.foreground }]}>
+                  {LANGUAGES[i18n.language as keyof typeof LANGUAGES]?.flag}{' '}
+                  {LANGUAGES[i18n.language as keyof typeof LANGUAGES]?.nativeName || i18n.language}
+                </Text>
+              </View>
+            </View>
+
+            {/* Languages list */}
+            <Text style={[styles.sectionLabel, { color: c.mutedForeground }]}>
+              {t('language.available')}
+            </Text>
+            <View style={[styles.group, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+              {languages.map(([code, { name, nativeName, flag }], idx) => {
+                const isSelected = selectedLanguage === code
+                const isCurrent = i18n.language === code
+
+                return (
+                  <React.Fragment key={code}>
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.langRow,
+                        { opacity: (isChanging && !isSelected) ? 0.5 : pressed ? 0.6 : 1 },
+                      ]}
+                      onPress={() => handleLanguageChange(code)}
+                      disabled={isChanging}
+                    >
+                      {/* Flag */}
+                      <Text style={styles.flag}>{flag}</Text>
+
+                      {/* Names */}
+                      <View style={styles.langInfo}>
+                        <Text style={[styles.langName, { color: c.foreground }]}>
+                          {nativeName}
+                        </Text>
+                        <Text style={[styles.langSub, { color: c.mutedForeground }]}>
+                          {name}
+                        </Text>
+                      </View>
+
+                      {/* Right side */}
+                      {isChanging && isSelected ? (
+                        <ActivityIndicator size="small" color={c.primary} />
+                      ) : isCurrent ? (
+                        <Ionicons name="checkmark" size={20} color={c.primary} />
+                      ) : (
+                        <View />
+                      )}
+                    </Pressable>
+                    {idx < languages.length - 1 && (
+                      <View style={[styles.separator, { backgroundColor: separatorColor }]} />
+                    )}
+                  </React.Fragment>
+                )
+              })}
+            </View>
+
+            <Text style={[styles.footerHint, { color: c.mutedForeground }]}>
+              Changing your language will translate all your existing notes automatically.
+            </Text>
+
+            <View style={{ height: 40 }} />
           </ScrollView>
         </SafeAreaView>
       </View>
 
       {/* Translation Progress Modal */}
-      <Modal
-        visible={showTranslationModal}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-      >
+      <Modal visible={showTranslationModal} transparent animationType="fade" statusBarTranslucent>
         <View style={styles.modalOverlay}>
-          <BlurView
-            intensity={isDark ? 40 : 60}
-            tint={isDark ? 'dark' : 'light'}
-            style={styles.modalBlur}
-          >
-            <View style={styles.modalContent}>
-              <View style={styles.modalIconContainer}>
-                <Feather name="globe" size={40} color={c.primary} />
-              </View>
-              <Text style={styles.modalTitle}>{t('language.translatingNotes')}</Text>
-              <Text style={styles.modalSubtitle}>
-                {translationProgress
-                  ? t('language.translationProgress', {
+          <View style={[styles.modalSheet, { backgroundColor: isDark ? neutral[900] : '#fff' }]}>
+            <View style={[styles.modalIcon, { backgroundColor: isDark ? 'rgba(79,59,231,0.12)' : 'rgba(79,59,231,0.06)' }]}>
+              <Ionicons name="globe" size={32} color={c.primary} />
+            </View>
+
+            <Text style={[styles.modalTitle, { color: c.foreground }]}>
+              {t('language.translatingNotes')}
+            </Text>
+
+            <Text style={[styles.modalSub, { color: c.mutedForeground }]}>
+              {translationProgress
+                ? t('language.translationProgress', {
                     current: translationProgress.completed,
                     total: translationProgress.total,
                   })
-                  : t('common.loading')}
+                : t('common.loading')}
+            </Text>
+
+            {translationProgress?.currentNote && (
+              <Text
+                style={[styles.modalNote, { color: c.mutedForeground }]}
+                numberOfLines={1}
+              >
+                {translationProgress.currentNote}
               </Text>
-              {translationProgress && translationProgress.currentNote && (
-                <Text style={styles.modalCurrentNote} numberOfLines={1}>
-                  {translationProgress.currentNote}
-                </Text>
-              )}
-              <ActivityIndicator size="large" color={c.primary} style={{ marginTop: 20 }} />
-              {translationProgress && (
-                <View style={styles.progressBarContainer}>
-                  <View
-                    style={[
-                      styles.progressBar,
-                      {
-                        width: `${(translationProgress.completed / translationProgress.total) * 100}%`
-                      }
-                    ]}
-                  />
-                </View>
-              )}
-            </View>
-          </BlurView>
+            )}
+
+            {/* Progress bar */}
+            {translationProgress && (
+              <View style={[styles.progressTrack, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      backgroundColor: c.primary,
+                      width: `${(translationProgress.completed / translationProgress.total) * 100}%`,
+                    },
+                  ]}
+                />
+              </View>
+            )}
+
+            <ActivityIndicator
+              size="small"
+              color={c.primary}
+              style={{ marginTop: 20 }}
+            />
+          </View>
         </View>
       </Modal>
     </>
   )
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  safe: { flex: 1 },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  headerTitle: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3 },
+
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 12 },
+
+  currentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 24,
+    gap: 12,
+  },
+  currentIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  currentInfo: { flex: 1 },
+  currentLabel: { fontSize: 12, fontWeight: '500', letterSpacing: 0.1, marginBottom: 2 },
+  currentValue: { fontSize: 16, fontWeight: '600' },
+
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginLeft: 4,
+    textTransform: 'uppercase',
+  },
+
+  group: {
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  langRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  flag: { fontSize: 26 },
+  langInfo: { flex: 1 },
+  langName: { fontSize: 16, fontWeight: '600', marginBottom: 1 },
+  langSub: { fontSize: 13 },
+  separator: { height: StyleSheet.hairlineWidth, marginLeft: 52 },
+
+  footerHint: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginLeft: 4,
+    marginTop: 4,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  modalSheet: {
+    width: '100%',
+    borderRadius: 20,
+    padding: 28,
+    alignItems: 'center',
+  },
+  modalIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
+  },
+  modalTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.3, marginBottom: 8 },
+  modalSub: { fontSize: 15, fontWeight: '500', textAlign: 'center', marginBottom: 4 },
+  modalNote: { fontSize: 13, textAlign: 'center', fontStyle: 'italic', paddingHorizontal: 12 },
+  progressTrack: {
+    width: '100%',
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginTop: 18,
+  },
+  progressFill: { height: '100%', borderRadius: 3 },
+})

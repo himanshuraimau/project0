@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import { Text, View } from 'react-native'
@@ -6,18 +7,38 @@ import { OnboardingOptionRow } from './OnboardingOptionRow'
 import { OnboardingScreenShell } from './OnboardingScreenShell'
 
 const studyOptions = [
-  { id: 'light', emoji: '✅', label: 'Light', subtitle: '10 min / day' },
-  { id: 'regular', emoji: '🔥', label: 'Regular', subtitle: '20 min / day' },
-  { id: 'focused', emoji: '💪', label: 'Focused', subtitle: '60 min / day' },
-  { id: 'intense', emoji: '⚡', label: 'Intense', subtitle: '90+ min / day' },
+  {
+    id: 'light',
+    icon: <Ionicons name="leaf" size={20} color="#fff" />,
+    iconBg: '#34C759',
+    label: 'Light',
+    subtitle: '10 min / day',
+  },
+  {
+    id: 'regular',
+    icon: <Ionicons name="flame" size={20} color="#fff" />,
+    iconBg: '#FF9500',
+    label: 'Regular',
+    subtitle: '20 min / day',
+  },
+  {
+    id: 'focused',
+    icon: <Ionicons name="fitness" size={20} color="#fff" />,
+    iconBg: '#FF3B30',
+    label: 'Focused',
+    subtitle: '60 min / day',
+  },
+  {
+    id: 'intense',
+    icon: <Ionicons name="flash" size={20} color="#fff" />,
+    iconBg: '#AF52DE',
+    label: 'Intense',
+    subtitle: '90+ min / day',
+  },
 ]
 
 interface OnboardingStep5Props {
   onContinue?: (studyIntensity: string) => void
-}
-
-function EmojiIcon({ emoji }: { emoji: string }) {
-  return <Text style={{ fontSize: 22 }}>{emoji}</Text>
 }
 
 export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
@@ -45,9 +66,10 @@ export default function OnboardingStep5({ onContinue }: OnboardingStep5Props) {
         {studyOptions.map((opt, i) => (
           <OnboardingOptionRow
             key={opt.id}
-            icon={<EmojiIcon emoji={opt.emoji} />}
+            icon={opt.icon}
             label={opt.label}
             subtitle={opt.subtitle}
+            iconBackgroundColor={opt.iconBg}
             isSelected={selectedOption === opt.id}
             onPress={() => setSelectedOption(opt.id)}
             index={i}

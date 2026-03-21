@@ -1,12 +1,7 @@
-/**
- * Multi-select feature card — true frosted glass.
- */
-
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import React from 'react'
 import { Pressable, Text, View, StyleSheet } from 'react-native'
-import { BlurView } from 'expo-blur'
 import Animated from 'react-native-reanimated'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { onboardingEntrance, usePressScale } from '@/lib/ui/auth-animations'
@@ -38,11 +33,12 @@ export function OnboardingFeatureCard({
     onPress()
   }
 
-  const glassBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)'
-  const glassBorder = isSelected
+  const cardBg = isSelected
+    ? (isDark ? 'rgba(79,59,231,0.1)' : 'rgba(79,59,231,0.04)')
+    : (isDark ? 'rgba(255,255,255,0.04)' : '#fff')
+  const cardBorder = isSelected
     ? c.primary
-    : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)')
-  const glassHighlight = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)'
+    : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)')
 
   return (
     <Animated.View
@@ -56,30 +52,12 @@ export function OnboardingFeatureCard({
         style={[
           styles.card,
           {
-            borderColor: glassBorder,
+            backgroundColor: cardBg,
+            borderColor: cardBorder,
             borderWidth: isSelected ? 1.5 : 1,
           },
         ]}
       >
-        <BlurView
-          intensity={isDark ? 20 : 40}
-          tint={isDark ? 'dark' : 'light'}
-          style={[StyleSheet.absoluteFill, { borderRadius: 18 }]}
-        />
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              borderRadius: 18,
-              backgroundColor: isSelected
-                ? (isDark ? 'rgba(79,59,231,0.08)' : 'rgba(79,59,231,0.04)')
-                : glassBg,
-              borderTopWidth: StyleSheet.hairlineWidth,
-              borderTopColor: glassHighlight,
-            },
-          ]}
-        />
-
         {/* Check badge */}
         <View
           style={[
@@ -87,7 +65,7 @@ export function OnboardingFeatureCard({
             isSelected
               ? { backgroundColor: c.primary, borderWidth: 0 }
               : {
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#fff',
                   borderWidth: 1,
                   borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
                 },
@@ -118,7 +96,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
   },
   checkBadge: {
     position: 'absolute',

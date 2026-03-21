@@ -1,13 +1,7 @@
-/**
- * Selectable option row — true frosted glass.
- * BlurView background, glass highlight border, satisfying selection.
- */
-
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import React from 'react'
 import { Pressable, Text, View, StyleSheet } from 'react-native'
-import { BlurView } from 'expo-blur'
 import Animated from 'react-native-reanimated'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { onboardingEntrance, usePressScale } from '@/lib/ui/auth-animations'
@@ -43,12 +37,14 @@ export function OnboardingOptionRow({
     onPress()
   }
 
-  // Glass tints
-  const glassBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)'
-  const glassBorder = isSelected
+  const rowBg = isSelected
+    ? (isDark ? 'rgba(79,59,231,0.1)' : 'rgba(79,59,231,0.04)')
+    : (isDark ? 'rgba(255,255,255,0.04)' : '#fff')
+  const rowBorder = isSelected
     ? c.primary
-    : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)')
-  const glassHighlight = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)'
+    : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)')
+
+  const defaultIconBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)'
 
   return (
     <Animated.View entering={onboardingEntrance.option(index)} style={scaleStyle}>
@@ -59,39 +55,16 @@ export function OnboardingOptionRow({
         style={[
           styles.row,
           {
-            borderColor: glassBorder,
+            backgroundColor: rowBg,
+            borderColor: rowBorder,
             borderWidth: isSelected ? 1.5 : 1,
           },
         ]}
       >
-        {/* Glass backdrop */}
-        <BlurView
-          intensity={isDark ? 20 : 40}
-          tint={isDark ? 'dark' : 'light'}
-          style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
-        />
-        {/* Glass fill + top highlight */}
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              borderRadius: 16,
-              backgroundColor: isSelected
-                ? (isDark ? 'rgba(79,59,231,0.08)' : 'rgba(79,59,231,0.04)')
-                : glassBg,
-              borderTopWidth: StyleSheet.hairlineWidth,
-              borderTopColor: glassHighlight,
-            },
-          ]}
-        />
-
         <View
           style={[
             styles.iconWrap,
-            {
-              backgroundColor: iconBackgroundColor
-                ?? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)'),
-            },
+            { backgroundColor: iconBackgroundColor ?? defaultIconBg },
           ]}
         >
           {icon}
@@ -114,7 +87,6 @@ export function OnboardingOptionRow({
           )}
         </View>
 
-        {/* Radio indicator */}
         <View
           style={[
             styles.radio,
@@ -123,7 +95,7 @@ export function OnboardingOptionRow({
               : {
                   backgroundColor: 'transparent',
                   borderWidth: 1.5,
-                  borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)',
                 },
           ]}
         >
@@ -140,12 +112,11 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     gap: 14,
     borderRadius: 16,
-    minHeight: 64,
-    overflow: 'hidden',
+    minHeight: 62,
   },
   iconWrap: {
     width: 42,

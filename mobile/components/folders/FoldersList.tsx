@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -6,124 +6,119 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
-  TouchableOpacity,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Folder as FolderIcon, Plus, AlertCircle } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
-import { useFolders } from '@/lib/hooks/useFolders';
-import { FolderCard } from './FolderCard';
-import type { FolderWithCount } from '@/lib/api/types';
+  Pressable,
+  Platform,
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Feather } from '@expo/vector-icons'
+import { Folder as FolderIcon } from 'lucide-react-native'
+import { useRouter } from 'expo-router'
+import { useFocusEffect } from '@react-navigation/native'
+import { useFolders } from '@/lib/hooks/useFolders'
+import { FolderCard } from './FolderCard'
+import type { FolderWithCount } from '@/lib/api/types'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { neutral } from '@/lib/design-system'
 
 interface FoldersListProps {
-  onCreatePress?: (onSuccess?: () => void) => void;
+  onCreatePress?: (onSuccess?: () => void) => void
 }
 
 export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
-  const router = useRouter();
-  const { folders, loading, error, fetchFolders } = useFolders();
-  const [refreshing, setRefreshing] = useState(false);
+  const router = useRouter()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
+  const { folders, loading, error, fetchFolders } = useFolders()
+  const [refreshing, setRefreshing] = useState(false)
 
-  useEffect(() => {
-    fetchFolders();
-  }, []);
+  useEffect(() => { fetchFolders() }, [])
 
-  // Refresh folders when screen comes into focus (e.g., after creating a folder)
   useFocusEffect(
-    React.useCallback(() => {
-      fetchFolders();
-    }, [fetchFolders])
-  );
+    React.useCallback(() => { fetchFolders() }, [fetchFolders])
+  )
 
   const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchFolders();
-    setRefreshing(false);
-  };
+    setRefreshing(true)
+    await fetchFolders()
+    setRefreshing(false)
+  }
 
   const handleFolderPress = (folder: FolderWithCount) => {
-    router.push(`/(home)/folders/${folder.id}`);
-  };
+    router.push(`/(home)/folders/${folder.id}`)
+  }
 
   const handleCreatePress = () => {
-    if (onCreatePress) {
-      // Pass a callback that will be called when folder creation is successful
-      onCreatePress(() => {
-        fetchFolders();
-      });
-    }
-  };
+    onCreatePress?.(() => fetchFolders())
+  }
 
-  const renderFolder = ({ item }: { item: FolderWithCount }) => (
-    <FolderCard folder={item} onPress={() => handleFolderPress(item)} />
-  );
+  const cardBg = isDark ? neutral[900] : '#fff'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+
+  const renderFolder = ({ item, index }: { item: FolderWithCount; index: number }) => (
+    <FolderCard
+      folder={item}
+      onPress={() => handleFolderPress(item)}
+      isLast={index === folders.length - 1}
+    />
+  )
 
   const renderEmpty = () => {
     if (loading && !refreshing) {
       return (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#4f3be7" />
-          <Text style={styles.loadingText}>Loading folders...</Text>
+        <View style={styles.stateWrap}>
+          <ActivityIndicator size="large" color={c.primary} />
+          <Text style={[styles.stateText, { color: c.mutedForeground }]}>Loading folders...</Text>
         </View>
-      );
+      )
     }
-
     if (error) {
       return (
-        <View style={styles.centerContainer}>
-          <View style={styles.errorIconContainer}>
-            <AlertCircle size={48} color="#EF4444" />
-          </View>
-          <Text style={styles.errorTitle}>Error loading folders</Text>
-          <Text style={styles.errorMessage}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchFolders}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
-          </TouchableOpacity>
+        <View style={styles.stateWrap}>
+          <Feather name="alert-circle" size={44} color={c.destructive} />
+          <Text style={[styles.stateTitle, { color: c.foreground }]}>Error loading folders</Text>
+          <Text style={[styles.stateText, { color: c.mutedForeground }]}>{error}</Text>
+          <Pressable style={[styles.retryBtn, { backgroundColor: c.primary }]} onPress={fetchFolders}>
+            <Text style={[styles.retryText, { color: c.primaryForeground }]}>Try Again</Text>
+          </Pressable>
         </View>
-      );
+      )
     }
-
     return (
-      <View style={styles.emptyContainer}>
-        <View style={styles.emptyIconContainer}>
-          <FolderIcon size={64} color="#D1D5DB" />
+      <View style={styles.stateWrap}>
+        <View style={[styles.emptyIcon, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)' }]}>
+          <FolderIcon size={40} color={isDark ? neutral[600] : neutral[300]} />
         </View>
-        <Text style={styles.emptyTitle}>No folders yet</Text>
-        <Text style={styles.emptySubtitle}>
-          Create your first folder to start organizing your notes
+        <Text style={[styles.stateTitle, { color: c.foreground }]}>No folders yet</Text>
+        <Text style={[styles.stateText, { color: c.mutedForeground }]}>
+          Create your first folder to organize your notes
         </Text>
-        <TouchableOpacity
-          style={styles.createButton}
+        <Pressable
+          style={[styles.retryBtn, { backgroundColor: c.foreground }]}
           onPress={handleCreatePress}
         >
-          <Text style={styles.createButtonText}>Create Folder</Text>
-        </TouchableOpacity>
+          <Text style={[styles.retryText, { color: c.background }]}>Create Folder</Text>
+        </Pressable>
       </View>
-    );
-  };
-
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <View>
-        <Text style={styles.headerTitle}>My Folders</Text>
-        <Text style={styles.headerSubtitle}>
-          Organize your notes into folders
-        </Text>
-      </View>
-    </View>
-  );
+    )
+  }
 
   return (
-    <LinearGradient
-      colors={['#FFFFFF', '#f7f9ff']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {renderHeader()}
+    <View style={[styles.container, { backgroundColor: isDark ? neutral[950] : '#f0f0f0' }]}>
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
+          >
+            <Feather name="arrow-left" size={24} color={c.foreground} />
+          </Pressable>
+          <Text style={[styles.headerTitle, { color: c.foreground }]}>My Folders</Text>
+          <View style={{ width: 24 }} />
+        </View>
 
         <FlatList
           data={folders}
@@ -133,165 +128,106 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
             styles.listContent,
             folders.length === 0 && styles.listContentEmpty,
           ]}
+          ListHeaderComponent={
+            folders.length > 0 ? (
+              <Text style={[styles.countLabel, { color: c.mutedForeground }]}>
+                {folders.length} {folders.length === 1 ? 'FOLDER' : 'FOLDERS'}
+              </Text>
+            ) : null
+          }
           ListEmptyComponent={renderEmpty}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#4f3be7"
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
           }
           showsVerticalScrollIndicator={false}
         />
 
-        {/* FAB - Create Folder Button */}
+        {/* FAB */}
         {folders.length > 0 && (
-          <LinearGradient
-            colors={['#4f3be7', '#4F46E5']}
-            style={styles.fabGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+          <Pressable
+            style={({ pressed }) => [
+              styles.fab,
+              {
+                backgroundColor: c.foreground,
+                opacity: pressed ? 0.9 : 1,
+                transform: [{ scale: pressed ? 0.96 : 1 }],
+              },
+            ]}
+            onPress={handleCreatePress}
           >
-            <TouchableOpacity
-              style={styles.fab}
-              onPress={handleCreatePress}
-              accessibilityLabel="Create folder"
-            >
-              <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
-            </TouchableOpacity>
-          </LinearGradient>
+            <Feather name="plus" size={22} color={c.background} />
+          </Pressable>
         )}
       </SafeAreaView>
-    </LinearGradient>
-  );
-};
+    </View>
+  )
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
+  container: { flex: 1 },
+  safe: { flex: 1 },
+
   header: {
-    paddingTop: 0,
-    paddingBottom: 14,
-  },
-  headerTitle: {
-    fontSize: 34,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 15,
-    color: '#6B7280',
-  },
-  listContent: {
-    paddingTop: 20,
-    paddingBottom: 120
-  },
-  listContentEmpty: {
-    flexGrow: 1,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingVertical: 60,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  errorIconContainer: {
-    marginBottom: 16,
-  },
-  errorTitle: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  errorMessage: {
-    fontSize: 15,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  retryButton: {
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
     paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#4f3be7',
-    borderRadius: 12,
   },
-  retryButtonText: {
-    fontSize: 16,
+  headerTitle: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3 },
+
+  listContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 100,
+  },
+  listContentEmpty: { flexGrow: 1 },
+
+  countLabel: {
+    fontSize: 12,
     fontWeight: '600',
-    color: '#FFFFFF',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+    marginLeft: 4,
   },
-  emptyContainer: {
+
+  stateWrap: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
     paddingVertical: 80,
   },
-  emptyIconContainer: {
-    width: 96,
-    height: 96,
+  stateTitle: { marginTop: 16, fontSize: 20, fontWeight: '600', textAlign: 'center' },
+  stateText: { marginTop: 8, fontSize: 15, textAlign: 'center', lineHeight: 22 },
+  emptyIcon: {
+    width: 80,
+    height: 80,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
   },
-  emptyTitle: {
-    fontSize: 22,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: 15,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 28,
-  },
-  createButton: {
+  retryBtn: {
+    marginTop: 24,
     paddingVertical: 14,
     paddingHorizontal: 28,
-    backgroundColor: '#4f3be7',
-    borderRadius: 12,
+    borderRadius: 14,
   },
-  createButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  fabGradient: {
+  retryText: { fontSize: 16, fontWeight: '600' },
+
+  fab: {
     position: 'absolute',
     right: 20,
-    bottom: 60,
-    borderRadius: 999,
-    shadowColor: '#4f3be7',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  fab: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    bottom: Platform.OS === 'android' ? 24 : 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
-});
+})

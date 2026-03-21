@@ -1,20 +1,20 @@
 import React, { useState } from 'react'
-import { Feather } from '@expo/vector-icons'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { useTranslation } from 'react-i18next'
 import {
-  SafeAreaView,
   StatusBar,
   View,
   Text,
   TextInput,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   Linking,
 } from 'react-native'
-import BackButton from '@/components/ui/BackButton'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { neutral } from '@/lib/design-system'
 
 interface FAQItem {
   id: string
@@ -24,6 +24,8 @@ interface FAQItem {
 
 interface FAQSection {
   title: string
+  icon: string
+  iconBg: string
   items: FAQItem[]
 }
 
@@ -44,329 +46,346 @@ export default function Support() {
   const faqSections: FAQSection[] = [
     {
       title: 'Most Popular',
+      icon: 'star',
+      iconBg: '#FF9500',
       items: [
         {
           id: 'family-plan',
           question: 'Family plan?',
-          answer: 'Yes! We offer family plans that allow multiple users to share a subscription. Family plans support up to 6 users and include all premium features for each member.',
+          answer: 'Yes! We offer family plans that allow up to 6 users to share a subscription with all premium features.',
         },
         {
           id: 'gift-Flinote',
           question: 'Gift Flinote?',
-          answer: 'Absolutely! You can purchase gift subscriptions for friends, family, or colleagues. Gift subscriptions can be purchased for 1, 3, 6, or 12 months and can be redeemed at any time.',
+          answer: 'You can purchase gift subscriptions for 1, 3, 6, or 12 months that can be redeemed at any time.',
         },
         {
           id: 'language-support',
           question: 'Do you support my language?',
-          answer: 'We currently support over 50 languages including English, Spanish, French, German, Italian, Portuguese, Russian, Chinese, Japanese, Korean, and many more. If your language isn\'t supported, you can request it through our feature request form.',
+          answer: "We support over 50 languages including English, Spanish, French, German, Chinese, Japanese, Korean, and many more. Request yours through our feature request form.",
         },
         {
           id: 'feature-request',
-          question: 'Feature request/improvement!',
-          answer: 'We love hearing from our users! You can submit feature requests and suggestions through the contact form below or email us directly. We review all suggestions and prioritize features based on user demand and feasibility.',
+          question: 'Feature request or improvement',
+          answer: 'We love hearing from users! Submit requests through the contact form below or email us directly. We prioritize features based on user demand.',
         },
       ],
     },
     {
       title: 'Recording & Notes',
+      icon: 'mic',
+      iconBg: '#FF3B30',
       items: [
         {
           id: 'recording-quality',
           question: 'How do I improve recording quality?',
-          answer: 'For best results, use a quiet environment, speak clearly, and ensure your microphone is positioned 6-12 inches from your mouth. External microphones typically provide better quality than built-in laptop mics.',
+          answer: 'Use a quiet environment, speak clearly, and position your microphone 6\u201312 inches away. External microphones typically provide better quality.',
         },
         {
           id: 'file-formats',
           question: 'What file formats are supported?',
-          answer: 'We support most common audio formats including MP3, WAV, M4A, FLAC, and more. For documents, we support PDF, TXT, DOCX, and direct text input.',
+          answer: 'Audio: MP3, WAV, M4A, FLAC and more. Documents: PDF, TXT, DOCX, and direct text input.',
         },
         {
           id: 'note-organization',
           question: 'How can I organize my notes?',
-          answer: 'You can search through your notes to quickly find what you need. Our AI also automatically categorizes notes to help you find them later.',
+          answer: 'Use folders to group notes, search to quickly find content, and our AI automatically categorizes notes for easy retrieval.',
         },
       ],
     },
     {
       title: 'Subscription & Payments',
+      icon: 'card',
+      iconBg: '#5856D6',
       items: [
         {
           id: 'cancel-subscription',
           question: 'How do I cancel my subscription?',
-          answer: 'You can cancel your subscription anytime from your account settings. Your subscription will remain active until the end of your current billing period.',
+          answer: 'Cancel anytime from Settings \u2192 Manage Subscription. Your access continues until the end of your current billing period.',
         },
         {
           id: 'refund-policy',
-          question: 'What\'s your refund policy?',
-          answer: 'We offer a 30-day money-back guarantee for all new subscriptions. If you\'re not satisfied within the first 30 days, contact us for a full refund.',
+          question: "What\u2019s your refund policy?",
+          answer: "We offer a 30-day money-back guarantee for all new subscriptions. Contact us within 30 days for a full refund.",
         },
         {
           id: 'payment-methods',
           question: 'What payment methods do you accept?',
-          answer: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and Apple Pay for convenient and secure payments.',
+          answer: 'We accept Visa, MasterCard, American Express, PayPal, Apple Pay, and Google Pay.',
         },
       ],
     },
   ]
 
   const handleSendMessage = () => {
-    // TODO: Implement email sending logic
-    const email = 'support@https://project0-nu.vercel.app'
+    const email = 'support@flinote.ai'
     const emailSubject = encodeURIComponent(subject)
     const emailBody = encodeURIComponent(message)
     Linking.openURL(`mailto:${email}?subject=${emailSubject}&body=${emailBody}`)
   }
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: c.background,
-    },
-    safeArea: {
-      flex: 1,
-      paddingHorizontal: 20,
-      paddingVertical: 40,
-    },
-    titleRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    title: {
-      fontSize: 28,
-      fontWeight: '500',
-      color: c.foreground,
-      letterSpacing: -0.5,
-      flex: 1,
-      textAlign: 'center',
-    },
-    subtitle: {
-      fontSize: 16,
-      color: c.mutedForeground,
-      textAlign: 'center',
-      marginBottom: 24,
-      paddingHorizontal: 20,
-    },
-    content: {
-      flex: 1,
-    },
-    section: {
-      marginBottom: 32,
-    },
-    sectionTitle: {
-      fontSize: 22,
-      fontWeight: '500',
-      color: c.foreground,
-      marginBottom: 16,
-    },
-    faqItem: {
-      backgroundColor: c.card,
-      borderRadius: 14,
-      marginBottom: 12,
-      overflow: 'hidden',
-      borderWidth: 0.5,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-    },
-    faqQuestion: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: 16,
-    },
-    faqQuestionText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: c.foreground,
-      flex: 1,
-      marginRight: 12,
-    },
-    faqAnswer: {
-      paddingHorizontal: 16,
-      paddingBottom: 16,
-      paddingTop: 4,
-    },
-    faqAnswerText: {
-      fontSize: 15,
-      color: c.mutedForeground,
-      lineHeight: 22,
-    },
-    emailCard: {
-      flexDirection: 'row',
-      backgroundColor: c.accent,
-      borderRadius: 14,
-      padding: 16,
-      alignItems: 'flex-start',
-      borderWidth: 0.5,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-    },
-    emailIcon: {
-      marginRight: 16,
-      marginTop: 2,
-    },
-    emailContent: {
-      flex: 1,
-    },
-    emailAddress: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: c.foreground,
-      marginBottom: 8,
-    },
-    emailDescription: {
-      fontSize: 14,
-      color: c.mutedForeground,
-      lineHeight: 20,
-    },
-    form: {
-      backgroundColor: c.card,
-      borderRadius: 14,
-      padding: 16,
-      borderWidth: 0.5,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-    },
-    inputGroup: {
-      marginBottom: 16,
-    },
-    label: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: c.foreground,
-      marginBottom: 8,
-    },
-    input: {
-      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
-      borderWidth: 1,
-      borderColor: c.border,
-      borderRadius: 12,
-      padding: 12,
-      fontSize: 15,
-      color: c.foreground,
-    },
-    textArea: {
-      height: 120,
-      paddingTop: 12,
-    },
-    sendButton: {
-      backgroundColor: c.primary,
-      borderRadius: 12,
-      padding: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    sendButtonText: {
-      color: c.primaryForeground,
-      fontSize: 16,
-      fontWeight: '600',
-    },
-  })
+  const cardBg = isDark ? neutral[900] : '#fff'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const inputBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'
 
   return (
-    <>
-      <View style={styles.container}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-        <SafeAreaView style={styles.safeArea}>
-          {/* Title Row with Back Button */}
-          <View style={styles.titleRow}>
-            <BackButton iconColor={c.foreground} />
-            <Text style={styles.title}>Help Centre</Text>
-            <View style={{ width: 40 }} />
+    <View style={[styles.container, { backgroundColor: isDark ? neutral[950] : '#f0f0f0' }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
+          >
+            <Feather name="arrow-left" size={24} color={c.foreground} />
+          </Pressable>
+          <Text style={[styles.headerTitle, { color: c.foreground }]}>Help Centre</Text>
+          <View style={{ width: 24 }} />
+        </View>
+
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Quick actions */}
+          <View style={styles.quickActions}>
+            <Pressable
+              style={[styles.quickCard, { backgroundColor: cardBg, borderColor: cardBorder }]}
+              onPress={() => Linking.openURL('mailto:support@flinote.ai')}
+            >
+              <View style={[styles.quickIcon, { backgroundColor: '#007AFF' }]}>
+                <Ionicons name="mail" size={20} color="#fff" />
+              </View>
+              <Text style={[styles.quickLabel, { color: c.foreground }]}>Email Us</Text>
+              <Text style={[styles.quickSub, { color: c.mutedForeground }]}>24h reply</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.quickCard, { backgroundColor: cardBg, borderColor: cardBorder }]}
+              onPress={() => Linking.openURL('https://flinote.ai')}
+            >
+              <View style={[styles.quickIcon, { backgroundColor: '#34C759' }]}>
+                <Ionicons name="globe" size={20} color="#fff" />
+              </View>
+              <Text style={[styles.quickLabel, { color: c.foreground }]}>Website</Text>
+              <Text style={[styles.quickSub, { color: c.mutedForeground }]}>flinote.ai</Text>
+            </Pressable>
           </View>
 
-          <Text style={styles.subtitle}>
-            Find answers to common questions and get the help you need
-          </Text>
-
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {/* FAQ Sections */}
-            {faqSections.map((section, sectionIndex) => (
-              <View key={sectionIndex} style={styles.section}>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
-                {section.items.map((item) => (
-                  <View key={item.id} style={styles.faqItem}>
-                    <TouchableOpacity
-                      style={styles.faqQuestion}
+          {/* FAQ Sections */}
+          {faqSections.map((section, sIdx) => (
+            <React.Fragment key={sIdx}>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: section.iconBg }]}>
+                  <Ionicons name={section.icon as any} size={14} color="#fff" />
+                </View>
+                <Text style={[styles.sectionTitle, { color: c.foreground }]}>{section.title}</Text>
+              </View>
+              <View style={[styles.group, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+                {section.items.map((item, idx) => (
+                  <React.Fragment key={item.id}>
+                    <Pressable
+                      style={styles.faqRow}
                       onPress={() => toggleExpanded(item.id)}
-                      activeOpacity={0.7}
                     >
-                      <Text style={styles.faqQuestionText}>{item.question}</Text>
-                      <Feather
+                      <Text style={[styles.faqQuestion, { color: c.foreground }]}>
+                        {item.question}
+                      </Text>
+                      <Ionicons
                         name={expandedId === item.id ? 'chevron-up' : 'chevron-down'}
-                        size={20}
+                        size={18}
                         color={c.mutedForeground}
                       />
-                    </TouchableOpacity>
+                    </Pressable>
                     {expandedId === item.id && (
-                      <View style={styles.faqAnswer}>
-                        <Text style={styles.faqAnswerText}>{item.answer}</Text>
+                      <View style={[styles.faqAnswer, { borderTopColor: separatorColor }]}>
+                        <Text style={[styles.faqAnswerText, { color: c.mutedForeground }]}>
+                          {item.answer}
+                        </Text>
                       </View>
                     )}
-                  </View>
+                    {idx < section.items.length - 1 && expandedId !== item.id && (
+                      <View style={[styles.separator, { backgroundColor: separatorColor }]} />
+                    )}
+                  </React.Fragment>
                 ))}
               </View>
-            ))}
+            </React.Fragment>
+          ))}
 
-            {/* Support Email */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Support Email</Text>
-              <View style={styles.emailCard}>
-                <Feather name="mail" size={24} color={c.primary} style={styles.emailIcon} />
-                <View style={styles.emailContent}>
-                  <Text style={styles.emailAddress}>support@https://project0-nu.vercel.app</Text>
-                  <Text style={styles.emailDescription}>
-                    Our support team typically responds within 24 hours during business days.
-                    For urgent issues, please include &quot;URGENT&quot; in your subject line.
-                  </Text>
-                </View>
-              </View>
+          {/* Contact form */}
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIcon, { backgroundColor: '#007AFF' }]}>
+              <Ionicons name="send" size={14} color="#fff" />
             </View>
-
-            {/* Contact Form */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Contact Us</Text>
-              <View style={styles.form}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Subject</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="What can we help you with?"
-                    placeholderTextColor={c.mutedForeground}
-                    value={subject}
-                    onChangeText={setSubject}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Message</Text>
-                  <TextInput
-                    style={[styles.input, styles.textArea]}
-                    placeholder="Describe your question or concern in detail..."
-                    placeholderTextColor={c.mutedForeground}
-                    value={message}
-                    onChangeText={setMessage}
-                    multiline
-                    numberOfLines={6}
-                    textAlignVertical="top"
-                  />
-                </View>
-
-                <TouchableOpacity
-                  style={styles.sendButton}
-                  onPress={handleSendMessage}
-                  activeOpacity={0.8}
-                >
-                  <Feather name="send" size={18} color={c.primaryForeground} style={{ marginRight: 8 }} />
-                  <Text style={styles.sendButtonText}>Send Message</Text>
-                </TouchableOpacity>
+            <Text style={[styles.sectionTitle, { color: c.foreground }]}>Send a Message</Text>
+          </View>
+          <View style={[styles.group, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+            <View style={styles.formInner}>
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: c.mutedForeground }]}>Subject</Text>
+                <TextInput
+                  style={[styles.input, { backgroundColor: inputBg, color: c.foreground }]}
+                  placeholder="What can we help with?"
+                  placeholderTextColor={c.mutedForeground}
+                  value={subject}
+                  onChangeText={setSubject}
+                />
               </View>
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: c.mutedForeground }]}>Message</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea, { backgroundColor: inputBg, color: c.foreground }]}
+                  placeholder="Describe your question or concern..."
+                  placeholderTextColor={c.mutedForeground}
+                  value={message}
+                  onChangeText={setMessage}
+                  multiline
+                  numberOfLines={5}
+                  textAlignVertical="top"
+                />
+              </View>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.sendBtn,
+                  {
+                    backgroundColor: c.primary,
+                    opacity: (!subject.trim() || !message.trim()) ? 0.5 : pressed ? 0.85 : 1,
+                  },
+                ]}
+                onPress={handleSendMessage}
+                disabled={!subject.trim() || !message.trim()}
+              >
+                <Ionicons name="send" size={16} color={c.primaryForeground} />
+                <Text style={[styles.sendText, { color: c.primaryForeground }]}>Send Message</Text>
+              </Pressable>
             </View>
+          </View>
 
-            {/* Bottom spacing */}
-            <View style={{ height: 40 }} />
-          </ScrollView>
-        </SafeAreaView>
-      </View>
-    </>
+          <Text style={[styles.footerText, { color: c.mutedForeground }]}>
+            Our support team typically responds within 24 hours during business days.
+          </Text>
+
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  safe: { flex: 1 },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  headerTitle: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3 },
+
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 12 },
+
+  quickActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 28,
+  },
+  quickCard: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 18,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 8,
+  },
+  quickIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickLabel: { fontSize: 15, fontWeight: '600' },
+  quickSub: { fontSize: 12 },
+
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+    marginLeft: 4,
+    marginTop: 4,
+  },
+  sectionIcon: {
+    width: 22,
+    height: 22,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionTitle: { fontSize: 15, fontWeight: '600', letterSpacing: -0.2 },
+
+  group: {
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 20,
+  },
+
+  faqRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  faqQuestion: { fontSize: 15, fontWeight: '500', flex: 1, marginRight: 12 },
+  faqAnswer: {
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    paddingTop: 0,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  faqAnswerText: { fontSize: 14, lineHeight: 21, paddingTop: 12 },
+  separator: { height: StyleSheet.hairlineWidth, marginLeft: 16 },
+
+  formInner: { padding: 16, gap: 14 },
+  inputGroup: { gap: 6 },
+  inputLabel: { fontSize: 13, fontWeight: '600', letterSpacing: 0.1, marginLeft: 2 },
+  input: {
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+  },
+  textArea: {
+    height: 110,
+    paddingTop: 12,
+  },
+  sendBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 50,
+    borderRadius: 14,
+    gap: 8,
+    marginTop: 4,
+  },
+  sendText: { fontSize: 16, fontWeight: '600' },
+
+  footerText: {
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+    marginTop: -4,
+    paddingHorizontal: 20,
+  },
+})

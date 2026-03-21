@@ -2,11 +2,13 @@ import React, { useState, useRef } from 'react'
 import {
   View,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   TextInput as TextInputType,
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { neutral } from '@/lib/design-system'
 
 interface InputBarProps {
   value: string
@@ -15,128 +17,104 @@ interface InputBarProps {
   placeholder?: string
 }
 
-/**
- * InputBar component - Bottom input component with send button
- * 
- * Features:
- * - Pill-shaped input field (48-52px height, 24-26px border radius)
- * - Focus state tracking for border style changes
- * - Send button with opacity based on input content
- * - Accessibility labels for screen readers
- * 
- * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 7.4, 7.5
- */
 export default function InputBar({
   value,
   onChangeText,
   onSend,
-  placeholder = 'Ask anything…',
+  placeholder = 'Ask anything\u2026',
 }: InputBarProps) {
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
   const [isFocused, setIsFocused] = useState(false)
-  const hasTriggeredLayoutFix = useRef(false)
   const inputRef = useRef<TextInputType>(null)
 
-  // Check if input has non-whitespace content (Requirements 4.4, 4.5, 4.6, 4.7)
   const hasContent = value.trim().length > 0
 
-  // Send button opacity: 0.5 when empty, 1.0 when has content (Requirements 4.4, 4.5)
-  const sendButtonOpacity = hasContent ? 1.0 : 0.5
-
-  // Handle focus state (Requirements 4.2, 4.3)
-  const handleFocus = () => {
-    setIsFocused(true)
-  }
-
-  const handleBlur = () => {
-    setIsFocused(false)
-  }
-
-  // Handle send action (Requirements 4.6, 4.7)
   const handleSend = () => {
-    if (hasContent) {
-      onSend()
-    }
-    // Do nothing when input is empty or whitespace-only (Requirement 4.7)
+    if (hasContent) onSend()
   }
+
+  const inputBg = isDark ? neutral[800] : '#f0f0f5'
+  const inputBorder = isFocused
+    ? c.primary
+    : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)')
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: isDark ? neutral[950] : '#fff', borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}>
       <View
         style={[
-          styles.inputContainer,
-          isFocused ? styles.inputContainerFocused : styles.inputContainerUnfocused,
+          styles.inputWrap,
+          {
+            backgroundColor: inputBg,
+            borderColor: inputBorder,
+            borderWidth: isFocused ? 1.5 : 1,
+          },
         ]}
       >
         <TextInput
           ref={inputRef}
-          style={styles.input}
+          style={[styles.input, { color: c.foreground }]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#A0A0A0"
-          onFocus={handleFocus}
-          onBlur={handleBlur}
+          placeholderTextColor={c.mutedForeground}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           multiline={false}
           returnKeyType="send"
           onSubmitEditing={handleSend}
-          accessibilityLabel="Message input field, Ask anything"
-          accessibilityRole="none"
+          accessibilityLabel="Message input"
         />
-        <TouchableOpacity
+        <Pressable
           onPress={handleSend}
-          style={[styles.sendButton, { opacity: sendButtonOpacity }]}
-          accessibilityLabel="Send message, button"
-          accessibilityRole="button"
           disabled={!hasContent}
+          style={({ pressed }) => [
+            styles.sendBtn,
+            {
+              backgroundColor: hasContent ? c.primary : 'transparent',
+              opacity: hasContent ? (pressed ? 0.8 : 1) : 0.4,
+            },
+          ]}
+          accessibilityLabel="Send message"
         >
           <Feather
-            name="send"
-            size={20}
-            color={hasContent ? '#7A2EFF' : '#A0A0A0'}
+            name="arrow-up"
+            size={18}
+            color={hasContent ? c.primaryForeground : c.mutedForeground}
           />
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   )
 }
-
 
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 8,
-    backgroundColor: '#FFFFFF',
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  inputContainer: {
+  inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-  },
-  // Unfocused border state (Requirement 4.2)
-  inputContainerUnfocused: {
-    borderWidth: 1,
-    borderColor: '#333333',
-  },
-  // Focused border state (Requirement 4.3)
-  inputContainerFocused: {
-    borderWidth: 1.5,
-    borderColor: '#000000',
+    paddingLeft: 16,
+    paddingRight: 5,
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#000000',
-    paddingVertical: 0, // Remove default padding
+    paddingVertical: 0,
+    letterSpacing: -0.1,
   },
-  sendButton: {
-    width: 36,
-    height: 36,
+  sendBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
   },
 })

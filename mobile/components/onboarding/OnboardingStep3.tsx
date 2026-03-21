@@ -5,11 +5,41 @@ import { OnboardingOptionCard } from './OnboardingOptionCard'
 import { OnboardingScreenShell } from './OnboardingScreenShell'
 
 const options = [
-  { id: 'professional', emoji: '💼', title: 'Working professional', description: "I'm currently employed full or part time", accentColor: '#FEF3C7' },
-  { id: 'student', emoji: '🍎', title: 'Student', description: 'Lectures, study notes, summaries, etc.', accentColor: '#FCE7F3' },
-  { id: 'parent', emoji: '👶', title: 'Parent', description: "For my child's classes and activities", accentColor: '#ebeeff' },
-  { id: 'teacher', emoji: '✏️', title: 'Teacher', description: 'To record lectures, scribble notes, or other', accentColor: '#FEF3C7' },
-  { id: 'administrator', emoji: '🏛️', title: 'Administrator', description: 'Trying Flinote for my school/district', accentColor: '#DBEAFE' },
+  {
+    id: 'professional',
+    emoji: '\uD83D\uDCBC',
+    title: 'Working professional',
+    description: "I'm currently employed full or part time",
+    accentColor: '#FFF3E0',
+  },
+  {
+    id: 'student',
+    emoji: '\uD83C\uDF4E',
+    title: 'Student',
+    description: 'Lectures, study notes, summaries, etc.',
+    accentColor: '#FFE0E6',
+  },
+  {
+    id: 'parent',
+    emoji: '\uD83D\uDC76',
+    title: 'Parent',
+    description: "For my child's classes and activities",
+    accentColor: '#EDE7F6',
+  },
+  {
+    id: 'teacher',
+    emoji: '\u270F\uFE0F',
+    title: 'Teacher',
+    description: 'To record lectures, scribble notes, or other',
+    accentColor: '#E3F2FD',
+  },
+  {
+    id: 'administrator',
+    emoji: '\uD83C\uDFDB\uFE0F',
+    title: 'Administrator',
+    description: 'Trying Flinote for my school/district',
+    accentColor: '#E8F5E9',
+  },
 ]
 
 interface OnboardingStep3Props {

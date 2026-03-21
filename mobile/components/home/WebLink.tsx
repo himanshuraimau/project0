@@ -3,37 +3,17 @@ import {
   View,
   Text,
   Modal,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   SafeAreaView,
   TextInput,
-  ActivityIndicator,
-  Dimensions,
 } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
+import { Feather } from '@expo/vector-icons';
 import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
 import FullWidthButton from '@/components/ui/FullWidthButton';
 import FolderSelect from '@/components/ui/FolderSelect';
 import { useAlert } from '@/lib/contexts/AlertContext';
 import { useTheme } from '@/lib/hooks/useTheme';
-
-// Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient
-let Icon: any = null;
-try {
-  // eslint-disable-next-line global-require
-  Icon = require('react-native-vector-icons/MaterialCommunityIcons').default;
-} catch (e) {
-  Icon = ({ name, size = 18, color = '#000', style }: any) => {
-    const map: Record<string, string> = {
-      close: '✕',
-      'chevron-down': '▾',
-      sparkle: '✨',
-      person: '👤',
-    };
-    const glyph = map[name] ?? '◻️';
-    return <Text style={[{ fontSize: size, color }, style]}>{glyph}</Text>;
-  };
-}
 
 type Props = {
   visible?: boolean;
@@ -49,6 +29,7 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
   const { theme, mode } = useTheme();
   const c = theme.colors;
   const isDark = mode === 'dark';
+  const inputBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [link, setLink] = useState('');
   const [folder, setFolder] = useState('');  // Empty string = no folder (uncategorized)
@@ -194,138 +175,91 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
       backgroundColor: c.card,
       borderTopLeftRadius: 16,
       borderTopRightRadius: 16,
-      paddingHorizontal: 10,
+      paddingHorizontal: 16,
       paddingBottom: 16,
-    },
-    containerContent: {
-      paddingTop: 0,
-      borderTopLeftRadius: 0,
-      borderTopRightRadius: 0,
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 7,
-      marginHorizontal: 8,
+      paddingBottom: 12,
+      marginBottom: 4,
     },
     title: { color: c.foreground, fontSize: 20, fontWeight: '600' },
-    separator: {
-      height: 1,
-      backgroundColor: c.border,
-      marginHorizontal: -40,
-      width: Dimensions.get('window').width + 20,
+    closeButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: inputBg,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    field: { marginTop: 8 },
+    field: { marginTop: 12 },
     label: {
-      fontFamily: 'Inter',
-      fontWeight: '500',
-      fontSize: 18,
-      lineHeight: 32,
-      color: c.foreground,
-      marginBottom: 6,
+      fontSize: 12,
+      fontWeight: '600',
+      letterSpacing: 0.5,
+      color: c.mutedForeground,
+      marginBottom: 8,
+      textTransform: 'uppercase',
     },
     input: {
       color: c.foreground,
-      paddingVertical: 16,
+      paddingVertical: 14,
       paddingHorizontal: 16,
-      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
-      borderRadius: 10,
+      backgroundColor: inputBg,
+      borderRadius: 12,
       fontSize: 14,
-      borderWidth: 1.26,
-      borderColor: c.border,
-      height: 53,
+      height: 48,
     },
-    helper: { color: c.mutedForeground, fontSize: 12, marginTop: 8 },
-    folderRow: { flexDirection: 'row', alignItems: 'center' },
-    folderIconWrap: {
-      width: 28,
-      height: 28,
-      borderRadius: 8,
-      backgroundColor: c.accent,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: 8,
+    helper: {
+      color: c.mutedForeground,
+      fontSize: 11,
+      marginTop: 8,
+      opacity: 0.7,
     },
-    buttonContainer: {
-    },
+    buttonContainer: {},
   });
 
-  const pickerStyles = {
-    inputIOS: {
-      color: c.foreground,
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
-      borderRadius: 10,
-      fontSize: 14,
-      borderWidth: 1.26,
-      borderColor: c.border,
-      height: 53,
-    },
-    inputAndroid: {
-      color: c.foreground,
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
-      borderRadius: 10,
-      fontSize: 14,
-      borderWidth: 1.26,
-      borderColor: c.border,
-      height: 53,
-    },
-    placeholder: {
-      color: c.mutedForeground,
-    },
-    iconContainer: {
-      top: 16,
-      right: 16,
-    },
-  };
-
   const inner = (
-    <>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Add link</Text>
-          <TouchableOpacity onPress={close}>
-            <Icon name="close" size={20} color={c.foreground} />
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Add link</Text>
+        <Pressable onPress={close} style={styles.closeButton}>
+          <Feather name="x" size={18} color={c.foreground} />
+        </Pressable>
       </View>
-      <View style={styles.separator} />
-      <View style={[styles.container, styles.containerContent]}>
-        <View style={styles.field}>
-          <Text style={styles.label}>Link</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="youtube.com/anyvideo"
-            placeholderTextColor={c.mutedForeground}
-            value={link}
-            onChangeText={setLink}
-            autoCapitalize="none"
-            keyboardType="url"
-          />
-          <Text style={styles.helper}>Also works with YouTube, PDFs, TikTok, Websites.</Text>
-        </View>
 
-        <FolderSelect
-          value={folder}
-          onValueChange={(val: string) => setFolder(val)}
-          style={{ marginTop: 10 }}
+      <View style={styles.field}>
+        <Text style={styles.label}>LINK</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="youtube.com/anyvideo"
+          placeholderTextColor={c.mutedForeground}
+          value={link}
+          onChangeText={setLink}
+          autoCapitalize="none"
+          keyboardType="url"
         />
-
-        <View style={styles.buttonContainer}>
-          <FullWidthButton
-            onPress={handleGenerateNotes}
-            disabled={!link.trim()}
-            loading={isProcessing}
-            loadingText={processingStep === 'extracting' ? 'Extracting Content...' : 'Generating Notes...'}
-            buttonText="Generate Notes"
-          />
-        </View>
+        <Text style={styles.helper}>Also works with YouTube, PDFs, TikTok, Websites.</Text>
       </View>
-    </>
+
+      <FolderSelect
+        value={folder}
+        onValueChange={(val: string) => setFolder(val)}
+        style={{ marginTop: 12 }}
+      />
+
+      <View style={styles.buttonContainer}>
+        <FullWidthButton
+          onPress={handleGenerateNotes}
+          disabled={!link.trim()}
+          loading={isProcessing}
+          loadingText={processingStep === 'extracting' ? 'Extracting Content...' : 'Generating Notes...'}
+          buttonText="Generate Notes"
+        />
+      </View>
+    </View>
   );
 
   if (inline) return <View>{inner}</View>;
@@ -333,7 +267,7 @@ const WebLink: React.FC<Props> = ({ visible: visibleProp, onClose, inline = fals
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
-        <TouchableOpacity style={styles.backdrop} onPress={close} />
+        <Pressable style={styles.backdrop} onPress={close} />
         <SafeAreaView style={{ flex: 1 }}>
           {inner}
         </SafeAreaView>

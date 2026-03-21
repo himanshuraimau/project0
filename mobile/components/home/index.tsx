@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { BlurView } from 'expo-blur'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useFocusEffect } from '@react-navigation/native'
@@ -14,23 +13,33 @@ import {
   ScrollView,
   Pressable,
   StyleSheet,
-  TouchableOpacity,
   Modal,
   ActivityIndicator,
   RefreshControl,
+  Platform,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Folder } from 'lucide-react-native';
-import RecordAudio from './RecordAudio';
-import UploadAudio from './UploadAudio';
-import UploadTextOrPDF from './UploadTextOrPDF';
-import WebLink from './WebLink';
-import { notesApi } from '@/lib/api';
-import type { Note } from '@/lib/api/types';
-import { getTranslatedNote } from '@/lib/utils/translation';
-import { useFolders } from '@/lib/hooks/useFolders';
-import { ShareLinkModal } from '@/components/notes';
-import FolderSelectorModal from '@/components/folders/FolderSelectorModal';
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Folder } from 'lucide-react-native'
+import RecordAudio from './RecordAudio'
+import UploadAudio from './UploadAudio'
+import UploadTextOrPDF from './UploadTextOrPDF'
+import WebLink from './WebLink'
+import { notesApi } from '@/lib/api'
+import type { Note } from '@/lib/api/types'
+import { getTranslatedNote } from '@/lib/utils/translation'
+import { useFolders } from '@/lib/hooks/useFolders'
+import { ShareLinkModal } from '@/components/notes'
+import FolderSelectorModal from '@/components/folders/FolderSelectorModal'
+import { neutral } from '@/lib/design-system'
+import { useSubscription } from '@/lib/contexts/SubscriptionContext'
+import UpgradeModal from '@/components/ui/UpgradeModal'
+
+const NEW_NOTE_OPTIONS = [
+  { id: 1, icon: 'mic' as const, label: 'Record audio', color: '#FF3B30' },
+  { id: 2, icon: 'upload-cloud' as const, label: 'Upload audio', color: '#007AFF' },
+  { id: 3, icon: 'file-text' as const, label: 'Upload text', color: '#34C759' },
+  { id: 4, icon: 'link' as const, label: 'Web link', color: '#5856D6' },
+]
 
 export default function NotesHome() {
   const { theme, mode } = useTheme()
@@ -39,7 +48,9 @@ export default function NotesHome() {
   const router = useRouter()
   const { t } = useTranslation()
   const { data: session, isPending } = useSession()
+  const { hasAccess } = useSubscription()
   const [modalVisible, setModalVisible] = useState(false)
+  const [upgradeVisible, setUpgradeVisible] = useState(false)
   const [activeOption, setActiveOption] = useState<number | null>(null)
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
@@ -54,25 +65,14 @@ export default function NotesHome() {
   const [folderModalVisible, setFolderModalVisible] = useState(false)
   const [selectedNoteForFolder, setSelectedNoteForFolder] = useState<Note | null>(null)
 
-  const newNoteOptions = [
-    { id: 1, icon: 'mic', label: t('home.newNoteOptions.recordAudio') },
-    { id: 2, icon: 'upload-cloud', label: t('home.newNoteOptions.uploadAudio') },
-    { id: 3, icon: 'file-text', label: t('home.newNoteOptions.uploadText') },
-    { id: 4, icon: 'link', label: t('home.newNoteOptions.webLink') },
-  ]
+  useEffect(() => { fetchNotes() }, [])
 
-  // Fetch notes on mount
-  useEffect(() => {
-    fetchNotes()
-  }, [])
-
-  // Refresh notes and folders when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      fetchNotes();
-      fetchFolders();
+      fetchNotes()
+      fetchFolders()
     }, [])
-  );
+  )
 
   const fetchNotes = async () => {
     try {
@@ -80,16 +80,12 @@ export default function NotesHome() {
       setError(null)
       setIsDevelopmentMode(false)
       const fetchedNotes = await notesApi.getNotes()
-      setNotes(fetchedNotes || []) // Handle null/undefined response
+      setNotes(fetchedNotes || [])
     } catch (err: any) {
-      console.error('Failed to fetch notes:', err)
-
-      // Check if it's a network error (backend not running)
       if (err.message?.includes('Network Error') || err.code === 'ERR_NETWORK') {
-        console.log('⚠️ Backend not connected - Using empty state for development')
-        setNotes([]) // Set empty notes instead of error
-        setError(null) // Clear error to show empty state
-        setIsDevelopmentMode(true) // Flag for showing dev message
+        setNotes([])
+        setError(null)
+        setIsDevelopmentMode(true)
       } else {
         setError(err.message || 'Failed to load notes')
       }
@@ -104,858 +100,648 @@ export default function NotesHome() {
     setRefreshing(false)
   }
 
-  // Format date to readable format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
-  // Filter notes based on search query and selected filter
   const filteredNotes = notes.filter(note => {
-    // Get translated content for search
-    const { title, content } = getTranslatedNote(note);
+    const { title, content } = getTranslatedNote(note)
     const matchesSearch = searchQuery.trim() === '' ||
       title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       content.toLowerCase().includes(searchQuery.toLowerCase())
-
-    // Filter logic for different tabs
-    if (selectedFilter === 'Shared') {
-      // Only show notes that were shared with the user (cloned notes)
-      return matchesSearch && note.isCloned === true;
-    }
-    // 'All' filter - show all notes (excluding archived when field is added)
-    // TODO: Add && !note.isArchived when backend adds the field
-    return matchesSearch;
+    if (selectedFilter === 'Shared') return matchesSearch && note.isCloned === true
+    return matchesSearch
   })
 
   const handleShareNote = (note: Note) => {
-    setSelectedNoteForShare(note);
-    setShareModalVisible(true);
+    setSelectedNoteForShare(note)
+    setShareModalVisible(true)
   }
 
   const handleMoveToFolder = (note: Note) => {
-    setSelectedNoteForFolder(note);
-    setFolderModalVisible(true);
+    setSelectedNoteForFolder(note)
+    setFolderModalVisible(true)
   }
 
   const handleNotePress = (note: Note) => {
-    // Navigate to note detail screen
     router.push(`/notes/${note.id}`)
   }
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: c.background,
-    },
-    safeArea: {
-      flex: 1,
-      paddingHorizontal: 20,
-      paddingTop: 10,
-    },
-    topBar: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    timeBadge: {
-      backgroundColor: c.destructive,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 8,
-    },
-    timeText: {
-      color: c.background,
-      fontWeight: '500',
-      fontSize: 14,
-    },
-    statusIcons: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    titleRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 14,
-    },
-    title: {
-      fontSize: 34,
-      fontWeight: '500',
-      color: c.foreground,
-    },
-    settingsButton: {
-      padding: 6,
-    },
-    searchBlur: {
-      borderRadius: 14,
-      marginBottom: 12,
-      overflow: 'hidden',
-      borderWidth: 0.8,
-      borderColor: c.border,
-    },
-    searchInner: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      height: 44,
-      paddingLeft: 40,
-      paddingRight: 12,
-      paddingVertical: 4,
-    },
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: c.card,
-      borderRadius: 14,
-      height: 44,
-      marginBottom: 12,
-      borderWidth: 0.8,
-      borderColor: c.border,
-      paddingLeft: 40,
-      paddingRight: 12,
-      paddingVertical: 4,
-    },
-    searchInput: {
-      flex: 1,
-      fontFamily: 'Inter',
-      fontWeight: '400',
-      fontSize: 14,
-      lineHeight: 16,
-      color: c.foreground,
-      paddingHorizontal: 0,
-      paddingVertical: 0,
-    },
-    filtersWrapper: {
-      height: 54,
-      marginBottom: 12,
-    },
-    filtersScroll: {
-      alignItems: 'center',
-      paddingRight: 12,
-    },
-    filterPill: {
-      paddingHorizontal: 16.8,
-      paddingVertical: 9.6,
-      height: 39.2,
-      borderRadius: 26843500,
-      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.card,
-      borderWidth: 0.8,
-      borderColor: c.border,
-      marginRight: 8,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    filterPillSelected: {
-      backgroundColor: isDark ? 'rgba(130,100,255,0.12)' : c.card,
-      borderWidth: 1.6,
-      borderColor: c.primary,
-    },
-    filterText: {
-      fontFamily: 'Inter',
-      fontWeight: '400',
-      fontSize: 14,
-      lineHeight: 20,
-      color: c.foreground,
-    },
-    filterTextSelected: {
-      color: c.primary,
-    },
-    notesList: {
-      flex: 1,
-      marginTop: 6,
-    },
-    noteCard: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: c.card,
-      borderRadius: 14,
-      padding: 14,
-      marginTop: 2,
-      marginBottom: 10,
-      marginHorizontal: 1,
-      borderWidth: 0.5,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-      shadowColor: c.foreground,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
-      shadowRadius: 6,
-      elevation: 2,
-    },
-    noteLeftIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 8,
-      backgroundColor: c.muted,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: 12,
-    },
-    noteBody: {
-      flex: 1,
-    },
-    noteTitle: {
-      color: c.foreground,
-      fontWeight: '500',
-      fontSize: 16,
-      marginBottom: 6,
-    },
-    noteDate: {
-      color: c.mutedForeground,
-      fontSize: 13,
-    },
-    noteCardContainer: {
-      marginTop: 2,
-      marginBottom: 10,
-      marginHorizontal: 1,
-    },
-    noteFooter: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    sharedBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      backgroundColor: c.accent,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 6,
-    },
-    sharedBadgeText: {
-      color: c.primary,
-      fontSize: 10,
-      fontWeight: '600',
-    },
-    noteActions: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    actionButton: {
-      padding: 8,
-      borderRadius: 8,
-      backgroundColor: c.muted,
-    },
-    shareButton: {
-      padding: 8,
-      borderRadius: 8,
-      backgroundColor: c.muted,
-    },
-    fabContainer: {
-      position: 'absolute',
-      alignSelf: 'center',
-      bottom: 60,
-      borderRadius: 999,
-      backgroundColor: c.primary,
-    },
-    fab: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-      borderRadius: 33,
-      gap: 8,
-    },
-    fabPlus: {
-      color: c.background,
-      fontSize: 24,
-      lineHeight: 26,
-      fontWeight: '500',
-    },
-    fabText: {
-      color: c.background,
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    homeIndicator: {
-      height: 6,
-      backgroundColor: c.border,
-      borderRadius: 999,
-      marginTop: 12,
-      marginBottom: 6,
-      alignSelf: 'center',
-      width: 120,
-      opacity: 0.7,
-    },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)',
-      justifyContent: 'flex-end',
-    },
-    modalSafeArea: {
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      overflow: 'hidden',
-    },
-    modalContainer: {
-      paddingTop: 24,
-      paddingHorizontal: 20,
-      paddingBottom: 20,
-    },
-    glassOverlay: {
-      paddingTop: 24,
-      paddingHorizontal: 20,
-      paddingBottom: 20,
-      backgroundColor: isDark ? 'rgba(23,24,26,0.85)' : 'rgba(255,255,255,0.85)',
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 24,
-    },
-    modalTitle: {
-      fontSize: 24,
-      fontWeight: '500',
-      color: c.foreground,
-    },
-    closeButton: {
-      padding: 4,
-    },
-    optionsList: {
-      gap: 16,
-    },
-    optionRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      backgroundColor: c.muted,
-      borderRadius: 12,
-    },
-    optionIconContainer: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingRight: 0.0228271,
-      width: 39.99,
-      height: 39.99,
-      backgroundColor: c.border,
-      borderRadius: 14,
-      marginRight: 16,
-    },
-    optionText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: c.foreground,
-    },
-    backButton: {
-      paddingVertical: 12,
-      paddingHorizontal: 4,
-      alignSelf: 'flex-start',
-      marginTop: 16,
-    },
-    backText: {
-      color: c.primary,
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    modalHomeIndicator: {
-      height: 6,
-      backgroundColor: c.border,
-      borderRadius: 999,
-      marginTop: 24,
-      marginBottom: 8,
-      alignSelf: 'center',
-      width: 120,
-      opacity: 0.7,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 60,
-    },
-    loadingText: {
-      marginTop: 12,
-      color: c.mutedForeground,
-      fontSize: 16,
-    },
-    errorContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 60,
-      paddingHorizontal: 40,
-    },
-    errorText: {
-      marginTop: 16,
-      color: c.destructive,
-      fontSize: 16,
-      textAlign: 'center',
-      fontWeight: '600',
-    },
-    retryButton: {
-      marginTop: 20,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      backgroundColor: c.primary,
-      borderRadius: 12,
-    },
-    retryButtonText: {
-      color: c.background,
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 80,
-      paddingHorizontal: 40,
-    },
-    emptyTitle: {
-      marginTop: 20,
-      color: c.foreground,
-      fontSize: 20,
-      fontWeight: '500',
-      textAlign: 'center',
-    },
-    emptySubtitle: {
-      marginTop: 8,
-      color: c.mutedForeground,
-      fontSize: 15,
-      textAlign: 'center',
-    },
-    devModeContainer: {
-      marginTop: 24,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      backgroundColor: isDark ? 'rgba(251,191,36,0.12)' : '#FEF3C7',
-      borderRadius: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: isDark ? 'rgba(251,191,36,0.3)' : '#FCD34D',
-    },
-    devModeText: {
-      marginLeft: 10,
-      flex: 1,
-      color: isDark ? '#FCD34D' : '#92400E',
-      fontSize: 13,
-      fontWeight: '600',
-    },
-    foldersSection: {
-      marginBottom: 24,
-    },
-    foldersSectionHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    foldersSectionTitle: {
-      fontSize: 18,
-      fontWeight: '500',
-      color: c.foreground,
-    },
-    viewAllText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: c.primary,
-    },
-    foldersScroll: {
-      paddingRight: 20,
-      paddingLeft: 4
-    },
-    folderItem: {
-      width: 140,
-      backgroundColor: c.card,
-      borderRadius: 14,
-      padding: 14,
-      marginRight: 12,
-      marginVertical: 1,
-      borderWidth: 0.5,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-      shadowColor: c.foreground,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
-      shadowRadius: 6,
-      elevation: 2,
-    },
-    folderItemIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 10,
-    },
-    folderItemName: {
-      fontSize: 15,
-      fontWeight: '500',
-      color: c.foreground,
-      marginBottom: 4,
-    },
-    folderItemCount: {
-      fontSize: 12,
-      color: c.mutedForeground,
-      fontWeight: '500',
-    },
-  })
+  const handleNewNote = () => {
+    if (!hasAccess && notes.length >= 1) {
+      setUpgradeVisible(true)
+      return
+    }
+    setModalVisible(true)
+  }
+
+  const pageBg = isDark ? neutral[950] : '#f0f0f0'
+  const cardBg = isDark ? neutral[900] : '#fff'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+  const searchBg = isDark ? neutral[800] : '#fff'
+  const pillBg = isDark ? neutral[800] : '#fff'
+  const pillBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
+  const pillActiveBg = isDark ? 'rgba(79,59,231,0.15)' : 'rgba(79,59,231,0.08)'
 
   return (
     <>
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: pageBg }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          {/* Header */}
           <View style={styles.titleRow}>
-            <Text style={styles.title}>{t('home.myNotes')}</Text>
-            <TouchableOpacity
-              style={styles.settingsButton}
-              accessibilityLabel="Settings"
+            <Text style={[styles.title, { color: c.foreground }]}>{t('home.myNotes')}</Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.settingsBtn,
+                {
+                  backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.05)',
+                  opacity: pressed ? 0.6 : 1,
+                },
+              ]}
               onPress={() => router.push('/(home)/settings')}
+              hitSlop={8}
             >
-              <Feather name="settings" size={22} color={c.foreground} />
-            </TouchableOpacity>
+              <Feather name="settings" size={18} color={c.mutedForeground} />
+            </Pressable>
           </View>
 
-          <BlurView intensity={isDark ? 20 : 10} tint={isDark ? 'dark' : 'light'} style={styles.searchBlur}>
-            <View style={styles.searchInner}>
-              <Feather name="search" size={20} color={c.mutedForeground} style={{ position: 'absolute', left: 12, top: 12 }} />
-              <TextInput
-                placeholder={t('home.searchPlaceholder')}
-                placeholderTextColor={c.mutedForeground}
-                style={styles.searchInput}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => setSearchQuery('')}
+          {/* Search */}
+          <View style={[styles.searchBar, { backgroundColor: searchBg }]}>
+            <Feather name="search" size={18} color={c.mutedForeground} />
+            <TextInput
+              placeholder={t('home.searchPlaceholder')}
+              placeholderTextColor={c.mutedForeground}
+              style={[styles.searchInput, { color: c.foreground }]}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+                <Feather name="x-circle" size={16} color={c.mutedForeground} />
+              </Pressable>
+            )}
+          </View>
+
+          {/* Filter pills */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filtersScroll}
+            style={styles.filtersRow}
+          >
+            {[
+              { key: 'All', label: t('home.filters.all') },
+              { key: 'Shared', label: t('home.filters.shared') },
+              { key: 'Folders', label: t('home.filters.folders') },
+            ].map((f) => {
+              const selected = f.key === selectedFilter
+              return (
+                <Pressable
+                  key={f.key}
+                  style={[
+                    styles.filterPill,
+                    {
+                      backgroundColor: selected ? pillActiveBg : pillBg,
+                      borderColor: selected ? c.primary : pillBorder,
+                      borderWidth: selected ? 1.5 : 1,
+                    },
+                  ]}
+                  onPress={() => {
+                    setSelectedFilter(f.key)
+                    if (f.key === 'Folders') router.push('/(home)/folders')
+                  }}
                 >
-                  <Feather name="x" size={18} color={c.mutedForeground} />
-                </TouchableOpacity>
-              )}
-            </View>
-          </BlurView>
-
-          <View style={styles.filtersWrapper}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
-              {[
-                { key: 'All', label: t('home.filters.all') },
-                { key: 'Shared', label: t('home.filters.shared') },
-                { key: 'Folders', label: t('home.filters.folders') },
-              ].map((f) => {
-                const selected = f.key === selectedFilter
-                return (
-                  <Pressable
-                    key={f.key}
-                    style={[styles.filterPill, selected && styles.filterPillSelected]}
-                    onPress={() => {
-                      setSelectedFilter(f.key)
-                      if (f.key === 'Folders') {
-                        router.push('/(home)/folders')
-                      }
-                    }}
+                  <Text
+                    style={[
+                      styles.filterText,
+                      { color: selected ? c.primary : c.foreground },
+                    ]}
                   >
-                    <Text style={[styles.filterText, selected && styles.filterTextSelected]}>{f.label}</Text>
-                  </Pressable>
-                )
-              })}
-            </ScrollView>
-          </View>
+                    {f.label}
+                  </Text>
+                </Pressable>
+              )
+            })}
+          </ScrollView>
 
-          {/* Folders Section */}
-          {folders.length > 0 && (
-            <View style={styles.foldersSection}>
-              <View style={styles.foldersSectionHeader}>
-                <Text style={styles.foldersSectionTitle}>My Folders</Text>
-                <TouchableOpacity onPress={() => router.push('/(home)/folders')}>
-                  <Text style={styles.viewAllText}>View All</Text>
-                </TouchableOpacity>
-              </View>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.foldersScroll}
-              >
-                {folders.slice(0, 6).map((folder) => {
-                  const folderColor = folder.color || '#6366f1';
-                  return (
-                    <Pressable
-                      key={folder.id}
-                      style={styles.folderItem}
-                      onPress={() => router.push(`/(home)/folders/${folder.id}`)}
-                    >
-                      <View
-                        style={[
-                          styles.folderItemIcon,
-                          { backgroundColor: `${folderColor}15` },
-                        ]}
-                      >
-                        <Folder size={24} color={folderColor} />
-                      </View>
-                      <Text style={styles.folderItemName} numberOfLines={1}>
-                        {folder.name}
-                      </Text>
-                      <Text style={styles.folderItemCount}>
-                        {folder.noteCount} {folder.noteCount === 1 ? 'note' : 'notes'}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
-
+          {/* Content */}
           <ScrollView
             style={styles.notesList}
+            contentContainerStyle={styles.notesContent}
+            showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
             }
           >
+            {/* Folders */}
+            {folders.length > 0 && (
+              <View style={styles.foldersSection}>
+                <View style={styles.sectionHeader}>
+                  <Text style={[styles.sectionTitle, { color: c.foreground }]}>
+                    My Folders
+                  </Text>
+                  <Pressable onPress={() => router.push('/(home)/folders')}>
+                    <Text style={[styles.viewAll, { color: c.primary }]}>View All</Text>
+                  </Pressable>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.foldersScroll}
+                >
+                  {folders.slice(0, 6).map((folder) => {
+                    const folderColor = folder.color || '#6366f1'
+                    return (
+                      <Pressable
+                        key={folder.id}
+                        style={[styles.folderCard, { backgroundColor: cardBg, borderColor: cardBorder }]}
+                        onPress={() => router.push(`/(home)/folders/${folder.id}`)}
+                      >
+                        <View
+                          style={[styles.folderIcon, { backgroundColor: `${folderColor}14` }]}
+                        >
+                          <Folder size={22} color={folderColor} />
+                        </View>
+                        <Text style={[styles.folderName, { color: c.foreground }]} numberOfLines={1}>
+                          {folder.name}
+                        </Text>
+                        <Text style={[styles.folderCount, { color: c.mutedForeground }]}>
+                          {folder.noteCount} {folder.noteCount === 1 ? 'note' : 'notes'}
+                        </Text>
+                      </Pressable>
+                    )
+                  })}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Notes list */}
             {(loading && !refreshing) || isPending ? (
-              <View style={styles.loadingContainer}>
+              <View style={styles.stateContainer}>
                 <ActivityIndicator size="large" color={c.primary} />
-                <Text style={styles.loadingText}>
+                <Text style={[styles.stateText, { color: c.mutedForeground }]}>
                   {isPending ? 'Checking session...' : t('home.loadingNotes')}
                 </Text>
               </View>
             ) : error ? (
-              <View style={styles.errorContainer}>
-                <Feather name="alert-circle" size={48} color={c.destructive} />
-                <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity
-                  style={styles.retryButton}
+              <View style={styles.stateContainer}>
+                <Feather name="alert-circle" size={44} color={c.destructive} />
+                <Text style={[styles.stateText, { color: c.destructive }]}>{error}</Text>
+                <Pressable
+                  style={[styles.retryBtn, { backgroundColor: c.primary }]}
                   onPress={fetchNotes}
                 >
-                  <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
-                </TouchableOpacity>
+                  <Text style={[styles.retryText, { color: c.primaryForeground }]}>{t('common.retry')}</Text>
+                </Pressable>
               </View>
             ) : filteredNotes.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Feather name="file-text" size={64} color={c.border} />
-                <Text style={styles.emptyTitle}>
+              <View style={styles.stateContainer}>
+                <Feather name="file-text" size={52} color={isDark ? neutral[700] : neutral[300]} />
+                <Text style={[styles.emptyTitle, { color: c.foreground }]}>
                   {searchQuery ? t('home.noNotesFound') : t('home.noNotesYet')}
                 </Text>
-                <Text style={styles.emptySubtitle}>
-                  {searchQuery
-                    ? t('home.tryDifferentSearch')
-                    : t('home.createFirstNote')}
+                <Text style={[styles.stateText, { color: c.mutedForeground }]}>
+                  {searchQuery ? t('home.tryDifferentSearch') : t('home.createFirstNote')}
                 </Text>
                 {isDevelopmentMode && (
-                  <View style={styles.devModeContainer}>
-                    <Feather name="info" size={20} color={c.warning} />
-                    <Text style={styles.devModeText}>
+                  <View style={[styles.devBanner, { backgroundColor: isDark ? 'rgba(251,191,36,0.1)' : '#FEF3C7' }]}>
+                    <Feather name="info" size={16} color={isDark ? '#FCD34D' : '#92400E'} />
+                    <Text style={[styles.devText, { color: isDark ? '#FCD34D' : '#92400E' }]}>
                       {t('home.backendNotConnected')}
                     </Text>
                   </View>
                 )}
               </View>
             ) : (
-              filteredNotes.map((note) => {
-                const { title } = getTranslatedNote(note);
-                return (
-                  <View key={note.id} style={styles.noteCardContainer}>
-                    <Pressable
-                      style={styles.noteCard}
-                      onPress={() => handleNotePress(note)}
-                    >
-                      <View style={styles.noteLeftIcon}>
-                        <Feather name="file-text" size={20} color={c.mutedForeground} />
-                      </View>
-                      <View style={styles.noteBody}>
-                        <Text numberOfLines={2} style={styles.noteTitle}>
-                          {title}
-                        </Text>
-                        <View style={styles.noteFooter}>
-                          <Text style={styles.noteDate}>
-                            {formatDate(note.createdAt)}
-                          </Text>
-                          {note.isCloned && (
-                            <View style={styles.sharedBadge}>
-                              <Feather name="users" size={10} color={c.primary} />
-                              <Text style={styles.sharedBadgeText}>
-                                {t('share.sharedWithMe')}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                      </View>
-                      <View style={styles.noteActions}>
-                        <TouchableOpacity
-                          style={styles.actionButton}
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            handleMoveToFolder(note);
-                          }}
-                        >
-                          <Feather name="folder" size={16} color={c.mutedForeground} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.shareButton}
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            handleShareNote(note);
-                          }}
-                        >
-                          <Feather name="share-2" size={16} color={c.primary} />
-                        </TouchableOpacity>
-                        <Feather name="chevron-right" size={20} color={c.mutedForeground} />
-                      </View>
-                    </Pressable>
+              <>
+                {folders.length > 0 && (
+                  <View style={styles.sectionHeader}>
+                    <Text style={[styles.sectionTitle, { color: c.foreground }]}>Recent Notes</Text>
                   </View>
-                );
-              })
+                )}
+                <View style={[styles.notesGroup, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+                {filteredNotes.map((note, idx) => {
+                  const { title } = getTranslatedNote(note)
+                  return (
+                    <React.Fragment key={note.id}>
+                      <Pressable
+                        style={({ pressed }) => [styles.noteRow, { opacity: pressed ? 0.6 : 1 }]}
+                        onPress={() => handleNotePress(note)}
+                      >
+                        <View style={[styles.noteIcon, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+                          <Feather name="file-text" size={18} color={c.mutedForeground} />
+                        </View>
+                        <View style={styles.noteBody}>
+                          <Text numberOfLines={2} style={[styles.noteTitle, { color: c.foreground }]}>
+                            {title}
+                          </Text>
+                          <View style={styles.noteFooter}>
+                            <Text style={[styles.noteDate, { color: c.mutedForeground }]}>
+                              {formatDate(note.createdAt)}
+                            </Text>
+                            {note.isCloned && (
+                              <View style={[styles.sharedBadge, { backgroundColor: isDark ? 'rgba(79,59,231,0.1)' : 'rgba(79,59,231,0.06)' }]}>
+                                <Feather name="users" size={10} color={c.primary} />
+                                <Text style={[styles.sharedText, { color: c.primary }]}>
+                                  {t('share.sharedWithMe')}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        </View>
+                        <View style={styles.noteActions}>
+                          <Pressable
+                            style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}
+                            onPress={() => handleMoveToFolder(note)}
+                            hitSlop={6}
+                          >
+                            <Feather name="folder" size={14} color={c.mutedForeground} />
+                          </Pressable>
+                          <Pressable
+                            style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(79,59,231,0.08)' : 'rgba(79,59,231,0.06)' }]}
+                            onPress={() => handleShareNote(note)}
+                            hitSlop={6}
+                          >
+                            <Feather name="share-2" size={14} color={c.primary} />
+                          </Pressable>
+                        </View>
+                        <Feather name="chevron-right" size={16} color={isDark ? neutral[600] : neutral[400]} />
+                      </Pressable>
+                      {idx < filteredNotes.length - 1 && (
+                        <View style={[styles.noteSeparator, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                      )}
+                    </React.Fragment>
+                  )
+                })}
+              </View>
+              </>
             )}
+
+            {/* Bottom spacing for FAB */}
+            <View style={{ height: 100 }} />
           </ScrollView>
 
-          <View style={styles.fabContainer}>
-            <TouchableOpacity
-              style={styles.fab}
-              accessibilityLabel="Add note"
-              onPress={() => setModalVisible(true)}
-            >
-              <Text style={styles.fabPlus}>+</Text>
-              <Text style={styles.fabText}>New Note</Text>
-            </TouchableOpacity>
-          </View>
+          {/* FAB */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.fab,
+              {
+                backgroundColor: c.primary,
+                opacity: pressed ? 0.9 : 1,
+                transform: [{ scale: pressed ? 0.96 : 1 }],
+              },
+            ]}
+            onPress={handleNewNote}
+          >
+            <Feather name="plus" size={20} color={c.primaryForeground} />
+            <Text style={[styles.fabText, { color: c.primaryForeground }]}>New note</Text>
+          </Pressable>
         </SafeAreaView>
       </View>
 
+      {/* New Note Modal */}
       <Modal
         animationType="slide"
-        transparent={true}
+        transparent
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={() => { setModalVisible(false); setActiveOption(null) }}
       >
         <Pressable
           style={styles.modalOverlay}
-          onPress={() => setModalVisible(false)}
+          onPress={() => { setModalVisible(false); setActiveOption(null) }}
         >
-          <SafeAreaView edges={['bottom']} style={styles.modalSafeArea}>
-          <BlurView intensity={isDark ? 40 : 20} tint={isDark ? 'dark' : 'light'}>
-          <View style={styles.glassOverlay}>
-          <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
-            {activeOption === null && (
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{t('home.newNote')}</Text>
-                <TouchableOpacity
-                  onPress={() => setModalVisible(false)}
-                  style={styles.closeButton}
-                  accessibilityLabel="Close"
-                >
-                  <Feather name="x" size={24} color={c.foreground} />
-                </TouchableOpacity>
-              </View>
-            )}
+          <SafeAreaView edges={['bottom']} style={styles.modalSafe}>
+            <Pressable
+              style={[styles.modalSheet, { backgroundColor: isDark ? neutral[900] : '#fff' }]}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {/* Handle */}
+              <View style={[styles.modalHandle, { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)' }]} />
 
-            <View style={styles.optionsList}>
-              {activeOption == null ? (
-                // show the selectable options
-                newNoteOptions.map((option) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={styles.optionRow}
-                    onPress={() => {
-                      // keep the New Note modal open and show the selected option inline
-                      setActiveOption(option.id)
-                    }}
-                  >
-                    <View style={styles.optionIconContainer}>
-                      <Feather name={option.icon as any} size={19.99} color={c.foreground} />
-                    </View>
-                    <Text style={styles.optionText}>{option.label}</Text>
-                  </TouchableOpacity>
-                ))
+              {activeOption === null ? (
+                <>
+                  <Text style={[styles.modalTitle, { color: c.foreground }]}>{t('home.newNote')}</Text>
+                  <View style={styles.optionGrid}>
+                    {NEW_NOTE_OPTIONS.map((opt) => (
+                      <Pressable
+                        key={opt.id}
+                        style={({ pressed }) => [
+                          styles.optionCard,
+                          {
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+                            opacity: pressed ? 0.7 : 1,
+                          },
+                        ]}
+                        onPress={() => setActiveOption(opt.id)}
+                      >
+                        <View style={[styles.optionIcon, { backgroundColor: opt.color }]}>
+                          <Feather name={opt.icon} size={20} color="#fff" />
+                        </View>
+                        <Text style={[styles.optionLabel, { color: c.foreground }]}>
+                          {opt.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </>
               ) : (
-                // render the selected option inline inside the modal
                 <View>
                   {activeOption === 1 && (
                     <RecordAudio
                       inline
                       onClose={() => setActiveOption(null)}
-                      onNoteGenerated={() => {
-                        fetchNotes();
-                        setModalVisible(false);
-                        setActiveOption(null);
-                      }}
+                      onNoteGenerated={() => { fetchNotes(); setModalVisible(false); setActiveOption(null) }}
                     />
                   )}
-
                   {activeOption === 2 && (
                     <UploadAudio
                       inline
                       onClose={() => setActiveOption(null)}
-                      onNoteGenerated={() => {
-                        fetchNotes();
-                        setModalVisible(false);
-                        setActiveOption(null);
-                      }}
+                      onNoteGenerated={() => { fetchNotes(); setModalVisible(false); setActiveOption(null) }}
                     />
                   )}
-
                   {activeOption === 3 && (
                     <UploadTextOrPDF
                       inline
                       onClose={() => setActiveOption(null)}
-                      onNoteCreated={() => {
-                        fetchNotes(); // Refresh notes list
-                        setModalVisible(false); // Close modal
-                        setActiveOption(null); // Reset active option
-                      }}
+                      onNoteCreated={() => { fetchNotes(); setModalVisible(false); setActiveOption(null) }}
                     />
                   )}
-
                   {activeOption === 4 && (
                     <WebLink
                       inline
                       onClose={() => setActiveOption(null)}
-                      onNoteGenerated={() => {
-                        fetchNotes();
-                        setModalVisible(false);
-                        setActiveOption(null);
-                      }}
+                      onNoteGenerated={() => { fetchNotes(); setModalVisible(false); setActiveOption(null) }}
                     />
                   )}
                 </View>
               )}
-            </View>
-          </Pressable>
-          </View>
-          </BlurView>
+            </Pressable>
           </SafeAreaView>
         </Pressable>
       </Modal>
 
-      {/* Share Link Modal */}
       {selectedNoteForShare && (
         <ShareLinkModal
           visible={shareModalVisible}
-          onClose={() => {
-            setShareModalVisible(false);
-            setSelectedNoteForShare(null);
-          }}
+          onClose={() => { setShareModalVisible(false); setSelectedNoteForShare(null) }}
           noteId={selectedNoteForShare.id}
           noteTitle={selectedNoteForShare.title}
         />
       )}
 
-      {/* Folder Selector Modal */}
       {selectedNoteForFolder && (
         <FolderSelectorModal
           visible={folderModalVisible}
-          onClose={() => {
-            setFolderModalVisible(false);
-            setSelectedNoteForFolder(null);
-          }}
+          onClose={() => { setFolderModalVisible(false); setSelectedNoteForFolder(null) }}
           noteId={selectedNoteForFolder.id}
           currentFolderId={selectedNoteForFolder.folderId}
-          onFolderSelected={() => {
-            fetchNotes(); // Refresh notes list
-            fetchFolders(); // Refresh folders list
-          }}
+          onFolderSelected={() => { fetchNotes(); fetchFolders() }}
         />
       )}
+
+      <UpgradeModal
+        visible={upgradeVisible}
+        onClose={() => setUpgradeVisible(false)}
+        onUpgrade={() => {
+          setUpgradeVisible(false)
+          router.push('/(onboarding)/paywall/paywall5')
+        }}
+      />
     </>
   )
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  safeArea: { flex: 1, paddingHorizontal: 20 },
+
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 8,
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  settingsBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 40,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    gap: 8,
+    marginBottom: 14,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '400',
+    paddingVertical: 0,
+  },
+
+  filtersRow: { marginBottom: 16, flexGrow: 0 },
+  filtersScroll: { gap: 8 },
+  filterPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  filterText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  notesList: { flex: 1 },
+  notesContent: { paddingBottom: 20 },
+
+  foldersSection: { marginBottom: 24 },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionTitle: { fontSize: 18, fontWeight: '600', letterSpacing: -0.3 },
+  viewAll: { fontSize: 14, fontWeight: '600' },
+  foldersScroll: { paddingRight: 20 },
+  folderCard: {
+    width: 130,
+    borderRadius: 16,
+    padding: 14,
+    marginRight: 10,
+    borderWidth: 1,
+  },
+  folderIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  folderName: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
+  folderCount: { fontSize: 12, fontWeight: '500' },
+
+  notesGroup: {
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  noteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  noteSeparator: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 64,
+  },
+  noteIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noteBody: { flex: 1 },
+  noteTitle: { fontSize: 15, fontWeight: '600', lineHeight: 20, marginBottom: 3 },
+  noteFooter: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  noteDate: { fontSize: 13, fontWeight: '400' },
+  sharedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  sharedText: { fontSize: 10, fontWeight: '600' },
+  noteActions: { flexDirection: 'row', gap: 6 },
+  actionBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  stateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 80,
+    paddingHorizontal: 40,
+  },
+  stateText: { marginTop: 12, fontSize: 15, textAlign: 'center' },
+  emptyTitle: { marginTop: 16, fontSize: 20, fontWeight: '600', textAlign: 'center' },
+  retryBtn: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+  },
+  retryText: { fontSize: 16, fontWeight: '600' },
+  devBanner: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  devText: { flex: 1, fontSize: 13, fontWeight: '600' },
+
+  fab: {
+    position: 'absolute',
+    bottom: Platform.OS === 'android' ? 24 : 16,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 22,
+    paddingVertical: 15,
+    borderRadius: 16,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  fabText: { fontSize: 16, fontWeight: '600', letterSpacing: -0.2 },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalSafe: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: 'hidden',
+  },
+  modalSheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  modalHandle: {
+    width: 36,
+    height: 5,
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+    marginBottom: 20,
+  },
+  optionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  optionCard: {
+    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    gap: 12,
+  },
+  optionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  optionLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+  },
+})

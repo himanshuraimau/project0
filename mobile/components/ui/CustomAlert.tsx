@@ -1,159 +1,226 @@
 import React from 'react'
 import {
-    Modal,
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    Dimensions,
-    Platform,
+  Modal,
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  Dimensions,
 } from 'react-native'
-import { BlurView } from 'expo-blur'
+import { Ionicons } from '@expo/vector-icons'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { neutral } from '@/lib/design-system'
 
 interface AlertButton {
-    text: string
-    onPress?: () => void
-    style?: 'default' | 'cancel' | 'destructive'
+  text: string
+  onPress?: () => void
+  style?: 'default' | 'cancel' | 'destructive'
 }
 
 interface CustomAlertProps {
-    visible: boolean
-    title?: string
-    message?: string
-    buttons?: AlertButton[]
-    onClose: () => void
+  visible: boolean
+  title?: string
+  message?: string
+  buttons?: AlertButton[]
+  onClose: () => void
 }
 
 export default function CustomAlert({
-    visible,
-    title,
-    message,
-    buttons = [],
-    onClose,
+  visible,
+  title,
+  message,
+  buttons = [],
+  onClose,
 }: CustomAlertProps) {
-    const handleButtonPress = (button: AlertButton) => {
-        onClose()
-        if (button.onPress) {
-            button.onPress()
-        }
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
+
+  const handleButtonPress = (button: AlertButton) => {
+    onClose()
+    if (button.onPress) {
+      button.onPress()
     }
+  }
 
-    // Default to "OK" if no buttons provided
-    const alertButtons: AlertButton[] = buttons.length > 0 ? buttons : [{ text: 'OK', style: 'default' }]
+  const alertButtons: AlertButton[] =
+    buttons.length > 0 ? buttons : [{ text: 'OK', style: 'default' }]
 
-    return (
-        <Modal
-            transparent
-            visible={visible}
-            animationType="fade"
-            onRequestClose={onClose}
-        >
-            <View style={styles.overlay}>
-                <View style={styles.alertContainer}>
-                    {title && <Text style={styles.title}>{title}</Text>}
-                    {message && <Text style={styles.message}>{message}</Text>}
+  const isDestructiveAlert = alertButtons.some((b) => b.style === 'destructive')
+  const cardBg = isDark ? neutral[800] : '#fff'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
 
-                    <View style={styles.buttonContainer}>
-                        {alertButtons.map((button, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={[
-                                    styles.button,
-                                    button.style === 'cancel' && styles.cancelButton,
-                                    button.style === 'destructive' && styles.destructiveButton,
-                                    index > 0 && styles.buttonBorder,
-                                ]}
-                                onPress={() => handleButtonPress(button)}
-                            >
-                                <Text
-                                    style={[
-                                        styles.buttonText,
-                                        button.style === 'cancel' && styles.cancelButtonText,
-                                        button.style === 'destructive' && styles.destructiveButtonText,
-                                    ]}
-                                >
-                                    {button.text}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </View>
+  return (
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <View style={[styles.card, { backgroundColor: cardBg }]}>
+          {/* Icon */}
+          {isDestructiveAlert && (
+            <View style={[styles.iconWrap, { backgroundColor: 'rgba(255,59,48,0.1)' }]}>
+              <Ionicons name="warning" size={24} color="#FF3B30" />
             </View>
-        </Modal>
-    )
+          )}
+
+          {/* Title */}
+          {title && (
+            <Text style={[styles.title, { color: c.foreground }]}>{title}</Text>
+          )}
+
+          {/* Message */}
+          {message && (
+            <Text style={[styles.message, { color: c.mutedForeground }]}>{message}</Text>
+          )}
+
+          {/* Buttons */}
+          <View style={styles.buttonArea}>
+            {alertButtons.length === 2 ? (
+              // Side-by-side layout for 2 buttons (cancel + action)
+              <View style={styles.buttonRow}>
+                {alertButtons.map((button, index) => {
+                  const isCancel = button.style === 'cancel'
+                  const isDestructive = button.style === 'destructive'
+                  return (
+                    <Pressable
+                      key={index}
+                      style={({ pressed }) => [
+                        styles.btn,
+                        styles.btnHalf,
+                        isCancel && {
+                          backgroundColor: isDark
+                            ? 'rgba(255,255,255,0.06)'
+                            : 'rgba(0,0,0,0.04)',
+                        },
+                        isDestructive && { backgroundColor: '#FF3B30' },
+                        !isCancel && !isDestructive && { backgroundColor: c.primary },
+                        { opacity: pressed ? 0.8 : 1 },
+                      ]}
+                      onPress={() => handleButtonPress(button)}
+                    >
+                      <Text
+                        style={[
+                          styles.btnText,
+                          isCancel && { color: c.foreground },
+                          isDestructive && { color: '#fff' },
+                          !isCancel && !isDestructive && { color: c.primaryForeground },
+                        ]}
+                      >
+                        {button.text}
+                      </Text>
+                    </Pressable>
+                  )
+                })}
+              </View>
+            ) : (
+              // Stacked layout for 1 or 3+ buttons
+              <View style={styles.buttonStack}>
+                {alertButtons.map((button, index) => {
+                  const isCancel = button.style === 'cancel'
+                  const isDestructive = button.style === 'destructive'
+                  return (
+                    <Pressable
+                      key={index}
+                      style={({ pressed }) => [
+                        styles.btn,
+                        isCancel && {
+                          backgroundColor: isDark
+                            ? 'rgba(255,255,255,0.06)'
+                            : 'rgba(0,0,0,0.04)',
+                        },
+                        isDestructive && { backgroundColor: '#FF3B30' },
+                        !isCancel && !isDestructive && { backgroundColor: c.primary },
+                        { opacity: pressed ? 0.8 : 1 },
+                      ]}
+                      onPress={() => handleButtonPress(button)}
+                    >
+                      <Text
+                        style={[
+                          styles.btnText,
+                          isCancel && { color: c.foreground },
+                          isDestructive && { color: '#fff' },
+                          !isCancel && !isDestructive && { color: c.primaryForeground },
+                        ]}
+                      >
+                        {button.text}
+                      </Text>
+                    </Pressable>
+                  )
+                })}
+              </View>
+            )}
+          </View>
+        </View>
+      </View>
+    </Modal>
+  )
 }
 
+const { width: SCREEN_W } = Dimensions.get('window')
+
 const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    alertContainer: {
-        width: Dimensions.get('window').width * 0.8,
-        maxWidth: 340,
-        backgroundColor: 'white',
-        borderRadius: 20,
-        paddingTop: 24,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#111827',
-        textAlign: 'center',
-        marginBottom: 8,
-        paddingHorizontal: 24,
-    },
-    message: {
-        fontSize: 14,
-        color: '#374151',
-        textAlign: 'center',
-        marginBottom: 24,
-        paddingHorizontal: 24,
-        lineHeight: 20,
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
-        width: '100%',
-    },
-    button: {
-        flex: 1,
-        paddingVertical: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    buttonBorder: {
-        borderLeftWidth: 1,
-        borderLeftColor: '#E5E7EB',
-    },
-    buttonText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#4f3be7', // Primary color
-    },
-    cancelButton: {
-        // Optional specific styling for cancel button container
-    },
-    cancelButtonText: {
-        color: '#6B7280',
-        fontWeight: '400',
-    },
-    destructiveButton: {
-        // Optional specific styling for destructive button container
-    },
-    destructiveButtonText: {
-        color: '#EF4444',
-    },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  card: {
+    width: Math.min(SCREEN_W - 80, 320),
+    borderRadius: 20,
+    paddingTop: 28,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  iconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+    letterSpacing: -0.3,
+    marginBottom: 8,
+  },
+  message: {
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  buttonArea: {
+    width: '100%',
+    marginTop: 20,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  buttonStack: {
+    gap: 10,
+  },
+  btn: {
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnHalf: {
+    flex: 1,
+  },
+  btnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
 })

@@ -1,34 +1,34 @@
 import React from 'react'
-import { Feather } from '@expo/vector-icons'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { useSession } from '@/lib/auth'
 import { useTranslation } from 'react-i18next'
 import * as Clipboard from 'expo-clipboard'
 import {
-  SafeAreaView,
   StatusBar,
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   ScrollView,
 } from 'react-native'
-import BackButton from '@/components/ui/BackButton'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useRouter } from 'expo-router'
 import { useSubscription } from '@/lib/contexts/SubscriptionContext'
-import { useAlert } from '@/lib/contexts/AlertContext';
-import { getSubscriptionPlanDisplay } from '@/lib/subscription/plan';
+import { useAlert } from '@/lib/contexts/AlertContext'
+import { getSubscriptionPlanDisplay } from '@/lib/subscription/plan'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { BlurView } from 'expo-blur'
+import { neutral } from '@/lib/design-system'
 
 export default function AccountInfo() {
   const { data: session } = useSession()
   const user = session?.user
   const { t } = useTranslation()
   const { subscription, isSubscribed } = useSubscription()
-  const { showAlert } = useAlert();
-
+  const { showAlert } = useAlert()
   const { theme, mode } = useTheme()
   const c = theme.colors
   const isDark = mode === 'dark'
+  const router = useRouter()
 
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return 'N/A'
@@ -39,11 +39,8 @@ export default function AccountInfo() {
     }).format(new Date(date))
   }
 
-  // Determine subscription display based on status
   const getSubscriptionDisplay = () => {
-    if (!isSubscribed || !subscription) {
-      return t('accountInfo.free')
-    }
+    if (!isSubscribed || !subscription) return t('accountInfo.free')
     return getSubscriptionPlanDisplay(subscription)
   }
 
@@ -57,256 +54,307 @@ export default function AccountInfo() {
   const userName = user?.name || 'User'
   const userEmail = user?.email || 'No email'
   const memberSince = formatDate(user?.createdAt)
+  const cardBg = isDark ? neutral[900] : '#fff'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
 
-  interface InfoCardProps {
-    icon: keyof typeof Feather.glyphMap
+  type InfoRow = {
+    icon: string
+    iconBg: string
     label: string
     value: string
-    iconBackgroundColor: string
-    isPill?: boolean
+    badge?: boolean
+    badgeColor?: string
   }
 
-  const InfoCard: React.FC<InfoCardProps> = ({ icon, label, value, iconBackgroundColor, isPill }) => {
-    return (
-      <View style={styles.card}>
-        <View style={[styles.iconCircle, { backgroundColor: iconBackgroundColor }]}>
-          <Feather name={icon} size={20} color={c.background} />
-        </View>
-        <View style={styles.cardContent}>
-          <Text style={styles.cardLabel}>{label}</Text>
-          {isPill ? (
-            <View style={styles.pillContainer}>
-              <Text style={styles.pillText}>{value}</Text>
-            </View>
-          ) : (
-            <Text style={styles.cardValue}>{value}</Text>
-          )}
-        </View>
-      </View>
-    )
-  }
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: c.background,
+  const infoRows: InfoRow[] = [
+    {
+      icon: 'mail',
+      iconBg: '#007AFF',
+      label: t('accountInfo.email'),
+      value: userEmail,
     },
-    safeArea: {
-      flex: 1,
-      paddingHorizontal: 20,
-      marginVertical: 40,
+    {
+      icon: 'diamond',
+      iconBg: isSubscribed ? '#34C759' : '#AF52DE',
+      label: t('accountInfo.subscription'),
+      value: getSubscriptionDisplay(),
+      badge: true,
+      badgeColor: isSubscribed ? '#34C759' : undefined,
     },
-    topBar: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginTop: 8,
-      marginBottom: 16,
+    {
+      icon: 'calendar',
+      iconBg: '#FF9500',
+      label: t('accountInfo.memberSince'),
+      value: memberSince,
     },
-    timeBadge: {
-      backgroundColor: c.destructive,
-      paddingHorizontal: 12,
-      paddingVertical: 4,
-      borderRadius: 12,
-    },
-    timeText: {
-      color: c.background,
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    statusIcons: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    header: {
-      marginBottom: 24,
-    },
-    backButton: {
-      width: 40,
-      height: 40,
-      justifyContent: 'center',
-      alignItems: 'flex-start',
-    },
-    scrollView: {
-      flex: 1,
-    },
-    scrollContent: {
-      paddingBottom: 20,
-    },
-    // Glass profile section
-    profileSection: {
-      alignItems: 'center',
-      marginBottom: 40,
-    },
-    profilePicture: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      backgroundColor: c.foreground,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 16,
-      borderWidth: 0.5,
-      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-    },
-    profileInitial: {
-      fontSize: 40,
-      fontWeight: '500',
-      color: c.background,
-    },
-    userName: {
-      fontSize: 24,
-      fontWeight: '500',
-      color: c.foreground,
-      letterSpacing: -0.5,
-    },
-    sectionHeader: {
-      fontSize: 20,
-      fontWeight: '500',
-      color: c.foreground,
-      marginBottom: 20,
-      letterSpacing: -0.3,
-    },
-    cardsContainer: {
-      gap: 16,
-    },
-    // Glass info cards
-    card: {
-      backgroundColor: c.card,
-      borderRadius: 14,
-      padding: 20,
-      flexDirection: 'row',
-      alignItems: 'center',
-      shadowColor: c.foreground,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.08,
-      shadowRadius: 8,
-      elevation: 3,
-      borderWidth: 0.5,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-    },
-    iconCircle: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 16,
-    },
-    cardContent: {
-      flex: 1,
-    },
-    cardLabel: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: c.mutedForeground,
-      marginBottom: 4,
-      letterSpacing: -0.1,
-    },
-    cardValue: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: c.foreground,
-      letterSpacing: -0.2,
-    },
-    pillContainer: {
-      backgroundColor: c.border,
-      alignSelf: 'flex-start',
-      paddingHorizontal: 12,
-      paddingVertical: 4,
-      borderRadius: 12,
-    },
-    pillText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: c.mutedForeground,
-      letterSpacing: -0.1,
-    },
-    footer: {
-      paddingVertical: 16,
-      alignItems: 'center',
-    },
-    footerText: {
-      fontSize: 13,
-      color: c.mutedForeground,
-      fontWeight: '400',
-    },
-    homeIndicator: {
-      width: 134,
-      height: 5,
-      backgroundColor: c.foreground,
-      borderRadius: 3,
-      alignSelf: 'center',
-      marginBottom: 8,
-      opacity: 0.3,
-    },
-  })
+  ]
 
   return (
-    <>
-      <View style={styles.container}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-        <SafeAreaView style={styles.safeArea}>
-          {/* Back Button and Title */}
-          <View style={styles.header}>
-            <BackButton iconColor={c.foreground} />
+    <View style={[styles.container, { backgroundColor: isDark ? neutral[950] : '#f0f0f0' }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
+          >
+            <Feather name="arrow-left" size={24} color={c.foreground} />
+          </Pressable>
+          <Text style={[styles.headerTitle, { color: c.foreground }]}>Account</Text>
+          <View style={{ width: 24 }} />
+        </View>
+
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Profile card */}
+          <View style={[styles.profileCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+            <View style={[styles.avatar, { backgroundColor: c.primary }]}>
+              <Text style={styles.avatarText}>
+                {userName.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <Text style={[styles.userName, { color: c.foreground }]}>{userName}</Text>
+            <Text style={[styles.userEmail, { color: c.mutedForeground }]}>{userEmail}</Text>
+
+            {/* Subscription pill */}
+            <View
+              style={[
+                styles.subPill,
+                {
+                  backgroundColor: isSubscribed
+                    ? (isDark ? 'rgba(52,199,89,0.12)' : 'rgba(52,199,89,0.1)')
+                    : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                },
+              ]}
+            >
+              <Ionicons
+                name={isSubscribed ? 'checkmark-circle' : 'diamond'}
+                size={14}
+                color={isSubscribed ? '#34C759' : c.mutedForeground}
+              />
+              <Text
+                style={[
+                  styles.subPillText,
+                  { color: isSubscribed ? '#34C759' : c.mutedForeground },
+                ]}
+              >
+                {getSubscriptionDisplay()}
+              </Text>
+            </View>
           </View>
 
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
-            {/* Profile Section */}
-            <View style={styles.profileSection}>
-              <View style={styles.profilePicture}>
-                {user?.image ? (
-                  <Text style={styles.profileInitial}>
-                    {userName.charAt(0).toUpperCase()}
-                  </Text>
-                ) : (
-                  <Feather name="user" size={48} color={c.mutedForeground} />
+          {/* Account details */}
+          <Text style={[styles.sectionLabel, { color: c.mutedForeground }]}>ACCOUNT DETAILS</Text>
+          <View style={[styles.group, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+            {infoRows.map((row, idx) => (
+              <React.Fragment key={idx}>
+                <View style={styles.row}>
+                  <View style={[styles.iconCircle, { backgroundColor: row.iconBg }]}>
+                    <Ionicons name={row.icon as any} size={16} color="#fff" />
+                  </View>
+                  <View style={styles.rowContent}>
+                    <Text style={[styles.rowLabel, { color: c.mutedForeground }]}>
+                      {row.label}
+                    </Text>
+                    {row.badge ? (
+                      <View
+                        style={[
+                          styles.valueBadge,
+                          {
+                            backgroundColor: row.badgeColor
+                              ? (isDark ? `${row.badgeColor}1A` : `${row.badgeColor}14`)
+                              : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.valueBadgeText,
+                            { color: row.badgeColor || c.foreground },
+                          ]}
+                        >
+                          {row.value}
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text style={[styles.rowValue, { color: c.foreground }]}>
+                        {row.value}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+                {idx < infoRows.length - 1 && (
+                  <View style={[styles.separator, { backgroundColor: separatorColor }]} />
                 )}
+              </React.Fragment>
+            ))}
+          </View>
+
+          {/* Copy User ID */}
+          <Text style={[styles.sectionLabel, { color: c.mutedForeground }]}>SUPPORT</Text>
+          <Pressable
+            style={[styles.group, { backgroundColor: cardBg, borderColor: cardBorder }]}
+            onPress={copyUserId}
+          >
+            <View style={styles.row}>
+              <View style={[styles.iconCircle, { backgroundColor: '#8E8E93' }]}>
+                <Ionicons name="copy" size={16} color="#fff" />
               </View>
-              <Text style={styles.userName}>{userName}</Text>
+              <View style={styles.rowContent}>
+                <Text style={[styles.rowLabel, { color: c.mutedForeground }]}>
+                  User ID
+                </Text>
+                <Text style={[styles.rowValue, { color: c.foreground }]} numberOfLines={1}>
+                  {user?.id || 'N/A'}
+                </Text>
+              </View>
+              <Ionicons name="copy-outline" size={18} color={c.mutedForeground} />
             </View>
+          </Pressable>
+          <Text style={[styles.hintText, { color: c.mutedForeground }]}>
+            Tap to copy your User ID for customer support.
+          </Text>
 
-            {/* Account Details Header */}
-            <Text style={styles.sectionHeader}>{t('accountInfo.title')}</Text>
-
-            {/* Account Information Cards */}
-            <View style={styles.cardsContainer}>
-              <InfoCard
-                icon="mail"
-                label={t('accountInfo.email')}
-                value={userEmail}
-                iconBackgroundColor={c.info}
-              />
-              <InfoCard
-                icon="award"
-                label={t('accountInfo.subscription')}
-                value={getSubscriptionDisplay()}
-                iconBackgroundColor={c.primary}
-                isPill
-              />
-              <InfoCard
-                icon="calendar"
-                label={t('accountInfo.memberSince')}
-                value={memberSince}
-                iconBackgroundColor={c.warning}
-              />
-            </View>
-          </ScrollView>
-
-          {/* Footer */}
-          <TouchableOpacity onPress={copyUserId} style={styles.footer}>
-            <Text style={styles.footerText}>{t('accountInfo.customerSupport')}</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
-      </View>
-    </>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  safe: { flex: 1 },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: -0.3,
+  },
+
+  scroll: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
+
+  profileCard: {
+    alignItems: 'center',
+    padding: 28,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginBottom: 28,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  avatarText: {
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: '700',
+  },
+  userName: {
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+    marginBottom: 4,
+  },
+  userEmail: {
+    fontSize: 15,
+    marginBottom: 16,
+  },
+  subPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  subPillText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginLeft: 4,
+    marginTop: 4,
+  },
+
+  group: {
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  iconCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowContent: { flex: 1 },
+  rowLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    letterSpacing: 0.1,
+    marginBottom: 3,
+  },
+  rowValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
+  valueBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  valueBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 56,
+  },
+
+  hintText: {
+    fontSize: 12,
+    marginLeft: 4,
+    marginTop: -8,
+    marginBottom: 16,
+    lineHeight: 17,
+  },
+})

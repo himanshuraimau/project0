@@ -5,32 +5,25 @@ import {
     Text,
     StyleSheet,
     ScrollView,
-    TouchableOpacity,
+    Pressable,
     ActivityIndicator,
-    Share,
-    Platform,
     TextInput,
-    KeyboardAvoidingView,
 } from 'react-native';
 import ViewShot, { captureRef } from 'react-native-view-shot';
-import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
-import { Edit, ZoomIn, ZoomOut, Download, Share2, Eye, Save } from 'lucide-react-native';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import WebView from 'react-native-webview';
 import { useRouter } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
-import { BlurView } from 'expo-blur';
 import { notesApi } from '@/lib/api';
 import { getMindMapByNoteId, generateMindMap, deleteMindMap } from '@/lib/api/mindmap';
 import type { Note, MindMap } from '@/lib/api/types';
 import { getTranslatedNote } from '@/lib/utils/translation';
-import BackButton from '@/components/ui/BackButton';
 import { useAlert } from '@/lib/contexts/AlertContext';
-import CustomAlert from '@/components/ui/CustomAlert';
 import { useTheme } from '@/lib/hooks/useTheme';
+import { neutral } from '@/lib/design-system';
 
 interface MindmapViewProps {
     noteId: string;
@@ -42,6 +35,9 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     const { theme, mode } = useTheme();
     const c = theme.colors;
     const isDark = mode === 'dark';
+    const pageBg = isDark ? neutral[950] : '#f0f0f0';
+    const cardBg = isDark ? neutral[900] : '#fff';
+    const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
     const webViewRef = useRef<WebView>(null);
     const [note, setNote] = useState<Note | null>(null);
     const [mindmap, setMindmap] = useState<MindMap | null>(null);
@@ -52,7 +48,6 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     const [isSaving, setIsSaving] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [markdownInput, setMarkdownInput] = useState('');
-    const [showSavedAlert, setShowSavedAlert] = useState(false);
     const viewShotRef = useRef(null);
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
     const captureResolveRef = useRef<((uri: string | null) => void) | null>(null);
@@ -512,7 +507,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             await MediaLibrary.createAlbumAsync('Mindmaps', asset, false);
 
             // Show success alert
-            setShowSavedAlert(true);
+            showAlert('Mindmap Saved', 'Your mindmap has been saved to your photo library.');
 
         } catch (err: any) {
             console.error('Failed to save image:', err);
@@ -603,54 +598,67 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     const styles = StyleSheet.create({
         safeArea: {
             flex: 1,
-            backgroundColor: c.background,
+            backgroundColor: pageBg,
         },
         container: {
             flex: 1,
-            backgroundColor: c.background,
+            backgroundColor: pageBg,
         },
         header: {
             flexDirection: 'row',
-            justifyContent: 'space-between',
             alignItems: 'center',
-            paddingHorizontal: 20,
+            paddingHorizontal: 16,
             paddingVertical: 10,
-            borderBottomWidth: 1,
-            borderBottomColor: c.border,
+            backgroundColor: pageBg,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: cardBorder,
         },
-        headerSpacer: {
-            width: 48,
-        },
-        headerButton: {
-            width: 48,
-            height: 48,
+        headerBackBtn: {
+            width: 34,
+            height: 34,
+            borderRadius: 17,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)',
             justifyContent: 'center',
             alignItems: 'center',
-        },
-        headerButtonDisabled: {
-            opacity: 0.5,
         },
         titleContainer: {
             flex: 1,
             alignItems: 'center',
         },
         title: {
-            fontSize: 24,
-            fontWeight: '500',
+            fontSize: 17,
+            fontWeight: '600',
             color: c.foreground,
             textAlign: 'center',
         },
+        headerButtons: {
+            flexDirection: 'row',
+            gap: 8,
+        },
+        headerIconBtn: {
+            width: 34,
+            height: 34,
+            borderRadius: 17,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        headerButtonDisabled: {
+            opacity: 0.5,
+        },
         scrollView: {
             flex: 1,
-            backgroundColor: c.background,
+            backgroundColor: pageBg,
         },
         scrollContent: {
             paddingHorizontal: 20,
             paddingVertical: 20,
         },
         card: {
-            backgroundColor: c.card,
-            borderRadius: 16,
+            backgroundColor: cardBg,
+            borderRadius: 18,
+            borderWidth: 1,
+            borderColor: cardBorder,
             paddingHorizontal: 10,
             paddingVertical: 20,
             marginBottom: 16,
@@ -661,36 +669,13 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             color: c.foreground,
             marginBottom: 12,
         },
-        titleSection: {
-            marginBottom: 24,
-        },
-        metadataRow: {
-            flexDirection: 'row',
-            alignItems: 'center',
-        },
-        metadataText: {
-            fontSize: 14,
-            color: c.mutedForeground,
-            fontWeight: '500',
-        },
-        metadataDot: {
-            width: 4,
-            height: 4,
-            borderRadius: 2,
-            backgroundColor: c.mutedForeground,
-            marginHorizontal: 8,
-        },
-        mindMapContainer: {
-            minHeight: 500,
-            paddingVertical: 20,
-        },
         mindMapWebViewContainer: {
             height: 335,
             borderRadius: 12,
             overflow: 'hidden',
-            backgroundColor: c.background,
+            backgroundColor: pageBg,
             borderWidth: 1,
-            borderColor: c.border,
+            borderColor: cardBorder,
         },
         markdownInput: {
             flex: 1,
@@ -698,16 +683,12 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             fontSize: 14,
             fontFamily: 'monospace',
             color: c.foreground,
-            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
-            borderColor: c.border,
-        },
-        headerButtons: {
-            flexDirection: 'row',
-            gap: 8,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+            borderRadius: 12,
         },
         webView: {
             flex: 1,
-            backgroundColor: c.background,
+            backgroundColor: pageBg,
         },
         webViewLoading: {
             position: 'absolute',
@@ -717,7 +698,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             bottom: 0,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: c.background,
+            backgroundColor: pageBg,
         },
         footer: {
             gap: 12,
@@ -728,8 +709,8 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            paddingVertical: 16,
-            borderRadius: 12,
+            height: 54,
+            borderRadius: 16,
             gap: 8,
         },
         saveButtonDisabled: {
@@ -746,14 +727,12 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         },
         shareButton: {
             flex: 1,
-            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.card,
+            backgroundColor: isDark ? neutral[900] : neutral[100],
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            paddingVertical: 16,
-            borderRadius: 12,
-            borderWidth: 0.5,
-            borderColor: c.border,
+            height: 54,
+            borderRadius: 16,
             gap: 8,
         },
         shareButtonText: {
@@ -764,10 +743,11 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         createButton: {
             flex: 1,
             backgroundColor: c.primary,
+            flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            paddingVertical: 16,
-            borderRadius: 12,
+            height: 54,
+            borderRadius: 16,
         },
         createButtonText: {
             color: c.primaryForeground,
@@ -793,6 +773,15 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             paddingVertical: 40,
             paddingHorizontal: 40,
         },
+        errorIconCircle: {
+            width: 72,
+            height: 72,
+            borderRadius: 36,
+            backgroundColor: 'rgba(255,59,48,0.12)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginBottom: 16,
+        },
         errorText: {
             color: c.destructive,
             fontSize: 16,
@@ -801,10 +790,12 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             marginBottom: 20,
         },
         retryButton: {
-            paddingVertical: 12,
-            paddingHorizontal: 24,
+            height: 48,
+            paddingHorizontal: 32,
             backgroundColor: c.primary,
-            borderRadius: 12,
+            borderRadius: 14,
+            justifyContent: 'center',
+            alignItems: 'center',
         },
         retryButtonText: {
             color: c.primaryForeground,
@@ -818,26 +809,34 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             paddingVertical: 60,
             paddingHorizontal: 40,
         },
+        emptyIconCircle: {
+            width: 72,
+            height: 72,
+            borderRadius: 36,
+            backgroundColor: isDark ? 'rgba(79,59,231,0.15)' : 'rgba(79,59,231,0.1)',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
         emptyStateTitle: {
-            marginTop: 24,
+            marginTop: 20,
             color: c.foreground,
-            fontSize: 24,
+            fontSize: 22,
             textAlign: 'center',
-            fontWeight: '500',
+            fontWeight: '600',
         },
         emptyStateSubtitle: {
-            marginTop: 12,
+            marginTop: 8,
             color: c.mutedForeground,
-            fontSize: 16,
+            fontSize: 15,
             textAlign: 'center',
-            lineHeight: 24,
+            lineHeight: 22,
         },
         generateButton: {
-            marginTop: 32,
-            paddingVertical: 16,
+            marginTop: 28,
+            height: 52,
             paddingHorizontal: 32,
             backgroundColor: c.primary,
-            borderRadius: 12,
+            borderRadius: 14,
             flexDirection: 'row',
             alignItems: 'center',
             gap: 8,
@@ -848,7 +847,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             color: c.primaryForeground,
             fontSize: 16,
             fontWeight: '600',
-            marginLeft: 8,
+            marginLeft: 4,
         },
         backButtonError: {
             marginTop: 12,
@@ -865,6 +864,7 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     if (loading) {
         return (
             <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+                <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
                 <View style={styles.container}>
                     <View style={styles.loadingContainer}>
                         <ActivityIndicator size="large" color={c.primary} />
@@ -879,12 +879,32 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
     if (error || !note) {
         return (
             <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+                <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
                 <View style={styles.container}>
+                    {/* Error header with back arrow */}
+                    <View style={styles.header}>
+                        <Pressable
+                            onPress={() => router.back()}
+                            style={({ pressed }) => [styles.headerBackBtn, { opacity: pressed ? 0.7 : 1 }]}
+                        >
+                            <Feather name="arrow-left" size={20} color={c.foreground} />
+                        </Pressable>
+                        <View style={styles.titleContainer}>
+                            <Text style={styles.title}>Mind Map</Text>
+                        </View>
+                        <View style={{ width: 34 }} />
+                    </View>
                     <View style={styles.errorContainer}>
+                        <View style={styles.errorIconCircle}>
+                            <Feather name="alert-circle" size={32} color="#FF3B30" />
+                        </View>
                         <Text style={styles.errorText}>{error || 'Failed to load note'}</Text>
-                        <TouchableOpacity style={styles.retryButton} onPress={fetchNoteAndMindmap}>
+                        <Pressable
+                            style={({ pressed }) => [styles.retryButton, { opacity: pressed ? 0.7 : 1 }]}
+                            onPress={fetchNoteAndMindmap}
+                        >
                             <Text style={styles.retryButtonText}>Retry</Text>
-                        </TouchableOpacity>
+                        </Pressable>
                     </View>
                 </View>
             </SafeAreaView>
@@ -913,13 +933,15 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                 <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
                 <View style={styles.container}>
                     <View style={styles.emptyStateContainer}>
-                        <Feather name="help-circle" size={64} color={c.primary} />
-                        <Text style={styles.emptyStateTitle}>No Mindmap Available</Text>
+                        <View style={styles.emptyIconCircle}>
+                            <Ionicons name="git-network" size={34} color={c.primary} />
+                        </View>
+                        <Text style={styles.emptyStateTitle}>No Mind Map Yet</Text>
                         <Text style={styles.emptyStateSubtitle}>
-                            Generate a mindmap from this note to visualize key concepts
+                            Generate a mind map from this note to visualize key concepts
                         </Text>
-                        <TouchableOpacity
-                            style={styles.generateButton}
+                        <Pressable
+                            style={({ pressed }) => [styles.generateButton, { opacity: pressed ? 0.7 : 1 }]}
                             onPress={handleGenerateMindmap}
                             disabled={isGenerating}
                         >
@@ -927,17 +949,17 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                                 <ActivityIndicator size="small" color={c.primaryForeground} />
                             ) : (
                                 <>
-                                    <Feather name="zap" size={20} color={c.primaryForeground} />
-                                    <Text style={styles.generateButtonText}>Generate Mindmap</Text>
+                                    <Ionicons name="flash" size={20} color={c.primaryForeground} />
+                                    <Text style={styles.generateButtonText}>Generate Mind Map</Text>
                                 </>
                             )}
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.backButtonError}
+                        </Pressable>
+                        <Pressable
+                            style={({ pressed }) => [styles.backButtonError, { opacity: pressed ? 0.7 : 1 }]}
                             onPress={() => router.back()}
                         >
                             <Text style={styles.backButtonErrorText}>Go Back</Text>
-                        </TouchableOpacity>
+                        </Pressable>
                     </View>
                 </View>
             </SafeAreaView>
@@ -950,33 +972,42 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             <View style={styles.container}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <BackButton iconColor={c.foreground} />
+                    <Pressable
+                        onPress={handleBack}
+                        style={({ pressed }) => [styles.headerBackBtn, { opacity: pressed ? 0.7 : 1 }]}
+                    >
+                        <Feather name="arrow-left" size={20} color={c.foreground} />
+                    </Pressable>
                     <View style={styles.titleContainer}>
-                        <Text style={styles.title}>MindMap</Text>
+                        <Text style={styles.title}>Mind Map</Text>
                     </View>
                     <View style={styles.headerButtons}>
-                        <TouchableOpacity
+                        <Pressable
                             onPress={toggleEditMode}
-                            style={styles.headerButton}
+                            style={({ pressed }) => [styles.headerIconBtn, { opacity: pressed ? 0.7 : 1 }]}
                             disabled={!mindmap}
                         >
                             {isEditing ? (
-                                <Eye size={24} color={c.primary} />
+                                <Feather name="eye" size={18} color={c.primary} />
                             ) : (
-                                <Edit size={24} color={c.primary} />
+                                <Feather name="edit-2" size={18} color={c.primary} />
                             )}
-                        </TouchableOpacity>
-                        <TouchableOpacity
+                        </Pressable>
+                        <Pressable
                             onPress={handleDeleteMindmap}
-                            style={[styles.headerButton, isDeleting && styles.headerButtonDisabled]}
+                            style={({ pressed }) => [
+                                styles.headerIconBtn,
+                                isDeleting && styles.headerButtonDisabled,
+                                { opacity: pressed ? 0.7 : 1 },
+                            ]}
                             disabled={isDeleting || !mindmap}
                         >
                             {isDeleting ? (
-                                <ActivityIndicator size="small" color={c.destructive} />
+                                <ActivityIndicator size="small" color="#FF3B30" />
                             ) : (
-                                <Feather name="trash-2" size={24} color={mindmap ? c.destructive : c.border} />
+                                <Feather name="trash-2" size={18} color={mindmap ? '#FF3B30' : c.border} />
                             )}
-                        </TouchableOpacity>
+                        </Pressable>
                     </View>
                 </View>
 
@@ -1035,9 +1066,13 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                     {mindmap && (
                         <View style={styles.footer}>
                             {/* Save as Image Button */}
-                            <TouchableOpacity
+                            <Pressable
                                 onPress={handleSaveAsImage}
-                                style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+                                style={({ pressed }) => [
+                                    styles.saveButton,
+                                    isSaving && styles.saveButtonDisabled,
+                                    { opacity: pressed ? 0.7 : 1 },
+                                ]}
                                 disabled={isSaving}
                             >
                                 {isSaving ? (
@@ -1047,42 +1082,33 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                                     </>
                                 ) : (
                                     <>
-                                        <Download size={20} color={c.background} />
+                                        <Feather name="download" size={20} color={c.background} />
                                         <Text style={styles.saveButtonText}>Save as Image</Text>
                                     </>
                                 )}
-                            </TouchableOpacity>
+                            </Pressable>
 
                             {/* Share and Create New Buttons */}
                             <View style={styles.actionRow}>
-                                <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
-                                    <Share2 size={20} color={c.foreground} />
+                                <Pressable
+                                    onPress={handleShare}
+                                    style={({ pressed }) => [styles.shareButton, { opacity: pressed ? 0.7 : 1 }]}
+                                >
+                                    <Feather name="share-2" size={20} color={c.foreground} />
                                     <Text style={styles.shareButtonText}>Share</Text>
-                                </TouchableOpacity>
+                                </Pressable>
 
-                                <TouchableOpacity onPress={handleCreateNew} style={styles.createButton}>
+                                <Pressable
+                                    onPress={handleCreateNew}
+                                    style={({ pressed }) => [styles.createButton, { opacity: pressed ? 0.7 : 1 }]}
+                                >
                                     <Text style={styles.createButtonText}>Regenerate</Text>
-                                </TouchableOpacity>
+                                </Pressable>
                             </View>
                         </View>
                     )}
                 </ScrollView>
             </View>
-
-            {/* Custom Alert for Mindmap Saved */}
-            <CustomAlert
-                visible={showSavedAlert}
-                title="Mindmap Saved"
-                message="Your mindmap has been saved to your photo library."
-                buttons={[
-                    {
-                        text: 'OK',
-                        style: 'default',
-                        onPress: () => setShowSavedAlert(false),
-                    },
-                ]}
-                onClose={() => setShowSavedAlert(false)}
-            />
         </SafeAreaView>
     );
 };

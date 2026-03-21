@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import notesApi from '@/lib/api/notes';
 import { transcribeAudio } from '@/lib/api/audio';
 import { processWebpage } from '@/lib/api/webpage';
 import { processYouTube, ProcessYouTubeRequest, ProcessYouTubeResponse } from '@/lib/api/transcripts';
 import { processPDF } from '@/lib/api/pdf';
+import { useAlert } from '@/lib/contexts/AlertContext';
 import {
     CreateNoteRequest,
     GenerateNoteRequest,
@@ -33,15 +33,15 @@ interface UseNoteCreationResult {
 
 export const useNoteCreation = (): UseNoteCreationResult => {
     const router = useRouter();
+    const { showAlert } = useAlert();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleNoteLimitError = (error: any) => {
-        // Check if it's a note limit error (status 403 and has specific fields)
         if (error.statusCode === 403 && (error.message?.includes('limit') || error.notesLimit)) {
-            Alert.alert(
+            showAlert(
                 'Free Limit Reached',
-                `You've reached the free tier limit of ${error.notesLimit || 1} note. Upgrade to Pro for unlimited notes!`,
+                `You\u2019ve reached the free tier limit of ${error.notesLimit || 1} note. Upgrade to Pro for unlimited notes!`,
                 [
                     {
                         text: 'Cancel',
@@ -50,7 +50,6 @@ export const useNoteCreation = (): UseNoteCreationResult => {
                     {
                         text: 'Upgrade Now',
                         onPress: () => router.push('/(onboarding)/paywall/paywall5'),
-                        style: 'default',
                     },
                 ]
             );
@@ -71,16 +70,13 @@ export const useNoteCreation = (): UseNoteCreationResult => {
         } catch (err: any) {
             console.error(errorMessage, err);
 
-            // Handle note limit error
             if (handleNoteLimitError(err)) {
-                // Error was handled by redirect
                 return null;
             }
 
-            // Handle other errors
             const msg = err.message || 'An unexpected error occurred';
             setError(msg);
-            Alert.alert('Error', msg);
+            showAlert('Error', msg);
             return null;
         } finally {
             setIsLoading(false);

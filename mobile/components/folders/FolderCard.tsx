@@ -1,111 +1,78 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Folder, ChevronRight } from 'lucide-react-native';
-import type { FolderWithCount } from '@/lib/api/types';
+import React from 'react'
+import { View, Text, StyleSheet, Pressable } from 'react-native'
+import { Folder } from 'lucide-react-native'
+import { Feather } from '@expo/vector-icons'
+import type { FolderWithCount } from '@/lib/api/types'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { neutral } from '@/lib/design-system'
 
 interface FolderCardProps {
-  folder: FolderWithCount;
-  onPress: () => void;
+  folder: FolderWithCount
+  onPress: () => void
+  isLast?: boolean
 }
 
-export const FolderCard: React.FC<FolderCardProps> = ({ folder, onPress }) => {
-  const folderColor = folder.color || '#6366f1';
+export const FolderCard: React.FC<FolderCardProps> = ({ folder, onPress, isLast = false }) => {
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
+  const folderColor = folder.color || '#6366f1'
+
+  const cardBg = isDark ? neutral[900] : '#fff'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
 
   return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.card,
-        pressed && styles.cardPressed,
-      ]}
-      onPress={onPress}
-    >
-      {/* Folder Icon with Color */}
-      <View
-        style={[
-          styles.iconContainer,
-          { backgroundColor: `${folderColor}15` },
-        ]}
+    <View style={[styles.cardWrap, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+      <Pressable
+        style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+        onPress={onPress}
       >
-        <Folder size={32} color={folderColor} />
-      </View>
-
-      {/* Folder Info */}
-      <View style={styles.contentContainer}>
-        <Text style={styles.folderName} numberOfLines={1}>
-          {folder.name}
-        </Text>
-        
-        {folder.description && (
-          <Text style={styles.folderDescription} numberOfLines={2}>
-            {folder.description}
+        <View style={[styles.iconWrap, { backgroundColor: `${folderColor}14` }]}>
+          <Folder size={22} color={folderColor} />
+        </View>
+        <View style={styles.info}>
+          <Text style={[styles.name, { color: c.foreground }]} numberOfLines={1}>
+            {folder.name}
           </Text>
-        )}
-
-        <Text style={styles.noteCount}>
-          {folder.noteCount} {folder.noteCount === 1 ? 'note' : 'notes'}
-        </Text>
-      </View>
-
-      {/* Chevron */}
-      <View style={styles.chevronContainer}>
-        <ChevronRight size={22} color="#9CA3AF" />
-      </View>
-    </Pressable>
-  );
-};
+          {folder.description ? (
+            <Text style={[styles.desc, { color: c.mutedForeground }]} numberOfLines={1}>
+              {folder.description}
+            </Text>
+          ) : null}
+          <Text style={[styles.count, { color: c.mutedForeground }]}>
+            {folder.noteCount} {folder.noteCount === 1 ? 'note' : 'notes'}
+          </Text>
+        </View>
+        <Feather name="chevron-right" size={18} color={isDark ? neutral[600] : neutral[400]} />
+      </Pressable>
+    </View>
+  )
+}
 
 const styles = StyleSheet.create({
-  card: {
+  cardWrap: {
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 20,
-    marginHorizontal: 4,
-    marginVertical: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 14,
   },
-  cardPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.98 }],
-  },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  contentContainer: {
-    flex: 1,
-    marginRight: 10,
-  },
-  folderName: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: 6,
-  },
-  folderDescription: {
-    fontSize: 15,
-    color: '#6B7280',
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  noteCount: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
-  chevronContainer: {
-    width: 28,
-    height: 28,
+  iconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+  info: { flex: 1 },
+  name: { fontSize: 16, fontWeight: '600', marginBottom: 2 },
+  desc: { fontSize: 13, marginBottom: 2 },
+  count: { fontSize: 13, fontWeight: '500' },
+})

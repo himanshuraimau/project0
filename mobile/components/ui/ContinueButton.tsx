@@ -1,8 +1,3 @@
-/**
- * Continue button — solid foreground fill, iOS style.
- * No gradients, no hardcoded colors. Theme-aware.
- */
-
 import React from 'react'
 import { Pressable, StyleProp, StyleSheet, Text, ViewStyle } from 'react-native'
 import { Feather } from '@expo/vector-icons'
@@ -41,7 +36,7 @@ export function ContinueButton({
           {
             backgroundColor: disabled
               ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)')
-              : c.foreground,
+              : c.primary,
             opacity: disabled ? 1 : pressed ? 0.85 : 1,
           },
           style,
@@ -53,7 +48,7 @@ export function ContinueButton({
             {
               color: disabled
                 ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')
-                : c.background,
+                : c.primaryForeground,
               fontWeight: t.weightSemibold,
             },
           ]}
@@ -66,7 +61,7 @@ export function ContinueButton({
           color={
             disabled
               ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')
-              : c.background
+              : c.primaryForeground
           }
         />
       </Pressable>
@@ -76,13 +71,13 @@ export function ContinueButton({
 
 const styles = StyleSheet.create({
   btn: {
-    height: 54,
+    height: 56,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 8,
     width: '100%',
   },
-  label: { fontSize: 17 },
+  label: { fontSize: 17, letterSpacing: -0.2 },
 })

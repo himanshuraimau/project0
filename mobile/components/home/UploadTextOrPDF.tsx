@@ -3,12 +3,12 @@ import {
   View,
   Text,
   Modal,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   SafeAreaView,
   TextInput,
-  Dimensions,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useNoteCreation } from '@/lib/hooks/useNoteCreation';
 import * as DocumentPicker from 'expo-document-picker';
@@ -16,29 +16,6 @@ import FullWidthButton from '@/components/ui/FullWidthButton';
 import FolderSelect from '@/components/ui/FolderSelect';
 import { useAlert } from '@/lib/contexts/AlertContext';
 import { useTheme } from '@/lib/hooks/useTheme';
-
-// Prefer react-native-vector-icons when available; fallback to emoji glyphs so component is resilient in all environments
-let Icon: any = null;
-try {
-  // use MaterialCommunityIcons for common glyphs
-  // eslint-disable-next-line global-require
-  Icon = require('react-native-vector-icons/MaterialCommunityIcons').default;
-} catch (e) {
-  // fallback local Icon
-  Icon = ({ name, size = 18, color = '#000', style }: any) => {
-    const map: Record<string, string> = {
-      close: '✕',
-      'chevron-down': '▾',
-      caret: '▾',
-      chevronRight: '▶',
-      file: '📄',
-      sparkle: '✨',
-      person: '👤',
-    };
-    const glyph = map[name] ?? '◻️';
-    return <Text style={[{ fontSize: size, color }, style]}>{glyph}</Text>;
-  };
-}
 
 type Props = {
   visible?: boolean;
@@ -55,6 +32,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
   const { theme, mode } = useTheme();
   const c = theme.colors;
   const isDark = mode === 'dark';
+  const inputBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
   const visible = typeof visibleProp === 'boolean' ? visibleProp : internalVisible;
   const [titleValue, setTitleValue] = useState('');
   const [textValue, setTextValue] = useState('');
@@ -267,92 +245,65 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
       backgroundColor: c.card,
       borderTopLeftRadius: 16,
       borderTopRightRadius: 16,
-      paddingHorizontal: 10,
+      paddingHorizontal: 16,
       paddingBottom: 16,
-    },
-    containerContent: {
-      paddingTop: 0,
-      borderTopLeftRadius: 0,
-      borderTopRightRadius: 0,
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 7,
-      marginHorizontal: 8,
+      paddingBottom: 12,
+      marginBottom: 4,
     },
     title: { color: c.foreground, fontSize: 20, fontWeight: '600' },
-    separator: {
-      height: 1,
-      backgroundColor: c.border,
-      marginHorizontal: -40,
-      width: Dimensions.get('window').width + 20,
+    closeButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: inputBg,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    field: { marginTop: 8 },
+    field: { marginTop: 12 },
     label: {
-      fontFamily: 'Inter',
-      fontWeight: '500',
-      fontSize: 18,
-      lineHeight: 32,
-      color: c.foreground,
-      marginBottom: 6,
+      fontSize: 12,
+      fontWeight: '600',
+      letterSpacing: 0.5,
+      color: c.mutedForeground,
+      marginBottom: 8,
+      textTransform: 'uppercase',
     },
     errorContainer: {
       backgroundColor: isDark ? 'rgba(239,68,68,0.12)' : '#FEE2E2',
-      borderRadius: 8,
+      borderRadius: 12,
       padding: 12,
       marginBottom: 12,
-      borderWidth: 1,
-      borderColor: isDark ? 'rgba(239,68,68,0.25)' : '#FCA5A5',
     },
     errorText: {
       color: c.destructive,
       fontSize: 14,
       fontWeight: '600',
     },
-    titleInput: {
-      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: c.border,
-      padding: 12,
-      color: c.foreground,
-      fontSize: 14,
-    },
     textInput: {
-      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
-      borderRadius: 10,
-      borderWidth: 1.26,
-      borderColor: c.border,
-      padding: 12,
+      backgroundColor: inputBg,
+      borderRadius: 12,
+      padding: 14,
       textAlignVertical: 'top',
       minHeight: 120,
       color: c.foreground,
-    },
-    folderRow: { flexDirection: 'row', alignItems: 'center' },
-    folderIconWrap: {
-      width: 28,
-      height: 28,
-      borderRadius: 8,
-      backgroundColor: c.accent,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: 8,
+      fontSize: 14,
     },
     pdfListContainer: {
-      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : c.muted,
+      backgroundColor: inputBg,
       borderRadius: 12,
       padding: 8,
-      borderWidth: 0.5,
-      borderColor: c.border,
     },
     pdfItem: {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: c.card,
-      borderRadius: 8,
-      padding: 10,
+      borderRadius: 10,
+      padding: 12,
       marginBottom: 6,
     },
     pdfName: {
@@ -360,102 +311,102 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
       color: c.foreground,
       fontSize: 14,
       fontWeight: '500',
+      marginLeft: 10,
     },
     removePdfButton: {
-      padding: 4,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: isDark ? 'rgba(239,68,68,0.12)' : '#FEE2E2',
+      alignItems: 'center',
+      justifyContent: 'center',
       marginLeft: 8,
     },
     actionsColumn: {
       flexDirection: 'column',
-      marginTop: 18,
-    },
-    buttonDisabled: {
-      opacity: 0.5,
+      marginTop: 16,
     },
   });
 
   const inner = (
-    <>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Upload Text</Text>
-          <TouchableOpacity onPress={close} disabled={loading}>
-            <Icon name="close" size={20} color={c.foreground} />
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Upload Text</Text>
+        <Pressable onPress={close} disabled={loading} style={styles.closeButton}>
+          <Feather name="x" size={18} color={c.foreground} />
+        </Pressable>
       </View>
-      <View style={styles.separator} />
-      <View style={[styles.container, styles.containerContent]}>
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Text</Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Enter your text here..."
-            placeholderTextColor={c.mutedForeground}
-            multiline
-            numberOfLines={6}
-            value={textValue}
-            onChangeText={setTextValue}
-            editable={!loading}
-          />
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
         </View>
+      )}
 
-        <FolderSelect
-          value={folder}
-          onValueChange={(val: string) => setFolder(val)}
+      <View style={styles.field}>
+        <Text style={styles.label}>TEXT</Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Enter your text here..."
+          placeholderTextColor={c.mutedForeground}
+          multiline
+          numberOfLines={6}
+          value={textValue}
+          onChangeText={setTextValue}
+          editable={!loading}
+        />
+      </View>
+
+      <FolderSelect
+        value={folder}
+        onValueChange={(val: string) => setFolder(val)}
+        style={{ marginTop: 12 }}
+      />
+
+      {selectedPDFs.length > 0 && (
+        <View style={[styles.field, { marginTop: 12 }]}>
+          <Text style={styles.label}>SELECTED PDFS ({selectedPDFs.length})</Text>
+          <View style={styles.pdfListContainer}>
+            {selectedPDFs.map((pdf, index) => (
+              <View key={index} style={styles.pdfItem}>
+                <Feather name="file-text" size={16} color={c.primary} />
+                <Text style={styles.pdfName} numberOfLines={1}>
+                  {pdf.name}
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    setSelectedPDFs(prev => prev.filter((_, i) => i !== index));
+                  }}
+                  style={styles.removePdfButton}
+                >
+                  <Feather name="x" size={14} color={c.destructive} />
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      <View style={styles.actionsColumn}>
+        <FullWidthButton
+          onPress={handleImportPDF}
+          disabled={loading}
+          buttonText="Import PDF(s)"
+          icon={<Feather name="file-text" size={18} color={c.foreground} style={{ marginRight: 8 }} />}
+          backgroundColor={inputBg}
+          textColor={c.foreground}
+          style={{ marginTop: 0 }}
         />
 
-        {selectedPDFs.length > 0 && (
-          <View style={[styles.field, { marginTop: 10 }]}>
-            <Text style={styles.label}>Selected PDFs ({selectedPDFs.length})</Text>
-            <View style={styles.pdfListContainer}>
-              {selectedPDFs.map((pdf, index) => (
-                <View key={index} style={styles.pdfItem}>
-                  <Icon name="file" size={16} color={c.primary} style={{ marginRight: 8 }} />
-                  <Text style={styles.pdfName} numberOfLines={1}>
-                    {pdf.name}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setSelectedPDFs(prev => prev.filter((_, i) => i !== index));
-                    }}
-                    style={styles.removePdfButton}
-                  >
-                    <Icon name="close" size={16} color={c.destructive} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        <View style={styles.actionsColumn}>
-          <FullWidthButton
-            onPress={handleImportPDF}
-            disabled={loading}
-            buttonText="Import PDF(s)"
-            icon={<Icon name="file" size={20} color={c.foreground} style={{ marginRight: 8 }} />}
-            backgroundColor={c.border}
-            textColor={c.foreground}
-            style={{ marginTop: 0 }}
-          />
-
-          <FullWidthButton
-            onPress={handleGenerateNote}
-            disabled={false}
-            loading={loading}
-            loadingText="Creating..."
-            buttonText="Generate Notes"
-          />
-        </View>
+        <FullWidthButton
+          onPress={handleGenerateNote}
+          disabled={false}
+          loading={loading}
+          loadingText="Creating..."
+          buttonText="Generate Notes"
+        />
       </View>
-    </>
+    </View>
   );
 
   if (inline) return <View>{inner}</View>;
@@ -463,7 +414,7 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
-        <TouchableOpacity style={styles.backdrop} onPress={close} />
+        <Pressable style={styles.backdrop} onPress={close} />
         <SafeAreaView style={{ flex: 1 }}>
           {inner}
         </SafeAreaView>

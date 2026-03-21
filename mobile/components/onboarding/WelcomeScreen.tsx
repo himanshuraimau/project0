@@ -1,279 +1,309 @@
-import { Link, useRouter } from "expo-router";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
+  ActivityIndicator,
   Dimensions,
   Image,
+  Linking,
+  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
-import {
-  Mic,
-  FileText,
-  MessageSquare,
-  BrainCircuit,
-  Headphones,
-  Layers,
-  Sparkles,
-  BookOpen,
-  PenTool,
-} from "lucide-react-native";
+import { Star, TrendingUp, ArrowDown } from "lucide-react-native";
+import * as WebBrowser from "expo-web-browser";
+import Constants from "expo-constants";
+import * as ExpoLinking from "expo-linking";
 import { useTheme } from "@/lib/hooks/useTheme";
-import { neutral } from "@/lib/design-system";
+import { brand, neutral } from "@/lib/design-system";
 import {
   Animated,
-  authEntrance,
   welcomeEntrance,
+  authEntrance,
   usePressScale,
 } from "@/lib/ui/auth-animations";
+import {
+  maybeCompleteAuthSessionOnce,
+  signInWithGoogleSingleFlight,
+} from "@/lib/auth/social-google";
+
+maybeCompleteAuthSessionOnce();
+const APP_SCHEME = (
+  process.env.EXPO_PUBLIC_APP_SCHEME || "flinote"
+).toLowerCase();
+const IS_EXPO_GO = Constants.appOwnership === "expo";
+const MOBILE_AUTH_CALLBACK_URL = IS_EXPO_GO
+  ? ExpoLinking.createURL("/sign-in")
+  : ExpoLinking.createURL("/sign-in", { scheme: APP_SCHEME });
+
+const TERMS_URL = "https://flinote.ai/terms";
+const PRIVACY_URL = "https://flinote.ai/privacy";
 
 const { width: SCREEN_W } = Dimensions.get("window");
-const EDGE = 24;
-const TILE_GAP = 10;
-const TILES_PER_ROW = 4;
-const TILE_SIZE =
-  (SCREEN_W - EDGE * 2 - TILE_GAP * (TILES_PER_ROW - 1)) / TILES_PER_ROW;
+const GOOGLE_LOGO = require("../../assets/icons/googlePng.webp");
 
-/* ── Feature tiles surrounding the app icon ─────────────────────────── */
-const FEATURES = [
-  { icon: Mic, label: "Record" },
-  { icon: FileText, label: "Notes" },
-  { icon: Sparkles, label: "AI" },
-  { icon: BrainCircuit, label: "Quiz" },
-  { icon: PenTool, label: "Flash" },
-  { icon: null, label: "" }, // center — app icon goes here
-  { icon: null, label: "" }, // center — app icon spans these
-  { icon: Headphones, label: "Podcast" },
-  { icon: MessageSquare, label: "Chat" },
-  { icon: Layers, label: "Folders" },
-  { icon: BookOpen, label: "Study" },
-  { icon: FileText, label: "PDF" },
-] as const;
+function isNetworkError(err: unknown): boolean {
+  if (err instanceof TypeError && err.message === "Network request failed")
+    return true;
+  const m =
+    err &&
+    typeof err === "object" &&
+    "message" in err &&
+    (err as Error).message;
+  return typeof m === "string" && m.includes("Network request failed");
+}
 
 export default function WelcomeScreen() {
-  const router = useRouter();
   const { theme, mode } = useTheme();
   const isDark = mode === "dark";
   const c = theme.colors;
   const t = theme.typography;
   const [ctaScale, ctaPressIn, ctaPressOut] = usePressScale();
+  const [loading, setLoading] = useState(false);
 
-  const onGetStarted = useCallback(
-    () => router.push("/(auth)/sign-up" as any),
-    [router]
-  );
+  useEffect(() => {
+    void WebBrowser.warmUpAsync();
+    return () => {
+      void WebBrowser.coolDownAsync();
+    };
+  }, []);
 
-  // Tile styling
-  const tileBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)";
-  const tileBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)";
-  const iconColor = isDark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.3)";
-  const labelColor = isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.35)";
-
-  // App icon shadow
-  const appIconShadow = isDark
-    ? {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.5,
-        shadowRadius: 24,
-        elevation: 12,
+  const handleGoogleAuth = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await signInWithGoogleSingleFlight(
+        MOBILE_AUTH_CALLBACK_URL
+      );
+      if (result.skipped) return;
+      const response = result.response;
+      if (response.data && !response.error) {
+        // Navigation handled by auth layout
+      } else {
+        Alert.alert(
+          "Sign in failed",
+          response.error?.message ?? "Something went wrong. Try again."
+        );
       }
-    : {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 24,
-        elevation: 12,
-      };
+    } catch (err) {
+      if (isNetworkError(err)) {
+        Alert.alert(
+          "Connection problem",
+          "Could not reach the server. Check your internet connection and try again."
+        );
+      } else {
+        Alert.alert(
+          "Something went wrong",
+          (err as Error)?.message ?? "Please try again."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // CTA secondary style — visible border
-  const secondaryBorder = isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)";
+  const badgeBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)";
+  const badgeBorder = isDark
+    ? "rgba(255,255,255,0.08)"
+    : "rgba(0,0,0,0.06)";
+  const starColor = "#FBBF24";
+  const subtleText = isDark ? neutral[400] : neutral[500];
 
   return (
-    <View
-      style={[
-        styles.root,
-        { backgroundColor: isDark ? neutral[950] : "#fafafa" },
-      ]}
-    >
+    <View style={[styles.root, { backgroundColor: c.background }]}>
       <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-        >
-          {/* ── Top Bar: Logo + Log in pill ──────────────────────── */}
-          <Animated.View entering={authEntrance.logo} style={styles.topBar}>
-            <View style={styles.topLeft}>
-              <Image
-                source={require("../../assets/images/main-logo.png")}
-                style={styles.logoImg}
-                resizeMode="contain"
-              />
+        {/* ── Hero Section ─────────────────────────────────────── */}
+        <View style={styles.heroSection}>
+          {/* Icon cluster with overlapping badges */}
+          <Animated.View
+            entering={welcomeEntrance.appIcon}
+            style={styles.iconCluster}
+          >
+            {/* Rating badge — overlaps left side of icon */}
+            <View
+              style={[
+                styles.badge,
+                styles.ratingBadge,
+                { backgroundColor: badgeBg, borderColor: badgeBorder },
+              ]}
+            >
               <Text
                 style={[
-                  styles.logoText,
+                  styles.ratingNumber,
                   { color: c.foreground, fontWeight: t.weightBold },
                 ]}
               >
-                flinote
+                4.9
               </Text>
+              <View style={styles.starsRow}>
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <Star
+                    key={i}
+                    size={10}
+                    color={starColor}
+                    fill={starColor}
+                    strokeWidth={0}
+                  />
+                ))}
+              </View>
             </View>
-            <Link href="/(auth)/sign-in" asChild>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.logInPill,
-                  {
-                    borderColor: secondaryBorder,
-                    opacity: pressed ? 0.6 : 1,
-                  },
+
+            {/* App Icon — dominant center element */}
+            <View
+              style={[
+                styles.appIconContainer,
+                isDark
+                  ? {
+                      shadowColor: brand[400],
+                      shadowOffset: { width: 0, height: 16 },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 40,
+                      elevation: 20,
+                    }
+                  : {
+                      shadowColor: brand[600],
+                      shadowOffset: { width: 0, height: 16 },
+                      shadowOpacity: 0.15,
+                      shadowRadius: 40,
+                      elevation: 20,
+                    },
+              ]}
+            >
+              <Image
+                source={require("../../assets/images/main-logo.png")}
+                style={styles.appIcon}
+                resizeMode="contain"
+              />
+            </View>
+
+            {/* Product badge — overlaps right side of icon */}
+            <View
+              style={[
+                styles.badge,
+                styles.productBadge,
+                { backgroundColor: badgeBg, borderColor: badgeBorder },
+              ]}
+            >
+              <TrendingUp size={16} color={c.primary} strokeWidth={2} />
+              <Text
+                style={[
+                  styles.productLabel,
+                  { color: c.primary, fontWeight: t.weightSemibold },
                 ]}
               >
-                <Text
-                  style={[
-                    styles.logInText,
-                    { color: c.foreground, fontWeight: t.weightMedium },
-                  ]}
-                >
-                  Log in
-                </Text>
-              </Pressable>
-            </Link>
+                {"#1 Study\nApp"}
+              </Text>
+            </View>
           </Animated.View>
 
-          {/* ── Feature Grid with Floating App Icon ──────────────── */}
-          <View style={styles.gridSection}>
-            <View style={styles.gridWrap}>
-              {/* Tile grid — 3 rows of 4 */}
-              <View style={styles.grid}>
-                {FEATURES.map((feat, i) => {
-                  // Skip the center placeholder slots (index 5, 6)
-                  if (feat.icon === null) {
-                    return (
-                      <View
-                        key={`empty-${i}`}
-                        style={{ width: TILE_SIZE, height: TILE_SIZE }}
-                      />
-                    );
-                  }
-
-                  const Icon = feat.icon;
-                  return (
-                    <Animated.View
-                      key={feat.label}
-                      entering={welcomeEntrance.tile(i)}
-                    >
-                      <View
-                        style={[
-                          styles.tile,
-                          {
-                            width: TILE_SIZE,
-                            height: TILE_SIZE,
-                            backgroundColor: tileBg,
-                            borderColor: tileBorder,
-                          },
-                        ]}
-                      >
-                        <Icon size={22} color={iconColor} strokeWidth={1.6} />
-                        <Text style={[styles.tileLabel, { color: labelColor }]}>
-                          {feat.label}
-                        </Text>
-                      </View>
-                    </Animated.View>
-                  );
-                })}
-              </View>
-
-              {/* Floating app icon — centered over the grid */}
-              <Animated.View
-                entering={welcomeEntrance.appIcon}
-                style={[styles.appIconWrap, appIconShadow]}
-              >
-                <Image
-                  source={require("../../assets/images/main-logo.png")}
-                  style={styles.appIcon}
-                  resizeMode="contain"
-                />
-              </Animated.View>
-            </View>
-          </View>
-
-          {/* ── Copy Block ───────────────────────────────────────── */}
+          {/* Headline */}
           <Animated.View
             entering={welcomeEntrance.copy}
             style={styles.copyBlock}
           >
-            <Text style={[styles.welcomeLabel, { color: c.mutedForeground }]}>
-              Welcome to Flinote
-            </Text>
             <Text
               style={[
                 styles.headline,
                 { color: c.foreground, fontWeight: t.weightBold },
               ]}
             >
-              Turn anything into{"\n"}instant notes.
+              {"Instant notes for\naudio & video"}
             </Text>
-            <Text style={[styles.body, { color: c.mutedForeground }]}>
-              Upload anything, AI turns it into study-ready notes, flashcards and quizzes.
+
+            <Text style={[styles.body, { color: subtleText }]}>
+              {"Upload anything \u2014 AI turns it into\nstudy-ready notes, flashcards & quizzes."}
             </Text>
           </Animated.View>
-        </ScrollView>
 
-        {/* ── Bottom CTAs — pinned ───────────────────────────────── */}
+          {/* Free to try indicator */}
+          <Animated.View
+            entering={authEntrance.sub}
+            style={styles.freeRow}
+          >
+            <Text
+              style={[
+                styles.freeText,
+                { color: c.primary, fontWeight: t.weightSemibold },
+              ]}
+            >
+              free to try
+            </Text>
+            <ArrowDown
+              size={15}
+              color={c.primary}
+              strokeWidth={2.5}
+              style={{ marginTop: 1 }}
+            />
+          </Animated.View>
+        </View>
+
+        {/* ── Bottom CTA Section ───────────────────────────────── */}
         <Animated.View
           entering={welcomeEntrance.bottomBar}
-          style={styles.bottomBar}
+          style={styles.bottomSection}
         >
-          {/* Get Started — solid brand */}
-          <Animated.View
-            entering={authEntrance.button}
-            style={[ctaScale, { flex: 1 }]}
-          >
+          {/* Continue with Google */}
+          <Animated.View style={[ctaScale, styles.ctaWrap]}>
             <Pressable
-              onPress={onGetStarted}
+              onPress={handleGoogleAuth}
               onPressIn={ctaPressIn}
               onPressOut={ctaPressOut}
+              disabled={loading}
               style={({ pressed }) => [
-                styles.btnPrimary,
+                styles.googleBtn,
                 {
-                  backgroundColor: c.foreground,
-                  opacity: pressed ? 0.85 : 1,
+                  backgroundColor: isDark
+                    ? neutral[800]
+                    : neutral[950],
+                  opacity: loading ? 0.7 : pressed ? 0.85 : 1,
                 },
               ]}
             >
-              <Text
-                style={[
-                  styles.btnPrimaryText,
-                  { color: c.background, fontWeight: t.weightSemibold },
-                ]}
-              >
-                Get started
-              </Text>
+              {loading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={isDark ? c.foreground : neutral[0]}
+                />
+              ) : (
+                <>
+                  <View style={styles.googleLogoWrap}>
+                    <Image source={GOOGLE_LOGO} style={styles.googleLogo} />
+                  </View>
+                  <Text
+                    style={[
+                      styles.googleBtnText,
+                      {
+                        color: isDark ? neutral[50] : neutral[0],
+                        fontWeight: t.weightSemibold,
+                      },
+                    ]}
+                  >
+                    Continue with Google
+                  </Text>
+                </>
+              )}
             </Pressable>
           </Animated.View>
 
-          {/* Sign in — outlined */}
-          <Animated.View entering={authEntrance.footer} style={styles.btnSecondaryWrap}>
-            <Pressable
-              onPress={() => router.push('/(auth)/sign-in' as any)}
-              style={({ pressed }) => [
-                styles.btnSecondary,
-                {
-                  borderColor: secondaryBorder,
-                  opacity: pressed ? 0.6 : 1,
-                },
-              ]}
-            >
-              <Text style={[styles.btnSecondaryText, { color: c.foreground, fontWeight: t.weightSemibold }]}>
-                Sign in
+          {/* Legal footer */}
+          <Animated.View entering={authEntrance.footer}>
+            <Text style={[styles.legalText, { color: subtleText }]}>
+              {"By continuing, you agree to Flinote\u2019s "}
+              <Text
+                style={[styles.legalLink, { color: c.primary }]}
+                onPress={() => Linking.openURL(TERMS_URL)}
+              >
+                Terms of Service
               </Text>
-              <Feather name="arrow-right" size={17} color={c.foreground} />
-            </Pressable>
+              {" and "}
+              <Text
+                style={[styles.legalLink, { color: c.primary }]}
+                onPress={() => Linking.openURL(PRIVACY_URL)}
+              >
+                Privacy Policy
+              </Text>
+            </Text>
           </Animated.View>
         </Animated.View>
       </SafeAreaView>
@@ -281,76 +311,83 @@ export default function WelcomeScreen() {
   );
 }
 
-/* ── Styles ───────────────────────────────────────────────────────────── */
-const APP_ICON_SIZE = TILE_SIZE * 2 + TILE_GAP;
+const ICON_SIZE = 120;
+const BADGE_W = 88;
+const BADGE_H = 64;
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  safe: { flex: 1 },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: EDGE,
+  root: {
+    flex: 1,
+  },
+  safe: {
+    flex: 1,
   },
 
-  /* Top bar */
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  /* Hero */
+  heroSection: {
+    flex: 1,
     alignItems: "center",
-    paddingTop: 4,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 12,
+  },
+
+  /* Icon cluster — badges overlap the app icon */
+  iconCluster: {
+    width: SCREEN_W * 0.72,
+    height: ICON_SIZE + 20,
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 32,
   },
-  topLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
-  logoImg: { width: 32, height: 32, borderRadius: 8 },
-  logoText: { fontSize: 20, letterSpacing: -0.3 },
-  logInPill: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  logInText: { fontSize: 15 },
-
-  /* Grid section */
-  gridSection: { marginBottom: 36 },
-  gridWrap: { position: "relative" },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: TILE_GAP,
-  },
-  tile: {
-    borderRadius: 16,
+  badge: {
+    position: "absolute",
+    borderRadius: 14,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    width: BADGE_W,
+    height: BADGE_H,
+    zIndex: 1,
   },
-  tileLabel: {
-    fontSize: 11,
-    fontWeight: "500",
+  ratingBadge: {
+    left: 0,
+    top: 4,
+    gap: 4,
+  },
+  ratingNumber: {
+    fontSize: 20,
+    letterSpacing: -0.5,
+  },
+  starsRow: {
+    flexDirection: "row",
+    gap: 1.5,
+  },
+  productBadge: {
+    right: 0,
+    top: 4,
+    gap: 3,
+  },
+  productLabel: {
+    fontSize: 10,
+    lineHeight: 13,
+    textAlign: "center",
     letterSpacing: 0.1,
   },
 
-  /* Floating app icon */
-  appIconWrap: {
-    position: "absolute",
-    width: APP_ICON_SIZE,
-    height: APP_ICON_SIZE,
-    // Center it over the middle 2 tiles (row 2, cols 2-3)
-    // Row 2 starts at: TILE_SIZE + TILE_GAP (one row down)
-    // Col 2 starts at: TILE_SIZE + TILE_GAP (one tile in)
-    top: TILE_SIZE + TILE_GAP,
-    left: TILE_SIZE + TILE_GAP,
-    borderRadius: 28,
+  /* App Icon — dominant center */
+  appIconContainer: {
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    borderRadius: 30,
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 10,
+    zIndex: 5,
   },
   appIcon: {
-    width: APP_ICON_SIZE * 0.7,
-    height: APP_ICON_SIZE * 0.7,
+    width: ICON_SIZE * 0.72,
+    height: ICON_SIZE * 0.72,
     borderRadius: 20,
   },
 
@@ -358,53 +395,74 @@ const styles = StyleSheet.create({
   copyBlock: {
     alignItems: "center",
     paddingHorizontal: 8,
-    marginBottom: 24,
-  },
-  welcomeLabel: {
-    fontSize: 16,
-    letterSpacing: 0.1,
-    marginBottom: 8,
   },
   headline: {
-    fontSize: 32,
-    lineHeight: 38,
-    letterSpacing: -0.5,
+    fontSize: 34,
+    lineHeight: 41,
+    letterSpacing: -0.7,
     textAlign: "center",
     marginBottom: 14,
   },
   body: {
-    fontSize: 15,
+    fontSize: 15.5,
     lineHeight: 22,
     textAlign: "center",
-    maxWidth: 320,
     letterSpacing: 0.05,
   },
 
-  /* Bottom CTAs */
-  bottomBar: {
+  /* Free indicator */
+  freeRow: {
     flexDirection: "row",
-    gap: 10,
-    paddingHorizontal: EDGE,
-    paddingTop: 12,
-    paddingBottom: 8,
+    alignItems: "center",
+    gap: 5,
+    marginTop: 24,
   },
-  btnPrimary: {
-    height: 54,
-    borderRadius: 16,
+  freeText: {
+    fontSize: 16,
+    letterSpacing: -0.1,
+  },
+
+  /* Bottom Section */
+  bottomSection: {
+    paddingHorizontal: 24,
+    paddingBottom: Platform.OS === "android" ? 16 : 8,
+  },
+  ctaWrap: {
+    marginBottom: 16,
+  },
+  googleBtn: {
+    height: 58,
+    borderRadius: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
+  googleLogoWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
   },
-  btnPrimaryText: { fontSize: 17 },
-  btnSecondaryWrap: { flex: 1 },
-  btnSecondary: {
-    flex: 1,
-    height: 54,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
+  googleLogo: {
+    width: 16,
+    height: 16,
   },
-  btnSecondaryText: { fontSize: 17 },
+  googleBtnText: {
+    fontSize: 17,
+    letterSpacing: -0.2,
+  },
+
+  /* Legal */
+  legalText: {
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: "center",
+    letterSpacing: 0.1,
+  },
+  legalLink: {
+    fontWeight: "500",
+  },
 });

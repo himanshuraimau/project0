@@ -1,259 +1,238 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Pressable,
   FlatList,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import {
-  ChevronLeft,
-  Folder as FolderIcon,
-  Edit2,
-  Trash2,
-  FileText,
-  AlertCircle,
-} from 'lucide-react-native';
-import { useFolders } from '@/lib/hooks/useFolders';
-import { notesApi } from '@/lib/api';
-import type { Folder, Note } from '@/lib/api/types';
-import { EditFolderModal } from './EditFolderModal';
-import { DeleteFolderDialog } from './DeleteFolderDialog';
-import { getTranslatedNote } from '@/lib/utils/translation';
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useRouter } from 'expo-router'
+import { Feather, Ionicons } from '@expo/vector-icons'
+import { Folder as FolderIcon } from 'lucide-react-native'
+import { useFolders } from '@/lib/hooks/useFolders'
+import { notesApi } from '@/lib/api'
+import type { Folder, Note } from '@/lib/api/types'
+import { EditFolderModal } from './EditFolderModal'
+import { DeleteFolderDialog } from './DeleteFolderDialog'
+import { getTranslatedNote } from '@/lib/utils/translation'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { neutral } from '@/lib/design-system'
 
 interface FolderDetailScreenProps {
-  folderId: string;
+  folderId: string
 }
 
-export const FolderDetailScreen: React.FC<FolderDetailScreenProps> = ({
-  folderId,
-}) => {
-  const router = useRouter();
-  const { fetchFolder, loading, error } = useFolders();
-  const [folder, setFolder] = useState<Folder | null>(null);
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [loadingNotes, setLoadingNotes] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+export const FolderDetailScreen: React.FC<FolderDetailScreenProps> = ({ folderId }) => {
+  const router = useRouter()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
+  const { fetchFolder, loading, error } = useFolders()
+  const [folder, setFolder] = useState<Folder | null>(null)
+  const [notes, setNotes] = useState<Note[]>([])
+  const [loadingNotes, setLoadingNotes] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  useEffect(() => {
-    loadFolderData();
-  }, [folderId]);
+  useEffect(() => { loadFolderData() }, [folderId])
 
   const loadFolderData = async () => {
-    const folderData = await fetchFolder(folderId, true);
-    if (folderData) {
-      setFolder(folderData);
-      await loadNotes();
+    const data = await fetchFolder(folderId, true)
+    if (data) {
+      setFolder(data)
+      await loadNotes()
     }
-  };
+  }
 
   const loadNotes = async () => {
-    setLoadingNotes(true);
+    setLoadingNotes(true)
     try {
-      const allNotes = await notesApi.getNotes();
-      const folderNotes = allNotes.filter((note) => note.folderId === folderId);
-      setNotes(folderNotes);
+      const allNotes = await notesApi.getNotes()
+      setNotes(allNotes.filter((n) => n.folderId === folderId))
     } catch (err) {
-      console.error('Error loading notes:', err);
+      console.error('Error loading notes:', err)
     } finally {
-      setLoadingNotes(false);
+      setLoadingNotes(false)
     }
-  };
-
-  const handleBack = () => {
-    router.back();
-  };
-
-  const handleDeleteSuccess = () => {
-    router.back();
-  };
-
-  const handleNotePress = (note: Note) => {
-    router.push(`/notes/${note.id}`);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
-  const renderNote = ({ item }: { item: Note }) => {
-    const { title } = getTranslatedNote(item);
-    return (
-      <Pressable
-        style={({ pressed }) => [
-          styles.noteCard,
-          pressed && styles.noteCardPressed,
-        ]}
-        onPress={() => handleNotePress(item)}
-      >
-        <View style={styles.noteLeftIcon}>
-          <FileText size={20} color="#6B7280" />
-        </View>
-        <View style={styles.noteBody}>
-          <Text numberOfLines={2} style={styles.noteTitle}>
-            {title}
-          </Text>
-          <Text style={styles.noteDate}>{formatDate(item.createdAt)}</Text>
-        </View>
-      </Pressable>
-    );
-  };
-
-  if (loading && !folder) {
-    return (
-      <LinearGradient
-        colors={['#F9FAFB', '#FFFFFF']}
-        style={styles.container}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#4f3be7" />
-            <Text style={styles.loadingText}>Loading folder...</Text>
-          </View>
-        </SafeAreaView>
-      </LinearGradient>
-    );
   }
 
-  if (error || !folder) {
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+
+  const cardBg = isDark ? neutral[900] : '#fff'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const pageBg = isDark ? neutral[950] : '#f0f0f0'
+
+  if ((loading && !folder) || error || !folder) {
     return (
-      <LinearGradient
-        colors={['#F9FAFB', '#FFFFFF']}
-        style={styles.container}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.errorContainer}>
-            <AlertCircle size={48} color="#EF4444" />
-            <Text style={styles.errorTitle}>Error loading folder</Text>
-            <Text style={styles.errorMessage}>{error || 'Folder not found'}</Text>
-            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-              <Text style={styles.backButtonText}>Go Back</Text>
-            </TouchableOpacity>
+      <View style={[styles.container, { backgroundColor: pageBg }]}>
+        <SafeAreaView style={styles.safe} edges={['top']}>
+          <View style={styles.header}>
+            <Pressable onPress={() => router.back()} hitSlop={12} style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}>
+              <Feather name="arrow-left" size={24} color={c.foreground} />
+            </Pressable>
+            <Text style={[styles.headerTitle, { color: c.foreground }]}>Folder</Text>
+            <View style={{ width: 24 }} />
+          </View>
+          <View style={styles.stateWrap}>
+            {error || (!loading && !folder) ? (
+              <>
+                <Feather name="alert-circle" size={44} color={c.destructive} />
+                <Text style={[styles.stateTitle, { color: c.foreground }]}>Error loading folder</Text>
+                <Text style={[styles.stateText, { color: c.mutedForeground }]}>{error || 'Folder not found'}</Text>
+                <Pressable style={[styles.retryBtn, { backgroundColor: c.primary }]} onPress={() => router.back()}>
+                  <Text style={[styles.retryText, { color: c.primaryForeground }]}>Go Back</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <ActivityIndicator size="large" color={c.primary} />
+                <Text style={[styles.stateText, { color: c.mutedForeground }]}>Loading folder...</Text>
+              </>
+            )}
           </View>
         </SafeAreaView>
-      </LinearGradient>
-    );
+      </View>
+    )
   }
 
-  const folderColor = folder.color || '#6366f1';
+  const folderColor = folder.color || '#6366f1'
+
+  const renderNote = ({ item, index }: { item: Note; index: number }) => {
+    const { title } = getTranslatedNote(item)
+    return (
+      <>
+        <Pressable
+          style={({ pressed }) => [styles.noteRow, { opacity: pressed ? 0.6 : 1 }]}
+          onPress={() => router.push(`/notes/${item.id}`)}
+        >
+          <View style={[styles.noteIcon, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+            <Feather name="file-text" size={18} color={c.mutedForeground} />
+          </View>
+          <View style={styles.noteBody}>
+            <Text numberOfLines={2} style={[styles.noteTitle, { color: c.foreground }]}>{title}</Text>
+            <Text style={[styles.noteDate, { color: c.mutedForeground }]}>{formatDate(item.createdAt)}</Text>
+          </View>
+          <Feather name="chevron-right" size={16} color={isDark ? neutral[600] : neutral[400]} />
+        </Pressable>
+        {index < notes.length - 1 && (
+          <View style={[styles.separator, { backgroundColor: separatorColor }]} />
+        )}
+      </>
+    )
+  }
 
   return (
-    <LinearGradient
-      colors={['#F9FAFB', '#FFFFFF']}
-      style={styles.container}
-    >
-      <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.container, { backgroundColor: pageBg }]}>
+      <SafeAreaView style={styles.safe} edges={['top']}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleBack} style={styles.backIconButton}>
-            <ChevronLeft size={24} color="#374151" />
-          </TouchableOpacity>
-          
+          <Pressable onPress={() => router.back()} hitSlop={12} style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}>
+            <Feather name="arrow-left" size={24} color={c.foreground} />
+          </Pressable>
+          <Text style={[styles.headerTitle, { color: c.foreground }]}>{folder.name}</Text>
           <View style={styles.headerActions}>
-            <TouchableOpacity
+            <Pressable
               onPress={() => setShowEditModal(true)}
-              style={styles.headerActionButton}
+              hitSlop={8}
+              style={({ pressed }) => [
+                styles.actionCircle,
+                { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.05)', opacity: pressed ? 0.6 : 1 },
+              ]}
             >
-              <Edit2 size={20} color="#374151" />
-            </TouchableOpacity>
-            <TouchableOpacity
+              <Feather name="edit-2" size={16} color={c.mutedForeground} />
+            </Pressable>
+            <Pressable
               onPress={() => setShowDeleteDialog(true)}
-              style={styles.headerActionButton}
+              hitSlop={8}
+              style={({ pressed }) => [
+                styles.actionCircle,
+                { backgroundColor: isDark ? 'rgba(255,59,48,0.1)' : 'rgba(255,59,48,0.08)', opacity: pressed ? 0.6 : 1 },
+              ]}
             >
-              <Trash2 size={20} color="#EF4444" />
-            </TouchableOpacity>
+              <Feather name="trash-2" size={16} color="#FF3B30" />
+            </Pressable>
           </View>
         </View>
 
-        {/* Folder Info */}
-        <View style={styles.folderInfo}>
-          <View
-            style={[
-              styles.folderIconContainer,
-              { backgroundColor: `${folderColor}15` },
-            ]}
-          >
-            <FolderIcon size={40} color={folderColor} />
-          </View>
-          
-          <Text style={styles.folderName}>{folder.name}</Text>
-          
-          {folder.description && (
-            <Text style={styles.folderDescription}>{folder.description}</Text>
-          )}
-          
-          <Text style={styles.noteCount}>
-            {notes.length} {notes.length === 1 ? 'note' : 'notes'}
-          </Text>
-        </View>
+        <FlatList
+          data={notes}
+          renderItem={renderNote}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <>
+              {/* Folder info card */}
+              <View style={[styles.infoCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+                <View style={[styles.folderIconWrap, { backgroundColor: `${folderColor}14` }]}>
+                  <FolderIcon size={32} color={folderColor} />
+                </View>
+                <Text style={[styles.folderName, { color: c.foreground }]}>{folder.name}</Text>
+                {folder.description && (
+                  <Text style={[styles.folderDesc, { color: c.mutedForeground }]}>{folder.description}</Text>
+                )}
+                <View style={[styles.countPill, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+                  <Feather name="file-text" size={12} color={c.mutedForeground} />
+                  <Text style={[styles.countText, { color: c.mutedForeground }]}>
+                    {notes.length} {notes.length === 1 ? 'note' : 'notes'}
+                  </Text>
+                </View>
+              </View>
 
-        {/* Notes List */}
-        <View style={styles.notesSection}>
-          <Text style={styles.sectionTitle}>Notes in this folder</Text>
-          
-          {loadingNotes ? (
-            <View style={styles.loadingNotesContainer}>
-              <ActivityIndicator size="small" color="#4f3be7" />
-              <Text style={styles.loadingNotesText}>Loading notes...</Text>
+              {/* Notes section label */}
+              <Text style={[styles.sectionLabel, { color: c.mutedForeground }]}>NOTES</Text>
+
+              {loadingNotes ? (
+                <View style={styles.loadingNotes}>
+                  <ActivityIndicator size="small" color={c.primary} />
+                  <Text style={[styles.stateText, { color: c.mutedForeground }]}>Loading notes...</Text>
+                </View>
+              ) : notes.length === 0 ? (
+                <View style={styles.emptyNotes}>
+                  <Feather name="file-text" size={40} color={isDark ? neutral[700] : neutral[300]} />
+                  <Text style={[styles.stateTitle, { color: c.foreground }]}>No notes yet</Text>
+                  <Text style={[styles.stateText, { color: c.mutedForeground }]}>
+                    Create notes and move them to this folder
+                  </Text>
+                </View>
+              ) : (
+                <View style={[styles.notesGroup, { backgroundColor: cardBg, borderColor: cardBorder }]} />
+              )}
+            </>
+          }
+          ListHeaderComponentStyle={notes.length > 0 ? { marginBottom: -1 } : undefined}
+          CellRendererComponent={notes.length > 0 ? ({ children, index, ...props }) => (
+            <View {...props} style={index === 0 ? [styles.notesGroupStart, { backgroundColor: cardBg, borderColor: cardBorder }] : index === notes.length - 1 ? [styles.notesGroupEnd, { backgroundColor: cardBg }] : [{ backgroundColor: cardBg }]}>
+              {children}
             </View>
-          ) : notes.length === 0 ? (
-            <View style={styles.emptyNotesContainer}>
-              <FileText size={48} color="#D1D5DB" />
-              <Text style={styles.emptyNotesTitle}>No notes yet</Text>
-              <Text style={styles.emptyNotesSubtitle}>
-                Create notes and move them to this folder
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={notes}
-              renderItem={renderNote}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.notesList}
-              showsVerticalScrollIndicator={false}
-            />
-          )}
-        </View>
+          ) : undefined}
+        />
       </SafeAreaView>
 
-      {/* Edit Modal */}
       <EditFolderModal
         visible={showEditModal}
         folder={folder}
         onClose={() => setShowEditModal(false)}
         onSuccess={loadFolderData}
       />
-
-      {/* Delete Dialog */}
       <DeleteFolderDialog
         visible={showDeleteDialog}
         folder={folder}
         onClose={() => setShowDeleteDialog(false)}
-        onSuccess={handleDeleteSuccess}
+        onSuccess={() => router.back()}
       />
-    </LinearGradient>
-  );
-};
+    </View>
+  )
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  safe: { flex: 1 },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -261,170 +240,81 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
-  backIconButton: {
-    padding: 4,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  headerActionButton: {
-    padding: 8,
-  },
-  folderInfo: {
+  headerTitle: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3, flex: 1, textAlign: 'center' },
+  headerActions: { flexDirection: 'row', gap: 8 },
+  actionCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 24,
+    justifyContent: 'center',
   },
-  folderIconContainer: {
-    width: 80,
-    height: 80,
+
+  listContent: { paddingHorizontal: 20, paddingBottom: 40 },
+
+  infoCard: {
+    alignItems: 'center',
+    padding: 28,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  folderName: {
-    fontSize: 26,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  folderDescription: {
-    fontSize: 15,
-    color: '#6B7280',
-    marginBottom: 12,
-    textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: 20,
-  },
-  noteCount: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    fontWeight: '600',
-  },
-  notesSection: {
-    flex: 1,
-    paddingTop: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#111827',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  notesList: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  noteCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  noteCardPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.98 }],
-  },
-  noteLeftIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: '#F9FAFB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  noteBody: {
-    flex: 1,
-  },
-  noteTitle: {
-    color: '#111827',
-    fontWeight: '500',
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  noteDate: {
-    color: '#6B7280',
-    fontSize: 13,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  loadingNotesContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-    gap: 12,
-  },
-  loadingNotesText: {
-    fontSize: 15,
-    color: '#6B7280',
-  },
-  emptyNotesContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 40,
-  },
-  emptyNotesTitle: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#111827',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyNotesSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: '#111827',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  errorMessage: {
-    fontSize: 15,
-    color: '#6B7280',
-    textAlign: 'center',
+    borderWidth: 1,
     marginBottom: 24,
   },
-  backButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#4f3be7',
+  folderIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  folderName: { fontSize: 22, fontWeight: '700', letterSpacing: -0.4, marginBottom: 4 },
+  folderDesc: { fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: 12, paddingHorizontal: 16 },
+  countPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: 12,
   },
-  backButtonText: {
-    fontSize: 16,
+  countText: { fontSize: 13, fontWeight: '600' },
+
+  sectionLabel: {
+    fontSize: 12,
     fontWeight: '600',
-    color: '#FFFFFF',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginLeft: 4,
   },
-});
+
+  notesGroup: { borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
+  notesGroupStart: { borderTopLeftRadius: 14, borderTopRightRadius: 14, borderWidth: 1, borderBottomWidth: 0, overflow: 'hidden' },
+  notesGroupEnd: { borderBottomLeftRadius: 14, borderBottomRightRadius: 14, overflow: 'hidden' },
+  noteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  separator: { height: StyleSheet.hairlineWidth, marginLeft: 64 },
+  noteIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noteBody: { flex: 1 },
+  noteTitle: { fontSize: 15, fontWeight: '600', lineHeight: 20, marginBottom: 3 },
+  noteDate: { fontSize: 13 },
+
+  stateWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
+  stateTitle: { marginTop: 16, fontSize: 18, fontWeight: '600', textAlign: 'center' },
+  stateText: { marginTop: 8, fontSize: 14, textAlign: 'center' },
+  retryBtn: { marginTop: 20, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 14 },
+  retryText: { fontSize: 16, fontWeight: '600' },
+
+  loadingNotes: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 40, gap: 12 },
+  emptyNotes: { alignItems: 'center', paddingVertical: 60 },
+})

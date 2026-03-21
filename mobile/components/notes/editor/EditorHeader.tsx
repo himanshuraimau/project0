@@ -1,119 +1,76 @@
-/**
- * EditorHeader Component
- * Fixed 64px height header with back button, centered title, and save button.
- * Requirements: 2.1, 2.2, 2.3, 2.4
- */
-
-import React from 'react';
+import React from 'react'
 import {
   ActivityIndicator,
   StyleSheet,
   Text,
-  TouchableOpacity,
+  Pressable,
   View,
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { COLORS, LAYOUT } from '@/lib/editor/constants';
-import type { EditorHeaderProps } from '@/lib/editor/types';
+} from 'react-native'
+import { Feather } from '@expo/vector-icons'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { neutral } from '@/lib/design-system'
+import type { EditorHeaderProps } from '@/lib/editor/types'
 
-/**
- * EditorHeader displays a fixed header with navigation and save controls.
- * - 64px fixed height (Requirement 2.1)
- * - White background with 1px bottom border (Requirement 2.1)
- * - Back button 40×40px on left (Requirement 2.2)
- * - "Edit Note" title centered, 18px semibold (Requirement 2.3)
- * - Orange checkmark save button on right (Requirement 2.4)
- */
-export default function EditorHeader({
-  onBack,
-  onSave,
-  saving,
-}: EditorHeaderProps) {
+export default function EditorHeader({ onBack, onSave, saving }: EditorHeaderProps) {
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
+
   return (
-    <View style={styles.header}>
-      {/* Back Button - 40×40px circular (Requirement 2.2) */}
-      <TouchableOpacity
+    <View style={[styles.header, { backgroundColor: isDark ? neutral[950] : '#fff', borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}>
+      <Pressable
         onPress={onBack}
-        style={styles.backButton}
+        hitSlop={12}
+        style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
         accessibilityLabel="Go back"
-        accessibilityRole="button"
       >
-        <Feather name="arrow-left" size={LAYOUT.iconSize} color={COLORS.black} />
-      </TouchableOpacity>
+        <Feather name="arrow-left" size={24} color={c.foreground} />
+      </Pressable>
 
-      {/* Centered Title - 18px semibold (Requirement 2.3) */}
-      <Text style={styles.title}>Edit Note</Text>
+      <Text style={[styles.title, { color: c.foreground }]}>Edit Note</Text>
 
-      {/* Save Button - Orange checkmark (Requirement 2.4) */}
-      <TouchableOpacity
+      <Pressable
         onPress={onSave}
-        style={styles.saveButton}
         disabled={saving}
+        hitSlop={12}
+        style={({ pressed }) => [
+          styles.saveBtn,
+          {
+            backgroundColor: c.primary,
+            opacity: saving ? 0.6 : pressed ? 0.85 : 1,
+          },
+        ]}
         accessibilityLabel={saving ? 'Saving note' : 'Save note'}
-        accessibilityRole="button"
       >
         {saving ? (
-          <ActivityIndicator size="small" color={COLORS.saveOrange} />
+          <ActivityIndicator size="small" color={c.primaryForeground} />
         ) : (
-          <Feather name="check" size={LAYOUT.iconSize} color={COLORS.saveOrange} />
+          <Feather name="check" size={18} color={c.primaryForeground} />
         )}
-      </TouchableOpacity>
+      </Pressable>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
-  /**
-   * Header container
-   * - 64px fixed height (Requirement 2.1)
-   * - White background (Requirement 2.1)
-   * - 1px bottom border #EAEAEA (Requirement 2.1)
-   */
   header: {
-    height: LAYOUT.headerHeight,
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.dividerGray,
+    paddingHorizontal: 20,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-
-  /**
-   * Back button
-   * - 40×40px circular (Requirement 2.2)
-   */
-  backButton: {
-    width: LAYOUT.headerButtonSize,
-    height: LAYOUT.headerButtonSize,
-    borderRadius: LAYOUT.headerButtonSize / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  /**
-   * Title text
-   * - 18px font size (Requirement 2.3)
-   * - Semibold weight (Requirement 2.3)
-   * - Black color (Requirement 2.3)
-   */
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
-    color: COLORS.black,
+    letterSpacing: -0.3,
   },
-
-  /**
-   * Save button
-   * - 40×40px circular
-   * - Orange checkmark icon (Requirement 2.4)
-   */
-  saveButton: {
-    width: LAYOUT.headerButtonSize,
-    height: LAYOUT.headerButtonSize,
-    borderRadius: LAYOUT.headerButtonSize / 2,
+  saveBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
-});
+})

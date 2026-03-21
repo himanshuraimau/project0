@@ -1,9 +1,8 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { neutral } from '@/lib/design-system'
 
-/**
- * ChatMessage interface representing a single message in the chat
- */
 export interface ChatMessage {
   id: string
   text: string
@@ -15,43 +14,38 @@ interface MessageBubbleProps {
   message: ChatMessage
 }
 
-/**
- * MessageBubble component - Displays a single chat message with sender-specific styling
- * 
- * Bot messages: Left-aligned, gray background (#F2F2F2), dark text (#222222)
- * User messages: Right-aligned, purple background (#7A2EFF), white text (#FFFFFF)
- * 
- * Requirements: 2.1, 2.2, 2.4, 2.5, 7.2, 7.3
- */
 export default function MessageBubble({ message }: MessageBubbleProps) {
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
   const isUser = message.isUser
 
-  // Accessibility label based on sender type
-  // Requirements 7.2, 7.3
+  const userBg = c.primary
+  const botBg = isDark ? neutral[800] : '#f0f0f5'
+
   const accessibilityLabel = isUser
     ? `You said, ${message.text}`
     : `Bot says, ${message.text}`
 
   return (
-    <View
-      style={[
-        styles.container,
-        isUser ? styles.userContainer : styles.botContainer,
-      ]}
-    >
+    <View style={[styles.container, isUser ? styles.userContainer : styles.botContainer]}>
       <View
         style={[
           styles.bubble,
-          isUser ? styles.userBubble : styles.botBubble,
+          isUser
+            ? [styles.userBubble, { backgroundColor: userBg }]
+            : [styles.botBubble, { backgroundColor: botBg }],
         ]}
-        accessible={true}
+        accessible
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="text"
       >
         <Text
           style={[
             styles.text,
-            isUser ? styles.userText : styles.botText,
+            isUser
+              ? { color: c.primaryForeground }
+              : { color: c.foreground },
           ]}
         >
           {message.text}
@@ -64,43 +58,31 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginVertical: 5, // 10-12px gap between messages (5px top + 5px bottom = 10px)
+    marginVertical: 4,
   },
-  // Bot message container - left aligned (Requirements 2.1)
   botContainer: {
     alignItems: 'flex-start',
   },
-  // User message container - right aligned (Requirements 2.2)
   userContainer: {
     alignItems: 'flex-end',
   },
   bubble: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
   },
-  // Bot bubble styling (Requirements 2.1)
   botBubble: {
-    backgroundColor: '#F2F2F2',
-    borderRadius: 19, // 18-20px range
-    maxWidth: '77%', // 75-80% range
+    borderRadius: 20,
+    borderTopLeftRadius: 6,
+    maxWidth: '80%',
   },
-  // User bubble styling (Requirements 2.2)
   userBubble: {
-    backgroundColor: '#7A2EFF',
-    borderRadius: 21, // 20-22px range
-    maxWidth: '65%', // 60-70% range
+    borderRadius: 20,
+    borderTopRightRadius: 6,
+    maxWidth: '75%',
   },
   text: {
-    fontSize: 15.5, // 15-16px range
-  },
-  // Bot text styling (Requirements 2.1, 2.4)
-  botText: {
-    color: '#222222',
-    lineHeight: 23.25, // 15.5 * 1.5 = 23.25
-  },
-  // User text styling (Requirements 2.2, 2.4)
-  userText: {
-    color: '#FFFFFF',
-    lineHeight: 21.7, // 15.5 * 1.4 = 21.7
+    fontSize: 16,
+    lineHeight: 22,
+    letterSpacing: -0.1,
   },
 })

@@ -1,24 +1,25 @@
-import React from 'react';
+import React from 'react'
 import {
   View,
   Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
   Pressable,
   ActivityIndicator,
-} from 'react-native';
-import { AlertTriangle } from 'lucide-react-native';
-import { useFolders } from '@/lib/hooks/useFolders';
-import type { Folder } from '@/lib/api/types';
-import Toast from 'react-native-toast-message';
-import * as Haptics from 'expo-haptics';
+  Dimensions,
+} from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import { useFolders } from '@/lib/hooks/useFolders'
+import type { Folder } from '@/lib/api/types'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { neutral } from '@/lib/design-system'
+import * as Haptics from 'expo-haptics'
 
 interface DeleteFolderDialogProps {
-  visible: boolean;
-  folder: Folder | null;
-  onClose: () => void;
-  onSuccess?: () => void;
+  visible: boolean
+  folder: Folder | null
+  onClose: () => void
+  onSuccess?: () => void
 }
 
 export const DeleteFolderDialog: React.FC<DeleteFolderDialogProps> = ({
@@ -27,182 +28,122 @@ export const DeleteFolderDialog: React.FC<DeleteFolderDialogProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { deleteFolder, loading } = useFolders();
+  const { deleteFolder, loading } = useFolders()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
 
   const handleDelete = async () => {
-    if (!folder) return;
+    if (!folder) return
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-    const success = await deleteFolder(folder.id);
-
+    const success = await deleteFolder(folder.id)
     if (success) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Toast.show({
-        type: 'success',
-        text1: 'Folder Deleted',
-        text2: 'Notes have been moved to uncategorized',
-      });
-      onClose();
-      onSuccess?.();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onClose()
+      onSuccess?.()
     } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to Delete',
-        text2: 'Could not delete folder. Please try again.',
-      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     }
-  };
+  }
 
-  if (!folder) return null;
+  if (!folder) return null
+
+  const cardBg = isDark ? neutral[800] : '#fff'
 
   return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      transparent={true}
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
-        <View style={styles.dialog}>
-          {/* Warning Icon */}
-          <View style={styles.iconContainer}>
-            <AlertTriangle size={48} color="#EF4444" />
+        <Pressable style={[styles.card, { backgroundColor: cardBg }]} onPress={(e) => e.stopPropagation()}>
+          <View style={[styles.iconWrap, { backgroundColor: 'rgba(255,59,48,0.1)' }]}>
+            <Ionicons name="warning" size={24} color="#FF3B30" />
           </View>
 
-          {/* Title */}
-          <Text style={styles.title}>Delete Folder?</Text>
+          <Text style={[styles.title, { color: c.foreground }]}>Delete Folder?</Text>
 
-          {/* Message */}
-          <Text style={styles.message}>
-            Are you sure you want to delete "{folder.name}"? All notes in this
-            folder will be moved to uncategorized.
+          <Text style={[styles.message, { color: c.mutedForeground }]}>
+            {"Are you sure you want to delete \u201C"}{folder.name}{"\u201D? Notes will be moved to uncategorized."}
           </Text>
 
-          {/* Note */}
-          <View style={styles.noteContainer}>
-            <Text style={styles.noteText}>
+          <View style={[styles.warningBanner, { backgroundColor: isDark ? 'rgba(255,149,0,0.08)' : '#FFF8EE' }]}>
+            <Text style={[styles.warningText, { color: isDark ? '#FFB84D' : '#92400E' }]}>
               This action cannot be undone.
             </Text>
           </View>
 
-          {/* Actions */}
           <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
+            <Pressable
+              style={({ pressed }) => [
+                styles.btn,
+                { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', opacity: pressed ? 0.7 : 1 },
+              ]}
               onPress={onClose}
               disabled={loading}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.button,
-                styles.deleteButton,
-                loading && styles.deleteButtonDisabled,
+              <Text style={[styles.btnText, { color: c.foreground }]}>Cancel</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.btn,
+                { backgroundColor: '#FF3B30', opacity: loading ? 0.6 : pressed ? 0.85 : 1 },
               ]}
               onPress={handleDelete}
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <Text style={styles.deleteButtonText}>Delete</Text>
+                <Text style={[styles.btnText, { color: '#fff' }]}>Delete</Text>
               )}
-            </TouchableOpacity>
+            </Pressable>
           </View>
-        </View>
+        </Pressable>
       </Pressable>
     </Modal>
-  );
-};
+  )
+}
+
+const { width: SCREEN_W } = Dimensions.get('window')
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 40,
   },
-  dialog: {
-    backgroundColor: '#FFFFFF',
+  card: {
+    width: Math.min(SCREEN_W - 80, 320),
     borderRadius: 20,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
+    paddingTop: 28,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 12,
   },
-  iconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#FEE2E2',
+  iconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '500',
-    color: '#111827',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  message: {
-    fontSize: 15,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 22,
     marginBottom: 16,
   },
-  noteContainer: {
-    backgroundColor: '#FEF3C7',
+  title: { fontSize: 18, fontWeight: '700', letterSpacing: -0.3, marginBottom: 8 },
+  message: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginBottom: 12 },
+  warningBanner: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  noteText: {
-    fontSize: 13,
-    color: '#92400E',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  button: {
-    flex: 1,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#F3F4F6',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  deleteButton: {
-    backgroundColor: '#EF4444',
-  },
-  deleteButtonDisabled: {
-    backgroundColor: '#FCA5A5',
-  },
-  deleteButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-});
+  warningText: { fontSize: 13, fontWeight: '600', textAlign: 'center' },
+  actions: { flexDirection: 'row', gap: 10, width: '100%' },
+  btn: { flex: 1, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  btnText: { fontSize: 16, fontWeight: '600', letterSpacing: -0.2 },
+})

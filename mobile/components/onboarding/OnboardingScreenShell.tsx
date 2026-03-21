@@ -1,8 +1,3 @@
-/**
- * Premium onboarding shell — true iOS glass.
- * BlurView footer, frosted nav, material depth.
- */
-
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import React, { type ReactNode } from 'react'
@@ -16,7 +11,6 @@ import {
   StyleSheet,
 } from 'react-native'
 import { BlurView } from 'expo-blur'
-import { LinearGradient } from 'expo-linear-gradient'
 import Animated from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme } from '@/lib/hooks/useTheme'
@@ -54,21 +48,12 @@ export function OnboardingScreenShell({
   const dotActive = c.primary
   const dotInactive = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
 
-  // Ambient background — subtle depth, not a flat fill
-  const bgFrom = isDark ? neutral[950] : '#f4f4f8'
-  const bgTo = isDark ? '#0d0c16' : '#ecedf4'
-
   return (
-    <View style={styles.root}>
-      <LinearGradient
-        colors={[bgFrom, bgTo, bgFrom]}
-        locations={[0, 0.5, 1]}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={[styles.root, { backgroundColor: isDark ? neutral[950] : '#f0f0f0' }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        {/* ── Nav bar: frosted back button + progress dots ─── */}
+        {/* Nav bar */}
         <View style={styles.navBar}>
           {showBackButton ? (
             <Pressable
@@ -79,50 +64,35 @@ export function OnboardingScreenShell({
               hitSlop={14}
               style={({ pressed }) => [
                 styles.backBtn,
-                { opacity: pressed ? 0.5 : 1 },
+                {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  opacity: pressed ? 0.5 : 1,
+                },
               ]}
             >
-              <BlurView
-                intensity={isDark ? 30 : 50}
-                tint={isDark ? 'dark' : 'light'}
-                style={[StyleSheet.absoluteFill, { borderRadius: 12 }]}
-              />
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  styles.backBtnOverlay,
-                  {
-                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)',
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.3)',
-                  },
-                ]}
-              />
-              <Ionicons name="chevron-back" size={18} color={c.foreground} />
+              <Ionicons name="chevron-back" size={20} color={c.foreground} />
             </Pressable>
           ) : (
             <View style={styles.backBtnSpacer} />
           )}
 
-          {/* Progress dots */}
-          <View style={styles.dotsRow}>
-            {Array.from({ length: totalSteps }, (_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.dot,
-                  {
-                    backgroundColor: i < currentStep ? dotActive : dotInactive,
-                    width: i < currentStep ? 22 : 7,
-                  },
-                ]}
-              />
-            ))}
+          {/* Progress bar — iOS-style continuous track */}
+          <View style={[styles.progressTrack, { backgroundColor: dotInactive }]}>
+            <Animated.View
+              style={[
+                styles.progressFill,
+                {
+                  backgroundColor: dotActive,
+                  width: `${(currentStep / totalSteps) * 100}%`,
+                },
+              ]}
+            />
           </View>
 
           <View style={styles.backBtnSpacer} />
         </View>
 
-        {/* ── Scrollable content ─────────────────────────────── */}
+        {/* Scrollable content */}
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
@@ -151,21 +121,16 @@ export function OnboardingScreenShell({
           {children}
         </ScrollView>
 
-        {/* ── Frosted footer bar ─────────────────────────────── */}
+        {/* Footer */}
         {footer != null && (
           <Animated.View entering={onboardingEntrance.footer} style={styles.footerWrap}>
-            <BlurView
-              intensity={isDark ? 40 : 70}
-              tint={isDark ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
             <View
               style={[
                 StyleSheet.absoluteFill,
                 {
                   borderTopWidth: StyleSheet.hairlineWidth,
                   borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                  backgroundColor: isDark ? 'rgba(12,11,20,0.5)' : 'rgba(255,255,255,0.4)',
+                  backgroundColor: isDark ? neutral[950] : '#f0f0f0',
                 },
               ]}
             />
@@ -189,29 +154,27 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 4 : 10,
-    paddingBottom: 14,
+    paddingBottom: 16,
+    gap: 14,
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  backBtnSpacer: { width: 36 },
+
+  progressTrack: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
     overflow: 'hidden',
   },
-  backBtnOverlay: {
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  backBtnSpacer: { width: 38 },
-  dotsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  dot: {
-    height: 5,
-    borderRadius: 2.5,
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
   },
 
   scrollView: { flex: 1 },
@@ -224,7 +187,7 @@ const styles = StyleSheet.create({
   header: { marginBottom: 28 },
   subHeading: {
     fontSize: 13,
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
     marginBottom: 8,
     textTransform: 'uppercase',
   },

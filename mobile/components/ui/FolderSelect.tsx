@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
-import { ChevronDown } from 'lucide-react-native';
-import { useFolders } from '@/lib/hooks/useFolders';
+import React, { useEffect, useState } from 'react'
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
+import RNPickerSelect from 'react-native-picker-select'
+import { ChevronDown } from 'lucide-react-native'
+import { useFolders } from '@/lib/hooks/useFolders'
+import { useTheme } from '@/lib/hooks/useTheme'
 
 type FolderOption = {
-  label: string;
-  value: string;
-};
+  label: string
+  value: string
+}
 
 type FolderSelectProps = {
-  value: string;
-  onValueChange: (value: string) => void;
-  style?: any;
-  disabled?: boolean;
-  placeholder?: { label?: string; value?: string | null };
-};
+  value: string
+  onValueChange: (value: string) => void
+  style?: any
+  disabled?: boolean
+  placeholder?: { label?: string; value?: string | null }
+}
 
 const FolderSelect: React.FC<FolderSelectProps> = ({
   value,
@@ -24,32 +25,53 @@ const FolderSelect: React.FC<FolderSelectProps> = ({
   disabled = false,
   placeholder = { label: 'Select folder...', value: null },
 }) => {
-  const { folders, loading, fetchFolders } = useFolders();
-  const [options, setOptions] = useState<FolderOption[]>([]);
+  const { folders, loading, fetchFolders } = useFolders()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
+  const [options, setOptions] = useState<FolderOption[]>([])
+
+  const inputBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'
+
+  useEffect(() => { fetchFolders() }, [])
 
   useEffect(() => {
-    fetchFolders();
-  }, []);
-
-  useEffect(() => {
-    // Build options from fetched folders
-    const folderOptions: FolderOption[] = [
+    setOptions([
       { label: 'No folder (Uncategorized)', value: '' },
-      ...folders.map(folder => ({
-        label: folder.name,
-        value: folder.id,
-      })),
-    ];
-    setOptions(folderOptions);
-  }, [folders]);
+      ...folders.map((f) => ({ label: f.name, value: f.id })),
+    ])
+  }, [folders])
+
+  const pickerStyles = {
+    inputIOS: {
+      color: c.foreground,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      backgroundColor: inputBg,
+      borderRadius: 12,
+      fontSize: 15,
+      height: 48,
+    },
+    inputAndroid: {
+      color: c.foreground,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      backgroundColor: inputBg,
+      borderRadius: 12,
+      fontSize: 15,
+      height: 48,
+    },
+    placeholder: { color: c.mutedForeground },
+    iconContainer: { top: 14, right: 14 },
+  }
 
   return (
-    <View style={[styles.pickerWrap, style]}>
-      <Text style={styles.label}>Folder</Text>
+    <View style={[styles.wrap, style]}>
+      <Text style={[styles.label, { color: c.mutedForeground }]}>FOLDER</Text>
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#4f3be7" />
-          <Text style={styles.loadingText}>Loading folders...</Text>
+        <View style={[styles.loadingWrap, { backgroundColor: inputBg }]}>
+          <ActivityIndicator size="small" color={c.primary} />
+          <Text style={[styles.loadingText, { color: c.mutedForeground }]}>Loading folders...</Text>
         </View>
       ) : (
         <RNPickerSelect
@@ -60,74 +82,33 @@ const FolderSelect: React.FC<FolderSelectProps> = ({
           useNativeAndroidPickerStyle={false}
           placeholder={placeholder}
           disabled={disabled}
-          Icon={() => <ChevronDown size={18} color="#6b6b6b" />}
+          Icon={() => <ChevronDown size={16} color={c.mutedForeground} />}
         />
       )}
     </View>
-  );
-};
+  )
+}
 
-export default FolderSelect;
+export default FolderSelect
 
 const styles = StyleSheet.create({
-  pickerWrap: {
-    marginVertical: 8,
-  },
+  wrap: { marginVertical: 8 },
   label: {
-    fontFamily: 'Inter',
-    fontWeight: '500',
-    fontSize: 18,
-    lineHeight: 32,
-    color: '#364153',
-    marginBottom: 6,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginLeft: 4,
   },
-  loadingContainer: {
+  loadingWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 10,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
+    borderRadius: 12,
+    height: 48,
+    gap: 8,
   },
-  loadingText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#6B7280',
-  },
-});
-
-const pickerStyles = {
-  inputIOS: {
-    color: '#111',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
-  },
-  inputAndroid: {
-    color: '#111',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    fontSize: 14,
-    borderWidth: 1.26,
-    borderColor: '#D4D4D4',
-    height: 53,
-  },
-  placeholder: {
-    color: '#6b6b6b',
-  },
-  iconContainer: {
-    top: 16,
-    right: 16,
-  },
-};
+  loadingText: { fontSize: 14 },
+})

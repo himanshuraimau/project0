@@ -1,25 +1,25 @@
-import React from 'react';
+import React from 'react'
 import {
-  TouchableOpacity,
+  Pressable,
   Text,
   StyleSheet,
   ActivityIndicator,
-  View,
-} from 'react-native';
-import { Sparkles } from 'lucide-react-native';
+} from 'react-native'
+import { Sparkles } from 'lucide-react-native'
+import { useTheme } from '@/lib/hooks/useTheme'
 
 type Props = {
-  onPress: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-  loadingText?: string;
-  buttonText?: string;
-  icon?: React.ReactNode;
-  backgroundColor?: string;
-  textColor?: string;
-  style?: any;
-  textStyle?: any;
-};
+  onPress: () => void
+  disabled?: boolean
+  loading?: boolean
+  loadingText?: string
+  buttonText?: string
+  icon?: React.ReactNode
+  backgroundColor?: string
+  textColor?: string
+  style?: any
+  textStyle?: any
+}
 
 const FullWidthButton: React.FC<Props> = ({
   onPress,
@@ -28,43 +28,54 @@ const FullWidthButton: React.FC<Props> = ({
   loadingText = 'Processing...',
   buttonText = 'Generate Notes',
   icon,
-  backgroundColor = '#000',
-  textColor = '#fff',
+  backgroundColor,
+  textColor,
   style,
   textStyle,
 }) => {
-  const isDisabled = disabled || loading;
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
+  const isDisabled = disabled || loading
+
+  const bg = backgroundColor || c.foreground
+  const fg = textColor || c.background
+  const disabledBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+  const disabledFg = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
 
   return (
-    <TouchableOpacity
-      style={[
+    <Pressable
+      style={({ pressed }) => [
         styles.button,
-        { backgroundColor: isDisabled ? '#999' : backgroundColor },
-        isDisabled && styles.buttonDisabled,
+        {
+          backgroundColor: isDisabled ? disabledBg : bg,
+          opacity: isDisabled ? 1 : pressed ? 0.85 : 1,
+        },
         style,
       ]}
-      activeOpacity={0.85}
       onPress={onPress}
       disabled={isDisabled}
     >
       {loading ? (
         <>
-          <ActivityIndicator color={textColor} size="small" style={styles.icon} />
-          <Text style={[styles.buttonText, { color: textColor }, textStyle]}>
+          <ActivityIndicator color={isDisabled ? disabledFg : fg} size="small" style={styles.icon} />
+          <Text style={[styles.buttonText, { color: isDisabled ? disabledFg : fg }, textStyle]}>
             {loadingText}
           </Text>
         </>
       ) : (
         <>
-          {icon || <Sparkles size={20} color={textColor} style={styles.icon} />}
-          <Text style={[styles.buttonText, { color: textColor }, textStyle]}>{buttonText}</Text>
+          {icon || <Sparkles size={18} color={isDisabled ? disabledFg : fg} style={styles.icon} />}
+          <Text style={[styles.buttonText, { color: isDisabled ? disabledFg : fg }, textStyle]}>
+            {buttonText}
+          </Text>
         </>
       )}
-    </TouchableOpacity>
-  );
-};
+    </Pressable>
+  )
+}
 
-export default FullWidthButton;
+export default FullWidthButton
 
 const styles = StyleSheet.create({
   button: {
@@ -72,25 +83,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
-    height: 56,
-    borderRadius: 15,
-    marginTop: 18,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
+    height: 52,
+    borderRadius: 14,
+    marginTop: 16,
   },
   buttonText: {
-    fontFamily: 'Inter',
-    fontWeight: '500',
-    fontSize: 19,
-    lineHeight: 28,
+    fontWeight: '600',
+    fontSize: 16,
+    letterSpacing: -0.2,
   },
   icon: {
     marginRight: 8,
   },
-});
+})

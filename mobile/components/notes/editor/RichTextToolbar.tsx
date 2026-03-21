@@ -1,28 +1,16 @@
-/**
- * RichTextToolbar Component
- * Horizontally scrollable toolbar with formatting controls.
- * Requirements: 8.1, 8.2, 8.3, 8.4, 8.6, 8.7
- */
-
-import React from 'react';
+import React from 'react'
 import {
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   View,
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { COLORS, LAYOUT } from '@/lib/editor/constants';
-import type { RichTextToolbarProps } from '@/lib/editor/types';
-import HeaderSelector from './HeaderSelector';
+} from 'react-native'
+import { Feather } from '@expo/vector-icons'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { neutral } from '@/lib/design-system'
+import type { RichTextToolbarProps } from '@/lib/editor/types'
+import HeaderSelector from './HeaderSelector'
 
-/**
- * RichTextToolbar displays a horizontally scrollable toolbar with formatting controls.
- * - 48px height with white background and top border (Requirement 8.1)
- * - Horizontal scroll without momentum/snap (Requirement 8.2)
- * - Header selector showing current block type (Requirement 8.3)
- * - Formatting buttons with context-aware state (Requirement 8.4, 8.6, 8.7)
- */
 export default function RichTextToolbar({
   currentBlockType,
   isTitleBlock,
@@ -41,20 +29,24 @@ export default function RichTextToolbar({
   isOrderedListActive,
   currentAlignment,
 }: RichTextToolbarProps) {
-  // Determine header selector label based on current block type
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
+
   const getHeaderLabel = () => {
     switch (currentBlockType) {
-      case 'h1':
-        return 'Header 1' as const;
-      case 'h2':
-        return 'Header 2' as const;
-      default:
-        return 'Body' as const;
+      case 'h1': return 'Header 1' as const
+      case 'h2': return 'Header 2' as const
+      default: return 'Body' as const
     }
-  };
+  }
+
+  const iconColor = isDark ? neutral[400] : neutral[500]
+  const activeColor = c.primary
+  const sepColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
 
   return (
-    <View style={styles.toolbar}>
+    <View style={[styles.toolbar, { backgroundColor: isDark ? neutral[950] : '#fff', borderTopColor: sepColor }]}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -63,167 +55,74 @@ export default function RichTextToolbar({
         scrollEventThrottle={16}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header Selector (Requirement 8.3) */}
         <HeaderSelector
           currentType={getHeaderLabel()}
           onSelect={onBlockTypeChange}
           disabled={isTitleBlock}
         />
 
-        {/* Separator */}
-        <View style={styles.separator} />
+        <View style={[styles.separator, { backgroundColor: sepColor }]} />
 
-        {/* Bullet List Button (Requirement 8.6) */}
-        <ToolbarButton
-          icon="list"
-          isActive={isBulletListActive}
-          onPress={onToggleBulletList}
-          accessibilityLabel="Bullet list"
-        />
+        <ToolbarButton icon="list" isActive={isBulletListActive} onPress={onToggleBulletList} iconColor={iconColor} activeColor={activeColor} />
+        <ToolbarButton icon="hash" isActive={isOrderedListActive} onPress={onToggleOrderedList} iconColor={iconColor} activeColor={activeColor} />
 
-        {/* Numbered List Button (Requirement 8.6) */}
-        <ToolbarButton
-          icon="hash"
-          isActive={isOrderedListActive}
-          onPress={onToggleOrderedList}
-          accessibilityLabel="Numbered list"
-        />
+        <View style={[styles.separator, { backgroundColor: sepColor }]} />
 
-        {/* Separator */}
-        <View style={styles.separator} />
+        <ToolbarButton icon="align-left" isActive={currentAlignment === 'left'} onPress={() => onSetAlignment('left')} iconColor={iconColor} activeColor={activeColor} />
+        <ToolbarButton icon="align-center" isActive={currentAlignment === 'center'} onPress={() => onSetAlignment('center')} iconColor={iconColor} activeColor={activeColor} />
+        <ToolbarButton icon="align-right" isActive={currentAlignment === 'right'} onPress={() => onSetAlignment('right')} iconColor={iconColor} activeColor={activeColor} />
 
-        {/* Alignment Buttons (Requirement 8.6) */}
-        <ToolbarButton
-          icon="align-left"
-          isActive={currentAlignment === 'left'}
-          onPress={() => onSetAlignment('left')}
-          accessibilityLabel="Align left"
-        />
-        <ToolbarButton
-          icon="align-center"
-          isActive={currentAlignment === 'center'}
-          onPress={() => onSetAlignment('center')}
-          accessibilityLabel="Align center"
-        />
-        <ToolbarButton
-          icon="align-right"
-          isActive={currentAlignment === 'right'}
-          onPress={() => onSetAlignment('right')}
-          accessibilityLabel="Align right"
-        />
+        <View style={[styles.separator, { backgroundColor: sepColor }]} />
 
-        {/* Separator */}
-        <View style={styles.separator} />
-
-        {/* Bold Button (Requirement 8.6) */}
-        <ToolbarButton
-          icon="bold"
-          isActive={isBoldActive}
-          onPress={onToggleBold}
-          accessibilityLabel="Bold"
-        />
-
-        {/* Italic Button (Requirement 8.6) */}
-        <ToolbarButton
-          icon="italic"
-          isActive={isItalicActive}
-          onPress={onToggleItalic}
-          accessibilityLabel="Italic"
-        />
-
-        {/* Underline Button (Requirement 8.6) */}
-        <ToolbarButton
-          icon="underline"
-          isActive={isUnderlineActive}
-          onPress={onToggleUnderline}
-          accessibilityLabel="Underline"
-        />
+        <ToolbarButton icon="bold" isActive={isBoldActive} onPress={onToggleBold} iconColor={iconColor} activeColor={activeColor} />
+        <ToolbarButton icon="italic" isActive={isItalicActive} onPress={onToggleItalic} iconColor={iconColor} activeColor={activeColor} />
+        <ToolbarButton icon="underline" isActive={isUnderlineActive} onPress={onToggleUnderline} iconColor={iconColor} activeColor={activeColor} />
       </ScrollView>
     </View>
-  );
+  )
 }
 
-/**
- * Individual toolbar button component.
- * - 24×24px icons with 44×44px touch targets (Requirement 8.7)
- * - Purple highlight when active (Requirement 8.4)
- */
 interface ToolbarButtonProps {
-  icon: keyof typeof Feather.glyphMap;
-  isActive: boolean;
-  onPress: () => void;
-  accessibilityLabel: string;
+  icon: keyof typeof Feather.glyphMap
+  isActive: boolean
+  onPress: () => void
+  iconColor: string
+  activeColor: string
 }
 
-function ToolbarButton({
-  icon,
-  isActive,
-  onPress,
-  accessibilityLabel,
-}: ToolbarButtonProps) {
+function ToolbarButton({ icon, isActive, onPress, iconColor, activeColor }: ToolbarButtonProps) {
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
-      style={styles.toolbarButton}
-      accessibilityLabel={accessibilityLabel}
+      style={({ pressed }) => [styles.toolbarButton, { opacity: pressed ? 0.5 : 1 }]}
       accessibilityRole="button"
       accessibilityState={{ selected: isActive }}
     >
-      <Feather
-        name={icon}
-        size={LAYOUT.iconSize}
-        color={isActive ? COLORS.accentPurple : COLORS.darkGray}
-      />
-    </TouchableOpacity>
-  );
+      <Feather name={icon} size={20} color={isActive ? activeColor : iconColor} />
+    </Pressable>
+  )
 }
 
 const styles = StyleSheet.create({
-  /**
-   * Toolbar container
-   * - 48px height (Requirement 8.1)
-   * - White background (Requirement 8.1)
-   * - Top border #EAEAEA (Requirement 8.1)
-   * Note: Position is handled by parent Animated.View in EditView
-   */
   toolbar: {
-    height: LAYOUT.toolbarHeight,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.dividerGray,
+    height: 48,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-
-  /**
-   * Scroll content container
-   * - Horizontal layout with padding
-   */
   scrollContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    gap: 4,
+    paddingHorizontal: 14,
+    gap: 2,
   },
-
-  /**
-   * Toolbar button
-   * - 44×44px touch target (Requirement 8.7)
-   * - Proper spacing between buttons
-   */
   toolbarButton: {
-    width: LAYOUT.touchTargetSize,
-    height: LAYOUT.touchTargetSize,
+    width: 42,
+    height: 42,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 2,
   },
-
-  /**
-   * Separator between button groups
-   */
   separator: {
-    width: 1,
-    height: 24,
-    backgroundColor: COLORS.dividerGray,
-    marginHorizontal: 12,
+    width: StyleSheet.hairlineWidth,
+    height: 22,
+    marginHorizontal: 8,
   },
-});
+})

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { Feather } from '@expo/vector-icons'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import {
@@ -8,9 +8,8 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
   Pressable,
+  ActivityIndicator,
   Dimensions,
 } from 'react-native'
 import Animated, {
@@ -21,11 +20,10 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { BlurView } from 'expo-blur'
 import { notesApi } from '@/lib/api'
-import BackButton from '@/components/ui/BackButton'
 import { useAlert } from '@/lib/contexts/AlertContext'
 import { useTheme } from '@/lib/hooks/useTheme'
+import { neutral } from '@/lib/design-system'
 import ViewShot from 'react-native-view-shot'
 import * as Sharing from 'expo-sharing'
 
@@ -132,7 +130,7 @@ const StackedCard = ({ index, cardBg, shadowColor }: { index: number; cardBg: st
       style={{
         position: 'absolute',
         backgroundColor: cardBg,
-        borderRadius: 28,
+        borderRadius: 24,
         shadowColor: shadowColor,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.08,
@@ -157,6 +155,10 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
   const c = theme.colors
   const isDark = mode === 'dark'
 
+  const pageBg = isDark ? neutral[950] : '#f0f0f0'
+  const cardBg = isDark ? neutral[900] : '#fff'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+
   const [flashcardState, setFlashcardState] = useState<FlashcardState>('loading')
   const [currentCard, setCurrentCard] = useState(0)
   const [flashcards, setFlashcards] = useState<FlashcardItem[]>([])
@@ -173,474 +175,6 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
   // Ref for screenshot capture
   const completionScreenRef = useRef<ViewShot>(null)
-
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: c.background,
-    },
-    safeArea: {
-      flex: 1,
-    },
-    headerSection: {
-      backgroundColor: c.background,
-      paddingBottom: 8,
-    },
-    headerTopRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      paddingHorizontal: 20,
-      paddingTop: 12,
-      paddingBottom: 8,
-    },
-    circularBackButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: c.muted,
-      justifyContent: 'center',
-      alignItems: 'center',
-      shadowColor: c.foreground,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.08,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    headerSecondRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-      paddingBottom: 16,
-    },
-    cardLabel: {
-      fontSize: 17,
-      fontWeight: '600',
-      color: c.foreground,
-    },
-    remainingCount: {
-      fontSize: 15,
-      fontWeight: '500',
-      color: c.mutedForeground,
-    },
-    progressBarContainer: {
-      paddingHorizontal: 20,
-      paddingBottom: 12,
-    },
-    progressBarBackground: {
-      height: 10,
-      backgroundColor: c.border,
-      borderRadius: 4,
-      overflow: 'hidden',
-    },
-    progressBarFill: {
-      height: '100%',
-      backgroundColor: c.info,
-      borderRadius: 4,
-    },
-    titleContainer: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: '500',
-      color: c.foreground,
-      textAlign: 'center',
-    },
-    headerRight: {
-      width: 48,
-      alignItems: 'flex-end',
-    },
-    deleteButton: {
-      padding: 8,
-    },
-    deleteButtonDisabled: {
-      opacity: 0.5,
-    },
-    headerTime: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: c.foreground,
-    },
-    headerIcon: {
-      marginRight: 4,
-    },
-    content: {
-      flex: 1,
-    },
-    contentContainer: {
-      paddingHorizontal: 20,
-      paddingTop: 10,
-      flexGrow: 1,
-    },
-    cardStackContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: 30,
-      marginBottom: 30,
-      position: 'relative',
-      minHeight: CARD_HEIGHT + 20,
-    },
-    flipCardContainer: {
-      width: CARD_WIDTH,
-      minHeight: CARD_HEIGHT,
-      backfaceVisibility: 'hidden',
-      zIndex: 10,
-    },
-    flashcard: {
-      backgroundColor: c.card,
-      borderRadius: 28,
-      paddingVertical: 40,
-      paddingHorizontal: 24,
-      width: CARD_WIDTH,
-      minHeight: CARD_HEIGHT,
-      justifyContent: 'center',
-      alignItems: 'center',
-      shadowColor: c.foreground,
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.15,
-      shadowRadius: 16,
-      elevation: 8,
-      borderWidth: 0.5,
-      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
-    },
-    flashcardBack: {
-      backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : '#F1FCF5',
-    },
-    flashcardText: {
-      fontSize: 18,
-      lineHeight: 30,
-      textAlign: 'center',
-      color: c.foreground,
-      fontWeight: '500',
-    },
-    helperText: {
-      textAlign: 'center',
-      fontSize: 14,
-      color: c.mutedForeground,
-      fontWeight: '400',
-      marginTop: 24,
-    },
-    feedbackCard: {
-      paddingHorizontal: 12,
-    },
-    feedbackContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 16,
-    },
-    navButton: {
-      width: 48,
-      height: 48,
-      justifyContent: 'center',
-      alignItems: 'center',
-      shadowColor: c.foreground,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    navButtonDisabled: {
-      opacity: 0.5,
-    },
-    feedbackButtonsContainer: {
-      flexDirection: 'row',
-      gap: 5,
-      flex: 1,
-      justifyContent: 'center',
-    },
-    gotItWrongButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 4,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEF2F2',
-      borderWidth: 1,
-      borderColor: isDark ? 'rgba(239,68,68,0.25)' : '#FECACA',
-      borderRadius: 10,
-    },
-    gotItWrongText: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: c.destructive,
-    },
-    gotItRightButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 4,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      backgroundColor: c.success,
-      borderRadius: 10,
-    },
-    gotItRightText: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: c.background,
-    },
-    backButton: {
-      width: 48,
-      height: 48,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: c.card,
-      borderWidth: 1.25,
-      borderColor: c.border,
-      borderRadius: 24,
-      shadowColor: c.foreground,
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
-      elevation: 2,
-    },
-    nextButton: {
-      width: 48,
-      height: 48,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: c.card,
-      borderWidth: 1.25,
-      borderColor: c.border,
-      borderRadius: 24,
-      shadowColor: c.foreground,
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
-      elevation: 2,
-    },
-    completionContainer: {
-      flex: 1,
-      alignItems: 'center',
-      paddingTop: 20,
-    },
-    completionCircle: {
-      width: 128,
-      height: 128,
-      borderRadius: 64,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 32,
-    },
-    completionCircleSuccess: {
-      backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D0FAE5',
-    },
-    completionCircleRetry: {
-      backgroundColor: isDark ? 'rgba(251,191,36,0.2)' : '#FED7AA',
-    },
-    emojiIcon: {
-      fontFamily: 'Inter',
-      fontStyle: 'normal',
-      fontWeight: '400',
-      fontSize: 60,
-      lineHeight: 60,
-      textAlign: 'center',
-      color: c.foreground,
-      width: 60,
-      height: 60,
-    },
-    completionScoreContainer: {
-      width: 87,
-      height: 40,
-      backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D0FAE5',
-      borderRadius: 100,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 16,
-    },
-    completionScoreText: {
-      fontFamily: 'Inter',
-      fontStyle: 'normal',
-      fontWeight: '400',
-      fontSize: 16,
-      lineHeight: 24,
-      textAlign: 'center',
-      color: c.success,
-    },
-    completionScoreRetryText: {
-      color: c.warning,
-    },
-    completionMessage: {
-      fontSize: 20,
-      fontWeight: '600',
-      color: c.foreground,
-      marginBottom: 24,
-    },
-    completionStats: {
-      alignItems: 'center',
-      marginBottom: 48,
-    },
-    completionStat: {
-      fontSize: 14,
-      color: c.mutedForeground,
-      fontWeight: '500',
-      marginBottom: 4,
-    },
-    completionActions: {
-      width: '100%',
-      gap: 12,
-    },
-    completionActionsRetry: {
-      width: '100%',
-      gap: 12,
-      marginTop: 'auto',
-      paddingBottom: 20,
-    },
-    shareButton: {
-      backgroundColor: c.primary,
-      borderRadius: 14,
-      paddingVertical: 18,
-      alignItems: 'center',
-    },
-    shareButtonText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: c.background,
-    },
-    shareButtonBlack: {
-      backgroundColor: c.foreground,
-      borderRadius: 14,
-      paddingVertical: 18,
-      alignItems: 'center',
-    },
-    shareButtonBlackText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: c.background,
-    },
-    createNewButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.muted,
-      borderRadius: 14,
-      paddingVertical: 18,
-      gap: 8,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    createNewButtonText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: c.foreground,
-    },
-    retakeButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.muted,
-      borderRadius: 14,
-      paddingVertical: 18,
-      gap: 8,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    retakeButtonText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: c.foreground,
-    },
-    homeIndicator: {
-      height: 6,
-      backgroundColor: c.border,
-      borderRadius: 999,
-      marginTop: 12,
-      marginBottom: 6,
-      alignSelf: 'center',
-      width: 120,
-      opacity: 0.7,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 60,
-    },
-    loadingText: {
-      marginTop: 12,
-      color: c.mutedForeground,
-      fontSize: 16,
-    },
-    errorContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 60,
-      paddingHorizontal: 40,
-    },
-    errorTitle: {
-      marginTop: 24,
-      color: c.foreground,
-      fontSize: 24,
-      textAlign: 'center',
-      fontWeight: '500',
-    },
-    errorSubtitle: {
-      marginTop: 12,
-      color: c.mutedForeground,
-      fontSize: 16,
-      textAlign: 'center',
-      lineHeight: 24,
-    },
-    errorText: {
-      marginTop: 16,
-      color: c.destructive,
-      fontSize: 16,
-      textAlign: 'center',
-      fontWeight: '600',
-    },
-    generateButton: {
-      marginTop: 32,
-      paddingVertical: 16,
-      paddingHorizontal: 32,
-      backgroundColor: c.primary,
-      borderRadius: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      minWidth: 200,
-      justifyContent: 'center',
-    },
-    generateButtonText: {
-      color: c.background,
-      fontSize: 16,
-      fontWeight: '600',
-      marginLeft: 8,
-    },
-    retryButton: {
-      marginTop: 20,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      backgroundColor: c.primary,
-      borderRadius: 12,
-    },
-    retryButtonText: {
-      color: c.background,
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    backButtonError: {
-      marginTop: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-    },
-    backButtonErrorText: {
-      color: c.mutedForeground,
-      fontSize: 16,
-      fontWeight: '600',
-    },
-  }), [c, isDark])
 
   // Fetch flashcards data on mount
   useEffect(() => {
@@ -939,12 +473,12 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[s.container, { backgroundColor: pageBg }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.loadingContainer}>
+        <SafeAreaView style={s.safe}>
+          <View style={s.stateWrap}>
             <ActivityIndicator size="large" color={c.primary} />
-            <Text style={styles.loadingText}>
+            <Text style={[s.stateText, { color: c.mutedForeground }]}>
               {isGenerating ? t('flashcards.generating') : t('common.loading')}
             </Text>
           </View>
@@ -955,21 +489,24 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
   if (error) {
     return (
-      <View style={styles.container}>
+      <View style={[s.container, { backgroundColor: pageBg }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-        <SafeAreaView style={styles.safeArea}>
-          <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 }}>
-            <BackButton />
+        <SafeAreaView style={s.safe}>
+          <View style={s.header}>
+            <Pressable onPress={() => router.back()} hitSlop={12}><Feather name="arrow-left" size={24} color={c.foreground} /></Pressable>
+            <Text style={[s.headerTitle, { color: c.foreground }]}>Flashcards</Text>
+            <View style={{ width: 24 }} />
           </View>
-          <View style={styles.errorContainer}>
-            <Feather name="alert-circle" size={48} color={c.destructive} />
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity style={styles.retryButton} onPress={generateFlashcards}>
-              <Text style={styles.retryButtonText}>{t('flashcards.generate')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.backButtonError} onPress={() => router.back()}>
-              <Text style={styles.backButtonErrorText}>{t('common.back')}</Text>
-            </TouchableOpacity>
+          <View style={s.stateWrap}>
+            <Feather name="alert-circle" size={44} color={c.destructive} />
+            <Text style={[s.stateTitle, { color: c.foreground }]}>Something went wrong</Text>
+            <Text style={[s.stateText, { color: c.mutedForeground }]}>{error}</Text>
+            <Pressable
+              style={({ pressed }) => [s.primaryBtn, { backgroundColor: c.primary, opacity: pressed ? 0.7 : 1 }]}
+              onPress={generateFlashcards}
+            >
+              <Text style={[s.primaryBtnText, { color: c.primaryForeground }]}>Retry</Text>
+            </Pressable>
           </View>
         </SafeAreaView>
       </View>
@@ -979,35 +516,36 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
   // If no flashcards loaded, show generate flashcards option
   if (!flashcards || flashcards.length === 0) {
     return (
-      <View style={styles.container}>
+      <View style={[s.container, { backgroundColor: pageBg }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.errorContainer}>
-            <Feather name="help-circle" size={64} color={c.primary} />
-            <Text style={styles.errorTitle}>No Flashcards Available</Text>
-            <Text style={styles.errorSubtitle}>
+        <SafeAreaView style={s.safe}>
+          <View style={s.header}>
+            <Pressable onPress={() => router.back()} hitSlop={12}><Feather name="arrow-left" size={24} color={c.foreground} /></Pressable>
+            <Text style={[s.headerTitle, { color: c.foreground }]}>Flashcards</Text>
+            <View style={{ width: 24 }} />
+          </View>
+          <View style={s.stateWrap}>
+            <View style={[s.emptyIcon, { backgroundColor: isDark ? 'rgba(79,59,231,0.1)' : 'rgba(79,59,231,0.06)' }]}>
+              <Ionicons name="flash" size={36} color={c.primary} />
+            </View>
+            <Text style={[s.stateTitle, { color: c.foreground }]}>No Flashcards Available</Text>
+            <Text style={[s.stateText, { color: c.mutedForeground }]}>
               Generate flashcards from this note to help you study
             </Text>
-            <TouchableOpacity
-              style={styles.generateButton}
+            <Pressable
+              style={({ pressed }) => [s.primaryBtn, { backgroundColor: c.primary, opacity: pressed ? 0.7 : 1 }]}
               onPress={generateFlashcards}
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator size="small" color={c.background} />
+                <ActivityIndicator size="small" color={c.primaryForeground} />
               ) : (
                 <>
-                  <Feather name="zap" size={20} color={c.background} />
-                  <Text style={styles.generateButtonText}>Generate Flashcards</Text>
+                  <Ionicons name="flash" size={18} color={c.primaryForeground} />
+                  <Text style={[s.primaryBtnText, { color: c.primaryForeground }]}>Generate Flashcards</Text>
                 </>
               )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.backButtonError}
-              onPress={() => router.back()}
-            >
-              <Text style={styles.backButtonErrorText}>Go Back</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </SafeAreaView>
       </View>
@@ -1020,91 +558,70 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
   const isRetry = flashcardState === 'retry'
   const isComplete = isSuccess || isRetry
   const completionPercentage = getCompletionPercentage()
+  const progress = (currentCard + 1) / flashcards.length
+  const scoreColor = completionPercentage >= 70 ? '#34C759' : completionPercentage >= 40 ? '#FF9500' : '#FF3B30'
 
   return (
-    <View style={styles.container}>
+    <View style={[s.container, { backgroundColor: pageBg }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      <SafeAreaView style={styles.safeArea}>
-        {/* Header Section */}
-        <View style={styles.headerSection}>
-          {/* Top Row: Back Button and Delete Button */}
-          <View style={styles.headerTopRow}>
-            {/* Left: Circular Back Button */}
-            <TouchableOpacity
-              style={styles.circularBackButton}
-              onPress={() => router.back()}
+      <SafeAreaView style={s.safe}>
+        {/* Header */}
+        <View style={s.header}>
+          <Pressable onPress={() => router.back()} hitSlop={12}>
+            <Feather name="arrow-left" size={24} color={c.foreground} />
+          </Pressable>
+          <Text style={[s.headerTitle, { color: c.foreground }]}>
+            Card {currentCard + 1} of {flashcards.length}
+          </Text>
+          {flashcards.length > 0 ? (
+            <Pressable
+              onPress={handleDeleteFlashcards}
+              hitSlop={12}
+              disabled={isDeleting}
+              style={({ pressed }) => ({ opacity: isDeleting ? 0.5 : pressed ? 0.7 : 1 })}
             >
-              <Feather name="chevron-left" size={24} color={c.foreground} />
-            </TouchableOpacity>
-
-            {/* Spacer */}
-            <View style={{ flex: 1 }} />
-
-            {/* Right: Delete Button */}
-            <View>
-              {flashcards.length > 0 ? (
-                <TouchableOpacity
-                  onPress={handleDeleteFlashcards}
-                  style={[styles.deleteButton, isDeleting && styles.deleteButtonDisabled]}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? (
-                    <ActivityIndicator size="small" color={c.destructive} />
-                  ) : (
-                    <Feather name="trash-2" size={20} color={c.destructive} />
-                  )}
-                </TouchableOpacity>
+              {isDeleting ? (
+                <ActivityIndicator size="small" color="#FF3B30" />
               ) : (
-                <View style={{ width: 40 }} />
+                <Feather name="trash-2" size={20} color="#FF3B30" />
               )}
-            </View>
-          </View>
-
-          {/* Second Row: Card Info */}
-          <View style={styles.headerSecondRow}>
-            <Text style={styles.cardLabel}>Card {currentCard + 1}</Text>
-            <Text style={styles.remainingCount}>{cardsLeft} left</Text>
-          </View>
-
-          {/* Progress Bar */}
-          <View style={styles.progressBarContainer}>
-            <View style={styles.progressBarBackground}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  { width: `${((currentCard + 1) / flashcards.length) * 100}%` }
-                ]}
-              />
-            </View>
-          </View>
+            </Pressable>
+          ) : (
+            <View style={{ width: 24 }} />
+          )}
         </View>
 
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        {/* Progress bar */}
+        <View style={[s.progressTrack, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+          <View style={[s.progressFill, { backgroundColor: c.primary, width: `${progress * 100}%` }]} />
+        </View>
+
+        <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
           {!isComplete && currentFlashcard && (
             <>
               {/* Card Stack Effect */}
-              <View style={styles.cardStackContainer}>
+              <View style={s.cardStackContainer}>
                 {/* Background stacked cards for deck illusion */}
-                {cardsLeft >= 2 && <StackedCard index={1} cardBg={c.card} shadowColor={c.foreground} />}
-                {cardsLeft >= 1 && <StackedCard index={0} cardBg={c.card} shadowColor={c.foreground} />}
+                {cardsLeft >= 2 && <StackedCard index={1} cardBg={cardBg} shadowColor={c.foreground} />}
+                {cardsLeft >= 1 && <StackedCard index={0} cardBg={cardBg} shadowColor={c.foreground} />}
 
                 {/* Main Flashcard with Flip Animation */}
                 <FlipCard
                   isFlipped={isFlipped}
-                  cardStyle={styles.flipCardContainer}
+                  cardStyle={s.flipCardContainer}
                   direction='y'
                   duration={500}
                   RegularContent={
-                    <Pressable onPress={handleFlipCard} style={styles.flashcard}>
-                      <Text style={styles.flashcardText}>
+                    <Pressable onPress={handleFlipCard} style={[s.flashcard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+                      <Text style={[s.flashcardText, { color: c.foreground }]}>
                         {currentFlashcard.front}
                       </Text>
-                      <Text style={styles.helperText}>{t('flashcards.flipCard')}</Text>
+                      <Text style={[s.helperText, { color: c.mutedForeground }]}>{t('flashcards.flipCard')}</Text>
                     </Pressable>
                   }
                   FlippedContent={
-                    <Pressable onPress={handleFlipCard} style={[styles.flashcard, styles.flashcardBack]}>
-                      <Text style={styles.flashcardText}>
+                    <Pressable onPress={handleFlipCard} style={[s.flashcard, { backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : '#F1FCF5', borderColor: cardBorder }]}>
+                      <Text style={[s.flashcardText, { color: c.foreground }]}>
                         {currentFlashcard.back}
                       </Text>
                     </Pressable>
@@ -1113,87 +630,98 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
               </View>
 
               {/* Bottom Feedback Controls */}
-              <View style={styles.feedbackCard}>
-                <BlurView intensity={isDark ? 25 : 12} tint={isDark ? 'dark' : 'light'} style={{ borderRadius: 16, overflow: 'hidden' }}>
-                  <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)', padding: 12 }}>
-                    <View style={styles.feedbackContainer}>
+              <View style={s.feedbackRow}>
+                {/* Back chevron */}
+                <Pressable
+                  style={({ pressed }) => [s.navCircle, { backgroundColor: isDark ? neutral[800] : neutral[100], opacity: currentCard === 0 ? 0.5 : pressed ? 0.7 : 1 }]}
+                  onPress={moveToPreviousCard}
+                  disabled={currentCard === 0}
+                >
+                  <Feather name="chevron-left" size={20} color={currentCard === 0 ? c.mutedForeground : c.foreground} />
+                </Pressable>
 
-                      {/* Feedback Buttons */}
-                      <View style={styles.feedbackButtonsContainer}>
-                        {/* Back Button */}
-                        <TouchableOpacity
-                          style={[styles.backButton, currentCard === 0 && styles.navButtonDisabled]}
-                          onPress={moveToPreviousCard}
-                          disabled={currentCard === 0}
-                        >
-                          <Feather name="chevron-left" size={20} color={currentCard === 0 ? c.mutedForeground : c.foreground} />
-                        </TouchableOpacity>
+                {/* Got it wrong */}
+                <Pressable
+                  style={({ pressed }) => [s.wrongBtn, { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEF2F2', opacity: pressed ? 0.7 : 1 }]}
+                  onPress={handleGotItWrong}
+                >
+                  <Feather name="x" size={18} color={c.destructive} />
+                  <Text style={[s.wrongBtnText, { color: c.destructive }]}>Wrong</Text>
+                </Pressable>
 
-                        {/* Got it wrong Button */}
-                        <TouchableOpacity
-                          style={styles.gotItWrongButton}
-                          onPress={handleGotItWrong}
-                        >
-                          <Feather name="chevron-left" size={24} color={c.destructive} />
-                          <Text style={styles.gotItWrongText}>Got it wrong</Text>
-                        </TouchableOpacity>
+                {/* Got it right */}
+                <Pressable
+                  style={({ pressed }) => [s.rightBtn, { backgroundColor: '#34C759', opacity: pressed ? 0.7 : 1 }]}
+                  onPress={handleGotItRight}
+                >
+                  <Feather name="check" size={18} color="#fff" />
+                  <Text style={s.rightBtnText}>Right</Text>
+                </Pressable>
 
-                        {/* Got it right Button */}
-                        <TouchableOpacity
-                          style={styles.gotItRightButton}
-                          onPress={handleGotItRight}
-                        >
-                          <Text style={styles.gotItRightText}>Got it right</Text>
-                          <Feather name="chevron-right" size={24} color={c.background} />
-                        </TouchableOpacity>
-
-                        {/* Next Button */}
-                        <TouchableOpacity
-                          style={[styles.nextButton, currentCard >= flashcards.length - 1 && styles.navButtonDisabled]}
-                          onPress={moveToNextCard}
-                          disabled={currentCard >= flashcards.length - 1}
-                        >
-                          <Feather name="chevron-right" size={20} color={currentCard >= flashcards.length - 1 ? c.mutedForeground : c.foreground} />
-                        </TouchableOpacity>
-                      </View>
-
-
-                    </View>
-                  </View>
-                </BlurView>
+                {/* Next chevron */}
+                <Pressable
+                  style={({ pressed }) => [s.navCircle, { backgroundColor: isDark ? neutral[800] : neutral[100], opacity: currentCard >= flashcards.length - 1 ? 0.5 : pressed ? 0.7 : 1 }]}
+                  onPress={moveToNextCard}
+                  disabled={currentCard >= flashcards.length - 1}
+                >
+                  <Feather name="chevron-right" size={20} color={currentCard >= flashcards.length - 1 ? c.mutedForeground : c.foreground} />
+                </Pressable>
               </View>
             </>
           )}
 
           {/* Completion Screen - Success */}
           {isSuccess && (
-            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: c.background }}>
-              <View style={styles.completionContainer}>
-                <View style={[styles.completionCircle, styles.completionCircleSuccess]}>
-                  <Text style={styles.emojiIcon}>🏆</Text>
-                </View>
-
-                <View style={styles.completionScoreContainer}>
-                  <Text style={styles.completionScoreText}>
-                    {completionPercentage}%
+            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: pageBg }}>
+              <View style={s.completeContent}>
+                <View style={[s.scoreCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+                  <Text style={[s.scoreNum, { color: scoreColor }]}>{completionPercentage}%</Text>
+                  <Text style={[s.scoreMsg, { color: c.mutedForeground }]}>
+                    {completionPercentage >= 80 ? 'Excellent work!' : completionPercentage >= 60 ? 'Good progress!' : 'Keep practicing!'}
                   </Text>
                 </View>
 
-                <Text style={styles.completionMessage}>{t('flashcards.nicelyDone')}</Text>
-
-                <View style={styles.completionStats}>
-                  <Text style={styles.completionStat}>{t('flashcards.percentCorrect', { percent: completionPercentage })}</Text>
+                <View style={s.statsRow}>
+                  <View style={[s.statCard, { backgroundColor: isDark ? 'rgba(52,199,89,0.1)' : '#F0FDF4', borderColor: isDark ? 'rgba(52,199,89,0.15)' : 'rgba(52,199,89,0.12)' }]}>
+                    <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+                    <Text style={[s.statValue, { color: '#34C759' }]}>{correctAnswers}</Text>
+                    <Text style={[s.statLabel, { color: c.mutedForeground }]}>Correct</Text>
+                  </View>
+                  <View style={[s.statCard, { backgroundColor: isDark ? 'rgba(255,59,48,0.1)' : '#FEF2F2', borderColor: isDark ? 'rgba(255,59,48,0.15)' : 'rgba(255,59,48,0.12)' }]}>
+                    <Ionicons name="close-circle" size={20} color="#FF3B30" />
+                    <Text style={[s.statValue, { color: '#FF3B30' }]}>{wrongAnswers}</Text>
+                    <Text style={[s.statLabel, { color: c.mutedForeground }]}>Wrong</Text>
+                  </View>
+                  <View style={[s.statCard, { backgroundColor: isDark ? 'rgba(0,122,255,0.1)' : '#EFF6FF', borderColor: isDark ? 'rgba(0,122,255,0.15)' : 'rgba(0,122,255,0.12)' }]}>
+                    <Ionicons name="time" size={20} color="#007AFF" />
+                    <Text style={[s.statValue, { color: '#007AFF' }]}>{getElapsedTime()}</Text>
+                    <Text style={[s.statLabel, { color: c.mutedForeground }]}>Time</Text>
+                  </View>
                 </View>
 
-                <View style={styles.completionActions}>
-                  <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-                    <Text style={styles.shareButtonText}>{t('flashcards.share')}</Text>
-                  </TouchableOpacity>
+                <Pressable
+                  style={({ pressed }) => [s.primaryBtn, { backgroundColor: c.primary, opacity: pressed ? 0.7 : 1, width: '100%' }]}
+                  onPress={handleShare}
+                >
+                  <Feather name="share-2" size={18} color={c.primaryForeground} />
+                  <Text style={[s.primaryBtnText, { color: c.primaryForeground }]}>{t('flashcards.share')}</Text>
+                </Pressable>
 
-                  <TouchableOpacity style={styles.createNewButton} onPress={handleCreateNew}>
-                    <Feather name="plus" size={20} color={c.foreground} />
-                    <Text style={styles.createNewButtonText}>{t('flashcards.createNew')}</Text>
-                  </TouchableOpacity>
+                <View style={s.secondaryRow}>
+                  <Pressable
+                    style={({ pressed }) => [s.secondaryBtn, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)', opacity: pressed ? 0.7 : 1 }]}
+                    onPress={handleRetake}
+                  >
+                    <Ionicons name="refresh" size={16} color={c.foreground} />
+                    <Text style={[s.secondaryBtnText, { color: c.foreground }]}>Try Again</Text>
+                  </Pressable>
+                  <Pressable
+                    style={({ pressed }) => [s.secondaryBtn, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)', opacity: pressed ? 0.7 : 1 }]}
+                    onPress={handleCreateNew}
+                  >
+                    <Feather name="plus" size={16} color={c.foreground} />
+                    <Text style={[s.secondaryBtnText, { color: c.foreground }]}>{t('flashcards.createNew')}</Text>
+                  </Pressable>
                 </View>
               </View>
             </ViewShot>
@@ -1201,38 +729,54 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
           {/* Completion Screen - Retry */}
           {isRetry && (
-            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: c.background }}>
-              <View style={styles.completionContainer}>
-                <View style={[styles.completionCircle, styles.completionCircleRetry]}>
-                  <Text style={styles.emojiIcon}>😅</Text>
+            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: pageBg }}>
+              <View style={s.completeContent}>
+                <View style={[s.scoreCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+                  <Text style={[s.scoreNum, { color: scoreColor }]}>{completionPercentage}%</Text>
+                  <Text style={[s.scoreMsg, { color: c.mutedForeground }]}>Keep practicing!</Text>
                 </View>
 
-                <View style={styles.completionScoreContainer}>
-                  <Text style={[styles.completionScoreText, styles.completionScoreRetryText]}>
-                    {completionPercentage}%
-                  </Text>
+                <View style={s.statsRow}>
+                  <View style={[s.statCard, { backgroundColor: isDark ? 'rgba(52,199,89,0.1)' : '#F0FDF4', borderColor: isDark ? 'rgba(52,199,89,0.15)' : 'rgba(52,199,89,0.12)' }]}>
+                    <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+                    <Text style={[s.statValue, { color: '#34C759' }]}>{correctAnswers}</Text>
+                    <Text style={[s.statLabel, { color: c.mutedForeground }]}>Correct</Text>
+                  </View>
+                  <View style={[s.statCard, { backgroundColor: isDark ? 'rgba(255,59,48,0.1)' : '#FEF2F2', borderColor: isDark ? 'rgba(255,59,48,0.15)' : 'rgba(255,59,48,0.12)' }]}>
+                    <Ionicons name="close-circle" size={20} color="#FF3B30" />
+                    <Text style={[s.statValue, { color: '#FF3B30' }]}>{wrongAnswers}</Text>
+                    <Text style={[s.statLabel, { color: c.mutedForeground }]}>Wrong</Text>
+                  </View>
+                  <View style={[s.statCard, { backgroundColor: isDark ? 'rgba(0,122,255,0.1)' : '#EFF6FF', borderColor: isDark ? 'rgba(0,122,255,0.15)' : 'rgba(0,122,255,0.12)' }]}>
+                    <Ionicons name="time" size={20} color="#007AFF" />
+                    <Text style={[s.statValue, { color: '#007AFF' }]}>{getElapsedTime()}</Text>
+                    <Text style={[s.statLabel, { color: c.mutedForeground }]}>Time</Text>
+                  </View>
                 </View>
 
-                <Text style={styles.completionMessage}>{t('flashcards.tryAgain')}</Text>
+                <Pressable
+                  style={({ pressed }) => [s.primaryBtn, { backgroundColor: c.primary, opacity: pressed ? 0.7 : 1, width: '100%' }]}
+                  onPress={handleRetake}
+                >
+                  <Ionicons name="refresh" size={18} color={c.primaryForeground} />
+                  <Text style={[s.primaryBtnText, { color: c.primaryForeground }]}>{t('flashcards.retake')}</Text>
+                </Pressable>
 
-                <View style={styles.completionStats}>
-                  <Text style={styles.completionStat}>{t('flashcards.percentCorrect', { percent: completionPercentage })}</Text>
-                </View>
-
-                <View style={styles.completionActionsRetry}>
-                  <TouchableOpacity style={styles.retakeButton} onPress={handleRetake}>
-                    <Feather name="rotate-cw" size={20} color={c.foreground} />
-                    <Text style={styles.retakeButtonText}>{t('flashcards.retake')}</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={styles.shareButtonBlack} onPress={handleShare}>
-                    <Text style={styles.shareButtonBlackText}>{t('flashcards.share')}</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={styles.createNewButton} onPress={handleCreateNew}>
-                    <Feather name="plus" size={20} color={c.foreground} />
-                    <Text style={styles.createNewButtonText}>{t('flashcards.createNew')}</Text>
-                  </TouchableOpacity>
+                <View style={s.secondaryRow}>
+                  <Pressable
+                    style={({ pressed }) => [s.secondaryBtn, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)', opacity: pressed ? 0.7 : 1 }]}
+                    onPress={handleShare}
+                  >
+                    <Feather name="share-2" size={16} color={c.foreground} />
+                    <Text style={[s.secondaryBtnText, { color: c.foreground }]}>{t('flashcards.share')}</Text>
+                  </Pressable>
+                  <Pressable
+                    style={({ pressed }) => [s.secondaryBtn, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)', opacity: pressed ? 0.7 : 1 }]}
+                    onPress={handleCreateNew}
+                  >
+                    <Feather name="plus" size={16} color={c.foreground} />
+                    <Text style={[s.secondaryBtnText, { color: c.foreground }]}>{t('flashcards.createNew')}</Text>
+                  </Pressable>
                 </View>
               </View>
             </ViewShot>
@@ -1244,3 +788,125 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
     </View>
   )
 }
+
+const s = StyleSheet.create({
+  container: { flex: 1 },
+  safe: { flex: 1 },
+
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 },
+  headerTitle: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3 },
+
+  progressTrack: { height: 3, marginHorizontal: 20, borderRadius: 2, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 2 },
+
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 10 },
+
+  cardStackContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 30,
+    marginBottom: 30,
+    position: 'relative',
+    minHeight: CARD_HEIGHT + 20,
+  },
+  flipCardContainer: {
+    width: CARD_WIDTH,
+    minHeight: CARD_HEIGHT,
+    backfaceVisibility: 'hidden',
+    zIndex: 10,
+  },
+  flashcard: {
+    borderRadius: 24,
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+    width: CARD_WIDTH,
+    minHeight: CARD_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 1,
+  },
+  flashcardText: {
+    fontSize: 18,
+    lineHeight: 30,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  helperText: {
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '400',
+    marginTop: 24,
+  },
+
+  // Feedback controls
+  feedbackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: 4,
+  },
+  navCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  wrongBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    height: 44,
+    borderRadius: 12,
+  },
+  wrongBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  rightBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    height: 44,
+    borderRadius: 12,
+  },
+  rightBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#fff',
+  },
+
+  // Completion
+  completeContent: { alignItems: 'center', paddingHorizontal: 0, paddingTop: 32, paddingBottom: 40 },
+  scoreCard: { borderRadius: 20, borderWidth: 1, padding: 32, alignItems: 'center', width: '100%', marginBottom: 20 },
+  scoreNum: { fontSize: 56, fontWeight: '700', letterSpacing: -2 },
+  scoreMsg: { fontSize: 16, fontWeight: '500', marginTop: 8 },
+
+  statsRow: { flexDirection: 'row', gap: 10, width: '100%', marginBottom: 24 },
+  statCard: { flex: 1, alignItems: 'center', padding: 16, borderRadius: 14, borderWidth: 1, gap: 6 },
+  statValue: { fontSize: 20, fontWeight: '700' },
+  statLabel: { fontSize: 12, fontWeight: '500' },
+
+  secondaryRow: { gap: 10, width: '100%', marginTop: 10 },
+  secondaryBtn: { height: 50, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  secondaryBtnText: { fontSize: 15, fontWeight: '600' },
+
+  // Shared states
+  stateWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
+  stateTitle: { marginTop: 16, fontSize: 20, fontWeight: '600', textAlign: 'center' },
+  stateText: { marginTop: 8, fontSize: 15, textAlign: 'center', lineHeight: 22 },
+  emptyIcon: { width: 72, height: 72, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  primaryBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 54, borderRadius: 16, marginTop: 24, paddingHorizontal: 28 },
+  primaryBtnText: { fontSize: 17, fontWeight: '600' },
+})

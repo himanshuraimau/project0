@@ -3,7 +3,7 @@ import {
     View,
     Text,
     StyleSheet,
-    TouchableOpacity,
+    Pressable,
     Dimensions,
     ActivityIndicator,
     ScrollView,
@@ -12,16 +12,16 @@ import {
     Easing,
     StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import Svg, { Path } from 'react-native-svg';
-import { BlurView } from 'expo-blur';
 import { podcastApi, Podcast } from '@/lib/api';
-import BackButton from '@/components/ui/BackButton';
 import { useTheme } from '@/lib/hooks/useTheme';
+import { neutral } from '@/lib/design-system';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.9;
@@ -195,6 +195,10 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
     const { theme, mode } = useTheme();
     const c = theme.colors;
     const isDark = mode === 'dark';
+
+    const pageBg = isDark ? neutral[950] : '#f0f0f0';
+    const cardBg = isDark ? neutral[900] : '#fff';
+    const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
 
     const [podcast, setPodcast] = useState<Podcast | null>(null);
     const [loading, setLoading] = useState(true);
@@ -601,7 +605,7 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
     };
 
     // --- Dynamic styles that depend on theme ---
-    const styles = makeStyles(c, isDark);
+    const styles = makeStyles(c, isDark, pageBg, cardBg, cardBorder);
 
     if (loading) {
         return (
@@ -619,9 +623,15 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                 <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
                 <Ionicons name="mic-off-outline" size={64} color={c.mutedForeground} />
                 <Text style={styles.emptyText}>No podcast available</Text>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Text style={styles.backButtonText}>Go Back</Text>
-                </TouchableOpacity>
+                <Pressable
+                    style={({ pressed }) => [
+                        styles.goBackButton,
+                        { opacity: pressed ? 0.8 : 1 },
+                    ]}
+                    onPress={() => router.back()}
+                >
+                    <Text style={styles.goBackButtonText}>Go Back</Text>
+                </Pressable>
             </View>
         );
     }
@@ -629,77 +639,84 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
     const progress = duration > 0 ? position / duration : 0;
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+        <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: pageBg }}>
+            <View style={styles.container}>
+                <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-            {/* Header */}
-            <View style={styles.header}>
-                <BackButton iconColor={c.foreground} />
-
-                <Text style={styles.headerTitle}>Podcast</Text>
-
-                <View style={styles.headerActions}>
-                    <TouchableOpacity
-                        style={styles.headerButton}
-                        onPress={handleDownload}
-                        disabled={isDownloading}
+                {/* Header */}
+                <View style={styles.header}>
+                    <Pressable
+                        style={({ pressed }) => [
+                            styles.headerButton,
+                            { opacity: pressed ? 0.7 : 1 },
+                        ]}
+                        onPress={() => router.back()}
                     >
-                        {isDownloading ? (
-                            <ActivityIndicator size="small" color={c.foreground} />
-                        ) : (
-                            <Ionicons name="download-outline" size={24} color={c.foreground} />
-                        )}
-                    </TouchableOpacity>
+                        <Feather name="arrow-left" size={20} color={c.foreground} />
+                    </Pressable>
 
-                    <TouchableOpacity
-                        style={[styles.headerButton, { marginLeft: 12 }]}
-                        onPress={handleShare}
-                        disabled={isSharing}
-                    >
-                        {isSharing ? (
-                            <ActivityIndicator size="small" color={c.foreground} />
-                        ) : (
-                            <Ionicons name="share-outline" size={24} color={c.foreground} />
-                        )}
-                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Podcast</Text>
+
+                    <View style={styles.headerActions}>
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.headerButton,
+                                { opacity: pressed ? 0.7 : 1 },
+                            ]}
+                            onPress={handleDownload}
+                            disabled={isDownloading}
+                        >
+                            {isDownloading ? (
+                                <ActivityIndicator size="small" color={c.foreground} />
+                            ) : (
+                                <Ionicons name="download-outline" size={20} color={c.foreground} />
+                            )}
+                        </Pressable>
+
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.headerButton,
+                                { marginLeft: 10, opacity: pressed ? 0.7 : 1 },
+                            ]}
+                            onPress={handleShare}
+                            disabled={isSharing}
+                        >
+                            {isSharing ? (
+                                <ActivityIndicator size="small" color={c.foreground} />
+                            ) : (
+                                <Ionicons name="share-outline" size={20} color={c.foreground} />
+                            )}
+                        </Pressable>
+                    </View>
                 </View>
-            </View>
 
-            <ScrollView
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Main Card — Glass */}
-                <BlurView
-                    intensity={isDark ? 30 : 15}
-                    tint={isDark ? 'dark' : 'light'}
-                    style={{
-                        borderRadius: 24,
-                        overflow: 'hidden',
-                        borderWidth: 0.5,
-                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                        width: CARD_WIDTH,
-                    }}
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
                 >
-                    <View style={{
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)',
-                        padding: 20,
-                    }}>
+                    {/* Main Card */}
+                    <View style={styles.mainCard}>
                         {/* Card Header Controls */}
                         <View style={styles.cardHeader}>
-                            <TouchableOpacity
-                                style={styles.speedButton}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.speedButton,
+                                    { opacity: pressed ? 0.7 : 1 },
+                                ]}
                                 onPress={changePlaybackSpeed}
                             >
                                 <Text style={styles.speedButtonText}>{playbackSpeed}x</Text>
-                            </TouchableOpacity>
+                            </Pressable>
 
-                            <TouchableOpacity
-                                style={styles.viewAllButton}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.viewAllButton,
+                                    { opacity: pressed ? 0.7 : 1 },
+                                ]}
                                 onPress={navigateToAllPodcasts}
                             >
                                 <Text style={styles.viewAllButtonText}>View All Podcasts</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                         </View>
 
                         {/* Podcast Artwork */}
@@ -736,15 +753,21 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
 
                         {/* Playback Controls */}
                         <View style={styles.controlsContainer}>
-                            <TouchableOpacity
-                                style={styles.secondaryControl}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.secondaryControl,
+                                    { opacity: pressed ? 0.7 : 1 },
+                                ]}
                                 onPress={() => skipSeconds(-10)}
                             >
                                 <Replay10Icon size={30} color={c.mutedForeground} />
-                            </TouchableOpacity>
+                            </Pressable>
 
-                            <TouchableOpacity
-                                style={styles.primaryControl}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.primaryControl,
+                                    { opacity: pressed ? 0.85 : 1 },
+                                ]}
                                 onPress={togglePlayPause}
                             >
                                 <Ionicons
@@ -753,34 +776,43 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                                     color={c.background}
                                     style={!isPlaying ? { marginLeft: 4 } : {}}
                                 />
-                            </TouchableOpacity>
+                            </Pressable>
 
-                            <TouchableOpacity
-                                style={styles.secondaryControl}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.secondaryControl,
+                                    { opacity: pressed ? 0.7 : 1 },
+                                ]}
                                 onPress={() => skipSeconds(10)}
                             >
                                 <Forward10Icon size={30} color={c.mutedForeground} />
-                            </TouchableOpacity>
+                            </Pressable>
                         </View>
                     </View>
-                </BlurView>
-            </ScrollView>
-        </View>
+                </ScrollView>
+            </View>
+        </SafeAreaView>
     );
 }
 
 // --- Factory function for theme-aware styles ---
-const makeStyles = (c: ReturnType<typeof useTheme>['theme']['colors'], isDark: boolean) =>
+const makeStyles = (
+    c: ReturnType<typeof useTheme>['theme']['colors'],
+    isDark: boolean,
+    pageBg: string,
+    cardBg: string,
+    cardBorder: string,
+) =>
     StyleSheet.create({
         container: {
             flex: 1,
-            backgroundColor: c.background,
+            backgroundColor: pageBg,
         },
         loadingContainer: {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: c.background,
+            backgroundColor: pageBg,
         },
         loadingText: {
             marginTop: 16,
@@ -791,7 +823,7 @@ const makeStyles = (c: ReturnType<typeof useTheme>['theme']['colors'], isDark: b
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: c.background,
+            backgroundColor: pageBg,
             padding: 24,
         },
         emptyText: {
@@ -800,15 +832,15 @@ const makeStyles = (c: ReturnType<typeof useTheme>['theme']['colors'], isDark: b
             color: c.mutedForeground,
             textAlign: 'center',
         },
-        backButton: {
+        goBackButton: {
             marginTop: 24,
             paddingHorizontal: 24,
             paddingVertical: 12,
             backgroundColor: c.primary,
-            borderRadius: 8,
+            borderRadius: 14,
         },
-        backButtonText: {
-            color: c.background,
+        goBackButtonText: {
+            color: c.primaryForeground,
             fontSize: 16,
             fontWeight: '600',
         },
@@ -817,19 +849,17 @@ const makeStyles = (c: ReturnType<typeof useTheme>['theme']['colors'], isDark: b
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingHorizontal: 16,
-            paddingTop: 60,
-            paddingBottom: 16,
-            backgroundColor: c.card,
-            borderBottomWidth: 1,
-            borderBottomColor: c.border,
+            paddingVertical: 12,
         },
         headerButton: {
             width: 40,
             height: 40,
             borderRadius: 20,
-            backgroundColor: c.muted,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : cardBg,
             justifyContent: 'center',
             alignItems: 'center',
+            borderWidth: 0.5,
+            borderColor: cardBorder,
         },
         headerTitle: {
             fontSize: 18,
@@ -843,6 +873,15 @@ const makeStyles = (c: ReturnType<typeof useTheme>['theme']['colors'], isDark: b
             paddingVertical: 10,
             alignItems: 'center',
         },
+        mainCard: {
+            width: CARD_WIDTH,
+            borderRadius: 24,
+            backgroundColor: cardBg,
+            borderWidth: 1,
+            borderColor: cardBorder,
+            padding: 20,
+            overflow: 'hidden',
+        },
         cardHeader: {
             flexDirection: 'row',
             justifyContent: 'space-between',
@@ -851,10 +890,10 @@ const makeStyles = (c: ReturnType<typeof useTheme>['theme']['colors'], isDark: b
         speedButton: {
             paddingHorizontal: 16,
             paddingVertical: 10,
-            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : c.card,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : neutral[100],
             borderRadius: 30,
             borderWidth: 0.5,
-            borderColor: isDark ? 'rgba(255,255,255,0.1)' : c.border,
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : neutral[200],
         },
         speedButtonText: {
             fontSize: 14,
@@ -864,7 +903,7 @@ const makeStyles = (c: ReturnType<typeof useTheme>['theme']['colors'], isDark: b
         viewAllButton: {
             paddingHorizontal: 16,
             paddingVertical: 8,
-            backgroundColor: c.accent,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : `${c.primary}14`,
             borderRadius: 20,
         },
         viewAllButtonText: {
@@ -904,7 +943,7 @@ const makeStyles = (c: ReturnType<typeof useTheme>['theme']['colors'], isDark: b
         },
         progressBarBackground: {
             height: 4,
-            backgroundColor: c.border,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : neutral[200],
             borderRadius: 2,
             overflow: 'hidden',
         },
@@ -924,10 +963,10 @@ const makeStyles = (c: ReturnType<typeof useTheme>['theme']['colors'], isDark: b
             height: 56,
             borderRadius: 28,
             borderWidth: 0.5,
-            borderColor: isDark ? 'rgba(255,255,255,0.1)' : c.border,
+            borderColor: cardBorder,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : c.card,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : neutral[50],
             position: 'relative',
         },
         primaryControl: {

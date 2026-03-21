@@ -1,27 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from 'react'
 import {
   View,
   Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
   Pressable,
   ScrollView,
   ActivityIndicator,
-  StatusBar,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Folder, Check } from 'lucide-react-native';
-import { useFolders } from '@/lib/hooks/useFolders';
-import type { Note } from '@/lib/api/types';
-import Toast from 'react-native-toast-message';
-import * as Haptics from 'expo-haptics';
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Feather, Ionicons } from '@expo/vector-icons'
+import { Folder } from 'lucide-react-native'
+import { useFolders } from '@/lib/hooks/useFolders'
+import type { Note } from '@/lib/api/types'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { neutral } from '@/lib/design-system'
+import * as Haptics from 'expo-haptics'
 
 interface MoveToFolderModalProps {
-  visible: boolean;
-  note: Note | null;
-  onClose: () => void;
-  onSuccess?: () => void;
+  visible: boolean
+  note: Note | null
+  onClose: () => void
+  onSuccess?: () => void
 }
 
 export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
@@ -30,281 +30,155 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { folders, fetchFolders, moveNote, loading } = useFolders();
-  const insets = useSafeAreaInsets();
+  const { folders, fetchFolders, moveNote, loading } = useFolders()
+  const { theme, mode } = useTheme()
+  const c = theme.colors
+  const isDark = mode === 'dark'
 
   useEffect(() => {
-    if (visible) {
-      fetchFolders();
-    }
-  }, [visible]);
+    if (visible) fetchFolders()
+  }, [visible])
 
-  const handleMoveToFolder = async (folderId: string | null, folderName: string) => {
-    if (!note) return;
-
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-    const success = await moveNote(note.id, folderId);
-
+  const handleMove = async (folderId: string | null) => {
+    if (!note) return
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+    const success = await moveNote(note.id, folderId)
     if (success) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Toast.show({
-        type: 'success',
-        text1: 'Note Moved',
-        text2: `Moved to ${folderName}`,
-      });
-      onClose();
-      onSuccess?.();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onClose()
+      onSuccess?.()
     } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to Move',
-        text2: 'Could not move note. Please try again.',
-      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     }
-  };
+  }
 
-  if (!note) return null;
+  if (!note) return null
 
-  const currentFolderId = note.folderId;
+  const currentFolderId = note.folderId
+  const sheetBg = isDark ? neutral[900] : '#fff'
+  const cardBg = isDark ? neutral[800] : '#f0f0f0'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-      statusBarTranslucent={true}
-    >
-      <StatusBar backgroundColor="rgba(0, 0, 0, 0.5)" barStyle="light-content" />
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose} statusBarTranslucent>
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable
-          style={[styles.modalContainer, { paddingBottom: Math.max(insets.bottom, 20) }]}
-          onPress={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerContent}>
-              <Text style={styles.title}>Move to Folder</Text>
-              <Text style={styles.subtitle}>Select a folder for this note</Text>
+        <SafeAreaView edges={['bottom']} style={styles.safeWrap}>
+          <Pressable
+            style={[styles.sheet, { backgroundColor: sheetBg }]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={[styles.handle, { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)' }]} />
+
+            <View style={styles.header}>
+              <Text style={[styles.title, { color: c.foreground }]}>Move to Folder</Text>
+              <Pressable
+                onPress={onClose}
+                hitSlop={12}
+                style={({ pressed }) => [
+                  styles.closeBtn,
+                  { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.05)', opacity: pressed ? 0.5 : 1 },
+                ]}
+              >
+                <Feather name="x" size={16} color={c.mutedForeground} />
+              </Pressable>
             </View>
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.closeButton}
-              disabled={loading}
-            >
-              <X size={24} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
 
-          {/* Folders List */}
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {/* Uncategorized Option */}
-            <TouchableOpacity
-              style={[
-                styles.folderOption,
-                currentFolderId === null && styles.folderOptionSelected,
-              ]}
-              onPress={() => handleMoveToFolder(null, 'Uncategorized')}
-              disabled={loading}
-            >
-              <View style={styles.folderOptionLeft}>
-                <View style={[styles.folderIcon, { backgroundColor: '#E5E7EB' }]}>
-                  <Folder size={24} color="#6B7280" />
-                </View>
-                <View style={styles.folderInfo}>
-                  <Text style={styles.folderName}>Uncategorized</Text>
-                  <Text style={styles.folderDescription}>
-                    Notes without a folder
-                  </Text>
-                </View>
-              </View>
-              {currentFolderId === null && (
-                <Check size={20} color="#4f3be7" strokeWidth={3} />
-              )}
-            </TouchableOpacity>
-
-            {/* Folder Options */}
-            {folders.map((folder) => {
-              const folderColor = folder.color || '#6366f1';
-              const isSelected = currentFolderId === folder.id;
-
-              return (
-                <TouchableOpacity
-                  key={folder.id}
-                  style={[
-                    styles.folderOption,
-                    isSelected && styles.folderOptionSelected,
-                  ]}
-                  onPress={() => handleMoveToFolder(folder.id, folder.name)}
+            <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+              <View style={[styles.group, { backgroundColor: isDark ? neutral[800] : '#fff', borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+                {/* Uncategorized */}
+                <Pressable
+                  style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+                  onPress={() => handleMove(null)}
                   disabled={loading}
                 >
-                  <View style={styles.folderOptionLeft}>
-                    <View
-                      style={[
-                        styles.folderIcon,
-                        { backgroundColor: `${folderColor}15` },
-                      ]}
-                    >
-                      <Folder size={24} color={folderColor} />
-                    </View>
-                    <View style={styles.folderInfo}>
-                      <Text style={styles.folderName}>{folder.name}</Text>
-                      {folder.description && (
-                        <Text style={styles.folderDescription} numberOfLines={1}>
-                          {folder.description}
-                        </Text>
-                      )}
-                      <Text style={styles.folderCount}>
-                        {folder.noteCount} {folder.noteCount === 1 ? 'note' : 'notes'}
-                      </Text>
-                    </View>
+                  <View style={[styles.folderIcon, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+                    <Feather name="inbox" size={18} color={c.mutedForeground} />
                   </View>
-                  {isSelected && (
-                    <Check size={20} color="#4f3be7" strokeWidth={3} />
+                  <View style={styles.rowInfo}>
+                    <Text style={[styles.rowName, { color: c.foreground }]}>Uncategorized</Text>
+                    <Text style={[styles.rowSub, { color: c.mutedForeground }]}>Notes without a folder</Text>
+                  </View>
+                  {currentFolderId === null && (
+                    <Ionicons name="checkmark-circle" size={20} color={c.primary} />
                   )}
-                </TouchableOpacity>
-              );
-            })}
+                </Pressable>
 
-            {folders.length === 0 && (
-              <View style={styles.emptyContainer}>
-                <Folder size={48} color="#D1D5DB" />
-                <Text style={styles.emptyText}>No folders yet</Text>
-                <Text style={styles.emptySubtext}>
-                  Create folders to organize your notes
-                </Text>
+                {folders.map((folder) => {
+                  const folderColor = folder.color || '#6366f1'
+                  const isSelected = currentFolderId === folder.id
+                  return (
+                    <React.Fragment key={folder.id}>
+                      <View style={[styles.separator, { backgroundColor: separatorColor }]} />
+                      <Pressable
+                        style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+                        onPress={() => handleMove(folder.id)}
+                        disabled={loading}
+                      >
+                        <View style={[styles.folderIcon, { backgroundColor: `${folderColor}14` }]}>
+                          <Folder size={18} color={folderColor} />
+                        </View>
+                        <View style={styles.rowInfo}>
+                          <Text style={[styles.rowName, { color: c.foreground }]}>{folder.name}</Text>
+                          <Text style={[styles.rowSub, { color: c.mutedForeground }]}>
+                            {folder.noteCount} {folder.noteCount === 1 ? 'note' : 'notes'}
+                          </Text>
+                        </View>
+                        {isSelected && (
+                          <Ionicons name="checkmark-circle" size={20} color={c.primary} />
+                        )}
+                      </Pressable>
+                    </React.Fragment>
+                  )
+                })}
+              </View>
+
+              {folders.length === 0 && (
+                <View style={styles.emptyWrap}>
+                  <Feather name="folder" size={40} color={isDark ? neutral[700] : neutral[300]} />
+                  <Text style={[styles.emptyTitle, { color: c.foreground }]}>No folders yet</Text>
+                  <Text style={[styles.emptySub, { color: c.mutedForeground }]}>
+                    Create folders to organize your notes
+                  </Text>
+                </View>
+              )}
+
+              <View style={{ height: 20 }} />
+            </ScrollView>
+
+            {loading && (
+              <View style={[styles.loadingOverlay, { backgroundColor: isDark ? 'rgba(7,7,8,0.85)' : 'rgba(255,255,255,0.85)' }]}>
+                <ActivityIndicator size="large" color={c.primary} />
               </View>
             )}
-          </ScrollView>
-
-          {loading && (
-            <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="#4f3be7" />
-            </View>
-          )}
-        </Pressable>
+          </Pressable>
+        </SafeAreaView>
       </Pressable>
     </Modal>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    maxHeight: '80%',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  headerContent: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  closeButton: {
-    padding: 4,
-    marginLeft: 12,
-  },
-  content: {
-    paddingTop: 16,
-    paddingBottom: 20,
-  },
-  folderOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 14,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 14,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  folderOptionSelected: {
-    backgroundColor: '#F5F3FF',
-    borderColor: '#4f3be7',
-  },
-  folderOptionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  folderIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  folderInfo: {
-    flex: 1,
-  },
-  folderName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: 2,
-  },
-  folderDescription: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 2,
-  },
-  folderCount: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
-    marginTop: 12,
-    marginBottom: 4,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  safeWrap: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' },
+  sheet: { borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 12, maxHeight: '75%' },
+  handle: { width: 36, height: 5, borderRadius: 3, alignSelf: 'center', marginBottom: 16 },
+
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 },
+  title: { fontSize: 20, fontWeight: '700', letterSpacing: -0.4 },
+  closeBtn: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+
+  list: { paddingHorizontal: 20 },
+  group: { borderRadius: 14, borderWidth: 1, overflow: 'hidden', marginBottom: 14 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 14, gap: 12 },
+  separator: { height: StyleSheet.hairlineWidth, marginLeft: 56 },
+  folderIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  rowInfo: { flex: 1 },
+  rowName: { fontSize: 15, fontWeight: '600', marginBottom: 1 },
+  rowSub: { fontSize: 12 },
+
+  emptyWrap: { alignItems: 'center', paddingVertical: 40 },
+  emptyTitle: { marginTop: 12, fontSize: 16, fontWeight: '600' },
+  emptySub: { marginTop: 4, fontSize: 14, textAlign: 'center' },
+
+  loadingOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
+})
