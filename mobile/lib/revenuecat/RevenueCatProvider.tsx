@@ -37,6 +37,8 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const lastSyncedUserIdRef = useRef<string | null>(null);
+  /** Prevents overlapping bootstraps for the same user (duplicate effects / fast re-renders). */
+  const bootstrapInFlightUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const customerInfoListener: CustomerInfoUpdateListener = (nextCustomerInfo) => {
@@ -139,7 +141,17 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
         lastSyncedUserIdRef.current !== sessionUserId);
 
     if (shouldBootstrap) {
-      bootstrap();
+      if (bootstrapInFlightUserIdRef.current === sessionUserId) {
+        return () => {
+          cancelled = true;
+        };
+      }
+      bootstrapInFlightUserIdRef.current = sessionUserId;
+      void bootstrap().finally(() => {
+        if (bootstrapInFlightUserIdRef.current === sessionUserId) {
+          bootstrapInFlightUserIdRef.current = null;
+        }
+      });
       return () => {
         cancelled = true;
       };

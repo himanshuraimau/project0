@@ -9,11 +9,11 @@ export interface RevenueCatIdentityUser {
 export async function syncRevenueCatSubscriberAttributes(
   user: RevenueCatIdentityUser
 ): Promise<void> {
-  await Promise.allSettled([
-    Purchases.setEmail(user.email || null),
-    Purchases.setDisplayName(user.name || null),
-    Purchases.setAttributes({
-      backend_user_id: user.id,
-    }),
-  ]);
+  // RevenueCat rejects concurrent attribute writes (7638: "another request in flight").
+  // Run sequentially, not Promise.all.
+  await Purchases.setEmail(user.email || null);
+  await Purchases.setDisplayName(user.name || null);
+  await Purchases.setAttributes({
+    backend_user_id: user.id,
+  });
 }
