@@ -13,17 +13,11 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { getSubscriptionPlanDetails, isYearlySubscription } from '@/lib/subscription/plan'
+import { getSubscriptionPlanDetails } from '@/lib/subscription/plan'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { neutral } from '@/lib/design-system'
 import { restoreRevenueCatPurchases } from '@/lib/revenuecat'
-import {
-  cancelSubscriptionWithOptions,
-  getSubscriptionPortal,
-  getSubscriptionStatus,
-  reactivateSubscription,
-  upgradeSubscriptionToYearly,
-} from '@/lib/api/subscription'
+import { getSubscriptionStatus } from '@/lib/api/subscription'
 import type { SubscriptionStatusResponse } from '@/lib/api/types'
 
 export default function SubscriptionManager() {
@@ -40,9 +34,6 @@ export default function SubscriptionManager() {
   const [backendStatus, setBackendStatus] = useState<SubscriptionStatusResponse | null>(null)
   const [isSyncingBackend, setIsSyncingBackend] = useState(false)
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
-  const [isCancelling, setIsCancelling] = useState(false)
-  const [isReactivating, setIsReactivating] = useState(false)
-  const [isUpgrading, setIsUpgrading] = useState(false)
   const [isRestoring, setIsRestoring] = useState(false)
 
   const { theme, mode } = useTheme()
@@ -76,14 +67,15 @@ export default function SubscriptionManager() {
       ? effectiveSubscription.billingProvider
       : clientSubscription?.billingProvider ||
         (typeof mergedMetadata.provider === 'string' ? mergedMetadata.provider : null)
-  const isPaddleManaged =
+  const isPaddleLinked =
     billingProvider === 'PADDLE' || Boolean(effectiveSubscription?.paddleSubscriptionId)
-  const isYearlyPlan = isYearlySubscription(effectiveSubscription)
-  const canOpenManagement = Boolean(isPaddleManaged || (typeof managementUrl === 'string' && managementUrl))
+  const canOpenManagement = typeof managementUrl === 'string' && managementUrl.length > 0
   const managementUnavailableMessage =
     billingProvider === 'TEST_STORE'
       ? 'RevenueCat Test Store purchases do not have a management page.'
-      : 'Subscription management is not available for this purchase yet.'
+      : isPaddleLinked
+        ? 'This subscription was purchased on the web. Manage billing at flinote.ai in a browser.'
+        : 'Subscription management is not available for this purchase yet.'
 
   const refreshManagementState = useCallback(async (silent = false) => {
     try {
@@ -138,75 +130,11 @@ export default function SubscriptionManager() {
         return
       }
       setIsOpeningPortal(true)
-      if (isPaddleManaged) {
-        const portal = await getSubscriptionPortal()
-        if (portal.portalUrl) { await Linking.openURL(portal.portalUrl); return }
-      }
-      if (typeof managementUrl === 'string' && managementUrl) {
-        await Linking.openURL(managementUrl)
-        return
-      }
-      Alert.alert('Manage subscription', managementUnavailableMessage)
+      await Linking.openURL(managementUrl as string)
     } catch (error: any) {
-      if (typeof managementUrl === 'string' && managementUrl) {
-        await Linking.openURL(managementUrl)
-        return
-      }
       Alert.alert('Manage subscription', error.message || 'Failed to open management.')
     } finally {
       setIsOpeningPortal(false)
-    }
-  }
-
-  const handleCancel = () => {
-    Alert.alert(
-      'Cancel subscription?',
-      'Your subscription will remain active until the end of the current billing period.',
-      [
-        { text: 'Keep subscription', style: 'cancel' },
-        {
-          text: 'Cancel at period end',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setIsCancelling(true)
-              const result = await cancelSubscriptionWithOptions(true)
-              await syncAll()
-              Alert.alert('Subscription updated', result.message)
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to cancel.')
-            } finally {
-              setIsCancelling(false)
-            }
-          },
-        },
-      ]
-    )
-  }
-
-  const handleReactivate = async () => {
-    try {
-      setIsReactivating(true)
-      const result = await reactivateSubscription()
-      await syncAll()
-      Alert.alert('Reactivated', result.message)
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to reactivate.')
-    } finally {
-      setIsReactivating(false)
-    }
-  }
-
-  const handleUpgrade = async () => {
-    try {
-      setIsUpgrading(true)
-      const result = await upgradeSubscriptionToYearly()
-      await syncAll()
-      Alert.alert('Upgraded', result.message)
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to upgrade.')
-    } finally {
-      setIsUpgrading(false)
     }
   }
 
@@ -220,10 +148,7 @@ export default function SubscriptionManager() {
     }
   }, [billingProvider])
 
-  const canCancel = Boolean(effectiveSubscription && isPaddleManaged && effectiveIsActive && !effectiveSubscription.cancelAtPeriodEnd && effectiveSubscription.status !== 'CANCELLED')
-  const canReactivate = Boolean(effectiveSubscription && isPaddleManaged && effectiveIsActive && effectiveSubscription.cancelAtPeriodEnd)
-  const canUpgradeToYearly = Boolean(effectiveSubscription && isPaddleManaged && effectiveIsActive && !effectiveSubscription.cancelAtPeriodEnd && !isYearlyPlan)
-  const shouldShowRestore = !isPaddleManaged
+  const shouldShowRestore = !isPaddleLinked
 
   const cardBg = isDark ? neutral[900] : '#fff'
   const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
@@ -281,32 +206,12 @@ export default function SubscriptionManager() {
   const actions: ActionItem[] = []
   if (canOpenManagement) {
     actions.push({
-      label: isPaddleManaged ? 'Billing Portal' : 'Manage Subscription',
+      label: 'Manage Subscription',
       icon: 'open-outline',
       iconBg: '#007AFF',
       onPress: handleOpenManagement,
       loading: isOpeningPortal,
       loadingLabel: 'Opening...',
-    })
-  }
-  if (canUpgradeToYearly) {
-    actions.push({
-      label: 'Upgrade to Yearly',
-      icon: 'arrow-up-circle',
-      iconBg: '#34C759',
-      onPress: handleUpgrade,
-      loading: isUpgrading,
-      loadingLabel: 'Upgrading...',
-    })
-  }
-  if (canReactivate) {
-    actions.push({
-      label: 'Reactivate Subscription',
-      icon: 'refresh',
-      iconBg: '#34C759',
-      onPress: handleReactivate,
-      loading: isReactivating,
-      loadingLabel: 'Reactivating...',
     })
   }
   if (shouldShowRestore) {
@@ -319,18 +224,6 @@ export default function SubscriptionManager() {
       loadingLabel: 'Restoring...',
     })
   }
-  if (canCancel) {
-    actions.push({
-      label: 'Cancel Subscription',
-      icon: 'close-circle',
-      iconBg: '#FF3B30',
-      onPress: handleCancel,
-      loading: isCancelling,
-      loadingLabel: 'Cancelling...',
-      destructive: true,
-    })
-  }
-
   const FEATURES = [
     { cat: 'Content Processing', items: ['Unlimited Audio Recording', 'Upload Audio & PDF Files', 'Process YouTube Videos', 'Web Page Processing'] },
     { cat: 'AI-Powered Tools', items: ['AI Note Generation', 'Smart Flashcards', 'Interactive Quizzes', 'AI Chat Assistant', 'Mind Maps'] },

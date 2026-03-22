@@ -515,8 +515,6 @@ export interface UserPurchase {
 }
 
 // ==================== Subscription API ====================
-export type BillingInterval = 'monthly' | 'yearly';
-
 export interface SubscriptionAccessInfo {
   hasAccess: boolean;
   isActive: boolean;
@@ -535,79 +533,6 @@ export interface SubscriptionStatusResponse {
 export interface GetSubscriptionStatusParams {
   transactionId?: string;
   subscriptionId?: string;
-}
-
-export interface CreateSubscriptionRequest {
-  billingInterval?: BillingInterval;
-  discountCode?: string;
-  successUrl?: string;
-  cancelUrl?: string;
-  // legacy fields kept optional during migration
-  planId?: string;
-  customerEmail?: string;
-  customerName?: string;
-}
-
-export interface CreateSubscriptionApiData {
-  checkoutUrl: string;
-  expiresAt?: string;
-}
-
-export interface CreateSubscriptionApiEnvelope {
-  success: boolean;
-  data?: CreateSubscriptionApiData;
-  error?: string;
-  message?: string;
-}
-
-export interface CreateSubscriptionResponse {
-  checkoutUrl: string;
-  expiresAt?: string;
-}
-
-export interface LegacyCreateSubscriptionResponse {
-  checkoutUrl: string;
-  sessionId?: string;
-}
-
-export type CreateSubscriptionBackendResponse =
-  | CreateSubscriptionApiEnvelope
-  | LegacyCreateSubscriptionResponse;
-
-export interface SubscriptionPortalResponse {
-  portalUrl: string;
-  provider?: string;
-  managedExternally?: boolean;
-  subscription?: {
-    id: string;
-    status: string;
-  };
-}
-
-export interface SubscriptionMutationResponse {
-  success: boolean;
-  message: string;
-  subscription: {
-    id: string;
-    status: string;
-    priceId?: string;
-    cancelAtPeriodEnd?: boolean;
-    cancelledAt?: string | null;
-    nextBillingDate?: string;
-  };
-  changeType?: 'same' | 'upgrade' | 'downgrade';
-  scheduledChange?: boolean;
-  immediate?: boolean;
-}
-
-export interface PaymentLinkResponse {
-  success: boolean;
-  paymentLink: string;
-}
-
-export interface CancelPendingResponse {
-  success: boolean;
-  message: string;
 }
 
 // ==================== Documents API ====================

@@ -121,14 +121,6 @@ export const authStyles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
-  clerkBranding: {
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  clerkText: {
-    color: '#B0B0B0',
-    fontSize: 12,
-  },
   verificationDescription: {
     color: '#6B7280',
     fontSize: 15,

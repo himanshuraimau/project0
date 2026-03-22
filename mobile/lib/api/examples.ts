@@ -232,24 +232,6 @@ export const checkSubscription = async () => {
   }
 };
 
-/**
- * Example: Create a subscription
- */
-export const createNewSubscription = async (billingInterval: 'monthly' | 'yearly' = 'monthly') => {
-  try {
-    const result = await subscriptionApi.createSubscription({
-      billingInterval,
-      successUrl: 'flinote://payment-status',
-      cancelUrl: 'flinote://payment-status',
-    });
-    console.log('Subscription checkout URL:', result.checkoutUrl);
-    return result;
-  } catch (error) {
-    console.error('Failed to create subscription:', error);
-    throw error;
-  }
-};
-
 // ==================== Course Examples ====================
 
 /**

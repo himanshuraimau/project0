@@ -91,7 +91,7 @@ Optional: `REVENUECAT_API_BASE_URL` (default `https://api.revenuecat.com/v1`).
 1. On login, `RevenueCatProvider` calls `Purchases.configure` / `logIn` with **session user id**.  
 2. Paywall uses offerings → `purchasePackage` / `restorePurchases`.  
 3. `SubscriptionContext` maps `CustomerInfo` to `hasAccess` (active entitlement, not just “row exists”).  
-4. Optional: settings call `GET /subscription/status` for Paddle-oriented portal/cancel when DB says Paddle.
+4. Optional: settings call `GET /subscription/status` to reconcile server `Subscription` (e.g. web Paddle row synced via RevenueCat). Manage/cancel for **store** subs uses App Store / Play or RevenueCat `managementURL`; web-only Paddle billing is managed on the website.
 
 ---
 

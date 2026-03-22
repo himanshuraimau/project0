@@ -194,7 +194,7 @@ export function validateChapterName(name: string): { isValid: boolean; error?: s
 
 // Security validation functions
 export function isValidUserId(userId: string): boolean {
-  // Basic validation for user ID format (assuming Clerk format)
+  // Basic validation for user ID format (Better Auth / DB ids)
   return typeof userId === 'string' && 
          userId.length > 0 && 
          userId.length < 100 && 
