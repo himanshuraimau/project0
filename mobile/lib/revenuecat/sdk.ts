@@ -4,13 +4,30 @@ import Purchases, {
   type CustomerInfo,
   type PurchasesOfferings,
 } from 'react-native-purchases';
-import { getRevenueCatApiKey, getRevenueCatStoreMode } from './config';
+import { getRevenueCatApiKey, getRevenueCatStoreMode, isDemoMode } from './config';
 
 let configuredAppUserId: string | null = null;
 
+/**
+ * Detects Expo Go using both the modern executionEnvironment API (SDK 50+)
+ * and the legacy appOwnership field as a fallback.
+ */
+function isRunningInExpoGo(): boolean {
+  // SDK 50+ recommended API
+  const execEnv = (Constants as any).executionEnvironment;
+  if (execEnv === 'storeClient') {
+    return true;
+  }
+  // Legacy fallback for older SDK versions
+  if ((Constants as any).appOwnership === 'expo') {
+    return true;
+  }
+  return false;
+}
+
 /** Expo Go does not ship react-native-purchases; use a dev build (expo run:ios / EAS development). */
 export function getRevenueCatUnsupportedReason(): string | null {
-  if (Constants.appOwnership === 'expo') {
+  if (isRunningInExpoGo()) {
     return 'Expo Go does not support in-app purchases. Use a development build: npx expo run:ios or npx expo run:android, or eas build --profile development. See mobile/SETUP.md.';
   }
   return null;
@@ -29,6 +46,10 @@ export function getConfiguredRevenueCatUserId(): string | null {
 }
 
 export async function ensureRevenueCatConfigured(appUserId: string): Promise<void> {
+  if (isDemoMode()) {
+    throw new Error('RevenueCat is disabled in demo mode.');
+  }
+
   const unsupported = getRevenueCatUnsupportedReason();
   if (unsupported) {
     throw new Error(unsupported);

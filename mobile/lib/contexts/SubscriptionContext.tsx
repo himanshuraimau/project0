@@ -28,12 +28,8 @@ interface SubscriptionProviderProps {
 }
 
 export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ children }) => {
-    console.log('🎯 SubscriptionProvider component rendering...');
-
     const { data: session, isPending } = useSession();
 
-    // Demo mode: bypass RevenueCat entirely and treat every logged-in user as
-    // an active Pro subscriber so the client can evaluate the full UI flow.
     if (isDemoMode()) {
         const demoSubscription: Subscription = {
             id: 'demo_subscription',
@@ -65,6 +61,12 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
             </SubscriptionContext.Provider>
         );
     }
+
+    return <SubscriptionProviderInner>{children}</SubscriptionProviderInner>;
+};
+
+const SubscriptionProviderInner: React.FC<SubscriptionProviderProps> = ({ children }) => {
+    const { data: session, isPending } = useSession();
     const {
         customerInfo,
         isLoading: revenueCatLoading,
