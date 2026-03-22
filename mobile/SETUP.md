@@ -75,10 +75,25 @@ GOOGLE_CLIENT_SECRET=your_web_client_secret_here
 npm start                  # Start Expo dev server
 ```
 
+### RevenueCat and Expo Go (important)
+
+**In-app purchases do not work in Expo Go.** The Expo Go app does not include the native `react-native-purchases` module. You will see a clear in-app message pointing here.
+
+To test subscriptions and avoid confusing “wrong API key / production key” errors:
+
+1. **Use a development build** (recommended):
+   - iOS simulator or device: `npx expo run:ios`
+   - Android: `npx expo run:android`
+   - Or EAS: `eas build --profile development --platform ios` (or `android`), install the build, then `npx expo start --dev-client`
+2. Keep **`EXPO_PUBLIC_RC_STORE_MODE=test`** and a valid **`EXPO_PUBLIC_RC_TEST_API_KEY`** (RevenueCat dashboard → **Test Store** public SDK key, starts with `test_`).
+3. **Release-style runs** (`expo start --no-dev`) or **EAS builds** bake in `EXPO_PUBLIC_*` at build time. If `EXPO_PUBLIC_RC_STORE_MODE` is missing in the cloud build, the app used to default to **live** mode and expect iOS/Android keys — use **`preview`** or **`development`** in `eas.json` (they set `EXPO_PUBLIC_RC_STORE_MODE=test`) and add your test key via [EAS environment variables](https://docs.expo.dev/eas/environment-variables/) or `eas env:create`, since `.env` is usually not uploaded.
+
+**Store/Test Store keys (not “production” App Store billing):** Test mode uses the RevenueCat **Test Store** key only. Real App Store / Play billing needs `EXPO_PUBLIC_RC_IOS_API_KEY` / `EXPO_PUBLIC_RC_ANDROID_API_KEY` and `EXPO_PUBLIC_RC_STORE_MODE=live` (typical for `production` EAS profile).
+
 ### Scan QR Code
 
-- Android: Use Expo Go app
-- iOS: Use Camera app or Expo Go
+- **Expo Go:** fine for auth, navigation, and most UI — **not** for purchases.
+- **Dev client:** scan the QR code from `expo start` after installing a development build.
 
 ## Building the App
 

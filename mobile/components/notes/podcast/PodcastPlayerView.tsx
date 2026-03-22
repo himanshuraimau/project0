@@ -16,7 +16,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
-import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import Svg, { Path } from 'react-native-svg';
 import { podcastApi, Podcast } from '@/lib/api';
@@ -207,7 +206,6 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
     const [duration, setDuration] = useState(0);
     const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
     const [isDownloading, setIsDownloading] = useState(false);
-    const [isSharing, setIsSharing] = useState(false);
 
     const soundRef = useRef<Audio.Sound | null>(null);
     const playbackSpeedRef = useRef(1.0);
@@ -554,45 +552,6 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
         }
     };
 
-    const handleShare = async () => {
-        if (!podcast?.audioUrl) return;
-
-        try {
-            setIsSharing(true);
-
-            const isAvailable = await Sharing.isAvailableAsync();
-            if (!isAvailable) {
-                Alert.alert('Error', 'Sharing is not available on this device');
-                return;
-            }
-
-            // Download the file to a temporary location first
-            const fileName = `${podcast.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_podcast.mp3`;
-            const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
-
-            const downloadResult = await FileSystem.downloadAsync(
-                podcast.audioUrl,
-                fileUri
-            );
-
-            if (downloadResult.status === 200) {
-                // Share the local file
-                await Sharing.shareAsync(downloadResult.uri, {
-                    mimeType: 'audio/mpeg',
-                    dialogTitle: 'Share Podcast',
-                    UTI: 'public.audio'
-                });
-            } else {
-                throw new Error('Failed to prepare file for sharing');
-            }
-        } catch (error) {
-            console.error('Error sharing:', error);
-            Alert.alert('Error', 'Failed to share podcast. Please try again.');
-        } finally {
-            setIsSharing(false);
-        }
-    };
-
     const formatTime = (millis: number) => {
         const totalSeconds = Math.floor(millis / 1000);
         const minutes = Math.floor(totalSeconds / 60);
@@ -670,21 +629,6 @@ export default function PodcastPlayerView({ noteId, podcastId }: PodcastPlayerVi
                                 <ActivityIndicator size="small" color={c.foreground} />
                             ) : (
                                 <Ionicons name="download-outline" size={20} color={c.foreground} />
-                            )}
-                        </Pressable>
-
-                        <Pressable
-                            style={({ pressed }) => [
-                                styles.headerButton,
-                                { marginLeft: 10, opacity: pressed ? 0.7 : 1 },
-                            ]}
-                            onPress={handleShare}
-                            disabled={isSharing}
-                        >
-                            {isSharing ? (
-                                <ActivityIndicator size="small" color={c.foreground} />
-                            ) : (
-                                <Ionicons name="share-outline" size={20} color={c.foreground} />
                             )}
                         </Pressable>
                     </View>

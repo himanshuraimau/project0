@@ -1,5 +1,5 @@
 import apiClient, { handleApiResponse, handleApiError } from './client';
-import { PDFFile, ApiResponse } from './types';
+import { PDFFile, ApiResponse, ProcessPDFResponse } from './types';
 
 /**
  * PDF API Module
@@ -27,15 +27,15 @@ export const parsePDF = async (file: FormData): Promise<any> => {
  * Process a PDF file (extract text, create transcript, generate notes)
  * @param file - PDF file as FormData
  */
-export const processPDF = async (file: FormData): Promise<any> => {
+export const processPDF = async (file: FormData): Promise<ProcessPDFResponse> => {
   try {
-    const response = await apiClient.post<ApiResponse<any>>('/pdf/process', file, {
+    const response = await apiClient.post<ApiResponse<ProcessPDFResponse>>('/pdf/process', file, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
       timeout: 300000, // 2 minutes timeout for PDF processing
     });
-    return handleApiResponse<any>(response);
+    return handleApiResponse<ProcessPDFResponse>(response);
   } catch (error) {
     return handleApiError(error);
   }

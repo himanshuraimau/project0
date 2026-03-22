@@ -1,26 +1,7 @@
 import apiClient, { handleApiResponse, handleApiError } from './client';
-import { ApiResponse } from './types';
+import type { ApiResponse, Podcast } from './types';
 
-// Podcast interface matching the actual API response (from web)
-// This replaces the outdated Podcast interface in types.ts
-export interface Podcast {
-  id: string;
-  noteId: string;
-  userId?: string;
-  jobId?: string; // Microservice job ID
-  podcastId?: string; // Microservice podcast ID
-  status: 'GENERATING' | 'COMPLETED' | 'FAILED';
-  progress?: number;
-  errorMessage?: string;
-  audioUrl?: string;
-  duration?: number; // Duration in seconds
-  transcript?: any; // JSON transcript array (can be string or parsed)
-  title: string;
-  description?: string;
-  createdAt: string;
-  updatedAt?: string;
-  completedAt?: string;
-}
+export type { Podcast };
 
 /**
  * Podcast API Module
@@ -38,9 +19,6 @@ export interface PodcastJob {
   transcript?: any[];
   error?: string;
 }
-
-// Import Podcast type from types.ts to ensure consistency
-import { Podcast } from './types';
 
 export interface GeneratePodcastRequest {
   noteId: string;

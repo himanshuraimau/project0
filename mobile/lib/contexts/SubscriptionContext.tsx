@@ -40,11 +40,12 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     const [error, setError] = useState<string | null>(null);
 
     /**
-     * Calculate if user has an active subscription
-     * Uses the access info from the API response (matching web implementation)
+     * True only when the user currently has premium access (active entitlement).
+     * RevenueCat keeps expired entitlements in `all`, so hasSubscription alone stays true after expiry;
+     * gating paywall and "Pro" UI on access avoids treating lapsed users as subscribed.
      */
     const isSubscribed = React.useMemo(() => {
-        return subscriptionData?.hasSubscription ?? false;
+        return Boolean(subscriptionData?.hasSubscription && subscriptionData?.access?.hasAccess);
     }, [subscriptionData]);
 
     /**

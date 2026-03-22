@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Feather, Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -24,8 +24,6 @@ import { notesApi } from '@/lib/api'
 import { useAlert } from '@/lib/contexts/AlertContext'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { neutral } from '@/lib/design-system'
-import ViewShot from 'react-native-view-shot'
-import * as Sharing from 'expo-sharing'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const CARD_WIDTH = SCREEN_WIDTH * 0.88
@@ -172,9 +170,6 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
   // Flip animation using react-native-reanimated
   const isFlipped = useSharedValue(false)
-
-  // Ref for screenshot capture
-  const completionScreenRef = useRef<ViewShot>(null)
 
   // Fetch flashcards data on mount
   useEffect(() => {
@@ -417,42 +412,6 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
     isFlipped.value = false
   }
 
-  const handleShare = async () => {
-    try {
-      if (!completionScreenRef.current || !completionScreenRef.current.capture) {
-        console.error('Completion screen ref not available')
-        return
-      }
-
-      // Capture screenshot
-      const uri = await completionScreenRef.current.capture()
-
-      // Check if sharing is available
-      const isAvailable = await Sharing.isAvailableAsync()
-      if (!isAvailable) {
-        showAlert(
-          'Sharing not available',
-          'Sharing is not available on this device',
-          [{ text: 'OK', style: 'default' }]
-        )
-        return
-      }
-
-      // Share the screenshot
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: 'Share your flashcard results',
-      })
-    } catch (error) {
-      console.error('Error sharing screenshot:', error)
-      showAlert(
-        'Share failed',
-        'Failed to share screenshot. Please try again.',
-        [{ text: 'OK', style: 'default' }]
-      )
-    }
-  }
-
   const handleCreateNew = () => {
     // Generate new flashcards
     generateFlashcards()
@@ -672,7 +631,7 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
           {/* Completion Screen - Success */}
           {isSuccess && (
-            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: pageBg }}>
+            <View style={{ backgroundColor: pageBg }}>
               <View style={s.completeContent}>
                 <View style={[s.scoreCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
                   <Text style={[s.scoreNum, { color: scoreColor }]}>{completionPercentage}%</Text>
@@ -701,35 +660,34 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
 
                 <Pressable
                   style={({ pressed }) => [s.primaryBtn, { backgroundColor: c.primary, opacity: pressed ? 0.7 : 1, width: '100%' }]}
-                  onPress={handleShare}
+                  onPress={handleCreateNew}
                 >
-                  <Feather name="share-2" size={18} color={c.primaryForeground} />
-                  <Text style={[s.primaryBtnText, { color: c.primaryForeground }]}>{t('flashcards.share')}</Text>
+                  <Feather name="plus" size={18} color={c.primaryForeground} />
+                  <Text style={[s.primaryBtnText, { color: c.primaryForeground }]}>{t('flashcards.createNew')}</Text>
                 </Pressable>
 
-                <View style={s.secondaryRow}>
-                  <Pressable
-                    style={({ pressed }) => [s.secondaryBtn, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)', opacity: pressed ? 0.7 : 1 }]}
-                    onPress={handleRetake}
-                  >
-                    <Ionicons name="refresh" size={16} color={c.foreground} />
-                    <Text style={[s.secondaryBtnText, { color: c.foreground }]}>Try Again</Text>
-                  </Pressable>
-                  <Pressable
-                    style={({ pressed }) => [s.secondaryBtn, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)', opacity: pressed ? 0.7 : 1 }]}
-                    onPress={handleCreateNew}
-                  >
-                    <Feather name="plus" size={16} color={c.foreground} />
-                    <Text style={[s.secondaryBtnText, { color: c.foreground }]}>{t('flashcards.createNew')}</Text>
-                  </Pressable>
-                </View>
+                <Pressable
+                  style={({ pressed }) => [
+                    s.secondaryBtn,
+                    {
+                      backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)',
+                      opacity: pressed ? 0.7 : 1,
+                      width: '100%',
+                      marginTop: 10,
+                    },
+                  ]}
+                  onPress={handleRetake}
+                >
+                  <Ionicons name="refresh" size={16} color={c.foreground} />
+                  <Text style={[s.secondaryBtnText, { color: c.foreground }]}>Try Again</Text>
+                </Pressable>
               </View>
-            </ViewShot>
+            </View>
           )}
 
           {/* Completion Screen - Retry */}
           {isRetry && (
-            <ViewShot ref={completionScreenRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: pageBg }}>
+            <View style={{ backgroundColor: pageBg }}>
               <View style={s.completeContent}>
                 <View style={[s.scoreCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
                   <Text style={[s.scoreNum, { color: scoreColor }]}>{completionPercentage}%</Text>
@@ -762,24 +720,23 @@ export default function FlashcardView({ noteId }: FlashcardViewProps) {
                   <Text style={[s.primaryBtnText, { color: c.primaryForeground }]}>{t('flashcards.retake')}</Text>
                 </Pressable>
 
-                <View style={s.secondaryRow}>
-                  <Pressable
-                    style={({ pressed }) => [s.secondaryBtn, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)', opacity: pressed ? 0.7 : 1 }]}
-                    onPress={handleShare}
-                  >
-                    <Feather name="share-2" size={16} color={c.foreground} />
-                    <Text style={[s.secondaryBtnText, { color: c.foreground }]}>{t('flashcards.share')}</Text>
-                  </Pressable>
-                  <Pressable
-                    style={({ pressed }) => [s.secondaryBtn, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)', opacity: pressed ? 0.7 : 1 }]}
-                    onPress={handleCreateNew}
-                  >
-                    <Feather name="plus" size={16} color={c.foreground} />
-                    <Text style={[s.secondaryBtnText, { color: c.foreground }]}>{t('flashcards.createNew')}</Text>
-                  </Pressable>
-                </View>
+                <Pressable
+                  style={({ pressed }) => [
+                    s.secondaryBtn,
+                    {
+                      backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)',
+                      opacity: pressed ? 0.7 : 1,
+                      width: '100%',
+                      marginTop: 10,
+                    },
+                  ]}
+                  onPress={handleCreateNew}
+                >
+                  <Feather name="plus" size={16} color={c.foreground} />
+                  <Text style={[s.secondaryBtnText, { color: c.foreground }]}>{t('flashcards.createNew')}</Text>
+                </Pressable>
               </View>
-            </ViewShot>
+            </View>
           )}
 
           <View style={{ height: 40 }} />
@@ -898,7 +855,6 @@ const s = StyleSheet.create({
   statValue: { fontSize: 20, fontWeight: '700' },
   statLabel: { fontSize: 12, fontWeight: '500' },
 
-  secondaryRow: { gap: 10, width: '100%', marginTop: 10 },
   secondaryBtn: { height: 50, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   secondaryBtnText: { fontSize: 15, fontWeight: '600' },
 

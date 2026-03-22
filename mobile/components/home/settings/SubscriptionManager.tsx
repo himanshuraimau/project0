@@ -107,10 +107,12 @@ export default function SubscriptionManager() {
   }, [isLoading, refreshManagementState])
 
   useEffect(() => {
-    if (!isLoading && !isSyncingBackend && !effectiveHasAccess && !effectiveSubscription) {
+    // Send users who lack access to the paywall — including expired RevenueCat entitlements,
+    // which still produce a non-null subscription object from the SDK mapper.
+    if (!isLoading && !isSyncingBackend && !effectiveHasAccess) {
       router.replace('/(onboarding)/paywall/paywall5' as any)
     }
-  }, [isLoading, isSyncingBackend, effectiveHasAccess, effectiveSubscription, router])
+  }, [isLoading, isSyncingBackend, effectiveHasAccess, router])
 
   const syncAll = useCallback(async () => {
     await Promise.all([refreshSubscription(), refreshManagementState(true)])

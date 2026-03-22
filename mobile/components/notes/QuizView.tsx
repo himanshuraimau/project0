@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { Feather, Ionicons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
-import { useSession } from "@/lib/auth"
 import { useTranslation } from "react-i18next"
 import {
   StatusBar,
@@ -12,7 +11,6 @@ import {
   Pressable,
   ActivityIndicator,
   Image,
-  Share,
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { notesApi } from "@/lib/api"
@@ -36,8 +34,6 @@ interface QuizQuestion {
 
 export default function QuizView({ noteId }: QuizViewProps) {
   const router = useRouter()
-  const { data: session } = useSession()
-  const user = session?.user
   const { t } = useTranslation()
   const { showAlert } = useAlert()
   const { theme, mode } = useTheme()
@@ -121,13 +117,6 @@ export default function QuizView({ noteId }: QuizViewProps) {
 
   const getElapsedTime = () => { const e = Math.floor((Date.now() - startTime) / 1000); return `${Math.floor(e / 60)}:${(e % 60).toString().padStart(2, "0")}` }
   const getScorePercentage = () => Math.round((correctAnswers / questions.length) * 100)
-
-  const handleShare = async () => {
-    try {
-      const name = user?.name || "Someone"
-      await Share.share({ message: `${name} scored ${getScorePercentage()}% on a Flinote quiz!\n\n\u2705 ${correctAnswers}/${questions.length} correct\n\u23F1 ${getElapsedTime()}` })
-    } catch (e: any) { showAlert(e.message) }
-  }
 
   const handleCreateNewQuiz = async () => {
     try { setLoading(true); await handleDeleteQuiz(true); await generateQuiz() }
@@ -244,15 +233,20 @@ export default function QuizView({ noteId }: QuizViewProps) {
               <Ionicons name="refresh" size={18} color={c.primaryForeground} />
               <Text style={[s.primaryBtnText, { color: c.primaryForeground }]}>New Quiz</Text>
             </Pressable>
-            <View style={s.secondaryRow}>
-              <Pressable style={({ pressed }) => [s.secondaryBtn, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)', opacity: pressed ? 0.7 : 1 }]} onPress={handleRetry}>
-                <Text style={[s.secondaryBtnText, { color: c.foreground }]}>Try Again</Text>
-              </Pressable>
-              <Pressable style={({ pressed }) => [s.secondaryBtn, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)', opacity: pressed ? 0.7 : 1 }]} onPress={handleShare}>
-                <Feather name="share-2" size={16} color={c.foreground} />
-                <Text style={[s.secondaryBtnText, { color: c.foreground }]}>Share</Text>
-              </Pressable>
-            </View>
+            <Pressable
+              style={({ pressed }) => [
+                s.secondaryBtn,
+                {
+                  backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)',
+                  opacity: pressed ? 0.7 : 1,
+                  width: '100%',
+                  marginTop: 10,
+                },
+              ]}
+              onPress={handleRetry}
+            >
+              <Text style={[s.secondaryBtnText, { color: c.foreground }]}>Try Again</Text>
+            </Pressable>
           </ScrollView>
         </SafeAreaView>
       </View>
@@ -421,8 +415,7 @@ const s = StyleSheet.create({
   statValue: { fontSize: 20, fontWeight: '700' },
   statLabel: { fontSize: 12, fontWeight: '500' },
 
-  secondaryRow: { flexDirection: 'row', gap: 10, width: '100%', marginTop: 10 },
-  secondaryBtn: { flex: 1, height: 50, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  secondaryBtn: { height: 50, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   secondaryBtnText: { fontSize: 15, fontWeight: '600' },
 
   // Shared

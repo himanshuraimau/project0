@@ -13,7 +13,9 @@ import {
   getConfiguredRevenueCatUserId,
   getRevenueCatCustomerInfo,
   getRevenueCatOfferings,
+  getRevenueCatUnsupportedReason,
   isRevenueCatConfigured,
+  isRevenueCatNativeSupported,
 } from './sdk';
 import { getCurrentRevenueCatOffering } from './mapper';
 
@@ -41,6 +43,10 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
   const bootstrapInFlightUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (!isRevenueCatNativeSupported()) {
+      return;
+    }
+
     const customerInfoListener: CustomerInfoUpdateListener = (nextCustomerInfo) => {
       setCustomerInfo(nextCustomerInfo);
     };
@@ -84,6 +90,17 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
           setCustomerInfo(null);
           setOfferings(null);
           setError(null);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      const unsupportedReason = getRevenueCatUnsupportedReason();
+      if (unsupportedReason) {
+        if (!cancelled) {
+          setError(unsupportedReason);
+          setCustomerInfo(null);
+          setOfferings(null);
           setIsLoading(false);
         }
         return;

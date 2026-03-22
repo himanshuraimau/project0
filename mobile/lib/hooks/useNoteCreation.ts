@@ -5,6 +5,7 @@ import { transcribeAudio } from '@/lib/api/audio';
 import { processWebpage } from '@/lib/api/webpage';
 import { processYouTube, ProcessYouTubeRequest, ProcessYouTubeResponse } from '@/lib/api/transcripts';
 import { processPDF } from '@/lib/api/pdf';
+import type { ProcessPDFResponse } from '@/lib/api/types';
 import { useAlert } from '@/lib/contexts/AlertContext';
 import {
     CreateNoteRequest,
@@ -28,7 +29,7 @@ interface UseNoteCreationResult {
     transcribeAudio: (data: FormData) => Promise<TranscribeAudioResponse | null>;
     processWebpage: (data: ProcessWebpageRequest) => Promise<ProcessWebpageResponse | null>;
     processYouTube: (data: ProcessYouTubeRequest) => Promise<ProcessYouTubeResponse | null>;
-    processPDF: (data: FormData) => Promise<any>;
+    processPDF: (data: FormData) => Promise<ProcessPDFResponse | null>;
 }
 
 export const useNoteCreation = (): UseNoteCreationResult => {

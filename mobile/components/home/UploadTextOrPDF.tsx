@@ -17,6 +17,45 @@ import FolderSelect from '@/components/ui/FolderSelect';
 import { useAlert } from '@/lib/contexts/AlertContext';
 import { useTheme } from '@/lib/hooks/useTheme';
 
+/** Aligns with web `parseNoteResult` for PDF process API `note` field shapes. */
+function parseNoteResult(
+  note: unknown,
+): { id: string | null; error: string | null; message: string | null } {
+  if (!note || typeof note !== 'object') {
+    return { id: null, error: null, message: null };
+  }
+
+  const noteObj = note as {
+    id?: unknown;
+    error?: unknown;
+    message?: unknown;
+    note?: { id?: unknown };
+    data?: { id?: unknown };
+  };
+
+  const directId =
+    typeof noteObj.id === 'string' && noteObj.id.trim().length > 0
+      ? noteObj.id
+      : null;
+  const nestedId =
+    typeof noteObj.note?.id === 'string' && noteObj.note.id.trim().length > 0
+      ? noteObj.note.id
+      : typeof noteObj.data?.id === 'string' && noteObj.data.id.trim().length > 0
+        ? noteObj.data.id
+        : null;
+
+  const error =
+    typeof noteObj.error === 'string' && noteObj.error.trim().length > 0
+      ? noteObj.error
+      : null;
+  const message =
+    typeof noteObj.message === 'string' && noteObj.message.trim().length > 0
+      ? noteObj.message
+      : null;
+
+  return { id: directId ?? nestedId, error, message };
+}
+
 type Props = {
   visible?: boolean;
   onClose?: () => void;
@@ -26,7 +65,7 @@ type Props = {
 
 const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inline = false, onNoteCreated }) => {
   const router = useRouter();
-  const { generateNoteFromText, processPDF } = useNoteCreation();
+  const { generateNoteFromText, processPDF, generateAINote } = useNoteCreation();
   const [internalVisible, setInternalVisible] = useState<boolean>(visibleProp ?? true);
   const { showAlert } = useAlert();
   const { theme, mode } = useTheme();
@@ -122,68 +161,117 @@ const UploadTextOrPDF: React.FC<Props> = ({ visible: visibleProp, onClose, inlin
   const handlePDFUpload = async () => {
     try {
       let lastNoteId: string | null = null;
+      const partialFailures: string[] = [];
+      let anyTranscriptSaved = false;
 
-      // Process each PDF file
       for (const pdf of selectedPDFs) {
         const formData = new FormData();
 
-        // Append the PDF file
         formData.append('file', {
           uri: pdf.uri,
           type: 'application/pdf',
           name: pdf.name,
         } as any);
 
-        // Add folder if selected
         if (folder) {
           formData.append('folderId', folder);
         }
 
-        // Do NOT auto-generate notes - only upload PDF
-        formData.append('generateNotes', 'false');
+        // Backend requires explicit opt-in for AI notes on multipart /pdf/process
+        formData.append('generateNotes', 'true');
 
-        // Upload and process PDF using the hook
         const result = await processPDF(formData);
 
         if (!result) {
           throw new Error('Failed to process PDF');
         }
 
-        // Get the note ID from the result
-        if (result.note?.id) {
-          lastNoteId = result.note.id;
+        anyTranscriptSaved = true;
+        const transcriptId = result.transcript?.id;
+        let parsed = parseNoteResult(result.note);
+        let noteId = parsed.id;
+
+        if (!noteId && transcriptId) {
+          const retried = await generateAINote({
+            transcriptId,
+            folderId: folder || undefined,
+          });
+          if (retried?.id) {
+            noteId = retried.id;
+          }
+        }
+
+        if (noteId) {
+          lastNoteId = noteId;
+        } else if (transcriptId) {
+          partialFailures.push(
+            `${pdf.name}: ${parsed.message || parsed.error || 'Could not generate notes'}`,
+          );
+        } else {
+          partialFailures.push(`${pdf.name}: No transcript returned`);
         }
       }
 
-      // Trigger refresh callback
-      if (onNoteCreated) onNoteCreated();
+      if (onNoteCreated && anyTranscriptSaved) {
+        onNoteCreated();
+      }
 
-      // Show success message with option to view the note
-      showAlert(
-        'Success!',
-        'Your notes have been generated successfully.',
-        [
-          ...(lastNoteId ? [{
+      const clearAndClose = () => {
+        setTitleValue('');
+        setTextValue('');
+        setFolder('');
+        setSelectedPDFs([]);
+        close();
+      };
+
+      if (partialFailures.length === 0 && lastNoteId) {
+        showAlert('Success!', 'Your notes have been generated successfully.', [
+          {
             text: 'View Notes',
             onPress: () => {
               close();
               router.push(`/notes/${lastNoteId}`);
             },
-          }] : []),
+          },
           {
             text: 'Close',
             style: 'cancel' as const,
-            onPress: () => {
-              // Clear form
-              setTitleValue('');
-              setTextValue('');
-              setFolder('');
-              setSelectedPDFs([]);
-              close();
-            },
+            onPress: clearAndClose,
           },
-        ]
-      );
+        ]);
+        return;
+      }
+
+      if (partialFailures.length > 0 && lastNoteId) {
+        showAlert(
+          'Partial success',
+          `Some files had issues:\n${partialFailures.join('\n')}`,
+          [
+            {
+              text: 'View last note',
+              onPress: () => {
+                close();
+                router.push(`/notes/${lastNoteId}`);
+              },
+            },
+            { text: 'Close', style: 'cancel' as const, onPress: clearAndClose },
+          ],
+        );
+        return;
+      }
+
+      if (partialFailures.length > 0) {
+        showAlert(
+          'Note generation issue',
+          `Your PDF was processed, but notes could not be created:\n${partialFailures.join('\n')}`,
+          [{ text: 'Close', style: 'cancel' as const, onPress: clearAndClose }],
+        );
+        return;
+      }
+
+      showAlert('Done', 'Processing finished.', [
+        { text: 'Close', style: 'cancel' as const, onPress: clearAndClose },
+      ]);
     } catch (err: any) {
       throw new Error(err.message || 'Failed to upload PDF');
     }

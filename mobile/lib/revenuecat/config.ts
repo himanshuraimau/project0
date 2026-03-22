@@ -12,6 +12,15 @@ export function getRevenueCatStoreMode(): RevenueCatStoreMode {
   if (rawMode === 'test') {
     return 'test';
   }
+  const testKey = process.env.EXPO_PUBLIC_RC_TEST_API_KEY?.trim();
+  const hasPlatformKeys =
+    Boolean(process.env.EXPO_PUBLIC_RC_IOS_API_KEY?.trim()) ||
+    Boolean(process.env.EXPO_PUBLIC_RC_ANDROID_API_KEY?.trim());
+  // EAS/release builds often omit .env; without this, __DEV__ is false and we would
+  // switch to "live" with empty iOS/Android keys → configure errors / wrong-key messages.
+  if (testKey && !hasPlatformKeys) {
+    return 'test';
+  }
   return __DEV__ ? 'test' : 'live';
 }
 

@@ -373,7 +373,8 @@ export interface TranscribeAudioRequest {
 export interface TranscribeAudioResponse {
   transcription: string;
   transcript: Transcript;
-  note?: Note; // Optional: backend may generate note automatically
+  note?: Note;
+  noteError?: string;
 }
 
 // ==================== PDF API ====================
@@ -383,6 +384,34 @@ export interface ParsePDFRequest {
 
 export interface ProcessPDFRequest {
   file: File | Blob;
+}
+
+/** Payload returned from POST /pdf/process (data field). */
+export interface ProcessPDFTranscriptPayload {
+  id: string;
+  text?: string;
+  cleanText?: string;
+  pages?: number;
+  metadata?: unknown;
+  imageCount?: number;
+  extractedFiles?: unknown;
+}
+
+export type ProcessPDFNotePayload =
+  | Note
+  | {
+      error?: string;
+      message?: string;
+      modelOverloaded?: boolean;
+      notesUsed?: number;
+      notesLimit?: number;
+      upgradeUrl?: string;
+    }
+  | null;
+
+export interface ProcessPDFResponse {
+  transcript: ProcessPDFTranscriptPayload;
+  note: ProcessPDFNotePayload;
 }
 
 export interface PDFAIRequest {

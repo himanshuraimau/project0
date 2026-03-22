@@ -16,7 +16,6 @@ import WebView from 'react-native-webview';
 import { useRouter } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
-import * as Sharing from 'expo-sharing';
 import { notesApi } from '@/lib/api';
 import { getMindMapByNoteId, generateMindMap, deleteMindMap } from '@/lib/api/mindmap';
 import type { Note, MindMap } from '@/lib/api/types';
@@ -566,31 +565,6 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
         }
     };
 
-    const handleShare = async () => {
-        if (!mindmap) return;
-
-        try {
-            const uri = await captureMindmapImage();
-            if (!uri) {
-                showAlert('Error', 'Failed to capture mindmap for sharing');
-                return;
-            }
-
-            if (await Sharing.isAvailableAsync()) {
-                await Sharing.shareAsync(uri, {
-                    mimeType: 'image/png',
-                    dialogTitle: `Share Mindmap: ${displayTitle}`,
-                    UTI: 'public.png', // for iOS
-                });
-            } else {
-                showAlert('Error', 'Sharing is not available on this device');
-            }
-        } catch (error: any) {
-            console.error('Error sharing mindmap:', error);
-            showAlert('Error', 'Failed to share mindmap');
-        }
-    };
-
     const handleCreateNew = () => {
         handleGenerateMindmap();
     };
@@ -721,33 +695,14 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
             fontSize: 16,
             fontWeight: '600',
         },
-        actionRow: {
-            flexDirection: 'row',
-            gap: 12,
-        },
-        shareButton: {
-            flex: 1,
-            backgroundColor: isDark ? neutral[900] : neutral[100],
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: 54,
-            borderRadius: 16,
-            gap: 8,
-        },
-        shareButtonText: {
-            color: c.foreground,
-            fontSize: 16,
-            fontWeight: '600',
-        },
         createButton: {
-            flex: 1,
             backgroundColor: c.primary,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
             height: 54,
             borderRadius: 16,
+            width: '100%',
         },
         createButtonText: {
             color: c.primaryForeground,
@@ -1088,23 +1043,12 @@ const MindmapView = ({ noteId }: MindmapViewProps) => {
                                 )}
                             </Pressable>
 
-                            {/* Share and Create New Buttons */}
-                            <View style={styles.actionRow}>
-                                <Pressable
-                                    onPress={handleShare}
-                                    style={({ pressed }) => [styles.shareButton, { opacity: pressed ? 0.7 : 1 }]}
-                                >
-                                    <Feather name="share-2" size={20} color={c.foreground} />
-                                    <Text style={styles.shareButtonText}>Share</Text>
-                                </Pressable>
-
-                                <Pressable
-                                    onPress={handleCreateNew}
-                                    style={({ pressed }) => [styles.createButton, { opacity: pressed ? 0.7 : 1 }]}
-                                >
-                                    <Text style={styles.createButtonText}>Regenerate</Text>
-                                </Pressable>
-                            </View>
+                            <Pressable
+                                onPress={handleCreateNew}
+                                style={({ pressed }) => [styles.createButton, { opacity: pressed ? 0.7 : 1 }]}
+                            >
+                                <Text style={styles.createButtonText}>Regenerate</Text>
+                            </Pressable>
                         </View>
                     )}
                 </ScrollView>

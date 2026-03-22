@@ -16,8 +16,7 @@ import {
   courseApi,
   chapterApi,
 } from '@/lib/api';
-import type { Note, PodcastMode, QualityPreset } from '@/lib/api/types';
-import type { Podcast } from '@/lib/api/podcast';
+import type { Note } from '@/lib/api/types';
 
 // ==================== Notes Examples ====================
 
@@ -139,6 +138,8 @@ export const processPDFFile = async (pdfUri: string, fileName: string) => {
       name: fileName,
     } as any);
 
+    formData.append('generateNotes', 'true');
+
     const result = await pdfApi.processPDF(formData);
     console.log('PDF processed:', result);
     return result;
@@ -165,19 +166,17 @@ export const askPDFQuestion = async (pdfId: string, question: string) => {
 // ==================== Podcast Examples ====================
 
 /**
- * Example: Generate a podcast from a note
+ * Example: Generate a podcast from a note (requires note body per POST /podcast/generate)
  */
 export const generatePodcastFromNote = async (noteId: string) => {
   try {
-    const podcast = await podcastApi.generatePodcast({
+    const note = await notesApi.getNoteById(noteId);
+    const started = await podcastApi.generatePodcast({
       noteId,
-      mode: 'CONVERSATION' as PodcastMode,
-      hostVoiceId: 'default-host-voice',
-      guestVoiceId: 'default-guest-voice',
-      qualityPreset: 'HIGH' as QualityPreset,
+      noteContent: note.content,
     });
-    console.log('Podcast generation started:', podcast.id);
-    return podcast;
+    console.log('Podcast generation started:', started.jobId);
+    return started;
   } catch (error) {
     console.error('Failed to generate podcast:', error);
     throw error;
@@ -185,13 +184,13 @@ export const generatePodcastFromNote = async (noteId: string) => {
 };
 
 /**
- * Example: Check podcast generation status
+ * Example: Poll podcast generation job status (jobId from generatePodcast response)
  */
-export const checkPodcastStatus = async (podcastId: string) => {
+export const checkPodcastStatus = async (jobId: string) => {
   try {
-    const podcast = await podcastApi.getPodcastById(podcastId);
-    console.log('Podcast status:', podcast.status, podcast.progress);
-    return podcast;
+    const job = await podcastApi.getPodcastStatus(jobId);
+    console.log('Podcast job status:', job.status, job.progress);
+    return job;
   } catch (error) {
     console.error('Failed to check podcast status:', error);
     throw error;
@@ -224,7 +223,7 @@ export const getUserInfo = async () => {
 export const checkSubscription = async () => {
   try {
     const subscription = await subscriptionApi.getSubscriptionStatus();
-    const isActive = subscription.status === 'ACTIVE';
+    const isActive = subscription.access.isActive;
     console.log('Subscription active:', isActive);
     return { subscription, isActive };
   } catch (error) {
