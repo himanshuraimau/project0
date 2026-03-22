@@ -18,6 +18,7 @@ import {
   isRevenueCatNativeSupported,
 } from './sdk';
 import { getCurrentRevenueCatOffering } from './mapper';
+import { isDemoMode } from './config';
 
 interface RevenueCatContextValue {
   customerInfo: CustomerInfo | null;
@@ -33,6 +34,32 @@ interface RevenueCatContextValue {
 const RevenueCatContext = createContext<RevenueCatContextValue | undefined>(undefined);
 
 export function RevenueCatProvider({ children }: { children: React.ReactNode }) {
+  const { isPending } = useSession();
+
+  // Demo mode: skip RevenueCat entirely. SubscriptionContext will return a
+  // mock "fully subscribed" state so all UI works without any RC API keys.
+  if (isDemoMode()) {
+    const demoValue: RevenueCatContextValue = {
+      customerInfo: null,
+      offerings: null,
+      currentOffering: null,
+      isConfigured: false,
+      isLoading: isPending,
+      error: null,
+      refreshCustomerInfo: async () => null,
+      refreshOfferings: async () => null,
+    };
+    return (
+      <RevenueCatContext.Provider value={demoValue}>
+        {children}
+      </RevenueCatContext.Provider>
+    );
+  }
+
+  return <RevenueCatProviderInner>{children}</RevenueCatProviderInner>;
+}
+
+function RevenueCatProviderInner({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession();
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);

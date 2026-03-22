@@ -28,6 +28,7 @@ import {
   restoreRevenueCatPurchases,
   useRevenueCat,
 } from '@/lib/revenuecat';
+import { isDemoMode } from '@/lib/revenuecat/config';
 
 const FEATURES = [
   'Unlimited access',
@@ -68,6 +69,20 @@ export default function PaywallScreen() {
   }, [isSubscribed, router]);
 
   const handleSubscribe = async () => {
+    // In demo mode skip payment entirely and go straight to the app.
+    if (isDemoMode()) {
+      try {
+        setIsLoading(true);
+        await markOnboardingCompleted();
+        router.replace('/(home)');
+      } catch {
+        router.replace('/(home)');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -489,7 +504,9 @@ export default function PaywallScreen() {
             {isLoading || revenueCatLoading ? (
               <ActivityIndicator color={c.primaryForeground} size="small" />
             ) : (
-              <Text style={styles.subscribeButtonText}>Subscribe Now</Text>
+              <Text style={styles.subscribeButtonText}>
+                {isDemoMode() ? 'Continue (Demo)' : 'Subscribe Now'}
+              </Text>
             )}
           </View>
         </TouchableOpacity>

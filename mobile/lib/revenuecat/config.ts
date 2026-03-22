@@ -4,6 +4,15 @@ import type { RevenueCatStoreMode } from './types';
 const DEFAULT_ENTITLEMENT_ID = 'pro';
 const DEFAULT_OFFERING_ID = 'default';
 
+/**
+ * Demo mode: set EXPO_PUBLIC_DEMO_MODE=true to completely skip RevenueCat and
+ * treat every logged-in user as an active subscriber. Use an EAS "demo" build
+ * profile to share a working build with clients before payment keys are ready.
+ */
+export function isDemoMode(): boolean {
+  return process.env.EXPO_PUBLIC_DEMO_MODE?.trim().toLowerCase() === 'true';
+}
+
 export function getRevenueCatStoreMode(): RevenueCatStoreMode {
   const rawMode = process.env.EXPO_PUBLIC_RC_STORE_MODE?.trim().toLowerCase();
   if (rawMode === 'live') {

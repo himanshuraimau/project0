@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { GetSubscriptionStatusParams, Subscription, SubscriptionStatusResponse } from '@/lib/api/types';
+import { GetSubscriptionStatusParams, Subscription, SubscriptionStatus, SubscriptionStatusResponse } from '@/lib/api/types';
 import { useSession } from '@/lib/auth/auth-client';
 import { mapRevenueCatCustomerInfoToSubscriptionStatus, useRevenueCat } from '@/lib/revenuecat';
+import { isDemoMode } from '@/lib/revenuecat/config';
 
 /**
  * Subscription Context
@@ -30,6 +31,40 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     console.log('🎯 SubscriptionProvider component rendering...');
 
     const { data: session, isPending } = useSession();
+
+    // Demo mode: bypass RevenueCat entirely and treat every logged-in user as
+    // an active Pro subscriber so the client can evaluate the full UI flow.
+    if (isDemoMode()) {
+        const demoSubscription: Subscription = {
+            id: 'demo_subscription',
+            userId: session?.user?.id ?? 'demo_user',
+            status: SubscriptionStatus.ACTIVE,
+            priceId: 'demo_price',
+            billingProvider: 'TEST_STORE',
+            entitlementId: 'pro',
+            store: 'demo',
+            environment: 'sandbox',
+            cancelAtPeriodEnd: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        const demoValue: SubscriptionContextType = {
+            subscription: session?.user ? demoSubscription : null,
+            isLoading: isPending,
+            isSubscribed: Boolean(session?.user),
+            hasAccess: Boolean(session?.user),
+            isActive: Boolean(session?.user),
+            isTrial: false,
+            daysRemaining: null,
+            error: null,
+            refreshSubscription: async () => {},
+        };
+        return (
+            <SubscriptionContext.Provider value={demoValue}>
+                {children}
+            </SubscriptionContext.Provider>
+        );
+    }
     const {
         customerInfo,
         isLoading: revenueCatLoading,

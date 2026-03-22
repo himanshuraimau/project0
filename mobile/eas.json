@@ -10,6 +10,13 @@
         "EXPO_PUBLIC_RC_STORE_MODE": "test"
       }
     },
+    "demo": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DEMO_MODE": "true",
+        "EXPO_PUBLIC_RC_STORE_MODE": "test"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "env": {
