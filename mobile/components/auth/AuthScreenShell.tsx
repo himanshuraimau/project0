@@ -22,6 +22,8 @@ export type AuthScreenShellProps = {
   subtitle: string
   googleButtonLabel: string
   onGooglePress: () => void
+  appleButtonLabel?: string
+  onApplePress?: () => void
   footerPrompt: string
   footerLinkLabel: string
   footerLinkHref: string
@@ -34,6 +36,8 @@ export function AuthScreenShell({
   subtitle,
   googleButtonLabel,
   onGooglePress,
+  appleButtonLabel,
+  onApplePress,
   footerPrompt,
   footerLinkLabel,
   footerLinkHref,
@@ -146,6 +150,46 @@ export function AuthScreenShell({
             </Pressable>
           </Animated.View>
 
+          {/* Apple button */}
+          {appleButtonLabel && onApplePress && (
+            <Animated.View entering={authScreenEntrance.sheetButton} style={scaleStyle}>
+              <Pressable
+                onPress={onApplePress}
+                onPressIn={pressIn}
+                onPressOut={pressOut}
+                disabled={loading}
+                style={({ pressed }) => [
+                  styles.authBtn,
+                  {
+                    backgroundColor: isDark ? neutral[800] : neutral[950],
+                    opacity: loading ? 0.7 : pressed ? 0.85 : 1,
+                  },
+                ]}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color={isDark ? c.foreground : neutral[0]} />
+                ) : (
+                  <>
+                    <Text style={styles.appleLogo}>
+                      
+                    </Text>
+                    <Text
+                      style={[
+                        styles.authBtnText,
+                        {
+                          color: isDark ? neutral[50] : neutral[0],
+                          fontWeight: t.weightSemibold,
+                        },
+                      ]}
+                    >
+                      {appleButtonLabel}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            </Animated.View>
+          )}
+
           {/* Footer */}
           <Animated.View entering={authScreenEntrance.sheetFooter} style={styles.footer}>
             <View style={styles.footerRow}>
@@ -239,7 +283,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   googleLogoWrap: {
     width: 24,
@@ -250,6 +294,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   gLogo: { width: 16, height: 16 },
+  appleLogo: {
+    fontSize: 24,
+    lineHeight: 24,
+  },
   authBtnText: {
     fontSize: 17,
     letterSpacing: -0.2,

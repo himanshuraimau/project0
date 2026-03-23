@@ -28,6 +28,17 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
+function AppleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"
+      />
+    </svg>
+  );
+}
+
 const PILLS = [
   { icon: Globe, label: "50+ languages" },
   { icon: ShieldCheck, label: "Legal to use" },
@@ -38,12 +49,16 @@ interface AuthScreenProps {
   mode: "sign-in" | "sign-up";
   onGoogleClick: () => void;
   isGoogleLoading: boolean;
+  onAppleClick: () => void;
+  isAppleLoading: boolean;
 }
 
 export function AuthScreen({
   mode,
   onGoogleClick,
   isGoogleLoading,
+  onAppleClick,
+  isAppleLoading,
 }: AuthScreenProps) {
   return (
     <div className="relative flex flex-col items-center justify-center bg-background py-8 w-full">
@@ -88,6 +103,19 @@ export function AuthScreen({
               <GoogleIcon className="mr-2 h-5 w-5" />
             )}
             Continue with Google
+          </Button>
+
+          <Button
+            onClick={onAppleClick}
+            disabled={isAppleLoading}
+            className="h-12 md:h-14 w-full cursor-pointer rounded-2xl bg-foreground text-background hover:bg-foreground/90 transition-all text-base font-bold shadow-lg shadow-foreground/15 hover:shadow-xl hover:shadow-foreground/20"
+          >
+            {isAppleLoading ? (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            ) : (
+              <AppleIcon className="mr-2 h-5 w-5" />
+            )}
+            Continue with Apple
           </Button>
         </div>
 

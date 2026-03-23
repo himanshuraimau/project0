@@ -29,6 +29,11 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
+    apple: {
+      clientId: process.env.APPLE_CLIENT_ID as string,
+      clientSecret: process.env.APPLE_CLIENT_SECRET as string,
+      appBundleIdentifier: process.env.APPLE_APP_BUNDLE_IDENTIFIER as string,
+    },
   },
 
   // Advanced configuration
@@ -47,6 +52,7 @@ export const auth = betterAuth({
     "mobile://", // Legacy mobile scheme (for backward compatibility)
     "exp://", // Expo Go scheme
     "exp://**", // Expo Go wildcard support in development
+    "https://appleid.apple.com", // Apple Sign In
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     process.env.BETTER_AUTH_URL || "",
   ].filter(Boolean),

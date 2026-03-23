@@ -1,5 +1,6 @@
 import { AuthScreenShell } from '@/components/auth/AuthScreenShell'
 import { maybeCompleteAuthSessionOnce, signInWithGoogleSingleFlight } from '@/lib/auth/social-google'
+import { signInWithAppleSingleFlight } from '@/lib/auth/social-apple'
 import Constants from 'expo-constants'
 import * as ExpoLinking from 'expo-linking'
 import * as WebBrowser from 'expo-web-browser'
@@ -66,6 +67,35 @@ export default function SignUpScreen() {
     }
   }, [])
 
+  const handleAppleSignUp = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await signInWithAppleSingleFlight(MOBILE_AUTH_CALLBACK_URL)
+      if (result.skipped) {
+        return
+      }
+      const response = result.response
+      if (response.data && !response.error) {
+        // Navigation handled by auth layout
+      } else {
+        console.error('Apple OAuth failed', response.error)
+        Alert.alert('Sign up failed', response.error?.message ?? 'Something went wrong. Try again.')
+      }
+    } catch (err) {
+      console.error('Apple OAuth error', err)
+      if (isNetworkError(err)) {
+        Alert.alert(
+          'Connection problem',
+          'Could not reach the server. Check your internet connection and try again. If you use a custom backend, ensure EXPO_PUBLIC_API_URL in .env is correct and reachable from this device.'
+        )
+      } else {
+        Alert.alert('Something went wrong', (err as Error)?.message ?? 'Please try again.')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   const footerExtra = (
     <Text
       style={{
@@ -99,6 +129,8 @@ export default function SignUpScreen() {
       subtitle="Create your account to start capturing and organizing your knowledge."
       googleButtonLabel="Continue with Google"
       onGooglePress={handleGoogleSignUp}
+      appleButtonLabel="Continue with Apple"
+      onApplePress={handleAppleSignUp}
       footerPrompt="Already have an account?"
       footerLinkLabel="Sign in"
       footerLinkHref="/(auth)/sign-in"

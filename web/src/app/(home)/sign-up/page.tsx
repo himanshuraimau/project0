@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 export default function SignUp() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
 
   const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
@@ -23,6 +24,21 @@ export default function SignUp() {
     }
   };
 
+  const handleAppleSignUp = async () => {
+    setIsAppleLoading(true);
+    try {
+      await authClient.signIn.social({
+        provider: "apple",
+        callbackURL: "/dashboard",
+      });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to sign up with Apple";
+      toast.error(message);
+      setIsAppleLoading(false);
+    }
+  };
+
   return (
     <div className="flex h-screen min-h-0 w-full items-center justify-center overflow-hidden bg-background text-foreground">
       <div className="flex w-full min-h-0 items-center justify-center overflow-y-auto px-6 py-12 sm:px-10 md:px-16 lg:px-24 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -30,6 +46,8 @@ export default function SignUp() {
           mode="sign-up"
           onGoogleClick={handleGoogleSignUp}
           isGoogleLoading={isGoogleLoading}
+          onAppleClick={handleAppleSignUp}
+          isAppleLoading={isAppleLoading}
         />
       </div>
     </div>
