@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface LoadingScreenProps {
   title?: string;
@@ -21,10 +22,12 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ title = "Creating your qu
       <div className="text-center flex flex-col items-center">
         {/* Mascot Image */}
         <div className="mb-6">
-          <img 
-            src="/logo.png" 
-            alt="Logo" 
-            className="w-[140px] h-auto rounded-2xl animate-[breathe_3s_ease-in-out_infinite]"
+          <Image
+            src="/logo.png"
+            alt="Flinote"
+            width={140}
+            height={140}
+            className="rounded-2xl animate-[breathe_3s_ease-in-out_infinite]"
           />
         </div>
         

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import {
   FileText,
@@ -151,9 +152,11 @@ export function NotesSidebar({
           {isCollapsed ? (
             <div className="relative flex items-center w-full justify-center">
               <div>
-                <img
+                <Image
                   src="/logo.png"
                   alt="Flinote"
+                  width={40}
+                  height={40}
                   className="h-10 w-auto rounded-md transition-opacity duration-200 opacity-100 group-hover:opacity-0 visible group-hover:invisible"
                 />
               </div>
@@ -162,9 +165,11 @@ export function NotesSidebar({
           ) : (
             <>
               <div>
-                <img
+                <Image
                   src="/logo.png"
                   alt="Flinote"
+                  width={40}
+                  height={40}
                   className="h-10 w-auto mr-2 rounded-md"
                 />
               </div>

@@ -14,6 +14,7 @@ import {
   Moon01Icon,
 } from "@hugeicons/core-free-icons";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { UserControl } from "@/components/user-control";
@@ -97,9 +98,11 @@ export function NoteAppSidebar({ className, noteId }: NoteAppSidebarProps) {
         <div className="flex items-center gap-2 w-full group">
           {isCollapsed ? (
             <div className="relative flex items-center w-full justify-center min-h-[40px]">
-              <img
+              <Image
                 src="/logo.png"
                 alt="Flinote"
+                width={40}
+                height={40}
                 className="h-10 w-auto rounded-md object-contain opacity-100 transition-opacity duration-150 group-hover:opacity-0 group-hover:invisible"
               />
               <button
@@ -113,9 +116,11 @@ export function NoteAppSidebar({ className, noteId }: NoteAppSidebarProps) {
             </div>
           ) : (
             <>
-              <img
+              <Image
                 src="/logo.png"
                 alt="Flinote"
+                width={40}
+                height={40}
                 className="h-10 w-auto rounded-md shrink-0"
               />
               <div className="flex-1 min-w-0">

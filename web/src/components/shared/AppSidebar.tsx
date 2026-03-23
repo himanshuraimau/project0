@@ -17,6 +17,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import type { IconSvgElement } from "@hugeicons/react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { UserControl } from "@/components/user-control";
@@ -161,18 +162,22 @@ export function AppSidebar({ className }: AppSidebarProps) {
           <div className="flex items-center gap-2 w-full group">
             {isCollapsed ? (
               <div className="relative flex items-center w-full justify-center min-h-[40px]">
-                <img
+                <Image
                   src="/logo.png"
                   alt="Flinote"
+                  width={40}
+                  height={40}
                   className="h-10 w-auto rounded-md object-contain opacity-100 transition-opacity duration-150 group-hover:opacity-0 group-hover:invisible"
                 />
                 <SidebarTrigger className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto" />
               </div>
             ) : (
               <>
-                <img
+                <Image
                   src="/logo.png"
                   alt="Flinote"
+                  width={40}
+                  height={40}
                   className="h-10 w-auto rounded-md shrink-0"
                 />
                 <div className="flex-1 min-w-0">

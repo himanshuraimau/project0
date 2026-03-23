@@ -19,6 +19,7 @@ function LogoItem({ logo }: { logo: (typeof TrustLogos)[number] }) {
         alt={logo.alt}
         width={logo.width ?? 112}
         height={80}
+        sizes="100px"
         className="h-20 w-auto max-h-20 object-contain  transition-all duration-300"
       />
     </div>

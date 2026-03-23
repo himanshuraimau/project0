@@ -49,16 +49,40 @@ export default async function BlogPostPage({ params }: PageProps) {
   const description =
     post.content.slice(0, 200).replace(/\s+/g, " ").trim() + (post.content.length > 200 ? "…" : "");
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Blog",
+        item: `${baseUrl}/blog`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: post.title,
+        item: `${baseUrl}/blog/${post.slug}`,
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {post.publishedAt &&
         renderArticleSchema({
           headline: post.title,
           description,
-          image: post.coverImageUrl ?? undefined,
-          author: { name: post.instructorName, url: "/blog" },
+          image: post.coverImageUrl ?? "/logo.png",
+          author: { name: post.instructorName },
           datePublished: new Date(post.publishedAt).toISOString(),
-          articleUrl: `${baseUrl}/blog/${post.slug}/`,
+          dateModified: new Date(post.updatedAt).toISOString(),
+          articleUrl: `${baseUrl}/blog/${post.slug}`,
         })}
       <BlogHeader
         title={post.title}

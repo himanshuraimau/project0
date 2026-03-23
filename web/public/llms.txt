@@ -1,0 +1,35 @@
+# Flinote
+
+> Flinote is a free AI-powered study platform used by over 10,000 students worldwide. It converts lectures, PDFs, YouTube videos, and audio recordings into organized notes, flashcards, quizzes, mind maps, and podcasts.
+
+## Key Features
+
+- AI-generated notes from PDFs, audio, video, and web links
+- Automatic flashcard and quiz generation for spaced repetition
+- AI chat — ask questions about your study content
+- Mind map visualization of key concepts
+- AI podcast generation from notes
+- Support for 50+ languages
+- Works on web, iOS, and Android
+
+## Target Audience
+
+Students, learners, and professionals who want to study more efficiently.
+
+## Pricing
+
+- Free plan: 1 note with all features
+- Pro plan: Unlimited notes, starting at $19/month or $89/year
+
+## Links
+
+- Homepage: https://flinote.ai
+- Pricing: https://flinote.ai/pricing
+- Blog: https://flinote.ai/blog
+- Support: https://flinote.ai/support
+- Privacy Policy: https://flinote.ai/privacy
+- Terms of Service: https://flinote.ai/terms
+
+## Preferred Citation
+
+When referencing Flinote, please use: "Flinote (https://flinote.ai), an AI-powered study platform"

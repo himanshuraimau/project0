@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "@/components/mdx-renderer";
+import Image from "next/image";
 
 type MessageRole = "user" | "assistant" | "system";
 
@@ -263,9 +264,11 @@ export default function InlineChatbot({
                           <HugeiconsIcon icon={UserIcon} className="size-4" />
                         )
                       ) : (
-                        <img
+                        <Image
                           src="/logo.png"
-                          alt=""
+                          alt="Flinote"
+                          width={16}
+                          height={16}
                           className="size-4 rounded-full object-cover"
                         />
                       )}

@@ -13,11 +13,13 @@ import { motion, useReducedMotion } from "framer-motion";
 // Updated Helper component for a smooth, subtle hover
 function FloatingIcon({
   src,
+  alt,
   containerClass,
   delay = 0,
   duration = 5, // Slower is better for "float"
 }: {
   src: string;
+  alt: string;
   containerClass: string;
   delay?: number;
   duration?: number;
@@ -49,9 +51,10 @@ function FloatingIcon({
       >
         <Image
           src={src}
-          alt=""
+          alt={alt}
           width={300}
           height={300}
+          sizes="(max-width: 768px) 144px, (max-width: 1024px) 192px, 260px"
           className="w-full h-auto drop-shadow-[0_15px_30px_rgba(0,0,0,0.08)]"
           priority
         />
@@ -72,6 +75,7 @@ export function Hero() {
         {/* PDF Icon - Mid Left - Fast & Shallow */}
         <FloatingIcon
           src="/hero/pdf.png"
+          alt="PDF document upload"
           containerClass="left-[5%] top-[30%] w-[144px] md:w-[192px] lg:w-[240px]"
           duration={3.5}
           delay={0}
@@ -80,6 +84,7 @@ export function Hero() {
         {/* Headphone Icon - Top Right - Slower & Deeper */}
         <FloatingIcon
           src="/hero/Headphone.png"
+          alt="Audio lecture headphones"
           containerClass="right-[10%] top-[5%] w-[120px] md:w-[168px] lg:w-[220px]"
           duration={4.5}
           delay={0.5}
@@ -88,6 +93,7 @@ export function Hero() {
         {/* Microphone Icon - Bottom Right - Medium */}
         <FloatingIcon
           src="/hero/mic.png"
+          alt="Voice recording microphone"
           containerClass="right-[5%] bottom-[20%] w-[156px] md:w-[204px] lg:w-[260px]"
           duration={4}
           delay={1}

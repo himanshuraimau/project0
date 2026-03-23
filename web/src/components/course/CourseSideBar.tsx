@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { CheckCircle, Circle, Moon, ArrowUpRight, Sun } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useChapterProgress } from "@/hooks/use-chapter-progress";
@@ -198,9 +199,11 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
           {isCollapsed ? (
             <div className="relative flex items-center w-full justify-center">
               <div>
-                <img
+                <Image
                   src="/logo.png"
                   alt="Flinote"
+                  width={40}
+                  height={40}
                   className="h-10 w-auto rounded-md transition-opacity duration-200 opacity-100 group-hover:opacity-0 visible group-hover:invisible"
                 />
               </div>
@@ -209,9 +212,11 @@ const CourseSideBar = ({ course, currentChapterId }: Props) => {
           ) : (
             <>
               <div>
-                <img
+                <Image
                   src="/logo.png"
                   alt="Flinote"
+                  width={40}
+                  height={40}
                   className="h-10 w-auto mr-2 rounded-md"
                 />
               </div>

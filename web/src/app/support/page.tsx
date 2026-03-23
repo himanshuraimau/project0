@@ -2,17 +2,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { jakarta } from "@/lib/fonts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronLeft, Mail, Send, Trash2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
-
-const jakarta = Plus_Jakarta_Sans({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin-ext", "vietnamese"],
-});
 
 const SUBJECT_MIN_LENGTH = 3;
 const SUBJECT_MAX_LENGTH = 120;

@@ -36,6 +36,10 @@ export function renderArticleSchema({
       "@type": "Organization",
       name: "Flinote",
       url: baseUrl,
+      logo: {
+        "@type": "ImageObject",
+        url: `${baseUrl}/logo.png`,
+      },
     },
     datePublished,
     ...(dateModified && { dateModified }),

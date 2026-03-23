@@ -65,6 +65,7 @@ export function HowItWorks() {
                   alt={step.alt}
                   width={325}
                   height={325}
+                  sizes="(max-width: 768px) 192px, 208px"
                   className="h-48 w-48 object-contain md:h-52 md:w-52"
                 />
               </div>

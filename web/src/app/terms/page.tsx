@@ -2,13 +2,8 @@
 
 import { Navbar } from "@/components/shared/navbar";
 import { MDXRenderer } from "@/components/mdx-renderer";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { jakarta } from "@/lib/fonts";
 import { TERMS_CONTENT } from "@/lib/legal-content";
-
-const jakarta = Plus_Jakarta_Sans({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin-ext", "vietnamese"],
-});
 
 export default function TermsPage() {
   return (

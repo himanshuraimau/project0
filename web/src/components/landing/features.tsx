@@ -8,18 +8,21 @@ const TOP_FEATURES = [
     title: "Record or upload",
     description: "Upload PDFs, links, audio, and more.",
     icon: "/bento-icons/Flinote MIc.png",
+    alt: "Record or upload content to Flinote",
   },
   {
     id: "notes",
     title: "Get smart notes fast",
     description: "Clean, organized, and ready to study.",
     icon: "/bento-icons/Flinote Meeting notes.png",
+    alt: "AI-generated smart notes",
   },
   {
     id: "Chat with notes",
     title: "Chat with notes",
     description: "Ask anything about your content.",
     icon: "/bento-icons/Flinote AI Chat.png",
+    alt: "Chat with your notes using AI",
   },
 ];
 
@@ -28,6 +31,7 @@ type BentoFeature = {
   title: string;
   description: string;
   icon: string | null;
+  alt?: string;
   iconLabel?: "devices" | "game";
   wide: boolean;
 };
@@ -38,6 +42,7 @@ const BENTO_FEATURES: BentoFeature[] = [
     title: "AI Podcasts",
     description: "Flinote reads your notes like a short podcast.",
     icon: "/bento-icons/Flinote AI Podcast.png",
+    alt: "AI-powered podcast generation from notes",
     wide: false,
   },
 
@@ -46,6 +51,7 @@ const BENTO_FEATURES: BentoFeature[] = [
     title: "Multiple Languages",
     description: "Study in your language",
     icon: "/bento-icons/Flinote Language.png",
+    alt: "Multi-language study support",
     wide: false,
   },
   {
@@ -53,6 +59,7 @@ const BENTO_FEATURES: BentoFeature[] = [
     title: "Quizzes and flashcards",
     description: "Flinote makes flashcards and quizzes for you.",
     icon: "/bento-icons/Flinote Quiz and flashcard.png",
+    alt: "Auto-generated quizzes and flashcards",
     wide: true,
   },
 ];
@@ -100,6 +107,7 @@ function FeatureCard({
   title,
   description,
   icon,
+  alt,
   iconLabel,
   wide,
   className = "",
@@ -107,6 +115,7 @@ function FeatureCard({
   title: string;
   description: string;
   icon: string | null;
+  alt?: string;
   iconLabel?: "devices" | "game";
   wide?: boolean;
   className?: string;
@@ -120,7 +129,7 @@ function FeatureCard({
           <div className="relative h-[120px] w-full max-w-[168px] sm:h-[144px] sm:max-w-[192px]">
             <Image
               src={icon}
-              alt=""
+              alt={alt || title}
               fill
               className="object-contain object-center"
               sizes="(max-width: 640px) 168px, 192px"
@@ -186,6 +195,7 @@ export function Features() {
               title={f.title}
               description={f.description}
               icon={f.icon}
+              alt={f.alt}
             />
           ))}
         </div>
@@ -198,6 +208,7 @@ export function Features() {
               title={f.title}
               description={f.description}
               icon={f.icon}
+              alt={f.alt}
               iconLabel={f.iconLabel}
               wide
             />
@@ -210,6 +221,7 @@ export function Features() {
               title={f.title}
               description={f.description}
               icon={f.icon}
+              alt={f.alt}
               iconLabel={f.iconLabel}
             />
           ))}

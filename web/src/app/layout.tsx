@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | Flinote",
   },
   description:
-    "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
+    "Flinote transforms learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
   keywords: [
     "AI study app",
     "note taking",
@@ -46,7 +46,10 @@ export const metadata: Metadata = {
   publisher: "Flinote",
   metadataBase: new URL(appUrl),
   alternates: {
-    canonical: "/",
+    languages: {
+      "en": appUrl,
+      "x-default": appUrl,
+    },
   },
   robots: {
     index: true,
@@ -59,17 +62,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Flinote – AI-Powered Study Tools",
     description:
-      "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
+      "Flinote transforms learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
     url: appUrl,
     siteName: "Flinote",
-    images: [
-      {
-        url: "/logo.png",
-        width: 1200,
-        height: 630,
-        alt: "Flinote – AI-Powered Study Tools for Students",
-      },
-    ],
     locale: "en_US",
     type: "website",
   },
@@ -77,8 +72,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Flinote – AI-Powered Study Tools",
     description:
-      "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
-    images: ["/logo.png"],
+      "Flinote transforms learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
   },
   icons: {
     icon: "/logo.png",
@@ -99,23 +93,57 @@ export default function RootLayout({
 }>) {
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "Flinote",
-    description:
-      "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
-    url: appUrl,
-    applicationCategory: "EducationalApplication",
-    operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-    },
-    featureList: [
-      "AI-generated notes from lectures and videos",
-      "Flashcards and quiz generation",
-      "PDF to notes conversion",
-      "Mind maps and podcasts from study material",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${appUrl}/#organization`,
+        name: "Flinote",
+        url: appUrl,
+        logo: {
+          "@type": "ImageObject",
+          url: `${appUrl}/logo.png`,
+        },
+        description:
+          "Flinote is an AI-powered study platform that converts lectures, PDFs, YouTube videos, and audio into organized notes, flashcards, quizzes, mind maps, and podcasts.",
+        contactPoint: {
+          "@type": "ContactPoint",
+          email: "customer@flinote.ai",
+          contactType: "customer support",
+        },
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${appUrl}/#website`,
+        url: appUrl,
+        name: "Flinote",
+        publisher: { "@id": `${appUrl}/#organization` },
+      },
+      {
+        "@type": "WebApplication",
+        "@id": `${appUrl}/#app`,
+        name: "Flinote",
+        description:
+          "Flinote transforms learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
+        url: appUrl,
+        applicationCategory: "EducationalApplication",
+        operatingSystem: "Web",
+        offers: {
+          "@type": "Offer",
+          price: 0,
+          priceCurrency: "USD",
+          url: `${appUrl}/pricing`,
+          availability: "https://schema.org/InStock",
+        },
+        featureList: [
+          "AI-generated notes from lectures and videos",
+          "Flashcards and quiz generation",
+          "PDF to notes conversion",
+          "Mind maps and podcasts from study material",
+          "AI chat with your notes",
+          "Support for 50+ languages",
+        ],
+        provider: { "@id": `${appUrl}/#organization` },
+      },
     ],
   };
 

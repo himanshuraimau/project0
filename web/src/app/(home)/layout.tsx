@@ -1,5 +1,3 @@
-"use client";
-
 import { Header } from "@/components/landing/header";
 import { SmoothScrollProvider } from "@/components/landing/smooth-scroll-provider";
 

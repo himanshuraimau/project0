@@ -31,6 +31,7 @@ export function Header() {
             alt="Flinote"
             width={28}
             height={28}
+            sizes="28px"
             className="object-contain rounded-[6px]"
           />
           <div className="flex gap-1 items-end">
