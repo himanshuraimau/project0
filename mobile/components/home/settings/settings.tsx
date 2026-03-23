@@ -40,9 +40,20 @@ export default function Settings() {
   }
 
   const handleDeleteAccount = () => {
+    // Check subscription status first
+    if (hasAccess && (isActive || isTrial)) {
+      showAlert(
+        t('settings.deleteAccount'),
+        'Please cancel your subscription before deleting your account.',
+        [{ text: t('common.ok'), style: 'cancel' }]
+      )
+      return
+    }
+
+    // Show confirmation dialog
     showAlert(
       t('settings.deleteAccount'),
-      t('settings.deleteAccountConfirmation'),
+      'Your account will be permanently deleted and cannot be recovered. If you have an active subscription, you must cancel it first before deleting your account.',
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
@@ -53,7 +64,7 @@ export default function Settings() {
               await deleteUserAccount()
               await authClient.signOut()
             } catch (error) {
-              showAlert(t('common.error'), t('settings.deleteAccountError'))
+              showAlert(t('common.error'), 'Failed to delete account. Please try again or contact support.')
             }
           },
         },

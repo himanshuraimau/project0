@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { UserService } from '@/lib/user-service'
+import { SubscriptionService } from '@/lib/subscription-service'
 import { getUserFromAuth } from '@/lib/auth-helper'
 
 export async function DELETE(request: NextRequest) {
@@ -10,6 +11,16 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      )
+    }
+
+    // Check subscription status before deletion
+    const hasActiveSubscription = await SubscriptionService.hasActiveSubscription(userId)
+    
+    if (hasActiveSubscription) {
+      return NextResponse.json(
+        { error: 'Cannot delete account with active subscription. Please cancel your subscription first.' },
+        { status: 400 }
       )
     }
 

@@ -2,13 +2,25 @@
 
 import { useState, useEffect, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { UserIcon, Loading01Icon } from "@hugeicons/core-free-icons";
+import { UserIcon, Loading01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { signOut } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 async function uploadProfileImageToS3(file: File): Promise<string> {
   const res = await fetch("/api/image/upload-url", {
@@ -45,6 +57,7 @@ interface ProfileCardProps {
 }
 
 export function ProfileCard({ user }: ProfileCardProps) {
+  const router = useRouter();
   const [firstName, setFirstName] = useState(user.name?.split(" ")[0] || "");
   const [lastName, setLastName] = useState(
     user.name?.split(" ").slice(1).join(" ") || ""
@@ -67,6 +80,8 @@ export function ProfileCard({ user }: ProfileCardProps) {
   } | null>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(true);
   const [memberSince, setMemberSince] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const displayName = user.name || "User";
   const initials =
@@ -177,6 +192,36 @@ export function ProfileCard({ user }: ProfileCardProps) {
       toast.error("Could not save. Try again.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    // Check subscription status
+    if (subscriptionData?.hasSubscription && subscriptionData?.access?.hasAccess) {
+      toast.error("Please cancel your subscription before deleting your account.");
+      setShowDeleteDialog(false);
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch("/api/user/delete", {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete account");
+      }
+
+      // Logout and redirect
+      await signOut();
+      router.push("/");
+      toast.success("Account deleted successfully");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error("Failed to delete account. Please try again or contact support.");
+      setIsDeleting(false);
     }
   };
 
@@ -307,7 +352,42 @@ export function ProfileCard({ user }: ProfileCardProps) {
         >
           {saving ? "Saving…" : "Save changes"}
         </Button>
+
+        {/* Danger Zone */}
+        <div className="pt-6 border-t border-border/80">
+          <h3 className="text-sm font-semibold text-foreground mb-3">Danger Zone</h3>
+          <Button
+            onClick={() => setShowDeleteDialog(true)}
+            variant="destructive"
+            className="w-full h-11 rounded-xl gap-2 font-medium"
+          >
+            <HugeiconsIcon icon={Delete01Icon} className="size-5" />
+            Delete Account
+          </Button>
+        </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your account will be permanently deleted and cannot be recovered. If you have an active subscription, you must cancel it first before deleting your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
