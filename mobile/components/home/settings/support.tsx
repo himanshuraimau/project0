@@ -39,6 +39,13 @@ export default function Support() {
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
 
+  // Liquid glass
+  const cardBg = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const inputBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+  const inputBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
+
   const toggleExpanded = (id: string) => {
     setExpandedId(expandedId === id ? null : id)
   }
@@ -124,26 +131,30 @@ export default function Support() {
     Linking.openURL(`mailto:${email}?subject=${emailSubject}&body=${emailBody}`)
   }
 
-  const cardBg = isDark ? neutral[900] : '#fff'
-  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
-  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-  const inputBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'
-
   return (
     <View style={[styles.container, { backgroundColor: isDark ? neutral[950] : '#f0f0f0' }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safe} edges={['top']}>
         {/* Header */}
-        <View style={styles.header}>
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
-          >
-            <Feather name="arrow-left" size={24} color={c.foreground} />
-          </Pressable>
-          <Text style={[styles.headerTitle, { color: c.foreground }]}>Help Centre</Text>
-          <View style={{ width: 24 }} />
+        <View style={[styles.headerWrap, { borderBottomColor: separatorColor, backgroundColor: isDark ? neutral[950] : '#f0f0f0' }]}>
+          <View style={styles.header}>
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={12}
+              style={({ pressed }) => [
+                styles.headerBtn,
+                {
+                  backgroundColor: pressed
+                    ? (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)')
+                    : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                },
+              ]}
+            >
+              <Feather name="arrow-left" size={20} color={c.foreground} />
+            </Pressable>
+            <Text style={[styles.headerTitle, { color: c.foreground }]}>Help Centre</Text>
+            <View style={{ width: 36 }} />
+          </View>
         </View>
 
         <ScrollView
@@ -155,7 +166,14 @@ export default function Support() {
           {/* Quick actions */}
           <View style={styles.quickActions}>
             <Pressable
-              style={[styles.quickCard, { backgroundColor: cardBg, borderColor: cardBorder }]}
+              style={({ pressed }) => [
+                styles.quickCard,
+                {
+                  backgroundColor: cardBg,
+                  borderColor: cardBorder,
+                  transform: [{ scale: pressed ? 0.97 : 1 }],
+                },
+              ]}
               onPress={() => Linking.openURL('mailto:support@flinote.ai')}
             >
               <View style={[styles.quickIcon, { backgroundColor: '#007AFF' }]}>
@@ -165,7 +183,14 @@ export default function Support() {
               <Text style={[styles.quickSub, { color: c.mutedForeground }]}>24h reply</Text>
             </Pressable>
             <Pressable
-              style={[styles.quickCard, { backgroundColor: cardBg, borderColor: cardBorder }]}
+              style={({ pressed }) => [
+                styles.quickCard,
+                {
+                  backgroundColor: cardBg,
+                  borderColor: cardBorder,
+                  transform: [{ scale: pressed ? 0.97 : 1 }],
+                },
+              ]}
               onPress={() => Linking.openURL('https://flinote.ai')}
             >
               <View style={[styles.quickIcon, { backgroundColor: '#34C759' }]}>
@@ -186,33 +211,54 @@ export default function Support() {
                 <Text style={[styles.sectionTitle, { color: c.foreground }]}>{section.title}</Text>
               </View>
               <View style={[styles.group, { backgroundColor: cardBg, borderColor: cardBorder }]}>
-                {section.items.map((item, idx) => (
-                  <React.Fragment key={item.id}>
-                    <Pressable
-                      style={styles.faqRow}
-                      onPress={() => toggleExpanded(item.id)}
-                    >
-                      <Text style={[styles.faqQuestion, { color: c.foreground }]}>
-                        {item.question}
-                      </Text>
-                      <Ionicons
-                        name={expandedId === item.id ? 'chevron-up' : 'chevron-down'}
-                        size={18}
-                        color={c.mutedForeground}
-                      />
-                    </Pressable>
-                    {expandedId === item.id && (
-                      <View style={[styles.faqAnswer, { borderTopColor: separatorColor }]}>
-                        <Text style={[styles.faqAnswerText, { color: c.mutedForeground }]}>
-                          {item.answer}
+                {section.items.map((item, idx) => {
+                  const isExpanded = expandedId === item.id
+                  return (
+                    <React.Fragment key={item.id}>
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.faqRow,
+                          {
+                            backgroundColor: pressed
+                              ? (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)')
+                              : 'transparent',
+                          },
+                        ]}
+                        onPress={() => toggleExpanded(item.id)}
+                      >
+                        <Text style={[styles.faqQuestion, { color: c.foreground }]}>
+                          {item.question}
                         </Text>
-                      </View>
-                    )}
-                    {idx < section.items.length - 1 && expandedId !== item.id && (
-                      <View style={[styles.separator, { backgroundColor: separatorColor }]} />
-                    )}
-                  </React.Fragment>
-                ))}
+                        <View
+                          style={[
+                            styles.chevronCircle,
+                            {
+                              backgroundColor: isExpanded
+                                ? (isDark ? 'rgba(79,59,231,0.12)' : 'rgba(79,59,231,0.08)')
+                                : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                            },
+                          ]}
+                        >
+                          <Ionicons
+                            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                            size={14}
+                            color={isExpanded ? c.primary : c.mutedForeground}
+                          />
+                        </View>
+                      </Pressable>
+                      {isExpanded && (
+                        <View style={[styles.faqAnswer, { borderTopColor: separatorColor }]}>
+                          <Text style={[styles.faqAnswerText, { color: c.mutedForeground }]}>
+                            {item.answer}
+                          </Text>
+                        </View>
+                      )}
+                      {idx < section.items.length - 1 && !isExpanded && (
+                        <View style={[styles.separator, { backgroundColor: separatorColor }]} />
+                      )}
+                    </React.Fragment>
+                  )
+                })}
               </View>
             </React.Fragment>
           ))}
@@ -229,7 +275,7 @@ export default function Support() {
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: c.mutedForeground }]}>Subject</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: inputBg, color: c.foreground }]}
+                  style={[styles.input, { backgroundColor: inputBg, borderColor: inputBorder, color: c.foreground }]}
                   placeholder="What can we help with?"
                   placeholderTextColor={c.mutedForeground}
                   value={subject}
@@ -239,7 +285,7 @@ export default function Support() {
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: c.mutedForeground }]}>Message</Text>
                 <TextInput
-                  style={[styles.input, styles.textArea, { backgroundColor: inputBg, color: c.foreground }]}
+                  style={[styles.input, styles.textArea, { backgroundColor: inputBg, borderColor: inputBorder, color: c.foreground }]}
                   placeholder="Describe your question or concern..."
                   placeholderTextColor={c.mutedForeground}
                   value={message}
@@ -254,7 +300,7 @@ export default function Support() {
                   styles.sendBtn,
                   {
                     backgroundColor: c.primary,
-                    opacity: (!subject.trim() || !message.trim()) ? 0.5 : pressed ? 0.85 : 1,
+                    opacity: (!subject.trim() || !message.trim()) ? 0.4 : pressed ? 0.85 : 1,
                   },
                 ]}
                 onPress={handleSendMessage}
@@ -281,18 +327,30 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safe: { flex: 1 },
 
+  /* Header */
+  headerWrap: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3 },
 
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 12 },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 16 },
 
+  /* Quick actions */
   quickActions: {
     flexDirection: 'row',
     gap: 10,
@@ -316,6 +374,7 @@ const styles = StyleSheet.create({
   quickLabel: { fontSize: 15, fontWeight: '600' },
   quickSub: { fontSize: 12 },
 
+  /* Section headers */
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -327,14 +386,15 @@ const styles = StyleSheet.create({
   sectionIcon: {
     width: 22,
     height: 22,
-    borderRadius: 5,
+    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sectionTitle: { fontSize: 15, fontWeight: '600', letterSpacing: -0.2 },
 
+  /* FAQ cards */
   group: {
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 20,
@@ -346,8 +406,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     paddingHorizontal: 16,
+    gap: 12,
   },
-  faqQuestion: { fontSize: 15, fontWeight: '500', flex: 1, marginRight: 12 },
+  faqQuestion: { fontSize: 15, fontWeight: '500', flex: 1 },
+  chevronCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   faqAnswer: {
     paddingHorizontal: 16,
     paddingBottom: 14,
@@ -357,11 +425,13 @@ const styles = StyleSheet.create({
   faqAnswerText: { fontSize: 14, lineHeight: 21, paddingTop: 12 },
   separator: { height: StyleSheet.hairlineWidth, marginLeft: 16 },
 
+  /* Contact form */
   formInner: { padding: 16, gap: 14 },
   inputGroup: { gap: 6 },
   inputLabel: { fontSize: 13, fontWeight: '600', letterSpacing: 0.1, marginLeft: 2 },
   input: {
-    borderRadius: 10,
+    borderRadius: 12,
+    borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,

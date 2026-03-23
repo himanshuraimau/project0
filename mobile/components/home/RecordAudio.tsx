@@ -19,6 +19,7 @@ import FullWidthButton from "@/components/ui/FullWidthButton";
 import FolderSelect from "@/components/ui/FolderSelect";
 import { useAlert } from "@/lib/contexts/AlertContext";
 import { useTheme } from "@/lib/hooks/useTheme";
+import { neutral } from "@/lib/design-system";
 
 type Phase = "initial" | "recording" | "recorded";
 
@@ -43,12 +44,11 @@ const RecordAudio: React.FC<Props> = ({
   const { theme, mode } = useTheme();
   const c = theme.colors;
   const isDark = mode === "dark";
-  const inputBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
   const visible =
     typeof visibleProp === "boolean" ? visibleProp : internalVisible;
   const [phase, setPhase] = useState<Phase>("initial");
   const [language, setLanguage] = useState("english");
-  const [folder, setFolder] = useState("");  // Empty string = no folder (uncategorized)
+  const [folder, setFolder] = useState("");
   const [seconds, setSeconds] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -61,6 +61,10 @@ const RecordAudio: React.FC<Props> = ({
   const recordingRef = useRef<Audio.Recording | null>(null);
   const soundRef = useRef<Audio.Sound | null>(null);
   const recordingUriRef = useRef<string | null>(null);
+
+  // Shared colors
+  const inputBg = isDark ? neutral[800] : neutral[100];
+  const inputBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
 
   useEffect(() => {
     if (phase === "recording") startTimer();
@@ -75,11 +79,9 @@ const RecordAudio: React.FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
-  // Setup audio mode on mount
   useEffect(() => {
     setupAudioMode();
     return () => {
-      // Cleanup on unmount
       if (recordingRef.current) {
         recordingRef.current.stopAndUnloadAsync().catch(console.error);
       }
@@ -143,10 +145,7 @@ const RecordAudio: React.FC<Props> = ({
       "Delete Recording",
       "Are you sure you want to delete this recording?",
       [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
+        { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
           style: "destructive",
@@ -155,8 +154,6 @@ const RecordAudio: React.FC<Props> = ({
             setPhase("initial");
             setIsPlaying(false);
             recordingUriRef.current = null;
-
-            // Clean up recording and sound
             if (recordingRef.current) {
               recordingRef.current.stopAndUnloadAsync().catch(console.error);
               recordingRef.current = null;
@@ -173,7 +170,6 @@ const RecordAudio: React.FC<Props> = ({
 
   const startRecording = async () => {
     try {
-      // Request permissions
       const permission = await Audio.requestPermissionsAsync();
       if (!permission.granted) {
         showAlert(
@@ -183,7 +179,6 @@ const RecordAudio: React.FC<Props> = ({
         return;
       }
 
-      // Prepare recording
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
@@ -207,11 +202,9 @@ const RecordAudio: React.FC<Props> = ({
       await recordingRef.current.stopAndUnloadAsync();
       const uri = recordingRef.current.getURI();
       recordingUriRef.current = uri;
-
       recordingRef.current = null;
       setPhase("recorded");
 
-      // Reset audio mode
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
@@ -228,21 +221,18 @@ const RecordAudio: React.FC<Props> = ({
         return;
       }
 
-      // If already playing, pause it
       if (isPlaying && soundRef.current) {
         await soundRef.current.pauseAsync();
         setIsPlaying(false);
         return;
       }
 
-      // If sound exists but paused, resume
       if (soundRef.current && !isPlaying) {
         await soundRef.current.playAsync();
         setIsPlaying(true);
         return;
       }
 
-      // Create new sound instance
       const { sound } = await Audio.Sound.createAsync(
         { uri: recordingUriRef.current },
         { shouldPlay: true },
@@ -269,41 +259,30 @@ const RecordAudio: React.FC<Props> = ({
     setIsProcessing(true);
 
     try {
-      // Stop playback if playing
       if (soundRef.current) {
         await soundRef.current.stopAsync();
         setIsPlaying(false);
       }
 
-      // Step 1: Transcribe audio
       setProcessingStep("transcribing");
 
-      // Create FormData for audio file
       const formData = new FormData();
-
-      // Get file info
       const filename = `recording-${Date.now()}.m4a`;
       const fileType = Platform.OS === "ios" ? "audio/x-m4a" : "audio/mp4";
 
-      // Create FormData for audio file
       formData.append("audio", {
         uri: recordingUriRef.current,
         type: fileType,
         name: filename,
       } as any);
 
-      // Add folderId if selected
       if (folder) {
         formData.append('folderId', folder);
       }
 
-      // Use hook for transcription
       const transcriptionResult = await transcribeAudio(formData);
 
-      if (!transcriptionResult) {
-        // Error handled by hook
-        return;
-      }
+      if (!transcriptionResult) return;
 
       console.log('Transcription result:', {
         hasNote: !!transcriptionResult.note,
@@ -312,7 +291,6 @@ const RecordAudio: React.FC<Props> = ({
         noteError: transcriptionResult.noteError,
       });
 
-      // Check if note was already generated by the backend
       let note;
       if (transcriptionResult.note && transcriptionResult.note.id) {
         console.log('Using note from backend:', transcriptionResult.note.id);
@@ -322,40 +300,24 @@ const RecordAudio: React.FC<Props> = ({
           console.warn('Transcription saved; inline note failed:', transcriptionResult.noteError);
         }
         console.warn('No note in response, generating new note (this may cause duplicate indexing)');
-        // Fallback: Generate AI note from transcript
         setProcessingStep("generating");
 
-        // Use hook for note generation
         note = await generateAINote({
           transcriptId: transcriptionResult.transcript.id,
           folderId: folder || undefined,
         });
 
-        if (!note) {
-          // Error handled by hook
-          return;
-        }
+        if (!note) return;
         console.log('Generated new note:', note.id);
       }
 
-      // Trigger refresh callback immediately on success
       if (onNoteGenerated) {
         onNoteGenerated(note.id);
       }
 
-      // Success!
       showAlert("Success!", "Your notes have been generated successfully.", [
-        {
-          text: "View Notes",
-          onPress: () => {
-            close();
-          },
-        },
-        {
-          text: "Close",
-          onPress: close,
-          style: "cancel",
-        },
+        { text: "View Notes", onPress: () => close() },
+        { text: "Close", onPress: close, style: "cancel" },
       ]);
     } catch (error: any) {
       // Hook handles errors
@@ -366,9 +328,7 @@ const RecordAudio: React.FC<Props> = ({
   };
 
   const formatTime = (s: number) => {
-    const mm = Math.floor(s / 60)
-      .toString()
-      .padStart(2, "0");
+    const mm = Math.floor(s / 60).toString().padStart(2, "0");
     const ss = (s % 60).toString().padStart(2, "0");
     return `${mm}:${ss}`;
   };
@@ -378,73 +338,6 @@ const RecordAudio: React.FC<Props> = ({
     else setInternalVisible(false);
   };
 
-  const styles = StyleSheet.create({
-    overlay: {
-      flex: 1,
-      justifyContent: "flex-end",
-      backgroundColor: isDark ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.4)",
-    },
-    backdrop: {
-      ...StyleSheet.absoluteFillObject,
-    },
-    container: {
-      backgroundColor: c.card,
-      borderTopLeftRadius: 16,
-      borderTopRightRadius: 16,
-      paddingHorizontal: 16,
-      paddingBottom: 16,
-    },
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingBottom: 12,
-      marginBottom: 4,
-    },
-    title: { color: c.foreground, fontSize: 20, fontWeight: "600" },
-    closeButton: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: inputBg,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    field: { marginTop: 12 },
-    label: {
-      fontSize: 12,
-      fontWeight: "600",
-      letterSpacing: 0.5,
-      color: c.mutedForeground,
-      marginBottom: 8,
-      textTransform: "uppercase",
-    },
-    content: { marginTop: 20, alignItems: "center", width: "100%" },
-    buttonContainer: {
-      width: "100%",
-    },
-    timerButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: c.destructive,
-      paddingVertical: 14,
-      paddingHorizontal: 20,
-      borderRadius: 14,
-      width: "100%",
-      gap: 10,
-    },
-    timerText: { color: "#FFFFFF", fontSize: 18, fontWeight: "600", fontVariant: ["tabular-nums"] },
-    actionRowContainer: {
-      flexDirection: "row",
-      width: "100%",
-      gap: 8,
-    },
-    actionButton: {
-      flex: 1,
-    },
-  });
-
   const pickerStyles = {
     inputIOS: {
       color: c.foreground,
@@ -452,7 +345,9 @@ const RecordAudio: React.FC<Props> = ({
       paddingHorizontal: 16,
       backgroundColor: inputBg,
       borderRadius: 12,
-      fontSize: 14,
+      borderWidth: 1,
+      borderColor: inputBorder,
+      fontSize: 15,
       height: 48,
     },
     inputAndroid: {
@@ -461,29 +356,34 @@ const RecordAudio: React.FC<Props> = ({
       paddingHorizontal: 16,
       backgroundColor: inputBg,
       borderRadius: 12,
-      fontSize: 14,
+      borderWidth: 1,
+      borderColor: inputBorder,
+      fontSize: 15,
       height: 48,
     },
-    placeholder: {
-      color: c.mutedForeground,
-    },
-    iconContainer: {
-      top: 14,
-      right: 16,
-    },
+    placeholder: { color: c.mutedForeground },
+    iconContainer: { top: 14, right: 16 },
   };
 
   const inner = (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Record audio</Text>
-        <Pressable onPress={close} style={styles.closeButton}>
-          <Feather name="x" size={18} color={c.foreground} />
+        <Text style={[styles.title, { color: c.foreground }]}>Record audio</Text>
+        <Pressable
+          onPress={close}
+          style={({ pressed }) => [
+            styles.closeButton,
+            { backgroundColor: isDark ? neutral[800] : neutral[200], opacity: pressed ? 0.6 : 1 },
+          ]}
+        >
+          <Feather name="x" size={16} color={c.mutedForeground} />
         </Pressable>
       </View>
 
+      {/* Language picker */}
       <View style={styles.field}>
-        <Text style={styles.label}>AUDIO LANGUAGE</Text>
+        <Text style={[styles.label, { color: c.mutedForeground }]}>AUDIO LANGUAGE</Text>
         <RNPickerSelect
           onValueChange={(val) => setLanguage(val)}
           items={[{ label: "English", value: "english" }]}
@@ -501,89 +401,100 @@ const RecordAudio: React.FC<Props> = ({
         style={{ marginTop: 12 }}
       />
 
+      {/* Recording controls */}
       <View style={styles.content}>
         {phase === "initial" && (
-          <View style={styles.buttonContainer}>
-            <FullWidthButton
-              onPress={startRecording}
-              buttonText="Start recording"
-              icon={<Mic size={20} color="#FFFFFF" style={{ marginRight: 8 }} />}
-              backgroundColor={c.destructive}
-              textColor="#FFFFFF"
-              style={{ marginTop: 0 }}
-            />
-          </View>
+          <Pressable
+            style={({ pressed }) => [
+              styles.recordBtn,
+              { opacity: pressed ? 0.85 : 1 },
+            ]}
+            onPress={startRecording}
+          >
+            <Mic size={20} color="#fff" />
+            <Text style={styles.recordBtnText}>Start recording</Text>
+          </Pressable>
         )}
 
         {phase !== "initial" && (
-          <Animated.View style={[styles.timerButton]}>
-            <Mic size={22} color="#FFFFFF" />
-            <Text style={styles.timerText}>{formatTime(seconds)}</Text>
-          </Animated.View>
-        )}
-
-        {phase === "recording" && (
-          <View style={styles.buttonContainer}>
-            <FullWidthButton
-              onPress={stopRecording}
-              buttonText="Stop"
-              backgroundColor={c.mutedForeground}
-              textColor="#FFFFFF"
-              style={{ marginTop: 12, height: 48 }}
-            />
+          <View style={[styles.timerCard, { backgroundColor: inputBg, borderColor: inputBorder }]}>
+            <View style={[styles.timerDot, { backgroundColor: phase === "recording" ? c.destructive : c.mutedForeground }]} />
+            <Text style={[styles.timerText, { color: c.foreground }]}>{formatTime(seconds)}</Text>
           </View>
         )}
 
-        {phase === "recorded" && (
-          <>
-            <View style={styles.actionRowContainer}>
-              <View style={styles.actionButton}>
-                <FullWidthButton
-                  onPress={reset}
-                  buttonText="Delete"
-                  backgroundColor={isDark ? 'rgba(239,68,68,0.12)' : '#FFE2E2'}
-                  textColor={c.destructive}
-                  style={{ marginTop: 12, height: 48 }}
-                  textStyle={{ fontSize: 14 }}
-                />
-              </View>
-              <View style={styles.actionButton}>
-                <FullWidthButton
-                  onPress={startRecording}
-                  buttonText="Resume"
-                  backgroundColor={c.destructive}
-                  textColor="#FFFFFF"
-                  style={{ marginTop: 12, height: 48 }}
-                  textStyle={{ fontSize: 14 }}
-                />
-              </View>
-              <View style={styles.actionButton}>
-                <FullWidthButton
-                  onPress={togglePlayback}
-                  buttonText={isPlaying ? "Pause" : "Play"}
-                  backgroundColor={c.mutedForeground}
-                  textColor="#FFFFFF"
-                  style={{ marginTop: 12, height: 48 }}
-                  textStyle={{ fontSize: 14 }}
-                />
-              </View>
-            </View>
-          </>
+        {phase === "recording" && (
+          <Pressable
+            style={({ pressed }) => [
+              styles.stopBtn,
+              {
+                backgroundColor: isDark ? neutral[800] : neutral[200],
+                borderColor: inputBorder,
+                opacity: pressed ? 0.85 : 1,
+              },
+            ]}
+            onPress={stopRecording}
+          >
+            <Feather name="square" size={16} color={c.foreground} />
+            <Text style={[styles.stopBtnText, { color: c.foreground }]}>Stop</Text>
+          </Pressable>
         )}
 
-        <View style={styles.buttonContainer}>
-          <FullWidthButton
-            onPress={handleGenerateNotes}
-            disabled={phase !== "recorded"}
-            loading={isProcessing}
-            loadingText={
-              processingStep === "transcribing"
-                ? "Transcribing..."
-                : "Generating Notes..."
-            }
-            buttonText="Generate Notes"
-          />
-        </View>
+        {phase === "recorded" && (
+          <View style={styles.actionRow}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.actionBtn,
+                {
+                  backgroundColor: isDark ? 'rgba(239,68,68,0.1)' : '#FEE2E2',
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+              onPress={reset}
+            >
+              <Feather name="trash-2" size={16} color={c.destructive} />
+              <Text style={[styles.actionBtnText, { color: c.destructive }]}>Delete</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.actionBtn,
+                {
+                  backgroundColor: c.destructive,
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
+              onPress={startRecording}
+            >
+              <Feather name="mic" size={16} color="#fff" />
+              <Text style={[styles.actionBtnText, { color: '#fff' }]}>Resume</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.actionBtn,
+                {
+                  backgroundColor: isDark ? neutral[800] : neutral[200],
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
+              onPress={togglePlayback}
+            >
+              <Feather name={isPlaying ? "pause" : "play"} size={16} color={c.foreground} />
+              <Text style={[styles.actionBtnText, { color: c.foreground }]}>{isPlaying ? "Pause" : "Play"}</Text>
+            </Pressable>
+          </View>
+        )}
+
+        <FullWidthButton
+          onPress={handleGenerateNotes}
+          disabled={phase !== "recorded"}
+          loading={isProcessing}
+          loadingText={
+            processingStep === "transcribing"
+              ? "Transcribing..."
+              : "Generating Notes..."
+          }
+          buttonText="Generate Notes"
+        />
       </View>
     </View>
   );
@@ -592,7 +503,7 @@ const RecordAudio: React.FC<Props> = ({
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.35)' }]}>
         <Pressable style={styles.backdrop} onPress={close} />
         <SafeAreaView style={{ flex: 1 }}>{inner}</SafeAreaView>
       </View>
@@ -601,3 +512,108 @@ const RecordAudio: React.FC<Props> = ({
 };
 
 export default RecordAudio;
+
+const styles = StyleSheet.create({
+  overlay: { flex: 1, justifyContent: "flex-end" },
+  backdrop: { ...StyleSheet.absoluteFillObject },
+  container: { paddingBottom: 4 },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  title: { fontSize: 20, fontWeight: "700", letterSpacing: -0.4 },
+  closeButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  field: { marginBottom: 4 },
+  label: {
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginLeft: 2,
+    textTransform: "uppercase",
+  },
+
+  content: { marginTop: 8 },
+
+  /* Record button */
+  recordBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FF3B30",
+    height: 52,
+    borderRadius: 14,
+    gap: 10,
+  },
+  recordBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  /* Timer display */
+  timerCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 10,
+    marginBottom: 8,
+  },
+  timerDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  timerText: {
+    fontSize: 22,
+    fontWeight: "600",
+    fontVariant: ["tabular-nums"],
+  },
+
+  /* Stop button */
+  stopBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 8,
+  },
+  stopBtnText: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+
+  /* Recorded action row */
+  actionRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 44,
+    borderRadius: 12,
+    gap: 6,
+  },
+  actionBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+});

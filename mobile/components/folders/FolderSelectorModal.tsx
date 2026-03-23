@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather, Ionicons } from '@expo/vector-icons'
 import { Folder as FolderIcon } from 'lucide-react-native'
 import { useTranslation } from 'react-i18next'
@@ -117,7 +116,7 @@ export default function FolderSelectorModal({
     f.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const sheetBg = isDark ? neutral[900] : '#fff'
+  const sheetBg = isDark ? 'rgba(23,24,26,0.95)' : 'rgba(255,255,255,0.95)'
   const cardBg = isDark ? neutral[800] : '#f0f0f0'
   const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
   const searchBg = isDark ? neutral[800] : '#e8e8ed'
@@ -132,7 +131,7 @@ export default function FolderSelectorModal({
       statusBarTranslucent
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <SafeAreaView edges={['bottom']} style={styles.safeWrap}>
+        <View style={[styles.safeWrap, { backgroundColor: sheetBg }]}>
           <Pressable
             style={[styles.sheet, { backgroundColor: sheetBg }]}
             onPress={(e) => e.stopPropagation()}
@@ -372,7 +371,7 @@ export default function FolderSelectorModal({
               </View>
             )}
           </Pressable>
-        </SafeAreaView>
+        </View>
       </Pressable>
     </Modal>
   )

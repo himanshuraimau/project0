@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useFocusEffect } from '@react-navigation/native'
@@ -13,13 +13,22 @@ import {
   ScrollView,
   Pressable,
   StyleSheet,
-  Modal,
   ActivityIndicator,
   RefreshControl,
   Platform,
+  Dimensions,
+  BackHandler,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Folder } from 'lucide-react-native'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  Easing,
+  runOnJS,
+} from 'react-native-reanimated'
 import RecordAudio from './RecordAudio'
 import UploadAudio from './UploadAudio'
 import UploadTextOrPDF from './UploadTextOrPDF'
@@ -31,8 +40,12 @@ import { useFolders } from '@/lib/hooks/useFolders'
 import { ShareLinkModal } from '@/components/notes'
 import FolderSelectorModal from '@/components/folders/FolderSelectorModal'
 import { neutral } from '@/lib/design-system'
+import { glass, liquidGlass, glassShadow } from '@/lib/design-system/glass'
 import { useSubscription } from '@/lib/contexts/SubscriptionContext'
 import UpgradeModal from '@/components/ui/UpgradeModal'
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window')
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
 const NEW_NOTE_OPTIONS = [
   { id: 1, icon: 'mic' as const, label: 'Record audio', color: '#FF3B30' },
@@ -49,9 +62,59 @@ export default function NotesHome() {
   const { t } = useTranslation()
   const { data: session, isPending } = useSession()
   const { hasAccess } = useSubscription()
-  const [modalVisible, setModalVisible] = useState(false)
+  const insets = useSafeAreaInsets()
+  const [sheetVisible, setSheetVisible] = useState(false)
   const [upgradeVisible, setUpgradeVisible] = useState(false)
   const [activeOption, setActiveOption] = useState<number | null>(null)
+
+  // -- Glass bottom sheet animation values --
+  const sheetTranslateY = useSharedValue(SCREEN_HEIGHT)
+  const overlayOpacity = useSharedValue(0)
+  const fabScale = useSharedValue(1)
+
+  const openSheet = useCallback(() => {
+    setSheetVisible(true)
+    overlayOpacity.value = withTiming(1, { duration: 280, easing: Easing.out(Easing.cubic) })
+    sheetTranslateY.value = withSpring(0, {
+      damping: 28,
+      stiffness: 280,
+      mass: 0.9,
+      overshootClamping: false,
+    })
+  }, [])
+
+  const closeSheet = useCallback(() => {
+    overlayOpacity.value = withTiming(0, { duration: 220, easing: Easing.in(Easing.cubic) })
+    sheetTranslateY.value = withTiming(SCREEN_HEIGHT, {
+      duration: 300,
+      easing: Easing.bezierFn(0.4, 0, 1, 1),
+    }, () => {
+      runOnJS(setSheetVisible)(false)
+      runOnJS(setActiveOption)(null)
+    })
+  }, [])
+
+  const overlayAnimStyle = useAnimatedStyle(() => ({
+    opacity: overlayOpacity.value,
+  }))
+
+  const sheetAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: sheetTranslateY.value }],
+  }))
+
+  const fabAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: fabScale.value }],
+  }))
+
+  // Handle Android back button when sheet is open
+  useEffect(() => {
+    if (!sheetVisible) return
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      closeSheet()
+      return true
+    })
+    return () => sub.remove()
+  }, [sheetVisible, closeSheet])
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -133,7 +196,7 @@ export default function NotesHome() {
       setUpgradeVisible(true)
       return
     }
-    setModalVisible(true)
+    openSheet()
   }
 
   const pageBg = isDark ? neutral[950] : '#f0f0f0'
@@ -383,105 +446,168 @@ export default function NotesHome() {
             <View style={{ height: 100 }} />
           </ScrollView>
 
-          {/* FAB */}
-          <Pressable
-            style={({ pressed }) => [
+          {/* Liquid Glass FAB */}
+          <AnimatedPressable
+            style={[
               styles.fab,
+              fabAnimStyle,
               {
-                backgroundColor: c.primary,
-                opacity: pressed ? 0.9 : 1,
-                transform: [{ scale: pressed ? 0.96 : 1 }],
+                ...glassShadow.md,
+                borderColor: isDark
+                  ? liquidGlass.regular.dark.border
+                  : liquidGlass.regular.light.border,
+                borderWidth: 1,
               },
             ]}
+            onPressIn={() => {
+              fabScale.value = withSpring(0.93, { damping: 15, stiffness: 400 })
+            }}
+            onPressOut={() => {
+              fabScale.value = withSpring(1, { damping: 12, stiffness: 300 })
+            }}
             onPress={handleNewNote}
           >
-            <Feather name="plus" size={20} color={c.primaryForeground} />
-            <Text style={[styles.fabText, { color: c.primaryForeground }]}>New note</Text>
-          </Pressable>
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: isDark ? 'rgba(79,59,231,0.85)' : 'rgba(79,59,231,0.9)' },
+              ]}
+            />
+            <Feather name="plus" size={20} color="#fff" />
+            <Text style={[styles.fabText, { color: '#fff' }]}>New note</Text>
+          </AnimatedPressable>
         </SafeAreaView>
       </View>
 
-      {/* New Note Modal */}
-      <Modal
-        animationType="slide"
-        transparent
-        visible={modalVisible}
-        onRequestClose={() => { setModalVisible(false); setActiveOption(null) }}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => { setModalVisible(false); setActiveOption(null) }}
-        >
-          <SafeAreaView edges={['bottom']} style={styles.modalSafe}>
-            <Pressable
-              style={[styles.modalSheet, { backgroundColor: isDark ? neutral[900] : '#fff' }]}
-              onPress={(e) => e.stopPropagation()}
-            >
-              {/* Handle */}
-              <View style={[styles.modalHandle, { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)' }]} />
+      {/* Liquid Glass Bottom Sheet */}
+      {sheetVisible && (
+        <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+          {/* Dimmed overlay — per HIG: helps legibility behind regular variant */}
+          <AnimatedPressable
+            style={[styles.sheetOverlay, overlayAnimStyle]}
+            onPress={closeSheet}
+          />
 
-              {activeOption === null ? (
-                <>
-                  <Text style={[styles.modalTitle, { color: c.foreground }]}>{t('home.newNote')}</Text>
-                  <View style={styles.optionGrid}>
-                    {NEW_NOTE_OPTIONS.map((opt) => (
-                      <Pressable
-                        key={opt.id}
-                        style={({ pressed }) => [
-                          styles.optionCard,
-                          {
-                            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
-                            opacity: pressed ? 0.7 : 1,
-                          },
-                        ]}
-                        onPress={() => setActiveOption(opt.id)}
-                      >
-                        <View style={[styles.optionIcon, { backgroundColor: opt.color }]}>
-                          <Feather name={opt.icon} size={20} color="#fff" />
-                        </View>
-                        <Text style={[styles.optionLabel, { color: c.foreground }]}>
-                          {opt.label}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </>
-              ) : (
-                <View>
-                  {activeOption === 1 && (
-                    <RecordAudio
-                      inline
-                      onClose={() => setActiveOption(null)}
-                      onNoteGenerated={() => { fetchNotes(); setModalVisible(false); setActiveOption(null) }}
-                    />
-                  )}
-                  {activeOption === 2 && (
-                    <UploadAudio
-                      inline
-                      onClose={() => setActiveOption(null)}
-                      onNoteGenerated={() => { fetchNotes(); setModalVisible(false); setActiveOption(null) }}
-                    />
-                  )}
-                  {activeOption === 3 && (
-                    <UploadTextOrPDF
-                      inline
-                      onClose={() => setActiveOption(null)}
-                      onNoteCreated={() => { fetchNotes(); setModalVisible(false); setActiveOption(null) }}
-                    />
-                  )}
-                  {activeOption === 4 && (
-                    <WebLink
-                      inline
-                      onClose={() => setActiveOption(null)}
-                      onNoteGenerated={() => { fetchNotes(); setModalVisible(false); setActiveOption(null) }}
-                    />
-                  )}
+          {/* Sheet */}
+          <Animated.View
+            style={[
+              styles.sheetContainer,
+              sheetAnimStyle,
+              { paddingBottom: insets.bottom || 20 },
+            ]}
+            pointerEvents="box-none"
+          >
+            <View style={styles.sheetInner} pointerEvents="box-none">
+              <Pressable
+                style={[
+                  styles.glassSheet,
+                  {
+                    borderColor: isDark
+                      ? liquidGlass.regular.dark.border
+                      : liquidGlass.regular.light.border,
+                    ...glassShadow.lg,
+                  },
+                ]}
+                onPress={(e) => e.stopPropagation()}
+              >
+                <View
+                  style={[
+                    StyleSheet.absoluteFill,
+                    {
+                      backgroundColor: isDark
+                        ? 'rgba(23,24,26,0.92)'
+                        : 'rgba(255,255,255,0.94)',
+                    },
+                  ]}
+                />
+                {/* Handle */}
+                <View style={styles.glassHandle}>
+                  <View
+                    style={[
+                      styles.handleBar,
+                      {
+                        backgroundColor: isDark
+                          ? 'rgba(255,255,255,0.22)'
+                          : 'rgba(0,0,0,0.14)',
+                      },
+                    ]}
+                  />
                 </View>
-              )}
-            </Pressable>
-          </SafeAreaView>
-        </Pressable>
-      </Modal>
+
+                {activeOption === null ? (
+                  <View style={styles.sheetContent}>
+                    <Text style={[styles.sheetTitle, { color: c.foreground }]}>
+                      {t('home.newNote')}
+                    </Text>
+
+                    <View style={styles.optionGrid}>
+                      {NEW_NOTE_OPTIONS.map((opt) => (
+                        <Pressable
+                          key={opt.id}
+                          style={({ pressed }) => [
+                            styles.glassOptionCard,
+                            {
+                              backgroundColor: pressed
+                                ? (isDark ? glass.heavy : 'rgba(0,0,0,0.05)')
+                                : (isDark ? glass.light : 'rgba(0,0,0,0.02)'),
+                              borderColor: isDark ? glass.border : 'rgba(0,0,0,0.06)',
+                              transform: [{ scale: pressed ? 0.97 : 1 }],
+                            },
+                          ]}
+                          onPress={() => setActiveOption(opt.id)}
+                        >
+                          <View
+                            style={[
+                              styles.optionIcon,
+                              { backgroundColor: opt.color },
+                            ]}
+                          >
+                            <Feather name={opt.icon} size={20} color="#fff" />
+                          </View>
+                          <Text style={[styles.optionLabel, { color: c.foreground }]}>
+                            {opt.label}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.sheetContent}>
+                    {activeOption === 1 && (
+                      <RecordAudio
+                        inline
+                        onClose={() => setActiveOption(null)}
+                        onNoteGenerated={() => { fetchNotes(); closeSheet() }}
+                      />
+                    )}
+                    {activeOption === 2 && (
+                      <UploadAudio
+                        inline
+                        onClose={() => setActiveOption(null)}
+                        onNoteGenerated={() => { fetchNotes(); closeSheet() }}
+                      />
+                    )}
+                    {activeOption === 3 && (
+                      <UploadTextOrPDF
+                        inline
+                        onClose={() => setActiveOption(null)}
+                        onNoteCreated={() => { fetchNotes(); closeSheet() }}
+                      />
+                    )}
+                    {activeOption === 4 && (
+                      <WebLink
+                        inline
+                        onClose={() => setActiveOption(null)}
+                        onNoteGenerated={() => { fetchNotes(); closeSheet() }}
+                      />
+                    )}
+                  </View>
+                )}
+              </Pressable>
+            </View>
+          </Animated.View>
+        </View>
+      )}
 
       {selectedNoteForShare && (
         <ShareLinkModal
@@ -670,49 +796,60 @@ const styles = StyleSheet.create({
   },
   devText: { flex: 1, fontSize: 13, fontWeight: '600' },
 
+  /* ── Liquid Glass FAB ────────────────────────────────────────────────── */
   fab: {
     position: 'absolute',
-    bottom: Platform.OS === 'android' ? 24 : 16,
+    bottom: Platform.OS === 'android' ? 32 : 28,
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 22,
     paddingVertical: 15,
-    borderRadius: 16,
+    borderRadius: 22,
     gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  fabText: { fontSize: 16, fontWeight: '600', letterSpacing: -0.2 },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalSafe: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
     overflow: 'hidden',
   },
-  modalSheet: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+  fabText: { fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
+
+  /* ── Liquid Glass Bottom Sheet ─────────────────────────────────────── */
+  sheetOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
-  modalHandle: {
+  sheetContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'flex-end',
+  },
+  sheetInner: {
+    overflow: 'hidden',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+  },
+  glassSheet: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    overflow: 'hidden',
+  },
+  glassHandle: {
+    alignItems: 'center',
+    paddingTop: 14,
+    paddingBottom: 4,
+    zIndex: 1,
+  },
+  handleBar: {
     width: 36,
     height: 5,
-    borderRadius: 3,
-    alignSelf: 'center',
-    marginBottom: 20,
+    borderRadius: 2.5,
   },
-  modalTitle: {
+  sheetContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+  },
+  sheetTitle: {
     fontSize: 22,
     fontWeight: '700',
     letterSpacing: -0.4,
@@ -723,13 +860,14 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
   },
-  optionCard: {
+  glassOptionCard: {
     width: '48%',
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 14,
-    borderRadius: 14,
+    borderRadius: 16,
+    borderWidth: 1,
     gap: 12,
   },
   optionIcon: {

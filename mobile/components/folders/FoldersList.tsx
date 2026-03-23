@@ -32,6 +32,8 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
   const { folders, loading, error, fetchFolders } = useFolders()
   const [refreshing, setRefreshing] = useState(false)
 
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+
   useEffect(() => { fetchFolders() }, [])
 
   useFocusEffect(
@@ -51,10 +53,6 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
   const handleCreatePress = () => {
     onCreatePress?.(() => fetchFolders())
   }
-
-  const cardBg = isDark ? neutral[900] : '#fff'
-  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
-  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
 
   const renderFolder = ({ item, index }: { item: FolderWithCount; index: number }) => (
     <FolderCard
@@ -87,7 +85,7 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
     }
     return (
       <View style={styles.stateWrap}>
-        <View style={[styles.emptyIcon, { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.04)' }]}>
+        <View style={[styles.emptyIcon, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
           <FolderIcon size={40} color={isDark ? neutral[600] : neutral[300]} />
         </View>
         <Text style={[styles.stateTitle, { color: c.foreground }]}>No folders yet</Text>
@@ -108,16 +106,25 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
     <View style={[styles.container, { backgroundColor: isDark ? neutral[950] : '#f0f0f0' }]}>
       <SafeAreaView style={styles.safe} edges={['top']}>
         {/* Header */}
-        <View style={styles.header}>
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
-          >
-            <Feather name="arrow-left" size={24} color={c.foreground} />
-          </Pressable>
-          <Text style={[styles.headerTitle, { color: c.foreground }]}>My Folders</Text>
-          <View style={{ width: 24 }} />
+        <View style={[styles.headerWrap, { borderBottomColor: separatorColor, backgroundColor: isDark ? neutral[950] : '#f0f0f0' }]}>
+          <View style={styles.header}>
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={12}
+              style={({ pressed }) => [
+                styles.headerBtn,
+                {
+                  backgroundColor: pressed
+                    ? (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)')
+                    : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                },
+              ]}
+            >
+              <Feather name="arrow-left" size={20} color={c.foreground} />
+            </Pressable>
+            <Text style={[styles.headerTitle, { color: c.foreground }]}>My Folders</Text>
+            <View style={{ width: 36 }} />
+          </View>
         </View>
 
         <FlatList
@@ -148,14 +155,13 @@ export const FoldersList: React.FC<FoldersListProps> = ({ onCreatePress }) => {
             style={({ pressed }) => [
               styles.fab,
               {
-                backgroundColor: c.foreground,
-                opacity: pressed ? 0.9 : 1,
-                transform: [{ scale: pressed ? 0.96 : 1 }],
+                backgroundColor: isDark ? 'rgba(79,59,231,0.85)' : 'rgba(79,59,231,0.9)',
+                transform: [{ scale: pressed ? 0.93 : 1 }],
               },
             ]}
             onPress={handleCreatePress}
           >
-            <Feather name="plus" size={22} color={c.background} />
+            <Feather name="plus" size={22} color="#fff" />
           </Pressable>
         )}
       </SafeAreaView>
@@ -167,18 +173,28 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safe: { flex: 1 },
 
+  headerWrap: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3 },
 
   listContent: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 16,
     paddingBottom: 100,
   },
   listContentEmpty: { flexGrow: 1 },
@@ -203,7 +219,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 80,
     height: 80,
-    borderRadius: 20,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -225,9 +241,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 10,
   },
 })

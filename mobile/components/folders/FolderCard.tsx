@@ -18,17 +18,23 @@ export const FolderCard: React.FC<FolderCardProps> = ({ folder, onPress, isLast 
   const isDark = mode === 'dark'
   const folderColor = folder.color || '#6366f1'
 
-  const cardBg = isDark ? neutral[900] : '#fff'
-  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
-  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const cardBg = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
 
   return (
     <View style={[styles.cardWrap, { backgroundColor: cardBg, borderColor: cardBorder }]}>
       <Pressable
-        style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+        style={({ pressed }) => [
+          styles.row,
+          {
+            backgroundColor: pressed
+              ? (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)')
+              : 'transparent',
+          },
+        ]}
         onPress={onPress}
       >
-        <View style={[styles.iconWrap, { backgroundColor: `${folderColor}14` }]}>
+        <View style={[styles.iconWrap, { backgroundColor: `${folderColor}18` }]}>
           <Folder size={22} color={folderColor} />
         </View>
         <View style={styles.info}>
@@ -44,7 +50,7 @@ export const FolderCard: React.FC<FolderCardProps> = ({ folder, onPress, isLast 
             {folder.noteCount} {folder.noteCount === 1 ? 'note' : 'notes'}
           </Text>
         </View>
-        <Feather name="chevron-right" size={18} color={isDark ? neutral[600] : neutral[400]} />
+        <Feather name="chevron-right" size={18} color={isDark ? neutral[500] : neutral[400]} />
       </Pressable>
     </View>
   )
@@ -52,7 +58,7 @@ export const FolderCard: React.FC<FolderCardProps> = ({ folder, onPress, isLast 
 
 const styles = StyleSheet.create({
   cardWrap: {
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 10,
@@ -67,7 +73,7 @@ const styles = StyleSheet.create({
   iconWrap: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },

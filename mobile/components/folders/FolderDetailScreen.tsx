@@ -36,6 +36,12 @@ export const FolderDetailScreen: React.FC<FolderDetailScreenProps> = ({ folderId
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
+  // Liquid glass
+  const cardBg = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const pageBg = isDark ? neutral[950] : '#f0f0f0'
+
   useEffect(() => { loadFolderData() }, [folderId])
 
   const loadFolderData = async () => {
@@ -61,21 +67,29 @@ export const FolderDetailScreen: React.FC<FolderDetailScreenProps> = ({ folderId
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
-  const cardBg = isDark ? neutral[900] : '#fff'
-  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
-  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-  const pageBg = isDark ? neutral[950] : '#f0f0f0'
-
   if ((loading && !folder) || error || !folder) {
     return (
       <View style={[styles.container, { backgroundColor: pageBg }]}>
         <SafeAreaView style={styles.safe} edges={['top']}>
-          <View style={styles.header}>
-            <Pressable onPress={() => router.back()} hitSlop={12} style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}>
-              <Feather name="arrow-left" size={24} color={c.foreground} />
-            </Pressable>
-            <Text style={[styles.headerTitle, { color: c.foreground }]}>Folder</Text>
-            <View style={{ width: 24 }} />
+          <View style={[styles.headerWrap, { borderBottomColor: separatorColor, backgroundColor: pageBg }]}>
+            <View style={styles.header}>
+              <Pressable
+                onPress={() => router.back()}
+                hitSlop={12}
+                style={({ pressed }) => [
+                  styles.headerBtn,
+                  {
+                    backgroundColor: pressed
+                      ? (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)')
+                      : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                  },
+                ]}
+              >
+                <Feather name="arrow-left" size={20} color={c.foreground} />
+              </Pressable>
+              <Text style={[styles.headerTitle, { color: c.foreground }]}>Folder</Text>
+              <View style={{ width: 36 }} />
+            </View>
           </View>
           <View style={styles.stateWrap}>
             {error || (!loading && !folder) ? (
@@ -106,7 +120,14 @@ export const FolderDetailScreen: React.FC<FolderDetailScreenProps> = ({ folderId
     return (
       <>
         <Pressable
-          style={({ pressed }) => [styles.noteRow, { opacity: pressed ? 0.6 : 1 }]}
+          style={({ pressed }) => [
+            styles.noteRow,
+            {
+              backgroundColor: pressed
+                ? (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)')
+                : 'transparent',
+            },
+          ]}
           onPress={() => router.push(`/notes/${item.id}`)}
         >
           <View style={[styles.noteIcon, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
@@ -116,7 +137,7 @@ export const FolderDetailScreen: React.FC<FolderDetailScreenProps> = ({ folderId
             <Text numberOfLines={2} style={[styles.noteTitle, { color: c.foreground }]}>{title}</Text>
             <Text style={[styles.noteDate, { color: c.mutedForeground }]}>{formatDate(item.createdAt)}</Text>
           </View>
-          <Feather name="chevron-right" size={16} color={isDark ? neutral[600] : neutral[400]} />
+          <Feather name="chevron-right" size={16} color={isDark ? neutral[500] : neutral[400]} />
         </Pressable>
         {index < notes.length - 1 && (
           <View style={[styles.separator, { backgroundColor: separatorColor }]} />
@@ -129,32 +150,52 @@ export const FolderDetailScreen: React.FC<FolderDetailScreenProps> = ({ folderId
     <View style={[styles.container, { backgroundColor: pageBg }]}>
       <SafeAreaView style={styles.safe} edges={['top']}>
         {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} hitSlop={12} style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}>
-            <Feather name="arrow-left" size={24} color={c.foreground} />
-          </Pressable>
-          <Text style={[styles.headerTitle, { color: c.foreground }]}>{folder.name}</Text>
-          <View style={styles.headerActions}>
+        <View style={[styles.headerWrap, { borderBottomColor: separatorColor, backgroundColor: pageBg }]}>
+          <View style={styles.header}>
             <Pressable
-              onPress={() => setShowEditModal(true)}
-              hitSlop={8}
+              onPress={() => router.back()}
+              hitSlop={12}
               style={({ pressed }) => [
-                styles.actionCircle,
-                { backgroundColor: isDark ? neutral[800] : 'rgba(0,0,0,0.05)', opacity: pressed ? 0.6 : 1 },
+                styles.headerBtn,
+                {
+                  backgroundColor: pressed
+                    ? (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)')
+                    : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                },
               ]}
             >
-              <Feather name="edit-2" size={16} color={c.mutedForeground} />
+              <Feather name="arrow-left" size={20} color={c.foreground} />
             </Pressable>
-            <Pressable
-              onPress={() => setShowDeleteDialog(true)}
-              hitSlop={8}
-              style={({ pressed }) => [
-                styles.actionCircle,
-                { backgroundColor: isDark ? 'rgba(255,59,48,0.1)' : 'rgba(255,59,48,0.08)', opacity: pressed ? 0.6 : 1 },
-              ]}
-            >
-              <Feather name="trash-2" size={16} color="#FF3B30" />
-            </Pressable>
+            <Text style={[styles.headerTitle, { color: c.foreground }]}>{folder.name}</Text>
+            <View style={styles.headerActions}>
+              <Pressable
+                onPress={() => setShowEditModal(true)}
+                hitSlop={8}
+                style={({ pressed }) => [
+                  styles.actionCircle,
+                  {
+                    backgroundColor: pressed
+                      ? (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)')
+                      : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                  },
+                ]}
+              >
+                <Feather name="edit-2" size={16} color={c.mutedForeground} />
+              </Pressable>
+              <Pressable
+                onPress={() => setShowDeleteDialog(true)}
+                hitSlop={8}
+                style={({ pressed }) => [
+                  styles.actionCircle,
+                  {
+                    backgroundColor: isDark ? 'rgba(255,59,48,0.1)' : 'rgba(255,59,48,0.08)',
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Feather name="trash-2" size={16} color="#FF3B30" />
+              </Pressable>
+            </View>
           </View>
         </View>
 
@@ -168,7 +209,7 @@ export const FolderDetailScreen: React.FC<FolderDetailScreenProps> = ({ folderId
             <>
               {/* Folder info card */}
               <View style={[styles.infoCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
-                <View style={[styles.folderIconWrap, { backgroundColor: `${folderColor}14` }]}>
+                <View style={[styles.folderIconWrap, { backgroundColor: `${folderColor}18` }]}>
                   <FolderIcon size={32} color={folderColor} />
                 </View>
                 <Text style={[styles.folderName, { color: c.foreground }]}>{folder.name}</Text>
@@ -183,7 +224,7 @@ export const FolderDetailScreen: React.FC<FolderDetailScreenProps> = ({ folderId
                 </View>
               </View>
 
-              {/* Notes section label */}
+              {/* Notes section */}
               <Text style={[styles.sectionLabel, { color: c.mutedForeground }]}>NOTES</Text>
 
               {loadingNotes ? (
@@ -233,12 +274,22 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safe: { flex: 1 },
 
+  headerWrap: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3, flex: 1, textAlign: 'center' },
   headerActions: { flexDirection: 'row', gap: 8 },
@@ -250,7 +301,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  listContent: { paddingHorizontal: 20, paddingBottom: 40 },
+  listContent: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
 
   infoCard: {
     alignItems: 'center',
@@ -287,9 +338,9 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 
-  notesGroup: { borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
-  notesGroupStart: { borderTopLeftRadius: 14, borderTopRightRadius: 14, borderWidth: 1, borderBottomWidth: 0, overflow: 'hidden' },
-  notesGroupEnd: { borderBottomLeftRadius: 14, borderBottomRightRadius: 14, overflow: 'hidden' },
+  notesGroup: { borderRadius: 16, borderWidth: 1, overflow: 'hidden' },
+  notesGroupStart: { borderTopLeftRadius: 16, borderTopRightRadius: 16, borderWidth: 1, borderBottomWidth: 0, overflow: 'hidden' },
+  notesGroupEnd: { borderBottomLeftRadius: 16, borderBottomRightRadius: 16, overflow: 'hidden' },
   noteRow: {
     flexDirection: 'row',
     alignItems: 'center',

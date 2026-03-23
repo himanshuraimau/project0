@@ -9,7 +9,6 @@ import {
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { neutral } from '@/lib/design-system'
 
 interface AlertButton {
   text: string
@@ -36,6 +35,10 @@ export default function CustomAlert({
   const c = theme.colors
   const isDark = mode === 'dark'
 
+  // Liquid glass
+  const cardBg = isDark ? 'rgba(30,30,35,0.92)' : 'rgba(255,255,255,0.92)'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'
+
   const handleButtonPress = (button: AlertButton) => {
     onClose()
     if (button.onPress) {
@@ -47,16 +50,57 @@ export default function CustomAlert({
     buttons.length > 0 ? buttons : [{ text: 'OK', style: 'default' }]
 
   const isDestructiveAlert = alertButtons.some((b) => b.style === 'destructive')
-  const cardBg = isDark ? neutral[800] : '#fff'
-  const separatorColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+
+  const renderButton = (button: AlertButton, index: number, isHalf = false) => {
+    const isCancel = button.style === 'cancel'
+    const isDestructive = button.style === 'destructive'
+
+    return (
+      <Pressable
+        key={index}
+        style={({ pressed }) => [
+          styles.btn,
+          isHalf && styles.btnHalf,
+          {
+            backgroundColor: isCancel
+              ? (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)')
+              : isDestructive
+                ? '#FF3B30'
+                : c.primary,
+            transform: [{ scale: pressed ? 0.97 : 1 }],
+          },
+        ]}
+        onPress={() => handleButtonPress(button)}
+      >
+        <Text
+          style={[
+            styles.btnText,
+            {
+              color: isCancel ? c.foreground : '#fff',
+            },
+          ]}
+        >
+          {button.text}
+        </Text>
+      </Pressable>
+    )
+  }
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={[styles.card, { backgroundColor: cardBg }]}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: cardBg,
+              borderColor: cardBorder,
+            },
+          ]}
+        >
           {/* Icon */}
           {isDestructiveAlert && (
-            <View style={[styles.iconWrap, { backgroundColor: 'rgba(255,59,48,0.1)' }]}>
+            <View style={[styles.iconWrap, { backgroundColor: isDark ? 'rgba(255,59,48,0.12)' : 'rgba(255,59,48,0.08)' }]}>
               <Ionicons name="warning" size={24} color="#FF3B30" />
             </View>
           )}
@@ -74,77 +118,12 @@ export default function CustomAlert({
           {/* Buttons */}
           <View style={styles.buttonArea}>
             {alertButtons.length === 2 ? (
-              // Side-by-side layout for 2 buttons (cancel + action)
               <View style={styles.buttonRow}>
-                {alertButtons.map((button, index) => {
-                  const isCancel = button.style === 'cancel'
-                  const isDestructive = button.style === 'destructive'
-                  return (
-                    <Pressable
-                      key={index}
-                      style={({ pressed }) => [
-                        styles.btn,
-                        styles.btnHalf,
-                        isCancel && {
-                          backgroundColor: isDark
-                            ? 'rgba(255,255,255,0.06)'
-                            : 'rgba(0,0,0,0.04)',
-                        },
-                        isDestructive && { backgroundColor: '#FF3B30' },
-                        !isCancel && !isDestructive && { backgroundColor: c.primary },
-                        { opacity: pressed ? 0.8 : 1 },
-                      ]}
-                      onPress={() => handleButtonPress(button)}
-                    >
-                      <Text
-                        style={[
-                          styles.btnText,
-                          isCancel && { color: c.foreground },
-                          isDestructive && { color: '#fff' },
-                          !isCancel && !isDestructive && { color: c.primaryForeground },
-                        ]}
-                      >
-                        {button.text}
-                      </Text>
-                    </Pressable>
-                  )
-                })}
+                {alertButtons.map((button, index) => renderButton(button, index, true))}
               </View>
             ) : (
-              // Stacked layout for 1 or 3+ buttons
               <View style={styles.buttonStack}>
-                {alertButtons.map((button, index) => {
-                  const isCancel = button.style === 'cancel'
-                  const isDestructive = button.style === 'destructive'
-                  return (
-                    <Pressable
-                      key={index}
-                      style={({ pressed }) => [
-                        styles.btn,
-                        isCancel && {
-                          backgroundColor: isDark
-                            ? 'rgba(255,255,255,0.06)'
-                            : 'rgba(0,0,0,0.04)',
-                        },
-                        isDestructive && { backgroundColor: '#FF3B30' },
-                        !isCancel && !isDestructive && { backgroundColor: c.primary },
-                        { opacity: pressed ? 0.8 : 1 },
-                      ]}
-                      onPress={() => handleButtonPress(button)}
-                    >
-                      <Text
-                        style={[
-                          styles.btnText,
-                          isCancel && { color: c.foreground },
-                          isDestructive && { color: '#fff' },
-                          !isCancel && !isDestructive && { color: c.primaryForeground },
-                        ]}
-                      >
-                        {button.text}
-                      </Text>
-                    </Pressable>
-                  )
-                })}
+                {alertButtons.map((button, index) => renderButton(button, index))}
               </View>
             )}
           </View>
@@ -159,28 +138,29 @@ const { width: SCREEN_W } = Dimensions.get('window')
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
   },
   card: {
     width: Math.min(SCREEN_W - 80, 320),
-    borderRadius: 20,
+    borderRadius: 22,
+    borderWidth: 1,
     paddingTop: 28,
     paddingHorizontal: 24,
     paddingBottom: 20,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 32,
+    elevation: 16,
   },
   iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 50,
+    height: 50,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -219,7 +199,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   btnText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     letterSpacing: -0.2,
   },

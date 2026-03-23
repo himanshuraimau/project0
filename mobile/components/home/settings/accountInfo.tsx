@@ -30,6 +30,11 @@ export default function AccountInfo() {
   const isDark = mode === 'dark'
   const router = useRouter()
 
+  // Liquid glass — translucent cards, content peeks through
+  const cardBg = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return 'N/A'
     return new Intl.DateTimeFormat('en-US', {
@@ -54,9 +59,6 @@ export default function AccountInfo() {
   const userName = user?.name || 'User'
   const userEmail = user?.email || 'No email'
   const memberSince = formatDate(user?.createdAt)
-  const cardBg = isDark ? neutral[900] : '#fff'
-  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
-  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
 
   type InfoRow = {
     icon: string
@@ -95,16 +97,25 @@ export default function AccountInfo() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safe} edges={['top']}>
         {/* Header */}
-        <View style={styles.header}>
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
-          >
-            <Feather name="arrow-left" size={24} color={c.foreground} />
-          </Pressable>
-          <Text style={[styles.headerTitle, { color: c.foreground }]}>Account</Text>
-          <View style={{ width: 24 }} />
+        <View style={[styles.headerWrap, { borderBottomColor: separatorColor, backgroundColor: isDark ? neutral[950] : '#f0f0f0' }]}>
+          <View style={styles.header}>
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={12}
+              style={({ pressed }) => [
+                styles.headerBtn,
+                {
+                  backgroundColor: pressed
+                    ? (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)')
+                    : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                },
+              ]}
+            >
+              <Feather name="arrow-left" size={20} color={c.foreground} />
+            </Pressable>
+            <Text style={[styles.headerTitle, { color: c.foreground }]}>Account</Text>
+            <View style={{ width: 36 }} />
+          </View>
         </View>
 
         <ScrollView
@@ -122,14 +133,13 @@ export default function AccountInfo() {
             <Text style={[styles.userName, { color: c.foreground }]}>{userName}</Text>
             <Text style={[styles.userEmail, { color: c.mutedForeground }]}>{userEmail}</Text>
 
-            {/* Subscription pill */}
             <View
               style={[
                 styles.subPill,
                 {
                   backgroundColor: isSubscribed
                     ? (isDark ? 'rgba(52,199,89,0.12)' : 'rgba(52,199,89,0.1)')
-                    : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                    : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'),
                 },
               ]}
             >
@@ -169,7 +179,7 @@ export default function AccountInfo() {
                           {
                             backgroundColor: row.badgeColor
                               ? (isDark ? `${row.badgeColor}1A` : `${row.badgeColor}14`)
-                              : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                              : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'),
                           },
                         ]}
                       >
@@ -199,7 +209,14 @@ export default function AccountInfo() {
           {/* Copy User ID */}
           <Text style={[styles.sectionLabel, { color: c.mutedForeground }]}>SUPPORT</Text>
           <Pressable
-            style={[styles.group, { backgroundColor: cardBg, borderColor: cardBorder }]}
+            style={({ pressed }) => [
+              styles.group,
+              {
+                backgroundColor: cardBg,
+                borderColor: cardBorder,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
             onPress={copyUserId}
           >
             <View style={styles.row}>
@@ -232,12 +249,23 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safe: { flex: 1 },
 
+  /* Header */
+  headerWrap: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 17,
@@ -248,9 +276,10 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 16,
   },
 
+  /* Profile card */
   profileCard: {
     alignItems: 'center',
     padding: 28,
@@ -294,6 +323,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+  /* Section label */
   sectionLabel: {
     fontSize: 12,
     fontWeight: '600',
@@ -303,8 +333,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
+  /* Group card */
   group: {
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 16,
@@ -319,7 +350,7 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 30,
     height: 30,
-    borderRadius: 7,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },

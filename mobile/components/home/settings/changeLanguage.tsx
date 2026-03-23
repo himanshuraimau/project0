@@ -31,6 +31,11 @@ export default function ChangeLanguage() {
   const [showTranslationModal, setShowTranslationModal] = useState(false)
   const { showAlert } = useAlert()
 
+  // Liquid glass
+  const cardBg = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
+  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+
   const handleLanguageChange = async (languageCode: string) => {
     if (languageCode === i18n.language) return
 
@@ -81,9 +86,6 @@ export default function ChangeLanguage() {
     }
   }
 
-  const cardBg = isDark ? neutral[900] : '#fff'
-  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
-  const separatorColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
   const languages = Object.entries(LANGUAGES)
 
   return (
@@ -92,18 +94,27 @@ export default function ChangeLanguage() {
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={styles.safe} edges={['top']}>
           {/* Header */}
-          <View style={styles.header}>
-            <Pressable
-              onPress={() => router.back()}
-              hitSlop={12}
-              style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
-            >
-              <Feather name="arrow-left" size={24} color={c.foreground} />
-            </Pressable>
-            <Text style={[styles.headerTitle, { color: c.foreground }]}>
-              {t('language.title')}
-            </Text>
-            <View style={{ width: 24 }} />
+          <View style={[styles.headerWrap, { borderBottomColor: separatorColor, backgroundColor: isDark ? neutral[950] : '#f0f0f0' }]}>
+            <View style={styles.header}>
+              <Pressable
+                onPress={() => router.back()}
+                hitSlop={12}
+                style={({ pressed }) => [
+                  styles.headerBtn,
+                  {
+                    backgroundColor: pressed
+                      ? (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)')
+                      : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                  },
+                ]}
+              >
+                <Feather name="arrow-left" size={20} color={c.foreground} />
+              </Pressable>
+              <Text style={[styles.headerTitle, { color: c.foreground }]}>
+                {t('language.title')}
+              </Text>
+              <View style={{ width: 36 }} />
+            </View>
           </View>
 
           <ScrollView
@@ -139,15 +150,20 @@ export default function ChangeLanguage() {
                     <Pressable
                       style={({ pressed }) => [
                         styles.langRow,
-                        { opacity: (isChanging && !isSelected) ? 0.5 : pressed ? 0.6 : 1 },
+                        {
+                          backgroundColor: pressed
+                            ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)')
+                            : isCurrent
+                              ? (isDark ? 'rgba(79,59,231,0.06)' : 'rgba(79,59,231,0.04)')
+                              : 'transparent',
+                          opacity: (isChanging && !isSelected) ? 0.5 : 1,
+                        },
                       ]}
                       onPress={() => handleLanguageChange(code)}
                       disabled={isChanging}
                     >
-                      {/* Flag */}
                       <Text style={styles.flag}>{flag}</Text>
 
-                      {/* Names */}
                       <View style={styles.langInfo}>
                         <Text style={[styles.langName, { color: c.foreground }]}>
                           {nativeName}
@@ -157,13 +173,14 @@ export default function ChangeLanguage() {
                         </Text>
                       </View>
 
-                      {/* Right side */}
                       {isChanging && isSelected ? (
                         <ActivityIndicator size="small" color={c.primary} />
                       ) : isCurrent ? (
-                        <Ionicons name="checkmark" size={20} color={c.primary} />
+                        <View style={[styles.checkCircle, { backgroundColor: isDark ? 'rgba(79,59,231,0.15)' : 'rgba(79,59,231,0.1)' }]}>
+                          <Ionicons name="checkmark" size={16} color={c.primary} />
+                        </View>
                       ) : (
-                        <View />
+                        <View style={[styles.radioEmpty, { borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)' }]} />
                       )}
                     </Pressable>
                     {idx < languages.length - 1 && (
@@ -186,7 +203,15 @@ export default function ChangeLanguage() {
       {/* Translation Progress Modal */}
       <Modal visible={showTranslationModal} transparent animationType="fade" statusBarTranslucent>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalSheet, { backgroundColor: isDark ? neutral[900] : '#fff' }]}>
+          <View
+            style={[
+              styles.modalSheet,
+              {
+                backgroundColor: isDark ? 'rgba(23,24,26,0.95)' : 'rgba(255,255,255,0.95)',
+                borderColor: cardBorder,
+              },
+            ]}
+          >
             <View style={[styles.modalIcon, { backgroundColor: isDark ? 'rgba(79,59,231,0.12)' : 'rgba(79,59,231,0.06)' }]}>
               <Ionicons name="globe" size={32} color={c.primary} />
             </View>
@@ -213,7 +238,6 @@ export default function ChangeLanguage() {
               </Text>
             )}
 
-            {/* Progress bar */}
             {translationProgress && (
               <View style={[styles.progressTrack, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
                 <View
@@ -244,23 +268,35 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safe: { flex: 1 },
 
+  /* Header */
+  headerWrap: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3 },
 
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 12 },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 16 },
 
+  /* Current language */
   currentCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     marginBottom: 24,
     gap: 12,
@@ -268,7 +304,7 @@ const styles = StyleSheet.create({
   currentIcon: {
     width: 30,
     height: 30,
-    borderRadius: 7,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -276,6 +312,7 @@ const styles = StyleSheet.create({
   currentLabel: { fontSize: 12, fontWeight: '500', letterSpacing: 0.1, marginBottom: 2 },
   currentValue: { fontSize: 16, fontWeight: '600' },
 
+  /* Section */
   sectionLabel: {
     fontSize: 12,
     fontWeight: '600',
@@ -285,8 +322,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 
+  /* Language list */
   group: {
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 12,
@@ -302,6 +340,22 @@ const styles = StyleSheet.create({
   langInfo: { flex: 1 },
   langName: { fontSize: 16, fontWeight: '600', marginBottom: 1 },
   langSub: { fontSize: 13 },
+
+  /* Selection indicators */
+  checkCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioEmpty: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+  },
+
   separator: { height: StyleSheet.hairlineWidth, marginLeft: 52 },
 
   footerHint: {
@@ -311,9 +365,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
+  /* Modal */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
@@ -321,6 +376,7 @@ const styles = StyleSheet.create({
   modalSheet: {
     width: '100%',
     borderRadius: 20,
+    borderWidth: 1,
     padding: 28,
     alignItems: 'center',
   },
