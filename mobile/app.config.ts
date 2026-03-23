@@ -17,7 +17,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         infoPlist: {
             UIViewControllerBasedStatusBarAppearance: false,
             UIStatusBarHidden: false,
-            UIStatusBarStyle: "UIStatusBarStyleDefault"
+            UIStatusBarStyle: "UIStatusBarStyleDefault",
+            NSMicrophoneUsageDescription: "Flinote needs access to your microphone to record audio lectures and meetings for note generation."
         },
         bundleIdentifier: "com.abhishekhq11.flinote"
     },
@@ -30,6 +31,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         softwareKeyboardLayoutMode: "resize",
         permissions: [
             "android.permission.INTERNET",
+            "android.permission.RECORD_AUDIO",
             "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
@@ -59,6 +61,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         "expo-secure-store",
         "expo-web-browser",
         "expo-localization",
+        [
+            "expo-av",
+            {
+                "microphonePermission": "Flinote needs access to your microphone to record audio lectures and meetings for note generation."
+            }
+        ],
         [
             "expo-media-library",
             {
