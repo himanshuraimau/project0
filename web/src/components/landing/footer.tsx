@@ -19,6 +19,12 @@ export function Footer() {
             Blog
           </Link>
           <Link
+            href="/support"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Support
+          </Link>
+          <Link
             href="/terms"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
