@@ -1,6 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useSession } from "@/lib/auth-client";
 import Link from "next/link";
 import Image from "next/image";
@@ -64,6 +72,7 @@ function FloatingIcon({
 }
 export function Hero() {
   const { data: session } = useSession();
+  const [showAppModal, setShowAppModal] = useState(false);
 
   return (
     <section className="relative w-full min-h-screen flex max-w-7xl mx-auto flex-col items-center justify-center overflow-hidden bg-background">
@@ -131,18 +140,16 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
         >
-          <Link
-            href={session ? "/dashboard" : "/sign-up"}
-            className="w-full flex justify-center"
-          >
+          <div className="w-full flex justify-center">
             <Button
               size="lg"
+              onClick={() => setShowAppModal(true)}
               className="sm:w-[80%] w-full font-medium rounded-2xl py-7 cursor-pointer px-10 bg-foreground text-background hover:bg-foreground/90 shadow-[0_10px_20px_rgba(0,0,0,0.15)] transition-all hover:scale-[1.02] active:scale-[0.98] gap-3 text-lg"
             >
               Download the app
               <HugeiconsIcon icon={SmartPhone01Icon} className="size-7" />
             </Button>
-          </Link>
+          </div>
 
           <Link href="/dashboard" className="w-full flex justify-center">
             <Button
@@ -174,6 +181,33 @@ export function Hero() {
           </p>
         </motion.div>
       </div>
+
+      {/* Mobile App Coming Soon Modal */}
+      <Dialog open={showAppModal} onOpenChange={setShowAppModal}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader className="items-center">
+            <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+              <HugeiconsIcon icon={SmartPhone01Icon} className="size-7 text-foreground" />
+            </div>
+            <DialogTitle className="text-xl">Mobile App Coming Soon</DialogTitle>
+            <DialogDescription className="text-base">
+              We&apos;re working hard to bring Flinote to your mobile device. Stay tuned for updates!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 flex flex-col gap-3">
+            <Link href={session ? "/dashboard" : "/sign-up"}>
+              <Button
+                size="lg"
+                className="w-full font-medium rounded-xl py-6 cursor-pointer bg-foreground text-background hover:bg-foreground/90 gap-2 text-base"
+                onClick={() => setShowAppModal(false)}
+              >
+                Continue with Web
+                <HugeiconsIcon icon={BrowserIcon} className="size-5" />
+              </Button>
+            </Link>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

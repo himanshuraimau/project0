@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { openai } from "@ai-sdk/openai";
+import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { indexNoteContent } from "./course/embedding-service";
 import {
@@ -9,10 +9,15 @@ import {
   NotesFromContentResult,
 } from "@/lib/types/notes.types";
 
-export class NoteService {
-  private model = openai("gpt-4o-mini");
+const openrouter = createOpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
-  /** Provider options for OpenAI */
+export class NoteService {
+  private model = openrouter.chat("google/gemini-3.1-flash-lite-preview");
+
+  /** Provider options for OpenRouter */
   private providerOptions = {};
 
   /**
@@ -143,103 +148,171 @@ export class NoteService {
       const contentSpecificInstructions =
         this.getContentSpecificInstructions(contentType);
 
+      // Trim content to ~60k chars to stay within model context limits
+      const trimmedContent = contentToAnalyze.length > 60000
+        ? contentToAnalyze.substring(0, 60000) + '\n\n[Content truncated for processing]'
+        : contentToAnalyze;
+
       // Generate AI summary using content-specific prompts
       const result = await generateText({
         model: this.model,
+        maxOutputTokens: 100000,
         providerOptions: this.providerOptions,
-        prompt: `You are an expert note-taking AI that transforms content into highly engaging, visually scannable study notes.
+        prompt: `You are a world-class visual note designer and educational content architect. Your mission is to transform raw content into EXTREMELY DETAILED, beautifully designed, and visually stunning study notes. Think of yourself as creating a premium Notion template combined with an infographic — every section should be rich, thorough, and a joy to read.
 
-Analysis ID: ${analysisId}
-Timestamp: ${timestamp}
 Document: ${transcript.originalName}
 Content Type: ${contentType}
 
 ${contentSpecificInstructions}
 
-## YOUR GOAL
+## YOUR MISSION
 
-Transform the source content into clean, engaging, and information-dense notes. The notes should feel like a well-crafted cheat sheet — easy to scan, visually appealing, and packed with value. NOT a textbook chapter.
+Create THE MOST COMPREHENSIVE, visually rich, and information-dense notes possible. These notes should be SO detailed and well-designed that a student could use them as their SOLE study resource and ace any exam on this topic. Every concept must be explained thoroughly with examples, analogies, and visual aids. Do NOT summarize — EXPAND and ENRICH the content.
+
+## CRITICAL LENGTH REQUIREMENT
+
+Your output MUST be extremely long and detailed. Target:
+- **Minimum 6,000 words** of actual content (not counting SVG/Mermaid code)
+- **8-12 major sections** minimum, each with substantial depth
+- **Every concept** gets its own detailed explanation with examples
+- **Every section** should have 200-500+ words of written content
+- If the source material is short, you must EXPAND on each point with deeper explanations, real-world examples, analogies, use cases, comparisons, and practical applications
+- NEVER be brief. ALWAYS be thorough. When in doubt, write MORE.
 
 ## OUTPUT STRUCTURE
 
-### 1. Title & Brief Overview
-- Start with a relevant emoji + topic title as H1 (e.g., "📚 Framer Monetization", "🧠 Machine Learning Basics")
-- Add a "Brief Overview" section: 2-4 sentences explaining what this content covers and where it came from. Keep it tight.
+### 1. Title & Hero Visual
+\`# [emoji] [Descriptive Title]\`
 
-### 2. Key Points
-- 4-7 bullet points summarizing the most important takeaways
-- Each bullet should be a standalone insight someone can learn from
-- Prefix each bullet with a relevant emoji
+Immediately after the title, create a large, detailed inline SVG that serves as a visual overview/roadmap of the entire topic. This hero SVG should be comprehensive — showing the relationships between ALL major concepts.
 
-### 3. Main Content Sections (4-8 sections, dynamic)
-- Each section gets a relevant emoji + descriptive H2 title (e.g., "📊 Revenue Model", "🚀 Getting Started", "✅ Quality Checklist")
-- Section titles must be DYNAMIC — based on what the content actually covers, not a fixed template
-- Within sections, use the BEST format for the data:
-  - **Tables** for comparisons, metrics, specifications, feature lists, step-by-step plans, timelines, or any structured data with 3+ items that share attributes
-  - **Bullet points** for explanations, insights, and key ideas
-  - **Numbered lists** for sequential steps or ranked items
-  - **Bold key terms** within bullets for scannability
-  - **Blockquotes** (>) for critical definitions, formulas, or important callouts
-- Keep bullets concise — one idea per bullet, no run-on explanations
-- PRIORITIZE TABLES whenever data can be structured into rows and columns — tables dramatically improve readability
+### 2. Executive Summary Box
+A callout block with a 150-250 word overview:
+\`> [!IMPORTANT]\`
+\`> **What you'll learn:** [comprehensive overview of all topics covered]\`
 
-### 4. FAQ Section (if applicable)
-- If the content naturally raises common questions, add a "❓ Common Questions" section
-- Use bold question + answer format
-- Keep answers to 2-4 sentences each
+### 3. Key Highlights
+8-12 bullet points (not just 4-7) with the most important takeaways. Each bullet should be a complete sentence with context, not just a phrase. Prefix each with a relevant emoji.
 
-### 5. Key Takeaways
-- End with a "🔑 Key Takeaways" section
-- 3-7 bullets of the most critical points from the entire content
+### 4. Main Sections (8-12 dynamic sections — BE GENEROUS)
+
+Each section MUST include:
+- \`## [emoji] [Dynamic Title]\` based on actual content themes
+- **Opening paragraph** (3-5 sentences) introducing the section topic
+- **Detailed explanation** with multiple paragraphs covering every nuance
+- **At least one visual element** per section (table, SVG, Mermaid diagram, or callout)
+- **Practical examples or real-world applications** where relevant
+- **Key definitions** in bold for important terms
+
+Mix these formats RICHLY within each section:
+- **Tables** for structured/comparative data — use tables LIBERALLY (at least 4-6 tables total across all sections). Tables with 3-6 columns and 4-8 rows showing comparisons, features, pros/cons, steps, metrics
+- **Detailed bullet points** with explanations (not single words — full sentences)
+- **Numbered lists** for step-by-step processes with descriptions for each step
+- **Mermaid diagrams** for processes, decision trees, or hierarchies (3-4 total across notes)
+- **Inline SVGs** for concept visualizations (3-5 total across notes including hero)
+- **Callout blocks** for critical formulas, definitions, pro tips, or warnings (4-6 total)
+- **Code blocks** if the content is technical
+- **Blockquotes** for important quotes or key phrases from the source
+
+### 5. Connections & Relationships Section
+\`## 🔗 How It All Connects\`
+A dedicated section with an SVG or Mermaid diagram showing how all the major concepts relate to each other, plus written explanation.
+
+### 6. Practical Applications Section
+\`## 🎯 Practical Applications & Examples\`
+Real-world applications, use cases, scenarios, or worked examples. Make the content actionable.
+
+### 7. Common Misconceptions or Pitfalls (if applicable)
+\`## ⚠️ Common Mistakes & Misconceptions\`
+Using \`> [!WARNING]\` callouts for each misconception with detailed corrections.
+
+### 8. Quick Reference Table
+\`## 📋 Quick Reference\`
+A comprehensive summary table with all key terms, definitions, and important values in one place.
+
+### 9. Key Takeaways
+\`## 🔑 Key Takeaways\` — 8-12 detailed bullets of the most critical points, each with WHY it matters.
+
+---
+
+## SVG RULES (STRICT)
+
+- Use \`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 H" width="100%">\` where H fits the content
+- Make SVGs LARGER and more detailed than minimal — aim for H=200-400 for hero, H=150-250 for section SVGs
+- Safe content area: x=40 to x=640
+- Background: transparent
+- Font: sans-serif only, font-size 14px for titles (font-weight 500), 12px for labels (font-weight 400)
+- Minimum font-size: 11px. Never use font-weight 600 or 700 in SVGs.
+- Colors: use soft flat fills. Light-mode friendly palette:
+  - Purple: fill="#EEEDFE" stroke="#534AB7" text="#26215C"
+  - Teal: fill="#E1F5EE" stroke="#0F6E56" text="#04342C"
+  - Coral: fill="#FAECE7" stroke="#993C1D" text="#4A1B0C"
+  - Blue: fill="#E6F1FB" stroke="#185FA5" text="#042C53"
+  - Green: fill="#EAF3DE" stroke="#3B6D11" text="#1E3808"
+  - Amber: fill="#FAEEDA" stroke="#854F0B" text="#412402"
+  - Gray: fill="#F1EFE8" stroke="#5F5E5A" text="#2C2C2A"
+- Rounded rects: rx="8" for nodes, stroke-width="0.5"
+- Arrows: use \`<line>\` or \`<path>\` with marker-end for flow arrows
+- Text: always use \`text-anchor="middle" dominant-baseline="central"\` for centering
+- NO gradients, NO shadows, NO blur, NO glow effects, NO comments in SVG code
+- SVG types: flow diagram, concept map, comparison layout, layered architecture, timeline, matrix grid, cycle diagram
+- 4-10 nodes per SVG, clear labels
+
+### SVG VARIETY — use DIFFERENT SVG types across sections:
+1. **Hero SVG**: Large concept map or architecture overview (8-10 nodes)
+2. **Process SVGs**: Flow diagrams with arrows showing sequences
+3. **Comparison SVGs**: Side-by-side boxes comparing approaches/concepts
+4. **Architecture SVGs**: Stacked layers showing hierarchies
+5. **Cycle SVGs**: Circular flow showing iterative processes
+6. **Matrix SVGs**: Grid layout comparing multiple dimensions
+
+## MERMAID DIAGRAM RULES (VERY STRICT)
+- Use \`\`\`mermaid code blocks
+- ONLY \`flowchart TD\` or \`flowchart LR\`
+- Max 4-8 nodes, labels must be 2-5 plain English words
+- Node syntax: A[Label Text] for boxes, B{Question} for decisions, C(Rounded)
+- FORBIDDEN in labels: quotes, colons, semicolons, parentheses, emojis, <br>, HTML tags, special characters
+- FORBIDDEN: subgraphs, style/class statements, click events
+- GOOD: A[Upload Content] --> B[Process Data]
+- BAD: A["Upload: Content 📚"] --> B["Process<br>Data"]
+
+## CALLOUT SYNTAX
+- \`> [!TIP]\` for best practices and pro tips
+- \`> [!IMPORTANT]\` for critical concepts, formulas, or must-know info
+- \`> [!WARNING]\` for common mistakes, pitfalls, or misconceptions
+- \`> [!NOTE]\` for additional context or interesting facts
+
+## VISUAL RHYTHM GUIDELINES
+
+NEVER have more than 1 consecutive text-only section. Every section needs at least one visual:
+1. Hero SVG after the title (ALWAYS — large and detailed)
+2. Executive summary callout
+3. 2-4 more inline SVGs throughout the body (different types!)
+4. 3-4 Mermaid diagrams for processes and decisions
+5. 4-6 callout blocks spread throughout
+6. 4-6 data tables for structured information
+7. Total visuals per note: 10-15+ visual elements (SVGs + Mermaid + tables + callouts)
 
 ## HARD RULES
 
-1. **SOURCE ONLY**: Use only information from the provided content. No outside knowledge or hallucination.
-2. **NO REPETITION**: Each piece of information should appear ONCE. Do not restate the same concept across multiple sections.
-3. **NO META TALK**: Do not say "this video discusses" or "the author mentions". Just present the information directly.
-4. **NO FILLER**: Every sentence must carry information. No generic statements like "this is important" or "understanding this is valuable".
-5. **NO TEXTBOOK VOICE**: Do NOT add sections like "Prerequisites", "Study Strategy", "Learning Path", "Mastery Verification", "Educational Impact", "Growth and Next Steps", or "Comprehensive Glossary" unless the source content explicitly warrants it.
-6. **CONCISE > VERBOSE**: Aim for information density. If you can say it in 10 words, don't use 50.
-7. **TABLES ARE YOUR FRIEND**: Use markdown tables for ANY structured data — metrics, comparisons, lists of items with attributes, timelines, feature breakdowns, checklists with descriptions, etc.
-8. **EMOJIS FOR HEADERS ONLY**: Use relevant emojis as prefixes for H1, H2 headers, and key point bullets to make notes visually scannable. Do NOT sprinkle emojis randomly throughout body text. Choose from: 📚 📊 🚀 💡 ✅ 💸 🗓️ ❓ 🔑 💎 🎯 📈 🛠️ ⚡ 🧠 🔍 📋 💰 🏆 🔄 📌 🎨 📝 🌟 ⚙️
-9. **DATA ACCURACY**: Include numbers, percentages, and metrics only if explicitly stated in the source.
-10. **SMART SECTIONING**: Create sections based on the content's natural themes. Prefer the source's own structure/headings when available. A section must have enough substance — don't create a section for a minor mention.
+1. **SOURCE ONLY**: Only information from the provided content. No hallucination.
+2. **NO REPETITION**: Each fact appears ONCE across the entire note.
+3. **NO META TALK**: Never say "this video discusses" or "the author mentions" — just present the info directly.
+4. **NO FILLER**: Every sentence carries real information. No "this is important" padding.
+5. **NO TEXTBOOK VOICE**: No generic "Prerequisites", "Study Strategy" sections unless the source warrants it.
+6. **BE THOROUGH**: Explain every concept fully. If a concept has 5 aspects, cover all 5 in detail.
+7. **TABLES FOR DATA**: Use markdown tables for ANY structured or comparable data.
+8. **EMOJIS FOR HEADERS ONLY**: Emojis on H1, H2, and key point bullets only.
+9. **DATA ACCURACY**: Numbers/percentages only if explicitly in the source.
+10. **VALID SVG**: Every SVG must be well-formed XML with xmlns attribute.
+11. **EXPAND, DON'T SUMMARIZE**: Your job is to make content MORE detailed and accessible, not shorter.
+12. **EXAMPLES EVERYWHERE**: Include real-world examples, analogies, and scenarios for every major concept.
 
-## FORMATTING GUIDE
+## INPUT CONTENT
 
-Use this markdown formatting:
-- \`#\` for the main title (with emoji)
-- \`##\` for section headers (with emoji)
-- \`###\` for subsection headers (no emoji needed)
-- **bold** for key terms and emphasis
-- *italics* for definitions or secondary emphasis
-- \`>\` blockquotes for critical callouts, definitions, or formulas
-- Tables with \`|\` syntax for structured data
-- \`-\` bullet points for lists
-- \`1.\` numbered lists for sequences
+${trimmedContent}
 
-### Example of good table usage:
-
-| Metric | Value | Source |
-|--------|-------|--------|
-| Total views | 800,000+ | Public analytics |
-| Conversion rate | 5% | Program data |
-| Revenue estimate | $400,000 | Calculation |
-
-### Example of good callout usage:
-
-> **Key formula**: Revenue = Customers × Monthly payout × Average months subscribed
-
-### Example of good bullet usage:
-
-- **Affiliate commission**: 50% of subscriber's plan price for up to 12 months
-- **Average payout**: ~$15/month per converted customer
-
-## INPUT TO PROCESS
-
-${contentToAnalyze}
-
-Generate the notes now. Make them engaging, scannable, and information-dense. Quality over quantity — every line must earn its place.`,
+NOW GENERATE THE NOTES. Make them EXTREMELY detailed, visually stunning, and comprehensive. Remember: minimum 6,000 words, 8-12 sections, 10+ visual elements. A student should be able to study ONLY from these notes and understand everything perfectly.`,
       });
 
       // Validate AI response
@@ -339,11 +412,7 @@ Generate ONE perfect title (no quotes, no extra text, just the title):`,
         );
       }
 
-      const analysisId = Math.random().toString(36).substring(2, 15);
-      const timestamp = new Date().toISOString();
-
       // Different prompts based on note type
-      // Enhanced prompts based on note type with educational and comprehensive focus
       const prompts = {
         summary: `
 COMPREHENSIVE EXECUTIVE LEARNING SUMMARY
@@ -485,29 +554,62 @@ Make learning enjoyable and memorable while maintaining educational value. Use c
 
       const result = await generateText({
         model: this.model,
+        maxOutputTokens: 100000,
         providerOptions: this.providerOptions,
-        prompt: `
-SPECIALIZED EDUCATIONAL CONTENT ARCHITECT
+        prompt: `You are a world-class educational content architect creating EXTREMELY DETAILED, visually stunning study notes.
 
-Analysis ID: ${analysisId}
-Timestamp: ${timestamp}
 Note Type: ${noteType.toUpperCase()}
 Document: ${transcript.originalName}
 
 ${specificPrompt}
 
-Content to Transform into Professional Educational Notes:
+## CRITICAL LENGTH & QUALITY REQUIREMENTS
+- **Minimum 5,000 words** of actual content
+- **8-12 major sections** with 200-500+ words each
+- **Every concept** explained thoroughly with examples and analogies
+- **EXPAND, don't summarize** — make content MORE detailed and accessible
+- If source is short, go deeper: more examples, real-world applications, comparisons, use cases
+
+## FORMATTING & VISUAL RULES (MANDATORY)
+
+### Structure
+- \`# [emoji] [Title]\` — descriptive, engaging
+- Start with a LARGE hero SVG (concept map/overview, 6-10 nodes)
+- \`> [!IMPORTANT]\` executive summary (150-250 words)
+- 8-12 emoji-prefixed key highlights (complete sentences)
+- 8-12 detailed body sections, each with opening paragraph + depth + at least one visual
+- Quick reference summary table
+- 8-12 key takeaways with WHY each matters
+
+### Visual Elements (10-15+ total)
+- **Tables**: 4-6 tables with 3-6 columns, 4-8 rows for comparisons, features, metrics
+- **Inline SVGs**: 3-5 total (including hero). Use \`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 H" width="100%">\`
+  - Font: sans-serif, 14px/500 titles, 12px/400 labels. Never weight 600+. Min 11px
+  - Colors: Purple fill="#EEEDFE" stroke="#534AB7", Teal fill="#E1F5EE" stroke="#0F6E56", Coral fill="#FAECE7" stroke="#993C1D", Blue fill="#E6F1FB" stroke="#185FA5", Amber fill="#FAEEDA" stroke="#854F0B"
+  - Rounded rects rx="8" stroke-width="0.5". Text: text-anchor="middle" dominant-baseline="central"
+  - NO gradients, shadows, blur, or comments. Transparent background
+  - Use DIFFERENT types: concept map, flow diagram, comparison, layers, timeline, cycle
+- **Mermaid diagrams**: 3-4 total (\`\`\`mermaid, flowchart TD/LR only, 4-8 nodes, plain English labels — NO quotes, colons, emojis, HTML, special chars. NO subgraphs or style statements)
+- **Callouts**: 4-6 total using \`> [!TIP]\`, \`> [!IMPORTANT]\`, \`> [!WARNING]\`, \`> [!NOTE]\`
+
+### Text Formatting
+- **Bold** for key terms, *italics* for definitions
+- Emojis on H1, H2 headers and key point bullets ONLY
+- Detailed bullets (full sentences, not phrases)
+- Numbered lists with descriptions for sequential steps
+- NEVER 2+ consecutive text-only sections
+
+## HARD RULES
+1. SOURCE ONLY — no hallucination
+2. NO META TALK — never "this discusses" or "the author mentions"
+3. NO FILLER — every sentence carries information
+4. NO REPETITION — each fact appears once
+5. EXAMPLES EVERYWHERE — real-world examples for every major concept
+
+Content to Transform:
 ${contentToAnalyze}
 
-Provide a structured, engaging analysis that is unique to this specific document and context. Make it comprehensive and valuable for learning.
-
-FORMATTING RULES:
-- Use relevant emojis as prefixes for H1 and H2 section headers ONLY (📚 📊 🚀 💡 ✅ 💸 🗓️ ❓ 🔑 💎 🎯 📈 🛠️ ⚡ 🧠 🔍 📋 💰 🏆 🔄 📌). Do NOT scatter emojis through body text.
-- Use markdown **tables** for ANY structured or comparative data (metrics, comparisons, feature lists, timelines, checklists with descriptions). Tables dramatically improve readability.
-- Use **bold** for key terms, *italics* for definitions, blockquotes (>) for critical callouts.
-- Keep bullets concise — one idea per bullet. Prioritize information density over verbosity.
-- Do NOT repeat the same information across sections.
-        `,
+NOW GENERATE. Make these notes EXTREMELY detailed, visually stunning, and comprehensive. A student should be able to study ONLY from these notes.`,
       });
 
       if (!result.text || result.text.trim().length === 0) {
@@ -839,71 +941,99 @@ Generate ONE perfect title (no quotes, just the title):`,
         throw new Error("Content is required to generate notes");
       }
 
-      const analysisId = Math.random().toString(36).substring(2, 15);
-      const timestamp = new Date().toISOString();
+      const trimmedContent = content.length > 60000
+        ? content.substring(0, 60000) + '\n\n[Content truncated for processing]'
+        : content;
 
       const result = await generateText({
         model: this.model,
+        maxOutputTokens: 100000,
         providerOptions: this.providerOptions,
-        prompt: `You are a SOURCE-GROUNDED NOTE GENERATOR that creates engaging, visually scannable notes.
+        prompt: `You are a world-class visual note designer and educational content architect. Your mission is to transform raw content into EXTREMELY DETAILED, beautifully designed, and visually stunning study notes. Think of yourself as creating a premium Notion template combined with an infographic — every section should be rich, thorough, and a joy to read.
 
-Goal: Convert the provided SOURCE into clean, engaging notes that are easy to scan and packed with value. Focus ONLY on what the SOURCE says.
+## YOUR MISSION
 
-HARD RULES:
-1) SOURCE ONLY: Use only information in SOURCE. No outside knowledge.
-2) NO HALLUCINATION: If it's not in SOURCE, do not include it.
-3) NO META TALK: Do not mention "PDF/paper/transcript/source" or talk about the document itself. Just present the information.
-4) NO EXTRAS: Do not add quizzes, flashcards, self-tests, or follow-up questions.
-5) NO GENERIC FILLER: Avoid vague filler like "this is important/valuable" unless SOURCE explicitly says so.
-6) DATA CAUTION: Include numbers/percentages only if explicitly written in SOURCE text.
-7) RELEVANCE FILTER (critical):
-   - Silently infer the MAIN TOPIC of the SOURCE.
-   - Include only content that helps understand the MAIN TOPIC.
-   - Don't create standalone sections for minor side-mentions; fold into another section or omit.
-   - A section should be supported by multiple points; otherwise fold or omit.
-8) NO "STUDY MATERIAL" VOICE: No "study", "learner", "student", "mastery", "prerequisites", "learning path", "next steps". Notes must be neutral and content-focused.
-9) CONTENT-ONLY OUTPUT: Every bullet must summarize a specific point from SOURCE. If a bullet cannot be traced to SOURCE, delete it.
-10) NO REPETITION: Each piece of information appears ONCE only. Do not restate across sections.
+Create THE MOST COMPREHENSIVE, visually rich, and information-dense notes possible. These notes should be SO detailed and well-designed that a student could use them as their SOLE study resource. Every concept must be explained thoroughly with examples, analogies, and visual aids. Do NOT summarize — EXPAND and ENRICH.
 
-OUTPUT FORMAT:
+## CRITICAL LENGTH REQUIREMENT
+- **Minimum 6,000 words** of actual content
+- **8-12 major sections** minimum
+- **Every concept** gets detailed explanation with examples
+- **Every section** should have 200-500+ words of written content
+- If the source is short, EXPAND with deeper explanations, real-world examples, analogies, use cases, and practical applications
+- NEVER be brief. ALWAYS be thorough.
+
+## HARD RULES
+1) SOURCE ONLY — no outside knowledge, no hallucination
+2) NO META TALK — never say "this video discusses" or "the author mentions"
+3) NO FILLER — every sentence carries real information
+4) NO REPETITION — each fact appears once
+5) DATA ACCURACY — numbers only if explicitly in source
+6) VALID SVG — every SVG must be well-formed XML with xmlns attribute
+7) EXPAND, DON'T SUMMARIZE — make content MORE detailed, not shorter
+8) EXAMPLES EVERYWHERE — real-world examples and analogies for every major concept
+
+## OUTPUT FORMAT
 
 # [emoji] [Title]
-Use the title from SOURCE if present; otherwise create a neutral descriptive title.
 
-## Brief Overview
-2-4 sentences summarizing what this content covers. Keep it tight.
+Immediately after the title, create a LARGE, detailed hero SVG (concept map or architecture overview):
+- \`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 H" width="100%">\` (H=200-400)
+- Content area: x=40 to x=640. Background: transparent
+- Font: sans-serif, 14px/500 for titles, 12px/400 for labels. Min 11px. Never 600/700 weight
+- Colors (soft flat fills, 2-3 per SVG):
+  Purple: fill="#EEEDFE" stroke="#534AB7" text="#26215C"
+  Teal: fill="#E1F5EE" stroke="#0F6E56" text="#04342C"
+  Coral: fill="#FAECE7" stroke="#993C1D" text="#4A1B0C"
+  Blue: fill="#E6F1FB" stroke="#185FA5" text="#042C53"
+  Amber: fill="#FAEEDA" stroke="#854F0B" text="#412402"
+  Gray: fill="#F1EFE8" stroke="#5F5E5A" text="#2C2C2A"
+- Rounded rects: rx="8", stroke-width="0.5"
+- Text: text-anchor="middle" dominant-baseline="central"
+- NO gradients, shadows, blur, glow, or comments in SVG
+- Types: flow diagram, concept map, comparison layout, layered architecture, timeline, matrix grid, cycle diagram
+- 6-10 nodes for hero, 4-8 for section SVGs
 
-## Key Points
-4-7 bullet points (each prefixed with a relevant emoji) of the most important takeaways.
+> [!IMPORTANT]
+> **What you'll learn:** [150-250 word comprehensive overview of all topics covered]
 
-## [emoji] [Dynamic Section Title]
-Create 4-8 content sections with dynamic titles based on SOURCE themes.
-- Use **tables** for any structured/comparative data (metrics, comparisons, lists with attributes, timelines, checklists with descriptions)
-- Use bullet points for explanations and insights
-- Use numbered lists for sequential steps
-- **Bold key terms** within bullets for scannability
-- Use blockquotes (>) for critical definitions, formulas, or callouts
-- Keep bullets concise — one idea per bullet
+## ✨ Key Highlights
+8-12 emoji-prefixed bullets — each a COMPLETE SENTENCE with context, not just a phrase.
 
-(Repeat for each section)
+## [emoji] [Dynamic Section Title] (8-12 sections)
+Each section MUST include:
+- **Opening paragraph** (3-5 sentences) introducing the topic
+- **Detailed explanation** with multiple paragraphs
+- **At least one visual** (table, SVG, Mermaid, or callout)
+- **Practical examples** where relevant
+- **Key terms in bold**
 
-## ❓ Common Questions
-Only include if the content naturally raises FAQs. Use bold question + 2-4 sentence answer format. Omit this section if no natural questions arise.
+Mix formats RICHLY:
+- **Tables** — use LIBERALLY (4-6 total). 3-6 columns, 4-8 rows for comparisons, features, steps
+- **Detailed bullets** with full sentence explanations
+- **Numbered lists** with descriptions for each step
+- **Mermaid diagrams** (3-4 total) — \`\`\`mermaid, flowchart TD/LR only, 4-8 nodes, plain English labels. NO quotes, colons, emojis, HTML, special chars in labels. NO subgraphs or style statements
+- **Inline SVGs** (3-5 total including hero) — different types across sections
+- **Callouts** (4-6 total): \`> [!TIP]\`, \`> [!IMPORTANT]\`, \`> [!WARNING]\`, \`> [!NOTE]\`
+
+## 🔗 How It All Connects
+SVG or Mermaid showing relationships between all major concepts, plus written explanation.
+
+## 🎯 Practical Applications & Examples
+Real-world use cases, scenarios, and worked examples.
+
+## 📋 Quick Reference
+Comprehensive summary table with all key terms, definitions, and important values.
 
 ## 🔑 Key Takeaways
-3-7 bullets of the most critical points from SOURCE.
+8-12 detailed bullets with WHY each point matters.
 
-FORMATTING RULES:
-- Use emojis on H1, H2 headers, and key point bullets ONLY (📚 📊 🚀 💡 ✅ 💸 🗓️ ❓ 🔑 💎 🎯 📈 🛠️ ⚡ 🧠 🔍 📋 💰 🏆 🔄 📌 🎨 📝 🌟 ⚙️). Do NOT scatter emojis through body text.
-- Use markdown tables for ANY structured data — this is critical for readability
-- Keep bullets concise
-- Bold key terms within bullets
-- Use blockquotes for important callouts
+VISUAL RHYTHM: NEVER have 2+ consecutive text-only sections. Aim for 10-15+ visual elements total.
 
-Return ONLY the notes.
+Return ONLY the notes. Make them EXTREMELY detailed, visually stunning, and comprehensive.
 
-SOURCE TO PROCESS:
-${content}`,
+SOURCE:
+${trimmedContent}`,
       });
 
       if (!result.text || result.text.trim().length === 0) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { prisma } from '@/lib/prisma';
+import { getPlayableAudioUrl } from '@/lib/s3-audio';
 
 /**
  * Download podcast audio file
@@ -57,8 +58,11 @@ export async function GET(
             );
         }
 
+        // Resolve presigned URL if stored as s3:// key
+        const resolvedUrl = await getPlayableAudioUrl(podcast.audioUrl);
+
         // Fetch the audio file
-        const audioResponse = await fetch(podcast.audioUrl);
+        const audioResponse = await fetch(resolvedUrl);
         
         if (!audioResponse.ok) {
             throw new Error('Failed to fetch audio file');

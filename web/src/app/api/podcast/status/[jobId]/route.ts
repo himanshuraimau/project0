@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getPlayableAudioUrl } from '@/lib/s3-audio';
 
 export async function GET(
     request: Request,
@@ -32,6 +33,11 @@ export async function GET(
             'FAILED': 'failed',
         };
 
+        // Generate a presigned URL if the audio is stored in S3
+        const audioUrl = podcast.audioUrl
+            ? await getPlayableAudioUrl(podcast.audioUrl)
+            : null;
+
         return NextResponse.json({
             success: true,
             job: {
@@ -39,7 +45,7 @@ export async function GET(
                 status: statusMap[podcast.status] || 'processing',
                 progress: podcast.progress || 0,
                 currentStep: podcast.status === 'GENERATING' ? 'Generating audio...' : undefined,
-                audioUrl: podcast.audioUrl,
+                audioUrl,
                 audioDuration: podcast.duration,
                 transcript: podcast.transcript ? JSON.parse(podcast.transcript as string) : null,
                 error: podcast.errorMessage,

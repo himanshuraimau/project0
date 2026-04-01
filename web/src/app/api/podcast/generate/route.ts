@@ -3,7 +3,7 @@ import { getUserFromAuth } from '@/lib/auth-helper';
 import { prisma } from '@/lib/prisma';
 import { generateVoiceTranscript } from '@/lib/services/transcript-generator';
 import { generateSpeechAudio } from '@/lib/services/openai-tts';
-import { uploadThingAudioStorageService } from '@/lib/uploadthing';
+import { uploadPodcastAudioToS3 } from '@/lib/s3-audio';
 
 export async function POST(request: NextRequest) {
     try {
@@ -94,21 +94,17 @@ export async function POST(request: NextRequest) {
 
             const audioBuffer = await generateSpeechAudio(transcriptResult.transcript);
 
-            // Step 3: Upload audio to UploadThing
+            // Step 3: Upload audio to S3
             await prisma.podcast.update({
                 where: { id: podcast.id },
                 data: { progress: 80 },
             });
 
-            const { url: audioUrl } = await uploadThingAudioStorageService.uploadPodcastAudio(
+            const audioUrl = await uploadPodcastAudioToS3(
                 audioBuffer,
-                {
-                    title: note.title,
-                    podcastId: podcast.id,
-                    duration: transcriptResult.estimatedDurationSeconds,
-                    size: audioBuffer.length,
-                    mimeType: 'audio/mpeg',
-                }
+                userId,
+                podcast.id,
+                note.title
             );
 
             await prisma.podcast.update({

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { prisma } from '@/lib/prisma';
+import { getPlayableAudioUrl } from '@/lib/s3-audio';
 
 export async function GET(
     request: NextRequest,
@@ -48,7 +49,15 @@ export async function GET(
             },
         });
 
-        return NextResponse.json({ success: true, podcasts });
+        // Resolve presigned URLs for S3-stored audio
+        const podcastsWithUrls = await Promise.all(
+            podcasts.map(async (p) => ({
+                ...p,
+                audioUrl: p.audioUrl ? await getPlayableAudioUrl(p.audioUrl) : null,
+            }))
+        );
+
+        return NextResponse.json({ success: true, podcasts: podcastsWithUrls });
     } catch (error: any) {
         console.error('Get note podcasts error:', error);
         return NextResponse.json(

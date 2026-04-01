@@ -168,6 +168,61 @@ export async function getPresignedImageUrl(
   return { uploadUrl, publicUrl, key };
 }
 
+/**
+ * Upload a podcast audio buffer directly to S3 (server-side).
+ * Stores under podcasts/ prefix so it is not subject to temp lifecycle deletion.
+ * Returns the permanent public URL.
+ */
+export async function uploadPodcastAudioToS3(
+  audioBuffer: Buffer,
+  userId: string,
+  podcastId: string,
+  title: string
+): Promise<string> {
+  const bucket = getBucket();
+  const safeName = sanitizeFileName(title);
+  const key = `podcasts/${userId}/${Date.now()}-${podcastId}-${safeName}.mp3`;
+
+  const client = getS3Client();
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: audioBuffer,
+      ContentType: "audio/mpeg",
+    })
+  );
+
+  // Return the S3 key prefixed with s3:// so we can generate presigned URLs on demand
+  return `s3://${key}`;
+}
+
+/**
+ * Generate a presigned GET URL for an S3 key.
+ * If the url is already an https URL (legacy), return it as-is.
+ */
+const PRESIGNED_PODCAST_EXPIRES_IN = 7200; // 2 hours
+
+export async function getPlayableAudioUrl(storedUrl: string): Promise<string> {
+  if (!storedUrl.startsWith("s3://")) {
+    return storedUrl;
+  }
+
+  const key = storedUrl.slice(5); // strip "s3://"
+  const client = getS3Client();
+  const bucket = getBucket();
+
+  const command = new GetObjectCommand({
+    Bucket: bucket,
+    Key: key,
+  });
+
+  return getSignedUrl(client, command, {
+    expiresIn: PRESIGNED_PODCAST_EXPIRES_IN,
+  });
+}
+
 export function isS3Configured(): boolean {
   return !!(
     process.env.AWS_REGION &&
