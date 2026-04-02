@@ -22,7 +22,7 @@ const envSchema = z.object({
   
   // AI Model Configuration
   EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
-  CHAT_MODEL: z.string().default('gpt-4o-mini'),
+  CHAT_MODEL: z.string().default('gpt-5-mini'),
   EMBEDDING_DIM: z.coerce.number().default(1536),
   
 
