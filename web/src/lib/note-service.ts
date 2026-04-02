@@ -9,13 +9,37 @@ import {
   NotesFromContentResult,
 } from "@/lib/types/notes.types";
 
-const openrouter = createOpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
+const DEFAULT_OPENROUTER_MODEL = "google/gemini-3.1-flash-lite-preview";
+const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
+
+function createNoteGenerationModel() {
+  const openRouterApiKey = process.env.OPENROUTER_API_KEY?.trim();
+  if (openRouterApiKey) {
+    const openrouter = createOpenAI({
+      baseURL: "https://openrouter.ai/api/v1",
+      apiKey: openRouterApiKey,
+    });
+    const modelName =
+      process.env.OPENROUTER_MODEL?.trim() || DEFAULT_OPENROUTER_MODEL;
+
+    return openrouter.chat(modelName);
+  }
+
+  const openAIApiKey = process.env.OPENAI_API_KEY?.trim();
+  if (openAIApiKey) {
+    const openai = createOpenAI({ apiKey: openAIApiKey });
+    const modelName = process.env.CHAT_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
+
+    return openai.chat(modelName);
+  }
+
+  throw new Error(
+    "No AI provider credentials found for note generation. Set OPENROUTER_API_KEY or OPENAI_API_KEY.",
+  );
+}
 
 export class NoteService {
-  private model = openrouter.chat("google/gemini-3.1-flash-lite-preview");
+  private model = createNoteGenerationModel();
 
   /** Provider options for OpenRouter */
   private providerOptions = {};
