@@ -18,6 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             UIViewControllerBasedStatusBarAppearance: false,
             UIStatusBarHidden: false,
             UIStatusBarStyle: "UIStatusBarStyleDefault",
+            ITSAppUsesNonExemptEncryption: false,
             NSMicrophoneUsageDescription: "Flinote needs access to your microphone to record audio lectures and meetings for note generation."
         },
         bundleIdentifier: "ai.flinote.app"
