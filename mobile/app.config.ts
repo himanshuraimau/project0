@@ -20,7 +20,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             UIStatusBarStyle: "UIStatusBarStyleDefault",
             NSMicrophoneUsageDescription: "Flinote needs access to your microphone to record audio lectures and meetings for note generation."
         },
-        bundleIdentifier: "com.abhishekhq11.flinote"
+        bundleIdentifier: "ai.flinote.app"
     },
     android: {
         adaptiveIcon: {
