@@ -9,89 +9,13 @@ import {
   NotesFromContentResult,
 } from "@/lib/types/notes.types";
 
-const DEFAULT_OPENROUTER_MODEL = "google/gemini-3.1-flash-lite-preview";
-const DEFAULT_OPENAI_MODEL = "gpt-5-mini";
-const DEFAULT_NOTE_MAX_OUTPUT_TOKENS = 12000;
-const DEFAULT_FALLBACK_MODEL_MAX_OUTPUT_TOKENS = 8192;
-
-const MODEL_MAX_OUTPUT_TOKEN_LIMITS: Array<{
-  pattern: RegExp;
-  maxTokens: number;
-}> = [
-  // GPT-5 family
-  { pattern: /^gpt-5(\b|[-.])/i, maxTokens: 128000 },
-  // GPT-4o family
-  { pattern: /^gpt-4o-mini(\b|[-.])/i, maxTokens: 16384 },
-  { pattern: /^gpt-4o(\b|[-.])/i, maxTokens: 16384 },
-];
-
-function getModelMaxOutputTokens(modelName: string): number {
-  for (const { pattern, maxTokens } of MODEL_MAX_OUTPUT_TOKEN_LIMITS) {
-    if (pattern.test(modelName)) {
-      return maxTokens;
-    }
-  }
-
-  // Conservative fallback prevents provider hard-failures on unknown models.
-  return DEFAULT_FALLBACK_MODEL_MAX_OUTPUT_TOKENS;
-}
-
-function resolveNoteMaxOutputTokens(modelName: string) {
-  const requested = Number(
-    process.env.NOTE_MAX_OUTPUT_TOKENS ?? DEFAULT_NOTE_MAX_OUTPUT_TOKENS,
-  );
-  const configuredModelMax = Number(process.env.NOTE_MODEL_MAX_OUTPUT_TOKENS);
-
-  const modelMax =
-    Number.isFinite(configuredModelMax) && configuredModelMax > 0
-      ? Math.floor(configuredModelMax)
-      : getModelMaxOutputTokens(modelName);
-
-  const safeRequested = Number.isFinite(requested)
-    ? Math.floor(requested)
-    : DEFAULT_NOTE_MAX_OUTPUT_TOKENS;
-
-  return Math.max(256, Math.min(safeRequested, modelMax));
-}
-
-function createNoteGenerationModelConfig() {
-  const openRouterApiKey = process.env.OPENROUTER_API_KEY?.trim();
-  if (openRouterApiKey) {
-    const openrouter = createOpenAI({
-      baseURL: "https://openrouter.ai/api/v1",
-      apiKey: openRouterApiKey,
-    });
-    const modelName =
-      process.env.OPENROUTER_MODEL?.trim() || DEFAULT_OPENROUTER_MODEL;
-
-    return {
-      model: openrouter.chat(modelName),
-      modelName,
-    };
-  }
-
-  const openAIApiKey = process.env.OPENAI_API_KEY?.trim();
-  if (openAIApiKey) {
-    const openai = createOpenAI({ apiKey: openAIApiKey });
-    const modelName = process.env.CHAT_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
-
-    return {
-      model: openai.chat(modelName),
-      modelName,
-    };
-  }
-
-  throw new Error(
-    "No AI provider credentials found for note generation. Set OPENROUTER_API_KEY or OPENAI_API_KEY.",
-  );
-}
+const openrouter = createOpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 export class NoteService {
-  private modelConfig = createNoteGenerationModelConfig();
-  private model = this.modelConfig.model;
-  private maxOutputTokens = resolveNoteMaxOutputTokens(
-    this.modelConfig.modelName,
-  );
+  private model = openrouter.chat("google/gemini-3.1-flash-lite-preview");
 
   /** Provider options for OpenRouter */
   private providerOptions = {};
@@ -232,7 +156,7 @@ export class NoteService {
       // Generate AI summary using content-specific prompts
       const result = await generateText({
         model: this.model,
-        maxOutputTokens: this.maxOutputTokens,
+        maxOutputTokens: 100000,
         providerOptions: this.providerOptions,
         prompt: `You are a world-class visual note designer and educational content architect. Your mission is to transform raw content into EXTREMELY DETAILED, beautifully designed, and visually stunning study notes. Think of yourself as creating a premium Notion template combined with an infographic — every section should be rich, thorough, and a joy to read.
 
@@ -630,7 +554,7 @@ Make learning enjoyable and memorable while maintaining educational value. Use c
 
       const result = await generateText({
         model: this.model,
-        maxOutputTokens: this.maxOutputTokens,
+        maxOutputTokens: 100000,
         providerOptions: this.providerOptions,
         prompt: `You are a world-class educational content architect creating EXTREMELY DETAILED, visually stunning study notes.
 
@@ -1023,7 +947,7 @@ Generate ONE perfect title (no quotes, just the title):`,
 
       const result = await generateText({
         model: this.model,
-        maxOutputTokens: this.maxOutputTokens,
+        maxOutputTokens: 100000,
         providerOptions: this.providerOptions,
         prompt: `You are a world-class visual note designer and educational content architect. Your mission is to transform raw content into EXTREMELY DETAILED, beautifully designed, and visually stunning study notes. Think of yourself as creating a premium Notion template combined with an infographic — every section should be rich, thorough, and a joy to read.
 

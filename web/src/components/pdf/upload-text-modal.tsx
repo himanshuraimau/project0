@@ -376,11 +376,11 @@ export function UploadTextModal({
           disabled={
             loading || (!textInput.trim() && !selectedPDFFile)
           }
-          className="w-full h-12 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex flex-col items-stretch justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20 overflow-hidden"
+          className="w-full h-12 px-4 rounded-xl bg-linear-to-r from-primary to-primary/90 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer hover:from-primary hover:to-primary/95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20 overflow-hidden"
         >
           {loading ? (
             uploadProgress !== null ? (
-              <>
+              <div className="flex flex-col items-stretch justify-center gap-1.5 w-full">
                 <div className="flex items-center justify-center gap-2">
                   <span className="tabular-nums font-medium">{uploadProgress}%</span>
                   <span className="text-primary-foreground/90">Uploading…</span>
@@ -391,7 +391,7 @@ export function UploadTextModal({
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
-              </>
+              </div>
             ) : (
               <span className="text-primary-foreground/90">Creating notes…</span>
             )

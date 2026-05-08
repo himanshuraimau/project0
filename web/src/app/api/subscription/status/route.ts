@@ -18,130 +18,125 @@ export async function GET(request: NextRequest) {
     }
 
     const featureAccess = await FeatureGateService.getFeatureAccessSummary();
-    const existingSubscription = await SubscriptionService.getUserSubscription(userId);
 
     let paddleSubId = request.nextUrl.searchParams.get('subscription_id');
     const transactionId = request.nextUrl.searchParams.get('transaction_id');
     let subscription: Awaited<ReturnType<typeof SubscriptionService.getSubscriptionWithSync>> = null;
-    const shouldUsePaddleFlow =
-      Boolean(paddleSubId || transactionId) ||
-      !existingSubscription ||
-      SubscriptionService.isPaddleManagedSubscription(existingSubscription);
 
-    if (!shouldUsePaddleFlow && existingSubscription) {
-      subscription = existingSubscription;
-    } else {
-      // If we have a transaction_id but no subscription_id, look up the subscription from the transaction
-      if (!paddleSubId && transactionId) {
-        try {
-          paddleSubId = await PaddleSubscriptionService.getSubscriptionIdFromTransaction(transactionId);
-        } catch (err) {
-          console.error('Error looking up subscription from transaction:', err);
-        }
+    // If we have a transaction_id but no subscription_id, look up the subscription from the transaction
+    if (!paddleSubId && transactionId) {
+      try {
+        paddleSubId = await PaddleSubscriptionService.getSubscriptionIdFromTransaction(transactionId);
+      } catch (err) {
+        console.error('Error looking up subscription from transaction:', err);
       }
+    }
 
-      if (paddleSubId) {
-        try {
-          const paddleSub = await PaddleSubscriptionService.getSubscription(paddleSubId);
+    if (paddleSubId) {
+      try {
+        const paddleSub = await PaddleSubscriptionService.getSubscription(paddleSubId);
 
-          if (paddleSub && (paddleSub.status === 'active' || paddleSub.status === 'trialing')) {
-            const priceId = paddleSub.items?.[0]?.price?.id || '';
-            const billingDates = PaddleSubscriptionService.extractBillingDates(paddleSub);
-            const now = new Date();
-            const thirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        if (paddleSub && (paddleSub.status === 'active' || paddleSub.status === 'trialing')) {
+          const priceId = paddleSub.items?.[0]?.price?.id || '';
+          const billingDates = PaddleSubscriptionService.extractBillingDates(paddleSub);
+          const now = new Date();
+          const thirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-            if (existingSubscription && existingSubscription.paddleSubscriptionId !== paddleSubId) {
-              await SubscriptionService.deleteSubscription(userId);
-            }
+          const existing = await SubscriptionService.getUserSubscription(userId);
 
-            if (!existingSubscription || existingSubscription.paddleSubscriptionId !== paddleSubId) {
-              await SubscriptionService.createSubscription({
-                userId,
-                paddleSubscriptionId: paddleSubId,
-                priceId,
-                status: 'ACTIVE',
-                notesPerMonth: PRO_PLAN_LIMITS.notesPerMonth,
-                coursesPerMonth: PRO_PLAN_LIMITS.coursesPerMonth,
-                pdfProcessingPerMonth: PRO_PLAN_LIMITS.pdfProcessingPerMonth,
-                videoProcessingPerMonth: PRO_PLAN_LIMITS.videoProcessingPerMonth,
-                audioProcessingPerMonth: PRO_PLAN_LIMITS.audioProcessingPerMonth,
-              });
-            }
-
-            const paddleCustomerId = (paddleSub as any)?.customerId;
-            if (paddleCustomerId) {
-              await prisma.user.update({
-                where: { id: userId },
-                data: { paddleCustomerId },
-              }).catch(() => {});
-            }
-
-            await SubscriptionService.activateSubscription(paddleSubId, {
-              currentPeriodStart: billingDates.currentPeriodStart ?? now,
-              currentPeriodEnd: billingDates.currentPeriodEnd ?? thirtyDays,
-              nextBillingDate: billingDates.nextBillingDate ?? thirtyDays,
-            });
-
-            subscription = await SubscriptionService.getSubscriptionByPaddleId(paddleSubId);
-          } else {
-            subscription = await SubscriptionService.getSubscriptionWithSync(userId);
+          if (existing && existing.paddleSubscriptionId !== paddleSubId) {
+            await SubscriptionService.deleteSubscription(userId);
           }
-        } catch (err) {
-          console.error('Error in fast-path sync:', err);
+
+          if (!existing || existing.paddleSubscriptionId !== paddleSubId) {
+            await SubscriptionService.createSubscription({
+              userId,
+              paddleSubscriptionId: paddleSubId,
+              priceId,
+              status: 'ACTIVE',
+              notesPerMonth: PRO_PLAN_LIMITS.notesPerMonth,
+              coursesPerMonth: PRO_PLAN_LIMITS.coursesPerMonth,
+              pdfProcessingPerMonth: PRO_PLAN_LIMITS.pdfProcessingPerMonth,
+              videoProcessingPerMonth: PRO_PLAN_LIMITS.videoProcessingPerMonth,
+              audioProcessingPerMonth: PRO_PLAN_LIMITS.audioProcessingPerMonth,
+            });
+          }
+
+          // Save Paddle customer ID to user if available
+          const paddleCustomerId = (paddleSub as any)?.customerId;
+          if (paddleCustomerId) {
+            await prisma.user.update({
+              where: { id: userId },
+              data: { paddleCustomerId },
+            }).catch(() => {});
+          }
+
+          await SubscriptionService.activateSubscription(paddleSubId, {
+            currentPeriodStart: billingDates.currentPeriodStart ?? now,
+            currentPeriodEnd: billingDates.currentPeriodEnd ?? thirtyDays,
+            nextBillingDate: billingDates.nextBillingDate ?? thirtyDays,
+          });
+
+          subscription = await SubscriptionService.getSubscriptionByPaddleId(paddleSubId);
+        } else {
           subscription = await SubscriptionService.getSubscriptionWithSync(userId);
         }
-      } else {
+      } catch (err) {
+        console.error('Error in fast-path sync:', err);
         subscription = await SubscriptionService.getSubscriptionWithSync(userId);
       }
+    } else {
+      subscription = await SubscriptionService.getSubscriptionWithSync(userId);
+    }
 
-      // Last resort: if no subscription found in DB, search Paddle directly
-      if (!subscription) {
-        try {
-          const paddleSub = await PaddleSubscriptionService.findActiveSubscriptionForUser(userId);
-          if (paddleSub) {
-            const subId = paddleSub.id;
-            const priceId = paddleSub.items?.[0]?.price?.id || '';
-            const billingDates = PaddleSubscriptionService.extractBillingDates(paddleSub);
-            const now = new Date();
-            const thirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    // Last resort: if no subscription found in DB, search Paddle directly
+    if (!subscription) {
+      try {
+        const paddleSub = await PaddleSubscriptionService.findActiveSubscriptionForUser(userId);
+        if (paddleSub) {
+          const subId = paddleSub.id;
+          const priceId = paddleSub.items?.[0]?.price?.id || '';
+          const billingDates = PaddleSubscriptionService.extractBillingDates(paddleSub);
+          const now = new Date();
+          const thirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-            if (existingSubscription && existingSubscription.paddleSubscriptionId !== subId) {
-              await SubscriptionService.deleteSubscription(userId);
-            }
-
-            if (!existingSubscription || existingSubscription.paddleSubscriptionId !== subId) {
-              await SubscriptionService.createSubscription({
-                userId,
-                paddleSubscriptionId: subId,
-                priceId,
-                status: 'ACTIVE',
-                notesPerMonth: PRO_PLAN_LIMITS.notesPerMonth,
-                coursesPerMonth: PRO_PLAN_LIMITS.coursesPerMonth,
-                pdfProcessingPerMonth: PRO_PLAN_LIMITS.pdfProcessingPerMonth,
-                videoProcessingPerMonth: PRO_PLAN_LIMITS.videoProcessingPerMonth,
-                audioProcessingPerMonth: PRO_PLAN_LIMITS.audioProcessingPerMonth,
-              });
-            }
-
-            const paddleCustomerId = (paddleSub as any)?.customerId;
-            if (paddleCustomerId) {
-              await prisma.user.update({
-                where: { id: userId },
-                data: { paddleCustomerId },
-              }).catch(() => {});
-            }
-
-            await SubscriptionService.activateSubscription(subId, {
-              currentPeriodStart: billingDates.currentPeriodStart ?? now,
-              currentPeriodEnd: billingDates.currentPeriodEnd ?? thirtyDays,
-              nextBillingDate: billingDates.nextBillingDate ?? thirtyDays,
-            });
-
-            subscription = await SubscriptionService.getSubscriptionByPaddleId(subId);
+          const existing = await SubscriptionService.getUserSubscription(userId);
+          if (existing && existing.paddleSubscriptionId !== subId) {
+            await SubscriptionService.deleteSubscription(userId);
           }
-        } catch (err) {
-          console.error('Error in Paddle fallback lookup:', err);
+
+          if (!existing || existing.paddleSubscriptionId !== subId) {
+            await SubscriptionService.createSubscription({
+              userId,
+              paddleSubscriptionId: subId,
+              priceId,
+              status: 'ACTIVE',
+              notesPerMonth: PRO_PLAN_LIMITS.notesPerMonth,
+              coursesPerMonth: PRO_PLAN_LIMITS.coursesPerMonth,
+              pdfProcessingPerMonth: PRO_PLAN_LIMITS.pdfProcessingPerMonth,
+              videoProcessingPerMonth: PRO_PLAN_LIMITS.videoProcessingPerMonth,
+              audioProcessingPerMonth: PRO_PLAN_LIMITS.audioProcessingPerMonth,
+            });
+          }
+
+          const paddleCustomerId = (paddleSub as any)?.customerId;
+          if (paddleCustomerId) {
+            await prisma.user.update({
+              where: { id: userId },
+              data: { paddleCustomerId },
+            }).catch(() => {});
+          }
+
+          await SubscriptionService.activateSubscription(subId, {
+            currentPeriodStart: billingDates.currentPeriodStart ?? now,
+            currentPeriodEnd: billingDates.currentPeriodEnd ?? thirtyDays,
+            nextBillingDate: billingDates.nextBillingDate ?? thirtyDays,
+          });
+
+          subscription = await SubscriptionService.getSubscriptionByPaddleId(subId);
         }
+      } catch (err) {
+        console.error('Error in Paddle fallback lookup:', err);
       }
     }
 
@@ -173,11 +168,6 @@ export async function GET(request: NextRequest) {
         cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
         cancelledAt: subscription.cancelledAt,
         trialEnd: subscription.trialEnd,
-        billingProvider: subscription.billingProvider,
-        entitlementId: subscription.entitlementId,
-        store: subscription.store,
-        environment: subscription.environment,
-        managementUrl: subscription.managementUrl,
         createdAt: subscription.createdAt,
         metadata: subscription.metadata || {},
       },

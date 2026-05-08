@@ -6,11 +6,6 @@ import { prisma } from "./prisma";
 
 const appUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "";
 const usingHttpsAppUrl = appUrl.startsWith("https://");
-const hasAppleSocialConfig = Boolean(
-  process.env.APPLE_CLIENT_ID &&
-    process.env.APPLE_CLIENT_SECRET &&
-    process.env.APPLE_APP_BUNDLE_IDENTIFIER,
-);
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -34,16 +29,11 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
-    ...(hasAppleSocialConfig
-      ? {
-          apple: {
-            clientId: process.env.APPLE_CLIENT_ID as string,
-            clientSecret: process.env.APPLE_CLIENT_SECRET as string,
-            appBundleIdentifier:
-              process.env.APPLE_APP_BUNDLE_IDENTIFIER as string,
-          },
-        }
-      : {}),
+    apple: {
+      clientId: process.env.APPLE_CLIENT_ID as string,
+      clientSecret: process.env.APPLE_CLIENT_SECRET as string,
+      appBundleIdentifier: process.env.APPLE_APP_BUNDLE_IDENTIFIER as string,
+    },
   },
 
   // Advanced configuration

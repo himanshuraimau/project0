@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 
 interface OnboardingData {
   source?: string;
+  /** Free-text detail when source is "other" (e.g. "TechCrunch newsletter") */
+  sourceDetail?: string;
   userType?: string;
   role?: string;
   features?: string[];

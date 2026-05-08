@@ -26,6 +26,7 @@ model User {
   usedNotesThisMonth           Int             @default(0)
   usedPdfProcessingThisMonth   Int             @default(0)
   usedVideoProcessingThisMonth Int             @default(0)
+  usedSourcesThisMonth         Int             @default(0)
   paddleCustomerId             String?         @map("paddle_customer_id")
   accounts                     Account[]
   sessions                     Session[]
@@ -84,16 +85,7 @@ model Verification {
 model Subscription {
   id                      String             @id @default(cuid())
   userId                  String             @unique
-  billingProvider         BillingProvider    @default(PADDLE)
-  providerSubscriptionId  String?
-  providerCustomerId      String?
-  revenueCatAppUserId     String?
-  revenueCatCustomerId    String?
-  entitlementId           String?
-  store                   String?
-  environment             String?
-  managementUrl           String?
-  paddleSubscriptionId    String?            @unique
+  paddleSubscriptionId    String             @unique
   priceId                 String
   status                  SubscriptionStatus @default(PENDING)
   currentPeriodStart      DateTime?
@@ -112,6 +104,8 @@ model Subscription {
   notesPerMonth           Int?
   pdfProcessingPerMonth   Int?
   videoProcessingPerMonth Int?
+  sourcesPerMonth         Int?
+  sourcesPerBatch         Int?
   user                    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -120,32 +114,60 @@ model Subscription {
   @@map("subscriptions")
 }
 
-model WebhookEvent {
-  id        String          @id @default(cuid())
-  provider  WebhookProvider
-  eventId   String
-  payload   Json?
-  createdAt DateTime        @default(now())
+model Transcript {
+  id                 String       @id @default(cuid())
+  fileName           String
+  originalName       String
+  content            String
+  cleanContent       String
+  pages              Int?
+  metadata           Json?
+  userId             String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  type               String       @default("pdf")
+  batchId            String?
+  sourceKind         String?
+  status             String?
+  stage              String?
+  progress           Int?         @default(0)
+  errorCode          String?
+  errorMessage       String?
+  uploadKey          String?
+  rawInput           Json?
+  wordCount          Int?
+  tokenCount         Int?
+  summary            String?
+  keyTopics          String[]     @default([])
+  suggestedQuestions String[]     @default([])
+  readyAt            DateTime?
+  folderId           String?
+  batch              SourceBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  notes              Note[]
 
-  @@unique([provider, eventId])
-  @@map("webhook_events")
+  @@index([batchId])
+  @@index([userId, status])
+  @@index([folderId])
+  @@map("transcripts")
 }
 
-model Transcript {
-  id           String   @id @default(cuid())
-  fileName     String
-  originalName String
-  content      String
-  cleanContent String
-  pages        Int?
-  metadata     Json?
-  userId       String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  type         String   @default("pdf")
-  notes        Note[]
+model SourceBatch {
+  id           String       @id @default(cuid())
+  userId       String
+  folderId     String?
+  status       String       @default("pending")
+  totalCount   Int
+  readyCount   Int          @default(0)
+  failedCount  Int          @default(0)
+  skippedCount Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  completedAt  DateTime?
+  transcripts  Transcript[]
 
-  @@map("transcripts")
+  @@index([userId, createdAt])
+  @@index([userId, status])
+  @@map("source_batches")
 }
 
 model Folder {
@@ -429,6 +451,7 @@ model UserOnboarding {
   id                  String    @id @default(cuid())
   userId              String    @unique
   source              String?
+  sourceDetail        String?
   userType            String?
   role                String?
   features            Json?
@@ -460,19 +483,6 @@ enum SubscriptionStatus {
   CANCELLED
   FAILED
   EXPIRED
-}
-
-enum BillingProvider {
-  PADDLE
-  APP_STORE
-  PLAY_STORE
-  TEST_STORE
-  UNKNOWN
-}
-
-enum WebhookProvider {
-  PADDLE
-  REVENUECAT
 }
 
 enum PodcastStatus {

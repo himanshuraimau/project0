@@ -54,11 +54,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No active subscription found' }, { status: 404 });
     }
 
-    if (
-      error.message?.includes('already on') ||
-      error.message?.includes('must be active') ||
-      error.message?.includes('managed')
-    ) {
+    if (error.message?.includes('already on') || error.message?.includes('must be active')) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 

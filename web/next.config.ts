@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
+  trailingSlash: false,
   turbopack: {
     root: process.cwd(),
   },
@@ -75,18 +76,22 @@ const nextConfig: NextConfig = {
               process.env.NODE_ENV === "development"
                 ? "default-src 'self'; " +
                   "script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
+                  "https://clerk.com https://*.clerk.accounts.dev https://*.clerk.dev " +
                   "https://challenges.cloudflare.com https://static.cloudflareinsights.com " +
                   "https://vercel.live " +
                   "https://www.youtube.com https://s.ytimg.com https://www.youtube.com/iframe_api " +
                   "https://cdn.paddle.com " +
                   "http://localhost:* ws://localhost:*; " + // Allow dev server
                   "style-src 'self' 'unsafe-inline' " +
+                  "https://clerk.com https://*.clerk.accounts.dev " +
                   "https://cdn.paddle.com https://sandbox-cdn.paddle.com; " +
                   "img-src 'self' data: https: " +
-                  "https://img.youtube.com https://i.ytimg.com https://s.ytimg.com " +
+                  "https://img.youtube.com https://i.ytimg.com https://images.clerk.dev https://*.clerk.dev https://s.ytimg.com " +
                   "https://utfs.io; " + // UploadThing images
-                  "font-src 'self' data:; " +
+                  "font-src 'self' data: " +
+                  "https://clerk.com https://*.clerk.accounts.dev; " +
                   "connect-src 'self' " +
+                  "https://api.clerk.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.dev " +
                   "https://challenges.cloudflare.com https://cloudflareinsights.com " +
                   "https://vercel.live " +
                   "https://www.youtube.com https://s.ytimg.com " +
@@ -101,11 +106,42 @@ const nextConfig: NextConfig = {
                   "blob: data:; " + // Allow blob URLs for audio playback
                   "frame-src 'self' " +
                   "https://www.youtube.com https://www.youtube-nocookie.com " +
+                  "https://clerk.com https://*.clerk.accounts.dev " +
                   "https://challenges.cloudflare.com " +
                   "https://*.paddle.com; " + // Paddle checkout overlay
                   "worker-src blob:; " +
                   "child-src blob:;"
-                : "", // Production CSP handled by middleware
+                : "default-src 'self'; " +
+                  "script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
+                  "https://clerk.com https://*.clerk.accounts.dev https://*.clerk.dev " +
+                  "https://challenges.cloudflare.com https://static.cloudflareinsights.com " +
+                  "https://vercel.live https://va.vercel-scripts.com " +
+                  "https://www.youtube.com https://s.ytimg.com " +
+                  "https://cdn.paddle.com https://sandbox-cdn.paddle.com; " +
+                  "style-src 'self' 'unsafe-inline' " +
+                  "https://clerk.com https://*.clerk.accounts.dev " +
+                  "https://cdn.paddle.com https://sandbox-cdn.paddle.com; " +
+                  "img-src 'self' data: https: " +
+                  "https://utfs.io; " +
+                  "font-src 'self' data: " +
+                  "https://clerk.com https://*.clerk.accounts.dev; " +
+                  "connect-src 'self' " +
+                  "https://api.clerk.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.dev " +
+                  "https://challenges.cloudflare.com https://cloudflareinsights.com " +
+                  "https://vercel.live https://va.vercel-scripts.com " +
+                  "https://www.youtube.com https://s.ytimg.com " +
+                  "https://utfs.io https://api.uploadthing.com " +
+                  "https://*.paddle.com " +
+                  "https://*.amazonaws.com " +
+                  "https://*.pusher.com wss://*.pusher.com; " +
+                  "media-src 'self' https://utfs.io https://*.amazonaws.com blob: data:; " +
+                  "frame-src 'self' " +
+                  "https://www.youtube.com https://www.youtube-nocookie.com " +
+                  "https://clerk.com https://*.clerk.accounts.dev " +
+                  "https://challenges.cloudflare.com " +
+                  "https://*.paddle.com; " +
+                  "worker-src blob:; " +
+                  "child-src blob:;"
           },
         ],
       },

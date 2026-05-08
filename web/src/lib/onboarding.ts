@@ -8,6 +8,7 @@ export async function getUserOnboardingStatus(userId: string) {
       isCompleted: true,
       currentStep: true,
       source: true,
+      sourceDetail: true,
       userType: true,
       role: true,
       features: true,

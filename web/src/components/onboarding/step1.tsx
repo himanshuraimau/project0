@@ -1,27 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useOnboarding } from "@/contexts/onboarding-context";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  GoogleIcon,
+  YoutubeIcon,
   InstagramIcon,
-  SmartphoneWifiIcon,
+  TiktokIcon,
   Facebook01Icon,
-  Message01Icon,
+  NewTwitterIcon,
+  Linkedin01Icon,
+  RedditIcon,
+  PinterestIcon,
+  SnapchatIcon,
+  ThreadsIcon,
+  AppStoreIcon,
+  ChatGptIcon,
+  UserMultiple02Icon,
   Edit01Icon,
 } from "@hugeicons/core-free-icons";
 import type { IconSvgElement } from "@hugeicons/react";
 
 const sources: { id: string; label: string; icon: IconSvgElement }[] = [
-  { id: "instagram", label: "Instagram Reels", icon: InstagramIcon },
-  { id: "tiktok", label: "TikTok", icon: SmartphoneWifiIcon },
+  { id: "google", label: "Google Search", icon: GoogleIcon },
+  { id: "youtube", label: "YouTube", icon: YoutubeIcon },
+  { id: "instagram", label: "Instagram", icon: InstagramIcon },
+  { id: "tiktok", label: "TikTok", icon: TiktokIcon },
   { id: "facebook", label: "Facebook", icon: Facebook01Icon },
-  { id: "appstore", label: "App Store", icon: SmartphoneWifiIcon },
-  { id: "reddit", label: "Reddit", icon: Message01Icon },
-  { id: "chatgpt", label: "ChatGPT", icon: Message01Icon },
-  { id: "friends", label: "From friends or family", icon: Message01Icon },
+  { id: "twitter", label: "Twitter / X", icon: NewTwitterIcon },
+  { id: "linkedin", label: "LinkedIn", icon: Linkedin01Icon },
+  { id: "reddit", label: "Reddit", icon: RedditIcon },
+  { id: "pinterest", label: "Pinterest", icon: PinterestIcon },
+  { id: "snapchat", label: "Snapchat", icon: SnapchatIcon },
+  { id: "threads", label: "Threads", icon: ThreadsIcon },
+  { id: "chatgpt", label: "ChatGPT", icon: ChatGptIcon },
+  { id: "appstore", label: "App Store", icon: AppStoreIcon },
+  { id: "friends", label: "Friends or family", icon: UserMultiple02Icon },
   { id: "other", label: "Other", icon: Edit01Icon },
 ];
 
@@ -29,7 +46,7 @@ const container = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.04, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.03, delayChildren: 0.1 },
   },
 };
 
@@ -40,17 +57,45 @@ const item = {
 
 export function OnboardingStep1() {
   const [selected, setSelected] = useState<string | null>(null);
+  const [otherText, setOtherText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const otherInputRef = useRef<HTMLInputElement>(null);
   const { saveStep } = useOnboarding();
   const router = useRouter();
 
-  const handleSelect = async (sourceId: string) => {
-    setSelected(sourceId);
+  const isOther = selected === "other";
+
+  useEffect(() => {
+    if (isOther) {
+      otherInputRef.current?.focus();
+    }
+  }, [isOther]);
+
+  const advance = async (sourceId: string, detail?: string) => {
+    if (submitting) return;
+    setSubmitting(true);
     try {
-      await saveStep(1, { source: sourceId });
-      setTimeout(() => router.push("/onboarding/step2"), 280);
+      await saveStep(1, {
+        source: sourceId,
+        sourceDetail: detail?.trim() || undefined,
+      });
+      setTimeout(() => router.push("/onboarding/step2"), 200);
     } catch (err) {
       console.error("Failed to save step 1:", err);
+      setSubmitting(false);
     }
+  };
+
+  const handleSelect = (sourceId: string) => {
+    setSelected(sourceId);
+    if (sourceId === "other") return;
+    advance(sourceId);
+  };
+
+  const handleOtherSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!otherText.trim()) return;
+    advance("other", otherText);
   };
 
   return (
@@ -102,6 +147,46 @@ export function OnboardingStep1() {
           );
         })}
       </motion.div>
+
+      <AnimatePresence>
+        {isOther && (
+          <motion.form
+            key="other-form"
+            onSubmit={handleOtherSubmit}
+            initial={{ opacity: 0, y: -8, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: 0.22, ease: [0.33, 1, 0.68, 1] }}
+            className="mt-4 overflow-hidden text-left"
+          >
+            <label
+              htmlFor="other-source"
+              className="block text-xs font-medium text-muted-foreground"
+            >
+              Where did you hear about us?
+            </label>
+            <div className="mt-2 flex gap-2">
+              <input
+                ref={otherInputRef}
+                id="other-source"
+                type="text"
+                value={otherText}
+                onChange={(e) => setOtherText(e.target.value)}
+                placeholder="e.g. a podcast, newsletter, blog…"
+                maxLength={200}
+                className="flex-1 rounded-lg border border-border bg-muted/80 px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              <button
+                type="submit"
+                disabled={!otherText.trim() || submitting}
+                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Continue
+              </button>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

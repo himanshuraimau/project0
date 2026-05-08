@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         isCompleted: true,
         currentStep: true,
         source: true,
+        sourceDetail: true,
         userType: true,
         role: true,
         features: true,
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       source,
+      sourceDetail,
       userType,
       role,
       features,
@@ -70,11 +72,19 @@ export async function POST(request: NextRequest) {
       wantsProductUpdates,
     } = body;
 
+    const cleanedSourceDetail =
+      typeof sourceDetail === "string"
+        ? sourceDetail.trim().slice(0, 200) || null
+        : sourceDetail === null
+          ? null
+          : undefined;
+
     // Upsert onboarding data
     const onboarding = await prisma.userOnboarding.upsert({
       where: { userId: session.user.id },
       update: {
         ...(source !== undefined && { source: source ?? null }),
+        ...(cleanedSourceDetail !== undefined && { sourceDetail: cleanedSourceDetail }),
         ...(userType !== undefined && { userType: userType ?? null }),
         ...(role !== undefined && { role: role ?? null }),
         ...(features !== undefined && { features }),
@@ -89,6 +99,7 @@ export async function POST(request: NextRequest) {
       create: {
         userId: session.user.id,
         source: source || null,
+        sourceDetail: cleanedSourceDetail ?? null,
         userType: userType || null,
         role: role || null,
         features: features || null,
@@ -114,6 +125,7 @@ export async function POST(request: NextRequest) {
         subscribed: wantsProductUpdates !== false,
         plan: "free",
         referralSource: source || undefined,
+        referralSourceDetail: cleanedSourceDetail || undefined,
         userType: userType || undefined,
         role: role || undefined,
         studyIntensity: studyIntensity || undefined,
@@ -124,6 +136,7 @@ export async function POST(request: NextRequest) {
       }
       await sendLoopsEvent(session.user.email, "onboarding_completed", {
         source: source || "unknown",
+        sourceDetail: cleanedSourceDetail || "",
         role: role || "unknown",
       });
     }

@@ -45,6 +45,7 @@ interface AdminUser {
     isCompleted: boolean;
     currentStep: number;
     source: string | null;
+    sourceDetail: string | null;
     userType: string | null;
     role: string | null;
     studyIntensity: string | null;
@@ -67,6 +68,8 @@ function downloadUsersCsv(users: AdminUser[], filename: string) {
     "Created At",
     "Plan",
     "Subscription Status",
+    "Source",
+    "Source Detail",
     "Onboarding Role",
     "User Type",
     "Study Intensity",
@@ -78,6 +81,8 @@ function downloadUsersCsv(users: AdminUser[], filename: string) {
     u.createdAt ? new Date(u.createdAt).toISOString() : "",
     u.isPremium ? "Premium" : "Free",
     escapeCsvField(u.subscriptionStatus),
+    escapeCsvField(u.onboarding?.source),
+    escapeCsvField(u.onboarding?.sourceDetail),
     escapeCsvField(u.onboarding?.role),
     escapeCsvField(u.onboarding?.userType),
     escapeCsvField(u.onboarding?.studyIntensity),

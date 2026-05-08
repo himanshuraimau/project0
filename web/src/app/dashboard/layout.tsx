@@ -12,6 +12,7 @@ import {
 import { UpgradeModalProvider } from "@/contexts/upgrade-modal-context";
 import { PaymentSuccessHandler } from "@/components/subscription/payment-success-handler";
 import { FreeNoteCounter } from "@/components/dashboard/free-note-counter";
+import { ProcessingTray } from "@/components/sources/processing-tray";
 import { Input } from "@/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Search01Icon } from "@hugeicons/core-free-icons";
@@ -230,6 +231,7 @@ export default function DashboardLayout({
               <DashboardMain>{children}</DashboardMain>
             </div>
           )}
+          <ProcessingTray />
         </UpgradeModalProvider>
       </DashboardRefreshProvider>
     </div>

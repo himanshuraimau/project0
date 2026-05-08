@@ -80,6 +80,64 @@ export const ourFileRouter = {
       };
     }),
 
+  // Bulk sources upload — multiple files of mixed supported types
+  bulkSources: f({
+    pdf: {
+      maxFileSize: "128MB",
+      maxFileCount: 50,
+    },
+    "text/plain": {
+      maxFileSize: "8MB",
+      maxFileCount: 50,
+    },
+    "text/markdown": {
+      maxFileSize: "8MB",
+      maxFileCount: 50,
+    },
+    "text/csv": {
+      maxFileSize: "16MB",
+      maxFileCount: 50,
+    },
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+      maxFileSize: "32MB",
+      maxFileCount: 50,
+    },
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+      {
+        maxFileSize: "64MB",
+        maxFileCount: 50,
+      },
+    "image/png": {
+      maxFileSize: "16MB",
+      maxFileCount: 50,
+    },
+    "image/jpeg": {
+      maxFileSize: "16MB",
+      maxFileCount: 50,
+    },
+    "image/webp": {
+      maxFileSize: "16MB",
+      maxFileCount: 50,
+    },
+  })
+    .middleware(async () => {
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
+      if (!session?.user?.id) throw new UploadThingError("Unauthorized");
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      return {
+        uploadedBy: metadata.userId,
+        url: file.url,
+        key: file.key,
+        size: file.size,
+        name: file.name,
+        type: file.type,
+      };
+    }),
+
   // Admin-only: blog cover and instructor images
   blogImage: f({
     image: {

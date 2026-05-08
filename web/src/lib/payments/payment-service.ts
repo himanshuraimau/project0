@@ -25,20 +25,6 @@ export interface CancelSubscriptionParams {
 }
 
 export class PaymentService {
-  private static assertPaddleManagedSubscription(
-    subscription: Awaited<ReturnType<typeof SubscriptionService.getUserSubscription>>
-  ): NonNullable<Awaited<ReturnType<typeof SubscriptionService.getUserSubscription>>> & {
-    paddleSubscriptionId: string;
-  } {
-    if (SubscriptionService.isPaddleManagedSubscription(subscription) && subscription?.paddleSubscriptionId) {
-      return subscription as NonNullable<Awaited<ReturnType<typeof SubscriptionService.getUserSubscription>>> & {
-        paddleSubscriptionId: string;
-      };
-    }
-
-    throw new Error(SubscriptionService.getProviderManagementMessage(subscription));
-  }
-
   static compareBillingIntervals(current: BillingInterval, requested: BillingInterval): PlanComparison {
     if (current === requested) return 'same';
     if (current === 'monthly' && requested === 'yearly') return 'upgrade';
@@ -83,10 +69,7 @@ export class PaymentService {
       clientToken: PADDLE_CONFIG.clientToken,
       environment: PADDLE_CONFIG.environment,
       customerEmail: userEmail,
-      customData: {
-        userId,
-        revenuecat_app_user_id: userId,
-      },
+      customData: { userId },
       discountCode,
       returnUrl: PADDLE_CONFIG.returnUrl,
     };
@@ -101,10 +84,8 @@ export class PaymentService {
       throw new Error('No active subscription found');
     }
 
-    const managedSubscription = this.assertPaddleManagedSubscription(existingSubscription);
-
     const paddleSubscription = await PaddleSubscriptionService.getSubscription(
-      managedSubscription.paddleSubscriptionId
+      existingSubscription.paddleSubscriptionId
     );
 
     if (!paddleSubscription) {
@@ -131,7 +112,7 @@ export class PaymentService {
 
     if (immediate) {
       const changeResult = await PaddleSubscriptionService.changePlan(
-        managedSubscription.paddleSubscriptionId,
+        existingSubscription.paddleSubscriptionId,
         targetPriceId,
         'prorated_immediately'
       );
@@ -141,7 +122,7 @@ export class PaymentService {
       }
 
       await SubscriptionService.updateSubscriptionPriceId(
-        managedSubscription.paddleSubscriptionId,
+        existingSubscription.paddleSubscriptionId,
         targetPriceId
       );
 
@@ -154,12 +135,12 @@ export class PaymentService {
       };
     }
 
-    const metadata = (managedSubscription.metadata as any) || {};
+    const metadata = (existingSubscription.metadata as any) || {};
     delete metadata.scheduledPriceId;
     delete metadata.scheduledPlanType;
     delete metadata.scheduledAt;
 
-    await SubscriptionService.updateSubscriptionMetadata(managedSubscription.paddleSubscriptionId, {
+    await SubscriptionService.updateSubscriptionMetadata(existingSubscription.paddleSubscriptionId, {
       ...metadata,
       scheduledPriceId: targetPriceId,
       scheduledPlanType: targetBillingInterval,
@@ -188,19 +169,17 @@ export class PaymentService {
       throw new Error('Subscription is already cancelled');
     }
 
-    const managedSubscription = this.assertPaddleManagedSubscription(subscription);
-
-    const metadata = (managedSubscription.metadata as any) || {};
+    const metadata = (subscription.metadata as any) || {};
     if (metadata.scheduledPriceId) {
       delete metadata.scheduledPriceId;
       delete metadata.scheduledPlanType;
       delete metadata.scheduledAt;
-      await SubscriptionService.updateSubscriptionMetadata(managedSubscription.paddleSubscriptionId, metadata);
+      await SubscriptionService.updateSubscriptionMetadata(subscription.paddleSubscriptionId, metadata);
     }
 
     const effectiveFrom = cancelAtPeriodEnd ? 'next_billing_period' : 'immediately' as const;
     const cancelResult = await PaddleSubscriptionService.cancelSubscription(
-      managedSubscription.paddleSubscriptionId,
+      subscription.paddleSubscriptionId,
       effectiveFrom
     );
 
@@ -210,13 +189,13 @@ export class PaymentService {
 
     if (cancelAtPeriodEnd) {
       return await SubscriptionService.updateSubscriptionCancelState(
-        managedSubscription.paddleSubscriptionId,
+        subscription.paddleSubscriptionId,
         true
       );
     }
 
     return await SubscriptionService.updateSubscriptionStatus(
-      managedSubscription.paddleSubscriptionId,
+      subscription.paddleSubscriptionId,
       'CANCELLED',
       { nextBillingDate: null, cancelledAt: new Date(), cancelAtPeriodEnd: false }
     );
@@ -229,21 +208,19 @@ export class PaymentService {
       throw new Error('No subscription found');
     }
 
-    const managedSubscription = this.assertPaddleManagedSubscription(subscription);
-
-    if (managedSubscription.status !== 'ACTIVE' || !managedSubscription.cancelAtPeriodEnd) {
+    if (subscription.status !== 'ACTIVE' || !subscription.cancelAtPeriodEnd) {
       throw new Error('Only subscriptions cancelled at period end can be reactivated');
     }
 
     const reactivateResult = await PaddleSubscriptionService.reactivateSubscription(
-      managedSubscription.paddleSubscriptionId
+      subscription.paddleSubscriptionId
     );
 
     if (!reactivateResult.success) {
       throw new Error(reactivateResult.error || 'Failed to reactivate subscription');
     }
 
-    await SubscriptionService.updateSubscriptionCancelState(managedSubscription.paddleSubscriptionId, false);
+    await SubscriptionService.updateSubscriptionCancelState(subscription.paddleSubscriptionId, false);
 
     return await SubscriptionService.getUserSubscription(userId);
   }
@@ -268,11 +245,7 @@ export class PaymentService {
       ? { targetBillingInterval: metadata.scheduledPlanType as BillingInterval, scheduledAt: metadata.scheduledAt }
       : null;
 
-    const currentBillingInterval = SubscriptionService.isPaddleManagedSubscription(subscription)
-      ? this.getBillingIntervalFromPriceId(subscription.priceId)
-      : /year|annual/i.test(subscription.priceId)
-        ? 'yearly'
-        : 'monthly';
+    const currentBillingInterval = this.getBillingIntervalFromPriceId(subscription.priceId);
 
     return {
       hasSubscription: true,

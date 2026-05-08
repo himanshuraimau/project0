@@ -11,6 +11,14 @@ const envSchema = z.object({
   // Database
   DATABASE_URL: z.string().optional(),
   
+  // Authentication (Clerk)
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().optional(),
+  CLERK_SECRET_KEY: z.string().optional(),
+  NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string().default('/sign-in'),
+  NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string().default('/sign-up'),
+  NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: z.string().default('/'),
+  NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: z.string().default('/'),
+  
   // AI Services
   OPENAI_API_KEY: z.string().optional(),
   
@@ -22,7 +30,7 @@ const envSchema = z.object({
   
   // AI Model Configuration
   EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
-  CHAT_MODEL: z.string().default('gpt-5-mini'),
+  CHAT_MODEL: z.string().default('gpt-4o-mini'),
   EMBEDDING_DIM: z.coerce.number().default(1536),
   
 
@@ -67,6 +75,12 @@ function parseEnvironment() {
     
     // Production environment checks
     if (parsed.NODE_ENV === 'production') {
+      // Check for development keys in production
+      if (parsed.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.includes('pk_test_')) {
+        console.warn('⚠️  WARNING: Using Clerk development keys in production environment!');
+        console.warn('Please update to production keys: https://clerk.com/docs/deployments/overview');
+      }
+      
       // Check for localhost URLs in production
       if (parsed.NEXT_PUBLIC_APP_URL?.includes('localhost')) {
         console.warn('⚠️  WARNING: Using localhost URL in production environment!');
@@ -100,6 +114,18 @@ export const config = {
   // Database
   database: {
     url: env.DATABASE_URL || '',
+  },
+  
+  // Authentication
+  auth: {
+    clerk: {
+      publishableKey: env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
+      secretKey: env.CLERK_SECRET_KEY || '',
+      signInUrl: env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
+      signUpUrl: env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
+      signInFallbackUrl: env.NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL,
+      signUpFallbackUrl: env.NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL,
+    },
   },
   
   // AI Services
@@ -231,6 +257,7 @@ export const environmentUtils = {
         openai: !!config.ai.openai.apiKey && config.ai.openai.apiKey.startsWith('sk-'),
         elevenlabs: !!config.ai.elevenlabs.apiKey && config.ai.elevenlabs.apiKey.startsWith('sk_'),
         localStorage: true, // Using local storage for development
+        clerk: !!config.auth.clerk.publishableKey && !!config.auth.clerk.secretKey,
       },
     };
   },

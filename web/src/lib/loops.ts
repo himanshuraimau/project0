@@ -22,6 +22,8 @@ export interface LoopsContactProperties {
   plan?: string;
   /** Onboarding: how they found us */
   referralSource?: string;
+  /** Onboarding: free-text detail when source is "other" */
+  referralSourceDetail?: string;
   userType?: string;
   role?: string;
   studyIntensity?: string;

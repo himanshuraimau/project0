@@ -26,6 +26,7 @@ import { UploadTextModal } from "@/components/pdf";
 import { ProcessPDFResult } from "@/lib/types";
 import { AudioUploadModal } from "@/components/audio";
 import { AddLinkModal } from "@/components/link";
+import { AddSourcesButton } from "@/components/sources/add-sources-button";
 import { useDashboardRefresh } from "@/contexts/dashboard-refresh-context";
 import { normalizeS3UploadError } from "@/lib/utils/s3-upload-errors";
 import { uploadWithProgress } from "@/lib/utils/upload-with-progress";
@@ -1048,13 +1049,16 @@ export function NewNoteSection() {
 
   return (
     <div className="w-full">
-      <div className="mb-6">
-        <h2 className="text-xl font-medium tracking-tight text-foreground">
-          New Note
-        </h2>
-        <p className="mt-0.5 text-muted-foreground">
-          Record audio, upload files, or process YouTube videos and websites
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-xl font-medium tracking-tight text-foreground">
+            New Note
+          </h2>
+          <p className="mt-0.5 text-muted-foreground">
+            Record audio, upload files, or process YouTube videos and websites
+          </p>
+        </div>
+        {/* <AddSourcesButton label="Add sources (bulk)" /> */}
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">

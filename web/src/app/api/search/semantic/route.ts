@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(errorResponse, { status: 401 });
     }
     
-    // User is authenticated via session (Better Auth)
+    // User is authenticated via Clerk, we don't need to check the database
     
     // Parse the request body
     const { query, noteId, limit = 5 }: SemanticSearchRequest = await req.json();
