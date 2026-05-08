@@ -28,6 +28,7 @@ import {
   maybeCompleteAuthSessionOnce,
   signInWithGoogleSingleFlight,
 } from "@/lib/auth/social-google";
+import { signInWithAppleSingleFlight } from "@/lib/auth/social-apple";
 
 maybeCompleteAuthSessionOnce();
 const APP_SCHEME = (
@@ -62,6 +63,7 @@ export default function WelcomeScreen() {
   const t = theme.typography;
   const [ctaScale, ctaPressIn, ctaPressOut] = usePressScale();
   const [loading, setLoading] = useState(false);
+  const [isApple, setIsApple] = useState(false);
 
   useEffect(() => {
     void WebBrowser.warmUpAsync();
@@ -100,6 +102,41 @@ export default function WelcomeScreen() {
       }
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  const handleAppleAuth = useCallback(async () => {
+    setLoading(true);
+    setIsApple(true);
+    try {
+      const result = await signInWithAppleSingleFlight(
+        MOBILE_AUTH_CALLBACK_URL
+      );
+      if (result.skipped) return;
+      const response = result.response;
+      if (response.data && !response.error) {
+        // Navigation handled by auth layout
+      } else {
+        Alert.alert(
+          "Sign in failed",
+          response.error?.message ?? "Something went wrong. Try again."
+        );
+      }
+    } catch (err) {
+      if (isNetworkError(err)) {
+        Alert.alert(
+          "Connection problem",
+          "Could not reach the server. Check your internet connection and try again."
+        );
+      } else {
+        Alert.alert(
+          "Something went wrong",
+          (err as Error)?.message ?? "Please try again."
+        );
+      }
+    } finally {
+      setLoading(false);
+      setIsApple(false);
     }
   }, []);
 
@@ -286,6 +323,92 @@ export default function WelcomeScreen() {
             </Pressable>
           </Animated.View>
 
+          {/* Continue with Apple */}
+          <Animated.View style={[ctaScale, styles.ctaWrap]}>
+            <Pressable
+              onPress={handleAppleAuth}
+              onPressIn={ctaPressIn}
+              onPressOut={ctaPressOut}
+              disabled={loading}
+              style={({ pressed }) => [
+                styles.googleBtn,
+                {
+                  backgroundColor: isDark
+                    ? neutral[800]
+                    : neutral[950],
+                  opacity: loading ? 0.7 : pressed ? 0.85 : 1,
+                },
+              ]}
+            >
+              {loading && isApple ? (
+                <ActivityIndicator
+                  size="small"
+                  color={isDark ? c.foreground : neutral[0]}
+                />
+              ) : (
+                <>
+                  <Text style={styles.appleLogo}>
+                    
+                  </Text>
+                  <Text
+                    style={[
+                      styles.googleBtnText,
+                      {
+                        color: isDark ? neutral[50] : neutral[0],
+                        fontWeight: t.weightSemibold,
+                      },
+                    ]}
+                  >
+                    Continue with Apple
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          </Animated.View>
+
+          {/* Continue with Apple */}
+          <Animated.View style={[ctaScale, styles.ctaWrap]}>
+            <Pressable
+              onPress={handleAppleAuth}
+              onPressIn={ctaPressIn}
+              onPressOut={ctaPressOut}
+              disabled={loading}
+              style={({ pressed }) => [
+                styles.googleBtn,
+                {
+                  backgroundColor: isDark
+                    ? neutral[800]
+                    : neutral[950],
+                  opacity: loading ? 0.7 : pressed ? 0.85 : 1,
+                },
+              ]}
+            >
+              {loading && isApple ? (
+                <ActivityIndicator
+                  size="small"
+                  color={isDark ? c.foreground : neutral[0]}
+                />
+              ) : (
+                <>
+                  <Text style={styles.appleLogo}>
+                    
+                  </Text>
+                  <Text
+                    style={[
+                      styles.googleBtnText,
+                      {
+                        color: isDark ? neutral[50] : neutral[0],
+                        fontWeight: t.weightSemibold,
+                      },
+                    ]}
+                  >
+                    Continue with Apple
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          </Animated.View>
+
           {/* Legal footer */}
           <Animated.View entering={authEntrance.footer}>
             <Text style={[styles.legalText, { color: subtleText }]}>
@@ -449,6 +572,10 @@ const styles = StyleSheet.create({
   googleLogo: {
     width: 16,
     height: 16,
+  },
+  appleLogo: {
+    fontSize: 24,
+    lineHeight: 24,
   },
   googleBtnText: {
     fontSize: 17,

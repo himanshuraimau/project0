@@ -2,10 +2,33 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { expo } from "@better-auth/expo";
+import { importPKCS8, SignJWT } from "jose";
 import { prisma } from "./prisma";
 
 const appUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "";
 const usingHttpsAppUrl = appUrl.startsWith("https://");
+
+async function generateAppleClientSecret() {
+  const privateKey = process.env.APPLE_PRIVATE_KEY;
+  const teamId = process.env.APPLE_TEAM_ID;
+  const keyId = process.env.APPLE_KEY_ID;
+  const clientId = process.env.APPLE_CLIENT_ID;
+
+  if (!privateKey || !teamId || !keyId || !clientId) return undefined;
+
+  const key = await importPKCS8(privateKey, "ES256");
+  const now = Math.floor(Date.now() / 1000);
+  return new SignJWT({})
+    .setProtectedHeader({ alg: "ES256", kid: keyId })
+    .setIssuer(teamId)
+    .setSubject(clientId)
+    .setAudience("https://appleid.apple.com")
+    .setIssuedAt(now)
+    .setExpirationTime(now + 180 * 24 * 60 * 60)
+    .sign(key);
+}
+
+const appleClientSecret = await generateAppleClientSecret();
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -31,7 +54,7 @@ export const auth = betterAuth({
     },
     apple: {
       clientId: process.env.APPLE_CLIENT_ID as string,
-      clientSecret: process.env.APPLE_CLIENT_SECRET as string,
+      clientSecret: appleClientSecret!,
       appBundleIdentifier: process.env.APPLE_APP_BUNDLE_IDENTIFIER as string,
     },
   },
