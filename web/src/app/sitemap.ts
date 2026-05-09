@@ -4,15 +4,21 @@ import { prisma } from "@/lib/prisma";
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://flinote.ai";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Fetch published blog posts from the database
-  const dbPosts = await prisma.blogPost.findMany({
-    where: { publishedAt: { not: null } },
-    orderBy: { publishedAt: "desc" },
-    select: {
-      slug: true,
-      publishedAt: true,
-    },
-  });
+  // Fetch published blog posts from the database.
+  // During build/CI the DB may be unreachable; fall back to static routes.
+  let dbPosts: Array<{ slug: string; publishedAt: Date | null }> = [];
+  try {
+    dbPosts = await prisma.blogPost.findMany({
+      where: { publishedAt: { not: null } },
+      orderBy: { publishedAt: "desc" },
+      select: {
+        slug: true,
+        publishedAt: true,
+      },
+    });
+  } catch {
+    dbPosts = [];
+  }
 
   const blogRoutes: MetadataRoute.Sitemap = [
     {

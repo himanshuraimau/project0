@@ -1,7 +1,7 @@
 import { PaddleSubscriptionService, type BillingInterval } from './paddle';
 import { SubscriptionService } from '../subscription-service';
 import { FeatureGateService } from '../feature-gate-service';
-import { PADDLE_CONFIG } from './paddle';
+import { BillingOrchestrator, getInternalPlanConfig, resolveInternalPlanIdFromPaddlePriceId } from '@/lib/billing';
 
 export type PlanComparison = 'same' | 'upgrade' | 'downgrade';
 
@@ -46,7 +46,7 @@ export class PaymentService {
   static async getCheckoutData(params: CreateSubscriptionParams) {
     const { userId, userEmail, billingInterval, discountCode } = params;
 
-    const existingSubscription = await SubscriptionService.getSubscriptionWithSync(userId);
+    const existingSubscription = await SubscriptionService.getUserSubscription(userId);
 
     if (existingSubscription) {
       if (existingSubscription.status === 'ACTIVE') {
@@ -62,17 +62,14 @@ export class PaymentService {
       }
     }
 
-    const priceId = this.getPriceId(billingInterval);
-
-    return {
-      priceId,
-      clientToken: PADDLE_CONFIG.clientToken,
-      environment: PADDLE_CONFIG.environment,
-      customerEmail: userEmail,
-      customData: { userId },
+    const checkout = await BillingOrchestrator.getCheckoutData({
+      userId,
+      userEmail,
+      billingInterval,
       discountCode,
-      returnUrl: PADDLE_CONFIG.returnUrl,
-    };
+    });
+
+    return checkout;
   }
 
   static async changePlan(params: PlanChangeParams) {
@@ -82,6 +79,10 @@ export class PaymentService {
 
     if (!existingSubscription) {
       throw new Error('No active subscription found');
+    }
+
+    if (existingSubscription.provider !== 'PADDLE') {
+      throw new Error('Plan changes are managed in your App Store subscription settings.');
     }
 
     const paddleSubscription = await PaddleSubscriptionService.getSubscription(
@@ -123,7 +124,8 @@ export class PaymentService {
 
       await SubscriptionService.updateSubscriptionPriceId(
         existingSubscription.paddleSubscriptionId,
-        targetPriceId
+        targetPriceId,
+        resolveInternalPlanIdFromPaddlePriceId(targetPriceId) ?? undefined
       );
 
       const updatedSubscription = await SubscriptionService.getSubscriptionWithSync(userId);
@@ -158,70 +160,12 @@ export class PaymentService {
 
   static async cancelSubscription(params: CancelSubscriptionParams) {
     const { userId, cancelAtPeriodEnd = true } = params;
-
-    const subscription = await SubscriptionService.getUserSubscription(userId);
-
-    if (!subscription) {
-      throw new Error('No subscription found');
-    }
-
-    if (subscription.status === 'CANCELLED') {
-      throw new Error('Subscription is already cancelled');
-    }
-
-    const metadata = (subscription.metadata as any) || {};
-    if (metadata.scheduledPriceId) {
-      delete metadata.scheduledPriceId;
-      delete metadata.scheduledPlanType;
-      delete metadata.scheduledAt;
-      await SubscriptionService.updateSubscriptionMetadata(subscription.paddleSubscriptionId, metadata);
-    }
-
-    const effectiveFrom = cancelAtPeriodEnd ? 'next_billing_period' : 'immediately' as const;
-    const cancelResult = await PaddleSubscriptionService.cancelSubscription(
-      subscription.paddleSubscriptionId,
-      effectiveFrom
-    );
-
-    if (!cancelResult.success) {
-      throw new Error(cancelResult.error || 'Failed to cancel subscription');
-    }
-
-    if (cancelAtPeriodEnd) {
-      return await SubscriptionService.updateSubscriptionCancelState(
-        subscription.paddleSubscriptionId,
-        true
-      );
-    }
-
-    return await SubscriptionService.updateSubscriptionStatus(
-      subscription.paddleSubscriptionId,
-      'CANCELLED',
-      { nextBillingDate: null, cancelledAt: new Date(), cancelAtPeriodEnd: false }
-    );
+    await BillingOrchestrator.cancelSubscription(userId, cancelAtPeriodEnd);
+    return await SubscriptionService.getUserSubscription(userId);
   }
 
   static async reactivateSubscription(userId: string) {
-    const subscription = await SubscriptionService.getUserSubscription(userId);
-
-    if (!subscription) {
-      throw new Error('No subscription found');
-    }
-
-    if (subscription.status !== 'ACTIVE' || !subscription.cancelAtPeriodEnd) {
-      throw new Error('Only subscriptions cancelled at period end can be reactivated');
-    }
-
-    const reactivateResult = await PaddleSubscriptionService.reactivateSubscription(
-      subscription.paddleSubscriptionId
-    );
-
-    if (!reactivateResult.success) {
-      throw new Error(reactivateResult.error || 'Failed to reactivate subscription');
-    }
-
-    await SubscriptionService.updateSubscriptionCancelState(subscription.paddleSubscriptionId, false);
-
+    await BillingOrchestrator.reactivateSubscription(userId);
     return await SubscriptionService.getUserSubscription(userId);
   }
 
@@ -245,7 +189,9 @@ export class PaymentService {
       ? { targetBillingInterval: metadata.scheduledPlanType as BillingInterval, scheduledAt: metadata.scheduledAt }
       : null;
 
-    const currentBillingInterval = this.getBillingIntervalFromPriceId(subscription.priceId);
+    const currentBillingInterval = subscription.provider === 'PADDLE'
+      ? this.getBillingIntervalFromPriceId(subscription.priceId)
+      : getInternalPlanConfig(subscription.internalPlanId as any)?.interval ?? null;
 
     return {
       hasSubscription: true,

@@ -20,6 +20,10 @@ export async function POST(request: NextRequest) {
 
     const subscription = await PaymentService.cancelSubscription({ userId, cancelAtPeriodEnd });
 
+    if (!subscription) {
+      throw new Error('No subscription found');
+    }
+
     return NextResponse.json({
       success: true,
       subscription: {

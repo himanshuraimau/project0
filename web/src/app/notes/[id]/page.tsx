@@ -52,18 +52,23 @@ export default function NoteHubPage() {
   useEffect(() => {
     const lang = searchParams?.get("lang") as LanguageCode | null;
     if (lang && note) {
-      setCurrentLang(lang);
+      // Fetch translation when lang param changes
       fetch(`/api/notes/${note.id}/translate?language=${lang}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.data?.content) {
+            setCurrentLang(lang);
             setTranslatedContent(data.data.content);
           } else {
+            setCurrentLang("en");
             setTranslatedContent(null);
           }
         })
-        .catch(() => setTranslatedContent(null));
-    } else {
+        .catch(() => {
+          setCurrentLang("en");
+          setTranslatedContent(null);
+        });
+    } else if (!lang) {
       setCurrentLang("en");
       setTranslatedContent(null);
     }

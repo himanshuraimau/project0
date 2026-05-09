@@ -10,22 +10,22 @@ import { useEffect, useState } from 'react';
 export function CourseCreationRouter() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
     const mode = searchParams?.get('mode');
     
     // If no mode is specified, redirect to wizard (new default behavior)
     if (!mode) {
-      setShouldRedirect(true);
       router.replace('/dashboard/create/wizard');
     }
     // If mode=manual, stay on current page to show manual form
     // This maintains backward compatibility for any existing links
   }, [searchParams, router]);
 
+  const mode = searchParams?.get('mode');
+  
   // Don't render anything while redirecting
-  if (shouldRedirect) {
+  if (!mode) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

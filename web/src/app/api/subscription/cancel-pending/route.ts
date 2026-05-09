@@ -24,6 +24,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (subscription.provider !== 'PADDLE' || !subscription.paddleSubscriptionId) {
+      return NextResponse.json(
+        { error: 'Pending cancellation is only supported for Paddle subscriptions.' },
+        { status: 400 }
+      );
+    }
+
     const cancelResult = await PaddleSubscriptionService.cancelSubscription(
       subscription.paddleSubscriptionId,
       'immediately'

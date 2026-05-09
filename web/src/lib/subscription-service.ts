@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { PaddleSubscriptionService } from '@/lib/payments/paddle';
+import { resolveInternalPlanIdFromPaddlePriceId } from '@/lib/billing';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import type { SubscriptionStatus } from '@prisma/client';
+import type { SubscriptionStatus, BillingProvider } from '@prisma/client';
 
 export class SubscriptionService {
   static async getUserSubscription(userId: string) {
@@ -29,6 +30,18 @@ export class SubscriptionService {
     }
   }
 
+  static async getSubscriptionByRCTransactionId(rcOriginalTransactionId: string) {
+    try {
+      return await prisma.subscription.findFirst({
+        where: { rcOriginalTransactionId, provider: 'REVENUECAT' },
+        include: { user: true },
+      });
+    } catch (error) {
+      console.error('Error fetching subscription by RC transaction ID:', error);
+      return null;
+    }
+  }
+
   static async getCurrentUserSubscription() {
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user?.id) throw new Error('User not authenticated');
@@ -37,8 +50,10 @@ export class SubscriptionService {
 
   static async createSubscription(params: {
     userId: string;
-    paddleSubscriptionId: string;
+    provider?: BillingProvider;
+    paddleSubscriptionId?: string;
     priceId: string;
+    internalPlanId?: string;
     status?: SubscriptionStatus;
     currentPeriodStart?: Date;
     currentPeriodEnd?: Date;
@@ -52,13 +67,18 @@ export class SubscriptionService {
     audioProcessingPerMonth?: number | null;
     paddleDiscountId?: string;
     amount?: number;
+    rcOriginalTransactionId?: string;
+    rcProductId?: string;
+    rcStore?: string;
   }) {
     try {
       const subscription = await prisma.subscription.create({
         data: {
           userId: params.userId,
+          provider: params.provider ?? 'PADDLE',
           paddleSubscriptionId: params.paddleSubscriptionId,
           priceId: params.priceId,
+          internalPlanId: params.internalPlanId,
           status: params.status || 'PENDING',
           currentPeriodStart: params.currentPeriodStart,
           currentPeriodEnd: params.currentPeriodEnd,
@@ -72,6 +92,9 @@ export class SubscriptionService {
           audioProcessingPerMonth: params.audioProcessingPerMonth,
           paddleDiscountId: params.paddleDiscountId,
           amount: params.amount,
+          rcOriginalTransactionId: params.rcOriginalTransactionId,
+          rcProductId: params.rcProductId,
+          rcStore: params.rcStore,
         },
         include: { user: true },
       });
@@ -80,6 +103,166 @@ export class SubscriptionService {
     } catch (error) {
       console.error('Error creating subscription:', error);
       throw new Error('Failed to create subscription in database');
+    }
+  }
+
+  static async upsertSubscription(params: {
+    userId: string;
+    provider?: BillingProvider;
+    paddleSubscriptionId?: string;
+    priceId: string;
+    internalPlanId?: string;
+    status?: SubscriptionStatus;
+    currentPeriodStart?: Date;
+    currentPeriodEnd?: Date;
+    nextBillingDate?: Date;
+    trialEnd?: Date;
+    metadata?: any;
+    amount?: number;
+    notesPerMonth?: number | null;
+    coursesPerMonth?: number;
+    pdfProcessingPerMonth?: number | null;
+    videoProcessingPerMonth?: number | null;
+    audioProcessingPerMonth?: number | null;
+    rcOriginalTransactionId?: string;
+    rcProductId?: string;
+    rcStore?: string;
+  }) {
+    try {
+      const existing = await prisma.subscription.findUnique({
+        where: { userId: params.userId },
+      });
+
+      if (existing) {
+        return await prisma.subscription.update({
+          where: { userId: params.userId },
+          data: {
+            provider: params.provider ?? existing.provider,
+            paddleSubscriptionId: params.paddleSubscriptionId ?? existing.paddleSubscriptionId,
+            priceId: params.priceId,
+            internalPlanId: params.internalPlanId ?? existing.internalPlanId,
+            status: params.status ?? existing.status,
+            currentPeriodStart: params.currentPeriodStart ?? existing.currentPeriodStart,
+            currentPeriodEnd: params.currentPeriodEnd ?? existing.currentPeriodEnd,
+            nextBillingDate: params.nextBillingDate ?? existing.nextBillingDate,
+            trialEnd: params.trialEnd ?? existing.trialEnd,
+            metadata: params.metadata ?? existing.metadata,
+            amount: params.amount ?? existing.amount,
+            notesPerMonth: params.notesPerMonth ?? existing.notesPerMonth,
+            coursesPerMonth: params.coursesPerMonth ?? existing.coursesPerMonth,
+            pdfProcessingPerMonth: params.pdfProcessingPerMonth ?? existing.pdfProcessingPerMonth,
+            videoProcessingPerMonth: params.videoProcessingPerMonth ?? existing.videoProcessingPerMonth,
+            audioProcessingPerMonth: params.audioProcessingPerMonth ?? existing.audioProcessingPerMonth,
+            rcOriginalTransactionId: params.rcOriginalTransactionId ?? existing.rcOriginalTransactionId,
+            rcProductId: params.rcProductId ?? existing.rcProductId,
+            rcStore: params.rcStore ?? existing.rcStore,
+            updatedAt: new Date(),
+          },
+          include: { user: true },
+        });
+      }
+
+      return await prisma.subscription.create({
+        data: {
+          userId: params.userId,
+          provider: params.provider ?? 'REVENUECAT',
+          paddleSubscriptionId: params.paddleSubscriptionId,
+          priceId: params.priceId,
+          internalPlanId: params.internalPlanId,
+          status: params.status ?? 'ACTIVE',
+          currentPeriodStart: params.currentPeriodStart,
+          currentPeriodEnd: params.currentPeriodEnd,
+          nextBillingDate: params.nextBillingDate,
+          trialEnd: params.trialEnd,
+          metadata: params.metadata,
+          amount: params.amount,
+          notesPerMonth: params.notesPerMonth,
+          coursesPerMonth: params.coursesPerMonth ?? 5,
+          pdfProcessingPerMonth: params.pdfProcessingPerMonth,
+          videoProcessingPerMonth: params.videoProcessingPerMonth,
+          audioProcessingPerMonth: params.audioProcessingPerMonth,
+          rcOriginalTransactionId: params.rcOriginalTransactionId,
+          rcProductId: params.rcProductId,
+          rcStore: params.rcStore,
+        },
+        include: { user: true },
+      });
+    } catch (error) {
+      console.error('Error upserting subscription:', error);
+      throw new Error('Failed to upsert subscription in database');
+    }
+  }
+
+  static async updateSubscriptionByUserId(
+    userId: string,
+    data: {
+      status?: SubscriptionStatus;
+      currentPeriodEnd?: Date;
+      nextBillingDate?: Date | null;
+      cancelAtPeriodEnd?: boolean;
+      cancelledAt?: Date | null;
+      priceId?: string;
+      internalPlanId?: string;
+      amount?: number;
+      rcOriginalTransactionId?: string;
+      rcProductId?: string;
+      rcStore?: string;
+    }
+  ) {
+    try {
+      return await prisma.subscription.update({
+        where: { userId },
+        data: { ...data, updatedAt: new Date() },
+      });
+    } catch (error) {
+      console.error('Error updating subscription by userId:', error);
+      throw new Error('Failed to update subscription');
+    }
+  }
+
+  static async updateSubscriptionByRCTransactionId(
+    rcOriginalTransactionId: string,
+    data: {
+      status?: SubscriptionStatus;
+      currentPeriodEnd?: Date;
+      nextBillingDate?: Date;
+      currentPeriodStart?: Date;
+    }
+  ) {
+    try {
+      const subscription = await prisma.subscription.findFirst({
+        where: { rcOriginalTransactionId, provider: 'REVENUECAT' },
+      });
+      if (!subscription) return null;
+      return await prisma.subscription.update({
+        where: { id: subscription.id },
+        data: { ...data, updatedAt: new Date() },
+      });
+    } catch (error) {
+      console.error('Error updating subscription by RC transaction ID:', error);
+      return null;
+    }
+  }
+
+  static async getUserEmail(userId: string): Promise<{ email: string } | null> {
+    try {
+      return await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  static async getUserWithPaddleId(userId: string) {
+    try {
+      return await prisma.user.findUnique({
+        where: { id: userId },
+        select: { paddleCustomerId: true },
+      });
+    } catch {
+      return null;
     }
   }
 
@@ -207,6 +390,10 @@ export class SubscriptionService {
     const subscription = await this.getUserSubscription(userId);
     if (!subscription) return null;
 
+    if (subscription.provider !== 'PADDLE') {
+      return subscription;
+    }
+
     const inFlight = this.syncInFlight.get(userId);
     if (inFlight) return inFlight;
 
@@ -224,6 +411,9 @@ export class SubscriptionService {
     subscription: NonNullable<Awaited<ReturnType<typeof SubscriptionService.getUserSubscription>>>
   ) {
     try {
+      if (!subscription.paddleSubscriptionId) {
+        return subscription;
+      }
       const paddleSubscription = await PaddleSubscriptionService.getSubscription(
         subscription.paddleSubscriptionId
       );
@@ -246,7 +436,11 @@ export class SubscriptionService {
 
       const paddlePriceId = paddleSubscription.items?.[0]?.price?.id;
       if (paddlePriceId && subscription.priceId !== paddlePriceId) {
-        await this.updateSubscriptionPriceId(subscription.paddleSubscriptionId, paddlePriceId);
+        await this.updateSubscriptionPriceId(
+          subscription.paddleSubscriptionId,
+          paddlePriceId,
+          resolveInternalPlanIdFromPaddlePriceId(paddlePriceId) ?? undefined
+        );
       }
 
       return await this.getUserSubscription(userId);
@@ -265,7 +459,11 @@ export class SubscriptionService {
     }
   }
 
-  static async updateSubscriptionPriceId(paddleSubscriptionId: string, newPriceId: string) {
+  static async updateSubscriptionPriceId(
+    paddleSubscriptionId: string,
+    newPriceId: string,
+    newInternalPlanId?: string
+  ) {
     try {
       const currentSub = await prisma.subscription.findUnique({
         where: { paddleSubscriptionId },
@@ -280,6 +478,7 @@ export class SubscriptionService {
         where: { paddleSubscriptionId },
         data: {
           priceId: newPriceId,
+          internalPlanId: newInternalPlanId ?? currentSub?.internalPlanId,
           metadata,
           updatedAt: new Date(),
         },

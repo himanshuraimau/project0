@@ -9,26 +9,48 @@ const appUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL ||
 const usingHttpsAppUrl = appUrl.startsWith("https://");
 
 async function generateAppleClientSecret() {
-  const privateKey = process.env.APPLE_PRIVATE_KEY;
+  const privateKeyRaw = process.env.APPLE_PRIVATE_KEY;
   const teamId = process.env.APPLE_TEAM_ID;
   const keyId = process.env.APPLE_KEY_ID;
   const clientId = process.env.APPLE_CLIENT_ID;
 
-  if (!privateKey || !teamId || !keyId || !clientId) return undefined;
+  if (!privateKeyRaw || !teamId || !keyId || !clientId) return undefined;
 
-  const key = await importPKCS8(privateKey, "ES256");
-  const now = Math.floor(Date.now() / 1000);
-  return new SignJWT({})
-    .setProtectedHeader({ alg: "ES256", kid: keyId })
-    .setIssuer(teamId)
-    .setSubject(clientId)
-    .setAudience("https://appleid.apple.com")
-    .setIssuedAt(now)
-    .setExpirationTime(now + 180 * 24 * 60 * 60)
-    .sign(key);
+  // Common env-var format is a single-line string with literal `\n`.
+  const privateKey = privateKeyRaw.includes("\\n")
+    ? privateKeyRaw.replace(/\\n/g, "\n")
+    : privateKeyRaw;
+
+  try {
+    const key = await importPKCS8(privateKey, "ES256");
+    const now = Math.floor(Date.now() / 1000);
+    return new SignJWT({})
+      .setProtectedHeader({ alg: "ES256", kid: keyId })
+      .setIssuer(teamId)
+      .setSubject(clientId)
+      .setAudience("https://appleid.apple.com")
+      .setIssuedAt(now)
+      .setExpirationTime(now + 180 * 24 * 60 * 60)
+      .sign(key);
+  } catch (err) {
+    console.warn(
+      "Apple client secret generation failed; Apple Sign In will be disabled until APPLE_PRIVATE_KEY is fixed.",
+      err
+    );
+    return undefined;
+  }
 }
 
 const appleClientSecret = await generateAppleClientSecret();
+
+const appleProvider =
+  appleClientSecret && process.env.APPLE_CLIENT_ID && process.env.APPLE_APP_BUNDLE_IDENTIFIER
+    ? {
+        clientId: process.env.APPLE_CLIENT_ID as string,
+        clientSecret: appleClientSecret,
+        appBundleIdentifier: process.env.APPLE_APP_BUNDLE_IDENTIFIER as string,
+      }
+    : undefined;
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -52,11 +74,7 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
-    apple: {
-      clientId: process.env.APPLE_CLIENT_ID as string,
-      clientSecret: appleClientSecret!,
-      appBundleIdentifier: process.env.APPLE_APP_BUNDLE_IDENTIFIER as string,
-    },
+    ...(appleProvider ? { apple: appleProvider } : {}),
   },
 
   // Advanced configuration

@@ -21,6 +21,34 @@ export const getSubscriptionStatus = async (
   }
 };
 
+export interface SyncRCSubscriptionParams {
+  entitlementId?: string;
+  productId: string;
+  store: string;
+  originalTransactionId?: string;
+  isActive: boolean;
+  expiresDate?: string;
+  purchaseDate?: string;
+  managementUrl?: string;
+}
+
+export const syncRevenueCatSubscription = async (
+  params: SyncRCSubscriptionParams
+): Promise<{ synced: boolean; subscription?: any }> => {
+  try {
+    const response = await apiClient.post('/subscription/sync-revenuecat', params);
+    return response.data;
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      console.warn('sync-revenuecat endpoint not available on this backend version');
+      return { synced: false };
+    }
+    console.error('Failed to sync RC subscription to backend:', error);
+    return { synced: false };
+  }
+};
+
 export default {
   getSubscriptionStatus,
+  syncRevenueCatSubscription,
 };

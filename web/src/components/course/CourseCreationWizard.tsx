@@ -53,12 +53,16 @@ export function CourseCreationWizard({
   // Check for recovery data when component mounts
   useEffect(() => {
     checkForRecoveryData();
+  }, [checkForRecoveryData]);
+
+  // Update banner visibility based on recovery data
+  useEffect(() => {
     if (hasRecoveryData) {
       setShowRecoveryBanner(true);
-    } else {
+    } else if (showRecoveryBanner) {
       reset();
     }
-  }, [checkForRecoveryData, hasRecoveryData, reset]);
+  }, [hasRecoveryData, reset, showRecoveryBanner]);
 
   // Handle recovery actions
   const handleRestoreRecovery = () => {

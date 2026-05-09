@@ -85,8 +85,10 @@ model Verification {
 model Subscription {
   id                      String             @id @default(cuid())
   userId                  String             @unique
-  paddleSubscriptionId    String             @unique
+  provider                BillingProvider    @default(PADDLE)
+  paddleSubscriptionId    String?            @unique
   priceId                 String
+  internalPlanId          String?            @map("internal_plan_id")
   status                  SubscriptionStatus @default(PENDING)
   currentPeriodStart      DateTime?
   currentPeriodEnd        DateTime?
@@ -106,11 +108,16 @@ model Subscription {
   videoProcessingPerMonth Int?
   sourcesPerMonth         Int?
   sourcesPerBatch         Int?
+  rcOriginalTransactionId String?            @map("rc_original_transaction_id")
+  rcProductId             String?            @map("rc_product_id")
+  rcStore                 String?            @map("rc_store")
   user                    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([paddleSubscriptionId])
   @@index([status])
+  @@index([provider, status])
+  @@index([rcOriginalTransactionId])
   @@map("subscriptions")
 }
 
@@ -483,6 +490,11 @@ enum SubscriptionStatus {
   CANCELLED
   FAILED
   EXPIRED
+}
+
+enum BillingProvider {
+  PADDLE
+  REVENUECAT
 }
 
 enum PodcastStatus {

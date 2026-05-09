@@ -60,7 +60,12 @@ export function CreditPurchase({ currentCredits = 0 }: CreditPurchaseProps) {
     try {
       // Redirect to checkout with the selected product
       const checkoutUrl = `/checkout?productId=${plan.productId}&quantity=1`
-      window.location.href = checkoutUrl
+      // Use setTimeout to avoid immutability issues with direct window.location assignment
+      setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          window.location.href = checkoutUrl
+        }
+      }, 0)
     } catch (error) {
       console.error('Error initiating purchase:', error)
       setIsLoading(false)

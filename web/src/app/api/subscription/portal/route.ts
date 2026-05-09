@@ -18,7 +18,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
     }
 
+    if (subscription.provider === 'REVENUECAT') {
+      const metadata = subscription.metadata as Record<string, unknown> | null;
+      const managementUrl =
+        (metadata?.management_url as string) ||
+        (metadata?.managementURL as string) ||
+        null;
+      if (managementUrl) {
+        return NextResponse.json({
+          portalUrl: managementUrl,
+          subscription: {
+            id: subscription.id,
+            status: subscription.status,
+          },
+        });
+      }
+
+      return NextResponse.json(
+        { error: 'Manage your subscription in your Apple ID settings' },
+        { status: 400 }
+      );
+    }
+
     let customerId = subscription.user?.paddleCustomerId;
+
+    if (!subscription.paddleSubscriptionId) {
+      return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
+    }
 
     // If customer ID is missing, fetch it from Paddle and save it
     if (!customerId && subscription.paddleSubscriptionId) {

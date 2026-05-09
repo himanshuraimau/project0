@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: accessCheck.message || 'Unable to create note',
         message: accessCheck.message,
-        // @ts-ignore - adding extra fields for client
+        // @ts-expect-error - adding extra fields for client
         notesUsed: accessCheck.notesUsed,
         notesLimit: accessCheck.notesLimit,
         upgradeUrl: accessCheck.upgradeUrl || '/pricing',
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: reservation.error || 'Unable to create note',
         message: reservation.message,
-        // @ts-ignore - adding extra fields for client
+        // @ts-expect-error - adding extra fields for client
         notesUsed: reservation.notesUsed,
         notesLimit: reservation.notesLimit,
         upgradeUrl: reservation.upgradeUrl || '/pricing',
