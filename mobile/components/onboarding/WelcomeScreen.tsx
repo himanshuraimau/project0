@@ -366,49 +366,6 @@ export default function WelcomeScreen() {
             </Pressable>
           </Animated.View>
 
-          {/* Continue with Apple */}
-          <Animated.View style={[ctaScale, styles.ctaWrap]}>
-            <Pressable
-              onPress={handleAppleAuth}
-              onPressIn={ctaPressIn}
-              onPressOut={ctaPressOut}
-              disabled={loading}
-              style={({ pressed }) => [
-                styles.googleBtn,
-                {
-                  backgroundColor: isDark
-                    ? neutral[800]
-                    : neutral[950],
-                  opacity: loading ? 0.7 : pressed ? 0.85 : 1,
-                },
-              ]}
-            >
-              {loading && isApple ? (
-                <ActivityIndicator
-                  size="small"
-                  color={isDark ? c.foreground : neutral[0]}
-                />
-              ) : (
-                <>
-                  <Text style={styles.appleLogo}>
-                    
-                  </Text>
-                  <Text
-                    style={[
-                      styles.googleBtnText,
-                      {
-                        color: isDark ? neutral[50] : neutral[0],
-                        fontWeight: t.weightSemibold,
-                      },
-                    ]}
-                  >
-                    Continue with Apple
-                  </Text>
-                </>
-              )}
-            </Pressable>
-          </Animated.View>
-
           {/* Legal footer */}
           <Animated.View entering={authEntrance.footer}>
             <Text style={[styles.legalText, { color: subtleText }]}>

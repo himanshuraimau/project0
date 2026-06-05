@@ -14,6 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     description: "Transform learning with AI-powered study tools. Convert lectures, videos, and PDFs into organized notes, flashcards, and quizzes.",
     ios: {
         supportsTablet: true,
+        usesAppleSignIn: true,
         infoPlist: {
             UIViewControllerBasedStatusBarAppearance: false,
             UIStatusBarHidden: false,
