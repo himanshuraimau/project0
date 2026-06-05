@@ -7,7 +7,7 @@ import { useRedirectIfAuthenticated } from "@/components/auth/use-redirect-if-au
 import { toast } from "sonner";
 
 export default function SignIn() {
-  const { session, isPending } = useRedirectIfAuthenticated("/dashboard");
+  const { session, isPending } = useRedirectIfAuthenticated("/auth/redirect");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
 
@@ -24,7 +24,7 @@ export default function SignIn() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: "/auth/redirect",
       });
     } catch (err: unknown) {
       const message =
@@ -39,7 +39,7 @@ export default function SignIn() {
     try {
       await authClient.signIn.social({
         provider: "apple",
-        callbackURL: "/dashboard",
+        callbackURL: "/auth/redirect",
       });
     } catch (err: unknown) {
       const message =

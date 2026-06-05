@@ -4,7 +4,7 @@ import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export function useRedirectIfAuthenticated(redirectTo = "/dashboard") {
+export function useRedirectIfAuthenticated(redirectTo = "/auth/redirect") {
   const { data: session, isPending } = useSession();
   const router = useRouter();
 

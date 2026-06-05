@@ -89,7 +89,9 @@ export const auth = betterAuth({
     "http://localhost:8081", // Expo dev server
     "flinote://", // Mobile app scheme
     "flinote://*", // Mobile app scheme with paths
+    "flinote://sign-in", // Mobile OAuth return path
     "Flinote://", // Mobile app scheme (capitalized variant)
+    "Flinote://sign-in",
     "mobile://", // Legacy mobile scheme (for backward compatibility)
     "exp://", // Expo Go scheme
     "exp://**", // Expo Go wildcard support in development
