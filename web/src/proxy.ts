@@ -36,8 +36,6 @@ const publicRoutes = [
 // Protected API routes that require explicit auth checking
 const protectedApiRoutes = ["/api/course", "/api/chatbot", "/api/podcast"];
 
-const authRoutes = ["/sign-in", "/sign-up"];
-
 function isPublicRoute(pathname: string): boolean {
   return publicRoutes.some(
     (route) => pathname === route || pathname.startsWith(route + "/"),
@@ -48,10 +46,6 @@ function isProtectedApiRoute(pathname: string): boolean {
   return protectedApiRoutes.some(
     (route) => pathname === route || pathname.startsWith(route + "/"),
   );
-}
-
-function isAuthRoute(pathname: string): boolean {
-  return authRoutes.some((route) => pathname.startsWith(route));
 }
 
 export async function proxy(req: NextRequest) {
@@ -79,11 +73,6 @@ export async function proxy(req: NextRequest) {
   });
 
   const isAuthenticated = !!sessionCookie;
-
-  // If user is authenticated and visiting auth pages, redirect to dashboard
-  if (isAuthenticated && isAuthRoute(pathname)) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
-  }
 
   // If user is authenticated and visiting home page, redirect to dashboard
   if (

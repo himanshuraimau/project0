@@ -3,11 +3,21 @@
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { AuthScreen } from "@/components/auth/auth-screen";
+import { useRedirectIfAuthenticated } from "@/components/auth/use-redirect-if-authenticated";
 import { toast } from "sonner";
 
 export default function SignIn() {
+  const { session, isPending } = useRedirectIfAuthenticated("/dashboard");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
+
+  if (isPending || session?.user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);

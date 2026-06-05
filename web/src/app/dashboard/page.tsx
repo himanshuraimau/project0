@@ -22,7 +22,7 @@ export default async function DashboardPage() {
 
   // Redirect to onboarding if not completed
   if (!onboarding || !onboarding.isCompleted) {
-    redirect("/onboarding");
+    redirect("/onboarding/step1");
   }
 
   return (

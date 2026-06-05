@@ -1,16 +1,10 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { OnboardingStep2 } from "@/components/onboarding";
+import { OnboardingAuthGate } from "@/components/onboarding/onboarding-auth-gate";
 
-export default async function Step2Page() {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-
-  if (!session?.user) {
-    redirect("/sign-in");
-  }
-
-  return <OnboardingStep2 />;
+export default function Step2Page() {
+  return (
+    <OnboardingAuthGate>
+      <OnboardingStep2 />
+    </OnboardingAuthGate>
+  );
 }
