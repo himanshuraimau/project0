@@ -15,6 +15,7 @@ const publicRoutes = [
   "/sitemap.xml",
   "/robots.txt",
   "/sitemap_index.xml",
+  "/.well-known", // Apple Sign In domain verification
   "/api/auth", // Better Auth endpoints
   "/api/health",
   "/api/webhooks", // Webhook endpoints (authenticated via secret header)
