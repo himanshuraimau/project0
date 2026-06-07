@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
       priceId: productId,
       internalPlanId,
       status: isActive !== false ? "ACTIVE" : "CANCELLED",
+      cancelAtPeriodEnd: false,
       currentPeriodStart: purchased,
       currentPeriodEnd: expires,
       nextBillingDate: expires,

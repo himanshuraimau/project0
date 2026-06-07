@@ -113,6 +113,7 @@ export class SubscriptionService {
     priceId: string;
     internalPlanId?: string;
     status?: SubscriptionStatus;
+    cancelAtPeriodEnd?: boolean;
     currentPeriodStart?: Date;
     currentPeriodEnd?: Date;
     nextBillingDate?: Date;
@@ -142,6 +143,8 @@ export class SubscriptionService {
             priceId: params.priceId,
             internalPlanId: params.internalPlanId ?? existing.internalPlanId,
             status: params.status ?? existing.status,
+            // Explicitly accept cancelAtPeriodEnd so callers can clear it on re-purchase.
+            cancelAtPeriodEnd: params.cancelAtPeriodEnd ?? existing.cancelAtPeriodEnd,
             currentPeriodStart: params.currentPeriodStart ?? existing.currentPeriodStart,
             currentPeriodEnd: params.currentPeriodEnd ?? existing.currentPeriodEnd,
             nextBillingDate: params.nextBillingDate ?? existing.nextBillingDate,
@@ -170,6 +173,7 @@ export class SubscriptionService {
           priceId: params.priceId,
           internalPlanId: params.internalPlanId,
           status: params.status ?? 'ACTIVE',
+          cancelAtPeriodEnd: params.cancelAtPeriodEnd ?? false,
           currentPeriodStart: params.currentPeriodStart,
           currentPeriodEnd: params.currentPeriodEnd,
           nextBillingDate: params.nextBillingDate,

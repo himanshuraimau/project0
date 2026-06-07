@@ -47,52 +47,39 @@ export interface SubscriptionStatusResult {
   displayStatus: string;
 }
 
+export interface RevenueCatWebhookPayload {
+  api_version?: string;
+  event: RevenueCatWebhookEvent;
+}
+
 export interface RevenueCatWebhookEvent {
-  event: {
-    id: string;
-    type: string;
-    app_id: string;
-    event_timestamp_ms: number;
-    environment: "SANDBOX" | "PRODUCTION";
-    aliased?: boolean;
-  };
-  subscriber: {
-    original_app_user_id: string;
-    entitlements?: Record<string, RevenueCatWebhookEntitlement>;
-    subscriptions?: Record<string, RevenueCatWebhookSubscription>;
-    management_url?: string | null;
-  };
-  product?: {
-    id: string;
-    store?: string;
-  };
-}
-
-export interface RevenueCatWebhookEntitlement {
-  product_identifier: string;
-  is_active: boolean;
-  expires_date?: string;
-  purchase_date: string;
-  grace_period_expires_date?: string;
-  auto_renew?: boolean;
-}
-
-export interface RevenueCatWebhookSubscription {
+  id: string;
+  type: string;
+  app_id?: string;
+  event_timestamp_ms: number;
+  app_user_id: string;
+  original_app_user_id: string;
+  aliases?: string[];
   product_id: string;
-  expires_date: string;
-  purchase_date: string;
-  original_purchase_date: string;
+  entitlement_ids?: string[];
+  entitlement_id?: string;
   store: string;
-  is_sandbox: boolean;
-  unsubscribe_detected_at?: string;
-  billing_issues_detected_at?: string;
-  grace_period_expires_date?: string;
-  refunded_at?: string;
-  auto_resume_date?: string;
-  ownership_type?: string;
-  store_transaction_id: string;
-  original_transaction_id: string;
-  period_type: string;
+  environment: "SANDBOX" | "PRODUCTION";
+  purchased_at_ms?: number;
+  expiration_at_ms?: number | null;
+  grace_period_expiration_at_ms?: number | null;
+  period_type?: "TRIAL" | "INTRO" | "NORMAL" | "PROMOTIONAL" | "PREPAID";
+  original_transaction_id?: string;
+  transaction_id?: string;
+  cancel_reason?: string;
+  expiration_reason?: string;
+  auto_resume_at_ms?: number | null;
+  price?: number | null;
+  price_in_purchased_currency?: number | null;
+  currency?: string;
+  tax_percentage?: number | null;
+  commission_percentage?: number | null;
+  subscriber_attributes?: Record<string, { value: string; updated_at_ms: number }>;
 }
 
 export interface InternalPlanConfig {

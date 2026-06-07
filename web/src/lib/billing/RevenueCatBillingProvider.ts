@@ -4,9 +4,8 @@ import type {
   InternalPlanId,
   RCStore,
   SubscriptionStatusResult,
+  RevenueCatWebhookPayload,
   RevenueCatWebhookEvent,
-  RevenueCatWebhookEntitlement,
-  RevenueCatWebhookSubscription,
 } from "./types";
 import {
   resolveInternalPlanIdFromRCProductId,
@@ -27,25 +26,43 @@ const RC_WEBHOOK_EVENTS = {
   TEST: "TEST",
 } as const;
 
-type RCWebhookEvent = RevenueCatWebhookEvent;
-type RCWebhookEntitlement = RevenueCatWebhookEntitlement;
-type RCWebhookSubscription = RevenueCatWebhookSubscription;
-
 export class RevenueCatBillingProvider {
   readonly provider: PrismaBillingProvider = "REVENUECAT";
 
-  async handleWebhook(event: RCWebhookEvent): Promise<void> {
-    const eventType = event.event.type;
-    const appUserId = event.subscriber.original_app_user_id;
-    const productId = event.product?.id ?? this.resolveProductIdFromEvent(event);
+  async handleWebhook(payload: RevenueCatWebhookPayload): Promise<void> {
+    const event: RevenueCatWebhookEvent =
+      (payload as any).event ?? (payload as unknown as RevenueCatWebhookEvent);
+
+    const eventType = event.type;
+
+    const appUserId =
+      event.app_user_id ||
+      event.original_app_user_id ||
+      event.aliases?.find(Boolean) ||
+      "";
 
     if (!appUserId) {
-      console.error("[RevenueCat] Missing original_app_user_id in webhook");
+      console.error("[RevenueCat] Missing app_user_id in webhook", { eventId: event.id, type: eventType });
       return;
     }
 
-    if (!productId) {
-      console.warn("[RevenueCat] No product ID resolved for event", event.event.id);
+    const ourEntitlementId = process.env.REVENUECAT_ENTITLEMENT_ID || "pro";
+    if (
+      event.entitlement_ids &&
+      event.entitlement_ids.length > 0 &&
+      !event.entitlement_ids.includes(ourEntitlementId)
+    ) {
+      console.log("[RevenueCat] Ignoring event for unrelated entitlement", {
+        type: eventType,
+        entitlement_ids: event.entitlement_ids,
+      });
+      return;
+    }
+
+    const productId = event.product_id ?? "";
+
+    if (!productId && eventType !== RC_WEBHOOK_EVENTS.TEST) {
+      console.warn("[RevenueCat] No product_id in event", { eventId: event.id, type: eventType });
     }
 
     switch (eventType) {
@@ -59,13 +76,13 @@ export class RevenueCatBillingProvider {
         await this.handleCancellation(appUserId, event);
         break;
       case RC_WEBHOOK_EVENTS.UNCANCELLATION:
-        await this.handleUncancellation(appUserId, event);
+        await this.handleUncancellation(appUserId);
         break;
       case RC_WEBHOOK_EVENTS.EXPIRATION:
         await this.handleExpiration(appUserId, event);
         break;
       case RC_WEBHOOK_EVENTS.BILLING_ISSUE:
-        await this.handleBillingIssue(appUserId, event);
+        await this.handleBillingIssue(appUserId);
         break;
       case RC_WEBHOOK_EVENTS.PRODUCT_CHANGE:
         await this.handleProductChange(appUserId, productId, event);
@@ -74,7 +91,7 @@ export class RevenueCatBillingProvider {
         await this.handleTransfer(appUserId, event);
         break;
       case RC_WEBHOOK_EVENTS.TEST:
-        console.log("[RevenueCat] Test webhook received:", event.event.id);
+        console.log("[RevenueCat] Test webhook received:", event.id);
         break;
       default:
         console.log("[RevenueCat] Unhandled webhook event type:", eventType);
@@ -84,10 +101,9 @@ export class RevenueCatBillingProvider {
   async syncSubscriptionWithProvider(userId: string): Promise<void> {
     const subscription = await SubscriptionService.getUserSubscription(userId);
     if (subscription && subscription.provider === "PADDLE") return;
-    // For RC, we rely on webhooks. If there's a stale RC subscription, keep it.
   }
 
-  async createSubscription(params: SubscriptionCreateParams): Promise<void> {
+  async createSubscription(_params: SubscriptionCreateParams): Promise<void> {
     throw new Error("RevenueCat subscriptions are created via Apple IAP. Use handleWebhook instead.");
   }
 
@@ -152,59 +168,46 @@ export class RevenueCatBillingProvider {
   private async handleInitialPurchase(
     appUserId: string,
     productId: string,
-    event: RCWebhookEvent
+    event: RevenueCatWebhookEvent
   ): Promise<void> {
-    const internalPlanId = resolveInternalPlanIdFromRCWebhookEventProduct(productId);
+    const internalPlanId = resolveInternalPlanIdFromRCProductId(productId);
     const planConfig = getInternalPlanConfig(internalPlanId);
-    const subData = this.getActiveSubscription(event);
-    const originalTxId = subData?.original_transaction_id ?? null;
-    const store = (subData?.store ?? event.product?.store ?? "APP_STORE") as RCStore;
-    const entitlement = this.getActiveEntitlement(event);
 
-    const expiresDate = subData?.expires_date
-      ? new Date(subData.expires_date)
-      : entitlement?.expires_date
-        ? new Date(entitlement.expires_date)
-        : null;
-    const purchaseDate = subData?.purchase_date
-      ? new Date(subData.purchase_date)
-      : entitlement?.purchase_date
-        ? new Date(entitlement.purchase_date)
-        : new Date();
-    const trialEnd = subData?.period_type === "TRIAL" ? expiresDate : null;
-
-    const isSandbox = event.event.environment === "SANDBOX";
+    const expiresDate = event.expiration_at_ms ? new Date(event.expiration_at_ms) : null;
+    const purchaseDate = event.purchased_at_ms ? new Date(event.purchased_at_ms) : new Date();
+    const isTrial = event.period_type === "TRIAL" || event.period_type === "INTRO";
+    const isSandbox = event.environment === "SANDBOX";
+    const store = (event.store ?? "APP_STORE") as RCStore;
+    const originalTxId = event.original_transaction_id ?? null;
 
     const { PRO_PLAN_LIMITS } = await import("@/lib/config/subscription-limits");
 
-    await SubscriptionService.upsertSubscription(
-      {
-        userId: appUserId,
-        provider: "REVENUECAT",
-        priceId: productId,
-        internalPlanId: internalPlanId ?? undefined,
-        status: "ACTIVE",
-        currentPeriodStart: purchaseDate,
-        currentPeriodEnd: expiresDate ?? undefined,
-        nextBillingDate: expiresDate ?? undefined,
-        trialEnd: trialEnd ?? undefined,
-        amount: planConfig?.amount,
-        rcOriginalTransactionId: originalTxId ?? undefined,
-        rcProductId: productId,
-        rcStore: store,
-        notesPerMonth: PRO_PLAN_LIMITS.notesPerMonth,
-        coursesPerMonth: PRO_PLAN_LIMITS.coursesPerMonth,
-        pdfProcessingPerMonth: PRO_PLAN_LIMITS.pdfProcessingPerMonth,
-        videoProcessingPerMonth: PRO_PLAN_LIMITS.videoProcessingPerMonth,
-        audioProcessingPerMonth: PRO_PLAN_LIMITS.audioProcessingPerMonth,
-        metadata: {
-          environment: isSandbox ? "sandbox" : "production",
-          event_id: event.event.id,
-        },
-      }
-    );
+    await SubscriptionService.upsertSubscription({
+      userId: appUserId,
+      provider: "REVENUECAT",
+      priceId: productId,
+      internalPlanId: internalPlanId ?? undefined,
+      status: "ACTIVE",
+      cancelAtPeriodEnd: false,
+      currentPeriodStart: purchaseDate,
+      currentPeriodEnd: expiresDate ?? undefined,
+      nextBillingDate: expiresDate ?? undefined,
+      trialEnd: isTrial ? (expiresDate ?? undefined) : undefined,
+      amount: planConfig?.amount,
+      rcOriginalTransactionId: originalTxId ?? undefined,
+      rcProductId: productId,
+      rcStore: store,
+      notesPerMonth: PRO_PLAN_LIMITS.notesPerMonth,
+      coursesPerMonth: PRO_PLAN_LIMITS.coursesPerMonth,
+      pdfProcessingPerMonth: PRO_PLAN_LIMITS.pdfProcessingPerMonth,
+      videoProcessingPerMonth: PRO_PLAN_LIMITS.videoProcessingPerMonth,
+      audioProcessingPerMonth: PRO_PLAN_LIMITS.audioProcessingPerMonth,
+      metadata: {
+        environment: isSandbox ? "sandbox" : "production",
+        event_id: event.id,
+      },
+    });
 
-    // Sync Loops for email marketing
     try {
       const { updateLoopsContact } = await import("@/lib/loops");
       const user = await SubscriptionService.getUserEmail(appUserId);
@@ -212,22 +215,15 @@ export class RevenueCatBillingProvider {
         await updateLoopsContact({ email: user.email, plan: "pro" });
       }
     } catch {
-      // Loops sync is best-effort
+      // best-effort
     }
   }
 
-  private async handleRenewal(appUserId: string, event: RCWebhookEvent): Promise<void> {
+  private async handleRenewal(appUserId: string, event: RevenueCatWebhookEvent): Promise<void> {
     const subscription = await SubscriptionService.getUserSubscription(appUserId);
     if (!subscription || subscription.provider !== "REVENUECAT") return;
 
-    const subData = this.getActiveSubscription(event);
-    const entitlement = this.getActiveEntitlement(event);
-
-    const expiresDate = subData?.expires_date
-      ? new Date(subData.expires_date)
-      : entitlement?.expires_date
-        ? new Date(entitlement.expires_date)
-        : undefined;
+    const expiresDate = event.expiration_at_ms ? new Date(event.expiration_at_ms) : undefined;
 
     await SubscriptionService.updateSubscriptionByUserId(appUserId, {
       status: "ACTIVE",
@@ -240,15 +236,14 @@ export class RevenueCatBillingProvider {
     }
   }
 
-  private async handleCancellation(appUserId: string, event: RCWebhookEvent): Promise<void> {
+  private async handleCancellation(appUserId: string, event: RevenueCatWebhookEvent): Promise<void> {
     const subscription = await SubscriptionService.getUserSubscription(appUserId);
     if (!subscription || subscription.provider !== "REVENUECAT") return;
 
-    const entitlement = this.getActiveEntitlement(event);
-    const willExpire = !!entitlement?.expires_date;
-    const expiresDate = entitlement?.expires_date ? new Date(entitlement.expires_date) : undefined;
+    const expiresDate = event.expiration_at_ms ? new Date(event.expiration_at_ms) : null;
+    const willExpire = expiresDate !== null && expiresDate > new Date();
 
-    if (willExpire && expiresDate && expiresDate > new Date()) {
+    if (willExpire && expiresDate) {
       await SubscriptionService.updateSubscriptionByUserId(appUserId, {
         cancelAtPeriodEnd: true,
         currentPeriodEnd: expiresDate,
@@ -258,20 +253,19 @@ export class RevenueCatBillingProvider {
         status: "CANCELLED",
         cancelledAt: new Date(),
       });
-      // Sync Loops
       try {
-          const { updateLoopsContact } = await import("@/lib/loops");
-          const user = await SubscriptionService.getUserEmail(appUserId);
-          if (user?.email) {
-            await updateLoopsContact({ email: user.email, plan: "free" });
-          }
-        } catch {
-          // best-effort
+        const { updateLoopsContact } = await import("@/lib/loops");
+        const user = await SubscriptionService.getUserEmail(appUserId);
+        if (user?.email) {
+          await updateLoopsContact({ email: user.email, plan: "free" });
         }
+      } catch {
+        // best-effort
+      }
     }
   }
 
-  private async handleUncancellation(appUserId: string, _event: RCWebhookEvent): Promise<void> {
+  private async handleUncancellation(appUserId: string): Promise<void> {
     const subscription = await SubscriptionService.getUserSubscription(appUserId);
     if (!subscription || subscription.provider !== "REVENUECAT") return;
 
@@ -281,12 +275,15 @@ export class RevenueCatBillingProvider {
     });
   }
 
-  private async handleExpiration(appUserId: string, _event: RCWebhookEvent): Promise<void> {
+  private async handleExpiration(appUserId: string, event: RevenueCatWebhookEvent): Promise<void> {
     const subscription = await SubscriptionService.getUserSubscription(appUserId);
     if (!subscription || subscription.provider !== "REVENUECAT") return;
 
+    const expiresDate = event.expiration_at_ms ? new Date(event.expiration_at_ms) : undefined;
+
     await SubscriptionService.updateSubscriptionByUserId(appUserId, {
       status: "EXPIRED",
+      currentPeriodEnd: expiresDate,
     });
 
     try {
@@ -300,7 +297,7 @@ export class RevenueCatBillingProvider {
     }
   }
 
-  private async handleBillingIssue(appUserId: string, _event: RCWebhookEvent): Promise<void> {
+  private async handleBillingIssue(appUserId: string): Promise<void> {
     const subscription = await SubscriptionService.getUserSubscription(appUserId);
     if (!subscription || subscription.provider !== "REVENUECAT") return;
 
@@ -312,64 +309,30 @@ export class RevenueCatBillingProvider {
   private async handleProductChange(
     appUserId: string,
     productId: string,
-    event: RCWebhookEvent
+    event: RevenueCatWebhookEvent
   ): Promise<void> {
     const subscription = await SubscriptionService.getUserSubscription(appUserId);
     if (!subscription || subscription.provider !== "REVENUECAT") return;
 
-    const internalPlanId = resolveInternalPlanIdFromRCWebhookEventProduct(productId);
+    const internalPlanId = resolveInternalPlanIdFromRCProductId(productId);
     const planConfig = getInternalPlanConfig(internalPlanId);
-    const subData = this.getActiveSubscription(event);
+    const expiresDate = event.expiration_at_ms ? new Date(event.expiration_at_ms) : undefined;
 
     await SubscriptionService.updateSubscriptionByUserId(appUserId, {
       priceId: productId,
       internalPlanId: internalPlanId ?? undefined,
       rcProductId: productId,
       amount: planConfig?.amount ?? undefined,
-      currentPeriodEnd: subData?.expires_date ? new Date(subData.expires_date) : undefined,
-      nextBillingDate: subData?.expires_date ? new Date(subData.expires_date) : null,
+      currentPeriodEnd: expiresDate,
+      nextBillingDate: expiresDate ?? null,
     });
   }
 
-  private async handleTransfer(appUserId: string, event: RCWebhookEvent): Promise<void> {
-    // When a user transfers from one App Store account to another
-    const subData = this.getActiveSubscription(event);
-    if (subData?.original_transaction_id) {
+  private async handleTransfer(appUserId: string, event: RevenueCatWebhookEvent): Promise<void> {
+    if (event.original_transaction_id) {
       await SubscriptionService.updateSubscriptionByUserId(appUserId, {
-        rcOriginalTransactionId: subData.original_transaction_id,
+        rcOriginalTransactionId: event.original_transaction_id,
       });
     }
   }
-
-  private getActiveSubscription(event: RCWebhookEvent): RCWebhookSubscription | null {
-    const subs = event.subscriber.subscriptions;
-    if (!subs) return null;
-    // Return the first active/valid subscription
-    for (const [, sub] of Object.entries(subs)) {
-      const expiresAt = new Date(sub.expires_date);
-      if (expiresAt > new Date()) return sub;
-    }
-    // Fallback: return the first one
-    const values = Object.values(subs);
-    return values.length > 0 ? values[0] : null;
-  }
-
-  private getActiveEntitlement(event: RCWebhookEvent): RCWebhookEntitlement | null {
-    const entitlements = event.subscriber.entitlements;
-    if (!entitlements) return null;
-    const rcEntitlementId = process.env.REVENUECAT_ENTITLEMENT_ID || "pro";
-    return entitlements[rcEntitlementId] ?? Object.values(entitlements)[0] ?? null;
-  }
-
-  private resolveProductIdFromEvent(event: RCWebhookEvent): string {
-    const sub = this.getActiveSubscription(event);
-    if (sub?.product_id) return sub.product_id;
-    const entitlement = this.getActiveEntitlement(event);
-    if (entitlement?.product_identifier) return entitlement.product_identifier;
-    return "";
-  }
-}
-
-function resolveInternalPlanIdFromRCWebhookEventProduct(productId: string): InternalPlanId | null {
-  return resolveInternalPlanIdFromRCProductId(productId);
 }

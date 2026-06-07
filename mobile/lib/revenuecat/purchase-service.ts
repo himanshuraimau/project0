@@ -1,5 +1,6 @@
 import Purchases, {
   type CustomerInfo,
+  type MakePurchaseResult,
   type PurchasesPackage,
 } from 'react-native-purchases';
 import { getCurrentRevenueCatOffering } from './mapper';
@@ -25,15 +26,15 @@ export async function purchaseRevenueCatPackage(
   packageToPurchase: PurchasesPackage
 ): Promise<CustomerInfo> {
   assertPurchasesAvailable();
-  const result = await Purchases.purchasePackage(packageToPurchase);
-  await maybeSyncCustomerInfo(result.customerInfo);
+  const result: MakePurchaseResult = await Purchases.purchasePackage(packageToPurchase);
+  await maybeSyncCustomerInfo(result.customerInfo, result.transaction.transactionIdentifier);
   return result.customerInfo;
 }
 
 export async function restoreRevenueCatPurchases(): Promise<CustomerInfo> {
   assertPurchasesAvailable();
   const info = await Purchases.restorePurchases();
-  await maybeSyncCustomerInfo(info);
+  await maybeSyncCustomerInfo(info, undefined);
   return info;
 }
 
@@ -48,7 +49,7 @@ export async function getRevenueCatPackages() {
   };
 }
 
-async function maybeSyncCustomerInfo(customerInfo: CustomerInfo) {
+async function maybeSyncCustomerInfo(customerInfo: CustomerInfo, transactionId: string | undefined) {
   try {
     const entitlementId = getRevenueCatEntitlementId();
     const entitlement =
@@ -59,20 +60,11 @@ async function maybeSyncCustomerInfo(customerInfo: CustomerInfo) {
       return;
     }
 
-    const subscription = (customerInfo as any).subscriptions?.[entitlement.productIdentifier];
-    const originalTransactionId =
-      (subscription as any)?.originalTransactionIdentifier ||
-      (subscription as any)?.original_transaction_identifier ||
-      (subscription as any)?.originalTransactionId ||
-      (subscription as any)?.original_transaction_id ||
-      (subscription as any)?.storeTransactionId ||
-      entitlement.originalPurchaseDate;
-
     await syncRevenueCatSubscription({
       entitlementId: entitlement.identifier,
       productId: entitlement.productIdentifier,
       store: entitlement.store,
-      originalTransactionId: originalTransactionId ? String(originalTransactionId) : undefined,
+      originalTransactionId: transactionId,
       isActive: entitlement.isActive,
       expiresDate: entitlement.expirationDate ?? undefined,
       purchaseDate: entitlement.latestPurchaseDate ?? undefined,
