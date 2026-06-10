@@ -63,6 +63,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         "expo-secure-store",
         "expo-web-browser",
         "expo-localization",
+        "react-native-purchases",
         [
             "expo-av",
             {
