@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { PaddleSubscriptionService } from '@/lib/payments/paddle';
-import { resolveInternalPlanIdFromPaddlePriceId } from '@/lib/billing';
+import { resolveInternalPlanIdFromPaddlePriceId } from '@/lib/billing/plan-mapping';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import type { SubscriptionStatus, BillingProvider } from '@prisma/client';
