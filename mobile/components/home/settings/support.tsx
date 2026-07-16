@@ -14,7 +14,7 @@ import {
   Linking,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { neutral } from '@/lib/design-system'
+import { neutral, iconColors } from '@/lib/design-system'
 
 interface FAQItem {
   id: string
@@ -54,7 +54,7 @@ export default function Support() {
     {
       title: 'Most Popular',
       icon: 'star',
-      iconBg: '#FF9500',
+      iconBg: iconColors.orange,
       items: [
         {
           id: 'family-plan',
@@ -81,7 +81,7 @@ export default function Support() {
     {
       title: 'Recording & Notes',
       icon: 'mic',
-      iconBg: '#FF3B30',
+      iconBg: iconColors.red,
       items: [
         {
           id: 'recording-quality',
@@ -103,7 +103,7 @@ export default function Support() {
     {
       title: 'Subscription & Payments',
       icon: 'card',
-      iconBg: '#5856D6',
+      iconBg: iconColors.indigo,
       items: [
         {
           id: 'cancel-subscription',
@@ -176,7 +176,7 @@ export default function Support() {
               ]}
               onPress={() => Linking.openURL('mailto:support@flinote.ai')}
             >
-              <View style={[styles.quickIcon, { backgroundColor: '#007AFF' }]}>
+              <View style={[styles.quickIcon, { backgroundColor: iconColors.blue }]}>
                 <Ionicons name="mail" size={20} color="#fff" />
               </View>
               <Text style={[styles.quickLabel, { color: c.foreground }]}>Email Us</Text>
@@ -193,7 +193,7 @@ export default function Support() {
               ]}
               onPress={() => Linking.openURL('https://flinote.ai')}
             >
-              <View style={[styles.quickIcon, { backgroundColor: '#34C759' }]}>
+              <View style={[styles.quickIcon, { backgroundColor: iconColors.green }]}>
                 <Ionicons name="globe" size={20} color="#fff" />
               </View>
               <Text style={[styles.quickLabel, { color: c.foreground }]}>Website</Text>
@@ -265,7 +265,7 @@ export default function Support() {
 
           {/* Contact form */}
           <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIcon, { backgroundColor: '#007AFF' }]}>
+            <View style={[styles.sectionIcon, { backgroundColor: iconColors.blue }]}>
               <Ionicons name="send" size={14} color="#fff" />
             </View>
             <Text style={[styles.sectionTitle, { color: c.foreground }]}>Send a Message</Text>

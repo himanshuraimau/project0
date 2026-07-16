@@ -920,11 +920,7 @@ const makeStyles = (
             backgroundColor: c.foreground,
             justifyContent: 'center',
             alignItems: 'center',
-            shadowColor: c.foreground,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.2,
-            shadowRadius: 8,
-            elevation: 8,
+            boxShadow: `0 4px 8px ${c.foreground}33`,
         },
     });
 
@@ -934,13 +930,11 @@ const waveformStyles = StyleSheet.create({
         width: '100%',
         height: 280,
         borderRadius: 24,
+        borderCurve: 'continuous',
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        elevation: 5,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
     },
     visualizerContainer: {
         flexDirection: 'row',

@@ -220,6 +220,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 22,
+    borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -228,6 +229,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 14,
+    borderCurve: 'continuous',
   },
   retryText: { fontSize: 16, fontWeight: '600' },
 
@@ -240,10 +242,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 10,
+    boxShadow: '0 8px 20px rgba(0,0,0,0.2)',
   },
 })

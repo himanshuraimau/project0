@@ -1,4 +1,4 @@
-import { tokens } from '@/lib/constants/Colors'
+import { tokens } from '@/lib/tokens'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { authClient } from '@/lib/auth/auth-client'
 import { useSession } from '@/lib/auth'

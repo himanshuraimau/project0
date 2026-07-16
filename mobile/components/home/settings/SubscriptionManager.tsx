@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { getSubscriptionPlanDetails } from '@/lib/subscription/plan'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { neutral } from '@/lib/design-system'
+import { neutral, iconColors } from '@/lib/design-system'
 import { restoreRevenueCatPurchases } from '@/lib/revenuecat'
 import { getSubscriptionStatus } from '@/lib/api/subscription'
 import type { SubscriptionStatusResponse } from '@/lib/api/types'
@@ -188,8 +188,8 @@ export default function SubscriptionManager() {
       : effectiveSubscription.cancelAtPeriodEnd ? 'Cancelling' : 'Premium Active'
     : effectiveSubscription.cancelAtPeriodEnd ? 'Ending Soon' : (effectiveSubscription.displayStatus || 'History')
   const statusColor = effectiveHasAccess
-    ? (effectiveSubscription.cancelAtPeriodEnd ? '#FF9500' : '#34C759')
-    : '#FF3B30'
+    ? (effectiveSubscription.cancelAtPeriodEnd ? iconColors.orange : iconColors.green)
+    : iconColors.red
 
   const formatDate = (d: string | Date) =>
     new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -209,7 +209,7 @@ export default function SubscriptionManager() {
     actions.push({
       label: 'Manage Subscription',
       icon: 'open-outline',
-      iconBg: '#007AFF',
+      iconBg: iconColors.blue,
       onPress: handleOpenManagement,
       loading: isOpeningPortal,
       loadingLabel: 'Opening...',
@@ -219,7 +219,7 @@ export default function SubscriptionManager() {
     actions.push({
       label: 'Restore Purchases',
       icon: 'refresh-circle',
-      iconBg: '#5856D6',
+      iconBg: iconColors.indigo,
       onPress: handleRestorePurchases,
       loading: isRestoring,
       loadingLabel: 'Restoring...',
@@ -340,7 +340,7 @@ export default function SubscriptionManager() {
           {/* Cancel warning */}
           {effectiveSubscription.cancelAtPeriodEnd && (
             <View style={[styles.warningBanner, { backgroundColor: isDark ? 'rgba(255,149,0,0.08)' : '#FFF8EE', borderColor: isDark ? 'rgba(255,149,0,0.15)' : 'rgba(255,149,0,0.2)' }]}>
-              <Ionicons name="warning" size={18} color="#FF9500" />
+              <Ionicons name="warning" size={18} color={iconColors.orange} />
               <Text style={[styles.warningText, { color: isDark ? '#FFB84D' : '#92400E' }]}>
                 Your subscription will end at the current billing period.
               </Text>
@@ -403,7 +403,7 @@ export default function SubscriptionManager() {
               <React.Fragment key={idx}>
                 <View style={styles.featureRow}>
                   <View style={[styles.featureIcon, { backgroundColor: isDark ? 'rgba(52,199,89,0.1)' : 'rgba(52,199,89,0.08)' }]}>
-                    <Ionicons name={feat.icon} size={16} color="#34C759" />
+                    <Ionicons name={feat.icon} size={16} color={iconColors.green} />
                   </View>
                   <Text style={[styles.featureText, { color: c.foreground }]}>{feat.text}</Text>
                 </View>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { TouchableOpacity, StyleSheet, ViewStyle } from 'react-native'
+import { TouchableOpacity, ViewStyle } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useTheme } from '@/lib/hooks/useTheme'
@@ -43,11 +43,8 @@ export default function BackButton({
           borderWidth: 0.5,
           borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
           borderRadius: 24,
-          shadowColor: isDark ? 'transparent' : '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: isDark ? 0 : 0.08,
-          shadowRadius: 3,
-          elevation: isDark ? 0 : 2,
+          borderCurve: 'continuous',
+          boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
         },
         style,
       ]}

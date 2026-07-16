@@ -7,8 +7,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
-import { Feather } from '@expo/vector-icons'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { neutral } from '@/lib/design-system'
 
@@ -118,14 +117,11 @@ const styles = StyleSheet.create({
   card: {
     width: Math.min(SCREEN_W - 56, 380),
     borderRadius: 24,
+    borderCurve: 'continuous',
     paddingTop: 28,
     paddingHorizontal: 24,
     paddingBottom: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.2,
-    shadowRadius: 32,
-    elevation: 16,
+    boxShadow: '0 12px 32px rgba(0,0,0,0.2)',
   },
   closeBtn: {
     position: 'absolute',
@@ -164,6 +160,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 8,
+    borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -180,6 +177,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: 52,
     borderRadius: 16,
+    borderCurve: 'continuous',
     gap: 8,
     marginBottom: 10,
   },

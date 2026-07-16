@@ -508,14 +508,11 @@ const styles = StyleSheet.create({
     modalCard: {
         width: Math.min(SCREEN_W - 80, 320),
         borderRadius: 20,
+        borderCurve: 'continuous',
         paddingTop: 28,
         paddingHorizontal: 24,
         paddingBottom: 20,
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
-        shadowRadius: 24,
-        elevation: 12,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
     },
 });

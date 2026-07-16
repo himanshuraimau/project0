@@ -17,7 +17,7 @@ import { useSubscription } from '@/lib/contexts/SubscriptionContext'
 import { useAlert } from '@/lib/contexts/AlertContext'
 import { getSubscriptionPlanDisplay } from '@/lib/subscription/plan'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { neutral } from '@/lib/design-system'
+import { neutral, iconColors } from '@/lib/design-system'
 
 export default function AccountInfo() {
   const { data: session } = useSession()
@@ -72,21 +72,21 @@ export default function AccountInfo() {
   const infoRows: InfoRow[] = [
     {
       icon: 'mail',
-      iconBg: '#007AFF',
+      iconBg: iconColors.blue,
       label: t('accountInfo.email'),
       value: userEmail,
     },
     {
       icon: 'diamond',
-      iconBg: isSubscribed ? '#34C759' : '#AF52DE',
+      iconBg: isSubscribed ? iconColors.green : iconColors.purple,
       label: t('accountInfo.subscription'),
       value: getSubscriptionDisplay(),
       badge: true,
-      badgeColor: isSubscribed ? '#34C759' : undefined,
+      badgeColor: isSubscribed ? iconColors.green : undefined,
     },
     {
       icon: 'calendar',
-      iconBg: '#FF9500',
+      iconBg: iconColors.orange,
       label: t('accountInfo.memberSince'),
       value: memberSince,
     },
@@ -146,12 +146,12 @@ export default function AccountInfo() {
               <Ionicons
                 name={isSubscribed ? 'checkmark-circle' : 'diamond'}
                 size={14}
-                color={isSubscribed ? '#34C759' : c.mutedForeground}
+                color={isSubscribed ? iconColors.green : c.mutedForeground}
               />
               <Text
                 style={[
                   styles.subPillText,
-                  { color: isSubscribed ? '#34C759' : c.mutedForeground },
+                  { color: isSubscribed ? iconColors.green : c.mutedForeground },
                 ]}
               >
                 {getSubscriptionDisplay()}
@@ -220,7 +220,7 @@ export default function AccountInfo() {
             onPress={copyUserId}
           >
             <View style={styles.row}>
-              <View style={[styles.iconCircle, { backgroundColor: '#8E8E93' }]}>
+              <View style={[styles.iconCircle, { backgroundColor: iconColors.gray }]}>
                 <Ionicons name="copy" size={16} color="#fff" />
               </View>
               <View style={styles.rowContent}>

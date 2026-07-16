@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Feather, Ionicons } from '@expo/vector-icons'
-import { BookOpen, Brain, Layers } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -21,7 +20,7 @@ import { notesApi } from '@/lib/api'
 import type { Note } from '@/lib/api/types'
 import { useAlert } from '@/lib/contexts/AlertContext'
 import { useTheme } from '@/lib/hooks/useTheme'
-import { neutral } from '@/lib/design-system'
+import { neutral, iconColors } from '@/lib/design-system'
 
 import { ShareLinkModal } from '@/components/notes'
 import FolderSelectorModal from '@/components/folders/FolderSelectorModal'
@@ -114,12 +113,12 @@ export default function NoteView({ noteId }: NoteViewProps) {
   }
 
   const studyTools = [
-    { id: 1, icon: 'create-outline', label: t('note.editNote'), color: '#FF6900' },
-    { id: 2, icon: 'chatbubble-ellipses', label: t('note.chat'), color: '#AF52DE' },
-    { id: 3, icon: 'bulb', label: t('note.takeQuiz'), color: '#FF2D55' },
-    { id: 4, icon: 'layers', label: t('note.flashcards'), color: '#5AC8FA' },
-    { id: 5, icon: 'headset', label: t('note.podcast'), color: '#5856D6' },
-    { id: 6, icon: 'git-network', label: t('note.mindMap'), color: '#007AFF' },
+    { id: 1, icon: 'create-outline', label: t('note.editNote'), color: iconColors.orange },
+    { id: 2, icon: 'chatbubble-ellipses', label: t('note.chat'), color: iconColors.purple },
+    { id: 3, icon: 'bulb', label: t('note.takeQuiz'), color: iconColors.pink },
+    { id: 4, icon: 'layers', label: t('note.flashcards'), color: iconColors.teal },
+    { id: 5, icon: 'headset', label: t('note.podcast'), color: iconColors.indigo },
+    { id: 6, icon: 'git-network', label: t('note.mindMap'), color: iconColors.blue },
   ]
 
   const handleStudyToolPress = (toolId: number) => {
@@ -378,10 +377,10 @@ export default function NoteView({ noteId }: NoteViewProps) {
                 disabled={deleting}
               >
                 {deleting ? (
-                  <ActivityIndicator size="small" color="#FF3B30" />
+                  <ActivityIndicator size="small" color={iconColors.red} />
                 ) : (
                   <>
-                    <Ionicons name="trash" size={18} color="#FF3B30" />
+                    <Ionicons name="trash" size={18} color={iconColors.red} />
                     <Text style={styles.deleteText}>{t('note.deleteNote')}</Text>
                   </>
                 )}
@@ -440,6 +439,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
+    borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -449,6 +449,7 @@ const styles = StyleSheet.create({
 
   titleCard: {
     borderRadius: 18,
+    borderCurve: 'continuous',
     borderWidth: 1,
     padding: 22,
     marginBottom: 24,
@@ -500,6 +501,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     height: 56,
     borderRadius: 16,
+    borderCurve: 'continuous',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
@@ -514,6 +516,7 @@ const styles = StyleSheet.create({
 
   contentCard: {
     borderRadius: 18,
+    borderCurve: 'continuous',
     borderWidth: 1,
     padding: 20,
     marginBottom: 24,
@@ -528,12 +531,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 14,
+    borderCurve: 'continuous',
   },
-  deleteText: { color: '#FF3B30', fontSize: 15, fontWeight: '600' },
+  deleteText: { color: iconColors.red, fontSize: 15, fontWeight: '600' },
 
   stateWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   stateTitle: { marginTop: 16, fontSize: 16, fontWeight: '600', textAlign: 'center' },
   stateText: { marginTop: 12, fontSize: 15, textAlign: 'center' },
-  retryBtn: { marginTop: 20, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 14 },
+  retryBtn: { marginTop: 20, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 14, borderCurve: 'continuous' },
   retryText: { fontSize: 16, fontWeight: '600' },
 })

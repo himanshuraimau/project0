@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 52,
     borderRadius: 14,
+    borderCurve: 'continuous',
     marginTop: 16,
   },
   buttonText: {

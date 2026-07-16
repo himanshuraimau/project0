@@ -17,7 +17,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAlert } from '@/lib/contexts/AlertContext'
-import { neutral } from '@/lib/design-system'
+import { neutral, iconColors } from '@/lib/design-system'
 
 export default function ChangeLanguage() {
   const { theme, mode } = useTheme()
@@ -124,7 +124,7 @@ export default function ChangeLanguage() {
           >
             {/* Current language card */}
             <View style={[styles.currentCard, { backgroundColor: isDark ? 'rgba(52,199,89,0.08)' : 'rgba(52,199,89,0.06)', borderColor: isDark ? 'rgba(52,199,89,0.15)' : 'rgba(52,199,89,0.12)' }]}>
-              <View style={[styles.currentIcon, { backgroundColor: '#34C759' }]}>
+              <View style={[styles.currentIcon, { backgroundColor: iconColors.green }]}>
                 <Ionicons name="checkmark-circle" size={18} color="#fff" />
               </View>
               <View style={styles.currentInfo}>

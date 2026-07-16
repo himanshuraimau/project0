@@ -39,7 +39,7 @@ import { getTranslatedNote } from '@/lib/utils/translation'
 import { useFolders } from '@/lib/hooks/useFolders'
 import { ShareLinkModal } from '@/components/notes'
 import FolderSelectorModal from '@/components/folders/FolderSelectorModal'
-import { neutral } from '@/lib/design-system'
+import { neutral, iconColors } from '@/lib/design-system'
 import { glass, liquidGlass, glassShadow } from '@/lib/design-system/glass'
 import { useSubscription } from '@/lib/contexts/SubscriptionContext'
 import UpgradeModal from '@/components/ui/UpgradeModal'
@@ -48,10 +48,10 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
 const NEW_NOTE_OPTIONS = [
-  { id: 1, icon: 'mic' as const, label: 'Record audio', color: '#FF3B30' },
-  { id: 2, icon: 'upload-cloud' as const, label: 'Upload audio', color: '#007AFF' },
-  { id: 3, icon: 'file-text' as const, label: 'Upload text', color: '#34C759' },
-  { id: 4, icon: 'link' as const, label: 'Web link', color: '#5856D6' },
+  { id: 1, icon: 'mic' as const, label: 'Record audio', color: iconColors.red },
+  { id: 2, icon: 'upload-cloud' as const, label: 'Upload audio', color: iconColors.blue },
+  { id: 3, icon: 'file-text' as const, label: 'Upload text', color: iconColors.green },
+  { id: 4, icon: 'link' as const, label: 'Web link', color: iconColors.indigo },
 ]
 
 export default function NotesHome() {
@@ -669,6 +669,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 40,
     borderRadius: 10,
+    borderCurve: 'continuous',
     paddingHorizontal: 12,
     gap: 8,
     marginBottom: 14,
@@ -708,6 +709,7 @@ const styles = StyleSheet.create({
   folderCard: {
     width: 130,
     borderRadius: 16,
+    borderCurve: 'continuous',
     padding: 14,
     marginRight: 10,
     borderWidth: 1,
@@ -716,6 +718,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
+    borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
@@ -725,6 +728,7 @@ const styles = StyleSheet.create({
 
   notesGroup: {
     borderRadius: 14,
+    borderCurve: 'continuous',
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 8,
@@ -744,6 +748,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 10,
+    borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -758,6 +763,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
+    borderCurve: 'continuous',
   },
   sharedText: { fontSize: 10, fontWeight: '600' },
   noteActions: { flexDirection: 'row', gap: 6 },
@@ -765,6 +771,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 8,
+    borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -783,6 +790,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 28,
     borderRadius: 14,
+    borderCurve: 'continuous',
   },
   retryText: { fontSize: 16, fontWeight: '600' },
   devBanner: {
@@ -790,6 +798,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 10,
+    borderCurve: 'continuous',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -807,6 +816,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingVertical: 15,
     borderRadius: 22,
+    borderCurve: 'continuous',
     gap: 8,
     overflow: 'hidden',
   },
@@ -825,10 +835,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+    borderCurve: 'continuous',
   },
   glassSheet: {
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+    borderCurve: 'continuous',
     borderWidth: 1,
     borderBottomWidth: 0,
     overflow: 'hidden',
@@ -867,6 +879,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 14,
     borderRadius: 16,
+    borderCurve: 'continuous',
     borderWidth: 1,
     gap: 12,
   },
@@ -874,6 +887,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
+    borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },

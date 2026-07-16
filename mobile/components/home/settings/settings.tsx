@@ -18,7 +18,7 @@ import { deleteUserAccount } from '@/lib/api/user'
 import { authClient, useSession } from '@/lib/auth/auth-client'
 import { useAlert } from '@/lib/contexts/AlertContext'
 import { useSubscription } from '@/lib/contexts/SubscriptionContext'
-import { neutral } from '@/lib/design-system'
+import { neutral, iconColors } from '@/lib/design-system'
 import { glass, glassShadow } from '@/lib/design-system/glass'
 
 export default function Settings() {
@@ -88,14 +88,14 @@ export default function Settings() {
   const accountSection: SettingItem[] = [
     {
       icon: 'person',
-      iconBg: '#007AFF',
+      iconBg: iconColors.blue,
       label: t('settings.accountInfo'),
       onPress: () => router.push('/(home)/accountInfo'),
       chevron: true,
     },
     {
       icon: hasAccess ? 'checkmark-circle' : 'diamond',
-      iconBg: hasAccess ? '#34C759' : '#AF52DE',
+      iconBg: hasAccess ? iconColors.green : iconColors.purple,
       label: hasAccess
         ? (t('settings.manageSubscription') || 'Manage Subscription')
         : t('settings.subscription'),
@@ -110,7 +110,7 @@ export default function Settings() {
   const preferencesSection: SettingItem[] = [
     {
       icon: 'globe',
-      iconBg: '#5856D6',
+      iconBg: iconColors.indigo,
       label: t('settings.changeLanguage'),
       onPress: () => router.push('/(home)/changeLanguage'),
       chevron: true,
@@ -120,14 +120,14 @@ export default function Settings() {
   const supportSection: SettingItem[] = [
     {
       icon: 'chatbubble',
-      iconBg: '#34C759',
+      iconBg: iconColors.green,
       label: t('settings.contactSupport'),
       onPress: () => router.push('/(home)/support'),
       chevron: true,
     },
     {
       icon: 'open-outline',
-      iconBg: '#007AFF',
+      iconBg: iconColors.blue,
       label: t('settings.goToWebsite'),
       onPress: () => Linking.openURL('https://flinote.ai'),
       chevron: true,
@@ -137,14 +137,14 @@ export default function Settings() {
   const legalSection: SettingItem[] = [
     {
       icon: 'shield-checkmark',
-      iconBg: '#8E8E93',
+      iconBg: iconColors.gray,
       label: t('settings.privacy') || 'Privacy Policy',
       onPress: () => Linking.openURL('https://flinote.ai/privacy'),
       chevron: true,
     },
     {
       icon: 'document-text',
-      iconBg: '#8E8E93',
+      iconBg: iconColors.gray,
       label: t('settings.terms') || 'Terms of Service',
       onPress: () => Linking.openURL('https://flinote.ai/terms'),
       chevron: true,
@@ -154,7 +154,7 @@ export default function Settings() {
   const dangerSection: SettingItem[] = [
     {
       icon: 'log-out-outline',
-      iconBg: '#FF9500',
+      iconBg: iconColors.orange,
       label: t('settings.logout'),
       onPress: handleLogout,
       chevron: false,
@@ -162,7 +162,7 @@ export default function Settings() {
     },
     {
       icon: 'trash',
-      iconBg: '#FF3B30',
+      iconBg: iconColors.red,
       label: t('settings.deleteAccount'),
       onPress: handleDeleteAccount,
       chevron: false,
@@ -316,7 +316,7 @@ export default function Settings() {
           <Text style={[styles.sectionLabel, { color: c.mutedForeground }]}>APPEARANCE</Text>
           <LiquidCard>
             <View style={styles.themeRow}>
-              <View style={[styles.iconCircle, { backgroundColor: isDark ? '#5856D6' : '#FF9500' }]}>
+              <View style={[styles.iconCircle, { backgroundColor: isDark ? iconColors.indigo : iconColors.orange }]}>
                 <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color="#fff" />
               </View>
               <View
@@ -431,6 +431,7 @@ const styles = StyleSheet.create({
   /* ── Liquid Glass Card (shared) ───────────────────────────────────── */
   glassCard: {
     borderRadius: 16,
+    borderCurve: 'continuous',
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 16,
@@ -465,6 +466,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 16,
+    borderCurve: 'continuous',
     borderWidth: 1,
     marginBottom: 24,
     gap: 10,
@@ -498,6 +500,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 7,
+    borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -521,6 +524,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     borderRadius: 10,
+    borderCurve: 'continuous',
     padding: 3,
   },
   themeOption: {
@@ -530,14 +534,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 7,
     borderRadius: 8,
+    borderCurve: 'continuous',
     gap: 5,
   },
   themeOptionActive: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 1,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
   },
   themeText: {
     fontSize: 13,

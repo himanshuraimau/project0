@@ -3,7 +3,7 @@ import {
   ThemePreference,
   ThemeWithCompat,
   themeWithCompat,
-} from '@/lib/constants/Colors'
+} from '@/lib/design-system'
 import React, { createContext, useContext, useMemo, useState } from 'react'
 import { useColorScheme } from 'react-native'
 

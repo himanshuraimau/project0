@@ -59,6 +59,7 @@ export const FolderCard: React.FC<FolderCardProps> = ({ folder, onPress, isLast 
 const styles = StyleSheet.create({
   cardWrap: {
     borderRadius: 16,
+    borderCurve: 'continuous',
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 10,
@@ -74,6 +75,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
+    borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },

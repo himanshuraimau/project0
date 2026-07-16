@@ -1,4 +1,4 @@
-import { tokens } from '@/lib/constants/Colors'
+import { tokens } from '@/lib/tokens'
 import { useTheme } from '@/lib/hooks/useTheme'
 import React, { useMemo, useState } from 'react'
 import {
