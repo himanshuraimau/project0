@@ -137,7 +137,7 @@ export async function getQuestionsFromTranscript(
   try {
     const { generateObject } = await import("ai");
     const { z } = await import("zod");
-    const { openai } = await import("@ai-sdk/openai");
+    const { aiGateway, AI_MODELS } = await import("../ai/gateway");
 
     const questionSchema = z.object({
       questions: z.array(z.object({
@@ -150,7 +150,7 @@ export async function getQuestionsFromTranscript(
     });
 
     const result = await generateObject({
-      model: openai("gpt-4o"),
+      model: aiGateway(AI_MODELS.course),
       schema: questionSchema,
       prompt: `You are a master quiz creator and educational assessment expert. Your mission is to craft engaging, challenging, and thought-provoking multiple choice questions that test real understanding.
 

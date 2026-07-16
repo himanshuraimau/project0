@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromAuth } from '@/lib/auth-helper';
 import { prisma } from '@/lib/prisma';
-import { openai } from '@ai-sdk/openai';
+import { aiGateway, AI_MODELS } from '@/lib/ai/gateway';
 import { generateText } from 'ai';
 import { ApiSuccessResponse, ApiErrorResponse } from '@/lib/types';
 
@@ -205,7 +205,7 @@ export async function POST(
 
     // Generate translation using OpenAI
     const targetLanguage = SUPPORTED_LANGUAGES[language as LanguageCode];
-    const model = openai('gpt-4o');
+    const model = aiGateway(AI_MODELS.translation);
 
     // Translate the title
     const titleResult = await generateText({

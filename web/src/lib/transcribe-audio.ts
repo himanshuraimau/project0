@@ -1,11 +1,7 @@
-import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
+import { openaiAudio, AI_MODELS } from "@/lib/ai/gateway";
 import { NoteService } from "@/lib/note-service";
 import { noteProgressManager } from "@/lib/note-progress-manager";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const ALLOWED_MIME_TYPES = [
   "audio/mpeg",
@@ -148,9 +144,9 @@ export async function transcribeAudioAndCreateNote(
   });
 
   await publishProgress(40, "processing", "Transcribing audio...");
-  const transcriptionResult = await openai.audio.transcriptions.create({
+  const transcriptionResult = await openaiAudio.audio.transcriptions.create({
     file: audioFileWithName,
-    model: "whisper-1",
+    model: AI_MODELS.transcription,
   });
 
   const transcriptText = transcriptionResult.text;

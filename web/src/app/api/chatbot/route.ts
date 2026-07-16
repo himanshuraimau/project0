@@ -1,11 +1,8 @@
 import { NextRequest } from 'next/server';
-import { openai } from '@ai-sdk/openai';
 import { streamText } from 'ai';
+import { aiGateway, AI_MODELS } from '@/lib/ai/gateway';
 import { z } from 'zod';
 import { querySimilarChunks } from '../../../lib/course/embedding-service';
-
-// Environment variables
-const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
 
 // Validation schema for the request body
 const RequestSchema = z.object({
@@ -78,7 +75,7 @@ When referencing information, you can mention it comes from "your note" or "the 
 Provide clear, helpful responses that make use of the available context.`;
 
   const result = await streamText({
-    model: openai(CHAT_MODEL),
+    model: aiGateway(AI_MODELS.chat),
     system: systemPrompt,
     prompt: `Context from the user's note:
 ${context}

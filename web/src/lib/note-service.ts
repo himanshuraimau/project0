@@ -1,6 +1,6 @@
 import { prisma } from "./prisma";
-import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
+import { aiGateway, AI_MODELS } from "./ai/gateway";
 import { indexNoteContent } from "./course/embedding-service";
 import {
   NoteData,
@@ -9,13 +9,8 @@ import {
   NotesFromContentResult,
 } from "@/lib/types/notes.types";
 
-const openrouter = createOpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
-
 export class NoteService {
-  private model = openrouter.chat("google/gemini-3.1-flash-lite-preview");
+  private model = aiGateway(AI_MODELS.notes);
 
   /** Provider options for OpenRouter */
   private providerOptions = {};
@@ -693,9 +688,9 @@ Generate ONE perfect title (no quotes, just the title):`,
         console.warn(
           `⚠️ Note ${note.id} created but chatbot will not work (empty content)`,
         );
-      } else if (!process.env.OPENAI_API_KEY) {
+      } else if (!process.env.AI_GATEWAY_API_KEY) {
         console.error(
-          `❌ Cannot index note ${note.id}: OPENAI_API_KEY not configured`,
+          `❌ Cannot index note ${note.id}: AI_GATEWAY_API_KEY not configured`,
         );
         console.warn(
           `⚠️ Note ${note.id} created but chatbot will not work (missing API key)`,

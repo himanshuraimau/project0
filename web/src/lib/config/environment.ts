@@ -20,8 +20,10 @@ const envSchema = z.object({
   NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: z.string().default('/'),
   
   // AI Services
+  // Vercel AI Gateway — single key for all AI model calls (text, embeddings, audio).
+  AI_GATEWAY_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
-  
+
   // ElevenLabs
   ELEVENLABS_API_KEY: z.string().optional(),
   ELEVENLABS_BASE_URL: z.string().default('https://api.elevenlabs.io/v1'),
@@ -130,6 +132,9 @@ export const config = {
   
   // AI Services
   ai: {
+    gateway: {
+      apiKey: env.AI_GATEWAY_API_KEY || '',
+    },
     openai: {
       apiKey: env.OPENAI_API_KEY || '',
       embeddingModel: env.EMBEDDING_MODEL,
@@ -233,9 +238,9 @@ export const environmentUtils = {
     
 
     
-    // Check AI service requirements
-    if (!config.ai.openai.apiKey || !config.ai.openai.apiKey.includes('sk-')) {
-      missing.push('OpenAI API key (OPENAI_API_KEY)');
+    // Check AI service requirements — all AI calls route through the Vercel AI Gateway.
+    if (!config.ai.gateway.apiKey) {
+      missing.push('Vercel AI Gateway API key (AI_GATEWAY_API_KEY)');
     }
     
     return {
@@ -254,6 +259,7 @@ export const environmentUtils = {
       services: {
         database: !!config.database.url,
 
+        aiGateway: !!config.ai.gateway.apiKey,
         openai: !!config.ai.openai.apiKey && config.ai.openai.apiKey.startsWith('sk-'),
         elevenlabs: !!config.ai.elevenlabs.apiKey && config.ai.elevenlabs.apiKey.startsWith('sk_'),
         localStorage: true, // Using local storage for development

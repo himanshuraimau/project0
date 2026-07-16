@@ -1,13 +1,8 @@
-import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { jsonrepair } from "jsonrepair";
+import { aiGateway, AI_MODELS } from "../ai/gateway";
 
-const openrouter = createOpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
-
-const model = openrouter.chat("google/gemini-3.1-flash-lite-preview");
+const model = aiGateway(AI_MODELS.summary);
 
 export interface SourceSummary {
   summary: string;
@@ -30,7 +25,7 @@ export async function summarizeSource(
     suggestedQuestions: [],
   };
 
-  if (!process.env.OPENROUTER_API_KEY) {
+  if (!process.env.AI_GATEWAY_API_KEY) {
     return empty;
   }
 

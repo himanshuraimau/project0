@@ -1,16 +1,15 @@
 import { Pool } from 'pg';
 import { embed } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { aiGateway, AI_MODELS } from '@/lib/ai/gateway';
 
 // Constants
-const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || 'text-embedding-3-small';
 const EMBEDDING_DIM = 1536; // OpenAI text-embedding-3-small dimensions
 const CHUNK_SIZE = parseInt(process.env.CHUNK_SIZE || '1000', 10);
 const CHUNK_OVERLAP = parseInt(process.env.CHUNK_OVERLAP || '200', 10);
 
-// Check if OpenAI API key is available
-const openaiApiKey = process.env.OPENAI_API_KEY;
-const hasValidApiKey = openaiApiKey && openaiApiKey.length > 10;
+// Check if the AI Gateway API key is available
+const gatewayApiKey = process.env.AI_GATEWAY_API_KEY;
+const hasValidApiKey = gatewayApiKey && gatewayApiKey.length > 10;
 
 // Initialize PostgreSQL pool
 const pool = new Pool({
@@ -73,7 +72,7 @@ export async function generateEmbeddings(chunks: string[]): Promise<number[][]> 
     for (let i = 0; i < chunks.length; i++) {
       try {
         const { embedding } = await embed({
-          model: openai.textEmbeddingModel(EMBEDDING_MODEL),
+          model: aiGateway.textEmbeddingModel(AI_MODELS.embedding),
           value: chunks[i],
         });
         
@@ -189,7 +188,7 @@ export async function queryChapterSimilarChunks(query: string, chapterId: string
     if (hasValidApiKey) {
       try {
         const { embedding: queryEmbedding } = await embed({
-          model: openai.textEmbeddingModel(EMBEDDING_MODEL),
+          model: aiGateway.textEmbeddingModel(AI_MODELS.embedding),
           value: query,
         });
         embedding = queryEmbedding;

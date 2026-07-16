@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isValidUserId } from "@/lib/utils/validation";
 import { searchYoutube, getTranscript, getQuestionsFromTranscript } from "@/lib/course/youtube";
 import { generateText } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { aiGateway, AI_MODELS } from "@/lib/ai/gateway";
 import { prisma } from "@/lib/prisma";
 import { indexChapterContent } from "@/lib/course/chapter-embedding-service";
 import { getUserFromAuth } from "@/lib/auth-helper";
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
 
         // 3. Generate educational notes
         const result = await generateText({
-          model: openai("gpt-4o"),
+          model: aiGateway(AI_MODELS.course),
           prompt: `You are an advanced AI educational content specialist and master educator. Your mission is to transform YouTube video transcripts into engaging, comprehensive, and interactive learning materials that captivate students and ensure deep understanding.
 
 YOUR ROLE: Create educational notes that are not just informative, but engaging and memorable. Think of yourself as an effective teacher who makes learning accessible.

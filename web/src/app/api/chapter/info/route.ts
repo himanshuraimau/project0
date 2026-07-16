@@ -6,7 +6,7 @@ import {
   searchYoutube,
 } from "@/lib/course/youtube"
 import { z } from "zod"
-import { openai } from "@ai-sdk/openai"
+import { aiGateway, AI_MODELS } from "@/lib/ai/gateway"
 import { generateText } from "ai"
 import { indexChapterContent } from "@/lib/course/chapter-embedding-service"
 import {
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
     let notes: string;
     try {
       const result = await generateText({
-        model: openai("gpt-4o"),
+        model: aiGateway(AI_MODELS.course),
         prompt: `You are an advanced AI educational content specialist and master educator! Your mission is to transform YouTube video transcripts into engaging, comprehensive, and interactive learning materials that captivate students and ensure deep understanding.
 
 **YOUR ROLE:** Create educational notes that are not just informative, but FUN, ENGAGING, and MEMORABLE! Think of yourself as the coolest teacher who makes learning exciting and accessible.

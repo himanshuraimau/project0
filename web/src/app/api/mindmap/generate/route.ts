@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateText } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { aiGateway, AI_MODELS } from "@/lib/ai/gateway";
 import { getUserFromAuth } from "@/lib/auth-helper";
 
 export async function POST(req: NextRequest) {
@@ -73,7 +73,7 @@ The goal is to create a detailed, well-structured visual representation that hel
 Generate ONLY the markdown content for the mind map:`;
 
     const result = await generateText({
-      model: openai('gpt-4o'),
+      model: aiGateway(AI_MODELS.course),
       prompt: prompt,
       temperature: 0.7,
     });

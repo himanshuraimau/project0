@@ -1,10 +1,7 @@
 import { NextRequest } from 'next/server';
-import { openai } from '@ai-sdk/openai';
 import { streamText } from 'ai';
+import { aiGateway, AI_MODELS } from '@/lib/ai/gateway';
 import { z } from 'zod';
-
-// Environment variables
-const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
 
 // Validation schema for the request body
 const RequestSchema = z.object({
@@ -69,7 +66,7 @@ When answering:
 Provide clear, helpful responses based on the podcast content.`;
 
   const result = await streamText({
-    model: openai(CHAT_MODEL),
+    model: aiGateway(AI_MODELS.chat),
     system: systemPrompt,
     prompt: `Here is the podcast transcript:
 

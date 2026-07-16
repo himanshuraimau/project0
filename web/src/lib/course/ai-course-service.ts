@@ -1,11 +1,11 @@
 import { generateText } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { aiGateway, AI_MODELS } from "../ai/gateway";
 import { jsonrepair } from "jsonrepair";
 import { prisma } from "../prisma";
 import type { Unit, UnitWithChapters, CourseStructure } from "../types/course.types";
 
-// Initialize the AI SDK model
-const model = openai("gpt-4o");
+// Initialize the AI SDK model (via Vercel AI Gateway)
+const model = aiGateway(AI_MODELS.course);
 
 interface OutputFormat {
   [key: string]: string | string[] | OutputFormat | OutputFormat[] | Record<string, any>;
@@ -220,7 +220,7 @@ export async function strict_output(
  * Similar pattern to the NoteService class
  */
 export class CourseService {
-  private model = openai("gpt-4o");
+  private model = aiGateway(AI_MODELS.course);
 
   /**
    * Generate course chapters based on a title and description

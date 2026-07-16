@@ -1,8 +1,6 @@
-import OpenAI from "openai";
+import { openaiAudio, AI_MODELS } from "../../ai/gateway";
 import { SourceError } from "../errors";
 import type { ParseResult } from "../types";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function parseAudioFromUrl(
   audioUrl: string,
@@ -31,9 +29,9 @@ export async function parseAudioFromUrl(
 
   let transcript: string;
   try {
-    const result = await openai.audio.transcriptions.create({
+    const result = await openaiAudio.audio.transcriptions.create({
       file: fileForApi,
-      model: "whisper-1",
+      model: AI_MODELS.transcription,
     });
     transcript = result.text;
   } catch (err) {
@@ -57,5 +55,5 @@ export async function parseAudioFromUrl(
     );
   }
 
-  return { text: transcript, metadata: { transcribedBy: "whisper-1" } };
+  return { text: transcript, metadata: { transcribedBy: AI_MODELS.transcription } };
 }

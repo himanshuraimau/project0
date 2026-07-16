@@ -4,7 +4,7 @@
  */
 
 import { generateText } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { aiGateway, AI_MODELS } from "../ai/gateway";
 
 const MAX_OUTPUT_CHARS = 4000; // Leave buffer for OpenAI TTS 4096 char limit
 
@@ -51,7 +51,7 @@ export async function generateVoiceTranscript(
     : `Convert the following notes into a narration script:\n\n${noteContent}`;
 
   const { text } = await generateText({
-    model: openai("gpt-5-mini"),
+    model: aiGateway(AI_MODELS.transcript),
     system: SYSTEM_PROMPT,
     prompt: userPrompt,
     maxOutputTokens: 2000,

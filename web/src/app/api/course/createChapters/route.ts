@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { openai } from "@ai-sdk/openai";
+import { aiGateway, AI_MODELS } from "@/lib/ai/gateway";
 import { generateObject } from "ai";
 import { getUnsplashImage } from "@/lib/course/unsplash";
 import { prisma } from "@/lib/prisma";
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     });
 
     const unitsResult = await generateObject({
-      model: openai("gpt-4o"),
+      model: aiGateway(AI_MODELS.course),
       schema: unitsSchema,
       prompt: `You are an AI capable of curating course content, coming up with relevant chapter titles, and finding relevant youtube videos for each chapter.
 
@@ -85,7 +85,7 @@ For each unit, create EXACTLY 2 chapters - no more, no less. Then, for each chap
     });
 
     const imageSearchResult = await generateObject({
-      model: openai("gpt-4o"),
+      model: aiGateway(AI_MODELS.course),
       schema: imageSearchSchema,
       prompt: `You are an AI capable of finding the most relevant image for a course.
 

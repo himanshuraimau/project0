@@ -4,7 +4,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
-import { openai } from '@ai-sdk/openai';
+import { aiGateway, AI_MODELS } from '@/lib/ai/gateway';
 import { generateText } from 'ai';
 
 // Supported languages (matching mobile app)
@@ -49,7 +49,7 @@ async function translateNoteToLanguage(
     }
 
     const targetLanguageName = SUPPORTED_LANGUAGES[targetLanguage];
-    const model = openai('gpt-4o');
+    const model = aiGateway(AI_MODELS.translation);
 
     console.log(`🔄 Translating note ${noteId} to ${targetLanguageName}...`);
 

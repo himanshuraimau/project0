@@ -1,17 +1,15 @@
 import { Pool } from 'pg';
 import { embed } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { aiGateway, AI_MODELS } from '@/lib/ai/gateway';
 
-// Constants - use the values from the .env file
-const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || 'text-embedding-3-small';
 // OpenAI text-embedding-3-small has 1536 dimensions by default
 const EMBEDDING_DIM = 1536; // The dimension we store in our database
 const CHUNK_SIZE = parseInt(process.env.CHUNK_SIZE || '1000', 10);
 const CHUNK_OVERLAP = parseInt(process.env.CHUNK_OVERLAP || '200', 10);
 
-// Check if OpenAI API key is available
-const openaiApiKey = process.env.OPENAI_API_KEY;
-const hasValidApiKey = openaiApiKey && openaiApiKey.length > 10;
+// Check if the AI Gateway API key is available
+const gatewayApiKey = process.env.AI_GATEWAY_API_KEY;
+const hasValidApiKey = gatewayApiKey && gatewayApiKey.length > 10;
 
 // Initialize PostgreSQL pool
 const pool = new Pool({
@@ -71,11 +69,11 @@ export function generateMockEmbeddings(count: number): number[][] {
  */
 export async function generateEmbeddings(chunks: string[]): Promise<number[][]> {
   try {
-    // If OpenAI API key is not available, use mock embeddings
+    // If the AI Gateway key is not available, use mock embeddings
     if (!hasValidApiKey) {
-      console.warn('⚠️ OPENAI_API_KEY not configured - using mock embeddings');
+      console.warn('⚠️ AI_GATEWAY_API_KEY not configured - using mock embeddings');
       console.warn('⚠️ Mock embeddings will NOT work for semantic search in chatbot!');
-      console.warn('⚠️ Please set OPENAI_API_KEY environment variable for production use');
+      console.warn('⚠️ Please set AI_GATEWAY_API_KEY environment variable for production use');
       return generateMockEmbeddings(chunks.length);
     }
 
@@ -85,7 +83,7 @@ export async function generateEmbeddings(chunks: string[]): Promise<number[][]> 
     for (let i = 0; i < chunks.length; i++) {
       try {
         const { embedding } = await embed({
-          model: openai.textEmbeddingModel(EMBEDDING_MODEL),
+          model: aiGateway.textEmbeddingModel(AI_MODELS.embedding),
           value: chunks[i],
         });
 
@@ -269,7 +267,7 @@ export async function querySimilarChunks(query: string, noteId?: string, topK: n
     if (hasValidApiKey) {
       try {
         const { embedding: queryEmbedding } = await embed({
-          model: openai.textEmbeddingModel(EMBEDDING_MODEL),
+          model: aiGateway.textEmbeddingModel(AI_MODELS.embedding),
           value: query,
         });
         embedding = queryEmbedding;

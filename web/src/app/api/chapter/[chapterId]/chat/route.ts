@@ -1,13 +1,10 @@
 import { NextRequest } from 'next/server';
-import { openai } from '@ai-sdk/openai';
 import { streamText } from 'ai';
+import { aiGateway, AI_MODELS } from '@/lib/ai/gateway';
 import { z } from 'zod';
 import { queryChapterSimilarChunks } from '@/lib/course/chapter-embedding-service';
 import { prisma } from '@/lib/prisma';
 import { getUserFromAuth } from '@/lib/auth-helper';
-
-// Environment variables
-const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
 
 // Validation schema for the request body
 const RequestSchema = z.object({
@@ -72,7 +69,7 @@ async function generateResponse(context: string, question: string, chapterName: 
   DO NOT make up information or hallucinate facts not present in the context.`;
 
   const result = await streamText({
-    model: openai(CHAT_MODEL),
+    model: aiGateway(AI_MODELS.chat),
     messages: [
       {
         role: 'system',

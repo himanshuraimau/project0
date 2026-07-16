@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { openai } from '@ai-sdk/openai';
+import { aiGateway, AI_MODELS } from '@/lib/ai/gateway';
 import { generateObject } from 'ai';
 import { prisma } from '@/lib/prisma';
 import { getUserFromAuth } from '@/lib/auth-helper';
@@ -82,7 +82,7 @@ export async function POST(
 
     // Generate flashcards using AI
     const result = await generateObject({
-      model: openai("gpt-4o"),
+      model: aiGateway(AI_MODELS.course),
       schema: flashcardSchema,
       prompt: `CHAPTER FLASHCARD MASTER & LEARNING ARCHITECT
 

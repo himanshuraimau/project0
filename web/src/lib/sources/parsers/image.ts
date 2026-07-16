@@ -1,22 +1,18 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";
+import { aiGateway, AI_MODELS } from "../../ai/gateway";
 import { SourceError } from "../errors";
 import type { ParseResult } from "../types";
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-});
-
-const model = google("gemini-2.5-flash");
+const model = aiGateway(AI_MODELS.ocr);
 
 export async function parseImageFromUrl(
   url: string,
   filename: string
 ): Promise<ParseResult> {
-  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+  if (!process.env.AI_GATEWAY_API_KEY) {
     throw new SourceError(
       "INTERNAL",
-      "Image OCR requires GOOGLE_GENERATIVE_AI_API_KEY."
+      "Image OCR requires AI_GATEWAY_API_KEY."
     );
   }
 
@@ -72,7 +68,7 @@ export async function parseImageFromUrl(
     return {
       text: cleaned,
       title: filename,
-      metadata: { ocrBy: "gemini-2.5-flash", mime },
+      metadata: { ocrBy: AI_MODELS.ocr, mime },
     };
   } catch (err) {
     if (err instanceof SourceError) throw err;

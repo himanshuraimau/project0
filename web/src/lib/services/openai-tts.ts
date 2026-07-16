@@ -1,9 +1,9 @@
 /**
- * OpenAI TTS Service
- * Text-to-speech using OpenAI's gpt-4o-mini-tts model
+ * TTS Service
+ * Text-to-speech using gpt-4o-mini-tts via the Vercel AI Gateway.
  */
 
-import OpenAI from 'openai';
+import { openaiAudio, AI_MODELS } from '@/lib/ai/gateway';
 
 interface TTSOptions {
     voice?: 'alloy' | 'ash' | 'coral' | 'echo' | 'fable' | 'onyx' | 'nova' | 'sage' | 'shimmer';
@@ -11,8 +11,6 @@ interface TTSOptions {
     speed?: number;
     responseFormat?: 'mp3' | 'opus' | 'aac' | 'flac' | 'wav' | 'pcm';
 }
-
-const openai = new OpenAI();
 
 /**
  * Generate speech audio from text using gpt-4o-mini-tts
@@ -32,8 +30,8 @@ export async function generateSpeechAudio(
         throw new Error(`Text exceeds 4,096 character limit (got ${text.length} characters)`);
     }
 
-    const response = await openai.audio.speech.create({
-        model: 'gpt-4o-mini-tts',
+    const response = await openaiAudio.audio.speech.create({
+        model: AI_MODELS.tts,
         input: text,
         voice: options.voice || 'coral',
         instructions: options.instructions || 'Speak in a warm, clear, and engaging tone like a podcast narrator. Pace yourself naturally with slight pauses between topics.',

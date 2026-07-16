@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { openai } from '@ai-sdk/openai';
+import { aiGateway, AI_MODELS } from '@/lib/ai/gateway';
 import { generateText } from 'ai';
 import { prisma } from '@/lib/prisma';
 import { getUserFromAuth } from '@/lib/auth-helper';
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     // Generate quiz using AI with simplified prompt
     const result = await generateText({
-      model: openai('gpt-4o-mini'),
+      model: aiGateway(AI_MODELS.quiz),
       prompt: `Create a quiz with exactly 20 questions from this content:
 
 CONTENT:
