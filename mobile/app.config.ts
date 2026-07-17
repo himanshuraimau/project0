@@ -15,7 +15,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ios: {
         supportsTablet: true,
         usesAppleSignIn: true,
-        buildNumber: "2",
+        buildNumber: "3",
         infoPlist: {
             UIViewControllerBasedStatusBarAppearance: false,
             UIStatusBarHidden: false,
