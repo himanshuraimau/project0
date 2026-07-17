@@ -56,7 +56,7 @@ async function signInWithAppleNative(): Promise<AppleSocialSignInResult> {
     provider: "apple",
     idToken: {
       token: credential.identityToken,
-      nonce: rawNonce,
+      nonce: hashedNonce,
     },
   });
 
