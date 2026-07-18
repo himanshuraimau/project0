@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { expo } from "@better-auth/expo";
-import { importPKCS8, SignJWT } from "jose";
+import { createRemoteJWKSet, decodeJwt, importPKCS8, jwtVerify, SignJWT } from "jose";
 import { prisma } from "./prisma";
 
 const appUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "";
@@ -43,12 +43,57 @@ async function generateAppleClientSecret() {
 
 const appleClientSecret = await generateAppleClientSecret();
 
+// better-auth's built-in verifyIdToken swallows every failure (bad audience, bad nonce,
+// expired token, JWKS fetch error) into the same generic `false` -> "Invalid token".
+// This mirrors its logic but logs the actual decoded claims and the specific check that
+// failed, so a rejected sign-in tells us *why* instead of just *that*.
+const appleJWKS = createRemoteJWKSet(new URL("https://appleid.apple.com/auth/keys"));
+
+async function verifyAppleIdTokenWithLogging(token: string, nonce?: string) {
+  const expectedAudience = process.env.APPLE_APP_BUNDLE_IDENTIFIER as string;
+
+  try {
+    const claims = decodeJwt(token);
+    console.log("[apple-verify] unverified claims:", {
+      aud: claims.aud,
+      iss: claims.iss,
+      nonce: claims.nonce,
+      exp: claims.exp,
+      expectedAudience,
+      expectedNonce: nonce,
+    });
+  } catch (err) {
+    console.error("[apple-verify] could not even decode token:", err);
+    return false;
+  }
+
+  try {
+    const { payload } = await jwtVerify(token, appleJWKS, {
+      issuer: "https://appleid.apple.com",
+      audience: expectedAudience,
+      maxTokenAge: "1h",
+    });
+
+    if (nonce && payload.nonce !== nonce) {
+      console.error("[apple-verify] NONCE MISMATCH", { expected: nonce, got: payload.nonce });
+      return false;
+    }
+
+    console.log("[apple-verify] verification succeeded");
+    return !!payload;
+  } catch (err) {
+    console.error("[apple-verify] jwtVerify rejected the token:", err);
+    return false;
+  }
+}
+
 const appleProvider =
   appleClientSecret && process.env.APPLE_CLIENT_ID && process.env.APPLE_APP_BUNDLE_IDENTIFIER
     ? {
         clientId: process.env.APPLE_CLIENT_ID as string,
         clientSecret: appleClientSecret,
         appBundleIdentifier: process.env.APPLE_APP_BUNDLE_IDENTIFIER as string,
+        verifyIdToken: verifyAppleIdTokenWithLogging,
       }
     : undefined;
 
