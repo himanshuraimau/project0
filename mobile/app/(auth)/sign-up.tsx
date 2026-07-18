@@ -2,6 +2,7 @@ import { AuthScreenShell } from '@/components/auth/AuthScreenShell'
 import { maybeCompleteAuthSessionOnce, signInWithGoogleSingleFlight } from '@/lib/auth/social-google'
 import { signInWithAppleSingleFlight } from '@/lib/auth/social-apple'
 import Constants from 'expo-constants'
+import { useRouter } from 'expo-router'
 import * as ExpoLinking from 'expo-linking'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -30,6 +31,7 @@ export default function SignUpScreen() {
   const c = theme.colors
   const t = theme.typography
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     void WebBrowser.warmUpAsync()
@@ -76,7 +78,9 @@ export default function SignUpScreen() {
       }
       const response = result.response
       if (response.data && !response.error) {
-        // Navigation handled by auth layout
+        // The native flow resolves the session directly with no deep-link redirect,
+        // so don't rely solely on the auth layout's reactive session watch to fire.
+        router.replace('/(home)' as any)
       } else {
         console.error('Apple OAuth failed', response.error)
         Alert.alert('Sign up failed', response.error?.message ?? 'Something went wrong. Try again.')

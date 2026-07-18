@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Star, TrendingUp, ArrowDown } from "lucide-react-native";
 import * as WebBrowser from "expo-web-browser";
 import Constants from "expo-constants";
+import { useRouter } from "expo-router";
 import * as ExpoLinking from "expo-linking";
 import { useTheme } from "@/lib/hooks/useTheme";
 import { brand, neutral } from "@/lib/design-system";
@@ -64,6 +65,7 @@ export default function WelcomeScreen() {
   const [ctaScale, ctaPressIn, ctaPressOut] = usePressScale();
   const [loading, setLoading] = useState(false);
   const [isApple, setIsApple] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     void WebBrowser.warmUpAsync();
@@ -115,7 +117,9 @@ export default function WelcomeScreen() {
       if (result.skipped) return;
       const response = result.response;
       if (response.data && !response.error) {
-        // Navigation handled by auth layout
+        // The native flow resolves the session directly with no deep-link redirect,
+        // so don't rely solely on the auth layout's reactive session watch to fire.
+        router.replace("/(home)" as any);
       } else {
         Alert.alert(
           "Sign in failed",
